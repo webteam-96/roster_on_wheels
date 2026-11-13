@@ -12,6 +12,10 @@ import type {
   FoundationGoalListResponse, FoundationGoalDto, FoundationGoalYearRow,
 } from "@/types/clubAdminDashboard";
 
+import { useAuth } from "@/contexts/AuthContext";
+import { clubYearRights, canEditYear, heldYearLabels } from "@/lib/adminYears";
+import ViewOnlyBadge from "@/components/ViewOnlyBadge";
+
 import { currencySymbol } from "@/lib/appFormat";
 type FormState = {
   apf: string;
@@ -88,7 +92,16 @@ export default function FoundationGoalsCard() {
   }, [selectedYearId]);
 
   const selection = data?.currentSelection ?? null;
-  const isEditable = !!selection?.isEditable;
+  // Foundation goals are per Rotary year (club_foundation_collection_goals), so
+  // saving one needs rights for the year selected in this card — on top of the
+  // server's own "past years are read-only" rule that isEditable already carries.
+  const { user, isSuperAdmin, selectedClubId } = useAuth();
+  const foundationRights = useMemo(
+    () => clubYearRights(user?.scopedRoles, selectedClubId ?? 0), [user?.scopedRoles, selectedClubId]);
+  const hasYearRights = canEditYear(foundationRights, selectedYearId ?? undefined, isSuperAdmin);
+  const editableYears = heldYearLabels(
+    foundationRights, (data?.years ?? []).map((y) => ({ id: y.yearId, label: y.yearLabel })));
+  const isEditable = !!selection?.isEditable && hasYearRights;
   const yearLabel  = selection?.yearLabel || "–";
 
   const totalGoal = useMemo(() => {

@@ -57,6 +57,9 @@ import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
 import { useSyncClubIdFromUrl } from "@/hooks/useSyncClubIdFromUrl";
+import { useAuth } from "@/contexts/AuthContext";
+import { clubYearRights, canEditYear } from "@/lib/adminYears";
+import ViewOnlyBadge from "@/components/ViewOnlyBadge";
 
 import { appLocale } from "@/lib/appFormat";
 import { formatMoney } from "@/lib/currency";
@@ -122,6 +125,12 @@ export function OcvCategoryV2View({
   const inboundReturnTo = propReturnTo ?? searchParams.get("returnTo");
 
   const isDues = categoryCode === "dues";
+
+  // Documents are filed against a Rotary year, so uploading, editing or deleting
+  // one needs rights for THAT year. Viewing and downloading never do.
+  const { user, isSuperAdmin } = useAuth();
+  const yearRights = useMemo(() => clubYearRights(user?.scopedRoles, clubId), [user?.scopedRoles, clubId]);
+  const canManage = canEditYear(yearRights, yearId, isSuperAdmin);
 
   const backHref = inboundReturnTo || `/clubs/${clubId}/ocv-gov/v2`;
   const visual = CATEGORY_VISUAL[categoryCode] ?? CATEGORY_VISUAL.additional_documents;
@@ -350,6 +359,10 @@ export function OcvCategoryV2View({
 
   const body = (
       <div className="space-y-5">
+        {!canManage && yearId > 0 && (
+          <ViewOnlyBadge editableYears={[]} />
+        )}
+
         {/* Header */}
         <div className="flex items-start justify-between gap-3 flex-wrap">
           <div className="flex items-start gap-2 min-w-0">
@@ -371,7 +384,11 @@ export function OcvCategoryV2View({
                   {category?.categoryName || "Loading…"}
                 </h1>
               </div>
-              <p className="text-xs text-slate-500 mt-1">Upload and manage documents for this section.</p>
+              <p className="text-xs text-slate-500 mt-1">
+                {canManage
+                  ? "Upload and manage documents for this section."
+                  : "Documents filed under this section. Open or download any of them."}
+              </p>
             </div>
           </div>
         </div>
@@ -410,8 +427,8 @@ export function OcvCategoryV2View({
           </div>
         )}
 
-        {/* Upload card */}
-        {!loading && category && (
+        {/* Upload card — only for a year this member may file into. */}
+        {!loading && category && canManage && (
           <div className={`bg-white rounded-2xl border border-slate-200 overflow-hidden`}>
             <div className={`px-5 py-3 border-b border-slate-100 ${visual.tint}`}>
               <h2 className="text-sm font-semibold text-slate-800">Upload a document</h2>
@@ -598,22 +615,26 @@ export function OcvCategoryV2View({
                             >
                               <Download size={13} />
                             </button>
-                            <button
-                              type="button"
-                              onClick={() => openEdit(doc)}
-                              title="Edit"
-                              className="inline-flex items-center justify-center w-7 h-7 rounded text-slate-500 hover:text-blue-700 hover:bg-blue-50"
-                            >
-                              <Edit3 size={13} />
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => setDeleteTarget(doc)}
-                              title="Delete"
-                              className="inline-flex items-center justify-center w-7 h-7 rounded text-slate-400 hover:text-rose-700 hover:bg-rose-50"
-                            >
-                              <Trash2 size={13} />
-                            </button>
+                            {canManage && (
+                              <button
+                                type="button"
+                                onClick={() => openEdit(doc)}
+                                title="Edit"
+                                className="inline-flex items-center justify-center w-7 h-7 rounded text-slate-500 hover:text-blue-700 hover:bg-blue-50"
+                              >
+                                <Edit3 size={13} />
+                              </button>
+                            )}
+                            {canManage && (
+                              <button
+                                type="button"
+                                onClick={() => setDeleteTarget(doc)}
+                                title="Delete"
+                                className="inline-flex items-center justify-center w-7 h-7 rounded text-slate-400 hover:text-rose-700 hover:bg-rose-50"
+                              >
+                                <Trash2 size={13} />
+                              </button>
+                            )}
                           </div>
                         </td>
                       </tr>

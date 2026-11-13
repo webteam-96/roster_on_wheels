@@ -25,7 +25,7 @@ import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   Users, UserPlus, UserMinus, Loader2,
-  Search, User, MoreHorizontal, ShieldCheck, ShieldOff, X,
+  Search, User, MoreHorizontal, ShieldCheck, ShieldOff, X, Eye,
 } from "@/components/icons";
 import { useDistrictAdminCache } from "@/contexts/DistrictAdminDashboardCacheContext";
 import { useAuth } from "@/contexts/AuthContext";
@@ -52,6 +52,10 @@ import {
   getDistrictMembers, getPhotoUrl,
   assignDistrictAdmin, removeDistrictAdmin, assignDistrictAdminByDistrictAdmin,
 } from "@/services/api";
+import AdminYearsDialog from "@/components/AdminYearsDialog";
+import ViewOnlyBadge from "@/components/ViewOnlyBadge";
+import { districtYearRights, canEditYearless } from "@/lib/adminYears";
+import { useRotaryYears } from "@/hooks/useRotaryYears";
 import { ListPageSkeleton, SkeletonRows } from "@/components/row/AppKit";
 
 // -----------------------------------------------------------------------------
@@ -145,6 +149,23 @@ export default function DistrictAdminMembershipPage() {
   const isDistrictAdmin = (user?.scopedRoles ?? []).some(
     (r) => r.roleName === "Admin" && r.scope === "district",
   );
+  // ── YWAR-DISTRICT-DIRECTORY-REMOVE-ADMIN ────────────────────────────────
+  // Remove Admin is guarded server-side by AdminYearGuard.DistrictYearlessAsync
+  // (DistrictModulesController RemoveDistrictAdmin), so it needs CURRENT-year
+  // district rights — a 2025-26 admin was offered the button and then told
+  // "changing it needs admin rights for the current Rotary year".
+  //
+  // ⚠️ Make Admin is deliberately NOT gated the same way. Its server route
+  // (AssignDistrictAdmin) carries no year-less guard on purpose — the years
+  // BEING GRANTED decide, clamped to the ones the caller holds, so a past-year
+  // admin is meant to appoint for their own year. Hiding it here would take
+  // away something that works.
+  //
+  // `unknown` (an older API that sends no year data) and allYears ride through
+  // canEditYearless — silence must never read as a lockout.
+  const { years: rotaryYears, currentYearId: currentRotaryYearId } = useRotaryYears();
+  const currentRotaryYearLabel =
+    rotaryYears.find((y) => y.id === currentRotaryYearId)?.yearLabel ?? "";
   const router = useRouter();
   const searchParams = useSearchParams();
   const currentYearId = searchParams.get("yearId");
@@ -178,6 +199,13 @@ export default function DistrictAdminMembershipPage() {
   const ext = data as unknown as ExtendedMembership | undefined;
   const districtIdForApi = selectedDistrictId ?? data?.district.districtId ?? 0;
 
+  // See YWAR-DISTRICT-DIRECTORY-REMOVE-ADMIN above. Keyed off districtIdForApi,
+  // NOT selectedDistrictId — that is null for a SuperAdmin whose district comes
+  // from the cached payload, and reading rights for district 0 would hide the
+  // action from someone who holds it.
+  const districtRights = districtYearRights(user?.scopedRoles, districtIdForApi);
+  const canRemoveAdmin = canEditYearless(districtRights, currentRotaryYearId, isSuperAdmin);
+
   const fetchDirectory = useCallback(async (pageNum: number, search: string) => {
     if (!districtIdForApi) return;
     setDirLoading(true);
@@ -198,6 +226,11 @@ export default function DistrictAdminMembershipPage() {
   }, [districtIdForApi, activeTab, dirData, fetchDirectory]);
 
   // ── Early returns — AFTER all hooks above (Rules of Hooks) ──────────────
+  // District admin rights are per Rotary year — pick them before promoting.
+  // ⚠️ Must sit above EVERY early return below: a hook has to run on each
+  // render, or React counts a different number once the data arrives.
+  const [adminYearTarget, setAdminYearTarget] = useState<{ id: number; name: string } | null>(null);
+
   if (status === "loading" && !membership) {
     return (
       <SkeletonRows />
@@ -234,17 +267,29 @@ export default function DistrictAdminMembershipPage() {
   const dirItems = dirData?.items ?? [];
   const dirFiltered = dirItems;
 
-  const handleMakeAdmin = async (memberId: number, memberName: string) => {
+  const handleMakeAdmin = (memberId: number, memberName: string) => {
+    setAdminYearTarget({ id: memberId, name: memberName });
+  };
+
+  const handleConfirmAdminYears = async (picked: { yearIds: number[]; allYears: boolean }) => {
+    if (!adminYearTarget) return;
+    const { id: memberId, name: memberName } = adminYearTarget;
     setRoleLoading(memberId);
     try {
       // Use the district-admin-scoped endpoint — it authorizes both SuperAdmin and a
       // District Admin of this district, and NEVER grants club access (that stays
       // SuperAdmin-only via the district directory toggle).
-      await assignDistrictAdminByDistrictAdmin(districtIdForApi, memberId);
-      setSuccessMessage(`${memberName} has been made District Admin.`);
+      await assignDistrictAdminByDistrictAdmin(districtIdForApi, memberId, picked);
+      setAdminYearTarget(null);
+      setSuccessMessage(
+        picked.allYears
+          ? `${memberName} has been made District Admin for all Rotary years.`
+          : `${memberName} has been made District Admin for ${picked.yearIds.length} Rotary year${picked.yearIds.length === 1 ? "" : "s"}.`
+      );
       fetchDirectory(dirPage, dirSearch);
     } catch (err: any) {
       setErrorMessage(err?.response?.data?.message || err?.response?.data || "Failed to assign District Admin role.");
+      throw err;   // keeps the dialog open with the reason
     } finally {
       setRoleLoading(null);
     }
@@ -336,6 +381,16 @@ export default function DistrictAdminMembershipPage() {
                 color="red"
               />
             </div>
+
+            {/* YWAR-DISTRICT-DIRECTORY-REMOVE-ADMIN — says why Remove Admin is gone.
+                Shown only to someone who would otherwise have had it: without this
+                the row's menu just disappears and the page looks broken. */}
+            {(isSuperAdmin || isDistrictAdmin) && !canRemoveAdmin && (
+              <ViewOnlyBadge
+                currentYearOnly={currentRotaryYearLabel}
+                currentYearOnlyActions="remove an admin, or add, edit and delete"
+              />
+            )}
 
             {/* Search bar — dashboard palette (slate wrapper, navy button) */}
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center bg-slate-50 p-4 rounded-2xl border border-slate-200">
@@ -452,8 +507,26 @@ export default function DistrictAdminMembershipPage() {
                                 })()}
                               </div>
                             </TableCell>
-                            <TableCell onClick={(e) => e.stopPropagation()}>
-                              {(isSuperAdmin || isDistrictAdmin) && (
+                            <TableCell className="w-24 text-right" onClick={(e) => e.stopPropagation()}>
+                              <div className="inline-flex items-center gap-1.5">
+                              {/* View (eye) — ALWAYS shown, outside every permission gate,
+                                  mirroring the club Directory tab. The whole row already
+                                  opens this dialog, but the cell stops propagation, so
+                                  without a button of its own the Actions column rendered
+                                  empty for a past-year admin and read as broken. */}
+                              <button
+                                type="button"
+                                onClick={() => setDetailMemberId(member.id)}
+                                aria-label={`View details for ${member.memberName}`}
+                                className="inline-flex items-center justify-center w-8 h-8 rounded-lg border border-slate-200 text-slate-500 hover:bg-blue-50 hover:text-blue-600 hover:border-blue-200 transition-colors"
+                              >
+                                <Eye size={15} />
+                              </button>
+                              {/* YWAR-DISTRICT-DIRECTORY-REMOVE-ADMIN — the menu holds
+                                  exactly one item, so when Remove Admin is hidden the
+                                  trigger goes with it rather than opening empty. */}
+                              {(isSuperAdmin || isDistrictAdmin) &&
+                               (member.hasDistrictAdminRole ? canRemoveAdmin : true) && (
                                 <DropdownMenu>
                                   <DropdownMenuTrigger asChild>
                                     <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-500 hover:text-slate-800 hover:bg-slate-100">
@@ -475,6 +548,7 @@ export default function DistrictAdminMembershipPage() {
                                   </DropdownMenuContent>
                                 </DropdownMenu>
                               )}
+                              </div>
                             </TableCell>
                           </TableRow>
                         );
@@ -497,6 +571,18 @@ export default function DistrictAdminMembershipPage() {
       <SuccessAlert open={!!successMessage} title="Success" description={successMessage || ""} onOk={() => setSuccessMessage(null)} />
       <ErrorAlert open={!!errorMessage} title="Error" description={errorMessage || ""} onOk={() => setErrorMessage(null)} />
       <MemberDetailDialog memberId={detailMemberId} open={detailMemberId !== null} onClose={() => setDetailMemberId(null)} />
+
+      {adminYearTarget && (
+        <AdminYearsDialog
+          open
+          scope={{ kind: "district", districtId: districtIdForApi }}
+          memberId={adminYearTarget.id}
+          memberName={adminYearTarget.name}
+          confirmLabel="Make District Admin"
+          onCancel={() => setAdminYearTarget(null)}
+          onConfirm={handleConfirmAdminYears}
+        />
+      )}
     </div>
   );
 }

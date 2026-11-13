@@ -1,5 +1,7 @@
 "use client";
 
+import { sameAddressType, onePerAddressType, isHomeAddressType } from "@/lib/memberAddress";
+import TshirtSizeSelect from "@/components/TshirtSizeSelect";
 import { useState, useEffect } from "react";
 import DateField from "@/components/DateField";
 import { useBrand, useFeature } from "@/contexts/BrandContext";
@@ -90,7 +92,7 @@ const emptyFamilyMember: Omit<FamilyMember, "id" | "fkMemberMasterProfileId"> = 
 };
 
 const emptyResidentialAddress: Partial<MemberAddress> = {
-  addressType: "Residential",
+  addressType: "Residence",
   fkCountryId: 0,
   country: "",
   countryPhoneCode: "",
@@ -172,7 +174,7 @@ function formatDateForInput(date: string | null | undefined): string {
 }
 
 function getAddress(addresses: MemberAddress[] | undefined, type: string): MemberAddress | undefined {
-  return addresses?.find((a) => a.addressType === type);
+  return addresses?.find((a) => sameAddressType(a.addressType, type));
 }
 
 export default function MemberForm({
@@ -266,7 +268,7 @@ export default function MemberForm({
 
   const updateAddress = (type: "Residential" | "Business", field: string, value: unknown) => {
     const addresses = [...(formData.addresses || [])] as MemberAddress[];
-    const idx = addresses.findIndex((a) => a.addressType === type);
+    const idx = addresses.findIndex((a) => sameAddressType(a.addressType, type));
     if (idx >= 0) {
       addresses[idx] = { ...addresses[idx], [field]: value };
     } else {
@@ -280,7 +282,7 @@ export default function MemberForm({
     const id = parseInt(countryId);
     const country = countries.find((c) => c.id === id);
     const addresses = [...(formData.addresses || [])] as MemberAddress[];
-    const idx = addresses.findIndex((a) => a.addressType === type);
+    const idx = addresses.findIndex((a) => sameAddressType(a.addressType, type));
     if (idx >= 0) {
       addresses[idx] = {
         ...addresses[idx],
@@ -361,8 +363,9 @@ export default function MemberForm({
       // Filter out empty addresses before submitting
       const submissionData = { ...formData };
       if (submissionData.addresses) {
-        submissionData.addresses = submissionData.addresses.filter((a) => {
-          if (a.addressType === "Residential") {
+        // One home + one Business row only (upstream 2026-11-02).
+        submissionData.addresses = onePerAddressType(submissionData.addresses).filter((a) => {
+          if (isHomeAddressType(a.addressType)) {
             return a.address || a.city || a.state || a.phoneNumber || a.pinCode;
           }
           return a.businessName || a.address || a.city || a.state;
@@ -652,6 +655,12 @@ export default function MemberForm({
                   />
                 </div>
                 {showBloodGroup && renderSelect("bloodGroup", "Blood Group", BLOOD_GROUPS)}
+                <div className="space-y-2">
+                  <Label className="text-sm font-semibold text-foreground">T-Shirt Size</Label>
+                  <TshirtSizeSelect value={formData.tshirtSizeId} currentName={formData.tshirtSize}
+                    onChange={(v) => updateField("tshirtSizeId", v ?? 0)}
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm" />
+                </div>
                 {renderSelect("gender", "Gender", GENDERS)}
                 {renderSelect("primaryLanguage", "Primary Language", LANGUAGES)}
                 {renderCountrySelect("fkSecondaryCountryId", "Secondary Country")}

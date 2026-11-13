@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, useCallback, Fragment } from "react";
+import { useEffect, useRef, useState, useCallback, Fragment, useMemo } from "react";
 import dynamic from "next/dynamic";
 import "react-quill-new/dist/quill.snow.css";
 import { getClubDuesMyDistrict, getClubDuesContent, updateClubDuesContent, getClubDuesClubs, approveClubDuesPayment, getClubDuesOfflineDetails, sendClubDuesTestEmail, sendClubDuesReminder, bulkClubDuesReminder, clubDuesAssetUrl, recordClubDuesOffline, getClubDuesOfflineAccounts, ClubDuesOfflineAccountOption } from "@/services/api";
@@ -14,6 +14,9 @@ import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
 import AlertModal from "@/components/AlertModal";
 import { useAuth } from "@/contexts/AuthContext";
+import { districtYearRights, canEditYear, yearIdForLabel, heldYearLabels } from "@/lib/adminYears";
+import { useRotaryYears } from "@/hooks/useRotaryYears";
+import ViewOnlyBadge from "@/components/ViewOnlyBadge";
 import { Upload, X, RefreshCw, Bell, FileText, Send } from "@/components/icons";
 import EmailTokenChips, { CLUB_DUES_RECEIPT_TOKENS, CLUB_DUES_REMINDER_TOKENS } from "@/components/club-dues/EmailTokenChips";
 
@@ -76,9 +79,23 @@ export default function DistrictAdminClubDuesPage() {
     },
   }).current;
 
-  const { selectedDistrictId } = useAuth();
+  const { selectedDistrictId, user, isSuperAdmin } = useAuth();
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [selectedId, setSelectedId] = useState<number | null>(null);
+
+  // A dues campaign carries its Rotary year as a LABEL ("2026-27"), not an id —
+  // so resolve it the same way the server does before deciding.
+  const { years } = useRotaryYears();
+  const duesYearRights = useMemo(
+    () => districtYearRights(user?.scopedRoles, selectedDistrictId ?? 0),
+    [user?.scopedRoles, selectedDistrictId]);
+  const editableYears = heldYearLabels(duesYearRights, years.map((y) => ({ id: y.id, label: y.yearLabel })));
+
+  // The selected campaign's year decides. No campaign selected yet -> nothing to
+  // edit, so treat as not-editable rather than defaulting to allowed.
+  const selectedCampaign = campaigns.find((c) => c.id === selectedId);
+  const canManage = isSuperAdmin || canEditYear(
+    duesYearRights, yearIdForLabel(selectedCampaign?.rotaryYear, years), isSuperAdmin);
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState<"clubs" | "content">("clubs");
   const [success, setSuccess] = useState<string | null>(null);
@@ -219,6 +236,14 @@ export default function DistrictAdminClubDuesPage() {
 
   return (
     <div className="space-y-5">
+      {!canManage && selectedId != null && (
+        <ViewOnlyBadge
+          yearLabel={selectedCampaign?.rotaryYear}
+          editableYears={editableYears}
+          className="mb-4"
+        />
+      )}
+
       <div>
         <h2 className="text-2xl font-bold tracking-tight text-primary">District Dues</h2>
         <p className="text-muted-foreground text-base">Track which clubs have paid, approve offline payments, and edit the branding &amp; email content for your district&apos;s dues.</p>
@@ -256,7 +281,7 @@ export default function DistrictAdminClubDuesPage() {
           </div>
 
           {tab === "clubs" ? (
-            selectedId != null && <ClubsSection duesId={selectedId} onSuccess={setSuccess} onError={setError} />
+            selectedId != null && <ClubsSection duesId={selectedId} canManage={canManage} onSuccess={setSuccess} onError={setError} />
           ) : loadingContent ? (
             <div className="flex justify-center py-16"><ListPageSkeleton /></div>
           ) : (
@@ -316,10 +341,10 @@ export default function DistrictAdminClubDuesPage() {
                     <p className="text-xs text-muted-foreground">Uses the text above with sample values.</p>
                     <div className="flex flex-wrap items-center gap-2">
                       <Input type="email" className="max-w-xs" placeholder="you@example.com" value={testEmail} onChange={(e) => setTestEmail(e.target.value)} />
-                      <Button type="button" variant="outline" size="sm" disabled={testBusy !== null} onClick={() => sendTest("reminder")}>
+                      <Button type="button" variant="outline" size="sm" disabled={testBusy !== null || !canManage} onClick={() => sendTest("reminder")}>
                         {testBusy === "reminder" && <RotaryLoader size="sm" />}Test reminder
                       </Button>
-                      <Button type="button" variant="outline" size="sm" disabled={testBusy !== null} onClick={() => sendTest("receipt")}>
+                      <Button type="button" variant="outline" size="sm" disabled={testBusy !== null || !canManage} onClick={() => sendTest("receipt")}>
                         {testBusy === "receipt" && <RotaryLoader size="sm" />}Test thank-you
                       </Button>
                     </div>
@@ -329,7 +354,9 @@ export default function DistrictAdminClubDuesPage() {
               </Card>
 
               <div className="flex justify-end">
-                <Button onClick={save} disabled={saving}>{saving && <RotaryLoader size="sm" />}Save changes</Button>
+                {canManage && (
+                  <Button onClick={save} disabled={saving}>{saving && <RotaryLoader size="sm" />}Save changes</Button>
+                )}
               </div>
             </>
           )}
@@ -342,7 +369,7 @@ export default function DistrictAdminClubDuesPage() {
   );
 }
 
-function ClubsSection({ duesId, onSuccess, onError }: { duesId: number; onSuccess: (m: string) => void; onError: (m: string) => void }) {
+function ClubsSection({ duesId, canManage, onSuccess, onError }: { duesId: number; canManage: boolean; onSuccess: (m: string) => void; onError: (m: string) => void }) {
   const [rows, setRows] = useState<ClubRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState("all");
@@ -447,7 +474,7 @@ function ClubsSection({ duesId, onSuccess, onError }: { duesId: number; onSucces
           <FileText className="mr-2 h-4 w-4" />Report
         </Button>
         <div className="flex-1" />
-        <Button variant="outline" size="sm" onClick={() => setBulkConfirmChannel("email")} disabled={bulkBusy !== null}>
+        <Button variant="outline" size="sm" onClick={() => setBulkConfirmChannel("email")} disabled={bulkBusy !== null || !canManage}>
           {bulkBusy === "email" ? <RotaryLoader size="sm" /> : <Bell className="mr-2 h-4 w-4" />}Email all
         </Button>
       </div>
@@ -557,9 +584,9 @@ function ClubsSection({ duesId, onSuccess, onError }: { duesId: number; onSucces
                   <td className="p-3">{r.status}</td>
                   <td className="p-3">
                     <div className="flex items-center gap-1">
-                      {r.hasPendingApproval && <Button size="sm" onClick={() => setApproveFor(r)}>Review</Button>}
-                      <Button size="sm" variant="outline" disabled={r.status === "Fully Paid"} onClick={() => setOfflineFor(r)}>Offline</Button>
-                      <Button size="sm" variant="ghost" title="Send email reminder" disabled={rowBusy === `${r.fkClubId}-email`} onClick={() => emailClub(r)}>
+                      {r.hasPendingApproval && canManage && <Button size="sm" onClick={() => setApproveFor(r)}>Review</Button>}
+                      {canManage && <Button size="sm" variant="outline" disabled={r.status === "Fully Paid"} onClick={() => setOfflineFor(r)}>Offline</Button>}
+                      <Button size="sm" variant="ghost" title="Send email reminder" disabled={rowBusy === `${r.fkClubId}-email` || !canManage} onClick={() => emailClub(r)}>
                         {rowBusy === `${r.fkClubId}-email` ? <RotaryLoader size="sm" /> : <Bell className="h-4 w-4" />}
                       </Button>
                     </div>

@@ -3,6 +3,10 @@
 import { AuthProvider } from "@/contexts/AuthContext";
 import { BrandProvider } from "@/contexts/BrandContext";
 import { IconContext } from "@phosphor-icons/react";
+import Link from "next/link";
+import { Theme } from "@astryxdesign/core/theme";
+import { LinkProvider } from "@astryxdesign/core/Link";
+import { fellowshipTheme } from "@/astryx/fellowshipTheme";
 import { IntlProvider } from "@/i18n/IntlProvider";
 import LiveTranslate from "@/i18n/LiveTranslate";
 import LoginAnnouncementPopup from "@/components/LoginAnnouncementPopup";
@@ -10,11 +14,14 @@ import ConsentGate from "@/components/privacy/ConsentGate";
 
 // Order matters: translation reads the brand (languages, product name) and sits
 // outside AuthProvider so the sign-in pages are translated too.
+// Astryx components (src/components/ui) take the ROW Fellowship theme; Astryx links navigate with next/link.
 // Icon defaults: Lucide's 24px box, and Phosphor's bold weight (closest to the website's 2.6 line icons).
 const ICON_DEFAULTS = { size: 24, weight: "bold" as const };
 
 export default function ClientProviders({ children }: { children: React.ReactNode }) {
   return (
+    <Theme theme={fellowshipTheme}>
+    <LinkProvider component={Link}>
     <IconContext.Provider value={ICON_DEFAULTS}>
     <BrandProvider>
       <IntlProvider>
@@ -27,5 +34,7 @@ export default function ClientProviders({ children }: { children: React.ReactNod
       </IntlProvider>
     </BrandProvider>
     </IconContext.Provider>
+    </LinkProvider>
+    </Theme>
   );
 }

@@ -261,9 +261,9 @@ public class ClubAdminDashboardController : ControllerBase
 
             // Read the Rotary.org club id (string in our DB; int at Rotary.org)
             // plus the club type string ("Rotary Club" / "Rotaract Club" / etc.).
-            var meta = await conn.QueryFirstOrDefaultAsync<(string? clubRotaryId, string? clubType, string? clubName)>(@"
+            var meta = await conn.QueryFirstOrDefaultAsync<(string? clubRotaryId, string? clubType, string? clubName)>($@"
                 SELECT ClubRotaryId AS clubRotaryId, ClubType AS clubType, ClubName AS clubName
-                FROM club_master WHERE pk_club_id = @Id AND isdeleted = 0 LIMIT 1",
+                FROM club_master WHERE pk_club_id = @Id AND isdeleted = 0 AND {HierarchyScopeSql.ClubLive("club_master")} LIMIT 1",
                 new { Id = resolvedClubId });
             if (string.IsNullOrWhiteSpace(meta.clubRotaryId) || !int.TryParse(meta.clubRotaryId, out var rotaryOrgClubId))
             {

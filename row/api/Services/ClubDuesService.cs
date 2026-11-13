@@ -49,14 +49,14 @@ public class ClubDuesService : IClubDuesService
         var sql = @"
             SELECT cd.pk_club_dues_id AS Id, d.DistrictNumber, cd.RotaryYear, cd.Purpose,
                    cd.DefaultPerMemberRate,
-                   (SELECT COUNT(*) FROM club_dues_clubs cc WHERE cc.fk_club_dues_id = cd.pk_club_dues_id AND cc.isdeleted = 0) AS ClubCount,
-                   (SELECT COUNT(*) FROM club_dues_members cm WHERE cm.fk_club_dues_id = cd.pk_club_dues_id AND cm.isdeleted = 0 AND cm.IsHonorary = 0) AS MemberCount,
-                   (SELECT COUNT(*) FROM club_dues_members cm WHERE cm.fk_club_dues_id = cd.pk_club_dues_id AND cm.isdeleted = 0 AND cm.IsHonorary = 0 AND cm.IsPaid = 1) AS PaidMemberCount,
+                   (SELECT COUNT(*) FROM club_dues_clubs cc WHERE cc.fk_club_dues_id = cd.pk_club_dues_id AND cc.isdeleted = 0 AND " + HierarchyScopeSql.ClubIdLive("cc.fk_club_id") + @") AS ClubCount,
+                   (SELECT COUNT(*) FROM club_dues_members cm WHERE cm.fk_club_dues_id = cd.pk_club_dues_id AND cm.isdeleted = 0 AND cm.IsHonorary = 0 AND " + HierarchyScopeSql.ClubIdLive("cm.fk_club_id") + @") AS MemberCount,
+                   (SELECT COUNT(*) FROM club_dues_members cm WHERE cm.fk_club_dues_id = cd.pk_club_dues_id AND cm.isdeleted = 0 AND cm.IsHonorary = 0 AND cm.IsPaid = 1 AND " + HierarchyScopeSql.ClubIdLive("cm.fk_club_id") + @") AS PaidMemberCount,
                    (SELECT COALESCE(SUM(p.Amount),0) FROM club_dues_payments p WHERE p.fk_club_dues_id = cd.pk_club_dues_id AND p.IsPaid = 1 AND p.isdeleted = 0) AS CollectedAmount,
                    cd.IsActive, cd.WeblinkUrl, cd.GoogleSheetId, cd.GoogleSheetUrl, cd.created_date AS CreatedDate
             FROM club_dues cd
             LEFT JOIN district_master d ON cd.fk_district_id = d.pk_district_id
-            WHERE cd.isdeleted = 0
+            WHERE cd.isdeleted = 0 AND " + HierarchyScopeSql.DistrictIdLive("cd.fk_district_id") + @"
               AND (@DistrictId IS NULL OR cd.fk_district_id = @DistrictId)
               AND (@Year IS NULL OR @Year = '' OR cd.RotaryYear = @Year)
               AND (@Search IS NULL OR @Search = '' OR cd.Purpose LIKE CONCAT('%',@Search,'%') OR d.DistrictNumber LIKE CONCAT('%',@Search,'%'))
@@ -520,7 +520,7 @@ public class ClubDuesService : IClubDuesService
                    EXISTS(SELECT 1 FROM club_dues_payments p WHERE p.fk_club_dues_id=cc.fk_club_dues_id AND p.fk_club_id=cc.fk_club_id AND p.IsPaid=1 AND p.IsOnline=1 AND p.isdeleted=0) AS HasOnlinePaid
             FROM club_dues_clubs cc
             JOIN club_master c ON c.pk_club_id = cc.fk_club_id
-            WHERE cc.fk_club_dues_id=@DuesId AND cc.isdeleted=0
+            WHERE cc.fk_club_dues_id=@DuesId AND cc.isdeleted=0 AND " + HierarchyScopeSql.ClubLive("c") + @"
               AND COALESCE(c.ClubType,'') <> 'Rotaract Club'   -- user 2026-10-08: Rotaract clubs never listed
               AND (@Search IS NULL OR @Search='' OR c.ClubName LIKE CONCAT('%',@Search,'%'))
               AND (@IncludeNonSynced = 1 OR COALESCE(c.IsSyncedFromRotaryOrg,0) = 1)
@@ -1470,7 +1470,7 @@ own separate approval request.</p>
         using var conn = GetConnection();
         var clubIds = (await conn.QueryAsync<int>(@"
             SELECT cc.fk_club_id FROM club_dues_clubs cc
-            WHERE cc.fk_club_dues_id=@DuesId AND cc.isdeleted=0
+            WHERE cc.fk_club_dues_id=@DuesId AND cc.isdeleted=0 AND " + HierarchyScopeSql.ClubIdLive("cc.fk_club_id") + @"
               AND (SELECT COUNT(*) FROM club_dues_members m WHERE m.fk_club_dues_id=cc.fk_club_dues_id AND m.fk_club_id=cc.fk_club_id AND m.isdeleted=0 AND m.IsHonorary=0 AND m.IsPaid=0) > 0",
             new { DuesId = duesId })).ToList();
         foreach (var clubId in clubIds)
@@ -1637,7 +1637,7 @@ own separate approval request.</p>
             FROM club_dues cd
             LEFT JOIN district_master d ON cd.fk_district_id = d.pk_district_id
             LEFT JOIN club_master c ON c.pk_club_id = @ClubId
-            WHERE cd.pk_club_dues_id=@DuesId AND cd.isdeleted=0", new { DuesId = duesId, ClubId = clubId });
+            WHERE cd.pk_club_dues_id=@DuesId AND cd.isdeleted=0 AND " + HierarchyScopeSql.ClubIdLive("@ClubId"), new { DuesId = duesId, ClubId = clubId });
         if (dto == null) return null;
         var rates = await GetClubRatesAsync(conn, duesId, clubId);
         dto.PerMemberRate = rates.OfflineRate;
@@ -1926,7 +1926,7 @@ own separate approval request.</p>
         var dues = await conn.QueryFirstOrDefaultAsync<dynamic>(@"
             SELECT cd.pk_club_dues_id AS id, cd.Purpose AS purpose, cd.RotaryYear AS rotaryYear, d.DistrictNumber AS districtNumber
             FROM club_dues cd LEFT JOIN district_master d ON cd.fk_district_id=d.pk_district_id
-            WHERE cd.pk_club_dues_id=@Id AND cd.isdeleted=0", new { Id = duesId });
+            WHERE cd.pk_club_dues_id=@Id AND cd.isdeleted=0 AND " + HierarchyScopeSql.DistrictIdLive("cd.fk_district_id"), new { Id = duesId });
         if (dues == null) return null;
         var clubs = await GetEnrichedClubsAsync(duesId);
         return new { dues, clubs };

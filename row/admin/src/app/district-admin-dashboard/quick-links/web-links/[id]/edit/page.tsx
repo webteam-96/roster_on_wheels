@@ -17,6 +17,9 @@ import dynamic from "next/dynamic";
 import { WeblinkTree } from "@/types/weblink";
 import { updateDistrictWeblink, getDistrictWeblinkTree } from "@/services/api";
 import { useAuth } from "@/contexts/AuthContext";
+import { districtYearRights, canEditYearless } from "@/lib/adminYears";
+import { useRotaryYears } from "@/hooks/useRotaryYears";
+import ViewOnlyBadge from "@/components/ViewOnlyBadge";
 import { isValidWebUrl, INVALID_URL_MESSAGE } from "@/lib/urlValidation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -69,7 +72,7 @@ function mediaUrl(p?: string | null) {
 }
 
 export default function EditWebLinkPage() {
-  const { selectedDistrictId } = useAuth();
+  const { selectedDistrictId, isSuperAdmin, isAdmin, user } = useAuth();
   const districtId = selectedDistrictId ?? 0;
   const router = useRouter();
   const params = useParams();
@@ -142,6 +145,20 @@ export default function EditWebLinkPage() {
 
   const goBack = () => router.push(returnTo || listingFallback);
 
+  // Web links carry NO Rotary year — one live set — so changing one needs
+  // CURRENT-year rights, the same rule as the listing.
+  // ⚠️ The form stays VISIBLE without them: this page is the only way to read a
+  // link's write-up and settings, and hiding Edit must never hide View. Only
+  // Update goes.
+  const { years: rotaryYears, currentYearId: dCurrentYearId } = useRotaryYears();
+  const rights = useMemo(() => districtYearRights(user?.scopedRoles, districtId), [user?.scopedRoles, districtId]);
+  const canManage = (isSuperAdmin || isAdmin) && canEditYearless(rights, dCurrentYearId, isSuperAdmin);
+  // YWAR-BADGE-YEARLESS — name the CURRENT year, not the years held.
+  // This data is not filed by Rotary year, so "you can make changes in
+  // 2025-26" is untrue: those years cannot help here. See ViewOnlyBadge.
+  const ywarCurrentYearLabel =
+    rotaryYears.find((y) => y.id === dCurrentYearId)?.yearLabel ?? "";
+
   const handleSave = async () => {
     if (!title.trim()) { setErrorMessage("Title is required."); return; }
     if (linkType === "URL" && !linkUrl.trim()) { setErrorMessage("Link URL is required."); return; }
@@ -178,6 +195,10 @@ export default function EditWebLinkPage() {
 
   return (
     <ProtectedRoute>
+      {!canManage && (
+        <ViewOnlyBadge currentYearOnly={ywarCurrentYearLabel} className="mb-4" />
+      )}
+
       <div className="space-y-6 max-w-3xl">
         {/* ── Header ────────────────────────────────────────────────── */}
         <div className="flex items-center gap-3">
@@ -368,14 +389,16 @@ export default function EditWebLinkPage() {
               >
                 Cancel
               </Button>
-              <Button
-                onClick={handleSave}
-                disabled={saving}
-                className="bg-azure hover:bg-mint-ink text-white"
-              >
-                {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Update
-              </Button>
+              {canManage && (
+                <Button
+                  onClick={handleSave}
+                  disabled={saving}
+                  className="bg-azure hover:bg-mint-ink text-white"
+                >
+                  {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  Update
+                </Button>
+              )}
             </div>
           </div>
         )}

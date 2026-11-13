@@ -31,6 +31,8 @@ import {
 } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import { useAuth } from "@/contexts/AuthContext";
+import { clubYearRights, canEditYear, yearIdForLabel, heldYearLabels } from "@/lib/adminYears";
+import ViewOnlyBadge from "@/components/ViewOnlyBadge";
 import { useClubAdminCache } from "@/contexts/ClubAdminDashboardCacheContext";
 import { getMembershipDuesList, exportMembershipDuesReport, getRotaryYears, duesPayPath } from "@/services/api";
 import { fileTimestamp } from "@/lib/dateUtils";
@@ -63,7 +65,7 @@ interface RotaryYearOption {
 export default function ClubAdminMembershipDuesPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { isSuperAdmin } = useAuth();
+  const { isSuperAdmin, isAdmin, user } = useAuth();
   const { overview, membershipDues, status, yearId: cacheYearId } = useClubAdminCache();
 
   const [duesSetups, setDuesSetups] = useState<DuesSetup[]>([]);
@@ -78,6 +80,16 @@ export default function ClubAdminMembershipDuesPage() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const clubId = membershipDues?.club.clubId ?? overview?.club.clubId ?? null;
+
+  // A dues setup stores its Rotary year as a LABEL ("2026-27"), so resolve it
+  // against the year list the same way the server does. Per ROW, because the
+  // table can list setups from several years at once.
+  const duesRights = useMemo(
+    () => clubYearRights(user?.scopedRoles, clubId ?? 0), [user?.scopedRoles, clubId]);
+  const isClubAdmin = isSuperAdmin || isAdmin;
+  const canEditSetup = (rotaryYear?: string) =>
+    isClubAdmin && canEditYear(duesRights, yearIdForLabel(rotaryYear, allYears.map((y) => ({ id: y.id, yearLabel: y.label }))), isSuperAdmin);
+  const editableYears = heldYearLabels(duesRights, allYears);
   const selectedYearLabel = membershipDues?.club.yearLabel ?? overview?.club.yearLabel ?? null;
 
   // Fetch the dues setups + the rotary-year master list in parallel. Both are
@@ -211,6 +223,10 @@ export default function ClubAdminMembershipDuesPage() {
 
   return (
     <div className="space-y-6">
+      {duesSetups.length > 0 && !duesSetups.some((d) => canEditSetup(d.rotaryYear)) && (
+        <ViewOnlyBadge editableYears={editableYears} className="mb-4" />
+      )}
+
       <SuccessAlert open={!!successMessage} title="Success" description={successMessage || ""} onOk={() => setSuccessMessage(null)} />
       <ErrorAlert open={!!errorMessage} title="Error" description={errorMessage || ""} onOk={() => setErrorMessage(null)} />
 
@@ -326,6 +342,9 @@ export default function ClubAdminMembershipDuesPage() {
                   <td className="px-3 py-2.5 text-center font-semibold text-emerald-700">{item.paidCount}</td>
                   <td className="px-3 py-2.5 text-center font-semibold text-rose-700">{item.unpaidCount}</td>
                   <td className="px-3 py-2.5 text-center">
+                    {!canEditSetup(item.rotaryYear) ? (
+                      <span className="text-xs text-slate-300">-</span>
+                    ) : (
                     <button
                       type="button"
                       title="Open members list"
@@ -350,8 +369,14 @@ export default function ClubAdminMembershipDuesPage() {
                         <Users className="h-4 w-4 text-blue-600 hover:text-blue-800" />
                       )}
                     </button>
+                    )}
                   </td>
                   <td className="px-3 py-2.5 text-center">
+                    {!canEditSetup(item.rotaryYear) ? (
+                      // Not this member's year. Every figure is already on the row,
+                      // so there is nothing further to open.
+                      <span className="text-xs text-slate-300">-</span>
+                    ) : (
                     <button
                       type="button"
                       title="Edit dues setup"
@@ -373,6 +398,7 @@ export default function ClubAdminMembershipDuesPage() {
                         <Pencil className="h-4 w-4 text-blue-600 hover:text-blue-800" />
                       )}
                     </button>
+                    )}
                   </td>
                   <td className="px-3 py-2.5 text-center">
                     <div className="flex items-center justify-center gap-1 text-xs">

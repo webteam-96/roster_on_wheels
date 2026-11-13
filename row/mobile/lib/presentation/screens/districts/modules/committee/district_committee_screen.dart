@@ -616,7 +616,7 @@ class _DistrictCommitteeScreenState extends State<DistrictCommitteeScreen> {
   @override
   Widget build(BuildContext context) {
     final canManage =
-        context.watch<AuthProvider>().isDistrictAdminOf(widget.districtId);
+        context.watch<AuthProvider>().canEditDistrict(widget.districtId);
     final body = _loading
         ? const LoadingWidget()
         : _error != null

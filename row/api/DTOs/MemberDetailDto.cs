@@ -13,6 +13,10 @@ public class MemberDetailDto
     public DateTime? BirthDate { get; set; }
     public DateTime? AnniversaryDate { get; set; }
     public string? BloodGroup { get; set; }
+    // T-shirt size (upstream 2026-11-06): id from event_tshirt_sizes. Optional. NEVER public.
+    // Returned only to the member, Admins and Super Admin (MembersController.GetById).
+    public int? TshirtSizeId { get; set; }
+    public string? TshirtSize { get; set; }
     public int FkSecondaryCountryId { get; set; }   // ROW: no default country (the original: 1 = India)
     public string SecondaryCountry { get; set; } = "";
     public string? SecondaryCountryPhoneCode { get; set; }

@@ -81,6 +81,33 @@ export interface AssignRoleRequest {
   memberId: number;
   roleId: number;
   clubId?: number;
+  /**
+   * Year-wise Admin Rights. Both optional: an older caller that sends neither
+   * gets the CURRENT year, which is what the server defaults to.
+   */
+  yearIds?: number[];
+  allYears?: boolean;
+}
+
+/** One Rotary year as offered by the admin-years pickers. */
+export interface AdminYearOption {
+  id: number;
+  label: string;
+  isCurrent: boolean;
+}
+
+/** Response of /api/admin/club-admin-years and /api/admin/district-admin-years. */
+export interface AdminYearOptions {
+  /** Every year, so the picker can show the full list and grey what it must. */
+  years: AdminYearOption[];
+  /** Years the CALLER may hand on. null means "all of them" (SuperAdmin). */
+  grantableYearIds: number[] | null;
+  canGrantAllYears: boolean;
+  /** Years the TARGET member already holds. */
+  heldYearIds: number[];
+  heldAllYears: boolean;
+  /** Where those held years come from, e.g. "Club President". */
+  heldSources: string[];
 }
 
 export interface RemoveRoleRequest {

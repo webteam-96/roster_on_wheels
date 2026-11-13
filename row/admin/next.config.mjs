@@ -36,13 +36,6 @@ const nextConfig = {
   // Served under a sub-path when NEXT_PUBLIC_BASE_PATH is set at build time (test host: "/admin", the IIS
   // application "admin"). Code that builds root URLs by hand uses withBase() from src/lib/basePath.ts.
   ...(process.env.NEXT_PUBLIC_BASE_PATH ? { basePath: process.env.NEXT_PUBLIC_BASE_PATH.replace(/\/+$/, "") } : {}),
-  experimental: {
-    missingSuspenseWithCSRBailout: false,
-  },
-  eslint: {
-    // Production builds don't block on ESLint warnings (pre-existing unused-vars, no-explicit-any across codebase).
-    ignoreDuringBuilds: true,
-  },
   typescript: {
     // Skip TS type-check at build (pre-existing code issues in area-of-focus/audit-log).
     ignoreBuildErrors: true,

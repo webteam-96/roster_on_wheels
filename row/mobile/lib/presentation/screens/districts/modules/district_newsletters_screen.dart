@@ -269,7 +269,7 @@ class _DistrictNewslettersScreenState
       // Members only ever see Published items; admins use the status filter.
       final canManage = !widget.viewOnly &&
           Provider.of<AuthProvider>(context, listen: false)
-              .isDistrictAdminOf(widget.districtId);
+              .canEditDistrict(widget.districtId);
       final effectiveStatus = canManage ? _status : 'Published';
       if (effectiveStatus != 'All') qp['status'] = effectiveStatus;
       final q = _searchCtrl.text.trim();
@@ -418,7 +418,7 @@ class _DistrictNewslettersScreenState
     // viewOnly overrides admin access — used by the unified flow.
     // Per-level gating: only district admins of THIS district can manage.
     final canManage =
-        !widget.viewOnly && auth.isDistrictAdminOf(widget.districtId);
+        !widget.viewOnly && auth.canEditDistrict(widget.districtId);
 
     final body = Column(
       children: [
@@ -1227,7 +1227,7 @@ class _NewsletterDetailScreenState extends State<_NewsletterDetailScreen> {
 
   bool get _canManage =>
       Provider.of<AuthProvider>(context, listen: false)
-          .isDistrictAdminOf(widget.districtId);
+          .canEditDistrict(widget.districtId);
 
   Future<void> _edit() async {
     final n = _nl;

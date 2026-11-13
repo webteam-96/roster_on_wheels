@@ -18,7 +18,7 @@
  * page already has DashboardShell + SectionHeader.
  */
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, useMemo } from "react";
 import Link from "next/link";
 import {
   FolderKanban, Calendar, Search, Plus, Edit3, Trash2, Loader2, AlertTriangle,
@@ -34,6 +34,10 @@ import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
 import Pagination from "@/components/Pagination";
 import { formatMoney } from "@/lib/currency";
+import { useAuth } from "@/contexts/AuthContext";
+import { districtYearRights, canEditYear, heldYearLabels } from "@/lib/adminYears";
+import { useRotaryYears } from "@/hooks/useRotaryYears";
+import ViewOnlyBadge from "@/components/ViewOnlyBadge";
 
 import { appLocale, currencySymbol } from "@/lib/appFormat";
 import { SkeletonRows } from "@/components/row/AppKit";
@@ -75,6 +79,14 @@ export function DistrictProjectsSection({
   yearId: number;
   returnTo: string;
 }) {
+  // District projects and events belong to the Rotary year on screen, which the
+  // dashboard's year selector passes in as `yearId`.
+  const { user, isSuperAdmin, isAdmin } = useAuth();
+  const { years: rotaryYears } = useRotaryYears();
+  const fRights = useMemo(() => districtYearRights(user?.scopedRoles, districtId), [user?.scopedRoles, districtId]);
+  const canManage = (isSuperAdmin || isAdmin) && canEditYear(fRights, yearId || undefined, isSuperAdmin);
+  const editableYears = heldYearLabels(fRights, rotaryYears.map((y) => ({ id: y.id, label: y.yearLabel })));
+
   const [items, setItems] = useState<ProjectItem[]>([]);
   const [totalCount, setTotalCount] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -126,6 +138,10 @@ export function DistrictProjectsSection({
 
   return (
     <div className="space-y-4">
+      {!canManage && (
+        <ViewOnlyBadge editableYears={editableYears} className="mb-4" />
+      )}
+
       <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
         {/* Card header */}
         <div className="px-5 py-3 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
@@ -148,12 +164,14 @@ export function DistrictProjectsSection({
                 className="pl-7 pr-3 h-10 py-0 text-sm border border-slate-200 rounded-[12px] w-full sm:w-52 focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
               />
             </div>
-            <Link
-              href={addUrl}
-              className="inline-flex items-center gap-1.5 text-xs font-semibold px-4 h-10 rounded-full bg-[#17458F] text-white hover:bg-[#17458F]"
-            >
-              <Plus size={13} /> Add Project
-            </Link>
+            {canManage && (
+              <Link
+                href={addUrl}
+                className="inline-flex items-center gap-1.5 text-xs font-semibold px-4 h-10 rounded-full bg-[#17458F] text-white hover:bg-[#17458F]"
+              >
+                <Plus size={13} /> Add Project
+              </Link>
+            )}
           </div>
         </div>
 
@@ -171,8 +189,7 @@ export function DistrictProjectsSection({
                   <th className="px-3 py-2.5 text-right">Cost ({currencySymbol()})</th>
                   <th className="px-3 py-2.5 text-center">Beneficiaries</th>
                   <th className="px-3 py-2.5 text-left">Area of Focus</th>
-                  <th className="px-3 py-2.5 text-right w-16">Edit</th>
-                  <th className="px-3 py-2.5 text-right w-16">Delete</th>
+                  {canManage && <th className="px-3 py-2.5 text-right w-20 whitespace-nowrap">Actions</th>}
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -188,30 +205,33 @@ export function DistrictProjectsSection({
                     </td>
                     <td className="px-3 py-2 text-center text-slate-600">{item.directBeneficiaries ?? "–"}</td>
                     <td className="px-3 py-2 text-slate-600">{item.areaOfFocusName || "–"}</td>
-                    <td className="px-3 py-2 text-right">
-                      <Link
-                        href={`/districts/${districtId}/projects/v2/${item.id}/edit?yearId=${yearId}${returnTo ? `&returnTo=${encodeURIComponent(returnTo)}` : ""}`}
-                        className="inline-flex items-center justify-center w-7 h-7 rounded text-slate-500 hover:text-blue-700 hover:bg-blue-50"
-                        aria-label="Edit project"
-                      >
-                        <Edit3 size={13} />
-                      </Link>
-                    </td>
-                    <td className="px-3 py-2 text-right">
-                      <button
-                        type="button"
-                        onClick={() => setDeleteTarget(item)}
-                        className="inline-flex items-center justify-center w-7 h-7 rounded text-slate-400 hover:text-rose-700 hover:bg-rose-50"
-                        aria-label="Delete project"
-                      >
-                        <Trash2 size={13} />
-                      </button>
-                    </td>
+                    {canManage && (<>
+                      <td className="px-3 py-2 text-right">
+                        <Link
+                          href={`/districts/${districtId}/projects/v2/${item.id}/edit?yearId=${yearId}${returnTo ? `&returnTo=${encodeURIComponent(returnTo)}` : ""}`}
+                          className="inline-flex items-center justify-center w-7 h-7 rounded text-slate-500 hover:text-blue-700 hover:bg-blue-50"
+                          aria-label="Edit project"
+                        >
+                          <Edit3 size={13} />
+                        </Link>
+                      </td>
+                      <td className="px-3 py-2 text-right">
+                        <button
+                          type="button"
+                          onClick={() => setDeleteTarget(item)}
+                          className="inline-flex items-center justify-center w-7 h-7 rounded text-slate-400 hover:text-rose-700 hover:bg-rose-50"
+                          aria-label="Delete project"
+                        >
+                          <Trash2 size={13} />
+                        </button>
+                      </td>
+
+                    </>)}
                   </tr>
                 ))}
                 {items.length === 0 && (
                   <tr>
-                    <td colSpan={8} className="px-4 py-10 text-center text-slate-400">
+                    <td colSpan={canManage ? 7 : 6} className="px-4 py-10 text-center text-slate-400">
                       {!yearId
                         ? "Waiting for year selection…"
                         : search
@@ -282,6 +302,14 @@ export function DistrictEventsSection({
   yearId: number;
   returnTo: string;
 }) {
+  // District projects and events belong to the Rotary year on screen, which the
+  // dashboard's year selector passes in as `yearId`.
+  const { user, isSuperAdmin, isAdmin } = useAuth();
+  const { years: rotaryYears } = useRotaryYears();
+  const fRights = useMemo(() => districtYearRights(user?.scopedRoles, districtId), [user?.scopedRoles, districtId]);
+  const canManage = (isSuperAdmin || isAdmin) && canEditYear(fRights, yearId || undefined, isSuperAdmin);
+  const editableYears = heldYearLabels(fRights, rotaryYears.map((y) => ({ id: y.id, label: y.yearLabel })));
+
   const [items, setItems] = useState<EventItem[]>([]);
   const [totalCount, setTotalCount] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -353,12 +381,14 @@ export function DistrictEventsSection({
                 className="pl-7 pr-3 h-10 py-0 text-sm border border-slate-200 rounded-[12px] w-full sm:w-52 focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
               />
             </div>
-            <Link
-              href={addUrl}
-              className="inline-flex items-center gap-1.5 text-xs font-semibold px-4 h-10 rounded-full bg-[#17458F] text-white hover:bg-[#17458F]"
-            >
-              <Plus size={13} /> Add Event
-            </Link>
+            {canManage && (
+              <Link
+                href={addUrl}
+                className="inline-flex items-center gap-1.5 text-xs font-semibold px-4 h-10 rounded-full bg-[#17458F] text-white hover:bg-[#17458F]"
+              >
+                <Plus size={13} /> Add Event
+              </Link>
+            )}
           </div>
         </div>
 
@@ -372,8 +402,7 @@ export function DistrictEventsSection({
                   <th className="px-3 py-2.5 text-left w-10">Sr</th>
                   <th className="px-3 py-2.5 text-left">Title</th>
                   <th className="px-3 py-2.5 text-left">Event Date</th>
-                  <th className="px-3 py-2.5 text-right w-16">Edit</th>
-                  <th className="px-3 py-2.5 text-right w-16">Delete</th>
+                  {canManage && <th className="px-3 py-2.5 text-right w-20 whitespace-nowrap">Actions</th>}
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -382,30 +411,33 @@ export function DistrictEventsSection({
                     <td className="px-3 py-2 text-slate-500">{(page - 1) * PAGE_SIZE + i + 1}</td>
                     <td className="px-3 py-2 font-medium text-slate-800">{item.title || "–"}</td>
                     <td className="px-3 py-2 text-slate-600 whitespace-nowrap">{fmtDate(item.eventDate)}</td>
-                    <td className="px-3 py-2 text-right">
-                      <Link
-                        href={`/districts/${districtId}/district-events/v2/${item.id}/edit?yearId=${yearId}${returnTo ? `&returnTo=${encodeURIComponent(returnTo)}` : ""}`}
-                        className="inline-flex items-center justify-center w-7 h-7 rounded text-slate-500 hover:text-blue-700 hover:bg-blue-50"
-                        aria-label="Edit event"
-                      >
-                        <Edit3 size={13} />
-                      </Link>
-                    </td>
-                    <td className="px-3 py-2 text-right">
-                      <button
-                        type="button"
-                        onClick={() => setDeleteTarget(item)}
-                        className="inline-flex items-center justify-center w-7 h-7 rounded text-slate-400 hover:text-rose-700 hover:bg-rose-50"
-                        aria-label="Delete event"
-                      >
-                        <Trash2 size={13} />
-                      </button>
-                    </td>
+                    {canManage && (<>
+                      <td className="px-3 py-2 text-right">
+                        <Link
+                          href={`/districts/${districtId}/district-events/v2/${item.id}/edit?yearId=${yearId}${returnTo ? `&returnTo=${encodeURIComponent(returnTo)}` : ""}`}
+                          className="inline-flex items-center justify-center w-7 h-7 rounded text-slate-500 hover:text-blue-700 hover:bg-blue-50"
+                          aria-label="Edit event"
+                        >
+                          <Edit3 size={13} />
+                        </Link>
+                      </td>
+                      <td className="px-3 py-2 text-right">
+                        <button
+                          type="button"
+                          onClick={() => setDeleteTarget(item)}
+                          className="inline-flex items-center justify-center w-7 h-7 rounded text-slate-400 hover:text-rose-700 hover:bg-rose-50"
+                          aria-label="Delete event"
+                        >
+                          <Trash2 size={13} />
+                        </button>
+                      </td>
+
+                    </>)}
                   </tr>
                 ))}
                 {items.length === 0 && (
                   <tr>
-                    <td colSpan={5} className="px-4 py-10 text-center text-slate-400">
+                    <td colSpan={canManage ? 5 : 4} className="px-4 py-10 text-center text-slate-400">
                       {!yearId
                         ? "Waiting for year selection…"
                         : search

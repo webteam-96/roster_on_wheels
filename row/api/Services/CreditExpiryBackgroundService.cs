@@ -58,6 +58,7 @@ public class CreditExpiryBackgroundService : BackgroundService
             FROM club_credits cc
             JOIN club_master c ON c.pk_club_id = cc.fk_club_id
             WHERE cc.IsActive = 1 AND cc.isdeleted = 0
+              AND " + HierarchyScopeSql.ClubLive("c") + @"
               AND DATEDIFF(cc.ToDate, NOW()) <= 5
               AND DATEDIFF(cc.ToDate, NOW()) >= 0
               AND (cc.CreditCount - cc.UsedCount) > 0

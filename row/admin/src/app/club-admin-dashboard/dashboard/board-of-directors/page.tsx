@@ -8,6 +8,9 @@ import {
 } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import { useAuth } from "@/contexts/AuthContext";
+import { clubYearRights, canEditYear, heldYearLabels } from "@/lib/adminYears";
+import { useRotaryYears } from "@/hooks/useRotaryYears";
+import ViewOnlyBadge from "@/components/ViewOnlyBadge";
 import { getClubAdminDashboardBod, deleteBoardDirector } from "@/services/api";
 import type {
   ClubAdminDashboardBodResponse,
@@ -51,7 +54,7 @@ function exportToCsv(rows: ClubAdminDashboardBodRow[], yearLabel: string) {
 }
 
 export default function DashboardBodPage() {
-  const { selectedClubId } = useAuth();
+  const { selectedClubId, user, isSuperAdmin, isAdmin } = useAuth();
   const searchParams = useSearchParams();
   // Year now comes from the global topbar selector via URL ?yearId=. No local
   // dropdown on this page — point #4 of the 2026-06-12 cleanup.
@@ -104,6 +107,19 @@ export default function DashboardBodPage() {
     );
   }, [data, search]);
 
+  // ⚠️ useRotaryYears() is a hook, so it must be called on EVERY render — it
+  // cannot live below the early returns further down, or React sees a different
+  // number of hooks once the data arrives. clubId is read defensively for the
+  // same reason: this runs before `data` exists.
+  const { years, currentYearId } = useRotaryYears();
+  const boardClubId = data?.club?.clubId ?? 0;
+  const viewingYearId = yearId ?? currentYearId;
+  const boardYearRights = clubYearRights(user?.scopedRoles, boardClubId);
+  const isBoardAdmin = isSuperAdmin || isAdmin;
+  const canManage = isBoardAdmin && canEditYear(boardYearRights, viewingYearId, isSuperAdmin);
+  const editableYears = heldYearLabels(boardYearRights, years.map((y) => ({ id: y.id, label: y.yearLabel })));
+  const viewingYearLabel = years.find((y) => y.id === viewingYearId)?.yearLabel;
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
@@ -115,6 +131,7 @@ export default function DashboardBodPage() {
   if (!data) return null;
 
   const clubId = data.club.clubId;
+
   // The existing module page handles add/edit/delete — we link out there and
   // pass returnTo so a future enhancement can send users back here on save.
   const returnTo = encodeURIComponent("/club-admin-dashboard/dashboard/board-of-directors");
@@ -122,6 +139,10 @@ export default function DashboardBodPage() {
 
   return (
     <div className="space-y-5">
+      {isBoardAdmin && !canManage && (
+        <ViewOnlyBadge yearLabel={viewingYearLabel} editableYears={editableYears} className="mb-4" />
+      )}
+
       {/* Cards "Executive Roles", "Service Chairs", "Growth & Outreach" removed
           per user request (2026-06-12). Only Board Members retained. */}
       <div className="grid grid-cols-1 gap-4 max-w-md">
@@ -155,12 +176,14 @@ export default function DashboardBodPage() {
             >
               <ExternalLink size={13} /> Export to Excel
             </button>
-            <Link
-              href={addUrl}
-              className="inline-flex items-center gap-1.5 text-xs font-semibold px-4 h-10 rounded-full bg-[#17458F] text-white hover:bg-[#17458F]"
-            >
-              <Plus size={13} /> Add
-            </Link>
+            {canManage && (
+              <Link
+                href={addUrl}
+                className="inline-flex items-center gap-1.5 text-xs font-semibold px-4 h-10 rounded-full bg-[#17458F] text-white hover:bg-[#17458F]"
+              >
+                <Plus size={13} /> Add
+              </Link>
+            )}
           </div>
         </div>
 
@@ -173,8 +196,7 @@ export default function DashboardBodPage() {
                 <th className="px-3 py-2.5 text-left">Designation</th>
                 <th className="px-3 py-2.5 text-left">Mobile Number</th>
                 <th className="px-3 py-2.5 text-left">Email</th>
-                <th className="px-3 py-2.5 text-right w-16">Edit</th>
-                <th className="px-3 py-2.5 text-right w-16">Delete</th>
+                {canManage && <th className="px-3 py-2.5 text-right w-20 whitespace-nowrap">Actions</th>}
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
@@ -198,33 +220,36 @@ export default function DashboardBodPage() {
                   </td>
                   <td className="px-3 py-2 text-xs text-slate-600 whitespace-nowrap">{r.mobile ?? "–"}</td>
                   <td className="px-3 py-2 text-xs text-slate-600">{r.email ?? "–"}</td>
-                  <td className="px-3 py-2 text-right">
-                    <Link
-                      href={`/clubs/${clubId}/board-of-directors/v2/${r.id}/edit?returnTo=${returnTo}`}
-                      className="inline-flex items-center justify-center w-7 h-7 rounded text-slate-500 hover:text-blue-700 hover:bg-blue-50"
-                    >
-                      <Edit3 size={13} />
-                    </Link>
-                  </td>
-                  <td className="px-3 py-2 text-right">
-                    <button
-                      type="button"
-                      onClick={() => handleDeleteDirector(r)}
-                      disabled={deletingId === r.id}
-                      className="inline-flex items-center justify-center w-7 h-7 rounded text-slate-500 hover:text-red-700 hover:bg-red-50 disabled:opacity-50"
-                      aria-label="Delete board member"
-                      title="Delete board member"
-                    >
-                      {deletingId === r.id
-                        ? <RotaryLoader size="sm" />
-                        : <Trash2 size={13} />}
-                    </button>
-                  </td>
+                  {canManage && (
+                    <td className="px-3 py-2">
+                      <div className="flex items-center justify-end gap-0.5">
+                        <Link
+                          href={`/clubs/${clubId}/board-of-directors/v2/${r.id}/edit?returnTo=${returnTo}`}
+                          className="inline-flex items-center justify-center w-7 h-7 rounded text-slate-500 hover:text-blue-700 hover:bg-blue-50"
+                          title="Edit"
+                        >
+                          <Edit3 size={14} />
+                        </Link>
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteDirector(r)}
+                          disabled={deletingId === r.id}
+                          className="inline-flex items-center justify-center w-7 h-7 rounded text-slate-500 hover:text-red-700 hover:bg-red-50 disabled:opacity-50"
+                          aria-label="Delete board member"
+                          title="Delete board member"
+                        >
+                          {deletingId === r.id
+                            ? <RotaryLoader size="sm" />
+                            : <Trash2 size={14} />}
+                        </button>
+                      </div>
+                    </td>
+                  )}
                 </tr>
               ))}
               {filtered.length === 0 && (
                 <tr>
-                  <td colSpan={7} className="px-4 py-8 text-center text-slate-400">
+                  <td colSpan={canManage ? 6 : 5} className="px-4 py-8 text-center text-slate-400">
                     No board positions match.
                   </td>
                 </tr>

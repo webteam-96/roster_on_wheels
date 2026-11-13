@@ -1202,7 +1202,8 @@ public class RotaryOrgManualSyncController : ControllerBase
 
         var existingId = await conn.ExecuteScalarAsync<int?>(@"
             SELECT MAX(pk_member_address_details_id) FROM member_address_details
-            WHERE fk_member_master_profile_id = @M AND AddressType = @T AND isdeleted = 0",
+            WHERE fk_member_master_profile_id = @M AND isdeleted = 0
+              AND (AddressType = @T OR (@T IN ('Residence','Residential') AND AddressType IN ('Residence','Residential')))",
             new { M = memberId, T = type });
 
         if (existingId.HasValue)

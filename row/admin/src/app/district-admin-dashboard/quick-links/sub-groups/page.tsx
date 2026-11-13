@@ -19,7 +19,7 @@
  *   - Navy #17458f / gold #F7A81B / slate palette, rounded-2xl bg-white cards.
  */
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import { SubGroup, SubGroupDetail } from "@/types/subGroup";
@@ -30,6 +30,9 @@ import {
   getPhotoUrl,
 } from "@/services/api";
 import { useAuth } from "@/contexts/AuthContext";
+import { districtYearRights, canEditYear, heldYearLabels } from "@/lib/adminYears";
+import { useRotaryYears } from "@/hooks/useRotaryYears";
+import ViewOnlyBadge from "@/components/ViewOnlyBadge";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import SuccessAlert from "@/components/SuccessAlert";
@@ -52,13 +55,18 @@ function withSearch(base: string, extra: Record<string, string | null | undefine
 }
 
 export default function DistrictAdminSubGroupsPage() {
-  const { selectedDistrictId, isSuperAdmin, isAdmin } = useAuth();
+  const { selectedDistrictId, isSuperAdmin, isAdmin, user } = useAuth();
   const districtId = selectedDistrictId ?? 0;
   const router = useRouter();
   const searchParams = useSearchParams();
   const returnTo = searchParams.get("returnTo");
   const yearId = searchParams.get("yearId");
-  const canManage = isSuperAdmin || isAdmin;
+  // Sub groups are filed under a Rotary year, so the year on screen decides.
+  // No currentYearId here on purpose — the year in the URL is the subject.
+  const { years: rotaryYears } = useRotaryYears();
+  const rights = useMemo(() => districtYearRights(user?.scopedRoles, districtId), [user?.scopedRoles, districtId]);
+  const canManage = (isSuperAdmin || isAdmin) && canEditYear(rights, Number(yearId) || undefined, isSuperAdmin);
+  const editableYears = heldYearLabels(rights, rotaryYears.map((y) => ({ id: y.id, label: y.yearLabel })));
 
   const listingUrl = withSearch("/district-admin-dashboard/quick-links/sub-groups", { yearId, returnTo });
 
@@ -130,6 +138,10 @@ export default function DistrictAdminSubGroupsPage() {
 
   return (
     <ProtectedRoute>
+      {!canManage && (
+        <ViewOnlyBadge editableYears={editableYears} className="mb-4" />
+      )}
+
       <div className="space-y-6">
         {/* ── Header ─────────────────────────────────────────────────── */}
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">

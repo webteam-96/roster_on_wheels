@@ -174,7 +174,7 @@ class _DistrictUpcomingEventsScreenState
       // Members only ever see Published items; admins use the status filter.
       final canManage = !widget.viewOnly &&
           Provider.of<AuthProvider>(context, listen: false)
-              .isDistrictAdminOf(widget.districtId);
+              .canEditDistrict(widget.districtId);
       final effectiveStatus = canManage ? _status : 'Published';
       if (effectiveStatus != 'All') qp['status'] = effectiveStatus;
       final q = _searchCtrl.text.trim();
@@ -313,7 +313,7 @@ class _DistrictUpcomingEventsScreenState
     // viewOnly overrides admin access — used by the unified flow.
     // Per-level gating: only district admins of THIS district can manage.
     final canManage =
-        !widget.viewOnly && auth.isDistrictAdminOf(widget.districtId);
+        !widget.viewOnly && auth.canEditDistrict(widget.districtId);
 
     final body = Column(
       children: [
@@ -1283,7 +1283,7 @@ class _UpcomingEventDetailScreenState
       body: (_) {
         // Status is an admin-only signal — hidden from normal members.
         final canManage = Provider.of<AuthProvider>(context, listen: false)
-            .isDistrictAdminOf(widget.districtId);
+            .canEditDistrict(widget.districtId);
         final imageUrl = detailMediaUrl(e.imagePath);
         final eventDate = _fmt(e.eventDateTime);
         final hasReg = e.registrationLink != null &&

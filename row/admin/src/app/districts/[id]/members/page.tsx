@@ -5,6 +5,7 @@ import { useParams } from "next/navigation";
 import { DistrictMember } from "@/types/district";
 import { PagedResult } from "@/types/member";
 import { getDistrict, getDistrictMembers, getPhotoUrl, assignDistrictAdmin, removeDistrictAdmin, setDistrictAdminClubAccess } from "@/services/api";
+import AdminYearsDialog from "@/components/AdminYearsDialog";
 import { formatDMY } from "@/lib/dateUtils";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -41,6 +42,8 @@ export default function DistrictMembersPage() {
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [roleLoading, setRoleLoading] = useState<number | null>(null);
+  // District admin rights are per Rotary year — pick them before promoting.
+  const [adminYearTarget, setAdminYearTarget] = useState<{ id: number; name: string } | null>(null);
   const [detailMemberId, setDetailMemberId] = useState<number | null>(null);
 
   useEffect(() => {
@@ -86,14 +89,26 @@ export default function DistrictMembersPage() {
       .finally(() => setLoading(false));
   };
 
-  const handleMakeAdmin = async (memberId: number, memberName: string) => {
+  const handleMakeAdmin = (memberId: number, memberName: string) => {
+    setAdminYearTarget({ id: memberId, name: memberName });
+  };
+
+  const handleConfirmAdminYears = async (picked: { yearIds: number[]; allYears: boolean }) => {
+    if (!adminYearTarget) return;
+    const { id: memberId, name: memberName } = adminYearTarget;
     setRoleLoading(memberId);
     try {
-      await assignDistrictAdmin(districtId, memberId);
-      setSuccessMessage(`${memberName} has been made District Admin.`);
+      await assignDistrictAdmin(districtId, memberId, picked);
+      setAdminYearTarget(null);
+      setSuccessMessage(
+        picked.allYears
+          ? `${memberName} has been made District Admin for all Rotary years.`
+          : `${memberName} has been made District Admin for ${picked.yearIds.length} Rotary year${picked.yearIds.length === 1 ? "" : "s"}.`
+      );
       fetchMembers();
     } catch (err: any) {
       setErrorMessage(err?.response?.data?.message || err?.response?.data || "Failed to assign District Admin role.");
+      throw err;   // keeps the dialog open with the reason
     } finally {
       setRoleLoading(null);
     }
@@ -409,6 +424,19 @@ export default function DistrictMembersPage() {
         <SuccessAlert open={!!successMessage} title="Success" description={successMessage || ""} onOk={() => setSuccessMessage(null)} />
         <ErrorAlert open={!!errorMessage} title="Error" description={errorMessage || ""} onOk={() => setErrorMessage(null)} />
         <MemberDetailDialog memberId={detailMemberId} open={detailMemberId !== null} onClose={() => setDetailMemberId(null)} />
+
+        {adminYearTarget && (
+          <AdminYearsDialog
+            open
+            scope={{ kind: "district", districtId }}
+            memberId={adminYearTarget.id}
+            memberName={adminYearTarget.name}
+            scopeName={districtNumber ? `District ${districtNumber}` : undefined}
+            confirmLabel="Make District Admin"
+            onCancel={() => setAdminYearTarget(null)}
+            onConfirm={handleConfirmAdminYears}
+          />
+        )}
       </div>
     </ProtectedRoute>
   );

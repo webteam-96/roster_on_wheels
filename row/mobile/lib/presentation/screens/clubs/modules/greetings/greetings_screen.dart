@@ -30,7 +30,7 @@ class _GreetingsScreenState extends State<GreetingsScreen> {
   bool get _canManage =>
       !widget.viewOnly &&
       Provider.of<AuthProvider>(context, listen: false)
-          .isClubAdminOf(widget.clubId);
+          .canEditClub(widget.clubId);
   final _api = ApiClient();
   final _formKey = GlobalKey<FormState>();
 

@@ -1,7 +1,7 @@
 "use client";
 
 import { ReactNode, Suspense, useEffect, useMemo, useState } from "react";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import DashboardGuard from "@/components/dashboard/DashboardGuard";
 import DashboardShell from "@/components/dashboard/DashboardShell";
 import DashboardYearSelector from "@/components/dashboard/DashboardYearSelector";
@@ -9,6 +9,8 @@ import DashboardYearFooterText from "@/components/dashboard/DashboardYearFooterT
 import ClubAdminTopbarStatus from "@/components/dashboard/ClubAdminTopbarStatus";
 import PlanningBanner from "@/components/planning/PlanningBanner";
 import { useAuth } from "@/contexts/AuthContext";
+import { clubYearRights, canEditYear } from "@/lib/adminYears";
+import { useRotaryYears } from "@/hooks/useRotaryYears";
 import { ClubAdminDashboardCacheProvider, useClubAdminCache } from "@/contexts/ClubAdminDashboardCacheContext";
 import { getClubDuesOfficerClubs } from "@/services/api";
 import { CLUB_ADMIN_NAV, CLUB_ADMIN_PAGE_TITLES } from "./nav";
@@ -79,9 +81,22 @@ function ClubAdminShell({ name, initials, title, showYearSelector, officerClubId
   const { overview } = useClubAdminCache();
   const openClubId = selectedClubId ?? overview?.club?.clubId ?? null;
   const isOfficer = openClubId != null && officerClubIds.includes(openClubId);
+  // Wallet holds one balance and is spent NOW, so it belongs to whoever
+  // administers the current Rotary year — not to a past-year admin who happens
+  // to still have a login. Hidden from the sidebar AND unreachable by URL below.
+  // The dashboard's global year picker writes ?yearId=; fall back to the current
+  // year when it is absent (first load).
+  const { user, isSuperAdmin } = useAuth();
+  const searchParams = useSearchParams();
+  const { currentYearId } = useRotaryYears();
+  const selectedYearId = searchParams?.get("yearId")
+    ? Number(searchParams.get("yearId")) : currentYearId;
+  const isAdminForSelectedYear = canEditYear(
+    clubYearRights(user?.scopedRoles, openClubId ?? 0), selectedYearId, isSuperAdmin);
   const nav = useMemo(
-    () => (isOfficer ? CLUB_ADMIN_NAV : CLUB_ADMIN_NAV.filter((n) => !n.officerOnly)),
-    [isOfficer]
+    () => (isOfficer ? CLUB_ADMIN_NAV : CLUB_ADMIN_NAV.filter((n) => !n.officerOnly))
+      .filter((n) => !n.adminYearOnly || isAdminForSelectedYear),
+    [isOfficer, isAdminForSelectedYear]
   );
   return (
     <DashboardShell

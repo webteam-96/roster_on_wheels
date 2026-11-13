@@ -11,7 +11,7 @@ export interface Country {
 export interface MemberAddress {
   id: number;
   fkMemberMasterProfileId: number;
-  addressType: "Residential" | "Business";
+  addressType: "Residence" | "Residential" | "Business"; // Residence and Residential are the same home slot (lib/memberAddress)
   fkCountryId: number;
   country: string;
   countryPhoneCode: string;
@@ -38,6 +38,9 @@ export interface Member {
   birthDate: string | null;
   anniversaryDate: string | null;
   bloodGroup: string;
+  // T-shirt size (upstream 2026-11-06): returned only to self / Admins / SA. 0 on save = clear.
+  tshirtSizeId?: number | null;
+  tshirtSize?: string | null;
   fkSecondaryCountryId: number;
   secondaryCountry: string;
   secondaryCountryPhoneCode: string;

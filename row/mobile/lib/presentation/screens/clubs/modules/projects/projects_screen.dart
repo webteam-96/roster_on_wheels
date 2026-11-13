@@ -222,6 +222,9 @@ class _ModuleCaps {
   final bool showManHoursRotarians;     // all except club_service
   final bool showLocation;              // all except club_service
   final bool showAgendaDocument;        // legacy agenda doc — off for community
+  // Public Image only (web, upstream 2026-10-26): funding (with Global Grant / CSR details), man hours,
+  // Rotarians and Rotaractors are optional. Values typed are still sent.
+  final bool financialImpactOptional;
 
   const _ModuleCaps({
     this.showClassification = true,
@@ -234,6 +237,7 @@ class _ModuleCaps {
     this.showManHoursRotarians = true,
     this.showLocation = true,
     this.showAgendaDocument = true,
+    this.financialImpactOptional = false,
   });
 
   factory _ModuleCaps.forKey(String k) {
@@ -297,6 +301,7 @@ class _ModuleCaps {
           showFunding: true,
           showManHoursRotarians: true,
           showAgendaDocument: false,
+          financialImpactOptional: true,
         );
       default:
         return const _ModuleCaps(); // community_service defaults
@@ -1040,7 +1045,7 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
   bool get canManage =>
       !widget.viewOnly &&
       Provider.of<AuthProvider>(context, listen: false)
-          .isClubAdminOf(widget.clubId);
+          .canEditClub(widget.clubId);
 
   @override
   Widget build(BuildContext context) {
@@ -1613,7 +1618,7 @@ class _ProjectDetailScreenState extends State<_ProjectDetailScreen> {
 
   bool get _canManage =>
       Provider.of<AuthProvider>(context, listen: false)
-          .isClubAdminOf(widget.clubId);
+          .canEditClub(widget.clubId);
 
   @override
   void initState() {
@@ -2231,6 +2236,7 @@ class _ProjectFormScreenState extends State<_ProjectFormScreen> {
   String? _nullIfEmpty(String s) => s.trim().isEmpty ? null : s.trim();
 
   String? _validateFunding() {
+    if (_caps.financialImpactOptional) return null;
     if (_showGlobalGrant) {
       if (_ggNumberCtrl.text.trim().isEmpty) return 'Global Grant Number is required for Global Grant.';
       if (_amtSanctionedCtrl.text.trim().isEmpty) return 'Amount Sanctioned is required for Global Grant.';
@@ -3410,34 +3416,34 @@ class _ProjectFormScreenState extends State<_ProjectFormScreen> {
                           children: [
                             Expanded(
                               child: CustomTextField(
-                                label: 'Man Hours *',
+                                label: _caps.financialImpactOptional ? 'Man Hours' : 'Man Hours *',
                                 controller: _manHoursCtrl,
                                 hint: '0',
                                 keyboardType: TextInputType.number,
                                 inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                                validator: (v) => (v == null || v.trim().isEmpty) ? 'Man Hours is required' : null,
+                                validator: (v) => !_caps.financialImpactOptional && (v == null || v.trim().isEmpty) ? 'Man Hours is required' : null,
                               ),
                             ),
                             const SizedBox(width: 10),
                             Expanded(
                               child: CustomTextField(
-                                label: 'Rotarians *',
+                                label: _caps.financialImpactOptional ? 'Rotarians' : 'Rotarians *',
                                 controller: _rotariansCtrl,
                                 hint: '0',
                                 keyboardType: TextInputType.number,
                                 inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                                validator: (v) => (v == null || v.trim().isEmpty) ? 'Rotarians is required' : null,
+                                validator: (v) => !_caps.financialImpactOptional && (v == null || v.trim().isEmpty) ? 'Rotarians is required' : null,
                               ),
                             ),
                             const SizedBox(width: 10),
                             Expanded(
                               child: CustomTextField(
-                                label: 'Rotaractors *',
+                                label: _caps.financialImpactOptional ? 'Rotaractors' : 'Rotaractors *',
                                 controller: _rotaractorsCtrl,
                                 hint: '0',
                                 keyboardType: TextInputType.number,
                                 inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                                validator: (v) => (v == null || v.trim().isEmpty) ? 'Rotaractors is required' : null,
+                                validator: (v) => !_caps.financialImpactOptional && (v == null || v.trim().isEmpty) ? 'Rotaractors is required' : null,
                               ),
                             ),
                           ],
@@ -3548,10 +3554,10 @@ class _ProjectFormScreenState extends State<_ProjectFormScreen> {
                   if (_caps.showFunding) {
                     specs.add(_Section(Icons.account_balance_outlined, 'Funding', [
                       _buildDropdown(
-                        label: 'Funding *',
+                        label: _caps.financialImpactOptional ? 'Funding' : 'Funding *',
                         value: _selectedFundingId,
                         items: _fundings,
-                        isRequired: true,
+                        isRequired: !_caps.financialImpactOptional,
                         // Changing funding wipes the conditional fields so
                         // stale Global Grant/CSR values aren't carried over.
                         onChanged: (v) => setState(() {

@@ -23,15 +23,21 @@ interface ClubTableProps {
   isSuperAdmin?: boolean;
   districtId?: number;
   viewOnly?: boolean;
+  // upstream 2026-10-21: parent zone / district inactive, so this row is hidden too (SuperAdmin sees it marked).
+  parentInactive?: boolean;
 }
 
-export default function ClubTable({ clubs, onDelete, isSuperAdmin, districtId, viewOnly }: ClubTableProps) {
+export default function ClubTable({ clubs, onDelete, isSuperAdmin, districtId, viewOnly, parentInactive }: ClubTableProps) {
   const router = useRouter();
   const [navigatingId, setNavigatingId] = useState<number | null>(null);
 
   const handleRowClick = (club: ClubListItem) => {
     if (navigatingId) return;
-    if (!club.isActive) return; // Inactive clubs can't be drilled into.
+    if (!club.isActive || parentInactive) {
+      // upstream 2026-10-21: inactive = hidden everywhere; SuperAdmin may still look inside (read-only).
+      if (isSuperAdmin) router.push(`/clubs/${club.id}/members`);
+      return;
+    }
     setNavigatingId(club.id);
     if (viewOnly && districtId) {
       router.push(`/districts/${districtId}/clubs/${club.id}`);
@@ -63,12 +69,12 @@ export default function ClubTable({ clubs, onDelete, isSuperAdmin, districtId, v
               <TableRow
                 key={club.id}
                 className={`transition-colors ${
-                  club.isActive
+                  club.isActive && !parentInactive
                     ? "cursor-pointer hover:bg-primary/5"
-                    : "opacity-70 cursor-not-allowed"
+                    : isSuperAdmin ? "opacity-70 cursor-pointer" : "opacity-70 cursor-not-allowed"
                 } ${navigatingId === club.id ? "opacity-60 pointer-events-none" : ""}`}
                 onClick={() => handleRowClick(club)}
-                title={!club.isActive ? "Club is inactive. Click Edit (⋮) to activate." : undefined}
+                title={parentInactive && club.isActive ? "Its parent is inactive, so it is hidden everywhere. SuperAdmin view only." : !club.isActive ? "Club is inactive. Click Edit (⋮) to activate." : undefined}
               >
                 <TableCell>
                   {navigatingId === club.id ? (
@@ -94,7 +100,7 @@ export default function ClubTable({ clubs, onDelete, isSuperAdmin, districtId, v
                 <TableCell className="hidden md:table-cell">{club.city || "-"}</TableCell>
                 <TableCell>{club.totalMembers}</TableCell>
                 <TableCell>
-                  <Badge variant={club.isActive ? "default" : "destructive"}>{club.isActive ? "Active" : "Inactive"}</Badge>
+                  <Badge variant={club.isActive && !parentInactive ? "default" : "destructive"}>{club.isActive && !parentInactive ? "Active" : "Inactive"}</Badge>
                 </TableCell>
                 <TableCell>
                   {isSuperAdmin && (

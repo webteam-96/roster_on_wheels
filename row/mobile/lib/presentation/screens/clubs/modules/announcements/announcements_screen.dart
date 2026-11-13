@@ -188,7 +188,7 @@ class _AnnouncementsScreenState extends State<AnnouncementsScreen> {
     }
     try {
       final canManage =
-          !widget.viewOnly && context.read<AuthProvider>().isClubAdminOf(widget.clubId);
+          !widget.viewOnly && context.read<AuthProvider>().canEditClub(widget.clubId);
       final effectiveStatus = canManage ? _statusFilter : 'published';
       final resp = await _api.get<Map<String, dynamic>>(
         '/api/clubs/${widget.clubId}/announcements',
@@ -276,7 +276,7 @@ class _AnnouncementsScreenState extends State<AnnouncementsScreen> {
     final auth = context.watch<AuthProvider>();
     // Per-level gating: only club admins of THIS club can manage.
     final canManage =
-        !widget.viewOnly && auth.isClubAdminOf(widget.clubId);
+        !widget.viewOnly && auth.canEditClub(widget.clubId);
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: widget.embedded ? null : const CustomAppBar(title: 'Announcements'),
@@ -1094,7 +1094,7 @@ class _AnnouncementDetailScreenState
 
   bool get _canManage =>
       Provider.of<AuthProvider>(context, listen: false)
-          .isClubAdminOf(widget.clubId);
+          .canEditClub(widget.clubId);
 
   @override
   void initState() {

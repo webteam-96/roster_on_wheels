@@ -43,10 +43,11 @@ public static class ClubAdminAccessHelper
     public static async Task<bool> IsDistrictAdminWithClubAccessAsync(MySqlConnection conn, int memberId, int clubId)
     {
         if (memberId <= 0 || clubId <= 0) return false;
-        var count = await conn.ExecuteScalarAsync<int>(@"
+        var count = await conn.ExecuteScalarAsync<int>($@"
             SELECT COUNT(*) FROM member_roles mr
             JOIN club_master c ON c.pk_club_id = @ClubId AND c.isdeleted = 0
             WHERE mr.fk_member_master_profile_id = @MemberId
+              AND {HierarchyScopeSql.ClubLive("c")}
               AND mr.fk_role_id = 2
               AND mr.fk_district_id = c.fk_district_id
               AND (mr.fk_club_id IS NULL OR mr.fk_club_id = 0)
@@ -64,12 +65,13 @@ public static class ClubAdminAccessHelper
     /// check as the dashboard.
     public static async Task EnsureClubAdminAsync(MySqlConnection conn, int memberId, int clubId)
     {
-        var isDirectAdmin = await conn.ExecuteScalarAsync<int>(@"
+        var isDirectAdmin = await conn.ExecuteScalarAsync<int>($@"
             SELECT COUNT(*) FROM member_roles
             WHERE fk_member_master_profile_id = @MemberId
               AND fk_role_id = 2
               AND fk_club_id = @ClubId
-              AND IsActive = 1 AND isdeleted = 0",
+              AND IsActive = 1 AND isdeleted = 0
+              AND {HierarchyScopeSql.ClubIdLive("@ClubId")}",
             new { MemberId = memberId, ClubId = clubId });
 
         if (isDirectAdmin > 0) return;
@@ -90,6 +92,50 @@ public static class ClubAdminAccessHelper
     ///
     /// Only ever called from an explicit admin-grant action (SuperAdmin assign, BOD President/
     /// Secretary hook), so undeleting a previously-revoked row is the intended behaviour.
+    /// <summary>
+    /// The DISTRICT twin: makes sure this member holds an active District Admin
+    /// role (role 2, the district, no club). Called when someone is made District
+    /// Governor, so the DG gets in the same way a Club President does.
+    ///
+    /// ⚠️ fk_club_id IS NULL OR = 0 — the DB writes 0, not NULL, as the "no club"
+    /// sentinel on District Admin rows. Matching only NULL never finds the
+    /// existing row and we would insert a duplicate; matching neither would
+    /// collide with a Club Admin row for the same member.
+    ///
+    /// ⚠️ AllClubsAccess is NOT set: reaching into every club of the district
+    /// stays a separate, deliberate SuperAdmin decision.
+    ///
+    /// Idempotent — reactivates and undeletes an existing row, or inserts one.
+    /// </summary>
+    public static async Task EnsureActiveDistrictAdminRoleAsync(
+        MySqlConnection conn, int memberId, int districtId, int assignedBy, MySqlTransaction? tx = null)
+    {
+        if (memberId <= 0 || districtId <= 0) return;
+
+        var existingPk = await conn.ExecuteScalarAsync<int?>(@"
+            SELECT MAX(pk_member_role_id) FROM member_roles
+            WHERE fk_member_master_profile_id = @MemberId AND fk_role_id = 2
+              AND fk_district_id = @DistrictId AND (fk_club_id IS NULL OR fk_club_id = 0)",
+            new { MemberId = memberId, DistrictId = districtId }, tx);
+
+        if (existingPk == null)
+        {
+            await conn.ExecuteAsync(@"
+                INSERT INTO member_roles
+                    (fk_member_master_profile_id, fk_role_id, fk_district_id, IsActive, isdeleted, AssignedBy, created_by, created_date)
+                VALUES (@MemberId, 2, @DistrictId, 1, 0, @By, @By, NOW())",
+                new { MemberId = memberId, DistrictId = districtId, By = assignedBy }, tx);
+            return;
+        }
+
+        await conn.ExecuteAsync(@"
+            UPDATE member_roles
+            SET IsActive = 1, isdeleted = 0, RevokedDate = NULL, RevokedBy = NULL,
+                modified_by = @By, modified_date = NOW()
+            WHERE pk_member_role_id = @Id",
+            new { Id = existingPk.Value, By = assignedBy }, tx);
+    }
+
     public static async Task EnsureActiveClubAdminRoleAsync(MySqlConnection conn, int memberId, int clubId, int assignedBy, MySqlTransaction? tx = null)
     {
         // Newest existing role-2 row for this member+club, whatever state it is in.

@@ -162,7 +162,7 @@ public class ClubWebsitePublicController : ControllerBase
                     SELECT w2.pk_id FROM club_websites w2
                     WHERE w2.fk_club_id = c.pk_club_id AND COALESCE(w2.isdeleted, 0) = 0
                     ORDER BY w2.created_date DESC LIMIT 1)
-                WHERE c.pk_club_id = @Id AND c.isdeleted = 0 AND c.IsActive = 1",
+                WHERE c.pk_club_id = @Id AND c.isdeleted = 0 AND c.IsActive = 1 AND {HierarchyScopeSql.ClubLive("c")}",
                 new { Id = clubId.Value });
         }
         else if (!string.IsNullOrWhiteSpace(host))
@@ -175,7 +175,7 @@ public class ClubWebsitePublicController : ControllerBase
                 {selectCols}
                 FROM club_websites w
                 JOIN club_master c ON c.pk_club_id = w.fk_club_id
-                WHERE w.isdeleted = 0 AND c.isdeleted = 0 AND c.IsActive = 1
+                WHERE w.isdeleted = 0 AND c.isdeleted = 0 AND c.IsActive = 1 AND {HierarchyScopeSql.ClubLive("c")}
                   AND ({cd} = @host OR {sd} = @host OR {sd} = @label)
                 ORDER BY CASE WHEN {cd} = @host THEN 0 WHEN {sd} = @host THEN 1 ELSE 2 END,
                          w.created_date DESC

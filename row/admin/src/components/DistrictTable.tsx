@@ -22,15 +22,21 @@ interface DistrictTableProps {
   onDelete: (district: DistrictListItem) => void;
   isSuperAdmin?: boolean;
   zoneId?: number;
+  // upstream 2026-10-21: parent zone / district inactive, so this row is hidden too (SuperAdmin sees it marked).
+  parentInactive?: boolean;
 }
 
-export default function DistrictTable({ districts, onDelete, isSuperAdmin, zoneId }: DistrictTableProps) {
+export default function DistrictTable({ districts, onDelete, isSuperAdmin, zoneId, parentInactive }: DistrictTableProps) {
   const router = useRouter();
   const [navigatingId, setNavigatingId] = useState<number | null>(null);
 
   const handleRowClick = (district: DistrictListItem) => {
     if (navigatingId) return;
-    if (!district.isActive) return; // Inactive districts can't be drilled into.
+    if (!district.isActive || parentInactive) {
+      // upstream 2026-10-21: inactive = hidden everywhere; SuperAdmin may still look inside (read-only).
+      if (isSuperAdmin) router.push(`/districts/${district.id}/clubs`);
+      return;
+    }
     setNavigatingId(district.id);
     router.push(`/districts/${district.id}/dashboard`);
   };
@@ -55,12 +61,12 @@ export default function DistrictTable({ districts, onDelete, isSuperAdmin, zoneI
               <TableRow
                 key={district.id}
                 className={`transition-colors ${
-                  district.isActive
+                  district.isActive && !parentInactive
                     ? "cursor-pointer hover:bg-primary/5"
-                    : "opacity-70 cursor-not-allowed"
+                    : isSuperAdmin ? "opacity-70 cursor-pointer" : "opacity-70 cursor-not-allowed"
                 } ${navigatingId === district.id ? "opacity-60 pointer-events-none" : ""}`}
                 onClick={() => handleRowClick(district)}
-                title={!district.isActive ? "District is inactive. Click Edit (⋮) to activate." : undefined}
+                title={parentInactive && district.isActive ? "Its parent is inactive, so it is hidden everywhere. SuperAdmin view only." : !district.isActive ? "District is inactive. Click Edit (⋮) to activate." : undefined}
               >
                 <TableCell>
                   {navigatingId === district.id ? (
@@ -83,8 +89,8 @@ export default function DistrictTable({ districts, onDelete, isSuperAdmin, zoneI
                 <TableCell>{district.totalClubs}</TableCell>
                 <TableCell>{district.totalMembers}</TableCell>
                 <TableCell>
-                  <Badge variant={district.isActive ? "default" : "destructive"}>
-                    {district.isActive ? "Active" : "Inactive"}
+                  <Badge variant={district.isActive && !parentInactive ? "default" : "destructive"}>
+                    {district.isActive && !parentInactive ? "Active" : "Inactive"}
                   </Badge>
                 </TableCell>
                 <TableCell>

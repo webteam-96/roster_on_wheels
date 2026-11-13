@@ -61,12 +61,13 @@ public class ClubWebsitesController : ControllerBase
         // false in SQL). That caused this endpoint to report "not_configured" for clubs that
         // GlobalSearchController's already-defensive COALESCE(cw.isdeleted, 0) = 0 correctly
         // found an active website for. COALESCE here so both agree.
-        var row = await conn.QueryFirstOrDefaultAsync<dynamic>(@"
+        var row = await conn.QueryFirstOrDefaultAsync<dynamic>($@"
             SELECT w.Subdomain AS subdomain, w.ClientDomain AS clientDomain, w.IsPurchased AS isPurchased,
                    w.AmountPaid AS amountPaid, w.TransactionId AS transactionId,
                    DATEDIFF(w.EndDate, CURDATE()) AS daysRemaining
             FROM club_websites w
             WHERE w.fk_club_id = @ClubId AND COALESCE(w.isdeleted, 0) = 0
+              AND {HierarchyScopeSql.ClubIdLive("w.fk_club_id")}
             ORDER BY w.created_date DESC LIMIT 1",
             new { ClubId = clubId });
 
@@ -196,7 +197,8 @@ public class ClubWebsitesController : ControllerBase
                   AND b.fk_year_id = (SELECT pk_year_id FROM rotary_year_master WHERE IsCurrent = 1 AND isdeleted = 0 LIMIT 1)
                 GROUP BY b.fk_club_id
             ) sec ON sec.clubId = w.fk_club_id
-            WHERE COALESCE(w.isdeleted, 0) = 0";
+            WHERE COALESCE(w.isdeleted, 0) = 0
+              AND " + HierarchyScopeSql.ClubLive("c");
         var p = new DynamicParameters();
         p.Add("CurYearId", curYearId);
         if (!string.IsNullOrEmpty(status)) { sql += " AND w.Status = @Status"; p.Add("Status", status); }
@@ -238,10 +240,11 @@ public class ClubWebsitesController : ControllerBase
         if (districtId <= 0) return BadRequest(new { message = "districtId required" });
         using var conn = CreateConnection();
         await conn.OpenAsync();
-        var clubs = await conn.QueryAsync<dynamic>(@"
+        var clubs = await conn.QueryAsync<dynamic>($@"
             SELECT c.pk_club_id AS id, c.ClubName AS clubName, c.ClubRotaryId AS clubRotaryId
             FROM club_master c
             WHERE c.fk_district_id = @D AND c.isdeleted = 0 AND c.IsActive = 1
+              AND {HierarchyScopeSql.ClubLive("c")}
               AND NOT EXISTS (
                 SELECT 1 FROM club_websites w
                 WHERE w.fk_club_id = c.pk_club_id AND COALESCE(w.isdeleted, 0) = 0
@@ -1137,12 +1140,12 @@ public class ClubWebsitesController : ControllerBase
         await conn.OpenAsync();
         var userId = GetUserId();
 
-        var website = await conn.QueryFirstOrDefaultAsync<dynamic>(@"
+        var website = await conn.QueryFirstOrDefaultAsync<dynamic>($@"
             SELECT w.pk_id AS id, w.fk_club_id AS clubId, c.ClubName AS clubName,
                    w.Subdomain AS subdomain, w.EndDate AS endDate,
                    DATEDIFF(w.EndDate, CURDATE()) AS daysLeft
             FROM club_websites w JOIN club_master c ON c.pk_club_id = w.fk_club_id
-            WHERE w.pk_id = @Id AND COALESCE(w.isdeleted, 0) = 0",
+            WHERE w.pk_id = @Id AND COALESCE(w.isdeleted, 0) = 0 AND {HierarchyScopeSql.ClubLive("c")}",
             new { Id = id });
         if (website == null) return NotFound(new { message = "Record not found." });
 
@@ -1586,7 +1589,7 @@ public class ClubWebsitesController : ControllerBase
         p.Add("Year", yr);
         p.Add("Offset", (page - 1) * pageSize);
         p.Add("PageSize", pageSize);
-        var where = "WHERE c.isdeleted = 0 AND c.IsActive = 1";
+        var where = $"WHERE c.isdeleted = 0 AND c.IsActive = 1 AND {HierarchyScopeSql.ClubLive("c")}";
         if (districtId.HasValue) { where += " AND c.fk_district_id = @DistrictId"; p.Add("DistrictId", districtId.Value); }
         if (!string.IsNullOrWhiteSpace(search)) { where += " AND (c.ClubName LIKE @S OR c.ClubRotaryId LIKE @S)"; p.Add("S", $"%{search}%"); }
         // Expiring-within filter: latest website's days-to-expiry is between now (0) and N
@@ -1774,7 +1777,7 @@ public class ClubWebsitesController : ControllerBase
             LEFT JOIN ({BoardContactSql("Club President")}) pres ON pres.clubId = c.pk_club_id
             LEFT JOIN ({BoardContactSql("Club Secretary")}) sec ON sec.clubId = c.pk_club_id
             LEFT JOIN ({BoardContactSql("Club Treasurer")}) treas ON treas.clubId = c.pk_club_id
-            WHERE c.pk_club_id IN @Ids AND c.isdeleted = 0",
+            WHERE c.pk_club_id IN @Ids AND c.isdeleted = 0 AND {HierarchyScopeSql.ClubLive("c")}",
             new { Year = yr, Ids = req.ClubIds })).ToList();
 
         int clubsProcessed = 0, emailsSent = 0, failed = 0;

@@ -2,6 +2,7 @@ using Dapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MySqlConnector;
+using RotaryApi.Services;
 
 namespace RotaryApi.Controllers;
 
@@ -16,8 +17,11 @@ public class ClubWebsiteThemeController : ControllerBase
 {
     private readonly string _connectionString;
 
-    public ClubWebsiteThemeController(IConfiguration config)
+    private readonly AdminYearGuard _guard;
+
+    public ClubWebsiteThemeController(IConfiguration config, AdminYearGuard guard)
     {
+        _guard = guard;
         _connectionString = config.GetConnectionString("DefaultConnection")!;
     }
 
@@ -77,6 +81,9 @@ public class ClubWebsiteThemeController : ControllerBase
     {
         if (!await RotaryApi.Services.KillSwitchHelper.IsClubDrillReachableAsync(_connectionString, clubId))
             return StatusCode(403, new { message = "This club, its district, or its zone is inactive. Reactivate it first to access this data." });
+
+        var denied = await _guard.ClubYearlessAsync(User, clubId);
+        if (denied != null) return denied;
 
         if (dto.ThemeId <= 0)
             return BadRequest(new { message = "ThemeId is required." });

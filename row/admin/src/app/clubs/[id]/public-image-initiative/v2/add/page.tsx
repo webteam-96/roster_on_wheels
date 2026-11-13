@@ -479,19 +479,8 @@ export default function PublicImageInitiativeV2AddPage() {
     if (new Date(projectDate) > new Date()) { setErrorMessage("Project date cannot be in the future."); return; }
     if (!selectedAofId) { setErrorMessage("Category is required."); return; }
     if (isOthersAof && !otherAreaOfFocus.trim()) { setErrorMessage("Please specify the Category."); return; }
-    if (!projectCost) { setErrorMessage("Project Cost is required."); return; }
-    if (!selectedFundingId) { setErrorMessage("Funding is required."); return; }
-    if (showGlobalGrantBlock) {
-      if (!hostClubsDistricts.trim()) { setErrorMessage("Host Clubs/Districts is required for Global Grant."); return; }
-      if (!globalPartnerClubsDistricts.trim()) { setErrorMessage("Global Partner Clubs/Districts is required for Global Grant."); return; }
-    }
-    if (showCsrBlock) {
-      if (!csrCompanyName.trim()) { setErrorMessage("Name of the CSR Company is required for CSR."); return; }
-      if (!amountSanctioned) { setErrorMessage("Amount Sanctioned is required for CSR."); return; }
-      if (!amountReceived) { setErrorMessage("Amount Received is required for CSR."); return; }
-    }
-    if (!manHours) { setErrorMessage("Man Hours is required."); return; }
-    if (!rotariansInvolved) { setErrorMessage("Rotarians Involved is required."); return; }
+    // Financial & Impact (cost, funding, Global Grant / CSR details, man hours, Rotarians) is OPTIONAL
+    // for Public Image only (upstream 2026-10-26); the other service avenues keep them mandatory.
     if (photos.length === 0) { setErrorMessage("At least 1 photo is required."); return; }
     if (photos.some((p) => p.uploading)) { setErrorMessage("Please wait for photos to finish uploading."); return; }
     if (!moduleId) { setErrorMessage("Module not found."); return; }
@@ -788,7 +777,7 @@ export default function PublicImageInitiativeV2AddPage() {
         <SectionCard number={4} icon={moneyIcon(currency)} title="Financial & Impact" dot="bg-[#17458F]">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             <div>
-              <FieldLabel dot="bg-[#17458F]">Currency</FieldLabel>
+              <FieldLabel dot="bg-[#17458F]" required={false}>Currency</FieldLabel>
               <select
                 value={currency}
                 onChange={(e) => setCurrency(e.target.value)}
@@ -800,7 +789,7 @@ export default function PublicImageInitiativeV2AddPage() {
               </select>
             </div>
             <div>
-              <FieldLabel dot="bg-[#17458F]">Project Cost ({getCurrencySymbol(currency)})</FieldLabel>
+              <FieldLabel dot="bg-[#17458F]" required={false}>Project Cost ({getCurrencySymbol(currency)})</FieldLabel>
               <input
                 type="number"
                 value={projectCost}
@@ -811,7 +800,7 @@ export default function PublicImageInitiativeV2AddPage() {
               />
             </div>
             <div>
-              <FieldLabel dot="bg-[#17458F]">Funding</FieldLabel>
+              <FieldLabel dot="bg-[#17458F]" required={false}>Funding</FieldLabel>
               <select
                 value={selectedFundingId}
                 onChange={(e) => handleFundingChange(e.target.value)}
@@ -853,13 +842,13 @@ export default function PublicImageInitiativeV2AddPage() {
                       className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]" />
                   </div>
                   <div className="md:col-span-2">
-                    <FieldLabel dot="bg-[#17458F]">Host Clubs/Districts</FieldLabel>
+                    <FieldLabel dot="bg-[#17458F]" required={false}>Host Clubs/Districts</FieldLabel>
                     <input type="text" value={hostClubsDistricts}
                       onChange={(e) => setHostClubsDistricts(e.target.value)} placeholder="e.g., RC Chicago, RC Paris"
                       className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]" />
                   </div>
                   <div className="md:col-span-2">
-                    <FieldLabel dot="bg-[#17458F]">Global Partner Clubs/Districts</FieldLabel>
+                    <FieldLabel dot="bg-[#17458F]" required={false}>Global Partner Clubs/Districts</FieldLabel>
                     <input type="text" value={globalPartnerClubsDistricts}
                       onChange={(e) => setGlobalPartnerClubsDistricts(e.target.value)} placeholder="e.g., RC Tokyo"
                       className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]" />
@@ -873,19 +862,19 @@ export default function PublicImageInitiativeV2AddPage() {
                 <h4 className="text-sm font-semibold text-emerald-700">CSR Details</h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   <div className="md:col-span-2">
-                    <FieldLabel dot="bg-[#17458F]">Name of the CSR Company</FieldLabel>
+                    <FieldLabel dot="bg-[#17458F]" required={false}>Name of the CSR Company</FieldLabel>
                     <input type="text" value={csrCompanyName}
                       onChange={(e) => setCsrCompanyName(e.target.value)} placeholder="e.g., ABC Industries Ltd"
                       className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]" />
                   </div>
                   <div>
-                    <FieldLabel dot="bg-[#17458F]">Amount Sanctioned ({getCurrencySymbol(currency)})</FieldLabel>
+                    <FieldLabel dot="bg-[#17458F]" required={false}>Amount Sanctioned ({getCurrencySymbol(currency)})</FieldLabel>
                     <input inputMode="numeric" pattern="[0-9]*" value={amountSanctioned}
                       onChange={(e) => setAmountSanctioned(onlyDigits(e.target.value))} placeholder="0"
                       className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]" />
                   </div>
                   <div>
-                    <FieldLabel dot="bg-[#17458F]">Amount Received ({getCurrencySymbol(currency)})</FieldLabel>
+                    <FieldLabel dot="bg-[#17458F]" required={false}>Amount Received ({getCurrencySymbol(currency)})</FieldLabel>
                     <input inputMode="numeric" pattern="[0-9]*" value={amountReceived}
                       onChange={(e) => setAmountReceived(onlyDigits(e.target.value))} placeholder="0"
                       className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]" />
@@ -895,12 +884,12 @@ export default function PublicImageInitiativeV2AddPage() {
             )}
 
             <div>
-              <FieldLabel hint="(Rotarians x Hours)" dot="bg-[#17458F]">Man Hours</FieldLabel>
+              <FieldLabel hint="(Rotarians x Hours)" dot="bg-[#17458F]" required={false}>Man Hours</FieldLabel>
               <input type="number" value={manHours} onChange={(e) => setManHours(e.target.value)} placeholder="0" min={0}
                 className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]" />
             </div>
             <div>
-              <FieldLabel dot="bg-[#17458F]">Rotarians Involved</FieldLabel>
+              <FieldLabel dot="bg-[#17458F]" required={false}>Rotarians Involved</FieldLabel>
               <input type="number" value={rotariansInvolved} onChange={(e) => setRotariansInvolved(e.target.value)} placeholder="0" min={0}
                 className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]" />
             </div>

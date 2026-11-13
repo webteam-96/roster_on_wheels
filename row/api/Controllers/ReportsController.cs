@@ -32,10 +32,10 @@ public class ReportsController : ControllerBase
         using var conn = CreateConnection();
         await conn.OpenAsync();
         var rows = await conn.QueryAsync<dynamic>(@"
-            SELECT pk_district_id AS id, DistrictNumber AS districtNumber
-            FROM district_master
-            WHERE isdeleted = 0
-            ORDER BY CAST(DistrictNumber AS UNSIGNED), DistrictNumber");
+            SELECT d.pk_district_id AS id, d.DistrictNumber AS districtNumber
+            FROM district_master d
+            WHERE d.isdeleted = 0 AND " + HierarchyScopeSql.DistrictLive("d") + @"
+            ORDER BY CAST(d.DistrictNumber AS UNSIGNED), d.DistrictNumber");
         return Ok(rows);
     }
 
@@ -50,11 +50,11 @@ public class ReportsController : ControllerBase
         var rows = await conn.QueryAsync<dynamic>(@"
             SELECT z.pk_zone_id AS zoneId,
                    z.ZoneName AS zoneName,
-                   (SELECT COUNT(*) FROM district_master d WHERE d.fk_zone_id = z.pk_zone_id AND d.isdeleted = 0) AS districtCount,
+                   (SELECT COUNT(*) FROM district_master d WHERE d.fk_zone_id = z.pk_zone_id AND d.isdeleted = 0 AND " + HierarchyScopeSql.DistrictLive("d") + @") AS districtCount,
                    z.IsActive AS isActive,
                    z.created_date AS createdDate
             FROM zone_master z
-            WHERE z.isdeleted = 0
+            WHERE z.isdeleted = 0 AND " + HierarchyScopeSql.ZoneLive("z") + @"
             ORDER BY z.ZoneName");
         return Ok(rows);
     }
@@ -138,7 +138,7 @@ public class ReportsController : ControllerBase
             INNER JOIN member_roles mem_role
                 ON mem_role.fk_member_master_profile_id = pro.pk_member_master_profile_id
                AND mem_role.IsActive = 1 AND COALESCE(mem_role.isdeleted, 0) = 0
-            WHERE COALESCE(pro.isdeleted, 0) = 0
+            WHERE COALESCE(pro.isdeleted, 0) = 0 AND " + HierarchyScopeSql.ClubLive("club") + @"
               AND club_mem.fk_club_id <> 0
               AND (@RoleId IS NULL OR mem_role.fk_role_id = @RoleId)
               " + scopeFilter + allFilter + @"
@@ -160,11 +160,11 @@ public class ReportsController : ControllerBase
             SELECT d.pk_district_id AS districtId,
                    d.DistrictNumber AS districtNumber,
                    z.ZoneName AS zoneName,
-                   (SELECT COUNT(*) FROM club_master c WHERE c.fk_district_id = d.pk_district_id AND c.isdeleted = 0) AS clubCount,
+                   (SELECT COUNT(*) FROM club_master c WHERE c.fk_district_id = d.pk_district_id AND c.isdeleted = 0 AND " + HierarchyScopeSql.ClubLive("c") + @") AS clubCount,
                    d.created_date AS createdDate
             FROM district_master d
             LEFT JOIN zone_master z ON z.pk_zone_id = d.fk_zone_id AND z.isdeleted = 0
-            WHERE d.isdeleted = 0";
+            WHERE d.isdeleted = 0 AND " + HierarchyScopeSql.DistrictLive("d");
         var p = new DynamicParameters();
         if (districtId.HasValue) { sql += " AND d.pk_district_id = @DistrictId"; p.Add("DistrictId", districtId.Value); }
         sql += " ORDER BY CAST(d.DistrictNumber AS UNSIGNED), d.DistrictNumber";
@@ -192,7 +192,7 @@ public class ReportsController : ControllerBase
             JOIN district_master d ON d.pk_district_id = g.fk_district_id
             JOIN rotary_year_master y ON y.pk_year_id = g.fk_year_id
             {DistrictGovernorSql.JoinMember}
-            WHERE g.isdeleted = 0";
+            WHERE g.isdeleted = 0 AND " + HierarchyScopeSql.DistrictLive("d");
         var p = new DynamicParameters();
         if (yearId.HasValue) { sql += " AND g.fk_year_id = @YearId"; p.Add("YearId", yearId.Value); }
         if (districtId.HasValue) { sql += " AND g.fk_district_id = @DistrictId"; p.Add("DistrictId", districtId.Value); }
@@ -228,7 +228,7 @@ public class ReportsController : ControllerBase
             FROM club_master c
             LEFT JOIN district_master d ON d.pk_district_id = c.fk_district_id
             LEFT JOIN zone_master z ON z.pk_zone_id = d.fk_zone_id
-            WHERE c.isdeleted = 0";
+            WHERE c.isdeleted = 0 AND " + HierarchyScopeSql.ClubLive("c");
         var p = new DynamicParameters();
         if (districtId.HasValue) { sql += " AND c.fk_district_id = @DistrictId"; p.Add("DistrictId", districtId.Value); }
         sql += " ORDER BY CAST(d.DistrictNumber AS UNSIGNED), d.DistrictNumber, c.ClubName";
@@ -247,7 +247,7 @@ public class ReportsController : ControllerBase
                    m.RotaryId AS rotaryId, m.EmailId AS email,
                    m.PrimaryMobileNumber AS mobile, m.Gender AS gender,
                    m.BirthDate AS birthDate, m.AnniversaryDate AS anniversaryDate,
-                   m.BloodGroup AS bloodGroup,
+                   m.BloodGroup AS bloodGroup, (SELECT ts.SizeName FROM event_tshirt_sizes ts WHERE ts.pk_id = m.fk_tshirt_size_id) AS tshirtSize,
                    c.ClubName AS clubName, c.ClubRotaryId AS clubRotaryId,
                    d.DistrictNumber AS districtNumber,
                    z.ZoneName AS zoneName,
@@ -258,7 +258,7 @@ public class ReportsController : ControllerBase
             JOIN club_master c ON c.pk_club_id = cm.fk_club_id AND c.isdeleted = 0
             JOIN district_master d ON d.pk_district_id = c.fk_district_id
             LEFT JOIN zone_master z ON z.pk_zone_id = d.fk_zone_id
-            WHERE cm.isdeleted = 0 AND cm.IsActive = 1";
+            WHERE cm.isdeleted = 0 AND cm.IsActive = 1 AND " + HierarchyScopeSql.ClubLive("c");
         var p = new DynamicParameters();
         if (districtId.HasValue) { sql += " AND c.fk_district_id = @DistrictId"; p.Add("DistrictId", districtId.Value); }
         sql += " ORDER BY CAST(d.DistrictNumber AS UNSIGNED), d.DistrictNumber, c.ClubName, m.MemberName";
@@ -285,7 +285,7 @@ public class ReportsController : ControllerBase
             JOIN designation_master dm ON dm.pk_designation_id = b.fk_designation_id
             JOIN rotary_year_master y ON y.pk_year_id = b.fk_year_id
             JOIN member_master_profile m ON m.pk_member_master_profile_id = b.fk_member_master_profile_id AND m.isdeleted = 0
-            WHERE b.isdeleted = 0
+            WHERE b.isdeleted = 0 AND " + HierarchyScopeSql.ClubLive("c") + @"
               AND (LOWER(dm.designation_name) LIKE '%president%' OR LOWER(dm.designation_name) LIKE '%secretary%')
               AND LOWER(dm.designation_name) NOT LIKE '%vice%'
               AND LOWER(dm.designation_name) NOT LIKE '%past%'";
@@ -317,7 +317,7 @@ public class ReportsController : ControllerBase
             JOIN club_master c ON c.pk_club_id = w.fk_club_id
             JOIN district_master d ON d.pk_district_id = c.fk_district_id
             LEFT JOIN theme_master t ON t.pk_theme_id = w.fk_theme_id
-            WHERE w.isdeleted = 0";
+            WHERE w.isdeleted = 0 AND " + HierarchyScopeSql.ClubLive("c");
         var p = new DynamicParameters();
         if (districtId.HasValue) { sql += " AND c.fk_district_id = @DistrictId"; p.Add("DistrictId", districtId.Value); }
         sql += " ORDER BY w.Status, w.EndDate";
@@ -338,7 +338,7 @@ public class ReportsController : ControllerBase
                    w.created_date AS createdDate
             FROM district_websites w
             JOIN district_master d ON d.pk_district_id = w.fk_district_id
-            WHERE w.isdeleted = 0";
+            WHERE w.isdeleted = 0 AND " + HierarchyScopeSql.DistrictLive("d");
         var p = new DynamicParameters();
         if (districtId.HasValue) { sql += " AND w.fk_district_id = @DistrictId"; p.Add("DistrictId", districtId.Value); }
         sql += " ORDER BY CAST(d.DistrictNumber AS UNSIGNED), d.DistrictNumber";
@@ -506,7 +506,7 @@ public class ReportsController : ControllerBase
             JOIN designation_master dm ON dm.pk_designation_id = b.fk_designation_id
             JOIN rotary_year_master y ON y.pk_year_id = b.fk_year_id
             JOIN member_master_profile m ON m.pk_member_master_profile_id = b.fk_member_master_profile_id AND m.isdeleted = 0
-            WHERE b.isdeleted = 0";
+            WHERE b.isdeleted = 0 AND " + HierarchyScopeSql.ClubLive("c");
         var p = new DynamicParameters();
         if (yearId.HasValue) { sql += " AND b.fk_year_id = @YearId"; p.Add("YearId", yearId.Value); }
         if (districtId.HasValue) { sql += " AND c.fk_district_id = @DistrictId"; p.Add("DistrictId", districtId.Value); }
@@ -535,7 +535,7 @@ public class ReportsController : ControllerBase
             JOIN club_master c ON c.pk_club_id = a.fk_club_id AND c.isdeleted = 0
             JOIN district_master d ON d.pk_district_id = c.fk_district_id
             JOIN rotary_year_master y ON a.PublishDateTime >= y.StartDate AND a.PublishDateTime < DATE_ADD(y.EndDate, INTERVAL 1 DAY)
-            WHERE a.isdeleted = 0";
+            WHERE a.isdeleted = 0 AND " + HierarchyScopeSql.ClubLive("c");
         var p = new DynamicParameters();
         if (yearId.HasValue) { sql += " AND y.pk_year_id = @YearId"; p.Add("YearId", yearId.Value); }
         if (districtId.HasValue) { sql += " AND c.fk_district_id = @DistrictId"; p.Add("DistrictId", districtId.Value); }
@@ -562,7 +562,7 @@ public class ReportsController : ControllerBase
             JOIN club_master c ON c.pk_club_id = e.fk_club_id AND c.isdeleted = 0
             JOIN district_master d ON d.pk_district_id = c.fk_district_id
             JOIN rotary_year_master y ON e.PublishDate >= y.StartDate AND e.PublishDate < DATE_ADD(y.EndDate, INTERVAL 1 DAY)
-            WHERE e.isdeleted = 0";
+            WHERE e.isdeleted = 0 AND " + HierarchyScopeSql.ClubLive("c");
         var p = new DynamicParameters();
         if (yearId.HasValue) { sql += " AND y.pk_year_id = @YearId"; p.Add("YearId", yearId.Value); }
         if (districtId.HasValue) { sql += " AND c.fk_district_id = @DistrictId"; p.Add("DistrictId", districtId.Value); }
@@ -589,7 +589,7 @@ public class ReportsController : ControllerBase
             JOIN club_master c ON c.pk_club_id = a.fk_club_id AND c.isdeleted = 0
             JOIN district_master d ON d.pk_district_id = c.fk_district_id
             JOIN rotary_year_master y ON y.pk_year_id = a.fk_year_id
-            WHERE a.isdeleted = 0";
+            WHERE a.isdeleted = 0 AND " + HierarchyScopeSql.ClubLive("c");
         var p = new DynamicParameters();
         if (yearId.HasValue) { sql += " AND a.fk_year_id = @YearId"; p.Add("YearId", yearId.Value); }
         if (districtId.HasValue) { sql += " AND c.fk_district_id = @DistrictId"; p.Add("DistrictId", districtId.Value); }
@@ -622,7 +622,7 @@ public class ReportsController : ControllerBase
             JOIN club_master c ON c.pk_club_id = doc.fk_club_id AND c.isdeleted = 0
             JOIN district_master d ON d.pk_district_id = c.fk_district_id
             LEFT JOIN rotary_year_master y ON doc.PublishDateTime >= y.StartDate AND doc.PublishDateTime < DATE_ADD(y.EndDate, INTERVAL 1 DAY)
-            WHERE doc.isdeleted = 0";
+            WHERE doc.isdeleted = 0 AND " + HierarchyScopeSql.ClubLive("c");
         var p = new DynamicParameters();
         if (yearId.HasValue) { sql += " AND y.pk_year_id = @YearId"; p.Add("YearId", yearId.Value); }
         if (districtId.HasValue) { sql += " AND c.fk_district_id = @DistrictId"; p.Add("DistrictId", districtId.Value); }
@@ -651,7 +651,7 @@ public class ReportsController : ControllerBase
             JOIN club_master c ON c.pk_club_id = r.fk_club_id AND c.isdeleted = 0
             JOIN district_master d ON d.pk_district_id = c.fk_district_id
             JOIN rotary_year_master y ON y.pk_year_id = r.fk_year_id
-            WHERE r.isdeleted = 0";
+            WHERE r.isdeleted = 0 AND " + HierarchyScopeSql.ClubLive("c");
         var p = new DynamicParameters();
         if (yearId.HasValue) { sql += " AND r.fk_year_id = @YearId"; p.Add("YearId", yearId.Value); }
         if (districtId.HasValue) { sql += " AND c.fk_district_id = @DistrictId"; p.Add("DistrictId", districtId.Value); }
@@ -700,7 +700,7 @@ public class ReportsController : ControllerBase
                LEFT JOIN module_master md ON md.pk_module_id = p.fk_module_id
                LEFT JOIN area_of_focus_master a ON a.pk_area_of_focus_id = p.fk_area_of_focus_id
                LEFT JOIN funding_master f ON f.pk_funding_id = p.fk_funding_id
-               WHERE p.isdeleted = 0{districtFilter}"));
+               WHERE p.isdeleted = 0 AND {HierarchyScopeSql.ClubLive("c")}{districtFilter}"));
 
         var p2 = new DynamicParameters();
         if (districtId.HasValue) p2.Add("DistrictId", districtId.Value);
@@ -728,7 +728,7 @@ public class ReportsController : ControllerBase
             JOIN district_master d ON d.pk_district_id = c.fk_district_id
             JOIN rotary_year_master y ON y.pk_year_id = t.fk_year_id
             LEFT JOIN trf_fund_master f ON f.pk_fund_id = t.fk_fund_id
-            WHERE t.isdeleted = 0";
+            WHERE t.isdeleted = 0 AND " + HierarchyScopeSql.ClubLive("c");
         var p = new DynamicParameters();
         if (yearId.HasValue) { sql += " AND t.fk_year_id = @YearId"; p.Add("YearId", yearId.Value); }
         if (districtId.HasValue) { sql += " AND c.fk_district_id = @DistrictId"; p.Add("DistrictId", districtId.Value); }
@@ -762,7 +762,7 @@ public class ReportsController : ControllerBase
             JOIN club_master c ON c.pk_club_id = n.fk_club_id AND c.isdeleted = 0
             JOIN district_master d ON d.pk_district_id = c.fk_district_id
             JOIN rotary_year_master y ON n.PublishDateTime >= y.StartDate AND n.PublishDateTime < DATE_ADD(y.EndDate, INTERVAL 1 DAY)
-            WHERE n.isdeleted = 0";
+            WHERE n.isdeleted = 0 AND " + HierarchyScopeSql.ClubLive("c");
         var p = new DynamicParameters();
         if (yearId.HasValue) { sql += " AND y.pk_year_id = @YearId"; p.Add("YearId", yearId.Value); }
         if (districtId.HasValue) { sql += " AND c.fk_district_id = @DistrictId"; p.Add("DistrictId", districtId.Value); }
@@ -796,7 +796,7 @@ public class ReportsController : ControllerBase
             JOIN rotary_year_master y ON y.pk_year_id = cm.fk_year_id
             LEFT JOIN club_master c ON c.pk_club_id = cm.fk_club_id
             LEFT JOIN member_master_profile m ON m.pk_member_master_profile_id = cm.fk_member_id AND m.isdeleted = 0
-            WHERE cm.isdeleted = 0";
+            WHERE cm.isdeleted = 0 AND " + HierarchyScopeSql.DistrictLive("d") + " AND " + HierarchyScopeSql.ClubIdLive("cm.fk_club_id");
         var p = new DynamicParameters();
         if (yearId.HasValue) { sql += " AND cm.fk_year_id = @YearId"; p.Add("YearId", yearId.Value); }
         if (districtId.HasValue) { sql += " AND cm.fk_district_id = @DistrictId"; p.Add("DistrictId", districtId.Value); }
@@ -826,7 +826,7 @@ public class ReportsController : ControllerBase
             JOIN club_master c ON c.pk_club_id = ag.fk_club_id AND c.isdeleted = 0
             JOIN member_master_profile m ON m.pk_member_master_profile_id = ag.fk_member_id AND m.isdeleted = 0
             LEFT JOIN rotary_year_master y ON y.pk_year_id = ag.fk_year_id
-            WHERE ag.isdeleted = 0";
+            WHERE ag.isdeleted = 0 AND " + HierarchyScopeSql.ClubLive("c");
         var p = new DynamicParameters();
         if (districtId.HasValue) { sql += " AND ag.fk_district_id = @DistrictId"; p.Add("DistrictId", districtId.Value); }
         if (yearId.HasValue) { sql += " AND ag.fk_year_id = @YearId"; p.Add("YearId", yearId.Value); }
@@ -850,7 +850,7 @@ public class ReportsController : ControllerBase
             FROM upcoming_events e
             JOIN district_master d ON d.pk_district_id = e.fk_district_id
             JOIN rotary_year_master y ON e.PublishDate >= y.StartDate AND e.PublishDate < DATE_ADD(y.EndDate, INTERVAL 1 DAY)
-            WHERE e.isdeleted = 0 AND e.fk_district_id IS NOT NULL AND e.Scope = 'district'";
+            WHERE e.isdeleted = 0 AND e.fk_district_id IS NOT NULL AND e.Scope = 'district' AND " + HierarchyScopeSql.DistrictLive("d");
         var p = new DynamicParameters();
         if (yearId.HasValue) { sql += " AND y.pk_year_id = @YearId"; p.Add("YearId", yearId.Value); }
         if (districtId.HasValue) { sql += " AND e.fk_district_id = @DistrictId"; p.Add("DistrictId", districtId.Value); }
@@ -880,7 +880,7 @@ public class ReportsController : ControllerBase
             FROM membership_dues md
             JOIN club_master c ON c.pk_club_id = md.fk_club_id AND c.isdeleted = 0
             JOIN district_master d ON d.pk_district_id = md.fk_district_id
-            WHERE md.isdeleted = 0";
+            WHERE md.isdeleted = 0 AND " + HierarchyScopeSql.ClubLive("c");
         var p = new DynamicParameters();
         if (yearId.HasValue)
         {
@@ -915,7 +915,7 @@ public class ReportsController : ControllerBase
             FROM event_payment_links ep
             LEFT JOIN district_master d ON d.pk_district_id = ep.fk_district_master_id
             LEFT JOIN club_master c ON c.pk_club_id = ep.fk_club_id
-            WHERE ep.isdeleted = 0";
+            WHERE ep.isdeleted = 0 AND " + HierarchyScopeSql.DistrictIdLive("ep.fk_district_master_id") + " AND " + HierarchyScopeSql.ClubIdLive("ep.fk_club_id");
         var p = new DynamicParameters();
         if (districtId.HasValue) { sql += " AND (ep.fk_district_master_id = @DistrictId OR c.fk_district_id = @DistrictId)"; p.Add("DistrictId", districtId.Value); }
         sql += " ORDER BY ep.created_date DESC";
@@ -940,7 +940,7 @@ public class ReportsController : ControllerBase
             JOIN club_master c ON c.pk_club_id = ce.fk_club_id AND c.isdeleted = 0
             JOIN district_master d ON d.pk_district_id = ce.fk_district_id
             JOIN rotary_year_master y ON y.pk_year_id = ce.fk_year_id
-            WHERE ce.isdeleted = 0";
+            WHERE ce.isdeleted = 0 AND " + HierarchyScopeSql.ClubLive("c");
         var p = new DynamicParameters();
         if (yearId.HasValue) { sql += " AND ce.fk_year_id = @YearId"; p.Add("YearId", yearId.Value); }
         if (districtId.HasValue) { sql += " AND ce.fk_district_id = @DistrictId"; p.Add("DistrictId", districtId.Value); }
@@ -964,7 +964,7 @@ public class ReportsController : ControllerBase
                    m.EmailId AS email, m.PrimaryMobileNumber AS mobile,
                    m.SecondaryMobileNumber AS secondaryMobile,
                    m.Gender AS gender, m.BirthDate AS birthDate, m.AnniversaryDate AS anniversaryDate,
-                   m.BloodGroup AS bloodGroup, m.PrimaryLanguage AS language,
+                   m.BloodGroup AS bloodGroup, (SELECT ts.SizeName FROM event_tshirt_sizes ts WHERE ts.pk_id = m.fk_tshirt_size_id) AS tshirtSize, m.PrimaryLanguage AS language,
                    CASE WHEN cm.IsHonoraryMember = 1 THEN 'Yes' ELSE 'No' END AS isHonorary,
                    CASE WHEN m.IsYouth = 1 THEN 'Yes' ELSE 'No' END AS isYouth,
                    z.ZoneName AS zoneName, d.DistrictNumber AS districtNumber,
@@ -981,7 +981,7 @@ public class ReportsController : ControllerBase
             JOIN district_master d ON d.pk_district_id = c.fk_district_id
             LEFT JOIN zone_master z ON z.pk_zone_id = d.fk_zone_id
             LEFT JOIN member_family_details f ON f.fk_member_master_profile_id = m.pk_member_master_profile_id AND f.isdeleted = 0
-            WHERE cm.isdeleted = 0 AND cm.IsActive = 1";
+            WHERE cm.isdeleted = 0 AND cm.IsActive = 1 AND " + HierarchyScopeSql.ClubLive("c");
         var p = new DynamicParameters();
         if (districtId.HasValue) { sql += " AND c.fk_district_id = @DistrictId"; p.Add("DistrictId", districtId.Value); }
         sql += " ORDER BY CAST(d.DistrictNumber AS UNSIGNED), d.DistrictNumber, c.ClubName, m.MemberName, f.Relation";
@@ -1012,7 +1012,7 @@ public class ReportsController : ControllerBase
             JOIN club_master c ON c.pk_club_id = cm.fk_club_id AND c.isdeleted = 0
             JOIN district_master d ON d.pk_district_id = c.fk_district_id
             LEFT JOIN zone_master z ON z.pk_zone_id = d.fk_zone_id
-            WHERE cm.isdeleted = 0 AND cm.IsActive = 1";
+            WHERE cm.isdeleted = 0 AND cm.IsActive = 1 AND " + HierarchyScopeSql.ClubLive("c");
         var p = new DynamicParameters();
         if (districtId.HasValue) { sql += " AND c.fk_district_id = @DistrictId"; p.Add("DistrictId", districtId.Value); }
         sql += " ORDER BY z.ZoneName, CAST(d.DistrictNumber AS UNSIGNED), d.DistrictNumber, c.ClubName, m.MemberName";
@@ -1045,7 +1045,7 @@ public class ReportsController : ControllerBase
             JOIN club_master c ON c.pk_club_id = cm.fk_club_id AND c.isdeleted = 0
             JOIN district_master d ON d.pk_district_id = c.fk_district_id
             LEFT JOIN zone_master z ON z.pk_zone_id = d.fk_zone_id
-            WHERE cm.isdeleted = 0 AND cm.IsActive = 1
+            WHERE cm.isdeleted = 0 AND cm.IsActive = 1 AND " + HierarchyScopeSql.ClubLive("c") + @"
               AND COALESCE(m.MobileLoginCount, 0) > 0";
         var p = new DynamicParameters();
         if (districtId.HasValue) { sql += " AND c.fk_district_id = @DistrictId"; p.Add("DistrictId", districtId.Value); }
@@ -1090,7 +1090,7 @@ public class ReportsController : ControllerBase
                 WHERE COALESCE(isdeleted, 0) = 0
                 GROUP BY fk_member_master_profile_id
             ) cmd ON cmd.fk_member_master_profile_id = m.pk_member_master_profile_id
-            WHERE a.isdeleted = 0";
+            WHERE a.isdeleted = 0 AND " + HierarchyScopeSql.ClubLive("c");
         var p = new DynamicParameters();
         if (districtId.HasValue) { sql += " AND c.fk_district_id = @DistrictId"; p.Add("DistrictId", districtId.Value); }
         sql += " ORDER BY CAST(d.DistrictNumber AS UNSIGNED), d.DistrictNumber, c.ClubName, m.MemberName, a.AddressType";
@@ -1124,7 +1124,7 @@ public class ReportsController : ControllerBase
             FROM weblinks w
             JOIN club_master c ON c.pk_club_id = w.fk_club_id AND c.isdeleted = 0
             JOIN district_master d ON d.pk_district_id = c.fk_district_id
-            WHERE w.isdeleted = 0";
+            WHERE w.isdeleted = 0 AND " + HierarchyScopeSql.ClubLive("c");
         var p = new DynamicParameters();
         if (districtId.HasValue) { sql += " AND c.fk_district_id = @DistrictId"; p.Add("DistrictId", districtId.Value); }
         sql += " ORDER BY CAST(d.DistrictNumber AS UNSIGNED), d.DistrictNumber, c.ClubName, w.Level, w.SortOrder";
@@ -1149,7 +1149,7 @@ public class ReportsController : ControllerBase
             FROM potential_members pm
             JOIN club_master c ON c.pk_club_id = pm.fk_club_id AND c.isdeleted = 0
             JOIN district_master d ON d.pk_district_id = c.fk_district_id
-            WHERE pm.isdeleted = 0";
+            WHERE pm.isdeleted = 0 AND " + HierarchyScopeSql.ClubLive("c");
         var p = new DynamicParameters();
         if (districtId.HasValue) { sql += " AND c.fk_district_id = @DistrictId"; p.Add("DistrictId", districtId.Value); }
         sql += " ORDER BY CAST(d.DistrictNumber AS UNSIGNED), d.DistrictNumber, c.ClubName, pm.created_date DESC";
@@ -1179,7 +1179,7 @@ public class ReportsController : ControllerBase
             FROM club_mass_emails me
             JOIN club_master c ON c.pk_club_id = me.fk_club_id AND c.isdeleted = 0
             JOIN district_master d ON d.pk_district_id = c.fk_district_id
-            WHERE me.isdeleted = 0";
+            WHERE me.isdeleted = 0 AND " + HierarchyScopeSql.ClubLive("c");
         var p = new DynamicParameters();
         if (districtId.HasValue) { sql += " AND c.fk_district_id = @DistrictId"; p.Add("DistrictId", districtId.Value); }
         sql += " ORDER BY me.created_date DESC";
@@ -1216,7 +1216,7 @@ public class ReportsController : ControllerBase
             JOIN rotary_year_master y ON y.pk_year_id = doc.fk_year_id
             LEFT JOIN ocv_document_category cat ON cat.pk_category_id = doc.fk_category_id
             LEFT JOIN ocv_document_type t ON t.pk_type_id = doc.fk_type_id
-            WHERE doc.isdeleted = 0";
+            WHERE doc.isdeleted = 0 AND " + HierarchyScopeSql.ClubLive("c");
         var p = new DynamicParameters();
         if (yearId.HasValue) { sql += " AND doc.fk_year_id = @YearId"; p.Add("YearId", yearId.Value); }
         if (districtId.HasValue) { sql += " AND c.fk_district_id = @DistrictId"; p.Add("DistrictId", districtId.Value); }
@@ -1241,7 +1241,7 @@ public class ReportsController : ControllerBase
             FROM club_website_social_link sl
             JOIN club_master c ON c.pk_club_id = sl.fk_club_id AND c.isdeleted = 0
             JOIN district_master d ON d.pk_district_id = c.fk_district_id
-            WHERE sl.isdeleted = 0";
+            WHERE sl.isdeleted = 0 AND " + HierarchyScopeSql.ClubLive("c");
         var p = new DynamicParameters();
         if (districtId.HasValue) { sql += " AND c.fk_district_id = @DistrictId"; p.Add("DistrictId", districtId.Value); }
         sql += " ORDER BY CAST(d.DistrictNumber AS UNSIGNED), d.DistrictNumber, c.ClubName, sl.sort_order";

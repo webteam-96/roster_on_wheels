@@ -49,7 +49,7 @@ public class DistrictDirectoryController : ControllerBase
         // ── District info (lookup by DistrictNumber) ──
         // IsActive = 1: an Inactive district must not render its directory publicly (returns "not found").
         var district = await conn.QueryFirstOrDefaultAsync<dynamic>(
-            "SELECT * FROM district_master WHERE DistrictNumber = @Num AND isdeleted = 0 AND IsActive = 1",
+            $"SELECT * FROM district_master d WHERE d.DistrictNumber = @Num AND d.isdeleted = 0 AND d.IsActive = 1 AND {HierarchyScopeSql.DistrictLive("d")}",
             new { Num = districtNumber });
         if (district == null) return NotFound(new { message = $"District '{districtNumber}' not found." });
         int districtId = (int)district.pk_district_id;
@@ -328,7 +328,7 @@ public class DistrictDirectoryController : ControllerBase
         }
 
         // ── 1. District Committee Members ──
-        var districtCommitteeRaw = await conn.QueryAsync<dynamic>(@"
+        var districtCommitteeRaw = await conn.QueryAsync<dynamic>($@"
             SELECT dcm.*, m.*, c.ClubName,
                    dcm.name AS committeeName,
                    CASE WHEN COALESCE(dcm.fk_member_id, 0) > 0 AND m.PrimaryMobileNumber IS NOT NULL AND TRIM(m.PrimaryMobileNumber) <> ''
@@ -346,6 +346,7 @@ public class DistrictDirectoryController : ControllerBase
             LEFT JOIN member_master_profile m ON m.pk_member_master_profile_id = dcm.fk_member_id AND m.isdeleted = 0
             LEFT JOIN club_master c ON c.pk_club_id = dcm.fk_club_id AND c.isdeleted = 0
             WHERE dcm.fk_district_id = @DistrictId AND dcm.fk_year_id = @YearId AND dcm.isdeleted = 0
+              AND {HierarchyScopeSql.ClubIdLive("dcm.fk_club_id")}
             ORDER BY dcm.sort_order, dcm.name",
             new { DistrictId = districtId, YearId = yearId });
         var districtCommittee = WithAddresses(districtCommitteeRaw);
@@ -363,7 +364,7 @@ public class DistrictDirectoryController : ControllerBase
         {
             int groupId = (int)g.id;
 
-            var groupMembersRaw = await conn.QueryAsync<dynamic>(@"
+            var groupMembersRaw = await conn.QueryAsync<dynamic>($@"
                 SELECT gm.*, m.*, c.ClubName,
                        gm.name AS committeeName,
                        CASE WHEN COALESCE(gm.fk_member_id, 0) > 0 AND m.PrimaryMobileNumber IS NOT NULL AND TRIM(m.PrimaryMobileNumber) <> ''
@@ -381,6 +382,7 @@ public class DistrictDirectoryController : ControllerBase
                 LEFT JOIN member_master_profile m ON m.pk_member_master_profile_id = gm.fk_member_id AND m.isdeleted = 0
                 LEFT JOIN club_master c ON c.pk_club_id = gm.fk_club_id AND c.isdeleted = 0
                 WHERE gm.fk_group_id = @GroupId AND gm.isdeleted = 0
+                  AND {HierarchyScopeSql.ClubIdLive("gm.fk_club_id")}
                 ORDER BY gm.sort_order, gm.name",
                 new { GroupId = groupId });
             var groupMembers = WithAddresses(groupMembersRaw);
@@ -396,7 +398,7 @@ public class DistrictDirectoryController : ControllerBase
             foreach (var sg in subGroups)
             {
                 int subGroupId = (int)sg.id;
-                var sgMembersRaw = await conn.QueryAsync<dynamic>(@"
+                var sgMembersRaw = await conn.QueryAsync<dynamic>($@"
                     SELECT sgm.*, m.*, c.ClubName,
                            sgm.name AS committeeName,
                            CASE WHEN COALESCE(sgm.fk_member_id, 0) > 0 AND m.PrimaryMobileNumber IS NOT NULL AND TRIM(m.PrimaryMobileNumber) <> ''
@@ -414,6 +416,7 @@ public class DistrictDirectoryController : ControllerBase
                     LEFT JOIN member_master_profile m ON m.pk_member_master_profile_id = sgm.fk_member_id AND m.isdeleted = 0
                     LEFT JOIN club_master c ON c.pk_club_id = sgm.fk_club_id AND c.isdeleted = 0
                     WHERE sgm.fk_sub_group_id = @SubGroupId AND sgm.isdeleted = 0
+                      AND {HierarchyScopeSql.ClubIdLive("sgm.fk_club_id")}
                     ORDER BY sgm.sort_order, sgm.name",
                     new { SubGroupId = subGroupId });
                 var sgMembers = WithAddresses(sgMembersRaw);
@@ -464,9 +467,10 @@ public class DistrictDirectoryController : ControllerBase
         }
 
         // ── 3. Clubs with BOD + Members (each enriched with residentialAddress) ──
-        var clubs = (await conn.QueryAsync<dynamic>(@"
+        var clubs = (await conn.QueryAsync<dynamic>($@"
             SELECT c.* FROM club_master c
             WHERE c.fk_district_id = @DistrictId AND c.isdeleted = 0
+              AND {HierarchyScopeSql.ClubLive("c")}
             ORDER BY c.ClubName",
             new { DistrictId = districtId })).ToList();
 

@@ -145,7 +145,9 @@ export default function NewGenerationServiceV2Page() {
   const myListingUrl = `/clubs/${clubId}/new-generation-service/v2${parentReturnTo ? `?returnTo=${encodeURIComponent(parentReturnTo)}` : ""}`;
   const returnTo = encodeURIComponent(myListingUrl);
 
-  const addUrl = `/clubs/${clubId}/new-generation-service/v2/add?returnTo=${returnTo}`;
+  // Carry the selected listing year through to the add page: the photo upload needs
+  // it, or a past-year admin is refused the picture (see uploadProjectImage).
+  const addUrl = `/clubs/${clubId}/new-generation-service/v2/add?returnTo=${returnTo}${selectedYearId ? `&yearId=${selectedYearId}` : ""}`;
 
   useEffect(() => {
     let cancelled = false;

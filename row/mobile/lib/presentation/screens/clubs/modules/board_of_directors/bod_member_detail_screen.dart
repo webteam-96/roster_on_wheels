@@ -1,3 +1,4 @@
+import 'package:rotary_flutter_app/data/models/member_model.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart' hide Text;
 import 'package:go_router/go_router.dart';
@@ -151,7 +152,7 @@ class _BodMemberDetailScreenState extends State<BodMemberDetailScreen> {
       orElse: () => const RotarianAddress(),
     );
     final residential = d.addresses.firstWhere(
-      (a) => (a.addressType ?? '').toLowerCase() == 'residential',
+      (a) => isHomeAddressType(a.addressType),
       orElse: () => const RotarianAddress(),
     );
 

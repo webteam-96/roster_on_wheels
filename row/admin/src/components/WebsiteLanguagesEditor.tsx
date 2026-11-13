@@ -7,8 +7,7 @@ import {
   deleteWebsiteTranslation, getWebsiteLanguages, getWebsiteTranslations, saveWebsiteLanguages, saveWebsiteTranslation,
   type WebsiteLanguageSettings, type WebsiteScope, type WebsiteTranslationFields, type WebsiteTranslationItem,
 } from "@/services/api";
-import { WORLD_LANGUAGE_CODES } from "@/i18n/worldLanguages";
-import { nativeLanguageName } from "@/i18n/config";
+import { SUPPORTED_LOCALES, nativeLanguageName } from "@/i18n/config";
 import { postTranslate } from "@/i18n/postTranslate";
 import { translateHtml, translateText, type Translator } from "@/lib/translateHtml";
 import RichTextEditor from "@/components/RichTextEditor";
@@ -226,7 +225,7 @@ export default function WebsiteLanguagesEditor({ scope, ownerId, fallbackBack }:
                   <div className="flex flex-wrap gap-2">
                     <select id="add-language" className={SELECT} value={adding} onChange={(e) => setAdding(e.target.value)}>
                       <option value="">Choose a language</option>
-                      {WORLD_LANGUAGE_CODES.filter((c) => !draft.languages.includes(c)).map((c) => (
+                      {SUPPORTED_LOCALES.filter((c) => !draft.languages.includes(c)).map((c) => (
                         <option key={c} value={c}>{langName(c)}</option>
                       ))}
                     </select>

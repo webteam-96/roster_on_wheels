@@ -55,16 +55,16 @@ public class PublicWalletController : ControllerBase
         if (id <= 0) return null;
         if (scope == "club")
         {
-            var c = await conn.QueryFirstOrDefaultAsync<dynamic>(@"
+            var c = await conn.QueryFirstOrDefaultAsync<dynamic>($@"
                 SELECT c.ClubName AS name, d.DistrictNumber AS districtNumber, c.IsActive AS isActive, c.isdeleted AS isDeleted
                 FROM club_master c LEFT JOIN district_master d ON d.pk_district_id = c.fk_district_id
-                WHERE c.pk_club_id = @Id", new { Id = id });
+                WHERE c.pk_club_id = @Id AND {HierarchyScopeSql.ClubLive("c")}", new { Id = id });
             if (c == null || Convert.ToBoolean(c.isDeleted) || !Convert.ToBoolean(c.isActive)) return null;
             return ((string)c.name, (string?)c.districtNumber);
         }
-        var dist = await conn.QueryFirstOrDefaultAsync<dynamic>(@"
+        var dist = await conn.QueryFirstOrDefaultAsync<dynamic>($@"
             SELECT DistrictNumber AS number, IsActive AS isActive, isdeleted AS isDeleted
-            FROM district_master WHERE pk_district_id = @Id", new { Id = id });
+            FROM district_master WHERE pk_district_id = @Id AND {HierarchyScopeSql.DistrictLive("district_master")}", new { Id = id });
         if (dist == null || Convert.ToBoolean(dist.isDeleted) || !Convert.ToBoolean(dist.isActive)) return null;
         return ($"District {(string)dist.number}", (string?)dist.number);
     }
@@ -147,19 +147,19 @@ public class PublicWalletController : ControllerBase
         List<PublicWalletSearchResultDto> results;
         if (t.Scope == "club")
         {
-            results = (await conn.QueryAsync<PublicWalletSearchResultDto>(@"
+            results = (await conn.QueryAsync<PublicWalletSearchResultDto>($@"
                 SELECT c.pk_club_id AS Id, c.ClubName AS Name, d.DistrictNumber AS DistrictNumber
                 FROM club_master c LEFT JOIN district_master d ON d.pk_district_id = c.fk_district_id
-                WHERE c.IsActive = 1 AND c.isdeleted = 0
+                WHERE c.IsActive = 1 AND c.isdeleted = 0 AND {HierarchyScopeSql.ClubLive("c")}
                   AND (c.ClubName LIKE @Q OR c.ClubRotaryId LIKE @Q)
                 ORDER BY c.ClubName LIMIT 20", new { Q = like })).ToList();
         }
         else
         {
-            results = (await conn.QueryAsync<PublicWalletSearchResultDto>(@"
+            results = (await conn.QueryAsync<PublicWalletSearchResultDto>($@"
                 SELECT pk_district_id AS Id, CONCAT('District ', DistrictNumber) AS Name, DistrictNumber AS DistrictNumber
                 FROM district_master
-                WHERE IsActive = 1 AND isdeleted = 0 AND DistrictNumber LIKE @Q
+                WHERE IsActive = 1 AND isdeleted = 0 AND {HierarchyScopeSql.DistrictLive("district_master")} AND DistrictNumber LIKE @Q
                 ORDER BY CAST(DistrictNumber AS UNSIGNED), DistrictNumber LIMIT 20", new { Q = like })).ToList();
         }
         return Ok(results);

@@ -17,7 +17,7 @@
  * (fmtInt / Math.round) — no decimals anywhere.
  */
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import dynamic from "next/dynamic";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import "react-quill-new/dist/quill.snow.css";
@@ -55,6 +55,9 @@ import {
   getAwardsClearStatus, clearAwardsPoints, restoreAwardsPoints, type AwardsClearStatus,
 } from "@/services/api";
 import { useAuth } from "@/contexts/AuthContext";
+import { districtYearRights, canEditYear, heldYearLabels } from "@/lib/adminYears";
+import { useRotaryYears } from "@/hooks/useRotaryYears";
+import ViewOnlyBadge from "@/components/ViewOnlyBadge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -98,8 +101,16 @@ export default function DistrictAwardsModule({ districtId }: { districtId: numbe
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const { isSuperAdmin, isAdmin } = useAuth();
+  const { isSuperAdmin, isAdmin, user } = useAuth();
   const canManage = isSuperAdmin || isAdmin;
+  // Year-wise rights. Folded into canEdit below rather than canManage, because
+  // the year is not known this early — canManage is only ever used to build it.
+  const { years: rotaryYears } = useRotaryYears();
+  const rights = useMemo(
+    () => districtYearRights(user?.scopedRoles, districtId),
+    [user?.scopedRoles, districtId],
+  );
+  const editableYears = heldYearLabels(rights, rotaryYears.map((y) => ({ id: y.id, label: y.yearLabel })));
   const initialTab = searchParams.get("tab") || "categories";
 
   const [loading, setLoading] = useState(true);
@@ -131,8 +142,11 @@ export default function DistrictAwardsModule({ districtId }: { districtId: numbe
   const selMeta = yearsMeta.find((y: any) => y.id === selectedYearId);
   const curMeta = yearsMeta.find((y: any) => y.isCurrent);
   const isPastYear = !!(selMeta && curMeta && startYearOf(selMeta) < startYearOf(curMeta));
-  // Edit permission: manager AND not a past year (current + future allowed).
-  const canEdit = canManage && !isPastYear;
+  // Edit permission: manager AND not a past year (current + future allowed)
+  // AND an admin for the year on screen. Awards categories, questions and
+  // criteria are stored per district + year, so the year decides.
+  const holdsSelectedYear = canEditYear(rights, selectedYearId ?? undefined, isSuperAdmin);
+  const canEdit = canManage && !isPastYear && holdsSelectedYear;
 
   // Categories
   const [categories, setCategories] = useState<any[]>([]);
@@ -517,6 +531,13 @@ export default function DistrictAwardsModule({ districtId }: { districtId: numbe
 
   return (
     <div className="space-y-6">
+      {/* Only when the YEAR RIGHTS are the reason. A past year is already
+          read-only for every admin, and blaming that on their years would
+          send them looking for a permission problem that isn't there. */}
+      {canManage && !isPastYear && !holdsSelectedYear && (
+        <ViewOnlyBadge editableYears={editableYears} />
+      )}
+
       <SuccessAlert open={!!successMessage} title="Success" description={successMessage || ""} onOk={() => setSuccessMessage(null)} />
       <ErrorAlert open={!!errorMessage} title="Error" description={errorMessage || ""} onOk={() => setErrorMessage(null)} />
 
@@ -586,7 +607,7 @@ export default function DistrictAwardsModule({ districtId }: { districtId: numbe
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <div className="px-5 pt-3">
-            <TabsList className="bg-slate-100 h-9 w-full justify-start sm:w-auto flex-wrap">
+            <TabsList className="h-auto w-full justify-start sm:w-auto p-1.5 gap-1">
               <TabsTrigger value="categories">Categories</TabsTrigger>
               <TabsTrigger value="description">Description</TabsTrigger>
               <TabsTrigger value="auto">Auto Questions</TabsTrigger>

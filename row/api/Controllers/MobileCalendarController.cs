@@ -33,7 +33,7 @@ public class MobileCalendarController : ControllerBase
         using var conn = CreateConnection();
         await conn.OpenAsync();
 
-        var clubs = await conn.QueryAsync<dynamic>(@"
+        var clubs = await conn.QueryAsync<dynamic>($@"
             SELECT c.pk_club_id AS clubId, c.ClubName AS clubName,
                    CASE
                        WHEN c.ClubLogoPath IS NULL OR c.ClubLogoPath = '' THEN NULL
@@ -45,6 +45,7 @@ public class MobileCalendarController : ControllerBase
             JOIN club_master c ON c.pk_club_id = cm.fk_club_id AND c.isdeleted = 0
             JOIN district_master d ON d.pk_district_id = c.fk_district_id
             WHERE cm.fk_member_master_profile_id = @MemberId AND cm.IsActive = 1 AND cm.isdeleted = 0
+              AND {HierarchyScopeSql.ClubLive("c")}
             ORDER BY c.ClubName",
             new { MemberId = memberId });
 
@@ -228,7 +229,7 @@ public class MobileCalendarController : ControllerBase
         using var conn = CreateConnection();
         await conn.OpenAsync();
 
-        var districts = await conn.QueryAsync<dynamic>(@"
+        var districts = await conn.QueryAsync<dynamic>($@"
             SELECT DISTINCT d.pk_district_id AS districtId, d.DistrictNumber AS districtNumber,
                    z.ZoneName AS zoneName
             FROM club_members cm
@@ -236,6 +237,7 @@ public class MobileCalendarController : ControllerBase
             JOIN district_master d ON d.pk_district_id = c.fk_district_id AND d.isdeleted = 0
             LEFT JOIN zone_master z ON z.pk_zone_id = d.fk_zone_id
             WHERE cm.fk_member_master_profile_id = @MemberId AND cm.IsActive = 1 AND cm.isdeleted = 0
+              AND {HierarchyScopeSql.ClubLive("c")}
             ORDER BY CAST(d.DistrictNumber AS UNSIGNED), d.DistrictNumber",
             new { MemberId = memberId });
 
@@ -262,7 +264,7 @@ public class MobileCalendarController : ControllerBase
 
         // Birthdays — all members in every club under this district, matched by month (recurring yearly).
         // Includes contact + classification.
-        var birthdays = await conn.QueryAsync<dynamic>(@"
+        var birthdays = await conn.QueryAsync<dynamic>($@"
             SELECT m.pk_member_master_profile_id AS memberId, m.MemberName AS memberName,
                    CASE
                        WHEN m.ProfilePhotoPath IS NULL OR m.ProfilePhotoPath = '' THEN NULL
@@ -281,6 +283,7 @@ public class MobileCalendarController : ControllerBase
             JOIN club_master c ON c.pk_club_id = cm.fk_club_id AND c.isdeleted = 0
             JOIN member_master_profile m ON m.pk_member_master_profile_id = cm.fk_member_master_profile_id AND m.isdeleted = 0
             WHERE c.fk_district_id = @DistrictId
+              AND {HierarchyScopeSql.ClubLive("c")}
               AND cm.IsActive = 1 AND cm.isdeleted = 0
               AND m.BirthDate IS NOT NULL AND MONTH(m.BirthDate) = @Month
             ORDER BY DAY(m.BirthDate), m.MemberName",
@@ -288,7 +291,7 @@ public class MobileCalendarController : ControllerBase
 
         // Family birthdays (spouse + children) for every member in this district, matched by month.
         // Includes contact fields + country code + phone dial code.
-        var familyBirthdays = await conn.QueryAsync<dynamic>(@"
+        var familyBirthdays = await conn.QueryAsync<dynamic>($@"
             SELECT fd.pk_member_family_details_id AS familyId,
                    fd.fk_member_master_profile_id AS memberId,
                    m.MemberName AS memberName,
@@ -314,6 +317,7 @@ public class MobileCalendarController : ControllerBase
             JOIN club_master c ON c.pk_club_id = cm.fk_club_id AND c.isdeleted = 0
             LEFT JOIN country_master country ON country.pk_country_id = fd.fk_country_id AND country.isdeleted = 0
             WHERE c.fk_district_id = @DistrictId
+              AND {HierarchyScopeSql.ClubLive("c")}
               AND fd.isdeleted = 0
               AND fd.BirthDate IS NOT NULL AND MONTH(fd.BirthDate) = @Month
             ORDER BY DAY(fd.BirthDate), m.MemberName",

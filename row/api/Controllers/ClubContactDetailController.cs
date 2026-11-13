@@ -14,8 +14,10 @@ public class ClubContactDetailController : ControllerBase
     private readonly IClubContactDetailService _service;
     private readonly string _connectionString;
 
-    public ClubContactDetailController(IClubContactDetailService service, IConfiguration configuration)
+    private readonly AdminYearGuard _guard;
+    public ClubContactDetailController(AdminYearGuard guard, IClubContactDetailService service, IConfiguration configuration)
     {
+        _guard = guard;
         _service = service;
         _connectionString = configuration.GetConnectionString("DefaultConnection")!;
     }
@@ -59,6 +61,9 @@ public class ClubContactDetailController : ControllerBase
     [HttpPost("api/clubs/{clubId}/website-data/contact_details")]
     public async Task<ActionResult> Create(int clubId, [FromBody] CreateClubContactDetailDto dto)
     {
+        var denied = await _guard.ClubYearAsync(User, clubId, dto.YearId);
+        if (denied != null) return denied;
+
         var id = await _service.CreateAsync(clubId, dto, GetUserId());
         return Ok(new { id });
     }
@@ -67,6 +72,10 @@ public class ClubContactDetailController : ControllerBase
     [OwnedBy(Owns.ClubContactDetail, "id", "clubId")]
     public async Task<ActionResult> Update(int clubId, int id, [FromBody] UpdateClubContactDetailDto dto)
     {
+        var denied = await _guard.ClubRecordYearAsync(
+            User, clubId, "club_website_contact_detail", "pk_club_website_contact_detail_id", id);
+        if (denied != null) return denied;
+
         await _service.UpdateAsync(id, dto, GetUserId());
         return Ok(new { message = "Contact detail updated successfully." });
     }
@@ -75,6 +84,10 @@ public class ClubContactDetailController : ControllerBase
     [OwnedBy(Owns.ClubContactDetail, "id", "clubId")]
     public async Task<ActionResult> Delete(int clubId, int id)
     {
+        var denied = await _guard.ClubRecordYearAsync(
+            User, clubId, "club_website_contact_detail", "pk_club_website_contact_detail_id", id);
+        if (denied != null) return denied;
+
         await _service.DeleteAsync(id, GetUserId());
         return Ok(new { message = "Contact detail deleted successfully." });
     }

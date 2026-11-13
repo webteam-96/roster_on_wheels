@@ -11,9 +11,9 @@ import { SAMPLE_PHOTOS } from "./samplePhotos";
 import { pickRows } from "./sampleRule";
 
 /** True on a theme-preview request. Outside a request (build time) there is no preview. */
-export function inPreview(): boolean {
+export async function inPreview(): Promise<boolean> {
   try {
-    return Boolean(headers().get("x-preview-theme"));
+    return Boolean((await headers()).get("x-preview-theme"));
   } catch {
     return false;
   }
@@ -21,7 +21,7 @@ export function inPreview(): boolean {
 
 /** The real list when it has rows or this is not a preview; otherwise the sample rows. */
 export async function orSample<T>(real: Promise<T[] | null>, sample: () => T[]): Promise<T[] | null> {
-  return pickRows(await real, inPreview(), sample);
+  return pickRows(await real, await inPreview(), sample);
 }
 
 /** Sample ids sit far above real ones, so a sample project link opens the sample detail page. */
@@ -134,8 +134,8 @@ export const sampleBanners = (): Banner[] =>
   })).filter((b) => b.bannerImagePath);
 
 /** Fills the club's unset About fields; the name, district and logo always stay the club's own. */
-export function sampleAbout(about: AboutPayload | null): AboutPayload | null {
-  if (!about || !inPreview()) return about;
+export async function sampleAbout(about: AboutPayload | null): Promise<AboutPayload | null> {
+  if (!about || !(await inPreview())) return about;
   return {
     ...about,
     content: about.content || "<p>We are a group of local people who meet every week to plan service projects, hear from speakers and enjoy each other's company. Our members come from many professions and backgrounds, and we welcome new faces at every meeting.</p><p>Over the years the club has planted trees, fed families, supported schools and raised money for clean water abroad. Every project is planned and run by members and volunteers.</p>",
@@ -148,8 +148,8 @@ export function sampleAbout(about: AboutPayload | null): AboutPayload | null {
   };
 }
 
-export function sampleCalendar(real: CalendarDay | null, date?: string): CalendarDay | null {
-  if (!inPreview()) return real;
+export async function sampleCalendar(real: CalendarDay | null, date?: string): Promise<CalendarDay | null> {
+  if (!(await inPreview())) return real;
   const base = real ?? { date: date ?? day(0), birthdays: [], anniversaries: [], events: [] };
   if (base.events.length + base.birthdays.length + base.anniversaries.length > 0) return base;
   return {

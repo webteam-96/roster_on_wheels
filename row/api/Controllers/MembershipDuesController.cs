@@ -14,8 +14,11 @@ public class MembershipDuesController : ControllerBase
     private readonly IWebHostEnvironment _env;
     private readonly string _connectionString;
 
-    public MembershipDuesController(IMembershipDuesService service, IWebHostEnvironment env, IConfiguration configuration)
+    private readonly AdminYearGuard _guard;
+
+    public MembershipDuesController(IMembershipDuesService service, IWebHostEnvironment env, IConfiguration configuration, AdminYearGuard guard)
     {
+        _guard = guard;
         _service = service;
         _env = env;
         _connectionString = configuration.GetConnectionString("DefaultConnection")!;
@@ -84,6 +87,10 @@ public class MembershipDuesController : ControllerBase
     [HttpPost("")]
     public async Task<ActionResult> Create([FromForm] CreateMembershipDuesDto dto, IFormFile? logo, IFormFile? bgImage, IFormFile? emailLogo)
     {
+        // A new setup lands in the club and year the caller names.
+        var denied = await _guard.ClubYearByLabelAsync(User, dto.FkClubId, dto.RotaryYear);
+        if (denied != null) return denied;
+
         if (!IsSuperAdminOrAdmin()) return StatusCode(403, new { message = "Access denied." });
         var imgErr = ValidateImageFile(logo) ?? ValidateImageFile(bgImage) ?? ValidateImageFile(emailLogo);
         if (imgErr != null) return BadRequest(new { message = imgErr });
@@ -101,6 +108,9 @@ public class MembershipDuesController : ControllerBase
     [HttpPut("{id}")]
     public async Task<ActionResult> Update(int id, [FromForm] CreateMembershipDuesDto dto, IFormFile? logo, IFormFile? bgImage, IFormFile? emailLogo)
     {
+        var denied = await _guard.MembershipDuesYearAsync(User, id);
+        if (denied != null) return denied;
+
         if (!IsSuperAdminOrAdmin()) return StatusCode(403, new { message = "Access denied." });
         var imgErr = ValidateImageFile(logo) ?? ValidateImageFile(bgImage) ?? ValidateImageFile(emailLogo);
         if (imgErr != null) return BadRequest(new { message = imgErr });
@@ -287,6 +297,9 @@ public class MembershipDuesController : ControllerBase
     [HttpPut("payments/{paymentId}/update-offline")]
     public async Task<ActionResult> UpdateOfflinePayment(int paymentId, [FromForm] RecordOfflineDuesPaymentDto dto, IFormFile? attachment, [FromForm] bool sendReceiptOnUpdate = false)
     {
+        var denied = await _guard.MembershipDuesYearAsync(User, paymentId, MembershipDuesIdKind.Payment);
+        if (denied != null) return denied;
+
         if (!IsSuperAdminOrAdmin()) return StatusCode(403, new { message = "Access denied." });
 
         if (attachment != null && attachment.Length > 0)
@@ -323,6 +336,9 @@ public class MembershipDuesController : ControllerBase
     [HttpDelete("payments/{paymentId}")]
     public async Task<ActionResult> DeletePayment(int paymentId)
     {
+        var denied = await _guard.MembershipDuesYearAsync(User, paymentId, MembershipDuesIdKind.Payment);
+        if (denied != null) return denied;
+
         if (!IsSuperAdmin()) return StatusCode(403, new { message = "Only a SuperAdmin can remove a payment entry." });
         try
         {
@@ -350,6 +366,9 @@ public class MembershipDuesController : ControllerBase
     public async Task<ActionResult> RevertMemberFeePayment(int id, int memberFeeId, [FromBody] RevertDuesPaymentDto dto,
         [FromServices] IAuditLogService auditLog)
     {
+        var denied = await _guard.MembershipDuesYearAsync(User, id);
+        if (denied != null) return denied;
+
         if (!IsSuperAdmin()) return StatusCode(403, new { message = "Only a SuperAdmin can change a member's payment status." });
         try
         {
@@ -472,6 +491,9 @@ public class MembershipDuesController : ControllerBase
     [HttpPost("member-fees/{memberFeeId}/send-receipt")]
     public async Task<ActionResult> SendReceiptByFeeId(int memberFeeId)
     {
+        var denied = await _guard.MembershipDuesYearAsync(User, memberFeeId, MembershipDuesIdKind.MemberFee);
+        if (denied != null) return denied;
+
         if (!IsSuperAdminOrAdmin()) return StatusCode(403, new { message = "Access denied." });
         try
         {

@@ -18,7 +18,7 @@
  * the design". Everything new is inside the shell.
  */
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, useMemo } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useClubAdminCache } from "@/contexts/ClubAdminDashboardCacheContext";
@@ -39,6 +39,9 @@ import {
 } from "@/components/ui/popover";
 import AlertModal from "@/components/AlertModal";
 import { useAuth } from "@/contexts/AuthContext";
+import { clubYearRights, canEditYear, canEditYearless, isCurrentYearSelected, yearIdForDate, heldYearLabels } from "@/lib/adminYears";
+import { useRotaryYears } from "@/hooks/useRotaryYears";
+import ViewOnlyBadge from "@/components/ViewOnlyBadge";
 import {
   getUpcomingEvents, getUpcomingEvent, deleteUpcomingEvent,
   getAnnouncements, deleteAnnouncement,
@@ -126,6 +129,17 @@ interface SectionShellProps {
   search: string;
   onSearchChange: (s: string) => void;
   addHref: string;
+  /** False hides Add and shows why — the year on screen is not this member's. */
+  canAdd?: boolean;
+  /** Years this member CAN edit, for the "view only" note. */
+  editableYears?: string[];
+  /**
+   * Set on sections whose data is NOT filed by Rotary year (upcoming events,
+   * announcements, documents). Only a CURRENT-year admin can ever change those,
+   * so naming the member's own years would be untrue — pass the current year's
+   * label instead and the badge says so.
+   */
+  currentYearOnly?: string;
   loading: boolean;
   children: React.ReactNode;
 }
@@ -133,7 +147,7 @@ interface SectionShellProps {
 function SectionShell({
   icon: Icon, iconClass, title, count,
   status, onStatusChange, search, onSearchChange,
-  addHref, loading, children,
+  addHref, canAdd = true, editableYears = [], currentYearOnly, loading, children,
 }: SectionShellProps) {
   const activeStatusLabel = STATUS_OPTIONS.find((o) => o.value === status)?.label ?? "All";
   // Controlled Popover so picking a filter option auto-closes it. Without this
@@ -192,14 +206,19 @@ function SectionShell({
             />
           </div>
 
-          <Link
-            href={addHref}
-            className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-[#17458F] hover:bg-[#17458F] text-white text-[11px] font-semibold"
-          >
-            <Plus size={12} /> Add
-          </Link>
+          {canAdd && (
+            <Link
+              href={addHref}
+              className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-[#17458F] hover:bg-[#17458F] text-white text-[11px] font-semibold"
+            >
+              <Plus size={12} /> Add
+            </Link>
+          )}
         </div>
       </div>
+      {!canAdd && (currentYearOnly !== undefined
+        ? <ViewOnlyBadge currentYearOnly={currentYearOnly} className="mb-3" />
+        : <ViewOnlyBadge editableYears={editableYears} className="mb-3" />)}
       {children}
     </div>
   );
@@ -211,10 +230,12 @@ interface RowActionsProps {
   onView: () => void;
   editHref: string;
   onDelete: () => void;
+  /** Editing is per Rotary year; View never is. */
+  canEdit: boolean;
   canDelete: boolean;
 }
 
-function RowActions({ onView, editHref, onDelete, canDelete }: RowActionsProps) {
+function RowActions({ onView, editHref, onDelete, canEdit, canDelete }: RowActionsProps) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -231,11 +252,13 @@ function RowActions({ onView, editHref, onDelete, canDelete }: RowActionsProps) 
         <DropdownMenuItem onClick={onView} className="text-xs cursor-pointer">
           <Eye size={12} className="mr-1.5" /> View
         </DropdownMenuItem>
-        <DropdownMenuItem asChild className="text-xs cursor-pointer">
-          <Link href={editHref}>
-            <Pencil size={12} className="mr-1.5" /> Edit
-          </Link>
-        </DropdownMenuItem>
+        {canEdit && (
+          <DropdownMenuItem asChild className="text-xs cursor-pointer">
+            <Link href={editHref}>
+              <Pencil size={12} className="mr-1.5" /> Edit
+            </Link>
+          </DropdownMenuItem>
+        )}
         {canDelete && (
           <DropdownMenuItem
             onClick={onDelete}
@@ -327,8 +350,30 @@ function useDebounced<T>(value: T, ms = 300): T {
 // ═══════════════════════════════════════════════════════════════════════════
 
 export function UpcomingEventsSection({ clubId }: { clubId: number }) {
-  const { isSuperAdmin, isAdmin } = useAuth();
-  const canDelete = isSuperAdmin || isAdmin;
+  const { isSuperAdmin, isAdmin, user } = useAuth();
+  // Upcoming events carry NO Rotary year — they are the club's current state. Changing them
+  // follows the same rule the server applies to year-less data: CURRENT-year rights.
+  const { years, currentYearId } = useRotaryYears();
+  const yearRights = useMemo(() => clubYearRights(user?.scopedRoles, clubId), [user?.scopedRoles, clubId]);
+  const isClubAdmin = isSuperAdmin || isAdmin;
+  // ⚠️ AND the picker: this data has no Rotary year, so the year-less rule alone
+  // kept Add and Edit on screen while a past year was selected, which reads as
+  // the year rule having failed. The list is not year-filtered either — nothing
+  // else on the screen changes, only the buttons.
+  // ⚠️ Both hooks called unconditionally. Folding them into the || below would
+  // skip useClubAdminCache whenever the URL carries a year, and React counts
+  // hooks per render — that is a "rendered more hooks than last time" crash.
+  const yearParams = useSearchParams();
+  const yearCache = useClubAdminCache();
+  const selectedYearId = Number(yearParams?.get("yearId") ?? "") || yearCache.yearId || 0;
+  const canManage = isClubAdmin
+    && canEditYearless(yearRights, currentYearId, isSuperAdmin)
+    && isCurrentYearSelected(selectedYearId, currentYearId, yearRights);
+  // Names the CURRENT year in the badge — the member's own years are not the
+  // point here, since only a current-year admin can ever change this data.
+  const currentYearLabel = years.find((y) => y.isCurrent)?.yearLabel ?? "";
+  const canDelete = canManage;
+  const editableYears = heldYearLabels(yearRights, years.map((y) => ({ id: y.id, label: y.yearLabel })));
 
   const [status, setStatus] = useState<string>("Published");
   const [search, setSearch] = useState("");
@@ -399,6 +444,9 @@ export function UpcomingEventsSection({ clubId }: { clubId: number }) {
         search={search}
         onSearchChange={setSearch}
         addHref={`/clubs/${clubId}/upcoming-events/v2/add${returnQs("events")}`}
+        canAdd={canManage}
+        editableYears={editableYears}
+        currentYearOnly={currentYearLabel}
         loading={loading}
       >
         {banner && (
@@ -437,6 +485,7 @@ export function UpcomingEventsSection({ clubId }: { clubId: number }) {
                   onView={() => openView(e)}
                   editHref={`/clubs/${clubId}/upcoming-events/v2/${e.id}/edit${returnQs("events")}`}
                   onDelete={() => setDeleteTarget(e)}
+                  canEdit={canManage}
                   canDelete={canDelete}
                 />
               </li>
@@ -511,8 +560,30 @@ export function UpcomingEventsSection({ clubId }: { clubId: number }) {
 // ═══════════════════════════════════════════════════════════════════════════
 
 export function AnnouncementsSection({ clubId }: { clubId: number }) {
-  const { isSuperAdmin, isAdmin } = useAuth();
-  const canDelete = isSuperAdmin || isAdmin;
+  const { isSuperAdmin, isAdmin, user } = useAuth();
+  // Announcements carry NO Rotary year — they are the club's current state. Changing them
+  // follows the same rule the server applies to year-less data: CURRENT-year rights.
+  const { years, currentYearId } = useRotaryYears();
+  const yearRights = useMemo(() => clubYearRights(user?.scopedRoles, clubId), [user?.scopedRoles, clubId]);
+  const isClubAdmin = isSuperAdmin || isAdmin;
+  // ⚠️ AND the picker: this data has no Rotary year, so the year-less rule alone
+  // kept Add and Edit on screen while a past year was selected, which reads as
+  // the year rule having failed. The list is not year-filtered either — nothing
+  // else on the screen changes, only the buttons.
+  // ⚠️ Both hooks called unconditionally. Folding them into the || below would
+  // skip useClubAdminCache whenever the URL carries a year, and React counts
+  // hooks per render — that is a "rendered more hooks than last time" crash.
+  const yearParams = useSearchParams();
+  const yearCache = useClubAdminCache();
+  const selectedYearId = Number(yearParams?.get("yearId") ?? "") || yearCache.yearId || 0;
+  const canManage = isClubAdmin
+    && canEditYearless(yearRights, currentYearId, isSuperAdmin)
+    && isCurrentYearSelected(selectedYearId, currentYearId, yearRights);
+  // Names the CURRENT year in the badge — the member's own years are not the
+  // point here, since only a current-year admin can ever change this data.
+  const currentYearLabel = years.find((y) => y.isCurrent)?.yearLabel ?? "";
+  const canDelete = canManage;
+  const editableYears = heldYearLabels(yearRights, years.map((y) => ({ id: y.id, label: y.yearLabel })));
 
   const [status, setStatus] = useState<string>("Published");
   const [search, setSearch] = useState("");
@@ -566,6 +637,9 @@ export function AnnouncementsSection({ clubId }: { clubId: number }) {
         search={search}
         onSearchChange={setSearch}
         addHref={`/clubs/${clubId}/announcements/v2/add${returnQs("announcements")}`}
+        canAdd={canManage}
+        editableYears={editableYears}
+        currentYearOnly={currentYearLabel}
         loading={loading}
       >
         {banner && (
@@ -618,6 +692,7 @@ export function AnnouncementsSection({ clubId }: { clubId: number }) {
                   onView={() => setViewItem(a)}
                   editHref={`/clubs/${clubId}/announcements/v2/${a.id}/edit${returnQs("announcements")}`}
                   onDelete={() => setDeleteTarget(a)}
+                  canEdit={canManage}
                   canDelete={canDelete}
                 />
               </li>
@@ -674,8 +749,30 @@ export function AnnouncementsSection({ clubId }: { clubId: number }) {
 // ═══════════════════════════════════════════════════════════════════════════
 
 export function DocumentsSection({ clubId }: { clubId: number }) {
-  const { isSuperAdmin, isAdmin } = useAuth();
-  const canDelete = isSuperAdmin || isAdmin;
+  const { isSuperAdmin, isAdmin, user } = useAuth();
+  // Shared documents carry NO Rotary year — they are the club's current state. Changing them
+  // follows the same rule the server applies to year-less data: CURRENT-year rights.
+  const { years, currentYearId } = useRotaryYears();
+  const yearRights = useMemo(() => clubYearRights(user?.scopedRoles, clubId), [user?.scopedRoles, clubId]);
+  const isClubAdmin = isSuperAdmin || isAdmin;
+  // ⚠️ AND the picker: this data has no Rotary year, so the year-less rule alone
+  // kept Add and Edit on screen while a past year was selected, which reads as
+  // the year rule having failed. The list is not year-filtered either — nothing
+  // else on the screen changes, only the buttons.
+  // ⚠️ Both hooks called unconditionally. Folding them into the || below would
+  // skip useClubAdminCache whenever the URL carries a year, and React counts
+  // hooks per render — that is a "rendered more hooks than last time" crash.
+  const yearParams = useSearchParams();
+  const yearCache = useClubAdminCache();
+  const selectedYearId = Number(yearParams?.get("yearId") ?? "") || yearCache.yearId || 0;
+  const canManage = isClubAdmin
+    && canEditYearless(yearRights, currentYearId, isSuperAdmin)
+    && isCurrentYearSelected(selectedYearId, currentYearId, yearRights);
+  // Names the CURRENT year in the badge — the member's own years are not the
+  // point here, since only a current-year admin can ever change this data.
+  const currentYearLabel = years.find((y) => y.isCurrent)?.yearLabel ?? "";
+  const canDelete = canManage;
+  const editableYears = heldYearLabels(yearRights, years.map((y) => ({ id: y.id, label: y.yearLabel })));
 
   const [status, setStatus] = useState<string>("Published");
   const [search, setSearch] = useState("");
@@ -729,6 +826,9 @@ export function DocumentsSection({ clubId }: { clubId: number }) {
         search={search}
         onSearchChange={setSearch}
         addHref={`/clubs/${clubId}/documents/v2/add${returnQs("documents")}`}
+        canAdd={canManage}
+        editableYears={editableYears}
+        currentYearOnly={currentYearLabel}
         loading={loading}
       >
         {banner && (
@@ -769,6 +869,7 @@ export function DocumentsSection({ clubId }: { clubId: number }) {
                   onView={() => setViewItem(d)}
                   editHref={`/clubs/${clubId}/documents/v2/${d.id}/edit${returnQs("documents")}`}
                   onDelete={() => setDeleteTarget(d)}
+                  canEdit={canManage}
                   canDelete={canDelete}
                 />
               </li>
@@ -825,8 +926,11 @@ export function DocumentsSection({ clubId }: { clubId: number }) {
 // ═══════════════════════════════════════════════════════════════════════════
 
 export function NewslettersSection({ clubId }: { clubId: number }) {
-  const { isSuperAdmin, isAdmin } = useAuth();
-  const canDelete = isSuperAdmin || isAdmin;
+  const { isSuperAdmin, isAdmin, user } = useAuth();
+  const { years } = useRotaryYears();
+  const yearRights = useMemo(() => clubYearRights(user?.scopedRoles, clubId), [user?.scopedRoles, clubId]);
+  const isClubAdmin = isSuperAdmin || isAdmin;
+  const editableYears = heldYearLabels(yearRights, years.map((y) => ({ id: y.id, label: y.yearLabel })));
   // Newsletters API is year-scoped (uses per-year tables). Prefer the URL
   // ?yearId=; fall back to the cache context which has the resolved current
   // year — that way we don't send yearId=0 which triggers a slow all-tables
@@ -836,6 +940,16 @@ export function NewslettersSection({ clubId }: { clubId: number }) {
   const urlYearStr = searchParams?.get("yearId") ?? "";
   const urlYearId = urlYearStr ? parseInt(urlYearStr, 10) || 0 : 0;
   const yearId = urlYearId || cache.yearId || 0;
+
+  // The list is filtered to the year on screen, so that is the year the page's
+  // Add button and banner answer to — NOT the current year. Using the current
+  // year here said "view only" while showing rows the member could edit.
+  const canManage = isClubAdmin && canEditYear(yearRights, yearId || undefined, isSuperAdmin);
+  const canDelete = canManage;
+  // Kept per-row as well: a newsletter's year comes from its PUBLISH DATE, which
+  // can fall outside the year it is listed under if the date was edited.
+  const canEditRow = (publishDateTime: string | null | undefined) =>
+    isClubAdmin && canEditYear(yearRights, yearIdForDate(publishDateTime, years), isSuperAdmin);
 
   const [status, setStatus] = useState<string>("Published");
   const [search, setSearch] = useState("");
@@ -892,6 +1006,8 @@ export function NewslettersSection({ clubId }: { clubId: number }) {
         search={search}
         onSearchChange={setSearch}
         addHref={`/clubs/${clubId}/newsletters/v2/add${returnQs("newsletters")}`}
+        canAdd={canManage}
+        editableYears={editableYears}
         loading={loading}
       >
         {banner && (
@@ -936,7 +1052,8 @@ export function NewslettersSection({ clubId }: { clubId: number }) {
                   onView={() => setViewItem(n)}
                   editHref={`/clubs/${clubId}/newsletters/v2/${n.id}/edit${returnQs("newsletters")}`}
                   onDelete={() => setDeleteTarget(n)}
-                  canDelete={canDelete}
+                  canEdit={canEditRow(n.publishDateTime)}
+                  canDelete={canEditRow(n.publishDateTime)}
                 />
               </li>
             ))}

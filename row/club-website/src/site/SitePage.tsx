@@ -37,7 +37,8 @@ export interface ClubState {
   tenant: { clientDomain: string | null };
 }
 
-function clubState(shell: PageShell): ClubState {
+async function clubState(shell: PageShell): Promise<ClubState> {
+  const h = await headers();
   const { tenant, about, years, currentYearId, menus, themeKey } = shell;
   const clubName = tenant.clubName || about?.clubName || "";
   return {
@@ -56,7 +57,7 @@ function clubState(shell: PageShell): ClubState {
     about,
     menus: menus && menus.length > 0 ? menus : defaultMenus(),
     adminLoginUrl: getAdminLoginUrl(),
-    host: (headers().get("x-tenant-host") || headers().get("host") || "").replace(/:\d+$/, ""),
+    host: (h.get("x-tenant-host") || h.get("host") || "").replace(/:\d+$/, ""),
     tenant: { clientDomain: tenant.clientDomain },
   };
 }
@@ -81,9 +82,9 @@ export async function SitePage({ page, load }: { page: PageKey | "Home"; load?: 
 }
 
 /** The theme's stylesheets, club context and shell around any content; also used by ROW's own pages (join, profile). */
-export function ThemedShell({ shell, children }: { shell: PageShell; children: ReactNode }) {
+export async function ThemedShell({ shell, children }: { shell: PageShell; children: ReactNode }) {
   return (
-    <ClubProvider value={clubState(shell)}>
+    <ClubProvider value={await clubState(shell)}>
       {(THEME_ASSETS[shell.themeKey]?.styles ?? []).map((href) => <link key={href} rel="stylesheet" href={href} />)}
       <ThemeLayout themeKey={shell.themeKey}>{children}</ThemeLayout>
       <ThemeScripts scripts={THEME_ASSETS[shell.themeKey]?.scripts ?? []} />

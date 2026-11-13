@@ -27,6 +27,8 @@ import {
 import { RotaryYear } from "@/types/rotaryYear";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAuth } from "@/contexts/AuthContext";
+import { districtYearRights, canEditYear, heldYearLabels } from "@/lib/adminYears";
+import ViewOnlyBadge from "@/components/ViewOnlyBadge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -46,7 +48,7 @@ function withSearch(base: string, extra: Record<string, string | null | undefine
 }
 
 export default function DistrictAdminAddSubGroupPage() {
-  const { selectedDistrictId } = useAuth();
+  const { selectedDistrictId, isSuperAdmin, isAdmin, user } = useAuth();
   const districtId = selectedDistrictId ?? 0;
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -66,6 +68,15 @@ export default function DistrictAdminAddSubGroupPage() {
   const [saving, setSaving] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  // A sub-group belongs to the Rotary year picked in the form, so the gate has
+  // to follow the PICKER, not the current year: switching the dropdown to a year
+  // this admin holds must re-enable Create.
+  // ⚠️ selectedYearId is a string. Number("") is 0, and canEditYear treats a
+  // falsy year as "cannot" — which is right here, since no year is chosen yet.
+  const rights = useMemo(() => districtYearRights(user?.scopedRoles, districtId), [user?.scopedRoles, districtId]);
+  const canManage = (isSuperAdmin || isAdmin) && canEditYear(rights, Number(selectedYearId) || undefined, isSuperAdmin);
+  const editableYears = heldYearLabels(rights, years.map((y) => ({ id: y.id, label: y.yearLabel })));
 
   const loadMembers = useCallback(async () => {
     if (!districtId) return;
@@ -172,6 +183,11 @@ export default function DistrictAdminAddSubGroupPage() {
 
   return (
     <ProtectedRoute>
+      {/* Named years, so someone who picked the wrong one can see which to pick. */}
+      {!canManage && (
+        <ViewOnlyBadge editableYears={editableYears} className="mb-4" />
+      )}
+
       <div className="space-y-6">
         {/* ── Header ─────────────────────────────────────────────────── */}
         <div className="flex items-center gap-3">
@@ -343,7 +359,7 @@ export default function DistrictAdminAddSubGroupPage() {
             </Button>
             <Button
               onClick={handleSave}
-              disabled={saving || !groupName.trim() || !selectedYearId || selectedMemberIds.size === 0}
+              disabled={!canManage || saving || !groupName.trim() || !selectedYearId || selectedMemberIds.size === 0}
               className="bg-azure hover:bg-mint-ink text-white disabled:bg-slate-300 disabled:text-slate-500"
             >
               {saving ? "Saving..." : "Create"}

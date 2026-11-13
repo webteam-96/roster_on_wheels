@@ -14,8 +14,11 @@ public class WeblinksController : ControllerBase
     private readonly IWebHostEnvironment _env;
     private readonly string _connectionString;
 
-    public WeblinksController(IWeblinkService service, IWebHostEnvironment env, IConfiguration configuration)
+    private readonly AdminYearGuard _guard;
+
+    public WeblinksController(AdminYearGuard guard, IWeblinkService service, IWebHostEnvironment env, IConfiguration configuration)
     {
+        _guard = guard;
         _service = service;
         _env = env;
         _connectionString = configuration.GetConnectionString("DefaultConnection")!;
@@ -48,6 +51,9 @@ public class WeblinksController : ControllerBase
     [HttpPost("")]
     public async Task<ActionResult> CreateWeblink(int clubId, [FromForm] CreateWeblinkDto dto, IFormFile? logo, IFormFile? banner, IFormFile? pdf)
     {
+        var denied = await _guard.ClubYearlessAsync(User, clubId);
+        if (denied != null) return denied;
+
         // Validate logo
         if (logo != null)
         {
@@ -151,6 +157,9 @@ public class WeblinksController : ControllerBase
     [OwnedBy(Owns.ClubWeblink, "weblinkId", "clubId")]
     public async Task<ActionResult> DeleteWeblink(int clubId, int weblinkId)
     {
+        var denied = await _guard.ClubYearlessAsync(User, clubId);
+        if (denied != null) return denied;
+
         await _service.DeleteWeblinkAsync(weblinkId, GetUserId());
         return Ok(new { message = "Weblink deleted successfully." });
     }
@@ -161,6 +170,9 @@ public class WeblinksController : ControllerBase
     [OwnedBy(Owns.ClubWeblink, "weblinkId", "clubId")]
     public async Task<ActionResult> ToggleActive(int clubId, int weblinkId)
     {
+        var denied = await _guard.ClubYearlessAsync(User, clubId);
+        if (denied != null) return denied;
+
         await _service.ToggleActiveAsync(weblinkId, GetUserId());
         return Ok(new { message = "Weblink status toggled successfully." });
     }

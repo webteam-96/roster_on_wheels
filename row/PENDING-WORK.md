@@ -77,8 +77,11 @@ brand currency, locale and zone), `localCount`, the goal-split pilot, the six in
   on ROW) and on the public landing page (site off).
 - **Policy texts.** The privacy policy, terms and refund pages are RIZones' Indian legal texts with the
   names changed. Why pending: legal content, not engineering; needs counsel (Q6).
-- **Translation (WS2).** `next-intl` is wired, but only 6 of 773 screens use translations. Why pending:
-  the extraction is large (master plan: 6 engineer-weeks) and every language needs a reviewer (Q8).
+- **Translation (WS2).** Superseded 2026-11-12/13: web and app translate UI text at runtime through
+  `LocalizationService`, and the UI label glossary (`database/translations/ui-labels-*.json`, 4,594 labels in 7
+  languages) lets it run with `Translation__Provider = none` (see ROW-CHANGES.md, UI label glossary). Still pending:
+  a native-speaker review per language (Q8), and the legal pages, which stay English until counsel provides
+  reviewed translations.
 
 ## 4. Club website (`row/club-website`)
 

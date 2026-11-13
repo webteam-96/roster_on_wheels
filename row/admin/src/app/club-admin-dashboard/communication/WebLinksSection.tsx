@@ -8,13 +8,18 @@
  * clubId comes from the tab prop.
  */
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import dynamic from "next/dynamic";
 import { Weblink } from "@/types/weblink";
 import {
   getWeblinks, createWeblink, updateWeblink, deleteWeblink, toggleWeblinkActive,
 } from "@/services/api";
 import { useAuth } from "@/contexts/AuthContext";
+import { clubYearRights, canEditYearless, isCurrentYearSelected, heldYearLabels } from "@/lib/adminYears";
+import { useSearchParams } from "next/navigation";
+import { useClubAdminCache } from "@/contexts/ClubAdminDashboardCacheContext";
+import { useRotaryYears } from "@/hooks/useRotaryYears";
+import ViewOnlyBadge from "@/components/ViewOnlyBadge";
 import { isValidWebUrl, INVALID_URL_MESSAGE } from "@/lib/urlValidation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -67,7 +72,7 @@ function LinkTypeBadge({ type }: { type: string }) {
 }
 
 export default function WebLinksSection({ clubId }: { clubId: number }) {
-  const { isSuperAdmin, isAdmin } = useAuth();
+  const { isSuperAdmin, isAdmin, user } = useAuth();
 
   const [weblinks, setWeblinks] = useState<Weblink[]>([]);
   const [loading, setLoading] = useState(true);
@@ -96,7 +101,29 @@ export default function WebLinksSection({ clubId }: { clubId: number }) {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Weblink | null>(null);
 
-  const canManage = isSuperAdmin || isAdmin;
+  // Weblinks carry NO Rotary year — they are the club's current links, so
+  // changing them needs CURRENT-year rights.
+  const { years, currentYearId } = useRotaryYears();
+  const yearRights = useMemo(() => clubYearRights(user?.scopedRoles, clubId), [user?.scopedRoles, clubId]);
+  const isClubAdmin = isSuperAdmin || isAdmin;
+  // ⚠️ AND the picker: this data has no Rotary year, so the year-less rule alone
+  // kept Add and Edit on screen while a past year was selected, which reads as
+  // the year rule having failed. The list is not year-filtered — nothing else
+  // on the screen changes, only the buttons.
+  // Both hooks are called unconditionally: folding them into the || would skip
+  // one whenever the URL carries a year, which React counts as a hook-order
+  // change and crashes on.
+  const yearParams = useSearchParams();
+  const yearCache = useClubAdminCache();
+  const selectedYearId = Number(yearParams?.get("yearId") ?? "") || yearCache.yearId || 0;
+  // The badge on these screens names the CURRENT year, not the member's own
+  // years — those do not help here, because only a current-year admin can
+  // ever change this data.
+  const currentYearLabel = years.find((y) => y.isCurrent)?.yearLabel ?? "";
+  const canManage = isClubAdmin
+    && canEditYearless(yearRights, currentYearId, isSuperAdmin)
+    && isCurrentYearSelected(selectedYearId, currentYearId, yearRights);
+  const editableYears = heldYearLabels(yearRights, years.map((y) => ({ id: y.id, label: y.yearLabel })));
 
   const fetchWeblinks = useCallback(async () => {
     if (!clubId) { setLoading(false); return; }
@@ -231,6 +258,10 @@ export default function WebLinksSection({ clubId }: { clubId: number }) {
 
   return (
     <div className="space-y-4">
+      {!canManage && (
+        <ViewOnlyBadge currentYearOnly={currentYearLabel} className="mb-3" />
+      )}
+
       {/* Header row */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-2 text-slate-700">

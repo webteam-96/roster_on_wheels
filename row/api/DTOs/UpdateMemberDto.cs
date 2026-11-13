@@ -10,6 +10,9 @@ public class UpdateMemberDto
     public DateTime? BirthDate { get; set; }
     public DateTime? AnniversaryDate { get; set; }
     public string? BloodGroup { get; set; }
+    // T-shirt size (upstream 2026-11-06): id from event_tshirt_sizes. Optional. NEVER public.
+    // null = not sent (keep as is: older apps), 0 = clear, >0 = set.
+    public int? TshirtSizeId { get; set; }
     public int FkSecondaryCountryId { get; set; }   // ROW: no default country (the original: 1 = India)
     public string? SecondaryMobileNumber { get; set; }
     public bool IsPersonalDetailsVisible { get; set; } = true;

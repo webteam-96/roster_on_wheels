@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, Fragment } from "react";
+import { useState, useEffect, useCallback, Fragment, useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { ProjectListItem } from "@/types/project";
 import {
@@ -11,6 +11,8 @@ import {
   getProjectYears,
 } from "@/services/api";
 import { useAuth } from "@/contexts/AuthContext";
+import { clubYearRights, canEditYear, heldYearLabels } from "@/lib/adminYears";
+import ViewOnlyBadge from "@/components/ViewOnlyBadge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -47,7 +49,7 @@ export default function PublicImageInitiativePage() {
   const router = useRouter();
   const clubId = Number(params.id);
   const moduleKey = "public_image_initiative";
-  const { isSuperAdmin, isAdmin } = useAuth();
+  const { isSuperAdmin, isAdmin, user } = useAuth();
 
   const [clubName, setClubName] = useState("");
   const [moduleId, setModuleId] = useState<number | null>(null);
@@ -76,7 +78,14 @@ export default function PublicImageInitiativePage() {
   // Expanded ongoing parents (show child projects)
   const [expandedParents, setExpandedParents] = useState<Set<number>>(new Set());
 
-  const canManage = isSuperAdmin || isAdmin;
+  const yearRights = useMemo(() => clubYearRights(user?.scopedRoles, clubId), [user?.scopedRoles, clubId]);
+  const isClubAdmin = isSuperAdmin || isAdmin;
+  const canManage = isClubAdmin && canEditYear(yearRights, selectedYearId, isSuperAdmin);
+  // ⚠️ View must NOT depend on canManage — hiding Edit would otherwise hide the
+  // only way into a record and leave a list you cannot open.
+  const canView = isClubAdmin;
+  const editableYears = heldYearLabels(yearRights, years.map((y) => ({ id: y.id, label: y.yearLabel })));
+  const viewingYearLabel = years.find((y) => y.id === selectedYearId)?.yearLabel;
 
   // Fetch club, module, then years (needs moduleId)
   useEffect(() => {
@@ -230,7 +239,7 @@ export default function PublicImageInitiativePage() {
         <TableCell>{formatDate(project.projectDate)}</TableCell>
         <TableCell>{project.location || "-"}</TableCell>
         <TableCell className="text-right">{project.projectCost?.toLocaleString(appLocale()) || "-"}</TableCell>
-        {canManage && (
+        {canView && (
           <TableCell>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -240,12 +249,16 @@ export default function PublicImageInitiativePage() {
                 <DropdownMenuItem onClick={() => router.push(`/clubs/${clubId}/public-image-initiative/${project.id}?yearId=${selectedYearId}`)}>
                   <Eye className="mr-2 h-4 w-4" />View
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => router.push(`/clubs/${clubId}/public-image-initiative/${project.id}/edit?yearId=${selectedYearId}`)}>
-                  <Pencil className="mr-2 h-4 w-4" />Edit
-                </DropdownMenuItem>
-                <DropdownMenuItem className="text-destructive" onClick={() => setDeleteTarget(project)}>
-                  <Trash2 className="mr-2 h-4 w-4" />Delete
-                </DropdownMenuItem>
+                {canManage && (
+                  <DropdownMenuItem onClick={() => router.push(`/clubs/${clubId}/public-image-initiative/${project.id}/edit?yearId=${selectedYearId}`)}>
+                    <Pencil className="mr-2 h-4 w-4" />Edit
+                  </DropdownMenuItem>
+                )}
+                {canManage && (
+                  <DropdownMenuItem className="text-destructive" onClick={() => setDeleteTarget(project)}>
+                    <Trash2 className="mr-2 h-4 w-4" />Delete
+                  </DropdownMenuItem>
+                )}
                 {isOngoingParent && childCount > 0 && (
                   <DropdownMenuItem onClick={() => toggleExpand(project.id)}>
                     {isExpanded ? <ChevronDown className="mr-2 h-4 w-4" /> : <ChevronRight className="mr-2 h-4 w-4" />}
@@ -282,6 +295,10 @@ export default function PublicImageInitiativePage() {
             </Button>
           )}
         </div>
+
+        {isClubAdmin && !canManage && selectedYearId && (
+          <ViewOnlyBadge yearLabel={viewingYearLabel} editableYears={editableYears} className="mb-4" />
+        )}
 
         {/* Year selector + Type filter + Search */}
         <div className="flex flex-col sm:flex-row gap-4">
@@ -366,7 +383,7 @@ export default function PublicImageInitiativePage() {
                     <TableHead className="text-base font-semibold">Date</TableHead>
                     <TableHead className="text-base font-semibold">Location</TableHead>
                     <TableHead className="text-base font-semibold text-right">Cost ({currencySymbol()})</TableHead>
-                    {canManage && (
+                    {canView && (
                       <TableHead className="w-12"></TableHead>
                     )}
                   </TableRow>

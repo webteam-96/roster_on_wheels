@@ -1,3 +1,4 @@
+using RotaryApi.Services;
 using Dapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -51,12 +52,13 @@ public class ClubMemberHonoraryController : ControllerBase
         using var conn = CreateConnection();
         await conn.OpenAsync();
 
-        var row = await conn.QueryFirstOrDefaultAsync<int?>(@"
+        var row = await conn.QueryFirstOrDefaultAsync<int?>($@"
             SELECT CAST(IsHonoraryMember AS UNSIGNED)
             FROM club_members
             WHERE fk_club_id = @ClubId
               AND fk_member_master_profile_id = @MemberId
               AND COALESCE(isdeleted, 0) = 0
+              AND {HierarchyScopeSql.ClubIdLive("club_members.fk_club_id")}
             LIMIT 1",
             new { ClubId = clubId, MemberId = memberId });
 

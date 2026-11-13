@@ -6,10 +6,15 @@
  * to the sibling pages under /club-admin-dashboard/communication/mass-email/*.
  */
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { getMassEmailList, deleteMassEmail, sendMassEmail } from "@/services/api";
 import { useAuth } from "@/contexts/AuthContext";
+import { clubYearRights, canEditYearless, isCurrentYearSelected, heldYearLabels } from "@/lib/adminYears";
+import { useSearchParams } from "next/navigation";
+import { useClubAdminCache } from "@/contexts/ClubAdminDashboardCacheContext";
+import { useRotaryYears } from "@/hooks/useRotaryYears";
+import ViewOnlyBadge from "@/components/ViewOnlyBadge";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -34,9 +39,30 @@ interface MassEmailItem {
 }
 
 export default function MassEmailSection({ clubId }: { clubId: number }) {
-  const { isSuperAdmin, isAdmin } = useAuth();
+  const { isSuperAdmin, isAdmin, user } = useAuth();
   const router = useRouter();
-  const canManage = isSuperAdmin || isAdmin;
+  // Mass emails carry NO Rotary year — sending one is a current-year action.
+  const { years, currentYearId } = useRotaryYears();
+  const yearRights = useMemo(() => clubYearRights(user?.scopedRoles, clubId), [user?.scopedRoles, clubId]);
+  const isClubAdmin = isSuperAdmin || isAdmin;
+  // ⚠️ AND the picker: this data has no Rotary year, so the year-less rule alone
+  // kept Add and Edit on screen while a past year was selected, which reads as
+  // the year rule having failed. The list is not year-filtered — nothing else
+  // on the screen changes, only the buttons.
+  // Both hooks are called unconditionally: folding them into the || would skip
+  // one whenever the URL carries a year, which React counts as a hook-order
+  // change and crashes on.
+  const yearParams = useSearchParams();
+  const yearCache = useClubAdminCache();
+  const selectedYearId = Number(yearParams?.get("yearId") ?? "") || yearCache.yearId || 0;
+  // The badge on these screens names the CURRENT year, not the member's own
+  // years — those do not help here, because only a current-year admin can
+  // ever change this data.
+  const currentYearLabel = years.find((y) => y.isCurrent)?.yearLabel ?? "";
+  const canManage = isClubAdmin
+    && canEditYearless(yearRights, currentYearId, isSuperAdmin)
+    && isCurrentYearSelected(selectedYearId, currentYearId, yearRights);
+  const editableYears = heldYearLabels(yearRights, years.map((y) => ({ id: y.id, label: y.yearLabel })));
 
   const [items, setItems] = useState<MassEmailItem[]>([]);
   const [totalCount, setTotalCount] = useState(0);
@@ -95,6 +121,10 @@ export default function MassEmailSection({ clubId }: { clubId: number }) {
 
   return (
     <div className="space-y-4">
+      {!canManage && (
+        <ViewOnlyBadge currentYearOnly={currentYearLabel} className="mb-3" />
+      )}
+
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-2 text-slate-700">
           <Mail className="h-4 w-4" /><span className="text-sm font-semibold">Mass Email: send bulk emails to club members</span>

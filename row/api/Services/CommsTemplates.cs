@@ -36,9 +36,17 @@ public static class CommsTemplates
     {
         var v = value?.Trim();
         if (string.IsNullOrEmpty(v)) return null;
-        if (LanguageCode.IsMatch(v)) return v;
-        return NameToCode.Value.TryGetValue(v, out var code) ? code : null;
+        var code = LanguageCode.IsMatch(v) ? v : NameToCode.Value.GetValueOrDefault(v);
+        return IsSupported(code) ? code : null;
     }
+
+    /// <summary>The eight launch languages (RI official languages, build spec i18n). Others fall back to the tenant's, then English.</summary>
+    public static readonly IReadOnlySet<string> SupportedLanguages =
+        new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "en", "fr", "de", "it", "ja", "ko", "pt", "es" };
+
+    /// <summary>Whether a code ("pt", "pt-BR") is one of <see cref="SupportedLanguages"/>.</summary>
+    public static bool IsSupported(string? code) =>
+        code != null && LanguageCode.IsMatch(code) && SupportedLanguages.Contains(code.Split('-')[0]);
 
     /// <summary>Whether the flagged module is on (platform_features), for code outside the API's FeatureGate cache.</summary>
     public static async Task<bool> IsOnAsync(MySqlConnection conn)

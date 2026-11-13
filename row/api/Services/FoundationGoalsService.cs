@@ -8,8 +8,34 @@ public class FoundationGoalsService : IFoundationGoalsService
 {
     private readonly string _cs;
 
-    public FoundationGoalsService(IConfiguration configuration)
+    private readonly IAdminYearService _adminYears;
+
+    /// <summary>
+    /// Year-wise Admin Rights for club foundation goals. The check lives HERE
+    /// rather than in the controller because the club is resolved inside this
+    /// service — the caller may send no clubId at all and get their own.
+    ///
+    /// ⚠️ A member whose rights come from somewhere OTHER than admin years is
+    /// left alone (rights.Any false), the same rule GoalSettingService uses —
+    /// narrowing on "no rights" would block whoever ResolveClubIdAsync just
+    /// authorised.
+    /// </summary>
+    private async Task EnsureYearRightsAsync(MySqlConnection conn, int memberId, int clubId, int yearId)
     {
+        if (yearId <= 0 || clubId <= 0) return;
+        var rights = await _adminYears.GetClubRightsAsync(conn, memberId, clubId);
+        if (!rights.Any) return;
+        if (rights.Covers(yearId)) return;
+
+        var label = await conn.ExecuteScalarAsync<string?>(
+            "SELECT YearLabel FROM rotary_year_master WHERE pk_year_id = @Id", new { Id = yearId })
+            ?? $"year {yearId}";
+        throw new UnauthorizedAccessException($"You do not have admin rights for {label}.");
+    }
+
+    public FoundationGoalsService(IConfiguration configuration, IAdminYearService adminYears)
+    {
+        _adminYears = adminYears;
         _cs = configuration.GetConnectionString("DefaultConnection")
             ?? throw new InvalidOperationException("DefaultConnection missing");
     }
@@ -76,6 +102,10 @@ public class FoundationGoalsService : IFoundationGoalsService
 
         var clubId = await ResolveClubIdAsync(conn, memberId, requestedClubId);
         if (clubId == 0) return null;
+        // Hierarchy scope (2026-10-21): inactive club / district / zone shows nothing.
+        if (await conn.ExecuteScalarAsync<int>(
+                $"SELECT CASE WHEN {HierarchyScopeSql.ClubIdLive("@ClubId")} THEN 1 ELSE 0 END", new { ClubId = clubId }) == 0)
+            return null;
 
         var clubName = await conn.ExecuteScalarAsync<string>(@"
             SELECT ClubName FROM club_master WHERE pk_club_id = @ClubId AND isdeleted = 0",

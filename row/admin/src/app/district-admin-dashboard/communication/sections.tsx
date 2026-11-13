@@ -20,7 +20,7 @@
  * two dashboards feel the same.
  */
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, useMemo } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useDistrictAdminCache } from "@/contexts/DistrictAdminDashboardCacheContext";
@@ -41,6 +41,9 @@ import {
 import AlertModal from "@/components/AlertModal";
 import SendStatusBadges from "@/components/SendStatusBadges";
 import { useAuth } from "@/contexts/AuthContext";
+import { districtYearRights, canEditYearless, isCurrentYearSelected, heldYearLabels } from "@/lib/adminYears";
+import { useRotaryYears } from "@/hooks/useRotaryYears";
+import ViewOnlyBadge from "@/components/ViewOnlyBadge";
 import {
   getDistrictUpcomingEvents, getDistrictUpcomingEvent, deleteDistrictUpcomingEvent,
   getDistrictAnnouncements, deleteDistrictAnnouncement,
@@ -114,6 +117,16 @@ interface SectionShellProps {
   search: string;
   onSearchChange: (s: string) => void;
   addHref: string;
+  /** False hides Add and shows why. */
+  canAdd?: boolean;
+  editableYears?: string[];
+  /**
+   * Set on sections whose data is NOT filed by Rotary year (upcoming events,
+   * announcements, documents). Only a CURRENT-year admin can ever change those,
+   * so naming the member's own years would be untrue — pass the current year's
+   * label instead and the badge says so.
+   */
+  currentYearOnly?: string;
   loading: boolean;
   children: React.ReactNode;
 }
@@ -121,7 +134,7 @@ interface SectionShellProps {
 function SectionShell({
   icon: Icon, iconClass, title, count,
   status, onStatusChange, search, onSearchChange,
-  addHref, loading, children,
+  addHref, canAdd = true, editableYears = [], currentYearOnly, loading, children,
 }: SectionShellProps) {
   const activeStatusLabel = STATUS_OPTIONS.find((o) => o.value === status)?.label ?? "All";
   const [filterOpen, setFilterOpen] = useState(false);
@@ -177,14 +190,19 @@ function SectionShell({
             />
           </div>
 
-          <Link
-            href={addHref}
-            className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-[#17458F] hover:bg-[#17458F] text-white text-[11px] font-semibold"
-          >
-            <Plus size={12} /> Add
-          </Link>
+          {canAdd && (
+            <Link
+              href={addHref}
+              className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-[#17458F] hover:bg-[#17458F] text-white text-[11px] font-semibold"
+            >
+              <Plus size={12} /> Add
+            </Link>
+          )}
         </div>
       </div>
+      {!canAdd && (currentYearOnly !== undefined
+        ? <ViewOnlyBadge currentYearOnly={currentYearOnly} className="mb-3" />
+        : <ViewOnlyBadge editableYears={editableYears} className="mb-3" />)}
       {children}
     </div>
   );
@@ -196,10 +214,12 @@ interface RowActionsProps {
   onView: () => void;
   editHref: string;
   onDelete: () => void;
+  /** Editing follows the year rule; View never does. */
+  canEdit: boolean;
   canDelete: boolean;
 }
 
-function RowActions({ onView, editHref, onDelete, canDelete }: RowActionsProps) {
+function RowActions({ onView, editHref, onDelete, canEdit, canDelete }: RowActionsProps) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -216,11 +236,13 @@ function RowActions({ onView, editHref, onDelete, canDelete }: RowActionsProps) 
         <DropdownMenuItem onClick={onView} className="text-xs cursor-pointer">
           <Eye size={12} className="mr-1.5" /> View
         </DropdownMenuItem>
-        <DropdownMenuItem asChild className="text-xs cursor-pointer">
-          <Link href={editHref}>
-            <Pencil size={12} className="mr-1.5" /> Edit
-          </Link>
-        </DropdownMenuItem>
+        {canEdit && (
+          <DropdownMenuItem asChild className="text-xs cursor-pointer">
+            <Link href={editHref}>
+              <Pencil size={12} className="mr-1.5" /> Edit
+            </Link>
+          </DropdownMenuItem>
+        )}
         {canDelete && (
           <DropdownMenuItem
             onClick={onDelete}
@@ -309,8 +331,28 @@ function useDebounced<T>(value: T, ms = 300): T {
 // ═══════════════════════════════════════════════════════════════════════════
 
 export function UpcomingEventsSection({ districtId }: { districtId: number }) {
-  const { isSuperAdmin, isAdmin } = useAuth();
-  const canDelete = isSuperAdmin || isAdmin;
+  const { isSuperAdmin, isAdmin, user } = useAuth();
+  // District announcements, events and documents carry NO Rotary year — they are
+  // the district's current state — so changing them needs CURRENT-year rights.
+  const { years: rotaryYears, currentYearId } = useRotaryYears();
+  const commsRights = useMemo(() => districtYearRights(user?.scopedRoles, districtId), [user?.scopedRoles, districtId]);
+  // ⚠️ AND the picker: this data has no Rotary year, so the year-less rule
+  // alone kept Add and Edit on screen while a past year was selected, which
+  // reads as the year rule having failed. The list is not year-filtered —
+  // nothing else on the screen changes, only the buttons.
+  // Both hooks unconditionally: folding them into the || would skip one when
+  // the URL carries a year, which React counts as a hook-order change.
+  const yearParams = useSearchParams();
+  const yearCache = useDistrictAdminCache();
+  const selectedYearId = Number(yearParams?.get("yearId") ?? "") || yearCache.yearId || 0;
+  const canManage = (isSuperAdmin || isAdmin)
+    && canEditYearless(commsRights, currentYearId, isSuperAdmin)
+    && isCurrentYearSelected(selectedYearId, currentYearId, commsRights);
+  // Names the CURRENT year in the badge — the member's own years are not the
+  // point here, since only a current-year admin can ever change this data.
+  const currentYearLabel = rotaryYears.find((y) => y.isCurrent)?.yearLabel ?? "";
+  const editableYears = heldYearLabels(commsRights, rotaryYears.map((y) => ({ id: y.id, label: y.yearLabel })));
+  const canDelete = canManage;
 
   const [status, setStatus] = useState<string>("Published");
   const [search, setSearch] = useState("");
@@ -381,6 +423,9 @@ export function UpcomingEventsSection({ districtId }: { districtId: number }) {
         search={search}
         onSearchChange={setSearch}
         addHref={`/districts/${districtId}/upcoming-events/v2/add${RETURN_TO_QS}`}
+        canAdd={canManage}
+        editableYears={editableYears}
+        currentYearOnly={currentYearLabel}
         loading={loading}
       >
         {banner && (
@@ -419,6 +464,7 @@ export function UpcomingEventsSection({ districtId }: { districtId: number }) {
                   onView={() => openView(e)}
                   editHref={`/districts/${districtId}/upcoming-events/v2/${e.id}/edit${RETURN_TO_QS}`}
                   onDelete={() => setDeleteTarget(e)}
+                  canEdit={canManage}
                   canDelete={canDelete}
                 />
               </li>
@@ -493,8 +539,28 @@ export function UpcomingEventsSection({ districtId }: { districtId: number }) {
 // ═══════════════════════════════════════════════════════════════════════════
 
 export function AnnouncementsSection({ districtId }: { districtId: number }) {
-  const { isSuperAdmin, isAdmin } = useAuth();
-  const canDelete = isSuperAdmin || isAdmin;
+  const { isSuperAdmin, isAdmin, user } = useAuth();
+  // District announcements, events and documents carry NO Rotary year — they are
+  // the district's current state — so changing them needs CURRENT-year rights.
+  const { years: rotaryYears, currentYearId } = useRotaryYears();
+  const commsRights = useMemo(() => districtYearRights(user?.scopedRoles, districtId), [user?.scopedRoles, districtId]);
+  // ⚠️ AND the picker: this data has no Rotary year, so the year-less rule
+  // alone kept Add and Edit on screen while a past year was selected, which
+  // reads as the year rule having failed. The list is not year-filtered —
+  // nothing else on the screen changes, only the buttons.
+  // Both hooks unconditionally: folding them into the || would skip one when
+  // the URL carries a year, which React counts as a hook-order change.
+  const yearParams = useSearchParams();
+  const yearCache = useDistrictAdminCache();
+  const selectedYearId = Number(yearParams?.get("yearId") ?? "") || yearCache.yearId || 0;
+  const canManage = (isSuperAdmin || isAdmin)
+    && canEditYearless(commsRights, currentYearId, isSuperAdmin)
+    && isCurrentYearSelected(selectedYearId, currentYearId, commsRights);
+  // Names the CURRENT year in the badge — the member's own years are not the
+  // point here, since only a current-year admin can ever change this data.
+  const currentYearLabel = rotaryYears.find((y) => y.isCurrent)?.yearLabel ?? "";
+  const editableYears = heldYearLabels(commsRights, rotaryYears.map((y) => ({ id: y.id, label: y.yearLabel })));
+  const canDelete = canManage;
 
   const [status, setStatus] = useState<string>("Published");
   const [search, setSearch] = useState("");
@@ -548,6 +614,9 @@ export function AnnouncementsSection({ districtId }: { districtId: number }) {
         search={search}
         onSearchChange={setSearch}
         addHref={`/districts/${districtId}/announcements/v2/add${RETURN_TO_QS}`}
+        canAdd={canManage}
+        editableYears={editableYears}
+        currentYearOnly={currentYearLabel}
         loading={loading}
       >
         {banner && (
@@ -600,6 +669,7 @@ export function AnnouncementsSection({ districtId }: { districtId: number }) {
                   onView={() => setViewItem(a)}
                   editHref={`/districts/${districtId}/announcements/v2/${a.id}/edit${RETURN_TO_QS}`}
                   onDelete={() => setDeleteTarget(a)}
+                  canEdit={canManage}
                   canDelete={canDelete}
                 />
               </li>
@@ -656,8 +726,28 @@ export function AnnouncementsSection({ districtId }: { districtId: number }) {
 // ═══════════════════════════════════════════════════════════════════════════
 
 export function DocumentsSection({ districtId }: { districtId: number }) {
-  const { isSuperAdmin, isAdmin } = useAuth();
-  const canDelete = isSuperAdmin || isAdmin;
+  const { isSuperAdmin, isAdmin, user } = useAuth();
+  // District announcements, events and documents carry NO Rotary year — they are
+  // the district's current state — so changing them needs CURRENT-year rights.
+  const { years: rotaryYears, currentYearId } = useRotaryYears();
+  const commsRights = useMemo(() => districtYearRights(user?.scopedRoles, districtId), [user?.scopedRoles, districtId]);
+  // ⚠️ AND the picker: this data has no Rotary year, so the year-less rule
+  // alone kept Add and Edit on screen while a past year was selected, which
+  // reads as the year rule having failed. The list is not year-filtered —
+  // nothing else on the screen changes, only the buttons.
+  // Both hooks unconditionally: folding them into the || would skip one when
+  // the URL carries a year, which React counts as a hook-order change.
+  const yearParams = useSearchParams();
+  const yearCache = useDistrictAdminCache();
+  const selectedYearId = Number(yearParams?.get("yearId") ?? "") || yearCache.yearId || 0;
+  const canManage = (isSuperAdmin || isAdmin)
+    && canEditYearless(commsRights, currentYearId, isSuperAdmin)
+    && isCurrentYearSelected(selectedYearId, currentYearId, commsRights);
+  // Names the CURRENT year in the badge — the member's own years are not the
+  // point here, since only a current-year admin can ever change this data.
+  const currentYearLabel = rotaryYears.find((y) => y.isCurrent)?.yearLabel ?? "";
+  const editableYears = heldYearLabels(commsRights, rotaryYears.map((y) => ({ id: y.id, label: y.yearLabel })));
+  const canDelete = canManage;
 
   const [status, setStatus] = useState<string>("Published");
   const [search, setSearch] = useState("");
@@ -711,6 +801,9 @@ export function DocumentsSection({ districtId }: { districtId: number }) {
         search={search}
         onSearchChange={setSearch}
         addHref={`/districts/${districtId}/documents/v2/add${RETURN_TO_QS}`}
+        canAdd={canManage}
+        editableYears={editableYears}
+        currentYearOnly={currentYearLabel}
         loading={loading}
       >
         {banner && (
@@ -751,6 +844,7 @@ export function DocumentsSection({ districtId }: { districtId: number }) {
                   onView={() => setViewItem(d)}
                   editHref={`/districts/${districtId}/documents/v2/${d.id}/edit${RETURN_TO_QS}`}
                   onDelete={() => setDeleteTarget(d)}
+                  canEdit={canManage}
                   canDelete={canDelete}
                 />
               </li>
@@ -807,8 +901,14 @@ export function DocumentsSection({ districtId }: { districtId: number }) {
 // ═══════════════════════════════════════════════════════════════════════════
 
 export function NewslettersSection({ districtId }: { districtId: number }) {
-  const { isSuperAdmin, isAdmin } = useAuth();
-  const canDelete = isSuperAdmin || isAdmin;
+  const { isSuperAdmin, isAdmin, user } = useAuth();
+  // District announcements, events and documents carry NO Rotary year — they are
+  // the district's current state — so changing them needs CURRENT-year rights.
+  const { years: rotaryYears, currentYearId } = useRotaryYears();
+  const commsRights = useMemo(() => districtYearRights(user?.scopedRoles, districtId), [user?.scopedRoles, districtId]);
+  const canManage = (isSuperAdmin || isAdmin) && canEditYearless(commsRights, currentYearId, isSuperAdmin);
+  const editableYears = heldYearLabels(commsRights, rotaryYears.map((y) => ({ id: y.id, label: y.yearLabel })));
+  const canDelete = canManage;
   // Newsletters API is year-scoped (uses per-year tables). Prefer the URL
   // ?yearId=; fall back to the district cache context which has the resolved
   // current year — that way we don't send yearId=0 which triggers a slow
@@ -872,6 +972,8 @@ export function NewslettersSection({ districtId }: { districtId: number }) {
         search={search}
         onSearchChange={setSearch}
         addHref={`/districts/${districtId}/newsletters/v2/add${RETURN_TO_QS}`}
+        canAdd={canManage}
+        editableYears={editableYears}
         loading={loading}
       >
         {banner && (
@@ -916,6 +1018,7 @@ export function NewslettersSection({ districtId }: { districtId: number }) {
                   onView={() => setViewItem(n)}
                   editHref={`/districts/${districtId}/newsletters/v2/${n.id}/edit${RETURN_TO_QS}`}
                   onDelete={() => setDeleteTarget(n)}
+                  canEdit={canManage}
                   canDelete={canDelete}
                 />
               </li>

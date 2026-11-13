@@ -56,6 +56,7 @@ export interface Club {
   isAutomaticMeetingReminder: boolean;
   isFamilyLogin: boolean;
   isActive: boolean;
+  isChainActive?: boolean; // false = it or a parent is inactive (SuperAdmin-only view)
   createdBy: number | null;
   createdDate: string | null;
   modifiedBy: number | null;

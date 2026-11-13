@@ -171,7 +171,7 @@ class _WeblinksScreenState extends State<WeblinksScreen> {
   bool get canManage =>
       !widget.viewOnly &&
       Provider.of<AuthProvider>(context, listen: false)
-          .isClubAdminOf(widget.clubId);
+          .canEditClub(widget.clubId);
 
   @override
   Widget build(BuildContext context) {

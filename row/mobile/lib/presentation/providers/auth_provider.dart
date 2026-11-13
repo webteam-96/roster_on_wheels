@@ -146,6 +146,27 @@ class AuthProvider extends ChangeNotifier {
   bool isDistrictAdminOf(int districtId) => _roleAssignments
       .any((a) => a.isDistrictAdmin && a.districtId == districtId);
 
+  // ── Year-wise Admin Rights ───────────────────────────────────────────────
+  // An admin may add / edit / delete only in the Rotary years they hold. The
+  // server is the real check; these only decide which buttons to show.
+  int? _currentYearId;
+  int? get currentYearId => _currentYearId;
+
+  bool _holdsYear(_RoleAssignment a, int? yearId) {
+    if (a.allYears != false) return true;
+    final y = yearId ?? _currentYearId;
+    if (y == null) return true;
+    return a.yearIds.contains(y);
+  }
+
+  /// Club admin who may change this club's records for [yearId] (default: the current year).
+  bool canEditClub(int clubId, {int? yearId}) => _roleAssignments.any(
+      (a) => a.isClubAdmin && a.clubId == clubId && _holdsYear(a, yearId));
+
+  /// District admin who may change this district's records for [yearId] (default: the current year).
+  bool canEditDistrict(int districtId, {int? yearId}) => _roleAssignments.any(
+      (a) => a.isDistrictAdmin && a.districtId == districtId && _holdsYear(a, yearId));
+
   /// District-admin check by district NUMBER (the display id, e.g. "3142")
   /// rather than the numeric FK. Used where only the number is available — e.g.
   /// a member's club row carries `districtNumber`, not `districtId`.
@@ -592,6 +613,7 @@ class AuthProvider extends ChangeNotifier {
         _memberId = j['memberId'] as int? ?? 0;
         _memberName = j['memberName']?.toString() ?? '';
         _memberType = j['memberType']?.toString() ?? 'member';
+        _currentYearId = j['currentYearId'] as int?;
         // Parse full role-assignment objects from j['roles'].
         final rolesRaw = j['roles'] as List<dynamic>? ?? const [];
         _roleAssignments = rolesRaw
@@ -1222,6 +1244,10 @@ class _RoleAssignment {
   final String? districtNumber;
   final int? clubId;
   final String? clubName;
+  // Year-wise Admin Rights (from my-context). null allYears = an older server: no restriction.
+  // The server already widens to all years where the year rule is switched off.
+  final bool? allYears;
+  final List<int> yearIds;
 
   const _RoleAssignment({
     required this.roleName,
@@ -1232,6 +1258,8 @@ class _RoleAssignment {
     this.districtNumber,
     this.clubId,
     this.clubName,
+    this.allYears,
+    this.yearIds = const [],
   });
 
   factory _RoleAssignment.fromJson(Map<String, dynamic> j) => _RoleAssignment(
@@ -1243,6 +1271,10 @@ class _RoleAssignment {
         districtNumber: j['districtNumber']?.toString(),
         clubId: j['clubId'] as int?,
         clubName: j['clubName']?.toString(),
+        allYears: j['allYears'] as bool?,
+        yearIds: (j['yearIds'] as List<dynamic>? ?? const [])
+            .whereType<int>()
+            .toList(),
       );
 
   Map<String, dynamic> toJson() => {
@@ -1254,6 +1286,8 @@ class _RoleAssignment {
         'districtNumber': districtNumber,
         'clubId': clubId,
         'clubName': clubName,
+        'allYears': allYears,
+        'yearIds': yearIds,
       };
 
   // Accept both the new explicit role names ("Club Admin" / "District Admin")

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { getClub, getGreetingSettings, updateGreetingSettings } from "@/services/api";
 import { UpdateGreetingSettingsRequest } from "@/types/greeting";
@@ -16,6 +16,9 @@ import Link from "next/link";
 import ClubAdminShell from "@/components/v2/ClubAdminShell";
 import { useSyncClubIdFromUrl } from "@/hooks/useSyncClubIdFromUrl";
 import { useAuth } from "@/contexts/AuthContext";
+import { clubYearRights, canEditYearless, isCurrentYearSelected, heldYearLabels } from "@/lib/adminYears";
+import { useRotaryYears } from "@/hooks/useRotaryYears";
+import ViewOnlyBadge from "@/components/ViewOnlyBadge";
 import GreetingPauseNotice from "@/components/GreetingPauseNotice";
 import { ListPageSkeleton } from "@/components/row/AppKit";
 
@@ -43,8 +46,24 @@ export default function GreetingsSettingsPage() {
   // Return target for Back / post-save — honors ?returnTo= (e.g. the Communication
   // tab's "Edit messages" link); falls back to the legacy club dashboard hub.
   const backTo = searchParams.get("returnTo") || `/clubs/${clubId}/dashboard`;
-  const { isSuperAdmin, isAdmin } = useAuth();
-  const canManage = isSuperAdmin || isAdmin;
+  const { isSuperAdmin, isAdmin, user } = useAuth();
+  // Greeting settings carry NO Rotary year — they govern what goes out from now
+  // on, so changing them needs CURRENT-year rights.
+  const { years, currentYearId } = useRotaryYears();
+  const yearRights = useMemo(() => clubYearRights(user?.scopedRoles, clubId), [user?.scopedRoles, clubId]);
+  // ⚠️ AND the picker: greeting settings have no Rotary year, so the year-less
+  // rule alone left Save on screen while a past year was selected — which
+  // reads as the year rule having failed. Nothing else on the page changes.
+  // searchParams is already declared above, so no second hook is added.
+  const selectedYearId = Number(searchParams.get("yearId") ?? "") || 0;
+  // The badge on these screens names the CURRENT year, not the member's own
+  // years — those do not help here, because only a current-year admin can
+  // ever change this data.
+  const currentYearLabel = years.find((y) => y.isCurrent)?.yearLabel ?? "";
+  const canManage = (isSuperAdmin || isAdmin)
+    && canEditYearless(yearRights, currentYearId, isSuperAdmin)
+    && isCurrentYearSelected(selectedYearId, currentYearId, yearRights);
+  const editableYears = heldYearLabels(yearRights, years.map((y) => ({ id: y.id, label: y.yearLabel })));
 
   const [clubName, setClubName] = useState("");
   const [loading, setLoading] = useState(true);
@@ -155,6 +174,10 @@ export default function GreetingsSettingsPage() {
 
   return (
     <ClubAdminShell pageTitle="Greetings Settings" pageSubtitle={clubName} activeNavHref="/club-admin-dashboard/communication">
+      {!canManage && (
+        <ViewOnlyBadge currentYearOnly={currentYearLabel} className="mb-3" />
+      )}
+
       <div className="space-y-6 max-w-3xl mx-auto">
         {/* Header */}
         <div className="flex items-center gap-3">

@@ -70,15 +70,21 @@ public class ClubAdminDashboardService : IClubAdminDashboardService
             if (isAdmin == 0)
                 throw new UnauthorizedAccessException("You are not an active admin for this club.");
 
-            return requestedClubId.Value;
+            // Hidden hierarchy (inactive club / district / zone): the dashboard shows nothing.
+            var live = await conn.ExecuteScalarAsync<int>($@"
+                SELECT COUNT(*) FROM club_master c
+                WHERE c.pk_club_id = @ClubId AND {HierarchyScopeSql.ClubLive("c")}",
+                new { ClubId = requestedClubId.Value });
+            return live > 0 ? requestedClubId.Value : 0;
         }
 
-        var clubId = await conn.ExecuteScalarAsync<int?>(@"
+        var clubId = await conn.ExecuteScalarAsync<int?>($@"
             SELECT fk_club_id FROM member_roles
             WHERE fk_member_master_profile_id = @MemberId
               AND fk_role_id = 2
               AND fk_club_id IS NOT NULL AND fk_club_id > 0
               AND IsActive = 1 AND isdeleted = 0
+              AND {HierarchyScopeSql.ClubIdLive("member_roles.fk_club_id")}
             ORDER BY pk_member_role_id ASC
             LIMIT 1",
             new { MemberId = memberId });
@@ -101,14 +107,14 @@ public class ClubAdminDashboardService : IClubAdminDashboardService
         // syncs, 0 for manually-created or opted-out clubs. (Phase 1 originally
         // added a separate IsRotaryOrgSyncEnabled column; that turned out to be
         // a duplicate and was retired.)
-        var info = await conn.QueryFirstOrDefaultAsync<dynamic>(@"
+        var info = await conn.QueryFirstOrDefaultAsync<dynamic>($@"
             SELECT c.ClubName AS clubName, COALESCE(d.DistrictNumber,'') AS districtNumber,
                    m.MemberName AS memberName,
                    COALESCE(c.IsSyncedFromRotaryOrg, 0) AS isRotaryOrgSyncEnabled
             FROM club_master c
             LEFT JOIN district_master d ON d.pk_district_id = c.fk_district_id
             LEFT JOIN member_master_profile m ON m.pk_member_master_profile_id = @MemberId
-            WHERE c.pk_club_id = @ClubId AND c.isdeleted = 0 LIMIT 1",
+            WHERE c.pk_club_id = @ClubId AND c.isdeleted = 0 AND {HierarchyScopeSql.ClubLive("c")} LIMIT 1",
             new { ClubId = clubId, MemberId = memberId });
         if (info == null) return null;
 

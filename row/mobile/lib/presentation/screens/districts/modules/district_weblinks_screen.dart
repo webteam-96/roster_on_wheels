@@ -296,7 +296,7 @@ class _DistrictWeblinksScreenState extends State<DistrictWeblinksScreen> {
   @override
   Widget build(BuildContext context) {
     final auth = context.watch<AuthProvider>();
-    final canManage = auth.isDistrictAdminOf(widget.districtId);
+    final canManage = auth.canEditDistrict(widget.districtId);
 
     return Scaffold(
       backgroundColor: AppColors.background,

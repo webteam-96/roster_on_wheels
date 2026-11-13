@@ -1,3 +1,4 @@
+using RotaryApi.Services;
 using ClosedXML.Excel;
 using Dapper;
 using Microsoft.AspNetCore.Authorization;
@@ -220,15 +221,17 @@ public class EmailLogController : ControllerBase
         // Past emails have no club/district stamp, so scope by the club's/district's MEMBER
         // emails (captures history from the shared email_log) OR the newly-stamped fk column.
         var memberEmails = scopeKind == "club"
-            ? @"SELECT m.EmailId FROM club_members cm
+            ? $@"SELECT m.EmailId FROM club_members cm
                 JOIN member_master_profile m ON m.pk_member_master_profile_id = cm.fk_member_master_profile_id
                 WHERE cm.fk_club_id = @ScopeId AND cm.IsActive = 1 AND cm.isdeleted = 0
+                  AND {HierarchyScopeSql.ClubIdLive("cm.fk_club_id")}
                   AND m.isdeleted = 0 AND m.EmailId IS NOT NULL AND m.EmailId <> ''"
-            : @"SELECT m.EmailId FROM club_members cm
+            : $@"SELECT m.EmailId FROM club_members cm
                 JOIN club_master c ON c.pk_club_id = cm.fk_club_id
                 JOIN member_master_profile m ON m.pk_member_master_profile_id = cm.fk_member_master_profile_id
                 WHERE c.fk_district_id = @ScopeId AND cm.IsActive = 1 AND cm.isdeleted = 0
-                  AND c.isdeleted = 0 AND m.isdeleted = 0 AND m.EmailId IS NOT NULL AND m.EmailId <> ''";
+                  AND c.isdeleted = 0 AND {HierarchyScopeSql.ClubLive("c")}
+                  AND m.isdeleted = 0 AND m.EmailId IS NOT NULL AND m.EmailId <> ''";
         var scopeCol = scopeKind == "club" ? "fk_club_id" : "fk_district_id";
         var c = new List<string> { $"({scopeCol} = @ScopeId OR recipient_email IN ({memberEmails}))" };
         var p = new DynamicParameters(); p.Add("ScopeId", scopeId);

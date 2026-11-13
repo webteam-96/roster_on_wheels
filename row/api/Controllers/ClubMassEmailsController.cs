@@ -13,8 +13,11 @@ public class ClubMassEmailsController : ControllerBase
     private readonly IClubMassEmailService _service;
     private readonly string _connectionString;
 
-    public ClubMassEmailsController(IClubMassEmailService service, IConfiguration configuration)
+    private readonly AdminYearGuard _guard;
+
+    public ClubMassEmailsController(AdminYearGuard guard, IClubMassEmailService service, IConfiguration configuration)
     {
+        _guard = guard;
         _service = service;
         _connectionString = configuration.GetConnectionString("DefaultConnection")!;
     }
@@ -55,6 +58,9 @@ public class ClubMassEmailsController : ControllerBase
     [HttpPost]
     public async Task<ActionResult> Create(int clubId, [FromBody] CreateMassEmailDto dto)
     {
+        var denied = await _guard.ClubYearlessAsync(User, clubId);
+        if (denied != null) return denied;
+
         try
         {
             var id = await _service.CreateAsync(clubId, dto, GetUserId());

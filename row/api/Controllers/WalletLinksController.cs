@@ -53,7 +53,10 @@ public class WalletLinksController : ControllerBase
         await conn.OpenAsync();
 
         var p = new DynamicParameters();
-        var where = "WHERE IsActive = 1 AND isdeleted = 0";
+        // Only districts with at least one Rotary.org sync club (user 2026-10-30), same rule as the
+        // hasSyncClubs district list.
+        var where = $@"WHERE IsActive = 1 AND isdeleted = 0 AND {HierarchyScopeSql.DistrictLive("district_master")}
+            AND EXISTS (SELECT 1 FROM club_master c WHERE c.fk_district_id = district_master.pk_district_id AND c.isdeleted = 0 AND IFNULL(c.IsSyncedFromRotaryOrg,0) = 1)";
         if (!string.IsNullOrWhiteSpace(search)) { where += " AND DistrictNumber LIKE @S"; p.Add("S", $"%{search}%"); }
         var districts = (await conn.QueryAsync<dynamic>(
             $"SELECT pk_district_id AS id, DistrictNumber AS number FROM district_master {where} ORDER BY CAST(DistrictNumber AS UNSIGNED), DistrictNumber", p)).ToList();
@@ -95,7 +98,7 @@ public class WalletLinksController : ControllerBase
                 SELECT c.pk_club_id AS clubId, c.ClubName AS clubName, d.DistrictNumber AS districtNumber,
                        SUM(CASE WHEN cc.CreditType = 'Email'    THEN cc.CreditCount - cc.UsedCount ELSE 0 END) AS emailBalance
                 FROM club_credits cc
-                JOIN club_master c ON c.pk_club_id = cc.fk_club_id AND c.isdeleted = 0 AND c.IsActive = 1
+                JOIN club_master c ON c.pk_club_id = cc.fk_club_id AND c.isdeleted = 0 AND c.IsActive = 1 AND {HierarchyScopeSql.ClubLive("c")}
                 LEFT JOIN district_master d ON d.pk_district_id = c.fk_district_id
                 WHERE cc.fk_club_id > 0 AND cc.IsActive = 1 AND cc.isdeleted = 0 AND NOW() <= cc.ToDate
                 GROUP BY c.pk_club_id, c.ClubName, d.DistrictNumber

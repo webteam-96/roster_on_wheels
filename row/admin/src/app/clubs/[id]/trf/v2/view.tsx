@@ -36,6 +36,9 @@ import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
 import Pagination from "@/components/Pagination";
 import { useSyncClubIdFromUrl } from "@/hooks/useSyncClubIdFromUrl";
+import { useAuth } from "@/contexts/AuthContext";
+import { clubYearRights, canEditYear, heldYearLabels } from "@/lib/adminYears";
+import ViewOnlyBadge from "@/components/ViewOnlyBadge";
 import { SkeletonRows } from "@/components/row/AppKit";
 import { stripBase } from "@/lib/basePath";
 
@@ -70,6 +73,15 @@ export function TrfV2View({ clubId: propClubId, embedded = false, yearId: global
   const [years, setYears] = useState<ReportYear[]>([]);
   const cmrOn = useFeatureLoadedOn("club_monthly_report");
   const [selectedYearId, setSelectedYearId] = useState<number | null>(null);
+
+  // A TRF contribution belongs to the Rotary year it was recorded under, and
+  // this page has its own year selector — so the selected year decides.
+  const { user, isSuperAdmin, isAdmin } = useAuth();
+  const yearRights = useMemo(() => clubYearRights(user?.scopedRoles, clubId), [user?.scopedRoles, clubId]);
+  const isClubAdmin = isSuperAdmin || isAdmin;
+  const canManage = isClubAdmin && canEditYear(yearRights, selectedYearId, isSuperAdmin);
+  const editableYears = heldYearLabels(yearRights, years.map((y) => ({ id: y.id, label: y.yearLabel })));
+  const viewingYearLabel = years.find((y) => y.id === selectedYearId)?.yearLabel;
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [funds, setFunds] = useState<TrfFund[]>([]);
   const [contributions, setContributions] = useState<TrfContribution[]>([]);
@@ -203,6 +215,10 @@ export function TrfV2View({ clubId: propClubId, embedded = false, yearId: global
 
   return (
     <div className="space-y-5">
+      {!canManage && selectedYearId && (
+        <ViewOnlyBadge yearLabel={viewingYearLabel} editableYears={editableYears} className="mb-4" />
+      )}
+
       {/* Header + summary band — standalone route only. When embedded on the Foundation
           page, the page provides the header, so we show ONLY the 4 KPI cards + the listing. */}
       {!embedded && (
@@ -283,12 +299,14 @@ export function TrfV2View({ clubId: propClubId, embedded = false, yearId: global
                 className="pl-7 pr-3 h-10 py-0 text-sm border border-slate-200 rounded-[12px] w-full sm:w-48 focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
               />
             </div>
-            <Link
-              href={addUrl}
-              className="inline-flex items-center gap-1.5 text-xs font-semibold px-4 h-10 rounded-full bg-[#17458F] text-white hover:bg-[#17458F]"
-            >
-              <Plus size={13} /> Add Contribution
-            </Link>
+            {canManage && (
+              <Link
+                href={addUrl}
+                className="inline-flex items-center gap-1.5 text-xs font-semibold px-4 h-10 rounded-full bg-[#17458F] text-white hover:bg-[#17458F]"
+              >
+                <Plus size={13} /> Add Contribution
+              </Link>
+            )}
           </div>
         </div>
 
@@ -305,8 +323,10 @@ export function TrfV2View({ clubId: propClubId, embedded = false, yearId: global
                   <th className="px-3 py-2.5 text-right">Amount</th>
                   <th className="px-3 py-2.5 text-left">Currency</th>
                   <th className="px-3 py-2.5 text-left">Date</th>
-                  <th className="px-3 py-2.5 text-right w-16">Edit</th>
-                  <th className="px-3 py-2.5 text-right w-16">Delete</th>
+                  {/* One column, and it hides with the body cells below.
+                      Two separate Edit/Delete headers left empty columns
+                      behind on a read-only year. */}
+                  {canManage && <th className="px-3 py-2.5 text-right w-20 whitespace-nowrap">Actions</th>}
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -326,31 +346,35 @@ export function TrfV2View({ clubId: propClubId, embedded = false, yearId: global
                       </td>
                       <td className="px-3 py-2 text-slate-500 text-xs">USD</td>
                       <td className="px-3 py-2 text-slate-700 whitespace-nowrap">{fmtDate(c.trfDate)}</td>
-                      <td className="px-3 py-2 text-right">
-                        <Link
-                          href={`/clubs/${clubId}/trf/v2/${c.id}/edit?returnTo=${returnTo}&yearId=${selectedYearId}${cmrQuery}`}
-                          className="inline-flex items-center justify-center w-7 h-7 rounded text-slate-500 hover:text-blue-700 hover:bg-blue-50"
-                          aria-label="Edit contribution"
-                        >
-                          <Edit3 size={13} />
-                        </Link>
-                      </td>
-                      <td className="px-3 py-2 text-right">
-                        <button
-                          type="button"
-                          onClick={() => setDeleteTarget(c)}
-                          className="inline-flex items-center justify-center w-7 h-7 rounded text-slate-400 hover:text-rose-700 hover:bg-rose-50"
-                          aria-label="Delete contribution"
-                        >
-                          <Trash2 size={13} />
-                        </button>
-                      </td>
+                      {canManage && (
+                        <td className="px-3 py-2">
+                          <div className="flex items-center justify-end gap-0.5">
+                            <Link
+                              href={`/clubs/${clubId}/trf/v2/${c.id}/edit?returnTo=${returnTo}&yearId=${selectedYearId}${cmrQuery}`}
+                              className="inline-flex items-center justify-center w-7 h-7 rounded text-slate-500 hover:text-blue-700 hover:bg-blue-50"
+                              title="Edit"
+                              aria-label="Edit contribution"
+                            >
+                              <Edit3 size={14} />
+                            </Link>
+                            <button
+                              type="button"
+                              onClick={() => setDeleteTarget(c)}
+                              className="inline-flex items-center justify-center w-7 h-7 rounded text-slate-400 hover:text-rose-700 hover:bg-rose-50"
+                              title="Delete"
+                              aria-label="Delete contribution"
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                          </div>
+                        </td>
+                      )}
                     </tr>
                   );
                 })}
                 {filtered.length === 0 && (
                   <tr>
-                    <td colSpan={8} className="px-4 py-10 text-center text-slate-400">
+                    <td colSpan={canManage ? 7 : 6} className="px-4 py-10 text-center text-slate-400">
                       {search ? "No contributions match your search." : "No TRF contributions for this year."}
                     </td>
                   </tr>

@@ -10,7 +10,7 @@
  * v2 reads ONLY `?returnTo=` — never any other param name.
  */
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, useMemo } from "react";
 import { useParams, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import {
@@ -34,6 +34,10 @@ import ClubAdminShell from "@/components/v2/ClubAdminShell";
 import CalendarFeedCard from "@/components/attendance/CalendarFeedCard";
 import { fileTimestamp } from "@/lib/dateUtils";
 import { useSyncClubIdFromUrl } from "@/hooks/useSyncClubIdFromUrl";
+import { clubYearRights, canEditYear, heldYearLabels } from "@/lib/adminYears";
+import ViewOnlyBadge from "@/components/ViewOnlyBadge";
+import AttendanceViewDialog from "@/components/AttendanceViewDialog";
+import { Eye } from "@/components/icons";
 
 import { appLocale } from "@/lib/appFormat";
 import { SkeletonRows } from "@/components/row/AppKit";
@@ -112,13 +116,22 @@ export function AttendanceV2View({ clubId: propClubId, embedded = false }: { clu
   const params = useParams();
   const searchParams = useSearchParams();
   const clubId = propClubId ?? Number(params.id);
-  const { isSuperAdmin, isAdmin } = useAuth();
-  const canManage = isSuperAdmin || isAdmin;
+  const { isSuperAdmin, isAdmin, user } = useAuth();
 
   const [clubName, setClubName] = useState("");
   const [memberCount, setMemberCount] = useState(0);
   const [years, setYears] = useState<{ id: number; yearLabel: string; isCurrent: boolean }[]>([]);
   const [selectedYearId, setSelectedYearId] = useState<number | null>(null);
+
+  // An attendance record belongs to the Rotary year it was taken in, so editing
+  // or deleting it needs rights for THAT year. Viewing it never does.
+  const yearRights = useMemo(() => clubYearRights(user?.scopedRoles, clubId), [user?.scopedRoles, clubId]);
+  const isClubAdmin = isSuperAdmin || isAdmin;
+  const canManage = isClubAdmin && canEditYear(yearRights, selectedYearId, isSuperAdmin);
+  const canView = isClubAdmin;
+  const [viewTarget, setViewTarget] = useState<{ id: number; title: string } | null>(null);
+  const editableYears = heldYearLabels(yearRights, years.map((y) => ({ id: y.id, label: y.yearLabel })));
+  const viewingYearLabel = years.find((y) => y.id === selectedYearId)?.yearLabel;
   const [records, setRecords] = useState<AttendanceListItem[]>([]);
   const [totalCount, setTotalCount] = useState(0);
   const [page, setPage] = useState(1);
@@ -302,6 +315,10 @@ export function AttendanceV2View({ clubId: propClubId, embedded = false }: { clu
 
   const body = (
       <div className="space-y-5">
+        {!canManage && selectedYearId && (
+          <ViewOnlyBadge yearLabel={viewingYearLabel} editableYears={editableYears} />
+        )}
+
         {/* Header */}
         {!embedded && (
         <div className="flex items-start justify-between gap-3">
@@ -409,8 +426,7 @@ export function AttendanceV2View({ clubId: propClubId, embedded = false }: { clu
                     <th className="px-3 py-2.5 text-left">Type</th>
                     <th className="px-3 py-2.5 text-left">Attendance</th>
                     <th className="px-3 py-2.5 text-left">Att %</th>
-                    {canManage && <th className="px-3 py-2.5 text-right w-16">Edit</th>}
-                    {canManage && <th className="px-3 py-2.5 text-right w-16">Delete</th>}
+                    {canView && <th className="px-3 py-2.5 text-right w-24 whitespace-nowrap">Actions</th>}
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
@@ -443,27 +459,42 @@ export function AttendanceV2View({ clubId: propClubId, embedded = false }: { clu
                             {pct}%
                           </span>
                         </td>
-                        {canManage && (
-                          <td className="px-3 py-2 text-right">
-                            <Link
-                              href={`/clubs/${clubId}/attendance/v2/${r.id}/edit?returnTo=${childReturnTo}`}
-                              className="inline-flex items-center justify-center w-7 h-7 rounded text-slate-500 hover:text-blue-700 hover:bg-blue-50"
-                              aria-label="Edit attendance"
-                            >
-                              <Edit3 size={13} />
-                            </Link>
-                          </td>
-                        )}
-                        {canManage && (
-                          <td className="px-3 py-2 text-right">
-                            <button
-                              type="button"
-                              onClick={() => setDeleteTarget(r)}
-                              className="inline-flex items-center justify-center w-7 h-7 rounded text-slate-400 hover:text-rose-700 hover:bg-rose-50"
-                              aria-label="Delete attendance"
-                            >
-                              <Trash2 size={13} />
-                            </button>
+                        {canView && (
+                          <td className="px-3 py-2">
+                            <div className="flex items-center justify-end gap-0.5">
+                              {/* V2 has an /edit route but no detail page, so this
+                                  dialog is the ONLY way into a record once Edit is
+                                  hidden. Opens in place to keep the year + tab. */}
+                              <button
+                                type="button"
+                                onClick={() => setViewTarget({ id: r.id, title: r.eventName })}
+                                className="inline-flex items-center justify-center w-7 h-7 rounded text-slate-500 hover:text-teal-700 hover:bg-teal-50"
+                                title="View"
+                              >
+                                <Eye size={14} />
+                              </button>
+                              {canManage && (
+                                <Link
+                                  href={`/clubs/${clubId}/attendance/v2/${r.id}/edit?returnTo=${childReturnTo}`}
+                                  className="inline-flex items-center justify-center w-7 h-7 rounded text-slate-500 hover:text-blue-700 hover:bg-blue-50"
+                                  title="Edit"
+                                  aria-label="Edit attendance"
+                                >
+                                  <Edit3 size={14} />
+                                </Link>
+                              )}
+                              {canManage && (
+                                <button
+                                  type="button"
+                                  onClick={() => setDeleteTarget(r)}
+                                  className="inline-flex items-center justify-center w-7 h-7 rounded text-slate-400 hover:text-rose-700 hover:bg-rose-50"
+                                  title="Delete"
+                                  aria-label="Delete attendance"
+                                >
+                                  <Trash2 size={14} />
+                                </button>
+                              )}
+                            </div>
                           </td>
                         )}
                       </tr>
@@ -471,7 +502,7 @@ export function AttendanceV2View({ clubId: propClubId, embedded = false }: { clu
                   })}
                   {filtered.length === 0 && (
                     <tr>
-                      <td colSpan={canManage ? 8 : 6} className="px-4 py-10 text-center text-slate-400">
+                      <td colSpan={canView ? 7 : 6} className="px-4 py-10 text-center text-slate-400">
                         {search ? "No records match your search." : "No attendance records for this year."}
                       </td>
                     </tr>
@@ -512,6 +543,14 @@ export function AttendanceV2View({ clubId: propClubId, embedded = false }: { clu
 
         <SuccessAlert open={!!successMessage} title="Success" description={successMessage || ""} onOk={() => setSuccessMessage(null)} />
         <ErrorAlert open={!!errorMessage} title="Error" description={errorMessage || ""} onOk={() => setErrorMessage(null)} />
+
+        <AttendanceViewDialog
+          open={viewTarget !== null}
+          clubId={clubId}
+          attendanceId={viewTarget?.id ?? null}
+          fallbackTitle={viewTarget?.title}
+          onClose={() => setViewTarget(null)}
+        />
       </div>
   );
 

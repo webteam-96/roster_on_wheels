@@ -60,7 +60,7 @@ public class MobileClubDuesController : ControllerBase
         var memberId = GetMemberId();
         if (memberId <= 0) return Denied();
         await using var conn = new MySqlConnection(_connStr);
-        var rows = await conn.QueryAsync<dynamic>(@"
+        var rows = await conn.QueryAsync<dynamic>($@"
             SELECT DISTINCT cd.pk_club_dues_id AS DuesId, cd.Purpose, cd.RotaryYear,
                    c.pk_club_id AS ClubId, c.ClubName, d.DistrictNumber
             FROM board_of_directors bod
@@ -71,7 +71,8 @@ public class MobileClubDuesController : ControllerBase
             LEFT JOIN district_master d ON d.pk_district_id = c.fk_district_id
             WHERE bod.fk_member_master_profile_id = @MemberId
               AND COALESCE(bod.isdeleted,0) = 0 AND y.IsCurrent = 1
-              AND dm.designation_name IN ('Club President','Club Secretary','Club Treasurer')",
+              AND dm.designation_name IN ('Club President','Club Secretary','Club Treasurer')
+              AND {HierarchyScopeSql.ClubLive("c")}",
             new { MemberId = memberId });
         return Ok(rows);
     }

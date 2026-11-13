@@ -362,7 +362,7 @@ class _NewslettersScreenState extends State<NewslettersScreen> {
   bool get canManage =>
       !widget.viewOnly &&
       Provider.of<AuthProvider>(context, listen: false)
-          .isClubAdminOf(widget.clubId);
+          .canEditClub(widget.clubId);
 
   @override
   Widget build(BuildContext context) {
@@ -727,7 +727,7 @@ class _NewsletterDetailScreenState extends State<_NewsletterDetailScreen> {
 
   bool get _canManage =>
       Provider.of<AuthProvider>(context, listen: false)
-          .isClubAdminOf(widget.clubId);
+          .canEditClub(widget.clubId);
 
   Future<void> _edit() async {
     final n = _newsletter;

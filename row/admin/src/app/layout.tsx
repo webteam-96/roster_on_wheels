@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { getServerBrand } from "@/lib/brand";
 import { Bricolage_Grotesque, Figtree } from "next/font/google";
 import { Suspense } from "react";
+import "./layers.css"; // first: fixes the cascade-layer order
 import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
 import ClientProviders from "@/components/ClientProviders";

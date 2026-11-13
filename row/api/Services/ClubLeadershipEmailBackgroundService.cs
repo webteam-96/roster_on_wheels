@@ -64,7 +64,7 @@ public class ClubLeadershipEmailBackgroundService : BackgroundService
         var yearLabel = await conn.ExecuteScalarAsync<string>(
             "SELECT YearLabel FROM rotary_year_master WHERE pk_year_id = @Y", new { Y = yearId });
 
-        var recipients = (await conn.QueryAsync<dynamic>(@"
+        var recipients = (await conn.QueryAsync<dynamic>($@"
             SELECT b.fk_club_id AS clubId, c.ClubName AS clubName,
                    b.fk_member_master_profile_id AS memberId, m.MemberName AS memberName,
                    m.EmailId AS email, d.designation_name AS designation
@@ -73,6 +73,7 @@ public class ClubLeadershipEmailBackgroundService : BackgroundService
             JOIN designation_master d ON d.pk_designation_id = b.fk_designation_id
             JOIN member_master_profile m ON m.pk_member_master_profile_id = b.fk_member_master_profile_id
             WHERE c.fk_district_id = @D AND b.fk_year_id = @Y AND b.isdeleted = 0
+              AND {HierarchyScopeSql.ClubLive("c")}
               AND d.designation_name IN ('Club President', 'Club Secretary')
               AND m.EmailId IS NOT NULL AND m.EmailId <> ''",
             new { D = districtId, Y = yearId })).ToList();

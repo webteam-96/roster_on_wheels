@@ -1,4 +1,5 @@
 ﻿using Dapper;
+using RotaryApi.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MySqlConnector;
@@ -56,18 +57,19 @@ public class GlobalSearchController : ControllerBase
         var zones = (await conn.QueryAsync<dynamic>(@"
             SELECT z.pk_zone_id AS id,
                    z.ZoneName  AS label,
+                   CASE WHEN " + HierarchyScopeSql.ZoneLive("z") + @" THEN 0 ELSE 1 END AS isInactive,
                    CAST(NULL AS CHAR) AS subLabel,
                    CAST(NULL AS UNSIGNED) AS districtId,
                    (SELECT COUNT(*) FROM district_master d
-                     WHERE d.fk_zone_id = z.pk_zone_id AND d.IsActive = 1 AND d.isdeleted = 0) AS districtCount,
+                     WHERE d.fk_zone_id = z.pk_zone_id AND d.IsActive = 1 AND d.isdeleted = 0 AND " + HierarchyScopeSql.DistrictLive("d") + @") AS districtCount,
                    (SELECT COUNT(*) FROM club_master c
                      JOIN district_master d2 ON d2.pk_district_id = c.fk_district_id
                      WHERE d2.fk_zone_id = z.pk_zone_id AND d2.isdeleted = 0
-                       AND c.IsActive = 1 AND c.isdeleted = 0) AS clubCount,
+                       AND c.IsActive = 1 AND c.isdeleted = 0 AND " + HierarchyScopeSql.ClubLive("c") + @") AS clubCount,
                    (SELECT COUNT(DISTINCT cm.fk_member_master_profile_id) FROM club_members cm
                      JOIN club_master c2 ON c2.pk_club_id = cm.fk_club_id AND c2.isdeleted = 0
                      JOIN district_master d3 ON d3.pk_district_id = c2.fk_district_id AND d3.isdeleted = 0
-                     WHERE d3.fk_zone_id = z.pk_zone_id AND cm.IsActive = 1 AND cm.isdeleted = 0) AS memberCount
+                     WHERE d3.fk_zone_id = z.pk_zone_id AND cm.IsActive = 1 AND cm.isdeleted = 0 AND " + HierarchyScopeSql.ClubLive("c2") + @") AS memberCount
             FROM zone_master z
             WHERE z.ZoneName LIKE @Like
               AND z.IsActive = 1
@@ -83,21 +85,22 @@ public class GlobalSearchController : ControllerBase
         var districts = (await conn.QueryAsync<dynamic>(@"
             SELECT d.pk_district_id AS id,
                    d.DistrictNumber AS label,
+                   CASE WHEN " + HierarchyScopeSql.DistrictLive("d") + @" THEN 0 ELSE 1 END AS isInactive,
                    COALESCE(z.ZoneName, 'N/A') AS subLabel,
                    CAST(NULL AS UNSIGNED) AS districtId,
                    (SELECT COUNT(*) FROM club_master c
-                     WHERE c.fk_district_id = d.pk_district_id AND c.IsActive = 1 AND c.isdeleted = 0) AS clubCount,
+                     WHERE c.fk_district_id = d.pk_district_id AND c.IsActive = 1 AND c.isdeleted = 0 AND " + HierarchyScopeSql.ClubLive("c") + @") AS clubCount,
                    (SELECT COUNT(*) FROM club_master c
-                     WHERE c.fk_district_id = d.pk_district_id AND c.IsActive = 1 AND c.isdeleted = 0
+                     WHERE c.fk_district_id = d.pk_district_id AND c.IsActive = 1 AND c.isdeleted = 0 AND " + HierarchyScopeSql.ClubLive("c") + @"
                        AND COALESCE(c.IsSyncedFromRotaryOrg, 0) = 1) AS syncedClubCount,
                    (SELECT COUNT(*) FROM club_master c
-                     WHERE c.fk_district_id = d.pk_district_id AND c.IsActive = 1 AND c.isdeleted = 0
+                     WHERE c.fk_district_id = d.pk_district_id AND c.IsActive = 1 AND c.isdeleted = 0 AND " + HierarchyScopeSql.ClubLive("c") + @"
                        AND COALESCE(c.IsSyncedFromRotaryOrg, 0) = 0) AS nonSyncedClubCount,
                    (SELECT COUNT(*) FROM club_members cm
                      JOIN club_master c2 ON c2.pk_club_id = cm.fk_club_id AND c2.isdeleted = 0 AND c2.IsActive = 1
                      JOIN member_master_profile m ON m.pk_member_master_profile_id = cm.fk_member_master_profile_id AND m.isdeleted = 0
                      WHERE c2.fk_district_id = d.pk_district_id AND cm.IsActive = 1 AND cm.isdeleted = 0
-                       AND COALESCE(cm.IsHonoraryMember, 0) = 0) AS memberCount,
+                       AND COALESCE(cm.IsHonoraryMember, 0) = 0 AND " + HierarchyScopeSql.ClubLive("c2") + @") AS memberCount,
                    -- The district's own website, same shape as the club rows: the subdomain plus
                    -- 'active' / 'expired' / 'none' for the pill. district_websites carries no end
                    -- date, so Status alone decides (user 2026-10-01).
@@ -131,6 +134,7 @@ public class GlobalSearchController : ControllerBase
         var clubs = (await conn.QueryAsync<dynamic>(@"
             SELECT c.pk_club_id   AS id,
                    c.ClubName     AS label,
+                   CASE WHEN " + HierarchyScopeSql.ClubLive("c") + @" THEN 0 ELSE 1 END AS isInactive,
                    d.DistrictNumber AS subLabel,
                    c.fk_district_id AS districtId,
                    c.ClubRotaryId AS clubRotaryId,

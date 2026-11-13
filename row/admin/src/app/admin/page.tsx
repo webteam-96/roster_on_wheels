@@ -41,7 +41,7 @@ export default function Home() {
     setError(null);
     try {
       const isActive = status ? parseInt(status) : undefined;
-      const result = await getZones(pageNum || page, 20, search || undefined, isActive);
+      const result = await getZones(pageNum || page, 20, search || undefined, isActive, true);
       setData(result);
     } catch (err) {
       const message = err instanceof Error ? err.message : "Failed to fetch zones";
@@ -104,7 +104,7 @@ export default function Home() {
     setLoading(true);
     setError(null);
     const isActive = status ? parseInt(status) : undefined;
-    getZones(newPage, 20, search || undefined, isActive)
+    getZones(newPage, 20, search || undefined, isActive, true)
       .then(result => setData(result))
       .catch(err => setError(err instanceof Error ? err.message : "Failed to fetch zones"))
       .finally(() => setLoading(false));

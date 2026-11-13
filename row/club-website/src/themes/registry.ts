@@ -39,8 +39,8 @@ export function resolveThemeKey(raw: string | undefined | null): ThemeKey {
 }
 
 /** The theme for this request: a valid ?preview-theme (see middleware) wins over the club's own setting. */
-export function activeThemeKey(clubTheme: string | undefined | null): ThemeKey {
-  const preview = headers().get("x-preview-theme");
+export async function activeThemeKey(clubTheme: string | undefined | null): Promise<ThemeKey> {
+  const preview = (await headers()).get("x-preview-theme");
   const built = (k: string) => (THEME_KEYS as readonly string[]).includes(k);
   return preview && built(preview) ? (preview as ThemeKey) : resolveThemeKey(clubTheme);
 }

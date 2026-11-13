@@ -191,11 +191,11 @@ public class DistrictPerformanceReportService : IDistrictPerformanceReportServic
     }
 
     private static async Task<List<PerformanceReportDistrictOption>> LoadReportDistrictsAsync(MySqlConnection conn)
-        => (await conn.QueryAsync<PerformanceReportDistrictOption>(@"
+        => (await conn.QueryAsync<PerformanceReportDistrictOption>($@"
             SELECT d.pk_district_id AS DistrictId, d.DistrictNumber AS DistrictNumber, z.ZoneName AS ZoneName
             FROM district_master d
             LEFT JOIN zone_master z ON z.pk_zone_id = d.fk_zone_id
-            WHERE d.isdeleted = 0 AND d.IsActive = 1
+            WHERE d.isdeleted = 0 AND d.IsActive = 1 AND {HierarchyScopeSql.DistrictLive("d")}
               AND d.DistrictNumber NOT IN @Exempt
               AND d.DistrictNumber NOT LIKE 'TEST%'
               AND (@AllZones = 1 OR z.ZoneName IN @Zones)
@@ -292,18 +292,6 @@ public class DistrictPerformanceReportService : IDistrictPerformanceReportServic
         public DateTime? PaymentDate { get; set; }
         public string? PaidBy { get; set; }
     }
-    private sealed class DuesSheetRow
-    {
-        public ClubRow Club = null!;
-        public string Purpose = "";
-        public string Status = "";        // Paid | Pending approval | Not paid
-        public decimal Amount;
-        public long MembersCovered;
-        public string Mode = "";
-        public string TransactionIds = "";
-        public DateTime? LastPaymentDate;
-        public string PaidBy = "";
-    }
     private sealed class MemberListRow
     {
         public string? MemberName { get; set; }
@@ -398,11 +386,11 @@ public class DistrictPerformanceReportService : IDistrictPerformanceReportServic
         await using var conn = new MySqlConnection(_conn);
         await conn.OpenAsync(ct);
 
-        var district = await conn.QueryFirstOrDefaultAsync<DistrictRow>(@"
+        var district = await conn.QueryFirstOrDefaultAsync<DistrictRow>($@"
             SELECT d.pk_district_id AS Id, d.DistrictNumber AS DistrictNumber, z.ZoneName AS ZoneName, d.DefaultCurrency AS DefaultCurrency,
                    d.Timezone AS Timezone
             FROM district_master d LEFT JOIN zone_master z ON z.pk_zone_id = d.fk_zone_id
-            WHERE d.pk_district_id = @D AND d.isdeleted = 0", new { D = districtId })
+            WHERE d.pk_district_id = @D AND d.isdeleted = 0 AND {HierarchyScopeSql.DistrictLive("d")}", new { D = districtId })
             ?? throw new KeyNotFoundException("District not found.");
 
         var year = await conn.QueryFirstOrDefaultAsync<(int Id, string Label, DateTime StartDate, DateTime EndDate)>(
@@ -420,9 +408,10 @@ public class DistrictPerformanceReportService : IDistrictPerformanceReportServic
         // is not active, user 2026-09-18: it drops out of every count and is listed only in the "Non-Synced
         // Clubs" sheet) — EXCLUDING the COG roster club and IFRM clubs wherever they sit (user 2026-09-17 —
         // e.g. "IFRM 2982 RAAGAM" lives inside real district 2982).
-        string activeClub = $"c.fk_district_id = @D AND c.isdeleted = 0 AND c.IsActive = 1 AND c.IsSyncedFromRotaryOrg = 1 AND {ExcludedClubsSql}";
+        // Hidden clubs (inactive club / district / zone, user 2026-10-21) drop out of every figure.
+        string activeClub = $"c.fk_district_id = @D AND c.isdeleted = 0 AND c.IsActive = 1 AND c.IsSyncedFromRotaryOrg = 1 AND {ExcludedClubsSql} AND {HierarchyScopeSql.ClubLive("c")}";
         // Synced AND non-synced — used only where a figure must cover every club (Club Monthly Report, user 2026-09-28).
-        string anyActiveClub = $"c.fk_district_id = @D AND c.isdeleted = 0 AND c.IsActive = 1 AND {ExcludedClubsSql}";
+        string anyActiveClub = $"c.fk_district_id = @D AND c.isdeleted = 0 AND c.IsActive = 1 AND {ExcludedClubsSql} AND {HierarchyScopeSql.ClubLive("c")}";
 
         // ── District Governor (current year) ──────────────────────────────────────────────────────
         // LEFT JOIN: a DG who is not a member of any club has no profile, and an INNER JOIN would
@@ -453,7 +442,7 @@ public class DistrictPerformanceReportService : IDistrictPerformanceReportServic
                        AND cm.IsHonoraryMember = 0 AND m.isdeleted = 0) AS MemberCount
             FROM club_master c
             WHERE c.fk_district_id = @D AND c.isdeleted = 0 AND c.IsActive = 1 AND COALESCE(c.IsSyncedFromRotaryOrg, 0) = 0
-              AND {ExcludedClubsSql}
+              AND {ExcludedClubsSql} AND {HierarchyScopeSql.ClubLive("c")}
             ORDER BY c.ClubName", p)).ToList();
         long clubsToday = clubs.Count + nonSynced.Count;
 

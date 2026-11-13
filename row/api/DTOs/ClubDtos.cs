@@ -66,6 +66,8 @@ public class ClubDetailDto
     public bool IsAutomaticMeetingReminder { get; set; }
     public bool IsFamilyLogin { get; set; }
     public bool IsActive { get; set; }
+    // upstream 2026-10-21: false when the club, its district or its zone is inactive (SuperAdmin sees it marked).
+    public bool IsChainActive { get; set; } = true;
     public int? CreatedBy { get; set; }
     public DateTime? CreatedDate { get; set; }
     public int? ModifiedBy { get; set; }

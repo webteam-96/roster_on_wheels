@@ -18,7 +18,7 @@
  *   - Palette: navy #17458f / gold #F7A81B / slate tokens; rounded-2xl cards.
  */
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Weblink, WeblinkTree } from "@/types/weblink";
 import {
@@ -28,6 +28,9 @@ import {
   toggleDistrictWeblinkActive,
 } from "@/services/api";
 import { useAuth } from "@/contexts/AuthContext";
+import { districtYearRights, canEditYearless, isCurrentYearSelected, heldYearLabels } from "@/lib/adminYears";
+import { useRotaryYears } from "@/hooks/useRotaryYears";
+import ViewOnlyBadge from "@/components/ViewOnlyBadge";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import {
@@ -94,7 +97,7 @@ function targetText(w: Weblink): string {
 }
 
 export default function DistrictAdminWebLinksPage() {
-  const { selectedDistrictId, isSuperAdmin, isAdmin } = useAuth();
+  const { selectedDistrictId, isSuperAdmin, isAdmin, user } = useAuth();
   const districtId = selectedDistrictId ?? 0;
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -104,7 +107,23 @@ export default function DistrictAdminWebLinksPage() {
   const parentIdParam = searchParams.get("parentId");
   const parentId = parentIdParam ? Number(parentIdParam) : null;
 
-  const canManage = isSuperAdmin || isAdmin;
+  // Web links carry NO Rotary year — one live set — so changing them needs
+  // CURRENT-year rights.
+  const { years: rotaryYears, currentYearId: dCurrentYearId } = useRotaryYears();
+  const rights = useMemo(() => districtYearRights(user?.scopedRoles, districtId), [user?.scopedRoles, districtId]);
+  // ⚠️ AND the picker: this data has no Rotary year, so the year-less rule
+  // alone kept Add and Edit on screen while a past year was selected, which
+  // reads as the year rule having failed. The list is not year-filtered —
+  // nothing else on the screen changes, only the buttons.
+  // `yearId` above is the picker, already read from the URL on this page.
+  // The badge on these screens names the CURRENT year, not the member's own
+  // years — those do not help here, because only a current-year admin can
+  // ever change this data.
+  const currentYearLabel = rotaryYears.find((y) => y.isCurrent)?.yearLabel ?? "";
+  const canManage = (isSuperAdmin || isAdmin)
+    && canEditYearless(rights, dCurrentYearId, isSuperAdmin)
+    && isCurrentYearSelected(Number(yearId ?? "") || 0, dCurrentYearId, rights);
+  const editableYears = heldYearLabels(rights, rotaryYears.map((y) => ({ id: y.id, label: y.yearLabel })));
 
   const [weblinks, setWeblinks] = useState<Weblink[]>([]);
   const [tree, setTree] = useState<WeblinkTree[]>([]);
@@ -212,6 +231,10 @@ export default function DistrictAdminWebLinksPage() {
 
   return (
     <ProtectedRoute>
+      {!canManage && (
+        <ViewOnlyBadge currentYearOnly={currentYearLabel} className="mb-4" />
+      )}
+
       <div className="space-y-6">
         {/* ── Header ────────────────────────────────────────────────── */}
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">

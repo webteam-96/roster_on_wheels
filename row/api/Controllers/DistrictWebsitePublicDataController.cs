@@ -1,3 +1,4 @@
+using RotaryApi.Services;
 using Dapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -161,7 +162,7 @@ public class DistrictWebsitePublicDataController : ControllerBase
 
         var clubs = (await conn.QueryAsync<dynamic>(@"
             SELECT pk_club_id AS clubId, ClubName AS clubName, ClubRotaryId AS clubRotaryId
-            FROM club_master WHERE fk_district_id=@D AND isdeleted=0", new { D = districtId }))
+            FROM club_master WHERE fk_district_id=@D AND isdeleted=0 AND " + HierarchyScopeSql.ClubLive("club_master"), new { D = districtId }))
             .ToDictionary(c => (int)c.clubId, c => c);
 
         // Per-club, per-category points — auto + manual, keyed to the category via the question link.

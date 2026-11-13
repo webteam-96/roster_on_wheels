@@ -22,16 +22,22 @@ interface ClubCardProps {
   isSuperAdmin?: boolean;
   districtId?: number;
   viewOnly?: boolean;
+  // upstream 2026-10-21: parent zone / district inactive, so this row is hidden too (SuperAdmin sees it marked).
+  parentInactive?: boolean;
 }
 
-export default function ClubCard({ club, onDelete, isSuperAdmin, districtId, viewOnly }: ClubCardProps) {
+export default function ClubCard({ club, onDelete, isSuperAdmin, districtId, viewOnly, parentInactive }: ClubCardProps) {
   const logoUrl = getPhotoUrl(club.clubLogoPath);
   const router = useRouter();
   const [navigating, setNavigating] = useState(false);
 
   const handleCardClick = () => {
     if (navigating) return;
-    if (!club.isActive) return; // Inactive clubs can't be drilled into.
+    if (!club.isActive || parentInactive) {
+      // upstream 2026-10-21: inactive = hidden everywhere; SuperAdmin may still look inside (read-only).
+      if (isSuperAdmin) router.push(`/clubs/${club.id}/members`);
+      return;
+    }
     setNavigating(true);
     if (viewOnly && districtId) {
       router.push(`/districts/${districtId}/clubs/${club.id}`);
@@ -43,12 +49,12 @@ export default function ClubCard({ club, onDelete, isSuperAdmin, districtId, vie
   return (
     <Card
       className={`overflow-hidden border-primary/20 group relative transition-all duration-200 ${
-        club.isActive
+        club.isActive && !parentInactive
           ? "cursor-pointer hover:shadow-xl hover:-translate-y-1"
-          : "opacity-70 cursor-not-allowed"
+          : isSuperAdmin ? "opacity-70 cursor-pointer" : "opacity-70 cursor-not-allowed"
       } ${navigating ? "opacity-60 pointer-events-none" : ""}`}
       onClick={handleCardClick}
-      title={!club.isActive ? "Club is inactive. Click Edit (⋮) to activate." : undefined}
+      title={parentInactive && club.isActive ? "Its parent is inactive, so it is hidden everywhere. SuperAdmin view only." : !club.isActive ? "Club is inactive. Click Edit (⋮) to activate." : undefined}
     >
       {navigating && (
         <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/50 rounded-lg">
@@ -117,8 +123,8 @@ export default function ClubCard({ club, onDelete, isSuperAdmin, districtId, vie
             <Users className="h-3.5 w-3.5 flex-shrink-0" />
             <span>{club.totalMembers} Member{club.totalMembers !== 1 ? "s" : ""}</span>
           </div>
-          <Badge variant={club.isActive ? "default" : "destructive"} className="text-xs">
-            {club.isActive ? "Active" : "Inactive"}
+          <Badge variant={club.isActive && !parentInactive ? "default" : "destructive"} className="text-xs">
+            {club.isActive && !parentInactive ? "Active" : "Inactive"}
           </Badge>
         </div>
       </CardContent>

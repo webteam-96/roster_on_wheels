@@ -3,6 +3,8 @@
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
+    <!-- A readonly field that is never assigned (CS0649) is a null crash at runtime: a constructor forgot "_x = x;". -->
+    <WarningsAsErrors>CS0649</WarningsAsErrors>
     <ImplicitUsings>enable</ImplicitUsings>
     <UserSecretsId>15a6eeda-1899-4604-9910-98a757f176f1</UserSecretsId>
   </PropertyGroup>
@@ -36,6 +38,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Anthropic" Version="13.5.0" />
     <PackageReference Include="BCrypt.Net-Next" Version="4.0.3" />
     <PackageReference Include="ClosedXML" Version="0.104.2" />
     <PackageReference Include="Dapper" Version="2.1.66" />
@@ -44,11 +47,13 @@
     <PackageReference Include="DnsClient" Version="1.8.0" />
     <PackageReference Include="Google.Apis.Drive.v3" Version="1.73.0.4081" />
     <PackageReference Include="Google.Apis.Sheets.v4" Version="1.73.0.4061" />
+    <PackageReference Include="Google.GenAI" Version="1.28.0" />
     <PackageReference Include="HtmlSanitizer" Version="9.2.1039" />
     <PackageReference Include="MailKit" Version="4.18.1" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.0" />
     <PackageReference Include="MimeKit" Version="4.18.1" />
     <PackageReference Include="MySqlConnector" Version="2.6.2" />
+    <PackageReference Include="Qdrant.Client" Version="1.20.0" />
     <!-- MailKit pulls in 10.0.0, which has known advisories. -->
     <PackageReference Include="System.Security.Cryptography.Pkcs" Version="10.0.14" />
     <PackageReference Include="QuestPDF" Version="2026.6.1" />

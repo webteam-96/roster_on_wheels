@@ -37,6 +37,10 @@ import RotaryLoader from "@/components/RotaryLoader";
 import ErrorAlert from "@/components/ErrorAlert";
 import LoadingLink from "@/components/v2/LoadingLink";
 import { useSyncClubIdFromUrl } from "@/hooks/useSyncClubIdFromUrl";
+import { useAuth } from "@/contexts/AuthContext";
+import { clubYearRights, canEditYear, heldYearLabels } from "@/lib/adminYears";
+import ViewOnlyBadge from "@/components/ViewOnlyBadge";
+import { Eye } from "@/components/icons";
 
 type RowStatus = "Submitted" | "In Progress" | "Not Started";
 
@@ -177,12 +181,24 @@ export function ClubMonthlyReportV2View({ clubId: propClubId, embedded = false, 
     }
   };
 
+  // Admin rights are per Rotary year: creating or editing a month's report needs
+  // rights for the year the report belongs to. Reading it never does.
+  const { user, isSuperAdmin } = useAuth();
+  const yearRights = useMemo(() => clubYearRights(user?.scopedRoles, clubId), [user?.scopedRoles, clubId]);
+  const canManage = canEditYear(yearRights, selectedYearId, isSuperAdmin);
+  const editableYears = heldYearLabels(yearRights, years.map((y) => ({ id: y.id, label: y.yearLabel })));
+  const viewingYearLabel = years.find((y) => y.id === selectedYearId)?.yearLabel;
+
   const isLoading = loadingYears || loadingMonths;
   const monthBase = (m: number) =>
     `/clubs/${clubId}/club-monthly-report/v2/${selectedYearId}/${m}${returnToQuery}`;
 
   return (
     <div className="space-y-5">
+      {!canManage && selectedYearId && (
+        <ViewOnlyBadge yearLabel={viewingYearLabel} editableYears={editableYears} />
+      )}
+
       {/* Header */}
       <div className={`flex items-start gap-3 flex-wrap ${embedded ? "justify-end" : "justify-between"}`}>
         {!embedded && (
@@ -292,7 +308,11 @@ export function ClubMonthlyReportV2View({ clubId: propClubId, embedded = false, 
           </div>
           <div className="flex items-center gap-1.5 text-xs text-slate-500">
             <BarChart3 size={13} className="text-slate-400" />
-            <span>Tap a month to create or edit its report</span>
+            <span>
+              {canManage
+                ? "Tap a month to create or edit its report"
+                : "Tap a month to read its report"}
+            </span>
           </div>
         </div>
 
@@ -355,11 +375,16 @@ export function ClubMonthlyReportV2View({ clubId: propClubId, embedded = false, 
                         <div className="flex flex-wrap items-center justify-end gap-2 flex-wrap">
                           {item.isCreated ? (
                             <>
+                              {/* Same route either way — the month page IS the report.
+                                  Only the promise changes, so a year you cannot edit
+                                  still opens, it just says View. */}
                               <LoadingLink
                                 href={detailHref}
                                 className="inline-flex items-center gap-1 text-xs font-medium px-2.5 py-1 rounded-full border border-slate-200 text-slate-700 hover:bg-blue-50 hover:text-blue-700"
                               >
-                                <Pencil size={12} /> Edit
+                                {canManage
+                                  ? <><Pencil size={12} /> Edit</>
+                                  : <><Eye size={12} /> View</>}
                               </LoadingLink>
                               {/* PDF / Word download only after the report is uploaded to district.
                                   While "In Progress" the data is still live/unfrozen, so we hide the
@@ -395,13 +420,17 @@ export function ClubMonthlyReportV2View({ clubId: propClubId, embedded = false, 
                                 </>
                               )}
                             </>
-                          ) : (
+                          ) : canManage ? (
                             <LoadingLink
                               href={detailHref}
                               className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full bg-[#17458F] text-white hover:bg-[#17458F]"
                             >
                               <Plus size={12} /> Create
                             </LoadingLink>
+                          ) : (
+                            // Nothing was ever filled in for this month, and this is
+                            // not your year to fill it — say so instead of an empty cell.
+                            <span className="text-xs text-slate-400">Not created</span>
                           )}
                         </div>
                       </td>

@@ -16,8 +16,11 @@ public class ClubsController : ControllerBase
     private readonly IAuditLogService _auditLog;
     private readonly string _connectionString;
 
-    public ClubsController(IClubService clubService, IAuditLogService auditLog, IConfiguration configuration)
+    private readonly AdminYearGuard _guard;
+
+    public ClubsController(AdminYearGuard guard, IClubService clubService, IAuditLogService auditLog, IConfiguration configuration)
     {
+        _guard = guard;
         _clubService = clubService;
         _auditLog = auditLog;
         _connectionString = configuration.GetConnectionString("DefaultConnection")!;
@@ -51,11 +54,14 @@ public class ClubsController : ControllerBase
         [FromQuery] string? city = null,
         [FromQuery] string? meetingDay = null,
         [FromQuery] int? isActive = null,
-        [FromQuery] int? zoneId = null)
+        [FromQuery] int? zoneId = null,
+        [FromQuery] bool includeInactive = false)
     {
         // user 2026-10-08: Rotaract clubs only for SuperAdmin (District / Club Admin screens hide them).
         var result = await _clubService.GetAllAsync(page, pageSize, search, districtId, city, meetingDay, isActive, zoneId,
-            excludeRotaract: ClubScopeSql.HideRotaract(UserPermissionHelper.IsSuperAdmin(User)));
+            excludeRotaract: ClubScopeSql.HideRotaract(UserPermissionHelper.IsSuperAdmin(User)),
+            // includeInactive = Club master listing only (SuperAdmin); everyone else sees live clubs.
+            includeInactive: includeInactive && IsSuperAdmin());
         return Ok(result);
     }
 
@@ -87,7 +93,9 @@ public class ClubsController : ControllerBase
             return NotFound(new { message = "Club not found" });
 
         // Phase 4 kill-switch: block drill-down if club/district/zone chain has any inactive link.
-        if (!await IsClubDrillReachableAsync(id))
+        // upstream 2026-10-21: SuperAdmin may still SEE the members of an inactive club / district / zone
+        // (read-only); everyone else stays blocked.
+        if (!IsSuperAdmin() && !await IsClubDrillReachableAsync(id))
             return StatusCode(403, new { message = "This club, its district, or its zone is inactive. Reactivate it first to access members." });
 
         var result = await _clubService.GetMembersAsync(id, page, pageSize, search, year,
@@ -103,7 +111,9 @@ public class ClubsController : ControllerBase
         var club = await _clubService.GetByIdAsync(id);
         if (club == null)
             return NotFound(new { message = "Club not found" });
-        if (!await IsClubDrillReachableAsync(id))
+        // upstream 2026-10-21: SuperAdmin may still SEE the members of an inactive club / district / zone
+        // (read-only); everyone else stays blocked.
+        if (!IsSuperAdmin() && !await IsClubDrillReachableAsync(id))
             return StatusCode(403, new { message = "This club, its district, or its zone is inactive. Reactivate it first to access members." });
 
         var years = await _clubService.GetMemberDesignationYearsAsync(id);
@@ -136,6 +146,9 @@ public class ClubsController : ControllerBase
     [HttpPut("{id}/members/{memberId}/cog-designation")]
     public async Task<ActionResult> UpdateCogDesignation(int id, int memberId, [FromBody] UpdateCogDesignationDto dto)
     {
+        var denied = await _guard.ClubYearlessAsync(User, id);
+        if (denied != null) return denied;
+
         if (!IsSuperAdmin())
             return StatusCode(403, new { message = "Only SuperAdmin can change the COG district and year." });
 
@@ -250,6 +263,9 @@ public class ClubsController : ControllerBase
     [HttpDelete("{id}/members/{memberId}")]
     public async Task<ActionResult> RemoveMember(int id, int memberId, [FromQuery] string? reason = null, [FromQuery] string? reasonCode = null)
     {
+        var denied = await _guard.ClubYearlessAsync(User, id);
+        if (denied != null) return denied;
+
         if (!IsSuperAdminOrAdmin())
             return StatusCode(403, new { message = "Only SuperAdmin or Club Admin can remove members from clubs." });
 

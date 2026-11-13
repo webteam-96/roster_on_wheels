@@ -1,0 +1,31 @@
+# Qdrant v1.20.0 — ROW AI assistant vector store (Windows service, localhost only).
+# Start with:  qdrant.exe --config-path D:\Qdrant\config\config.yaml   (see qdrant-service.xml)
+#
+# The API key is NOT in this file. Qdrant reads it from the machine-level environment variable
+#   QDRANT__SERVICE__API_KEY
+# (env vars override any value here). The worker and the API send the same key as
+# Assistant__Qdrant__ApiKey.
+
+log_level: INFO
+
+storage:
+  # Change if the server has no D: drive. Single quotes keep the backslashes literal.
+  storage_path: 'D:\Qdrant\storage'
+  snapshots_path: 'D:\Qdrant\snapshots'
+  # Keep payloads on disk; the vectors stay in RAM (two small collections).
+  on_disk_payload: true
+
+service:
+  # Loopback only — the API and the worker run on the same machine. Never bind 0.0.0.0.
+  host: 127.0.0.1
+  http_port: 6333
+  grpc_port: 6334
+  enable_cors: false
+  enable_tls: false
+  # api_key: comes from QDRANT__SERVICE__API_KEY
+
+cluster:
+  enabled: false
+
+# No usage telemetry to qdrant.tech from a server holding member data.
+telemetry_disabled: true

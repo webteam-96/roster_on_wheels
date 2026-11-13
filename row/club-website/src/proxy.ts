@@ -18,7 +18,7 @@ const PREVIEW = "preview-theme";
 // internal link with the language if pages ever get cached.
 const LANG = "site-lang";
 
-export function middleware(req: NextRequest) {
+export function proxy(req: NextRequest) {
   const host = req.headers.get("host") || "";
   const requestHeaders = new Headers(req.headers);
   requestHeaders.set("x-tenant-host", host);

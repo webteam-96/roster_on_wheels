@@ -589,7 +589,7 @@ export function ClubReportV2PageImpl({ clubId: propClubId, embedded = false, yea
                       { key: "youthFlag",       label: "Youth Flag",        width: 10 },
                       { key: "dob",             label: "DOB",               width: 14 },
                       { key: "doa",             label: "DOA",               width: 14 },
-                      ...(showBloodGroup ? [{ key: "bloodGroup",      label: "Blood Group",       width: 12 }] : []),
+                      ...(showBloodGroup ? [{ key: "bloodGroup",      label: "Blood Group",       width: 12 }] : []), { key: "tshirtSize", label: "T-Shirt Size", width: 12 },
                       { key: "deviceName",      label: "Device Name",       width: 14 },
                       { key: "downloaded",      label: "Downloaded",        width: 12 },
                       { key: "rotaryId",        label: "Rotary Id",         width: 14 },
@@ -679,7 +679,7 @@ export function ClubReportV2PageImpl({ clubId: propClubId, embedded = false, yea
                       { key: "relation",   label: "Relation",      width: 16 },
                       { key: "mobile",     label: "Mobile Number", width: 18 },
                       { key: "email",      label: "Email Id",      width: 30 },
-                      { key: "bloodGroup", label: "Blood Group",   width: 14 },
+                      { key: "bloodGroup", label: "Blood Group",   width: 14 }, { key: "tshirtSize", label: "T-Shirt Size", width: 12 },
                     ])
                   }
                 />

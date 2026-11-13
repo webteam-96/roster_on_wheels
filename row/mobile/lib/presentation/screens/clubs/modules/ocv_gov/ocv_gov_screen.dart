@@ -335,7 +335,7 @@ class _OcvGovScreenState extends State<OcvGovScreen> {
 
   void _openCategory(_Category cat) {
     final canManage =
-        !widget.viewOnly && context.read<AuthProvider>().isClubAdminOf(widget.clubId);
+        !widget.viewOnly && context.read<AuthProvider>().canEditClub(widget.clubId);
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) => _OcvGovCategoryScreen(

@@ -1,11 +1,14 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, useMemo } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Building2, MessagesSquare } from "@/components/icons";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useAuth } from "@/contexts/AuthContext";
+import { districtYearRights, canEditYear, heldYearLabels } from "@/lib/adminYears";
+import { useRotaryYears } from "@/hooks/useRotaryYears";
+import ViewOnlyBadge from "@/components/ViewOnlyBadge";
 import GoalSettingPanel from "@/components/dashboard/GoalSettingPanel";
 import GoalTargetSplitPanel from "@/components/dashboard/GoalTargetSplitPanel";
 import DistrictGoalMessages from "@/components/goal-messages/DistrictGoalMessages";
@@ -15,13 +18,27 @@ import type { GoalMonthlyForm, SaveGoalTargetSplitRequest } from "@/services/api
 import type { GoalCategoryFormDto, SaveGoalEntriesRequest } from "@/types/goalSetting";
 
 export default function DistrictAdminGoalSettingPage() {
-  const { selectedDistrictId } = useAuth();
+  const { selectedDistrictId, user, isSuperAdmin } = useAuth();
   const [threadKey, setThreadKey] = useState<{ categoryId: number; districtId: number; yearId: number } | null>(null);
   // Follow the dashboard's global rotary-year picker (?yearId=). Past years load
   // read-only; the current/future year is editable (enforced server-side).
   const searchParams = useSearchParams();
   const yearId = searchParams.get("yearId") ? Number(searchParams.get("yearId")) : null;
   const clubGoalsHref = `/district-admin-dashboard/goal-setting/clubs${yearId ? `?yearId=${yearId}` : ""}`;
+
+  // District goals belong to a Rotary year. ⚠️ A Zonal Coordinator reaches this
+  // screen too and holds NO district admin row — rights.any is false for them,
+  // and the server deliberately lets that through (their authority is the zone
+  // role). So only narrow the UI when the member actually has district rights.
+  const { years, currentYearId } = useRotaryYears();
+  const yearRights = useMemo(
+    () => districtYearRights(user?.scopedRoles, selectedDistrictId ?? 0),
+    [user?.scopedRoles, selectedDistrictId]);
+  const viewingYearId = yearId ?? currentYearId;
+  const isYearLimited = !yearRights.allYears && !yearRights.unknown && yearRights.yearIds.length > 0;
+  const canEditThisYear = !isYearLimited || canEditYear(yearRights, viewingYearId, isSuperAdmin);
+  const editableYears = heldYearLabels(yearRights, years.map((y) => ({ id: y.id, label: y.yearLabel })));
+  const viewingYearLabel = years.find((y) => y.id === viewingYearId)?.yearLabel;
 
   const fetchForm = useCallback((categoryId: number): Promise<GoalCategoryFormDto> => {
     return getDistrictGoalForm(categoryId, yearId, selectedDistrictId);
@@ -68,6 +85,9 @@ export default function DistrictAdminGoalSettingPage() {
         </Link>
       </div>
 
+      {!canEditThisYear && (
+        <ViewOnlyBadge yearLabel={viewingYearLabel} editableYears={editableYears} />
+      )}
       <GoalSettingPanel
         title="District Goals"
         subtitle="District-level targets for the year, by category"
@@ -91,6 +111,7 @@ export default function DistrictAdminGoalSettingPage() {
           </div>
         }
         reloadKey={yearId ?? "current"}
+        readOnly={!canEditThisYear}
       />
       {/* District Admin / District Governor → Super Admin, for the category selected above
           (user 2026-10-09). Read-only for the Super Admin; no replies. */}

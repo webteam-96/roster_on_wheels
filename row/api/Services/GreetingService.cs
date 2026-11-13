@@ -59,6 +59,10 @@ public class GreetingService : IGreetingService
                      IsEnableAnniversaryEmail, AnniversaryEmailFrom, AnniversaryEmailSubject, AnniversaryEmailMessage
               FROM club_master WHERE pk_club_id = @ClubId AND isdeleted = 0",
             new { ClubId = clubId });
+        // Hierarchy scope (2026-10-21): SP result - inactive club / district / zone returns nothing.
+        if (dto != null && await connection.ExecuteScalarAsync<int>(
+                $"SELECT CASE WHEN {HierarchyScopeSql.ClubIdLive("@ClubId")} THEN 1 ELSE 0 END", new { ClubId = clubId }) == 0)
+            return null;
         if (dto != null)
         {
             var pause = await GetPauseInfoAsync(connection, "club_master", "pk_club_id", clubId);
@@ -119,7 +123,7 @@ public class GreetingService : IGreetingService
                      IsEnableBirthdayEmail, BirthdayEmailFrom, BirthdayEmailSubject, BirthdayEmailMessage,
                      IsEnableAnniversaryEmail, AnniversaryEmailFrom, AnniversaryEmailSubject, AnniversaryEmailMessage
               FROM district_master
-              WHERE pk_district_id = @DistrictId",
+              WHERE pk_district_id = @DistrictId AND " + HierarchyScopeSql.DistrictLive("district_master"),
             new { DistrictId = districtId });
         if (dto != null)
         {

@@ -14,8 +14,10 @@ public class ClubSocialLinkController : ControllerBase
     private readonly IClubSocialLinkService _service;
     private readonly string _connectionString;
 
-    public ClubSocialLinkController(IClubSocialLinkService service, IConfiguration configuration)
+    private readonly AdminYearGuard _guard;
+    public ClubSocialLinkController(AdminYearGuard guard, IClubSocialLinkService service, IConfiguration configuration)
     {
+        _guard = guard;
         _service = service;
         _connectionString = configuration.GetConnectionString("DefaultConnection")!;
     }
@@ -42,6 +44,9 @@ public class ClubSocialLinkController : ControllerBase
     [HttpPost("api/clubs/{clubId}/website-data/social_media_links")]
     public async Task<ActionResult> Create(int clubId, [FromBody] CreateClubSocialLinkDto dto)
     {
+        var denied = await _guard.ClubYearlessAsync(User, clubId);
+        if (denied != null) return denied;
+
         var id = await _service.CreateAsync(clubId, dto, GetUserId());
         return Ok(new { id });
     }
@@ -50,6 +55,9 @@ public class ClubSocialLinkController : ControllerBase
     [OwnedBy(Owns.ClubSocialLink, "id", "clubId")]
     public async Task<ActionResult> Update(int clubId, int id, [FromBody] UpdateClubSocialLinkDto dto)
     {
+        var denied = await _guard.ClubYearlessAsync(User, clubId);
+        if (denied != null) return denied;
+
         await _service.UpdateAsync(id, dto, GetUserId());
         return Ok(new { message = "Social link updated successfully." });
     }
@@ -58,6 +66,9 @@ public class ClubSocialLinkController : ControllerBase
     [OwnedBy(Owns.ClubSocialLink, "id", "clubId")]
     public async Task<ActionResult> Delete(int clubId, int id)
     {
+        var denied = await _guard.ClubYearlessAsync(User, clubId);
+        if (denied != null) return denied;
+
         await _service.DeleteAsync(id, GetUserId());
         return Ok(new { message = "Social link deleted successfully." });
     }
@@ -67,6 +78,9 @@ public class ClubSocialLinkController : ControllerBase
     [HttpPut("api/clubs/{clubId}/website-data/social_media_links/reorder-all")]
     public async Task<ActionResult> ReorderAll(int clubId, [FromBody] ReorderDto dto)
     {
+        var denied = await _guard.ClubYearlessAsync(User, clubId);
+        if (denied != null) return denied;
+
         if (dto.OrderedIds == null || dto.OrderedIds.Count == 0)
             return BadRequest(new { message = "OrderedIds is required." });
 

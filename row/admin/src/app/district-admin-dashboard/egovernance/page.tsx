@@ -62,6 +62,9 @@ import { DistrictRotaryNetworkView } from "@/app/district-admin-dashboard/rotary
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useFeatureOn } from "@/components/FeatureGate";
 import { getDistrictCmrEmailSettings, saveDistrictCmrEmailSettings } from "@/services/api";
+import { useAuth } from "@/contexts/AuthContext";
+import { districtYearRights, canEditYear, heldYearLabels } from "@/lib/adminYears";
+import { useRotaryYears } from "@/hooks/useRotaryYears";
 import { Mail, Settings } from "@/components/icons";
 import {
   Dialog,
@@ -409,6 +412,21 @@ function CmrEmailSettingsButton({ districtId }: { districtId: number }) {
   const searchParams = useSearchParams();
   const yearId = Number(searchParams.get("yearId") || 0);
 
+  // These settings are stored per district AND YEAR, so the year on screen is
+  // what decides — not the current year. The server checks the same thing
+  // (DistrictCmrEmailSettingsController.Save -> DistrictYearAsync).
+  // ⚠️ The settings stay READABLE in a year the admin cannot edit; only Save
+  // goes, and the fields turn read-only. Seeing who gets copied on a past
+  // year's submissions is exactly the kind of thing an admin needs to look up.
+  const { user, isSuperAdmin, isAdmin } = useAuth();
+  const { years: rotaryYears } = useRotaryYears();
+  const rights = useMemo(
+    () => districtYearRights(user?.scopedRoles, districtId),
+    [user?.scopedRoles, districtId],
+  );
+  const canManage = (isSuperAdmin || isAdmin) && canEditYear(rights, yearId || undefined, isSuperAdmin);
+  const editableYears = heldYearLabels(rights, rotaryYears.map((y) => ({ id: y.id, label: y.yearLabel })));
+
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -492,6 +510,7 @@ function CmrEmailSettingsButton({ districtId }: { districtId: number }) {
                       type="radio"
                       name="cmr-dg-email"
                       checked={sendToDG}
+                      disabled={!canManage}
                       onChange={() => setSendToDG(true)}
                       className="h-4 w-4 accent-emerald-600"
                     />
@@ -502,6 +521,7 @@ function CmrEmailSettingsButton({ districtId }: { districtId: number }) {
                       type="radio"
                       name="cmr-dg-email"
                       checked={!sendToDG}
+                      disabled={!canManage}
                       onChange={() => setSendToDG(false)}
                       className="h-4 w-4 accent-rose-600"
                     />
@@ -522,6 +542,7 @@ function CmrEmailSettingsButton({ districtId }: { districtId: number }) {
                 <input
                   type="text"
                   value={ccEmails}
+                  disabled={!canManage}
                   onChange={(e) => setCcEmails(e.target.value)}
                   placeholder="e.g. secretary@example.org, chair@example.org"
                   className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
@@ -532,6 +553,13 @@ function CmrEmailSettingsButton({ districtId }: { districtId: number }) {
               </div>
 
               <div className="flex items-center gap-3 pt-1">
+                {!canManage && (
+                  <p className="text-[11px] text-amber-700">
+                    View only: you administer{" "}
+                    {editableYears.length ? editableYears.join(", ") : "other Rotary years"}.
+                  </p>
+                )}
+                {canManage && (
                 <button
                   type="button"
                   onClick={save}
@@ -541,6 +569,7 @@ function CmrEmailSettingsButton({ districtId }: { districtId: number }) {
                   {saving && <Loader2 className="h-4 w-4 animate-spin" />}
                   Save
                 </button>
+                )}
                 {savedMsg && (
                   <span className={`text-xs ${savedMsg === "Saved" ? "text-emerald-600" : "text-rose-600"}`}>
                     {savedMsg}

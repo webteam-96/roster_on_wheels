@@ -17,12 +17,15 @@
  *     rounded-2xl white cards, navy table header w/ gold underline.
  */
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   getDistrictMassEmailList, deleteDistrictMassEmail, sendDistrictMassEmail, getDistrict,
 } from "@/services/api";
 import { useAuth } from "@/contexts/AuthContext";
+import { districtYearRights, canEditYearless, isCurrentYearSelected, heldYearLabels } from "@/lib/adminYears";
+import { useRotaryYears } from "@/hooks/useRotaryYears";
+import ViewOnlyBadge from "@/components/ViewOnlyBadge";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -57,7 +60,7 @@ interface MassEmailItem {
 }
 
 export default function DistrictAdminMassEmailListPage() {
-  const { selectedDistrictId, isSuperAdmin, isAdmin } = useAuth();
+  const { selectedDistrictId, isSuperAdmin, isAdmin, user } = useAuth();
   const districtId = selectedDistrictId ?? 0;
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -77,7 +80,22 @@ export default function DistrictAdminMassEmailListPage() {
   const [sendId, setSendId] = useState<number | null>(null);
   const [processing, setProcessing] = useState(false);
   const pageSize = 20;
-  const canManage = isSuperAdmin || isAdmin;
+  // A mass email carries no Rotary year; sending one is a current-year action.
+  const { years: rotaryYears, currentYearId: dCurrentYearId } = useRotaryYears();
+  const rights = useMemo(() => districtYearRights(user?.scopedRoles, districtId), [user?.scopedRoles, districtId]);
+  // ⚠️ AND the picker: this data has no Rotary year, so the year-less rule
+  // alone kept Add and Edit on screen while a past year was selected, which
+  // reads as the year rule having failed. The list is not year-filtered —
+  // nothing else on the screen changes, only the buttons.
+  // `yearId` above is the picker, already read from the URL on this page.
+  // The badge on these screens names the CURRENT year, not the member's own
+  // years — those do not help here, because only a current-year admin can
+  // ever change this data.
+  const currentYearLabel = rotaryYears.find((y) => y.isCurrent)?.yearLabel ?? "";
+  const canManage = (isSuperAdmin || isAdmin)
+    && canEditYearless(rights, dCurrentYearId, isSuperAdmin)
+    && isCurrentYearSelected(Number(yearId ?? "") || 0, dCurrentYearId, rights);
+  const editableYears = heldYearLabels(rights, rotaryYears.map((y) => ({ id: y.id, label: y.yearLabel })));
 
   // Current listing URL (with live filters) — passed to child pages as
   // returnTo so Save/Cancel/Back/Send return here with the same filters.
@@ -144,6 +162,10 @@ export default function DistrictAdminMassEmailListPage() {
 
   return (
     <ProtectedRoute>
+      {!canManage && (
+        <ViewOnlyBadge currentYearOnly={currentYearLabel} className="mb-4" />
+      )}
+
       <div className="space-y-6">
         {/* Header */}
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">

@@ -15,6 +15,9 @@ import {
   getSubGroupClubMembers, getRotaryYears, getClubSubGroupAvailableYears, getPhotoUrl,
 } from "@/services/api";
 import { useAuth } from "@/contexts/AuthContext";
+import { clubYearRights, canEditYear, heldYearLabels } from "@/lib/adminYears";
+import { useRotaryYears } from "@/hooks/useRotaryYears";
+import ViewOnlyBadge from "@/components/ViewOnlyBadge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -34,7 +37,7 @@ import RotaryLoader from "@/components/RotaryLoader";
 import Image from "next/image";
 
 export default function SubGroupsSection({ clubId }: { clubId: number }) {
-  const { isSuperAdmin, isAdmin } = useAuth();
+  const { isSuperAdmin, isAdmin, user } = useAuth();
 
   const [groups, setGroups] = useState<SubGroup[]>([]);
   const [allYears, setAllYears] = useState<RotaryYear[]>([]);           // listing filter (years with data + current)
@@ -63,7 +66,13 @@ export default function SubGroupsSection({ clubId }: { clubId: number }) {
 
   const [deleteTarget, setDeleteTarget] = useState<SubGroup | null>(null);
 
-  const canManage = isSuperAdmin || isAdmin;
+  // A sub group belongs to the Rotary year it was created under, and this
+  // section has its own year selector — so the selected year decides.
+  const { years } = useRotaryYears();
+  const yearRights = useMemo(() => clubYearRights(user?.scopedRoles, clubId), [user?.scopedRoles, clubId]);
+  const isClubAdmin = isSuperAdmin || isAdmin;
+  const canManage = isClubAdmin && canEditYear(yearRights, Number(selectedYearId) || undefined, isSuperAdmin);
+  const editableYears = heldYearLabels(yearRights, years.map((y) => ({ id: y.id, label: y.yearLabel })));
 
   const fetchInitialData = useCallback(async () => {
     if (!clubId) { setLoading(false); return; }
@@ -239,6 +248,10 @@ export default function SubGroupsSection({ clubId }: { clubId: number }) {
 
   return (
     <div className="space-y-4">
+      {!canManage && selectedYearId && (
+        <ViewOnlyBadge editableYears={editableYears} className="mb-3" />
+      )}
+
       {/* Header row */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-2 text-slate-700">

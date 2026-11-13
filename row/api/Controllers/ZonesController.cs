@@ -24,9 +24,11 @@ public class ZonesController : ControllerBase
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 12,
         [FromQuery] string? search = null,
-        [FromQuery] int? isActive = null)
+        [FromQuery] int? isActive = null,
+        [FromQuery] bool includeInactive = false)
     {
-        var result = await _zoneService.GetAllAsync(page, pageSize, search, isActive);
+        // includeInactive = Zone master listing only (SuperAdmin); everyone else sees live zones.
+        var result = await _zoneService.GetAllAsync(page, pageSize, search, isActive, includeInactive && IsSuperAdmin());
         return Ok(result);
     }
 

@@ -16,19 +16,25 @@ public class ZoneService : IZoneService
 
     private MySqlConnection CreateConnection() => new(_connectionString);
 
-    public async Task<PagedResult<ZoneListDto>> GetAllAsync(int page, int pageSize, string? search, int? isActive)
+    public async Task<PagedResult<ZoneListDto>> GetAllAsync(int page, int pageSize, string? search, int? isActive, bool includeInactive = false)
     {
         using var connection = CreateConnection();
         await connection.OpenAsync();
 
-        var totalCount = await connection.ExecuteScalarAsync<int>(
-            "sp_zone_get_all_count",
-            new { p_Search = string.IsNullOrWhiteSpace(search) ? null : search, p_IsActive = isActive },
-            commandType: CommandType.StoredProcedure);
+        // User 2026-10-21: inactive zones are hidden everywhere; only the Zone master listing
+        // (includeInactive, SuperAdmin) still shows them so they can be switched back on.
+        var liveClause = includeInactive ? "" : $" AND {HierarchyScopeSql.ZoneLive("z")}";
+
+        var totalCount = await connection.ExecuteScalarAsync<int>($@"
+            SELECT COUNT(*) FROM zone_master z
+            WHERE z.isdeleted = 0
+              AND (@Search IS NULL OR z.ZoneName LIKE CONCAT('%', @Search, '%'))
+              AND (@IsActive IS NULL OR z.IsActive = @IsActive){liveClause}",
+            new { Search = string.IsNullOrWhiteSpace(search) ? null : search, IsActive = isActive });
 
         var offset = (page - 1) * pageSize;
 
-        var items = (await connection.QueryAsync<ZoneListDto>(@"
+        var items = (await connection.QueryAsync<ZoneListDto>($@"
             SELECT
                 z.pk_zone_id AS Id,
                 z.ZoneName,
@@ -49,7 +55,7 @@ public class ZoneService : IZoneService
             FROM zone_master z
             WHERE z.isdeleted = 0
               AND (@Search IS NULL OR z.ZoneName LIKE CONCAT('%', @Search, '%'))
-              AND (@IsActive IS NULL OR z.IsActive = @IsActive)
+              AND (@IsActive IS NULL OR z.IsActive = @IsActive){liveClause}
             ORDER BY z.pk_zone_id DESC
             LIMIT @PageSize OFFSET @Offset",
             new { Search = string.IsNullOrWhiteSpace(search) ? null : search, IsActive = isActive, PageSize = pageSize, Offset = offset })).ToList();

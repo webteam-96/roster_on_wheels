@@ -254,6 +254,31 @@ builder.Services.AddScoped<IMemberService, MemberService>();
 builder.Services.AddScoped<ICountryService, CountryService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IRoleService, RoleService>();
+// Year-wise Admin Rights — the single place that answers "which years may this
+// member edit in this club/district?". Every add/edit/delete check goes here.
+// Singleton so the resolve cache (and its generation counter) is shared by every
+// request — AdminYearService is scoped and reads it on every guarded write.
+builder.Services.AddSingleton<YearRuleScopeHelper>();
+// The "View only" wording those checks explain themselves with, editable by
+// SuperAdmin. Singleton for the same reason: one shared cache, invalidated on save.
+builder.Services.AddSingleton<YearRuleMessagesHelper>();
+builder.Services.AddScoped<IAdminYearService, AdminYearService>();
+// The single guard every add/edit/delete calls. Hidden buttons are not security.
+builder.Services.AddScoped<AdminYearGuard>();
+// AI Assistant, ported from upstream 2026-11-09. Answers nothing unless Assistant:Enabled=true; every key comes
+// from server settings (web.config / environment), never appsettings or the repo.
+builder.Services.AddSingleton(RotaryApi.Services.Assistant.AssistantSettings.FromConfig(builder.Configuration));
+builder.Services.AddSingleton<RotaryApi.Services.Assistant.AssistantStore>();
+builder.Services.AddSingleton<RotaryApi.Services.Assistant.AnthropicChat>();
+builder.Services.AddSingleton<RotaryApi.Services.Assistant.GeminiChat>();
+builder.Services.AddSingleton<RotaryApi.Services.Assistant.VectorSearch>();
+builder.Services.AddSingleton<RotaryApi.Services.Assistant.Tools.HierarchyLookup>();
+builder.Services.AddSingleton<RotaryApi.Services.Assistant.Tools.RotaryYears>();
+builder.Services.AddSingleton(sp => new RotaryApi.Services.Assistant.Tools.AssistantToolRegistry(
+    RotaryApi.Services.Assistant.Tools.AssistantToolCatalog.All(),
+    sp.GetRequiredService<Microsoft.Extensions.Caching.Memory.IMemoryCache>()));
+builder.Services.AddScoped<RotaryApi.Services.Assistant.AssistantScopeBuilder>();
+builder.Services.AddScoped<RotaryApi.Services.Assistant.AssistantOrchestrator>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IZoneService, ZoneService>();
 builder.Services.AddScoped<IDistrictService, DistrictService>();

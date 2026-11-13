@@ -20,7 +20,8 @@ export async function projectMetadata(rawId: string | undefined): Promise<Metada
   try {
     const projectId = parseInt(rawId ?? "", 10);
     if (Number.isNaN(projectId)) return {};
-    const host = headers().get("x-tenant-host") || headers().get("host") || "";
+    const h = await headers();
+    const host = h.get("x-tenant-host") || h.get("host") || "";
     const tenant = await resolveTenant(host);
     if (!tenant) return {};
     const project = await getProjectDetail(tenant.clubId, projectId);

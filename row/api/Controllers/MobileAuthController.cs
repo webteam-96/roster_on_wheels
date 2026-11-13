@@ -14,10 +14,13 @@ public class MobileAuthController : ControllerBase
     private readonly ILogger<MobileAuthController> _logger;
     private readonly IConfiguration _config;
 
-    private readonly IAuthService _authService;
+    private readonly IAuthService _authService;
 
-    public MobileAuthController(IMobileAuthService mobileAuthService, IAuthService authService, ILogger<MobileAuthController> logger, IConfiguration config)
+    private readonly YearRuleMessagesHelper _yearRuleMessages;
+
+    public MobileAuthController(IMobileAuthService mobileAuthService, IAuthService authService, ILogger<MobileAuthController> logger, IConfiguration config, YearRuleMessagesHelper yearRuleMessages)
     {
+        _yearRuleMessages = yearRuleMessages;
         _mobileAuthService = mobileAuthService;
         _logger = logger;
         _config = config;
@@ -130,6 +133,16 @@ public class MobileAuthController : ControllerBase
         try
         {
             var result = await _mobileAuthService.GetMyContextAsync(memberId, familyMemberId);
+
+            // The "View only" wording for Year-wise Admin Rights, edited by SuperAdmin
+            // on the Settings page. Attached HERE rather than inside the service so the
+            // service keeps its single job; this payload already carries the year rights
+            // the wording explains, and both clients call it on sign-in and app open.
+            //
+            // GetAsync is cached and never throws — a wording lookup must not be able
+            // to break the member dashboard.
+            result.YearRuleMessages = await _yearRuleMessages.GetAsync();
+
             return Ok(result);
         }
         catch (KeyNotFoundException ex) { return NotFound(new { message = ex.Message }); }

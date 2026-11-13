@@ -11,8 +11,10 @@ public class ClubRotaryOrgCredentialsController : ControllerBase
 {
     private readonly IClubRotaryOrgCredentialService _service;
 
-    public ClubRotaryOrgCredentialsController(IClubRotaryOrgCredentialService service)
+    private readonly AdminYearGuard _guard;
+    public ClubRotaryOrgCredentialsController(AdminYearGuard guard, IClubRotaryOrgCredentialService service)
     {
+        _guard = guard;
         _service = service;
     }
 
@@ -35,6 +37,9 @@ public class ClubRotaryOrgCredentialsController : ControllerBase
     [HttpPut("api/clubs/{clubId}/rotary-org-credentials")]
     public async Task<ActionResult> Upsert(int clubId, [FromBody] UpsertClubRotaryOrgCredentialDto dto)
     {
+        var denied = await _guard.ClubYearlessAsync(User, clubId);
+        if (denied != null) return denied;
+
         if (string.IsNullOrWhiteSpace(dto.Username) || string.IsNullOrWhiteSpace(dto.Password))
             return BadRequest(new { message = "Username and password are both required." });
 

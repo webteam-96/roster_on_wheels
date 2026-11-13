@@ -415,19 +415,8 @@ export default function PublicImageInitiativeEditPage() {
     // Classification validation
     if (!selectedAofId) { setErrorMessage("Category is required."); return; }
     if (isOthersAof && !otherAreaOfFocus.trim()) { setErrorMessage("Please specify the Category."); return; }
-    if (!projectCost) { setErrorMessage("Project Cost is required."); return; }
-    if (!selectedFundingId) { setErrorMessage("Funding is required."); return; }
-    if (showGlobalGrantBlock) {
-      if (!hostClubsDistricts.trim()) { setErrorMessage("Host Clubs/Districts is required for Global Grant."); return; }
-      if (!globalPartnerClubsDistricts.trim()) { setErrorMessage("Global Partner Clubs/Districts is required for Global Grant."); return; }
-    }
-    if (showCsrBlock) {
-      if (!csrCompanyName.trim()) { setErrorMessage("Name of the CSR Company is required for CSR."); return; }
-      if (!amountSanctioned) { setErrorMessage("Amount Sanctioned is required for CSR."); return; }
-      if (!amountReceived) { setErrorMessage("Amount Received is required for CSR."); return; }
-    }
-    if (!manHours) { setErrorMessage("Man Hours is required."); return; }
-    if (!rotariansInvolved) { setErrorMessage("Rotarians Involved is required."); return; }
+    // Financial & Impact (cost, funding, Global Grant / CSR details, man hours, Rotarians) is OPTIONAL
+    // for Public Image only (upstream 2026-10-26); the other service avenues keep them mandatory.
     if (photos.length === 0) { setErrorMessage("At least 1 photo is required."); return; }
     if (photos.some(p => p.uploading)) { setErrorMessage("Please wait for photos to finish uploading."); return; }
 
@@ -701,11 +690,11 @@ export default function PublicImageInitiativeEditPage() {
         <Section icon={IndianRupee} title="Financial & Impact" number={4}>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             <div className="space-y-1.5">
-              <Req>Project Cost ({currencySymbol()})</Req>
+              <Req optional>Project Cost ({currencySymbol()})</Req>
               <Input type="number" value={projectCost} onChange={(e) => setProjectCost(e.target.value)} placeholder="0" min="0" />
             </div>
             <div className="space-y-1.5">
-              <Req>Funding</Req>
+              <Req optional>Funding</Req>
               <Select value={selectedFundingId} onValueChange={handleFundingChange}>
                 <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
                 <SelectContent>
@@ -742,12 +731,12 @@ export default function PublicImageInitiativeEditPage() {
                       onChange={(e) => setAmountSpent(onlyDigits(e.target.value))} placeholder="0" />
                   </div>
                   <div className="space-y-1.5 md:col-span-2">
-                    <Req>Host Clubs/Districts</Req>
+                    <Req optional>Host Clubs/Districts</Req>
                     <Input type="text" value={hostClubsDistricts}
                       onChange={(e) => setHostClubsDistricts(e.target.value)} placeholder="e.g., RC Chicago, RC Paris" />
                   </div>
                   <div className="space-y-1.5 md:col-span-2">
-                    <Req>Global Partner Clubs/Districts</Req>
+                    <Req optional>Global Partner Clubs/Districts</Req>
                     <Input type="text" value={globalPartnerClubsDistricts}
                       onChange={(e) => setGlobalPartnerClubsDistricts(e.target.value)} placeholder="e.g., RC Tokyo" />
                   </div>
@@ -761,17 +750,17 @@ export default function PublicImageInitiativeEditPage() {
                 <h4 className="text-sm font-semibold text-primary">CSR Details</h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-1.5 md:col-span-2">
-                    <Req>Name of the CSR Company</Req>
+                    <Req optional>Name of the CSR Company</Req>
                     <Input type="text" value={csrCompanyName}
                       onChange={(e) => setCsrCompanyName(e.target.value)} placeholder="e.g., ABC Industries Ltd" />
                   </div>
                   <div className="space-y-1.5">
-                    <Req>Amount Sanctioned ({currencySymbol()})</Req>
+                    <Req optional>Amount Sanctioned ({currencySymbol()})</Req>
                     <Input inputMode="numeric" pattern="[0-9]*" value={amountSanctioned}
                       onChange={(e) => setAmountSanctioned(onlyDigits(e.target.value))} placeholder="0" />
                   </div>
                   <div className="space-y-1.5">
-                    <Req>Amount Received ({currencySymbol()})</Req>
+                    <Req optional>Amount Received ({currencySymbol()})</Req>
                     <Input inputMode="numeric" pattern="[0-9]*" value={amountReceived}
                       onChange={(e) => setAmountReceived(onlyDigits(e.target.value))} placeholder="0" />
                   </div>
@@ -780,11 +769,11 @@ export default function PublicImageInitiativeEditPage() {
             )}
 
             <div className="space-y-1.5">
-              <Req hint="(Rotarians x Hours)">Man Hours</Req>
+              <Req hint="(Rotarians x Hours)" optional>Man Hours</Req>
               <Input type="number" value={manHours} onChange={(e) => setManHours(e.target.value)} placeholder="0" min="0" />
             </div>
             <div className="space-y-1.5">
-              <Req>Rotarians Involved</Req>
+              <Req optional>Rotarians Involved</Req>
               <Input type="number" value={rotariansInvolved} onChange={(e) => setRotariansInvolved(e.target.value)} placeholder="0" min="0" />
             </div>
             <div className="space-y-1.5">

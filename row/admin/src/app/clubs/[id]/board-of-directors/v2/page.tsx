@@ -31,6 +31,8 @@ import { BoardDirector } from "@/types/boardDirector";
 import { RotaryYear } from "@/types/rotaryYear";
 import { useDragSort } from "@/hooks/useDragSort";
 import { useAuth } from "@/contexts/AuthContext";
+import { clubYearRights, canEditYear, heldYearLabels } from "@/lib/adminYears";
+import ViewOnlyBadge from "@/components/ViewOnlyBadge";
 import KpiCard from "@/components/dashboard/KpiCard";
 import { fmtInt } from "@/components/dashboard/formatters";
 import ProtectedRoute from "@/components/ProtectedRoute";
@@ -93,12 +95,20 @@ export default function BoardOfDirectorsV2Page() {
   const params = useParams();
   const searchParams = useSearchParams();
   const clubId = Number(params.id);
-  const { isSuperAdmin, isAdmin, isAG } = useAuth();
-  const canManage = isSuperAdmin || isAdmin || isAG;
+  const { isSuperAdmin, isAdmin, isAG, user } = useAuth();
+
 
   const [clubName, setClubName] = useState("");
   const [filterYears, setFilterYears] = useState<RotaryYear[]>([]);
   const [selectedYearId, setSelectedYearId] = useState<number | null>(null);
+
+  // The board IS the year — each Rotary year has its own directors, and the
+  // President/Secretary rows here are what grant those officers their own
+  // year's admin rights. So editing a year's board needs that year.
+  const boardYearRights = useMemo(() => clubYearRights(user?.scopedRoles, clubId), [user?.scopedRoles, clubId]);
+  const isBoardAdmin = isSuperAdmin || isAdmin || isAG;
+  const canManage = isBoardAdmin && canEditYear(boardYearRights, selectedYearId, isSuperAdmin);
+  const editableYears = heldYearLabels(boardYearRights, filterYears.map((y) => ({ id: y.id, label: y.yearLabel })));
   const [records, setRecords] = useState<BoardDirector[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingRecords, setLoadingRecords] = useState(false);
@@ -222,6 +232,10 @@ export default function BoardOfDirectorsV2Page() {
 
   return (
     <ProtectedRoute>
+      {isBoardAdmin && !canManage && selectedYearId && (
+        <ViewOnlyBadge yearLabel={yearLabel} editableYears={editableYears} className="mb-4" />
+      )}
+
       <ClubAdminShell
         pageTitle="Board of Directors"
         pageSubtitle="Year-wise executive board roster"

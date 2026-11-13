@@ -1,0 +1,1587 @@
+{
+"_note": "Labels LibreTranslate returned unchanged (still English), found by the 2026-11-12 language crawl. Order: fr de it ja ko pt es.",
+"(No avenue set)": [
+"(Aucun domaine d'action)",
+"(Kein Dienstbereich)",
+"(Nessuna area di azione)",
+"（奉仕部門なし）",
+"(봉사 부문 없음)",
+"(Nenhuma avenida definida)",
+"(Sin avenida)"
+],
+"(max 200 chars)": [
+"(200 caractères max.)",
+"(max. 200 Zeichen)",
+"(max 200 caratteri)",
+"（最大200文字）",
+"(최대 200자)",
+"(máx. 200 caracteres)",
+"(máx. 200 caracteres)"
+],
+"(max 450 chars)": [
+"(450 caractères max.)",
+"(max. 450 Zeichen)",
+"(max 450 caratteri)",
+"（最大450文字）",
+"(최대 450자)",
+"(máx. 450 caracteres)",
+"(máx. 450 caracteres)"
+],
+"(max 500 chars)": [
+"(500 caractères max.)",
+"(max. 500 Zeichen)",
+"(max 500 caratteri)",
+"（最大500文字）",
+"(최대 500자)",
+"(máx. 500 caracteres)",
+"(máx. 500 caracteres)"
+],
+"(max 520 chars)": [
+"(520 caractères max.)",
+"(max. 520 Zeichen)",
+"(max 520 caratteri)",
+"（最大520文字）",
+"(최대 520자)",
+"(máx. 520 caracteres)",
+"(máx. 520 caracteres)"
+],
+"(max 1000 chars)": [
+"(1000 caractères max.)",
+"(max. 1000 Zeichen)",
+"(max 1000 caratteri)",
+"（最大1000文字）",
+"(최대 1000자)",
+"(máx. 1000 caracteres)",
+"(máx. 1000 caracteres)"
+],
+"(max 10000 chars)": [
+"(10000 caractères max.)",
+"(max. 10000 Zeichen)",
+"(max 10000 caratteri)",
+"（最大10000文字）",
+"(최대 10000자)",
+"(máx. 10000 caracteres)",
+"(máx. 10000 caracteres)"
+],
+"AF Per Capita": [
+"Fonds annuel par membre",
+"Jahresfonds pro Kopf",
+"Fondo annuale pro capite",
+"年次基金（一人当たり）",
+"연차기금 1인당",
+"Fundo Anual per capita",
+"Fondo Anual per cápita"
+],
+"AG Allocation": [
+"Répartition par AG",
+"AG-Zuordnung",
+"Assegnazione AG",
+"ガバナー補佐の割り当て",
+"지역대표 배정",
+"Alocação de GA",
+"Asignación de GA"
+],
+"AG Dashboard": [
+"Tableau de bord AG",
+"AG-Dashboard",
+"Dashboard AG",
+"ガバナー補佐ダッシュボード",
+"지역대표 대시보드",
+"Painel do GA",
+"Panel del GA"
+],
+"AG Dashboard Tabs": [
+"Onglets du tableau de bord AG",
+"AG-Dashboard-Reiter",
+"Schede dashboard AG",
+"ガバナー補佐ダッシュボードのタブ",
+"지역대표 대시보드 탭",
+"Abas do painel do GA",
+"Pestañas del panel del GA"
+],
+"AG Reports": [
+"Rapports AG",
+"AG-Berichte",
+"Rapporti AG",
+"ガバナー補佐レポート",
+"지역대표 보고서",
+"Relatórios do GA",
+"Informes del GA"
+],
+"Add AG": [
+"Ajouter un AG",
+"AG hinzufügen",
+"Aggiungi AG",
+"ガバナー補佐を追加",
+"지역대표 추가",
+"Adicionar GA",
+"Agregar GA"
+],
+"Add Board Director": [
+"Ajouter un administrateur",
+"Vorstandsmitglied hinzufügen",
+"Aggiungi consigliere",
+"理事を追加",
+"이사 추가",
+"Adicionar diretor",
+"Agregar director"
+],
+"Add Board Member": [
+"Ajouter un membre du conseil",
+"Vorstandsmitglied hinzufügen",
+"Aggiungi membro del consiglio",
+"理事を追加",
+"이사 추가",
+"Adicionar membro do conselho",
+"Agregar miembro de la junta"
+],
+"Add Committee Member": [
+"Ajouter un membre de commission",
+"Ausschussmitglied hinzufügen",
+"Aggiungi membro di commissione",
+"委員を追加",
+"위원 추가",
+"Adicionar membro de comissão",
+"Agregar miembro del comité"
+],
+"Add Community Service Project": [
+"Ajouter un projet d'intérêt public",
+"Gemeindienstprojekt hinzufügen",
+"Aggiungi progetto di pubblico interesse",
+"社会奉仕プロジェクトを追加",
+"지역사회봉사 프로젝트 추가",
+"Adicionar projeto de serviços à comunidade",
+"Agregar proyecto de servicio en la comunidad"
+],
+"Add District Announcement": [
+"Ajouter une annonce de district",
+"Distriktmitteilung hinzufügen",
+"Aggiungi annuncio distrettuale",
+"地区のお知らせを追加",
+"지구 공지 추가",
+"Adicionar comunicado distrital",
+"Agregar anuncio distrital"
+],
+"Add District Document": [
+"Ajouter un document de district",
+"Distriktdokument hinzufügen",
+"Aggiungi documento distrettuale",
+"地区の書類を追加",
+"지구 문서 추가",
+"Adicionar documento distrital",
+"Agregar documento distrital"
+],
+"Add District GML": [
+"Ajouter une lettre mensuelle du gouverneur",
+"Governor-Monatsbrief hinzufügen",
+"Aggiungi lettera mensile del Governatore",
+"ガバナー月信を追加",
+"총재 월신 추가",
+"Adicionar carta mensal do governador",
+"Agregar carta mensual del gobernador"
+],
+"Add District Governor": [
+"Ajouter un gouverneur de district",
+"Governor hinzufügen",
+"Aggiungi Governatore distrettuale",
+"地区ガバナーを追加",
+"지구 총재 추가",
+"Adicionar governador de distrito",
+"Agregar gobernador de distrito"
+],
+"Add District Project": [
+"Ajouter un projet de district",
+"Distriktprojekt hinzufügen",
+"Aggiungi progetto distrettuale",
+"地区プロジェクトを追加",
+"지구 프로젝트 추가",
+"Adicionar projeto distrital",
+"Agregar proyecto distrital"
+],
+"Add International Service Project": [
+"Ajouter un projet d'action internationale",
+"Projekt Internationaler Dienst hinzufügen",
+"Aggiungi progetto di azione internazionale",
+"国際奉仕プロジェクトを追加",
+"국제봉사 프로젝트 추가",
+"Adicionar projeto de serviços internacionais",
+"Agregar proyecto de servicio internacional"
+],
+"Add New Generation Service Project": [
+"Ajouter un projet d'action jeunesse",
+"Jugenddienstprojekt hinzufügen",
+"Aggiungi progetto Nuove Generazioni",
+"青少年奉仕プロジェクトを追加",
+"청소년봉사 프로젝트 추가",
+"Adicionar projeto de serviços às novas gerações",
+"Agregar proyecto de servicio a las nuevas generaciones"
+],
+"Add Past President": [
+"Ajouter un past-président",
+"Past President hinzufügen",
+"Aggiungi Past President",
+"歴代会長を追加",
+"역대 회장 추가",
+"Adicionar ex-presidente",
+"Agregar expresidente"
+],
+"Add Potential Member": [
+"Ajouter un membre potentiel",
+"Potenzielles Mitglied hinzufügen",
+"Aggiungi socio potenziale",
+"入会候補者を追加",
+"잠재 회원 추가",
+"Adicionar associado em potencial",
+"Agregar socio potencial"
+],
+"Add Public Image Initiative": [
+"Ajouter une action d'image publique",
+"Öffentlichkeitsarbeit-Initiative hinzufügen",
+"Aggiungi iniziativa di immagine pubblica",
+"公共イメージの取り組みを追加",
+"공공 이미지 활동 추가",
+"Adicionar iniciativa de imagem pública",
+"Agregar iniciativa de imagen pública"
+],
+"Add Social Media Link": [
+"Ajouter un lien de réseau social",
+"Social-Media-Link hinzufügen",
+"Aggiungi link social",
+"SNSリンクを追加",
+"소셜 미디어 링크 추가",
+"Adicionar link de rede social",
+"Agregar enlace de red social"
+],
+"Add TRF Contribution": [
+"Ajouter une contribution TRF",
+"TRF-Spende hinzufügen",
+"Aggiungi contributo TRF",
+"TRF寄付を追加",
+"TRF 기부 추가",
+"Adicionar contribuição à TRF",
+"Agregar contribución a TRF"
+],
+"Add Terminated Member": [
+"Ajouter un membre radié",
+"Ausgeschiedenes Mitglied hinzufügen",
+"Aggiungi socio cessato",
+"退会会員を追加",
+"탈퇴 회원 추가",
+"Adicionar associado desligado",
+"Agregar socio dado de baja"
+],
+"Add Vocational Service Project": [
+"Ajouter un projet d'action professionnelle",
+"Berufsdienstprojekt hinzufügen",
+"Aggiungi progetto di azione professionale",
+"職業奉仕プロジェクトを追加",
+"직업봉사 프로젝트 추가",
+"Adicionar projeto de serviços profissionais",
+"Agregar proyecto de servicio a través de la ocupación"
+],
+"Add/Edit club Presidents & Secretaries across districts": [
+"Ajouter ou modifier les présidents et secrétaires de club dans tous les districts",
+"Clubpräsidenten und Sekretäre in allen Distrikten hinzufügen/bearbeiten",
+"Aggiungi/modifica Presidenti e Segretari di club in tutti i distretti",
+"全地区のクラブ会長・幹事を追加・編集",
+"모든 지구의 클럽 회장·총무 추가/수정",
+"Adicionar/editar presidentes e secretários de clube em todos os distritos",
+"Agregar/editar presidentes y secretarios de club en todos los distritos"
+],
+"Annual Report (Word)": [
+"Rapport annuel (Word)",
+"Jahresbericht (Word)",
+"Relazione annuale (Word)",
+"年次報告書（Word）",
+"연차 보고서(Word)",
+"Relatório anual (Word)",
+"Informe anual (Word)"
+],
+"Area of Focus": [
+"Axe stratégique",
+"Schwerpunktbereich",
+"Area d'intervento",
+"重点分野",
+"중점 분야",
+"Área de enfoque",
+"Área de interés"
+],
+"Areas of Focus": [
+"Axes stratégiques",
+"Schwerpunktbereiche",
+"Aree d'intervento",
+"重点分野",
+"중점 분야",
+"Áreas de enfoque",
+"Áreas de interés"
+],
+"Assistant Governor (AG)": [
+"Adjoint du gouverneur (AG)",
+"Assistant Governor (AG)",
+"Assistente del Governatore (AG)",
+"ガバナー補佐",
+"지역대표",
+"Governador Assistente (GA)",
+"Gobernador Asistente (GA)"
+],
+"Assistant Governors (current)": [
+"Adjoints du gouverneur (actuels)",
+"Assistant Governors (aktuell)",
+"Assistenti del Governatore (attuali)",
+"ガバナー補佐（現在）",
+"지역대표 (현재)",
+"Governadores Assistentes (atuais)",
+"Gobernadores Asistentes (actuales)"
+],
+"Att %": [
+"Assid. %",
+"Präs. %",
+"Pres. %",
+"出席率",
+"출석률",
+"Freq. %",
+"Asist. %"
+],
+"Attach File (PDF)": [
+"Joindre un fichier (PDF)",
+"Datei anhängen (PDF)",
+"Allega file (PDF)",
+"ファイルを添付（PDF）",
+"파일 첨부(PDF)",
+"Anexar arquivo (PDF)",
+"Adjuntar archivo (PDF)"
+],
+"Audit logs:": [
+"Journaux d'audit :",
+"Prüfprotokolle:",
+"Registri di controllo:",
+"監査ログ：",
+"감사 로그:",
+"Logs de auditoria:",
+"Registros de auditoría:"
+],
+"Auth & System": [
+"Authentification et système",
+"Anmeldung & System",
+"Autenticazione e sistema",
+"認証とシステム",
+"인증 및 시스템",
+"Autenticação e sistema",
+"Autenticación y sistema"
+],
+"Auto + Manual": [
+"Auto + manuel",
+"Automatisch + manuell",
+"Automatico + manuale",
+"自動＋手動",
+"자동 + 수동",
+"Automático + manual",
+"Automático + manual"
+],
+"Avenue of Service": [
+"Domaine d'action",
+"Dienstbereich",
+"Area di azione",
+"奉仕部門",
+"봉사 부문",
+"Avenida de Serviço",
+"Avenida de Servicio"
+],
+"Avenue Of Service (AG Wise)": [
+"Domaine d'action (par AG)",
+"Dienstbereich (nach AG)",
+"Area di azione (per AG)",
+"奉仕部門（ガバナー補佐別）",
+"봉사 부문 (지역대표별)",
+"Avenida de Serviço (por GA)",
+"Avenida de Servicio (por GA)"
+],
+"Avenue Of Service (Club Wise Count)": [
+"Domaine d'action (nombre par club)",
+"Dienstbereich (Anzahl je Club)",
+"Area di azione (conteggio per club)",
+"奉仕部門（クラブ別件数）",
+"봉사 부문 (클럽별 건수)",
+"Avenida de Serviço (contagem por clube)",
+"Avenida de Servicio (conteo por club)"
+],
+"BOD Members": [
+"Membres du conseil",
+"Vorstandsmitglieder",
+"Membri del consiglio",
+"理事",
+"이사회 구성원",
+"Membros do conselho",
+"Miembros de la junta"
+],
+"Board of Directors (BOD)": [
+"Conseil d'administration",
+"Vorstand",
+"Consiglio direttivo",
+"理事会",
+"이사회",
+"Conselho diretor",
+"Junta directiva"
+],
+"Buy Club Website": [
+"Acheter un site web de club",
+"Club-Website kaufen",
+"Acquista sito web del club",
+"クラブのウェブサイトを購入",
+"클럽 웹사이트 구매",
+"Comprar site do clube",
+"Comprar sitio web del club"
+],
+"Caption": [
+"Légende",
+"Bildunterschrift",
+"Didascalia",
+"キャプション",
+"캡션",
+"Legenda",
+"Leyenda"
+],
+"Check Member Matched or not": [
+"Vérifier si le membre correspond",
+"Prüfen, ob das Mitglied übereinstimmt",
+"Verifica se il socio corrisponde",
+"会員が一致するか確認",
+"회원 일치 여부 확인",
+"Verificar se o associado corresponde",
+"Verificar si el socio coincide"
+],
+"Club Admin Dashboard": [
+"Tableau de bord d'administration du club",
+"Club-Admin-Dashboard",
+"Dashboard amministrazione club",
+"クラブ管理ダッシュボード",
+"클럽 관리 대시보드",
+"Painel de administração do clube",
+"Panel de administración del club"
+],
+"Club Dashboard Tabs": [
+"Onglets du tableau de bord du club",
+"Club-Dashboard-Reiter",
+"Schede dashboard club",
+"クラブダッシュボードのタブ",
+"클럽 대시보드 탭",
+"Abas do painel do clube",
+"Pestañas del panel del club"
+],
+"Club Foundation Chair": [
+"Président de la commission Fondation du club",
+"Club-Foundation-Beauftragter",
+"Presidente commissione Fondazione del club",
+"クラブ財団委員長",
+"클럽 재단 위원장",
+"Presidente da comissão da Fundação do clube",
+"Presidente del comité de La Fundación del club"
+],
+"Club Foundation Import": [
+"Import Fondation du club",
+"Club-Foundation-Import",
+"Importazione Fondazione club",
+"クラブ財団データのインポート",
+"클럽 재단 가져오기",
+"Importação da Fundação do clube",
+"Importación de La Fundación del club"
+],
+"Club ID": [
+"ID du club",
+"Club-ID",
+"ID club",
+"クラブID",
+"클럽 ID",
+"ID do clube",
+"ID del club"
+],
+"Club Leadership (Pres/Sec)": [
+"Direction du club (prés./secr.)",
+"Clubleitung (Präs./Sekr.)",
+"Dirigenti del club (Pres./Segr.)",
+"クラブ役員（会長・幹事）",
+"클럽 임원 (회장/총무)",
+"Liderança do clube (pres./secr.)",
+"Liderazgo del club (pres./secr.)"
+],
+"Club Mass Emails (Campaigns)": [
+"E-mails groupés du club (campagnes)",
+"Club-Massen-E-Mails (Kampagnen)",
+"Email di massa del club (campagne)",
+"クラブ一斉メール（キャンペーン）",
+"클럽 단체 이메일 (캠페인)",
+"E-mails em massa do clube (campanhas)",
+"Correos masivos del club (campañas)"
+],
+"Club Membership Chair": [
+"Président de la commission Effectif du club",
+"Club-Mitgliedschaftsbeauftragter",
+"Presidente commissione Effettivo del club",
+"クラブ会員増強委員長",
+"클럽 회원 위원장",
+"Presidente da comissão de Quadro Associativo do clube",
+"Presidente del comité de Membresía del club"
+],
+"Club Metrics at a Glance": [
+"Indicateurs du club en un coup d'œil",
+"Club-Kennzahlen auf einen Blick",
+"Metriche del club in sintesi",
+"クラブ指標の概要",
+"클럽 지표 한눈에 보기",
+"Indicadores do clube em resumo",
+"Métricas del club de un vistazo"
+],
+"Club Monthly Report": [
+"Rapport mensuel du club",
+"Club-Monatsbericht",
+"Rapporto mensile del club",
+"クラブ月次報告",
+"클럽 월간 보고서",
+"Relatório mensal do clube",
+"Informe mensual del club"
+],
+"Club Monthly Reports": [
+"Rapports mensuels du club",
+"Club-Monatsberichte",
+"Rapporti mensili del club",
+"クラブ月次報告",
+"클럽 월간 보고서",
+"Relatórios mensais do clube",
+"Informes mensuales del club"
+],
+"Club Public Image Chair": [
+"Président de la commission Image publique du club",
+"Club-Beauftragter Öffentlichkeitsarbeit",
+"Presidente commissione Immagine pubblica del club",
+"クラブ公共イメージ委員長",
+"클럽 공공 이미지 위원장",
+"Presidente da comissão de Imagem Pública do clube",
+"Presidente del comité de Imagen Pública del club"
+],
+"Club Rotary ID": [
+"ID Rotary du club",
+"Rotary-ID des Clubs",
+"ID Rotary del club",
+"クラブのロータリーID",
+"클럽 로타리 ID",
+"ID do Rotary do clube",
+"ID de Rotary del club"
+],
+"Club Service Meetings": [
+"Réunions d'action intérieure",
+"Clubdienst-Treffen",
+"Riunioni di azione interna",
+"クラブ奉仕の例会",
+"클럽봉사 모임",
+"Reuniões de serviços internos",
+"Reuniones de servicio en el club"
+],
+"Club Service Projects Chair": [
+"Président de la commission Actions du club",
+"Club-Beauftragter Serviceprojekte",
+"Presidente commissione Progetti di servizio del club",
+"クラブ奉仕プロジェクト委員長",
+"클럽 봉사 프로젝트 위원장",
+"Presidente da comissão de Projetos do clube",
+"Presidente del comité de Proyectos de servicio del club"
+],
+"Club Service vs Projects": [
+"Action intérieure et projets",
+"Clubdienst vs. Projekte",
+"Azione interna e progetti",
+"クラブ奉仕とプロジェクト",
+"클럽봉사 대 프로젝트",
+"Serviços internos x projetos",
+"Servicio en el club frente a proyectos"
+],
+"Club Social Links": [
+"Réseaux sociaux du club",
+"Social-Media-Links des Clubs",
+"Link social del club",
+"クラブのSNSリンク",
+"클럽 소셜 링크",
+"Redes sociais do clube",
+"Redes sociales del club"
+],
+"Club Sync by Region": [
+"Synchronisation des clubs par région",
+"Club-Synchronisierung nach Region",
+"Sincronizzazione club per regione",
+"地域別クラブ同期",
+"지역별 클럽 동기화",
+"Sincronização de clubes por região",
+"Sincronización de clubes por región"
+],
+"Community Service Projects": [
+"Projets d'intérêt public",
+"Gemeindienstprojekte",
+"Progetti di pubblico interesse",
+"社会奉仕プロジェクト",
+"지역사회봉사 프로젝트",
+"Projetos de serviços à comunidade",
+"Proyectos de servicio en la comunidad"
+],
+"Credit Count *": [
+"Nombre de crédits *",
+"Anzahl Guthaben *",
+"Numero di crediti *",
+"クレジット数 *",
+"크레딧 수 *",
+"Quantidade de créditos *",
+"Cantidad de créditos *"
+],
+"Daily Statistics Report": [
+"Rapport statistique quotidien",
+"Täglicher Statistikbericht",
+"Rapporto statistico giornaliero",
+"日次統計レポート",
+"일일 통계 보고서",
+"Relatório estatístico diário",
+"Informe estadístico diario"
+],
+"Date of Joining": [
+"Date d'adhésion",
+"Beitrittsdatum",
+"Data di ammissione",
+"入会日",
+"입회일",
+"Data de admissão",
+"Fecha de ingreso"
+],
+"Default Club": [
+"Club par défaut",
+"Standard-Club",
+"Club predefinito",
+"既定のクラブ",
+"기본 클럽",
+"Clube padrão",
+"Club predeterminado"
+],
+"Default Dist": [
+"District par défaut",
+"Standard-Distrikt",
+"Distretto predefinito",
+"既定の地区",
+"기본 지구",
+"Distrito padrão",
+"Distrito predeterminado"
+],
+"Default for Club": [
+"Par défaut pour le club",
+"Standard für Club",
+"Predefinito per il club",
+"クラブの既定",
+"클럽 기본값",
+"Padrão para clube",
+"Predeterminado para club"
+],
+"Default for District": [
+"Par défaut pour le district",
+"Standard für Distrikt",
+"Predefinito per il distretto",
+"地区の既定",
+"지구 기본값",
+"Padrão para distrito",
+"Predeterminado para distrito"
+],
+"Default for Member Mobile Login": [
+"Par défaut pour la connexion mobile des membres",
+"Standard für mobile Mitgliederanmeldung",
+"Predefinito per l'accesso mobile dei soci",
+"会員モバイルログインの既定",
+"회원 모바일 로그인 기본값",
+"Padrão para login móvel de associados",
+"Predeterminado para el inicio de sesión móvil de socios"
+],
+"District Awards (AG Wise)": [
+"Distinctions de district (par AG)",
+"Distriktauszeichnungen (nach AG)",
+"Premi distrettuali (per AG)",
+"地区賞（ガバナー補佐別）",
+"지구 시상 (지역대표별)",
+"Prêmios distritais (por GA)",
+"Premios distritales (por GA)"
+],
+"District Awards (Club Wise)": [
+"Distinctions de district (par club)",
+"Distriktauszeichnungen (nach Club)",
+"Premi distrettuali (per club)",
+"地区賞（クラブ別）",
+"지구 시상 (클럽별)",
+"Prêmios distritais (por clube)",
+"Premios distritales (por club)"
+],
+"District Awards Extended (AG Wise)": [
+"Distinctions de district détaillées (par AG)",
+"Distriktauszeichnungen erweitert (nach AG)",
+"Premi distrettuali estesi (per AG)",
+"地区賞 詳細（ガバナー補佐別）",
+"지구 시상 확장 (지역대표별)",
+"Prêmios distritais detalhados (por GA)",
+"Premios distritales ampliados (por GA)"
+],
+"District Awards Extended (Club Wise)": [
+"Distinctions de district détaillées (par club)",
+"Distriktauszeichnungen erweitert (nach Club)",
+"Premi distrettuali estesi (per club)",
+"地区賞 詳細（クラブ別）",
+"지구 시상 확장 (클럽별)",
+"Prêmios distritais detalhados (por clube)",
+"Premios distritales ampliados (por club)"
+],
+"District Dashboard Tabs": [
+"Onglets du tableau de bord du district",
+"Distrikt-Dashboard-Reiter",
+"Schede dashboard distretto",
+"地区ダッシュボードのタブ",
+"지구 대시보드 탭",
+"Abas do painel do distrito",
+"Pestañas del panel del distrito"
+],
+"District Foundation Import": [
+"Import Fondation du district",
+"Distrikt-Foundation-Import",
+"Importazione Fondazione distretto",
+"地区財団データのインポート",
+"지구 재단 가져오기",
+"Importação da Fundação do distrito",
+"Importación de La Fundación del distrito"
+],
+"Download Excel Report": [
+"Télécharger le rapport Excel",
+"Excel-Bericht herunterladen",
+"Scarica rapporto Excel",
+"Excelレポートをダウンロード",
+"Excel 보고서 다운로드",
+"Baixar relatório em Excel",
+"Descargar informe de Excel"
+],
+"Duplicate Mobile / Email": [
+"Mobile / e-mail en double",
+"Doppelte Mobilnummer / E-Mail",
+"Cellulare / email duplicati",
+"携帯番号・メールの重複",
+"중복 휴대폰 / 이메일",
+"Celular / e-mail duplicado",
+"Móvil / correo duplicado"
+],
+"E-Governance & Reporting": [
+"Gouvernance en ligne et rapports",
+"E-Governance & Berichte",
+"E-governance e rapporti",
+"電子ガバナンスとレポート",
+"전자 거버넌스 및 보고",
+"Governança eletrônica e relatórios",
+"Gobernanza electrónica e informes"
+],
+"Email Body *": [
+"Corps de l'e-mail *",
+"E-Mail-Text *",
+"Testo dell'email *",
+"メール本文 *",
+"이메일 본문 *",
+"Corpo do e-mail *",
+"Cuerpo del correo *"
+],
+"Erase": [
+"Effacer",
+"Löschen",
+"Cancella",
+"消去",
+"지우기",
+"Apagar",
+"Borrar"
+],
+"Event Payment Links": [
+"Liens de paiement d'événement",
+"Zahlungslinks für Veranstaltungen",
+"Link di pagamento eventi",
+"イベント支払いリンク",
+"행사 결제 링크",
+"Links de pagamento de eventos",
+"Enlaces de pago de eventos"
+],
+"Extension not installed": [
+"Extension non installée",
+"Erweiterung nicht installiert",
+"Estensione non installata",
+"拡張機能がインストールされていません",
+"확장 프로그램이 설치되지 않음",
+"Extensão não instalada",
+"Extensión no instalada"
+],
+"File / Link split": [
+"Répartition fichier / lien",
+"Aufteilung Datei / Link",
+"Ripartizione file / link",
+"ファイル／リンクの内訳",
+"파일 / 링크 비율",
+"Divisão arquivo / link",
+"Reparto archivo / enlace"
+],
+"Force Update": [
+"Forcer la mise à jour",
+"Update erzwingen",
+"Forza aggiornamento",
+"強制アップデート",
+"강제 업데이트",
+"Forçar atualização",
+"Forzar actualización"
+],
+"Gateway": [
+"Passerelle",
+"Zahlungsanbieter",
+"Gateway di pagamento",
+"決済ゲートウェイ",
+"결제 게이트웨이",
+"Gateway de pagamento",
+"Pasarela de pago"
+],
+"Global Member Search": [
+"Recherche globale de membres",
+"Globale Mitgliedersuche",
+"Ricerca globale soci",
+"全会員検索",
+"전체 회원 검색",
+"Busca global de associados",
+"Búsqueda global de socios"
+],
+"GML Details": [
+"Détails de la lettre mensuelle",
+"Details zum Governor-Monatsbrief",
+"Dettagli lettera mensile",
+"ガバナー月信の詳細",
+"총재 월신 상세",
+"Detalhes da carta mensal",
+"Detalles de la carta mensual"
+],
+"Go to login": [
+"Aller à la connexion",
+"Zur Anmeldung",
+"Vai all'accesso",
+"ログインへ",
+"로그인으로 이동",
+"Ir para o login",
+"Ir al inicio de sesión"
+],
+"Group District Committee": [
+"Regrouper la commission de district",
+"Distriktausschuss gruppieren",
+"Raggruppa commissione distrettuale",
+"地区委員会をグループ化",
+"지구 위원회 그룹",
+"Agrupar comissão distrital",
+"Agrupar comité distrital"
+],
+"International Service Projects": [
+"Projets d'action internationale",
+"Projekte Internationaler Dienst",
+"Progetti di azione internazionale",
+"国際奉仕プロジェクト",
+"국제봉사 프로젝트",
+"Projetos de serviços internacionais",
+"Proyectos de servicio internacional"
+],
+"Link URL": [
+"URL du lien",
+"Link-URL",
+"URL del link",
+"リンクURL",
+"링크 URL",
+"URL do link",
+"URL del enlace"
+],
+"Live from Rotary.org": [
+"En direct de Rotary.org",
+"Live von Rotary.org",
+"In tempo reale da Rotary.org",
+"Rotary.orgから取得",
+"Rotary.org 실시간",
+"Ao vivo do Rotary.org",
+"En vivo desde Rotary.org"
+],
+"Live on website": [
+"En ligne sur le site",
+"Live auf der Website",
+"Pubblicato sul sito",
+"ウェブサイトで公開中",
+"웹사이트에 게시됨",
+"Publicado no site",
+"Publicado en el sitio"
+],
+"Login Audit Logs": [
+"Journaux d'audit des connexions",
+"Anmelde-Prüfprotokolle",
+"Registri di controllo accessi",
+"ログイン監査ログ",
+"로그인 감사 로그",
+"Logs de auditoria de login",
+"Registros de auditoría de inicio de sesión"
+],
+"Manage Rotary zones": [
+"Gérer les zones Rotary",
+"Rotary-Zonen verwalten",
+"Gestisci zone Rotary",
+"ロータリーゾーンを管理",
+"로타리 지역 관리",
+"Gerenciar zonas do Rotary",
+"Gestionar zonas de Rotary"
+],
+"Manage club about content": [
+"Gérer la présentation du club",
+"Club-Vorstellung verwalten",
+"Gestisci la presentazione del club",
+"クラブ紹介を管理",
+"클럽 소개 관리",
+"Gerenciar a apresentação do clube",
+"Gestionar la presentación del club"
+],
+"Manage club social media links": [
+"Gérer les réseaux sociaux du club",
+"Social-Media-Links des Clubs verwalten",
+"Gestisci i link social del club",
+"クラブのSNSリンクを管理",
+"클럽 소셜 미디어 링크 관리",
+"Gerenciar redes sociais do clube",
+"Gestionar redes sociales del club"
+],
+"Manage district about content": [
+"Gérer la présentation du district",
+"Distrikt-Vorstellung verwalten",
+"Gestisci la presentazione del distretto",
+"地区紹介を管理",
+"지구 소개 관리",
+"Gerenciar a apresentação do distrito",
+"Gestionar la presentación del distrito"
+],
+"Manage district committee members and groups": [
+"Gérer les membres et groupes des commissions de district",
+"Distriktausschüsse und Gruppen verwalten",
+"Gestisci membri e gruppi delle commissioni distrettuali",
+"地区委員会の委員とグループを管理",
+"지구 위원회 위원 및 그룹 관리",
+"Gerenciar membros e grupos das comissões distritais",
+"Gestionar miembros y grupos de comités distritales"
+],
+"Manage district social media links": [
+"Gérer les réseaux sociaux du district",
+"Social-Media-Links des Distrikts verwalten",
+"Gestisci i link social del distretto",
+"地区のSNSリンクを管理",
+"지구 소셜 미디어 링크 관리",
+"Gerenciar redes sociais do distrito",
+"Gestionar redes sociales del distrito"
+],
+"Mobile App Version": [
+"Version de l'application mobile",
+"Version der mobilen App",
+"Versione app mobile",
+"モバイルアプリのバージョン",
+"모바일 앱 버전",
+"Versão do aplicativo",
+"Versión de la aplicación móvil"
+],
+"Mobile Login Check": [
+"Vérification de connexion mobile",
+"Prüfung mobile Anmeldung",
+"Verifica accesso mobile",
+"モバイルログイン確認",
+"모바일 로그인 확인",
+"Verificação de login móvel",
+"Verificación de inicio de sesión móvil"
+],
+"Mobile No.": [
+"N° de mobile",
+"Mobilnummer",
+"N. cellulare",
+"携帯番号",
+"휴대폰 번호",
+"Nº do celular",
+"N.º de móvil"
+],
+"Mon": [
+"lun.",
+"Mo",
+"lun",
+"月",
+"월",
+"seg",
+"lun"
+],
+"Sat": [
+"sam.",
+"Sa",
+"sab",
+"土",
+"토",
+"sáb",
+"sáb"
+],
+"Wed": [
+"mer.",
+"Mi",
+"mer",
+"水",
+"수",
+"qua",
+"mié"
+],
+"My Club Website": [
+"Site web de mon club",
+"Meine Club-Website",
+"Sito web del mio club",
+"マイクラブのウェブサイト",
+"내 클럽 웹사이트",
+"Site do meu clube",
+"Sitio web de mi club"
+],
+"My Club Websites": [
+"Sites web de mes clubs",
+"Meine Club-Websites",
+"Siti web dei miei club",
+"マイクラブのウェブサイト",
+"내 클럽 웹사이트",
+"Sites dos meus clubes",
+"Sitios web de mis clubes"
+],
+"My District Website": [
+"Site web de mon district",
+"Meine Distrikt-Website",
+"Sito web del mio distretto",
+"マイ地区のウェブサイト",
+"내 지구 웹사이트",
+"Site do meu distrito",
+"Sitio web de mi distrito"
+],
+"National Rank": [
+"Rang national",
+"Nationaler Rang",
+"Classifica nazionale",
+"国内順位",
+"국내 순위",
+"Classificação nacional",
+"Clasificación nacional"
+],
+"NewGen": [
+"Jeunesse",
+"Jugenddienst",
+"Nuove Gen.",
+"青少年奉仕",
+"청소년봉사",
+"Novas Gerações",
+"Nuevas Gen."
+],
+"Nominate": [
+"Proposer",
+"Nominieren",
+"Nomina",
+"推薦",
+"추천",
+"Indicar",
+"Nominar"
+],
+"Notify members via Email": [
+"Informer les membres par e-mail",
+"Mitglieder per E-Mail benachrichtigen",
+"Avvisa i soci via email",
+"会員にメールで通知",
+"이메일로 회원에게 알림",
+"Notificar associados por e-mail",
+"Notificar a los socios por correo"
+],
+"OCV Documents": [
+"Documents de la visite du gouverneur",
+"Dokumente zum Governorbesuch",
+"Documenti visita del Governatore",
+"ガバナー公式訪問の書類",
+"총재 공식 방문 문서",
+"Documentos da visita oficial",
+"Documentos de la visita oficial"
+],
+"Offline + Online": [
+"Hors ligne + en ligne",
+"Offline + Online",
+"Offline + online",
+"オフライン＋オンライン",
+"오프라인 + 온라인",
+"Offline + online",
+"Presencial + en línea"
+],
+"One Time Project": [
+"Projet ponctuel",
+"Einmaliges Projekt",
+"Progetto una tantum",
+"単発プロジェクト",
+"일회성 프로젝트",
+"Projeto pontual",
+"Proyecto puntual"
+],
+"Password Changed": [
+"Mot de passe modifié",
+"Passwort geändert",
+"Password modificata",
+"パスワード変更済み",
+"비밀번호 변경됨",
+"Senha alterada",
+"Contraseña cambiada"
+],
+"Password Reset": [
+"Réinitialisation du mot de passe",
+"Passwort zurücksetzen",
+"Reimpostazione password",
+"パスワードのリセット",
+"비밀번호 재설정",
+"Redefinição de senha",
+"Restablecer contraseña"
+],
+"Prospective members the club may invite to join": [
+"Membres potentiels que le club peut inviter",
+"Interessenten, die der Club einladen kann",
+"Potenziali soci che il club può invitare",
+"クラブが入会を勧誘できる候補者",
+"클럽이 입회를 권할 수 있는 예비 회원",
+"Possíveis associados que o clube pode convidar",
+"Posibles socios que el club puede invitar"
+],
+"Public Image Initiative": [
+"Action d'image publique",
+"Öffentlichkeitsarbeit-Initiative",
+"Iniziativa di immagine pubblica",
+"公共イメージの取り組み",
+"공공 이미지 활동",
+"Iniciativa de imagem pública",
+"Iniciativa de imagen pública"
+],
+"Pushed At": [
+"Envoyé le",
+"Gesendet am",
+"Inviato il",
+"送信日時",
+"발송 일시",
+"Enviado em",
+"Enviado el"
+],
+"RAG Analysis": [
+"Analyse rouge/orange/vert",
+"Ampel-Analyse",
+"Analisi semaforo",
+"信号色分析",
+"신호등 분석",
+"Análise semáforo",
+"Análisis semáforo"
+],
+"RCC Involved": [
+"RCC impliqué",
+"RCC beteiligt",
+"RCC coinvolto",
+"RCC参加",
+"RCC 참여",
+"RCC envolvido",
+"RCC involucrado"
+],
+"RI codes": [
+"Codes RI",
+"RI-Codes",
+"Codici RI",
+"RIコード",
+"RI 코드",
+"Códigos RI",
+"Códigos RI"
+],
+"Record a Foundation contribution": [
+"Enregistrer une contribution à la Fondation",
+"Foundation-Spende erfassen",
+"Registra un contributo alla Fondazione",
+"財団への寄付を記録",
+"재단 기부 기록",
+"Registrar uma contribuição à Fundação",
+"Registrar una contribución a La Fundación"
+],
+"Refresh Auto Points": [
+"Actualiser les points automatiques",
+"Automatische Punkte aktualisieren",
+"Aggiorna punti automatici",
+"自動ポイントを更新",
+"자동 점수 새로고침",
+"Atualizar pontos automáticos",
+"Actualizar puntos automáticos"
+],
+"Refresh from Rotary.org": [
+"Actualiser depuis Rotary.org",
+"Von Rotary.org aktualisieren",
+"Aggiorna da Rotary.org",
+"Rotary.orgから更新",
+"Rotary.org에서 새로고침",
+"Atualizar do Rotary.org",
+"Actualizar desde Rotary.org"
+],
+"Rotary ID": [
+"Identifiant Rotary",
+"Rotary-ID",
+"ID Rotary",
+"ロータリーID",
+"로타리 ID",
+"ID do Rotary",
+"ID de Rotary"
+],
+"Rotary.org Manual Sync": [
+"Synchronisation manuelle Rotary.org",
+"Manuelle Rotary.org-Synchronisierung",
+"Sincronizzazione manuale Rotary.org",
+"Rotary.org手動同期",
+"Rotary.org 수동 동기화",
+"Sincronização manual do Rotary.org",
+"Sincronización manual con Rotary.org"
+],
+"Route URL": [
+"URL de la route",
+"Routen-URL",
+"URL del percorso",
+"ルートURL",
+"경로 URL",
+"URL da rota",
+"URL de la ruta"
+],
+"Save Board Director": [
+"Enregistrer l'administrateur",
+"Vorstandsmitglied speichern",
+"Salva consigliere",
+"理事を保存",
+"이사 저장",
+"Salvar diretor",
+"Guardar director"
+],
+"Save Past President": [
+"Enregistrer le past-président",
+"Past President speichern",
+"Salva Past President",
+"歴代会長を保存",
+"역대 회장 저장",
+"Salvar ex-presidente",
+"Guardar expresidente"
+],
+"Select AG": [
+"Choisir un AG",
+"AG auswählen",
+"Seleziona AG",
+"ガバナー補佐を選択",
+"지역대표 선택",
+"Selecionar GA",
+"Seleccionar GA"
+],
+"Send Reset Link": [
+"Envoyer le lien de réinitialisation",
+"Link zum Zurücksetzen senden",
+"Invia link di reimpostazione",
+"リセットリンクを送信",
+"재설정 링크 보내기",
+"Enviar link de redefinição",
+"Enviar enlace de restablecimiento"
+],
+"Service Projects & Avenues": [
+"Projets d'action et domaines",
+"Serviceprojekte & Dienstbereiche",
+"Progetti di servizio e aree di azione",
+"奉仕プロジェクトと奉仕部門",
+"봉사 프로젝트 및 부문",
+"Projetos de serviço e avenidas",
+"Proyectos de servicio y avenidas"
+],
+"Shown on website": [
+"Affiché sur le site",
+"Auf der Website angezeigt",
+"Mostrato sul sito",
+"ウェブサイトに表示",
+"웹사이트에 표시",
+"Exibido no site",
+"Visible en el sitio"
+],
+"Sidebar": [
+"Barre latérale",
+"Seitenleiste",
+"Barra laterale",
+"サイドバー",
+"사이드바",
+"Barra lateral",
+"Barra lateral"
+],
+"Social Media Links": [
+"Liens des réseaux sociaux",
+"Social-Media-Links",
+"Link social",
+"SNSリンク",
+"소셜 미디어 링크",
+"Links de redes sociais",
+"Enlaces de redes sociales"
+],
+"Social Media Platform": [
+"Réseau social",
+"Social-Media-Plattform",
+"Piattaforma social",
+"SNSの種類",
+"소셜 미디어 플랫폼",
+"Rede social",
+"Red social"
+],
+"Sort": [
+"Trier",
+"Sortieren",
+"Ordina",
+"並べ替え",
+"정렬",
+"Ordenar",
+"Ordenar"
+],
+"Subdomain": [
+"Sous-domaine",
+"Subdomain",
+"Sottodominio",
+"サブドメイン",
+"하위 도메인",
+"Subdomínio",
+"Subdominio"
+],
+"Submit & Add to Org": [
+"Envoyer et ajouter à l'organisation",
+"Absenden & zur Organisation hinzufügen",
+"Invia e aggiungi all'organizzazione",
+"送信して組織に追加",
+"제출 후 조직에 추가",
+"Enviar e adicionar à organização",
+"Enviar y agregar a la organización"
+],
+"Sync": [
+"Synchroniser",
+"Synchronisieren",
+"Sincronizza",
+"同期",
+"동기화",
+"Sincronizar",
+"Sincronizar"
+],
+"TRF Amount (USD)": [
+"Montant TRF (USD)",
+"TRF-Betrag (USD)",
+"Importo TRF (USD)",
+"TRF金額（USD）",
+"TRF 금액 (USD)",
+"Valor TRF (USD)",
+"Monto TRF (USD)"
+],
+"TRF Contribution": [
+"Contribution TRF",
+"TRF-Spende",
+"Contributo TRF",
+"TRF寄付",
+"TRF 기부",
+"Contribuição à TRF",
+"Contribución a TRF"
+],
+"TRF Contributions": [
+"Contributions TRF",
+"TRF-Spenden",
+"Contributi TRF",
+"TRF寄付",
+"TRF 기부",
+"Contribuições à TRF",
+"Contribuciones a TRF"
+],
+"TRF Giving Breakdown by Club": [
+"Dons TRF par club",
+"TRF-Spenden nach Club",
+"Donazioni TRF per club",
+"クラブ別TRF寄付内訳",
+"클럽별 TRF 기부 내역",
+"Doações à TRF por clube",
+"Donaciones a TRF por club"
+],
+"TRF Giving per Club (USD)": [
+"Dons TRF par club (USD)",
+"TRF-Spenden je Club (USD)",
+"Donazioni TRF per club (USD)",
+"クラブ当たりTRF寄付（USD）",
+"클럽당 TRF 기부 (USD)",
+"Doações à TRF por clube (USD)",
+"Donaciones a TRF por club (USD)"
+],
+"TRF Raised": [
+"TRF collecté",
+"TRF gesammelt",
+"TRF raccolto",
+"TRF寄付額",
+"TRF 모금액",
+"TRF arrecadado",
+"TRF recaudado"
+],
+"Thumbnail": [
+"Miniature",
+"Vorschaubild",
+"Miniatura",
+"サムネイル",
+"썸네일",
+"Miniatura",
+"Miniatura"
+],
+"Toggle": [
+"Basculer",
+"Umschalten",
+"Attiva/disattiva",
+"切り替え",
+"전환",
+"Alternar",
+"Alternar"
+],
+"Top Giving Clubs": [
+"Clubs les plus généreux",
+"Spendenstärkste Clubs",
+"Club con più donazioni",
+"寄付額上位クラブ",
+"기부 상위 클럽",
+"Clubes que mais doam",
+"Clubes con más donaciones"
+],
+"Top TRF Giving": [
+"Meilleurs dons TRF",
+"Höchste TRF-Spenden",
+"Maggiori donazioni TRF",
+"TRF寄付上位",
+"TRF 기부 상위",
+"Maiores doações à TRF",
+"Mayores donaciones a TRF"
+],
+"Total Club Service": [
+"Total action intérieure",
+"Clubdienst gesamt",
+"Totale azione interna",
+"クラブ奉仕合計",
+"클럽봉사 합계",
+"Total de serviços internos",
+"Total de servicio en el club"
+],
+"Total TRF": [
+"TRF total",
+"TRF gesamt",
+"TRF totale",
+"TRF合計",
+"TRF 합계",
+"TRF total",
+"TRF total"
+],
+"Tutorials: Coming Soon": [
+"Tutoriels : bientôt disponibles",
+"Tutorials: demnächst",
+"Tutorial: in arrivo",
+"チュートリアル：近日公開",
+"튜토리얼: 곧 제공",
+"Tutoriais: em breve",
+"Tutoriales: próximamente"
+],
+"Txn ID": [
+"ID de transaction",
+"Transaktions-ID",
+"ID transazione",
+"取引ID",
+"거래 ID",
+"ID da transação",
+"ID de transacción"
+],
+"Use This Location": [
+"Utiliser cet emplacement",
+"Diesen Ort verwenden",
+"Usa questa posizione",
+"この場所を使用",
+"이 위치 사용",
+"Usar este local",
+"Usar esta ubicación"
+],
+"Webhook URL": [
+"URL du webhook",
+"Webhook-URL",
+"URL webhook",
+"Webhook URL",
+"웹훅 URL",
+"URL do webhook",
+"URL del webhook"
+],
+"Website URL": [
+"URL du site web",
+"Website-URL",
+"URL del sito web",
+"ウェブサイトURL",
+"웹사이트 URL",
+"URL do site",
+"URL del sitio web"
+],
+"Writeup / About": [
+"Présentation",
+"Beschreibung / Über uns",
+"Descrizione / Chi siamo",
+"紹介文",
+"소개",
+"Descrição / Sobre",
+"Descripción / Acerca de"
+],
+"Year Label": [
+"Libellé de l'année",
+"Jahresbezeichnung",
+"Etichetta anno",
+"年度ラベル",
+"연도 표시",
+"Rótulo do ano",
+"Etiqueta del año"
+],
+"YouTube Video Link": [
+"Lien de la vidéo YouTube",
+"YouTube-Videolink",
+"Link video YouTube",
+"YouTube動画のリンク",
+"YouTube 동영상 링크",
+"Link do vídeo do YouTube",
+"Enlace del video de YouTube"
+],
+"Link URL*": [
+"URL du lien*",
+"Link-URL*",
+"URL del link*",
+"リンクURL*",
+"링크 URL*",
+"URL do link*",
+"URL del enlace*"
+],
+"Global Grant (Restricted)": [
+"Subvention mondiale (affectée)",
+"Global Grant (zweckgebunden)",
+"Sovvenzione globale (vincolata)",
+"グローバル補助金（使途指定）",
+"글로벌 보조금 (지정)",
+"Subsídio global (restrito)",
+"Subvención global (restringida)"
+],
+"E-Governance / Reporting": [
+"Gouvernance en ligne / rapports",
+"E-Governance / Berichte",
+"E-governance / rapporti",
+"電子ガバナンス／レポート",
+"전자 거버넌스 / 보고",
+"Governança eletrônica / relatórios",
+"Gobernanza electrónica / informes"
+],
+"SSL Secured": [
+"Sécurisé par SSL",
+"SSL-gesichert",
+"Protetto da SSL",
+"SSLで保護",
+"SSL 보안",
+"Protegido por SSL",
+"Protegido con SSL"
+],
+"Avenue of Service and Public Image Initiative": [
+"Domaine d'action et action d'image publique",
+"Dienstbereich und Öffentlichkeitsarbeit-Initiative",
+"Area di azione e iniziativa di immagine pubblica",
+"奉仕部門と公共イメージの取り組み",
+"봉사 부문 및 공공 이미지 활동",
+"Avenida de Serviço e iniciativa de imagem pública",
+"Avenida de Servicio e iniciativa de imagen pública"
+]
+}

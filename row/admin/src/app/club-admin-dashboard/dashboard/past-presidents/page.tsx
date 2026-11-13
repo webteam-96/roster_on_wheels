@@ -19,6 +19,8 @@ import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
 import { useClubAdminCache } from "@/contexts/ClubAdminDashboardCacheContext";
 import { useAuth } from "@/contexts/AuthContext";
+import { clubYearRights, canEditYear, heldYearLabels } from "@/lib/adminYears";
+import ViewOnlyBadge from "@/components/ViewOnlyBadge";
 import { getPastPresidents, deletePastPresident, getPhotoUrl } from "@/services/api";
 import type { PastPresident } from "@/types/pastPresident";
 import { ListPageSkeleton } from "@/components/row/AppKit";
@@ -38,7 +40,7 @@ export default function DashboardPastPresidentsPage() {
   const urlYearRaw = searchParams.get("yearId");
   const urlYear = urlYearRaw ? parseInt(urlYearRaw, 10) || null : null;
   const effectiveYear = urlYear ?? cacheYearId;
-  const { selectedClubId, loading: authLoading } = useAuth();
+  const { selectedClubId, loading: authLoading, user, isSuperAdmin, isAdmin } = useAuth();
   // Use selectedClubId from auth as the primary source so this page fires its
   // own fast query immediately, instead of waiting for the 9-endpoint dashboard
   // cache batch (Promise.allSettled) to settle. Fall back to the cached overview.
@@ -86,6 +88,20 @@ export default function DashboardPastPresidentsPage() {
   // records has no label to show — fall back to generic wording rather than a blank.
   const selectedYearLabel =
     rows.find((r) => r.yearId === effectiveYear)?.yearLabel ?? "Selected year";
+
+  // Each past president is filed under a Rotary year, and this page can show
+  // ALL years at once — so the rule is per row, not per page.
+  const yearRights = useMemo(
+    () => clubYearRights(user?.scopedRoles, clubId ?? 0), [user?.scopedRoles, clubId]);
+  const isClubAdmin = isSuperAdmin || isAdmin;
+  const canEditRow = (yearId: number) => isClubAdmin && canEditYear(yearRights, yearId, isSuperAdmin);
+  // Adding one defaults to the year on screen; in all-years mode there is no
+  // single year to add into, so fall back to the current selection.
+  const canAdd = isClubAdmin && canEditYear(yearRights, effectiveYear, isSuperAdmin);
+  const editableYears = heldYearLabels(
+    yearRights,
+    [...new Map(rows.map((r) => [r.yearId, { id: r.yearId, label: r.yearLabel }])).values()],
+  );
   const filtered = useMemo(() => {
     const base = showAllYears || effectiveYear == null
       ? rows
@@ -128,12 +144,14 @@ export default function DashboardPastPresidentsPage() {
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
+          {canAdd && (
           <Link
             href={`/clubs/${clubId}/past-presidents/v2/add?returnTo=${encodeURIComponent(RETURN_TO)}`}
             className="inline-flex items-center gap-1.5 h-9 text-xs font-semibold px-3 rounded-full bg-[#17458F] text-white hover:bg-[#17458F]"
           >
             <Plus size={13} /> Add Past President
           </Link>
+          )}
         </div>
       </div>
 
@@ -206,12 +224,14 @@ export default function DashboardPastPresidentsPage() {
                       <td className="px-4 py-2.5 text-slate-600">{r.yearLabel}</td>
                       <td className="px-4 py-2.5">
                         <div className="flex items-center justify-end gap-1.5">
-                          <Link
-                            href={`/clubs/${clubId}/past-presidents/v2/${r.id}/edit?returnTo=${encodeURIComponent(RETURN_TO)}`}
-                            className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1.5 rounded-full border border-slate-200 text-slate-700 hover:bg-blue-50 hover:text-blue-700"
-                          >
-                            <Edit3 className="h-3.5 w-3.5" />Edit
-                          </Link>
+                          {canEditRow(r.yearId) && (
+                            <Link
+                              href={`/clubs/${clubId}/past-presidents/v2/${r.id}/edit?returnTo=${encodeURIComponent(RETURN_TO)}`}
+                              className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1.5 rounded-full border border-slate-200 text-slate-700 hover:bg-blue-50 hover:text-blue-700"
+                            >
+                              <Edit3 className="h-3.5 w-3.5" />Edit
+                            </Link>
+                          )}
                           <button
                             type="button"
                             onClick={() => setDeleteTarget(r)}

@@ -44,7 +44,7 @@ class _PotentialMembersScreenState extends State<PotentialMembersScreen> {
   bool get _canManage =>
       !widget.viewOnly &&
       Provider.of<AuthProvider>(context, listen: false)
-          .isClubAdminOf(widget.clubId);
+          .canEditClub(widget.clubId);
 
   @override
   void initState() {

@@ -17,6 +17,7 @@ describe("comms rules", () => {
     expect(isLanguageCode("es")).toBe(true);
     expect(isLanguageCode("pt-BR")).toBe(true);
     expect(isLanguageCode("Spanish")).toBe(false);
+    expect(isLanguageCode("hi")).toBe(false); // not one of the eight launch languages
   });
 
   it("rounds rates and never divides by zero", () => {

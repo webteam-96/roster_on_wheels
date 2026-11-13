@@ -539,7 +539,7 @@ class _DirectoryMemberDetailScreenState
       orElse: () => const RotarianAddress(),
     );
     final residential = d.addresses.firstWhere(
-      (a) => (a.addressType ?? '').toLowerCase() == 'residential',
+      (a) => isHomeAddressType(a.addressType),
       orElse: () => const RotarianAddress(),
     );
 

@@ -109,7 +109,7 @@ public sealed class LocalizationService
     public async Task<string[]> TranslateAsync(string target, IReadOnlyList<string> texts, bool signedIn, CancellationToken ct = default)
     {
         var result = texts.ToArray();
-        if (target.Split('-')[0].Equals("en", StringComparison.OrdinalIgnoreCase)) return result;
+        if (!CommsTemplates.IsSupported(target) || target.Split('-')[0].Equals("en", StringComparison.OrdinalIgnoreCase)) return result;
 
         var wanted = texts.Where(WorthTranslating).Distinct().ToList();
         var found = new Dictionary<string, string>();

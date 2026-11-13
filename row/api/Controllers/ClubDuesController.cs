@@ -21,8 +21,11 @@ public class ClubDuesController : ControllerBase
     private readonly IConfiguration _config;
     private readonly string _connStr;
 
-    public ClubDuesController(IClubDuesService service, IWebHostEnvironment env, IConfiguration config)
+    private readonly AdminYearGuard _guard;
+
+    public ClubDuesController(AdminYearGuard guard, IClubDuesService service, IWebHostEnvironment env, IConfiguration config)
     {
+        _guard = guard;
         _service = service;
         _env = env;
         _config = config;
@@ -124,6 +127,9 @@ public class ClubDuesController : ControllerBase
     [HttpPost("")]
     public async Task<ActionResult> Create([FromForm] CreateClubDuesDto dto, IFormFile? logo, IFormFile? bgImage, IFormFile? emailLogo)
     {
+        var denied = await _guard.DistrictYearByLabelAsync(User, dto.FkDistrictId, dto.RotaryYear);
+        if (denied != null) return denied;
+
         if (!IsSuperAdmin()) return Denied();
         try
         {
@@ -139,6 +145,9 @@ public class ClubDuesController : ControllerBase
     [HttpPut("{id}")]
     public async Task<ActionResult> Update(int id, [FromForm] CreateClubDuesDto dto, IFormFile? logo, IFormFile? bgImage, IFormFile? emailLogo)
     {
+        var denied = await _guard.DuesCampaignYearAsync(User, id);
+        if (denied != null) return denied;
+
         if (!IsSuperAdmin()) return Denied();
         await _service.UpdateAsync(id, dto, logo, bgImage, emailLogo, GetUserId(), _env);
         return Ok(new { message = "Updated." });
@@ -147,6 +156,9 @@ public class ClubDuesController : ControllerBase
     [HttpDelete("{id}")]
     public async Task<ActionResult> Delete(int id)
     {
+        var denied = await _guard.DuesCampaignYearAsync(User, id);
+        if (denied != null) return denied;
+
         if (!IsSuperAdmin()) return Denied();
         await _service.DeleteAsync(id, GetUserId());
         return Ok(new { message = "Deleted." });
@@ -155,6 +167,9 @@ public class ClubDuesController : ControllerBase
     [HttpPatch("{id}/toggle-active")]
     public async Task<ActionResult> ToggleActive(int id)
     {
+        var denied = await _guard.DuesCampaignYearAsync(User, id);
+        if (denied != null) return denied;
+
         if (!IsSuperAdmin()) return Denied();
         await _service.ToggleActiveAsync(id, GetUserId());
         return Ok(new { message = "Toggled." });
@@ -164,6 +179,9 @@ public class ClubDuesController : ControllerBase
     [HttpPost("{id}/sync")]
     public async Task<ActionResult> Sync(int id)
     {
+        var denied = await _guard.DuesCampaignYearAsync(User, id);
+        if (denied != null) return denied;
+
         if (!IsSuperAdmin()) return Denied();
         await _service.SyncClubsAndMembersAsync(id, GetUserId());
         return Ok(new { message = "Synced." });
@@ -187,6 +205,9 @@ public class ClubDuesController : ControllerBase
     [HttpPut("{id}/clubs/{clubDuesClubId}/rate")]
     public async Task<ActionResult> UpdateRate(int id, int clubDuesClubId, [FromBody] UpdateClubDuesRateDto dto)
     {
+        var denied = await _guard.DuesCampaignYearAsync(User, id);
+        if (denied != null) return denied;
+
         if (!IsSuperAdmin()) return Denied();
         await _service.UpdateClubRateAsync(id, clubDuesClubId, dto, GetUserId());
         return Ok(new { message = "Rate updated." });
@@ -198,6 +219,9 @@ public class ClubDuesController : ControllerBase
     [HttpPost("{id}/offline-payment")]
     public async Task<ActionResult> RecordOffline(int id, [FromForm] RecordOfflineClubDuesPaymentDto dto, IFormFile? attachment)
     {
+        var denied = await _guard.DuesCampaignYearAsync(User, id);
+        if (denied != null) return denied;
+
         if (!IsSuperAdmin() && !await IsDistrictAdminForDuesAsync(GetUserId(), id)) return Denied();
         var paymentId = await _service.RecordOfflinePaymentAsync(id, dto, attachment, GetUserId(), _env);
         return Ok(new { paymentId });
@@ -206,6 +230,9 @@ public class ClubDuesController : ControllerBase
     [HttpPost("payments/{paymentId}/approve-reject")]
     public async Task<ActionResult> ApproveReject(int paymentId, [FromBody] ApproveClubDuesPaymentDto dto)
     {
+        var denied = await _guard.DuesPaymentYearAsync(User, paymentId);
+        if (denied != null) return denied;
+
         // SuperAdmin OR the district admin of the district that owns this payment's campaign.
         if (!IsSuperAdmin() && !await IsDistrictAdminForPaymentAsync(GetUserId(), paymentId)) return Denied();
         try
@@ -222,6 +249,9 @@ public class ClubDuesController : ControllerBase
     [HttpPost("payments/{paymentId}/receipt")]
     public async Task<ActionResult> SendReceipt(int paymentId)
     {
+        var denied = await _guard.DuesPaymentYearAsync(User, paymentId);
+        if (denied != null) return denied;
+
         if (!IsSuperAdmin()) return Denied();
         await _service.SendReceiptEmailAsync(paymentId);
         return Ok(new { message = "Receipt sent." });
@@ -239,6 +269,9 @@ public class ClubDuesController : ControllerBase
     [HttpPut("payments/{paymentId}/update-offline")]
     public async Task<ActionResult> UpdateOffline(int paymentId, [FromForm] RecordOfflineClubDuesPaymentDto dto, IFormFile? attachment)
     {
+        var denied = await _guard.DuesPaymentYearAsync(User, paymentId);
+        if (denied != null) return denied;
+
         if (!IsSuperAdmin() && !await IsDistrictAdminForPaymentAsync(GetUserId(), paymentId)) return Denied();
         await _service.UpdateOfflinePaymentAsync(paymentId, dto, attachment, GetUserId(), _env);
         return Ok(new { message = "Offline payment updated." });
@@ -262,6 +295,9 @@ public class ClubDuesController : ControllerBase
     [HttpPut("{id}/clubs/{clubId}/vendors")]
     public async Task<ActionResult> SaveClubVendors(int id, int clubId, [FromBody] ClubVendorsSaveDto dto)
     {
+        var denied = await _guard.DuesCampaignYearAsync(User, id);
+        if (denied != null) return denied;
+
         if (!IsSuperAdmin()) return Denied();
         await _service.SaveClubVendorsAsync(id, clubId, dto.VendorsJson, GetUserId(), dto.IsOnline);
         return Ok(new { message = "Split saved." });
@@ -290,6 +326,9 @@ public class ClubDuesController : ControllerBase
     [HttpPost("{id}/reminder")]
     public async Task<ActionResult> BulkReminder(int id, [FromBody] ClubDuesReminderDto dto)
     {
+        var denied = await _guard.DuesCampaignYearAsync(User, id);
+        if (denied != null) return denied;
+
         if (!IsSuperAdmin() && !await IsDistrictAdminForDuesAsync(GetUserId(), id)) return Denied();
         await _service.BulkSendReminderEmailAsync(id, dto.Remark);
         return Ok(new { message = "Reminders sent." });
@@ -298,6 +337,9 @@ public class ClubDuesController : ControllerBase
     [HttpPost("{id}/clubs/{clubId}/reminder")]
     public async Task<ActionResult> ClubReminder(int id, int clubId, [FromBody] ClubDuesReminderDto dto)
     {
+        var denied = await _guard.DuesCampaignYearAsync(User, id);
+        if (denied != null) return denied;
+
         if (!IsSuperAdmin() && !await IsDistrictAdminForDuesAsync(GetUserId(), id)) return Denied();
         await _service.SendReminderEmailAsync(id, clubId, dto.Remark);
         return Ok(new { message = "Reminder sent." });
@@ -309,6 +351,14 @@ public class ClubDuesController : ControllerBase
     [HttpPost("test-email")]
     public async Task<ActionResult> SendTestEmail([FromForm] ClubDuesTestEmailDto dto, IFormFile? emailLogo)
     {
+        // DuesId is 0 while a campaign is still being composed, so there is no
+        // campaign year to check yet — fall back to current-year district rights.
+        // Once saved, the campaign's own year decides.
+        var denied = dto.DuesId > 0
+            ? await _guard.DuesCampaignYearAsync(User, dto.DuesId)
+            : await _guard.DistrictYearlessAsync(User, dto.DistrictId);
+        if (denied != null) return denied;
+
         if (!IsSuperAdmin() && !(dto.DistrictId > 0 && await IsDistrictAdminOfDistrictAsync(GetUserId(), dto.DistrictId)))
             return Denied();
         try
@@ -350,6 +400,9 @@ public class ClubDuesController : ControllerBase
     [HttpPost("{id}/create-google-sheet")]
     public async Task<ActionResult> CreateGoogleSheet(int id)
     {
+        var denied = await _guard.DuesCampaignYearAsync(User, id);
+        if (denied != null) return denied;
+
         if (!IsSuperAdmin()) return Denied();
         try
         {
@@ -363,6 +416,9 @@ public class ClubDuesController : ControllerBase
     [HttpDelete("{id}/delete-google-sheet")]
     public async Task<ActionResult> DeleteGoogleSheet(int id)
     {
+        var denied = await _guard.DuesCampaignYearAsync(User, id);
+        if (denied != null) return denied;
+
         if (!IsSuperAdmin()) return Denied();
         try
         {
@@ -401,7 +457,7 @@ public class ClubDuesController : ControllerBase
         var memberId = GetUserId();
         if (memberId <= 0) return OfficerDenied();
         await using var conn = new MySqlConnection(_connStr);
-        var rows = await conn.QueryAsync<dynamic>(@"
+        var rows = await conn.QueryAsync<dynamic>($@"
             SELECT DISTINCT cd.pk_club_dues_id AS duesId, cd.Purpose AS purpose, cd.RotaryYear AS rotaryYear,
                    c.pk_club_id AS clubId, c.ClubName AS clubName, d.DistrictNumber AS districtNumber
             FROM board_of_directors bod
@@ -412,6 +468,7 @@ public class ClubDuesController : ControllerBase
             LEFT JOIN district_master d ON d.pk_district_id = c.fk_district_id
             WHERE bod.fk_member_master_profile_id = @MemberId
               AND COALESCE(bod.isdeleted,0) = 0 AND y.IsCurrent = 1
+              AND {HierarchyScopeSql.ClubLive("c")}
               AND dm.designation_name IN ('Club President','Club Secretary','Club Treasurer')",
             new { MemberId = memberId });
         return Ok(rows);
@@ -493,18 +550,19 @@ public class ClubDuesController : ControllerBase
         if (districtId.HasValue && districtId.Value > 0 &&
             (IsSuperAdmin() || await IsDistrictAdminOfDistrictAsync(memberId, districtId.Value)))
         {
-            var byDistrict = await conn.QueryAsync<ClubDuesListDto>(@"
+            var byDistrict = await conn.QueryAsync<ClubDuesListDto>($@"
                 SELECT cd.pk_club_dues_id AS Id, d.DistrictNumber, cd.RotaryYear, cd.Purpose,
                        cd.DefaultPerMemberRate, cd.IsActive, cd.created_date AS CreatedDate
                 FROM club_dues cd
                 LEFT JOIN district_master d ON cd.fk_district_id = d.pk_district_id
                 WHERE cd.isdeleted = 0 AND cd.fk_district_id = @DistrictId
+                  AND {HierarchyScopeSql.DistrictIdLive("cd.fk_district_id")}
                 ORDER BY cd.created_date DESC", new { DistrictId = districtId.Value });
             return Ok(byDistrict);
         }
 
         // Fallback: campaigns for the signed-in member's own district-admin role(s).
-        var rows = await conn.QueryAsync<ClubDuesListDto>(@"
+        var rows = await conn.QueryAsync<ClubDuesListDto>($@"
             SELECT cd.pk_club_dues_id AS Id, d.DistrictNumber, cd.RotaryYear, cd.Purpose,
                    cd.DefaultPerMemberRate, cd.IsActive, cd.created_date AS CreatedDate
             FROM club_dues cd
@@ -515,6 +573,7 @@ public class ClubDuesController : ControllerBase
               AND mr.fk_role_id = 2
               AND (mr.fk_club_id IS NULL OR mr.fk_club_id = 0)
               AND mr.IsActive = 1 AND mr.isdeleted = 0
+              AND {HierarchyScopeSql.DistrictIdLive("cd.fk_district_id")}
             ORDER BY cd.created_date DESC",
             new { MemberId = memberId });
         return Ok(rows);
@@ -548,6 +607,9 @@ public class ClubDuesController : ControllerBase
     [HttpPatch("{id}/content")]
     public async Task<ActionResult> UpdateContent(int id, [FromForm] UpdateClubDuesContentDto dto, IFormFile? logo, IFormFile? bgImage, IFormFile? emailLogo)
     {
+        var denied = await _guard.DuesCampaignYearAsync(User, id);
+        if (denied != null) return denied;
+
         if (!IsSuperAdmin() && !await IsDistrictAdminForDuesAsync(GetUserId(), id)) return Denied();
         await _service.UpdateContentAsync(id, dto, logo, bgImage, emailLogo, GetUserId(), _env);
         return Ok(new { message = "Content updated." });

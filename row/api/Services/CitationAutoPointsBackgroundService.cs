@@ -124,7 +124,7 @@ public class CitationAutoPointsBackgroundService : BackgroundService
         {
             // Get all clubs in district
             var clubs = (await conn.QueryAsync<dynamic>(
-                "SELECT pk_club_id AS id FROM club_master WHERE fk_district_id = @DistrictId AND isdeleted = 0 AND IsActive = 1",
+                $"SELECT c.pk_club_id AS id FROM club_master c WHERE c.fk_district_id = @DistrictId AND c.isdeleted = 0 AND c.IsActive = 1 AND {HierarchyScopeSql.ClubLive("c")}",
                 new { DistrictId = districtId })).ToList();
 
             // Get all auto questions for this district+year

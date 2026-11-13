@@ -324,7 +324,7 @@ class _DistrictEventsScreenState extends State<DistrictEventsScreen> {
     final auth = context.watch<AuthProvider>();
     // Per-level gating: only district admins of THIS district can manage.
     final canManage =
-        !widget.viewOnly && auth.isDistrictAdminOf(widget.districtId);
+        !widget.viewOnly && auth.canEditDistrict(widget.districtId);
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: widget.embedded ? null : const CustomAppBar(title: 'District Events'),

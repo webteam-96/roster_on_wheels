@@ -61,6 +61,7 @@ public class BoardDirectorService : IBoardDirectorService
         return (await connection.QueryAsync<BoardDirectorDto>($@"
             SELECT {SelectColumns}
             WHERE bd.fk_club_id = @ClubId AND bd.fk_year_id = @YearId AND bd.isdeleted = 0
+              AND {HierarchyScopeSql.ClubIdLive("bd.fk_club_id")}
               AND (bd.fk_member_master_profile_id IS NULL OR m.pk_member_master_profile_id IS NOT NULL)
             ORDER BY
                 CASE bd.fk_designation_id WHEN 1 THEN 0 WHEN 2 THEN 1 ELSE 2 END,
@@ -92,7 +93,7 @@ public class BoardDirectorService : IBoardDirectorService
         // non-member entry) so the year dropdown never lists a year that would show an empty table.
         using var connection = CreateConnection();
         await connection.OpenAsync();
-        return (await connection.QueryAsync<BoardYearDto>(@"
+        return (await connection.QueryAsync<BoardYearDto>($@"
             SELECT DISTINCT
                    y.pk_year_id AS Id,
                    y.YearLabel,
@@ -104,6 +105,7 @@ public class BoardDirectorService : IBoardDirectorService
             LEFT JOIN member_master_profile m ON m.pk_member_master_profile_id = bd.fk_member_master_profile_id
             INNER JOIN designation_master d ON d.pk_designation_id = bd.fk_designation_id
             WHERE bd.fk_club_id = @ClubId AND bd.isdeleted = 0
+              AND {HierarchyScopeSql.ClubIdLive("bd.fk_club_id")}
               AND (bd.fk_member_master_profile_id IS NULL OR m.pk_member_master_profile_id IS NOT NULL)
             ORDER BY y.StartDate DESC",
             new { ClubId = clubId })).ToList();
@@ -342,6 +344,8 @@ public class BoardDirectorService : IBoardDirectorService
     {
         using var connection = CreateConnection();
         await connection.OpenAsync();
+        // SP result: an inactive club (or its district/zone) hides its members.
+        if ((await HierarchyScopeSql.LoadHiddenAsync(connection)).ClubHidden(clubId)) return new List<ClubMemberSearchDto>();
         return (await connection.QueryAsync<ClubMemberSearchDto>(
             "sp_past_president_search_club_members",
             new { p_ClubId = clubId, p_Search = search ?? "" },

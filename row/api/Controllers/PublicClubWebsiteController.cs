@@ -60,7 +60,7 @@ public class PublicClubWebsiteController : ControllerBase
         await conn.OpenAsync();
         var club = await conn.QueryFirstOrDefaultAsync<dynamic>(@"
             SELECT c.ClubName AS clubName, c.IsActive AS isActive, c.isdeleted AS isDeleted
-            FROM club_master c WHERE c.pk_club_id = @C", new { C = clubId });
+            FROM club_master c WHERE c.pk_club_id = @C AND " + HierarchyScopeSql.ClubLive("c"), new { C = clubId });
         if (club == null || Convert.ToBoolean(club.isDeleted) || !Convert.ToBoolean(club.isActive))
             return BadRequest(new { message = "This club is not available for a website purchase right now." });
 

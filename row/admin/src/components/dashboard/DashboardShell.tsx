@@ -40,6 +40,14 @@ export interface NavItem {
    *  Treasurer). The consuming layout resolves officer status and filters these out
    *  for everyone else BEFORE passing `nav` to the shell. */
   officerOnly?: boolean;
+  /** If true, the item is hidden unless the viewer administers the Rotary year
+   *  currently SELECTED in the dashboard year picker.
+   *
+   *  ⚠️ Note for wallet: club_credits carries no year — there is ONE credit pool
+   *  per club, with FromDate/ToDate validity. So this shows the section on an
+   *  administered past year even though the credits it spends are the current
+   *  ones. That is a deliberate product decision (2026-09-21), not an oversight. */
+  adminYearOnly?: boolean;
   /** Instance feature flag (lib/brand.ts FEATURE_DEFAULTS). When the flag is off the
    *  item is hidden for everyone, SuperAdmin included, and its URL shows a notice.
    *  Unlike moduleKey (per district/club), this is an instance-wide switch. */

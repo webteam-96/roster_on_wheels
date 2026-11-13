@@ -13,8 +13,10 @@ public class UpcomingEventsController : ControllerBase
     private readonly string _connectionString;
     private readonly IClubSiteCachePurger _purger;
 
-    public UpcomingEventsController(IUpcomingEventService service, IConfiguration configuration, IClubSiteCachePurger purger)
+    private readonly AdminYearGuard _guard;
+    public UpcomingEventsController(AdminYearGuard guard, IUpcomingEventService service, IConfiguration configuration, IClubSiteCachePurger purger)
     {
+        _guard = guard;
         _service = service;
         _connectionString = configuration.GetConnectionString("DefaultConnection")!;
         _purger = purger;
@@ -43,6 +45,9 @@ public class UpcomingEventsController : ControllerBase
     [HttpPost("api/clubs/{clubId}/upcoming-events")]
     public async Task<ActionResult> Create(int clubId, [FromBody] CreateUpcomingEventDto dto)
     {
+        var denied = await _guard.ClubYearlessAsync(User, clubId);
+        if (denied != null) return denied;
+
         var id = await _service.CreateAsync(clubId, dto, GetUserId());
         _purger.PurgeByClub(clubId);
         return Ok(new { id });
@@ -52,6 +57,9 @@ public class UpcomingEventsController : ControllerBase
     [OwnedBy(Owns.ClubEvent, "id", "clubId")]
     public async Task<ActionResult> Update(int clubId, int id, [FromBody] UpdateUpcomingEventDto dto)
     {
+        var denied = await _guard.ClubYearlessAsync(User, clubId);
+        if (denied != null) return denied;
+
         await _service.UpdateAsync(id, dto, GetUserId());
         _purger.PurgeByClub(clubId);
         return Ok(new { message = "Event updated successfully." });
@@ -61,6 +69,9 @@ public class UpcomingEventsController : ControllerBase
     [OwnedBy(Owns.ClubEvent, "id", "clubId")]
     public async Task<ActionResult> Delete(int clubId, int id)
     {
+        var denied = await _guard.ClubYearlessAsync(User, clubId);
+        if (denied != null) return denied;
+
         await _service.DeleteAsync(id, GetUserId());
         _purger.PurgeByClub(clubId);
         return Ok(new { message = "Event deleted successfully." });
@@ -69,6 +80,9 @@ public class UpcomingEventsController : ControllerBase
     [HttpPost("api/clubs/{clubId}/upcoming-events/upload")]
     public async Task<ActionResult<object>> UploadImage(int clubId, IFormFile file)
     {
+        var denied = await _guard.ClubYearlessAsync(User, clubId);
+        if (denied != null) return denied;
+
         if (file == null || file.Length == 0)
             return BadRequest(new { message = "No file uploaded" });
 

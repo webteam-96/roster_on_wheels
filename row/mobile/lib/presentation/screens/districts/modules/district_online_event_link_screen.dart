@@ -165,7 +165,7 @@ class _DistrictOnlineEventLinkScreenState
   Widget build(BuildContext context) {
     final auth = context.watch<AuthProvider>();
     final canAdmin = auth.isDistrictAdminOf(widget.districtId);
-    final canDelete = auth.isDistrictAdminOf(widget.districtId);
+    final canDelete = auth.canEditDistrict(widget.districtId);
 
     return Scaffold(
       backgroundColor: AppColors.background,

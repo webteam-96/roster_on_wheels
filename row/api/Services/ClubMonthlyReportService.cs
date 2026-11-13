@@ -35,10 +35,10 @@ public class ClubMonthlyReportService : IClubMonthlyReportService
         // rotary year always, deduped. Guarantees admins can submit CMR for
         // the current year even before any report exists for it.
         var rows = await connection.QueryAsync<ReportYearDto>(
-            @"SELECT DISTINCT y.pk_year_id AS Id, y.YearLabel, y.IsCurrent
+            $@"SELECT DISTINCT y.pk_year_id AS Id, y.YearLabel, y.IsCurrent
               FROM club_monthly_reports r
               INNER JOIN rotary_year_master y ON y.pk_year_id = r.fk_year_id
-              WHERE r.fk_club_id = @ClubId AND r.isdeleted = 0
+              WHERE r.fk_club_id = @ClubId AND r.isdeleted = 0 AND {HierarchyScopeSql.ClubIdLive("r.fk_club_id")}
               UNION
               SELECT y.pk_year_id AS Id, y.YearLabel, y.IsCurrent
               FROM rotary_year_master y WHERE y.IsCurrent = 1
@@ -62,9 +62,9 @@ public class ClubMonthlyReportService : IClubMonthlyReportService
         bool isCurrent = Convert.ToBoolean(year.IsCurrent);
 
         var reports = (await connection.QueryAsync<dynamic>(
-            @"SELECT pk_report_id, ReportMonth, IsUploadedToDistrict, created_date, modified_date
+            $@"SELECT pk_report_id, ReportMonth, IsUploadedToDistrict, created_date, modified_date
               FROM club_monthly_reports
-              WHERE fk_club_id = @ClubId AND fk_year_id = @YearId AND isdeleted = 0",
+              WHERE fk_club_id = @ClubId AND fk_year_id = @YearId AND isdeleted = 0 AND {HierarchyScopeSql.ClubIdLive("club_monthly_reports.fk_club_id")}",
             new { ClubId = clubId, YearId = yearId })).ToList();
 
         var result = new List<MonthlyReportListDto>();
@@ -101,7 +101,7 @@ public class ClubMonthlyReportService : IClubMonthlyReportService
         await connection.OpenAsync();
 
         var report = await connection.QueryFirstOrDefaultAsync<dynamic>(
-            @"SELECT pk_report_id, fk_club_id, fk_year_id, ReportMonth,
+            $@"SELECT pk_report_id, fk_club_id, fk_year_id, ReportMonth,
                      MemberCountLastMonth, MembersDeleted, MembersAdded, CurrentMemberCount,
                      AdditionalRemarks, IsUploadedToDistrict, created_date, modified_date,
                      -- AG resolved LIVE (current AG for this club + year), not the creation snapshot.
@@ -113,7 +113,8 @@ public class ClubMonthlyReportService : IClubMonthlyReportService
                         AND da.is_active = 1 AND (da.isdeleted = 0 OR da.isdeleted IS NULL)
                       ORDER BY da.id DESC LIMIT 1) AS AssistantGovernorName
               FROM club_monthly_reports
-              WHERE fk_club_id = @ClubId AND fk_year_id = @YearId AND ReportMonth = @Month AND isdeleted = 0",
+              WHERE fk_club_id = @ClubId AND fk_year_id = @YearId AND ReportMonth = @Month AND isdeleted = 0
+                AND {HierarchyScopeSql.ClubIdLive("club_monthly_reports.fk_club_id")}",
             new { ClubId = clubId, YearId = yearId, Month = month });
 
         if (report == null) return null;
@@ -252,7 +253,8 @@ public class ClubMonthlyReportService : IClubMonthlyReportService
             WHERE cm.fk_club_id = @ClubId
               -- Honorary members are NOT part of the reported member count (they are tracked
               -- separately, same as the club dashboard's headline count). Exclude them.
-              AND COALESCE(cm.IsHonoraryMember, 0) = 0",
+              AND COALESCE(cm.IsHonoraryMember, 0) = 0
+              AND {HierarchyScopeSql.ClubIdLive("cm.fk_club_id")}",
             new { ClubId = clubId, MonthStart = monthStart, MonthEnd = monthEnd });
 
         int lastMonth = (int)(long)(row?.lastMonth ?? 0L);
@@ -446,7 +448,7 @@ public class ClubMonthlyReportService : IClubMonthlyReportService
         try
         {
             report = await connection.QueryFirstOrDefaultAsync<dynamic>(
-                @"SELECT r.pk_report_id, r.MemberCountLastMonth, r.MembersDeleted, r.MembersAdded,
+                $@"SELECT r.pk_report_id, r.MemberCountLastMonth, r.MembersDeleted, r.MembersAdded,
                          r.CurrentMemberCount, r.AdditionalRemarks, r.IsUploadedToDistrict,
                          r.uploaded_to_district_date, r.created_date, r.modified_date, r.created_by, r.modified_by,
                          cm.ClubName, cm.ClubRotaryId AS ClubCode,
@@ -462,7 +464,8 @@ public class ClubMonthlyReportService : IClubMonthlyReportService
                   FROM club_monthly_reports r
                   INNER JOIN club_master cm ON cm.pk_club_id = r.fk_club_id
                   INNER JOIN rotary_year_master y ON y.pk_year_id = r.fk_year_id
-                  WHERE r.fk_club_id = @ClubId AND r.fk_year_id = @YearId AND r.ReportMonth = @Month AND r.isdeleted = 0",
+                  WHERE r.fk_club_id = @ClubId AND r.fk_year_id = @YearId AND r.ReportMonth = @Month AND r.isdeleted = 0
+                    AND {HierarchyScopeSql.ClubLive("cm")}",
                 new { ClubId = clubId, YearId = yearId, Month = month });
         }
         catch (Exception ex)
@@ -716,12 +719,13 @@ public class ClubMonthlyReportService : IClubMonthlyReportService
 
         // Get Club President and Club Secretary from BOD for this year
         var bodMembers = (await connection.QueryAsync<dynamic>(
-            @"SELECT m.MemberName, m.EmailId, d.designation_name AS DesignationName
+            $@"SELECT m.MemberName, m.EmailId, d.designation_name AS DesignationName
               FROM board_of_directors bod
               INNER JOIN member_master_profile m ON m.pk_member_master_profile_id = bod.fk_member_master_profile_id
               INNER JOIN designation_master d ON d.pk_designation_id = bod.fk_designation_id
               WHERE bod.fk_club_id = @ClubId AND bod.fk_year_id = @YearId AND bod.isdeleted = 0
-                AND d.designation_name IN ('Club President', 'Club Secretary')",
+                AND d.designation_name IN ('Club President', 'Club Secretary')
+                AND {HierarchyScopeSql.ClubIdLive("bod.fk_club_id")}",
             new { ClubId = clubId, YearId = dto.YearId })).ToList();
 
         var president = bodMembers.FirstOrDefault(b => (string)b.DesignationName == "Club President");

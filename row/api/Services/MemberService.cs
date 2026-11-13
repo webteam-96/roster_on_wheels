@@ -213,10 +213,30 @@ public class MemberService : IMemberService
         using var connection = CreateConnection();
         await connection.OpenAsync();
 
-        var totalCount = await connection.ExecuteScalarAsync<int>(
-            "sp_member_get_all_count",
-            new { p_Search = string.IsNullOrWhiteSpace(search) ? null : search, p_BloodGroup = string.IsNullOrWhiteSpace(bloodGroup) ? null : bloodGroup, p_Gender = string.IsNullOrWhiteSpace(gender) ? null : gender },
-            commandType: CommandType.StoredProcedure);
+        // Hierarchy scope (2026-10-21): a member whose only active club rows sit in an inactive
+        // club / district / zone is hidden. Members with no active club row stay visible.
+        var hiddenMemberFilter = $@"
+              AND NOT (EXISTS (SELECT 1 FROM club_members hcm
+                               WHERE hcm.fk_member_master_profile_id = m.pk_member_master_profile_id
+                                 AND hcm.IsActive = 1 AND COALESCE(hcm.isdeleted, 0) = 0)
+                       AND NOT EXISTS (SELECT 1 FROM club_members hcm2
+                               WHERE hcm2.fk_member_master_profile_id = m.pk_member_master_profile_id
+                                 AND hcm2.IsActive = 1 AND COALESCE(hcm2.isdeleted, 0) = 0
+                                 AND {HierarchyScopeSql.ClubIdLive("hcm2.fk_club_id")}))";
+
+        // Inline count (was sp_member_get_all_count) so the total uses the same filter as the list.
+        var totalCount = await connection.ExecuteScalarAsync<int>(@"
+            SELECT COUNT(*)
+            FROM member_master_profile m
+            WHERE m.isdeleted = 0
+              AND (@Search IS NULL
+                   OR m.MemberName LIKE CONCAT('%', @Search, '%')
+                   OR m.EmailId LIKE CONCAT('%', @Search, '%')
+                   OR m.PrimaryMobileNumber LIKE CONCAT('%', @Search, '%')
+                   OR m.RotaryId LIKE CONCAT('%', @Search, '%'))
+              AND (@BloodGroup IS NULL OR m.BloodGroup = @BloodGroup)
+              AND (@Gender IS NULL OR m.Gender = @Gender)" + hiddenMemberFilter,
+            new { Search = string.IsNullOrWhiteSpace(search) ? null : search, BloodGroup = string.IsNullOrWhiteSpace(bloodGroup) ? null : bloodGroup, Gender = string.IsNullOrWhiteSpace(gender) ? null : gender });
 
         var offset = (page - 1) * pageSize;
 
@@ -243,14 +263,18 @@ public class MemberService : IMemberService
                 ra.State AS ResState
             FROM member_master_profile m
             JOIN country_master pc ON pc.pk_country_id = m.fk_primary_country_id
+            -- One card per member (upstream 2026-11-02): the newest Business and the newest home row only,
+            -- however many address rows the member has.
             LEFT JOIN member_address_details ba
-                ON ba.fk_member_master_profile_id = m.pk_member_master_profile_id
-                AND ba.AddressType = 'Business'
-                AND ba.isdeleted = 0
+                ON ba.pk_member_address_details_id = (
+                    SELECT MAX(x.pk_member_address_details_id) FROM member_address_details x
+                    WHERE x.fk_member_master_profile_id = m.pk_member_master_profile_id
+                      AND x.AddressType = 'Business' AND x.isdeleted = 0)
             LEFT JOIN member_address_details ra
-                ON ra.fk_member_master_profile_id = m.pk_member_master_profile_id
-                AND ra.AddressType IN ('Residential','Residence')
-                AND ra.isdeleted = 0
+                ON ra.pk_member_address_details_id = (
+                    SELECT MAX(x.pk_member_address_details_id) FROM member_address_details x
+                    WHERE x.fk_member_master_profile_id = m.pk_member_master_profile_id
+                      AND x.AddressType IN ('Residential','Residence') AND x.isdeleted = 0)
             LEFT JOIN (
                 SELECT fk_member_master_profile_id,
                        MAX(Designation) AS Designation
@@ -290,6 +314,17 @@ public class MemberService : IMemberService
         using var connection = CreateConnection();
         await connection.OpenAsync();
 
+        // Hierarchy scope (2026-10-21): opened in a club's context and that club (or its
+        // district / zone) is inactive -> not found. No-club calls (existence checks before
+        // update / delete) stay unfiltered so writes by id keep working.
+        if (clubId.HasValue && clubId.Value > 0)
+        {
+            var clubLive = await connection.ExecuteScalarAsync<int>(
+                $"SELECT CASE WHEN {HierarchyScopeSql.ClubIdLive("@ClubId")} THEN 1 ELSE 0 END",
+                new { ClubId = clubId.Value });
+            if (clubLive == 0) return null;
+        }
+
         // Inline SQL instead of sp_member_get_by_id so we can wrap FamilyPhotoPath in a CASE/CONCAT
         // that emits a /Documents/directory/<filename> URL (rewritten via Media:RedirectBaseUrl
         // to example.org when the API can't serve the file locally). SP can't be modified —
@@ -311,6 +346,8 @@ public class MemberService : IMemberService
                 m.BirthDate,
                 m.AnniversaryDate,
                 m.BloodGroup,
+                m.fk_tshirt_size_id AS TshirtSizeId,
+                (SELECT ts.SizeName FROM event_tshirt_sizes ts WHERE ts.pk_id = m.fk_tshirt_size_id) AS TshirtSize,
                 m.fk_secondary_country_id AS FkSecondaryCountryId,
                 sc.CountryName AS SecondaryCountry,
                 sc.PhoneCode AS SecondaryCountryPhoneCode,
@@ -469,6 +506,7 @@ public class MemberService : IMemberService
                         BirthDate = @BirthDate,
                         AnniversaryDate = @AnniversaryDate,
                         BloodGroup = @BloodGroup,
+                        fk_tshirt_size_id = CASE WHEN @TshirtSizeId IS NULL THEN fk_tshirt_size_id WHEN @TshirtSizeId <= 0 THEN NULL WHEN EXISTS (SELECT 1 FROM event_tshirt_sizes ts WHERE ts.pk_id = @TshirtSizeId AND ts.SizeName IN ('XS','S','M','L','XL','XXL','XXXL')) THEN @TshirtSizeId ELSE fk_tshirt_size_id END,
                         fk_secondary_country_id = @FkSecondaryCountryId,
                         SecondaryMobileNumber = @SecondaryMobileNumber,
                         IsPersonalDetailsVisible = @IsPersonalDetailsVisible,
@@ -501,7 +539,7 @@ public class MemberService : IMemberService
                         dto.EmailId,
                         BirthDate = NormalizeBirthAnnivYear(dto.BirthDate),
                         AnniversaryDate = NormalizeBirthAnnivYear(dto.AnniversaryDate),
-                        dto.BloodGroup,
+                        dto.BloodGroup, dto.TshirtSizeId,
                         FkSecondaryCountryId = CountryOrNull(dto.FkSecondaryCountryId),
                         dto.SecondaryMobileNumber,
                         dto.IsPersonalDetailsVisible,
@@ -650,7 +688,7 @@ public class MemberService : IMemberService
             var memberId = await connection.ExecuteScalarAsync<int>(@"
                 INSERT INTO member_master_profile (
                     MemberName, ProfilePhotoPath, fk_primary_country_id, PrimaryMobileNumber,
-                    EmailId, BirthDate, AnniversaryDate, BloodGroup,
+                    EmailId, BirthDate, AnniversaryDate, BloodGroup, fk_tshirt_size_id,
                     fk_secondary_country_id, SecondaryMobileNumber,
                     IsPersonalDetailsVisible, Gender, PrimaryLanguage,
                     IsYouth, MemberIntroduction,
@@ -660,6 +698,7 @@ public class MemberService : IMemberService
                 ) VALUES (
                     @MemberName, @ProfilePhotoPath, @FkPrimaryCountryId, @PrimaryMobileNumber,
                     @EmailId, @BirthDate, @AnniversaryDate, @BloodGroup,
+                    (SELECT ts.pk_id FROM event_tshirt_sizes ts WHERE ts.pk_id = @TshirtSizeId AND ts.SizeName IN ('XS','S','M','L','XL','XXL','XXXL')),
                     @FkSecondaryCountryId, @SecondaryMobileNumber,
                     @IsPersonalDetailsVisible, @Gender, @PrimaryLanguage,
                     @IsYouth, @MemberIntroduction,
@@ -673,7 +712,7 @@ public class MemberService : IMemberService
                     dto.EmailId,
                     BirthDate       = NormalizeBirthAnnivYear(dto.BirthDate),
                     AnniversaryDate = NormalizeBirthAnnivYear(dto.AnniversaryDate),
-                    dto.BloodGroup,
+                    dto.BloodGroup, dto.TshirtSizeId,
                     FkSecondaryCountryId = CountryOrNull(dto.FkSecondaryCountryId), dto.SecondaryMobileNumber,
                     IsPersonalDetailsVisible = dto.IsPersonalDetailsVisible ? 1 : 0,
                     dto.Gender, dto.PrimaryLanguage,
@@ -686,7 +725,7 @@ public class MemberService : IMemberService
 
             if (dto.Addresses != null)
             {
-                foreach (var addr in dto.Addresses)
+                foreach (var addr in OneAddressPerType(dto.Addresses))
                 {
                     addr.FkMemberMasterProfileId = memberId;
                     await InsertAddress(connection, addr, transaction);
@@ -815,6 +854,7 @@ public class MemberService : IMemberService
                     BirthDate = @BirthDate,
                     AnniversaryDate = @AnniversaryDate,
                     BloodGroup = @BloodGroup,
+                    fk_tshirt_size_id = CASE WHEN @TshirtSizeId IS NULL THEN fk_tshirt_size_id WHEN @TshirtSizeId <= 0 THEN NULL WHEN EXISTS (SELECT 1 FROM event_tshirt_sizes ts WHERE ts.pk_id = @TshirtSizeId AND ts.SizeName IN ('XS','S','M','L','XL','XXL','XXXL')) THEN @TshirtSizeId ELSE fk_tshirt_size_id END,
                     fk_secondary_country_id = @FkSecondaryCountryId,
                     SecondaryMobileNumber = @SecondaryMobileNumber,
                     IsPersonalDetailsVisible = @IsPersonalDetailsVisible,
@@ -841,7 +881,7 @@ public class MemberService : IMemberService
                     dto.EmailId,
                     BirthDate       = NormalizeBirthAnnivYear(dto.BirthDate),
                     AnniversaryDate = NormalizeBirthAnnivYear(dto.AnniversaryDate),
-                    dto.BloodGroup,
+                    dto.BloodGroup, dto.TshirtSizeId,
                     FkSecondaryCountryId = CountryOrNull(dto.FkSecondaryCountryId), dto.SecondaryMobileNumber,
                     IsPersonalDetailsVisible = dto.IsPersonalDetailsVisible ? 1 : 0,
                     dto.Gender, dto.PrimaryLanguage,
@@ -858,7 +898,7 @@ public class MemberService : IMemberService
                     "sp_member_address_soft_delete_by_member",
                     new { p_MemberId = id }, transaction, commandType: CommandType.StoredProcedure);
 
-                foreach (var addr in dto.Addresses)
+                foreach (var addr in OneAddressPerType(dto.Addresses))
                 {
                     addr.FkMemberMasterProfileId = id;
                     await InsertAddress(connection, addr, transaction);
@@ -1015,6 +1055,23 @@ public class MemberService : IMemberService
                 p_AnniversaryDate = NormalizeBirthAnnivYear(fm.AnniversaryDate),
                 p_PhotoPath = fm.PhotoPath
             }, transaction, commandType: CommandType.StoredProcedure);
+    }
+
+    // A member keeps ONE Business and ONE home address (upstream 2026-11-02). "Residence" and "Residential"
+    // are the same home address under two names, so a save that sends both keeps only the last one of
+    // each. Every client (web, mobile, old app) goes through here. Home rows are stored as "Residence".
+    internal static bool IsHomeAddressType(string? t) =>
+        string.Equals(t, "Residence", StringComparison.OrdinalIgnoreCase) || string.Equals(t, "Residential", StringComparison.OrdinalIgnoreCase);
+
+    internal static List<MemberAddressDto> OneAddressPerType(IEnumerable<MemberAddressDto> addresses)
+    {
+        var keep = new Dictionary<string, MemberAddressDto>(StringComparer.OrdinalIgnoreCase);
+        foreach (var a in addresses)
+        {
+            if (IsHomeAddressType(a.AddressType)) a.AddressType = "Residence";
+            keep[a.AddressType ?? ""] = a;
+        }
+        return keep.Values.ToList();
     }
 }
 

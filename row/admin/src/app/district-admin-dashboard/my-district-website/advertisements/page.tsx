@@ -13,7 +13,7 @@
  *   ?yearId=...   — top-bar Rotary Year filter; preserved on navigation.
  */
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import { RotaryYear } from "@/types/rotaryYear";
@@ -32,6 +32,9 @@ import {
 import { useDragSort } from "@/hooks/useDragSort";
 import { fileNameOnly } from "@/lib/pathUtils";
 import { useAuth } from "@/contexts/AuthContext";
+import { districtYearRights, canEditYear, heldYearLabels } from "@/lib/adminYears";
+import { useRotaryYears } from "@/hooks/useRotaryYears";
+import ViewOnlyBadge from "@/components/ViewOnlyBadge";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -81,7 +84,7 @@ interface AdvertisementItem {
 }
 
 export default function DistrictAdminDashboardAdvertisementsPage() {
-  const { selectedDistrictId, isSuperAdmin, isAdmin } = useAuth();
+  const { selectedDistrictId, isSuperAdmin, isAdmin, user } = useAuth();
   const districtId = selectedDistrictId ?? 0;
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -129,7 +132,12 @@ export default function DistrictAdminDashboardAdvertisementsPage() {
 
   const [deleteTarget, setDeleteTarget] = useState<AdvertisementItem | null>(null);
 
-  const canManage = isSuperAdmin || isAdmin;
+  // This part of the district website IS year-scoped — each Rotary year has its
+  // own rows — so editing needs rights for the year on screen.
+  const { years: rotaryYears } = useRotaryYears();
+  const siteRights = useMemo(() => districtYearRights(user?.scopedRoles, districtId), [user?.scopedRoles, districtId]);
+  const canManage = (isSuperAdmin || isAdmin) && canEditYear(siteRights, Number(selectedYearId) || undefined, isSuperAdmin);
+  const editableYears = heldYearLabels(siteRights, rotaryYears.map((y) => ({ id: y.id, label: y.yearLabel })));
   const activeCount = advertisements.filter((a) => a.isActive).length;
   const filteredAdvertisements = advertisements.filter((ad) => {
     if (!searchQuery.trim()) return true;
@@ -262,6 +270,10 @@ export default function DistrictAdminDashboardAdvertisementsPage() {
 
   return (
     <ProtectedRoute>
+      {!canManage && (
+        <ViewOnlyBadge editableYears={editableYears} className="mb-4" />
+      )}
+
       <div className="space-y-6">
         {/* ── Header ────────────────────────────────────────────────── */}
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">

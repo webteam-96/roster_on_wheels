@@ -4,7 +4,7 @@
 // rotary-frontend/src/app/districts/[id]/district-committee/groups/[groupId]/page.tsx.
 // districtId from useAuth(); routes/returnTo use /district-admin-dashboard/... V2 paths.
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import {
   getGroupMembers, createGroupMember, updateGroupMember, deleteGroupMember,
@@ -15,6 +15,9 @@ import {
 import { useDragSort } from "@/hooks/useDragSort";
 import { GripVertical } from "@/components/icons";
 import { useAuth } from "@/contexts/AuthContext";
+import { districtYearRights, canEditYear, heldYearLabels } from "@/lib/adminYears";
+import { useRotaryYears } from "@/hooks/useRotaryYears";
+import ViewOnlyBadge from "@/components/ViewOnlyBadge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -73,12 +76,18 @@ export default function DistrictAdminDashboardGroupDetailPage() {
   const groupId = Number(params.groupId);
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { selectedDistrictId, isSuperAdmin, isAdmin } = useAuth();
+  const { selectedDistrictId, isSuperAdmin, isAdmin, user } = useAuth();
   const districtId = selectedDistrictId ?? 0;
-  const canManage = isSuperAdmin || isAdmin;
 
   const returnTo = searchParams.get("returnTo");
   const currentYearId = searchParams.get("yearId");
+
+  // A committee group and its members belong to a Rotary year. Sub-groups hang
+  // off a group, so the group's year governs those too.
+  const { years: rotaryYears } = useRotaryYears();
+  const rights = useMemo(() => districtYearRights(user?.scopedRoles, districtId), [user?.scopedRoles, districtId]);
+  const canManage = (isSuperAdmin || isAdmin) && canEditYear(rights, Number(currentYearId) || undefined, isSuperAdmin);
+  const editableYears = heldYearLabels(rights, rotaryYears.map((y) => ({ id: y.id, label: y.yearLabel })));
   const backParams = new URLSearchParams();
   if (returnTo) backParams.set("returnTo", returnTo);
   if (currentYearId) backParams.set("yearId", currentYearId);
@@ -316,6 +325,10 @@ export default function DistrictAdminDashboardGroupDetailPage() {
 
   return (
     <ProtectedRoute>
+      {!canManage && (
+        <ViewOnlyBadge editableYears={editableYears} className="mb-4" />
+      )}
+
       <div className="space-y-6">
         <DistrictMembershipTabBar />
         <div className="flex items-center gap-3">

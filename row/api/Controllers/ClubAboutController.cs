@@ -13,8 +13,10 @@ public class ClubAboutController : ControllerBase
     private readonly string _connectionString;
     private readonly IClubSiteCachePurger _purger;
 
-    public ClubAboutController(IClubAboutService service, IConfiguration configuration, IClubSiteCachePurger purger)
+    private readonly AdminYearGuard _guard;
+    public ClubAboutController(AdminYearGuard guard, IClubAboutService service, IConfiguration configuration, IClubSiteCachePurger purger)
     {
+        _guard = guard;
         _service = service;
         _connectionString = configuration.GetConnectionString("DefaultConnection")!;
         _purger = purger;
@@ -42,6 +44,9 @@ public class ClubAboutController : ControllerBase
     [HttpPost("api/clubs/{clubId}/website-data/about")]
     public async Task<ActionResult> Create(int clubId, [FromBody] CreateClubAboutDto dto)
     {
+        var denied = await _guard.ClubYearlessAsync(User, clubId);
+        if (denied != null) return denied;
+
         try
         {
             var id = await _service.CreateAsync(clubId, dto, GetUserId());
@@ -57,6 +62,9 @@ public class ClubAboutController : ControllerBase
     [HttpPut("api/clubs/{clubId}/website-data/about/{id}")]
     public async Task<ActionResult> Update(int clubId, int id, [FromBody] UpdateClubAboutDto dto)
     {
+        var denied = await _guard.ClubYearlessAsync(User, clubId);
+        if (denied != null) return denied;
+
         await _service.UpdateAsync(id, dto, GetUserId());
         _purger.PurgeByClub(clubId);
         return Ok(new { message = "About content updated successfully." });
@@ -65,6 +73,9 @@ public class ClubAboutController : ControllerBase
     [HttpDelete("api/clubs/{clubId}/website-data/about/{id}")]
     public async Task<ActionResult> Delete(int clubId, int id)
     {
+        var denied = await _guard.ClubYearlessAsync(User, clubId);
+        if (denied != null) return denied;
+
         await _service.DeleteAsync(id, GetUserId());
         _purger.PurgeByClub(clubId);
         return Ok(new { message = "About content deleted successfully." });
@@ -73,6 +84,9 @@ public class ClubAboutController : ControllerBase
     [HttpPost("api/clubs/{clubId}/website-data/about/upload")]
     public async Task<ActionResult<object>> UploadImage(int clubId, IFormFile file)
     {
+        var denied = await _guard.ClubYearlessAsync(User, clubId);
+        if (denied != null) return denied;
+
         if (file == null || file.Length == 0)
             return BadRequest(new { message = "No file uploaded" });
 

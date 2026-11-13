@@ -114,7 +114,9 @@ public class EventPaymentLinkService : IEventPaymentLinkService
             LEFT JOIN club_master c ON l.fk_club_id = c.pk_club_id
             LEFT JOIN member_master_profile m ON l.created_by = m.pk_member_master_profile_id
             WHERE l.isdeleted = 0";
+        sql += " AND " + HierarchyScopeSql.ClubIdLive("l.fk_club_id") + " AND " + HierarchyScopeSql.DistrictIdLive("l.fk_district_master_id");
 
+        sql += " AND " + HierarchyScopeSql.ClubLive("c");
         if (clubId.HasValue && clubId > 0)
             sql += " AND l.fk_club_id = @ClubId";
         if (districtId.HasValue && districtId > 0)
@@ -821,6 +823,7 @@ public class EventPaymentLinkService : IEventPaymentLinkService
                 return Enumerable.Empty<EventMemberListDto>();
             }
 
+            sql += " AND " + HierarchyScopeSql.ClubLive("c");
             if (!string.IsNullOrWhiteSpace(search))
                 sql += " AND (m.MemberName LIKE @Search OR m.PrimaryMobileNumber LIKE @Search OR m.EmailId LIKE @Search)";
             sql += " ORDER BY m.MemberName";
@@ -1184,13 +1187,13 @@ public class EventPaymentLinkService : IEventPaymentLinkService
             {
                 var ids = link.DistrictIdsList.Split(',').Select(int.Parse).ToList();
                 link.Districts = (await conn.QueryAsync<PublicDistrictDto>(
-                    "SELECT pk_district_id AS Id, DistrictNumber FROM district_master WHERE pk_district_id IN @Ids",
+                    "SELECT pk_district_id AS Id, DistrictNumber FROM district_master WHERE pk_district_id IN @Ids AND " + HierarchyScopeSql.DistrictLive("district_master"),
                     new { Ids = ids })).ToList();
             }
             else if (link.FkDistrictMasterId.HasValue && link.FkDistrictMasterId > 0)
             {
                 link.Districts = (await conn.QueryAsync<PublicDistrictDto>(
-                    "SELECT pk_district_id AS Id, DistrictNumber FROM district_master WHERE pk_district_id=@Id",
+                    "SELECT pk_district_id AS Id, DistrictNumber FROM district_master WHERE pk_district_id=@Id AND " + HierarchyScopeSql.DistrictLive("district_master"),
                     new { Id = link.FkDistrictMasterId })).ToList();
             }
         }
@@ -1202,7 +1205,7 @@ public class EventPaymentLinkService : IEventPaymentLinkService
     {
         using var conn = GetConnection();
         return await conn.QueryAsync<PublicClubDto>(
-            "SELECT pk_club_id AS Id, ClubName FROM club_master WHERE fk_district_id=@DistrictId AND IsActive=1 ORDER BY ClubName",
+            "SELECT pk_club_id AS Id, ClubName FROM club_master WHERE fk_district_id=@DistrictId AND IsActive=1 AND " + HierarchyScopeSql.ClubLive("club_master") + " ORDER BY ClubName",
             new { DistrictId = districtId });
     }
 

@@ -11,11 +11,11 @@ import { loadMessages } from "@/i18n/messages";
  */
 export default getRequestConfig(async () => {
   const brand = await getServerBrand();
-  const cookieLocale = cookies().get(LOCALE_COOKIE)?.value;
+  const cookieLocale = (await cookies()).get(LOCALE_COOKIE)?.value;
   const resolved = resolveLocale(
     cookieLocale,
     null,
-    parseAcceptLanguage(headers().get("accept-language")),
+    parseAcceptLanguage((await headers()).get("accept-language")),
     brand.locale.defaultLanguage,
     brand.locale.languages,
     process.env.NODE_ENV !== "production",

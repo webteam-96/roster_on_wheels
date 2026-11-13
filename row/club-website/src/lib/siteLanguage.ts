@@ -14,20 +14,21 @@ export * from "./siteLanguagePath";
 
 /** One API call per request: layout, metadata and page share it. */
 export const getSiteLanguage = cache(async (clubId: number): Promise<SiteLanguage | null> => {
-  const asked = headers().get("x-site-lang");
+  const asked = (await headers()).get("x-site-lang");
   return fetchJson<SiteLanguage>(
     `/api/public/website-languages/club/${clubId}${asked ? `?lang=${encodeURIComponent(asked)}` : ""}`);
 });
 
 /** This page's path without the language prefix. */
-export function sitePath(): string {
-  return headers().get("x-site-path") || "/";
+export async function sitePath(): Promise<string> {
+  return (await headers()).get("x-site-path") || "/";
 }
 
 /** Base for the absolute hreflang URLs. */
-export function siteOrigin(): URL | undefined {
-  const host = headers().get("x-tenant-host") || headers().get("host");
-  const proto = headers().get("x-forwarded-proto")?.split(",")[0].trim() || "https";
+export async function siteOrigin(): Promise<URL | undefined> {
+  const h = await headers();
+  const host = h.get("x-tenant-host") || h.get("host");
+  const proto = h.get("x-forwarded-proto")?.split(",")[0].trim() || "https";
   try {
     return host ? new URL(`${proto}://${host}`) : undefined;
   } catch {

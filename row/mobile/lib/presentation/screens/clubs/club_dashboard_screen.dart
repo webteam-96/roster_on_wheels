@@ -1,4 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:rotary_flutter_app/presentation/widgets/view_only_notice.dart';
 import 'package:flutter/material.dart' hide Text;
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -461,6 +462,8 @@ class _ClubDashboardScreenState extends State<ClubDashboardScreen>
                 ),
               ],
             ),
+            if (isAdminHere && !context.watch<AuthProvider>().canEditClub(widget.clubId))
+              const SliverToBoxAdapter(child: ViewOnlyNotice()),
             SliverToBoxAdapter(
               child: _loading
                   ? const Padding(

@@ -47,7 +47,7 @@ public class MobileMembershipDuesController : ControllerBase
         using var conn = CreateConnection();
         await conn.OpenAsync();
 
-        var items = await conn.QueryAsync<dynamic>(@"
+        var items = await conn.QueryAsync<dynamic>($@"
             SELECT md.pk_membership_dues_id AS duesId,
                    md.RotaryYear AS rotaryYear,
                    md.Purpose AS purpose,
@@ -80,6 +80,7 @@ public class MobileMembershipDuesController : ControllerBase
             JOIN membership_dues_member_fees mf ON mf.fk_membership_dues_id = md.pk_membership_dues_id
                  AND mf.fk_member_profile_id = @MemberId AND mf.isdeleted = 0
             WHERE md.IsActive = 1 AND md.isdeleted = 0
+              AND {HierarchyScopeSql.ClubLive("c")}
             ORDER BY md.RotaryYear DESC, c.ClubName",
             new { MemberId = memberId });
 
@@ -200,7 +201,7 @@ public class MobileMembershipDuesController : ControllerBase
         using var conn = CreateConnection();
         await conn.OpenAsync();
 
-        var dues = await conn.QueryFirstOrDefaultAsync<dynamic>(@"
+        var dues = await conn.QueryFirstOrDefaultAsync<dynamic>($@"
             SELECT md.pk_membership_dues_id AS duesId,
                    md.RotaryYear AS rotaryYear,
                    md.Purpose AS purpose,
@@ -214,7 +215,8 @@ public class MobileMembershipDuesController : ControllerBase
             JOIN club_master c ON c.pk_club_id = md.fk_club_id
             JOIN district_master d ON d.pk_district_id = md.fk_district_id
             WHERE md.pk_membership_dues_id = @DuesId
-              AND md.isdeleted = 0 AND md.IsActive = 1",
+              AND md.isdeleted = 0 AND md.IsActive = 1
+              AND {HierarchyScopeSql.ClubLive("c")}",
             new { DuesId = duesId });
         if (dues == null) return NotFound(new { message = "Club dues not found." });
 

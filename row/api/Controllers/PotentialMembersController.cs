@@ -15,8 +15,11 @@ public class PotentialMembersController : ControllerBase
     private readonly IAuditLogService _auditLog;
     private readonly string _connectionString;
 
-    public PotentialMembersController(IPotentialMemberService service, IAuditLogService auditLog, IConfiguration configuration)
+    private readonly AdminYearGuard _guard;
+
+    public PotentialMembersController(IPotentialMemberService service, IAuditLogService auditLog, IConfiguration configuration, AdminYearGuard guard)
     {
+        _guard = guard;
         _service = service;
         _auditLog = auditLog;
         _connectionString = configuration.GetConnectionString("DefaultConnection")!;
@@ -49,6 +52,9 @@ public class PotentialMembersController : ControllerBase
     [HttpPost]
     public async Task<ActionResult> Create(int clubId, [FromBody] CreatePotentialMemberDto dto)
     {
+        var denied = await _guard.ClubYearlessAsync(User, clubId);
+        if (denied != null) return denied;
+
         try { return Ok(new { id = await _service.CreateAsync(clubId, dto, GetUserId()) }); }
         catch (ArgumentException ex) { return BadRequest(new { message = ex.Message }); }
     }
@@ -56,6 +62,9 @@ public class PotentialMembersController : ControllerBase
     [HttpPut("{id}")]
     public async Task<ActionResult> Update(int clubId, int id, [FromBody] UpdatePotentialMemberDto dto)
     {
+        var denied = await _guard.ClubYearlessAsync(User, clubId);
+        if (denied != null) return denied;
+
         try
         {
             if (!await _service.UpdateAsync(clubId, id, dto, GetUserId())) return NotFound(new { message = "Potential member not found." });
@@ -67,6 +76,9 @@ public class PotentialMembersController : ControllerBase
     [HttpDelete("{id}")]
     public async Task<ActionResult> Delete(int clubId, int id)
     {
+        var denied = await _guard.ClubYearlessAsync(User, clubId);
+        if (denied != null) return denied;
+
         if (!await _service.DeleteAsync(clubId, id, GetUserId())) return NotFound(new { message = "Potential member not found." });
         return Ok(new { message = "Potential member deleted successfully." });
     }

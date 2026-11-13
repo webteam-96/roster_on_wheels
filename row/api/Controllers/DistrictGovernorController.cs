@@ -34,7 +34,7 @@ public class DistrictGovernorController : ControllerBase
         using var conn = CreateConnection();
         await conn.OpenAsync();
 
-        var where = "g.isdeleted = 0";
+        var where = $"g.isdeleted = 0 AND {HierarchyScopeSql.DistrictLive("d")}";
         if (districtId.HasValue) where += " AND g.fk_district_id = @DistrictId";
         if (yearId.HasValue) where += " AND g.fk_year_id = @YearId";
 
@@ -130,6 +130,17 @@ public class DistrictGovernorController : ControllerBase
             INSERT INTO district_governors (fk_district_id, fk_year_id, fk_member_id, member_name, description, profile_photo, email, mobile_number, created_by, created_date, isdeleted)
             VALUES (@DistrictId, @YearId, @MemberId, @MemberName, @Description, @ProfilePhoto, @Email, @Mobile, @UserId, NOW(), 0);
             SELECT LAST_INSERT_ID();", p);
+
+        // Being DG makes you a District Admin, the same way being Club President
+        // or Secretary makes you a Club Admin (ClubLeadershipController does the
+        // club half with EnsureActiveClubAdminRoleAsync).
+        //
+        // The ROLE is what this grants. The YEAR comes separately and live, from
+        // AdminYearService reading district_governors — so it is already the year
+        // of this DG row, and a later correction to the row moves the rights with
+        // it. Nothing here writes a year.
+        await EnsureDgIsDistrictAdminAsync(conn, dto.MemberId, dto.DistrictId);
+
         return Ok(new { id, message = "District Governor added." });
     }
 
@@ -242,11 +253,11 @@ public class DistrictGovernorController : ControllerBase
         if (!IsSuperAdmin()) return Forbid();
         using var conn = CreateConnection();
         await conn.OpenAsync();
-        var items = await conn.QueryAsync<dynamic>(@"
+        var items = await conn.QueryAsync<dynamic>($@"
             SELECT DISTINCT d.pk_district_id AS id, d.DistrictNumber AS districtNumber
             FROM district_governors g
             JOIN district_master d ON d.pk_district_id = g.fk_district_id
-            WHERE g.isdeleted = 0 AND d.isdeleted = 0
+            WHERE g.isdeleted = 0 AND d.isdeleted = 0 AND {HierarchyScopeSql.DistrictLive("d")}
             ORDER BY CAST(d.DistrictNumber AS UNSIGNED), d.DistrictNumber");
         return Ok(items);
     }
@@ -258,11 +269,11 @@ public class DistrictGovernorController : ControllerBase
         if (!IsSuperAdmin()) return Forbid();
         using var conn = CreateConnection();
         await conn.OpenAsync();
-        var items = await conn.QueryAsync<dynamic>(@"
+        var items = await conn.QueryAsync<dynamic>($@"
             SELECT DISTINCT y.pk_year_id AS id, y.YearLabel AS yearLabel, y.IsCurrent AS isCurrent
             FROM district_governors g
             JOIN rotary_year_master y ON y.pk_year_id = g.fk_year_id
-            WHERE g.isdeleted = 0
+            WHERE g.isdeleted = 0 AND {HierarchyScopeSql.DistrictIdLive("g.fk_district_id")}
             ORDER BY y.pk_year_id DESC");
         return Ok(items);
     }
@@ -299,7 +310,7 @@ public class DistrictGovernorController : ControllerBase
         if (string.IsNullOrWhiteSpace(search) || search.Length < 2) return Ok(Array.Empty<object>());
         using var conn = CreateConnection();
         await conn.OpenAsync();
-        var members = await conn.QueryAsync<dynamic>(@"
+        var members = await conn.QueryAsync<dynamic>($@"
             SELECT DISTINCT m.pk_member_master_profile_id AS memberId, m.MemberName AS memberName,
                    CASE
                        WHEN m.ProfilePhotoPath IS NULL OR m.ProfilePhotoPath = '' THEN NULL
@@ -312,12 +323,27 @@ public class DistrictGovernorController : ControllerBase
             JOIN club_members cm ON cm.fk_member_master_profile_id = m.pk_member_master_profile_id AND cm.IsActive = 1 AND cm.isdeleted = 0
             JOIN club_master c ON c.pk_club_id = cm.fk_club_id AND c.isdeleted = 0
             JOIN district_master d ON d.pk_district_id = c.fk_district_id AND d.isdeleted = 0
-            WHERE m.isdeleted = 0
+            WHERE m.isdeleted = 0 AND {HierarchyScopeSql.ClubLive("c")}
               AND (m.MemberName LIKE @Search OR m.PrimaryMobileNumber LIKE @Search OR m.EmailId LIKE @Search)
             ORDER BY m.MemberName
             LIMIT 20",
             new { Search = $"%{search}%" });
         return Ok(members);
+    }
+
+    /// <summary>
+    /// Gives a newly recorded DG the District Admin role, when the row actually
+    /// names a member.
+    ///
+    /// ⚠️ fk_member_id is NULLABLE on district_governors — legacy rows carry only
+    /// a typed-in member_name and link to nobody. Those get no role, and must not:
+    /// there is no one to give it to.
+    /// </summary>
+    private async Task EnsureDgIsDistrictAdminAsync(MySqlConnection conn, int? memberId, int districtId)
+    {
+        if (memberId is not int mid || mid <= 0 || districtId <= 0) return;
+        await RotaryApi.Services.ClubAdminAccessHelper.EnsureActiveDistrictAdminRoleAsync(
+            conn, mid, districtId, GetUserId());
     }
 }
 

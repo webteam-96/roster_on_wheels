@@ -538,7 +538,7 @@ class _ClubMonthlyReportScreenState extends State<ClubMonthlyReportScreen> {
   bool get _canManage =>
       !widget.viewOnly &&
       Provider.of<AuthProvider>(context, listen: false)
-          .isClubAdminOf(widget.clubId);
+          .canEditClub(widget.clubId);
 
   Widget _rowActions(Map<String, dynamic> item, int monthNum, bool isCreated,
       bool isDownloading) {

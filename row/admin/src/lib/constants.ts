@@ -1,10 +1,8 @@
-import { WORLD_LANGUAGE_NAMES } from "@/i18n/worldLanguages";
 
 export const BLOOD_GROUPS = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"];
 export const GENDERS = ["Male", "Female", "Other"];
-// A member's primary language: any world language (not limited to the brand's region),
-// rendered from i18n/worldLanguages, then "Other".
-export const LANGUAGES = [...WORLD_LANGUAGE_NAMES, "Other"];
+// A member's primary language: the eight launch languages (i18n/config SUPPORTED_LOCALES), then "Other".
+export const LANGUAGES = ["English", "French", "German", "Italian", "Japanese", "Korean", "Portuguese", "Spanish", "Other"];
 // Family relations — alphabetical, no "Other"/"Others" fallback. Spouse is
 // kept (gender-neutral) — Husband/Wife intentionally NOT included; the old
 // project used only Spouse and we're keeping that convention. If the user

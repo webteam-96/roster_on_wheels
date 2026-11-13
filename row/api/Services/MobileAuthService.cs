@@ -340,6 +340,8 @@ public class MobileAuthService : IMobileAuthService
 
         return new MyContextResponse
         {
+            // Year-wise Admin Rights: the app checks admin buttons against this year.
+            CurrentYearId = await AdminYearService.GetCurrentYearIdAsync(conn),
             MemberId = memberId,
             MemberName = displayName,
             Email = displayEmail,

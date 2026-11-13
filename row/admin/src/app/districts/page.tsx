@@ -41,7 +41,7 @@ export default function DistrictsPage() {
     setHasSearched(true);
     try {
       const isActive = status ? parseInt(status) : undefined;
-      const result = await getDistricts(pageNum || page, 20, search || undefined, isActive);
+      const result = await getDistricts(pageNum || page, 20, search || undefined, isActive, undefined, undefined, undefined, undefined, true);
       setData(result);
     } catch (err) {
       const message = err instanceof Error ? err.message : "Failed to fetch districts";
@@ -62,7 +62,7 @@ export default function DistrictsPage() {
     setLoading(true);
     setError(null);
     const isActive = status ? parseInt(status) : undefined;
-    getDistricts(newPage, 20, search || undefined, isActive)
+    getDistricts(newPage, 20, search || undefined, isActive, undefined, undefined, undefined, undefined, true)
       .then(result => setData(result))
       .catch(err => setError(err instanceof Error ? err.message : "Failed to fetch districts"))
       .finally(() => setLoading(false));

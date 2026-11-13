@@ -277,10 +277,9 @@ export default function GoalTargetSplitPanel({
                             {slots.map((s) => {
                               const a = achievedAt(f.fieldId, s);
                               const t = draft[f.fieldId]?.[s] ?? null;
-                              // Capped at 100% (user 2026-09-25) — beating a period's share is good
-                              // news, but "385%" reads like a fault. Month-wise / Quarterly only.
+                              // No cap (upstream 2026-10-16, replaces the 2026-09-25 cap): 24 of 12 = 200%.
                               const pct = a != null && t != null && t !== 0
-                                ? Math.min(100, Math.round((a / t) * 10000) / 100)
+                                ? Math.round((a / t) * 10000) / 100
                                 : null;
                               return (
                                 <td key={s} className="px-2 sm:px-3 py-2.5 text-right tabular-nums text-slate-700">

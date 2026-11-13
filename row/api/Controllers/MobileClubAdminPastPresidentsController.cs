@@ -22,8 +22,17 @@ public class MobileClubAdminPastPresidentsController : ControllerBase
     private readonly string _connectionString;
     private readonly IWebHostEnvironment _env;
 
-    public MobileClubAdminPastPresidentsController(IPastPresidentService service, IConfiguration configuration, IWebHostEnvironment env)
+    // Year-wise Admin Rights. CanTouchAsync below already keeps a club admin inside
+    // their own club, but nothing checked the YEAR, so a past president could be
+    // created, edited or deleted in any year (QA 2026-10-16, blocker B3). The web
+    // twin's guards are mirrored exactly, re-filing on edit included.
+    private readonly AdminYearGuard _guard;
+
+    public MobileClubAdminPastPresidentsController(
+        IPastPresidentService service, IConfiguration configuration, IWebHostEnvironment env,
+        AdminYearGuard guard)
     {
+        _guard = guard;
         _service = service;
         _connectionString = configuration.GetConnectionString("DefaultConnection")!;
         _env = env;
@@ -85,6 +94,10 @@ public class MobileClubAdminPastPresidentsController : ControllerBase
         var cid = clubId;
         if (cid == null) return BadRequest(new { message = "clubId is required." });
         if (!await ManagesAsync(cid.Value)) return NotYourClub();
+
+        var denied = await _guard.ClubYearAsync(User, cid.Value, dto.YearId);
+        if (denied != null) return denied;
+
         try
         {
             var id = await _service.CreateAsync(cid.Value, dto, photo, GetUserId(), _env);
@@ -102,6 +115,21 @@ public class MobileClubAdminPastPresidentsController : ControllerBase
     {
         if (!IsSuperAdminOrAdmin()) return StatusCode(403, new { message = "Access denied." });
         if (!await CanTouchAsync(id)) return StatusCode(403, new { message = "Access denied for this record." });
+
+        // The record's own club: a SuperAdmin clears CanTouchAsync without a scoped
+        // club of their own, so the id cannot come from the token here. A missing row
+        // is left alone so the service still answers as it did before.
+        var row = await _service.GetByIdAsync(id);
+        if (row != null)
+        {
+            // UpdatePastPresidentDto carries a YearId, so an edit can RE-FILE the
+            // president under a different year. Both ends must be ours.
+            var currentDenied = await _guard.ClubRecordYearAsync(
+                User, row.ClubId, "past_presidents", "pk_past_president_id", id);
+            var denied = currentDenied ?? await _guard.ClubYearAsync(User, row.ClubId, dto.YearId);
+            if (denied != null) return denied;
+        }
+
         try
         {
             await _service.UpdateAsync(id, dto, photo, GetUserId(), _env);
@@ -119,6 +147,15 @@ public class MobileClubAdminPastPresidentsController : ControllerBase
     {
         if (!IsSuperAdminOrAdmin()) return StatusCode(403, new { message = "Access denied." });
         if (!await CanTouchAsync(id)) return StatusCode(403, new { message = "Access denied for this record." });
+
+        var row = await _service.GetByIdAsync(id);
+        if (row != null)
+        {
+            var denied = await _guard.ClubRecordYearAsync(
+                User, row.ClubId, "past_presidents", "pk_past_president_id", id);
+            if (denied != null) return denied;
+        }
+
         await _service.DeleteAsync(id, GetUserId());
         return Ok(new { message = "Past president deleted successfully." });
     }

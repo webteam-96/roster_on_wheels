@@ -22,7 +22,7 @@ export const dynamic = "force-dynamic";
 //
 // Home page cards link here with target="_blank" so admins/users can read the
 // full bio (rendered as HTML) without leaving the home page.
-interface PageProps { params: { slug: string } }
+interface PageProps { params: Promise<{ slug: string }> }
 
 interface ProfileData {
   badge: string;
@@ -33,7 +33,8 @@ interface ProfileData {
   descriptionHtml: string | null;
 }
 
-export default async function ProfilePage({ params }: PageProps) {
+export default async function ProfilePage(props: PageProps) {
+  const params = await props.params;
   const shell = await buildShell();
   if (!shell) return <SiteNotFound host="" />;
 

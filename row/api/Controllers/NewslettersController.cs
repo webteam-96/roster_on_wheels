@@ -13,8 +13,10 @@ public class NewslettersController : ControllerBase
     private readonly string _connectionString;
     private readonly IClubSiteCachePurger _purger;
 
-    public NewslettersController(INewsletterService service, IConfiguration configuration, IClubSiteCachePurger purger)
+    private readonly AdminYearGuard _guard;
+    public NewslettersController(AdminYearGuard guard, INewsletterService service, IConfiguration configuration, IClubSiteCachePurger purger)
     {
+        _guard = guard;
         _service = service;
         _connectionString = configuration.GetConnectionString("DefaultConnection")!;
         _purger = purger;
@@ -43,6 +45,9 @@ public class NewslettersController : ControllerBase
     [HttpPost("api/clubs/{clubId}/newsletters")]
     public async Task<ActionResult> Create(int clubId, [FromBody] CreateNewsletterDto dto)
     {
+        var denied = await _guard.ClubYearForDateAsync(User, clubId, dto.PublishDateTime);
+        if (denied != null) return denied;
+
         var id = await _service.CreateAsync(clubId, dto, GetUserId());
         _purger.PurgeByClub(clubId);
         return Ok(new { id });
@@ -52,6 +57,13 @@ public class NewslettersController : ControllerBase
     [OwnedBy(Owns.ClubNewsletter, "id", "clubId")]
     public async Task<ActionResult> Update(int clubId, int id, [FromBody] UpdateNewsletterDto dto)
     {
+        // The service re-resolves fk_year_id from the new publish date, so this
+        // edit can move the newsletter into a different Rotary year. Both ends
+        // must be ours, or a single-year admin could push a record out of reach.
+        var denied = await _guard.ClubRecordMoveByDateAsync(
+            User, clubId, "newsletters", "pk_newsletter_id", id, dto.PublishDateTime);
+        if (denied != null) return denied;
+
         await _service.UpdateAsync(id, dto, GetUserId());
         _purger.PurgeByClub(clubId);
         return Ok(new { message = "Newsletter updated successfully." });
@@ -61,6 +73,10 @@ public class NewslettersController : ControllerBase
     [OwnedBy(Owns.ClubNewsletter, "id", "clubId")]
     public async Task<ActionResult> Delete(int clubId, int id)
     {
+        var denied = await _guard.ClubRecordYearAsync(
+            User, clubId, "newsletters", "pk_newsletter_id", id);
+        if (denied != null) return denied;
+
         await _service.DeleteAsync(id, GetUserId());
         _purger.PurgeByClub(clubId);
         return Ok(new { message = "Newsletter deleted successfully." });
@@ -69,6 +85,9 @@ public class NewslettersController : ControllerBase
     [HttpPost("api/clubs/{clubId}/newsletters/upload")]
     public async Task<ActionResult<object>> UploadFile(int clubId, IFormFile file)
     {
+        var denied = await _guard.ClubYearlessAsync(User, clubId);
+        if (denied != null) return denied;
+
         if (clubId <= 0)
             return BadRequest(new { message = "Invalid club id. Files cannot be uploaded without a club context." });
 

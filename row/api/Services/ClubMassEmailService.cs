@@ -31,6 +31,13 @@ public class ClubMassEmailService : IClubMassEmailService
 
     private MySqlConnection CreateConnection() => new(_connectionString);
 
+    // Sub-group / hand-picked recipients: drop a member whose every active membership is in an
+    // inactive club (or a club of an inactive district / zone). Members with no club row stay.
+    private static readonly string MemberLiveSql =
+        " AND (NOT EXISTS (SELECT 1 FROM club_members hx WHERE hx.fk_member_master_profile_id = m.pk_member_master_profile_id AND hx.IsActive = 1 AND hx.isdeleted = 0)"
+        + " OR EXISTS (SELECT 1 FROM club_members hx WHERE hx.fk_member_master_profile_id = m.pk_member_master_profile_id AND hx.IsActive = 1 AND hx.isdeleted = 0 AND "
+        + HierarchyScopeSql.ClubIdLive("hx.fk_club_id") + "))";
+
     private static readonly System.Text.RegularExpressions.Regex TemplateKeyFormat = new(@"^[a-z0-9][a-z0-9_-]{0,49}$");
 
     /// <summary>N5: the optional template key whose language versions a send uses; null when blank.</summary>
@@ -91,7 +98,8 @@ public class ClubMassEmailService : IClubMassEmailService
         var ownerCondition = districtId.HasValue ? "me.fk_district_id = @OwnerId" : "me.fk_club_id = @OwnerId";
         var ownerId = districtId.HasValue ? districtId.Value : clubId;
 
-        var conditions = new List<string> { ownerCondition, "me.isdeleted = 0" };
+        var conditions = new List<string> { ownerCondition, "me.isdeleted = 0",
+            districtId.HasValue ? HierarchyScopeSql.DistrictIdLive("me.fk_district_id") : HierarchyScopeSql.ClubIdLive("me.fk_club_id") };
         if (!string.IsNullOrEmpty(status)) conditions.Add("me.Status = @Status");
         if (!string.IsNullOrEmpty(search)) conditions.Add("me.Subject LIKE CONCAT('%', @Search, '%')");
 
@@ -280,6 +288,10 @@ public class ClubMassEmailService : IClubMassEmailService
             new { Id = id });
 
         if (email == null) throw new KeyNotFoundException("Mass email not found.");
+        // Inactive club / district / zone: hidden everywhere, so nothing is sent for it.
+        var hidden = await HierarchyScopeSql.LoadHiddenAsync(connection);
+        if (hidden.ClubHidden((int?)email.ClubId) || hidden.DistrictHidden((int?)email.DistrictId))
+            throw new InvalidOperationException("This club or district is inactive. Emails cannot be sent.");
         if ((string)email.Status != "Draft" && (string)email.Status != "Failed")
             throw new InvalidOperationException("Only draft or failed emails can be sent.");
 

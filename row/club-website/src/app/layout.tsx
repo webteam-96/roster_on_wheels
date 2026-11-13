@@ -20,10 +20,10 @@ export async function generateMetadata(): Promise<Metadata> {
   const title = tenant ? `${tenant.clubName} – Rotary Club` : "Rotary Club Website";
   const description = seo?.seoDescription || (tenant ? `Official website of ${tenant.clubName}` : "Official Rotary Club website");
   return {
-    metadataBase: siteOrigin(),
+    metadataBase: await siteOrigin(),
     title: { default: seo?.seoTitle || title, template: `%s · ${tenant?.clubName ?? "Rotary Club"}` },
     description,
-    alternates: { languages: languageAlternates(lang, sitePath()) },
+    alternates: { languages: languageAlternates(lang, await sitePath()) },
     openGraph: { title: seo?.seoTitle || title, description: tenant ? description : undefined, type: "website" },
     robots: { index: true, follow: true },
   };
@@ -35,7 +35,7 @@ const CIVIC_MODE_SCRIPT =
 export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   const tenant = await currentTenant();
   const lang = tenant ? await getSiteLanguage(tenant.clubId) : null;
-  const themeKey = activeThemeKey(tenant?.themeKey);
+  const themeKey = await activeThemeKey(tenant?.themeKey);
   const brand = await fetchJson<{ domains?: { adminOrigin?: string }; legal?: { privacyUrl?: string } }>("/api/public/brand");
   const p = brand?.legal?.privacyUrl ?? "";
   const privacyUrl = /^https?:\/\//.test(p) ? p : p && brand?.domains?.adminOrigin ? brand.domains.adminOrigin.replace(/\/+$/, "") + p : null;

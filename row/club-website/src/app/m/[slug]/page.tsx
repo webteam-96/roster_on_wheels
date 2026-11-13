@@ -11,7 +11,7 @@ import type { Menu } from "@/lib/publicApi";
 export const dynamic = "force-dynamic";
 
 interface PageProps {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 }
 
 // Resolves a custom menu by its slug. The admin saves either:
@@ -32,7 +32,8 @@ function slugifyName(s: string): string {
   return s.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 }
 
-export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+export async function generateMetadata(props: PageProps): Promise<Metadata> {
+  const params = await props.params;
   const shell = await buildShell();
   const menu = findMenu(shell?.menus ?? null, params.slug);
   if (!shell || !menu) return {};
@@ -40,7 +41,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   return { title: t?.seoTitle ? { absolute: t.seoTitle } : menu.menuName, description: t?.seoDescription || undefined };
 }
 
-export default async function CustomMenuPage({ params }: PageProps) {
+export default async function CustomMenuPage(props: PageProps) {
+  const params = await props.params;
   const shell = await buildShell();
   if (!shell) return <SiteNotFound host="" />;
 

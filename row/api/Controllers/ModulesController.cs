@@ -13,8 +13,11 @@ public class ModulesController : ControllerBase
     private readonly IModuleService _moduleService;
     private readonly string _connectionString;
 
-    public ModulesController(IModuleService moduleService, IConfiguration configuration)
+    private readonly AdminYearGuard _guard;
+
+    public ModulesController(AdminYearGuard guard, IModuleService moduleService, IConfiguration configuration)
     {
+        _guard = guard;
         _moduleService = moduleService;
         _connectionString = configuration.GetConnectionString("DefaultConnection")!;
     }
@@ -172,6 +175,9 @@ public class ModulesController : ControllerBase
     [HttpPost("districts/{districtId}/modules/assign")]
     public async Task<ActionResult> AssignDistrictModules(int districtId, [FromBody] ModuleAssignRequestDto dto)
     {
+        var denied = await _guard.DistrictYearlessAsync(User, districtId);
+        if (denied != null) return denied;
+
         await _moduleService.AssignDistrictModulesAsync(districtId, dto.ModuleIds, GetUserId());
         return Ok(new { message = "Modules assigned successfully." });
     }
@@ -179,6 +185,9 @@ public class ModulesController : ControllerBase
     [HttpPost("districts/{districtId}/modules/unassign")]
     public async Task<ActionResult> UnassignDistrictModules(int districtId, [FromBody] ModuleAssignRequestDto dto)
     {
+        var denied = await _guard.DistrictYearlessAsync(User, districtId);
+        if (denied != null) return denied;
+
         await _moduleService.UnassignDistrictModulesAsync(districtId, dto.ModuleIds);
         return Ok(new { message = "Modules unassigned successfully." });
     }
@@ -204,6 +213,9 @@ public class ModulesController : ControllerBase
     [HttpPost("clubs/{clubId}/modules/assign")]
     public async Task<ActionResult> AssignClubModules(int clubId, [FromBody] ModuleAssignRequestDto dto)
     {
+        var denied = await _guard.ClubYearlessAsync(User, clubId);
+        if (denied != null) return denied;
+
         await _moduleService.AssignClubModulesAsync(clubId, dto.ModuleIds, GetUserId());
         return Ok(new { message = "Modules assigned successfully." });
     }
@@ -211,6 +223,9 @@ public class ModulesController : ControllerBase
     [HttpPost("clubs/{clubId}/modules/unassign")]
     public async Task<ActionResult> UnassignClubModules(int clubId, [FromBody] ModuleAssignRequestDto dto)
     {
+        var denied = await _guard.ClubYearlessAsync(User, clubId);
+        if (denied != null) return denied;
+
         await _moduleService.UnassignClubModulesAsync(clubId, dto.ModuleIds);
         return Ok(new { message = "Modules unassigned successfully." });
     }

@@ -4,8 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { deleteI18nOverride, getI18nOverrides, saveI18nOverride } from "@/services/api";
 import type { Messages, Override } from "@/i18n/messages";
-import { WORLD_LANGUAGE_CODES } from "@/i18n/worldLanguages";
-import { nativeLanguageName } from "@/i18n/config";
+import { SUPPORTED_LOCALES, nativeLanguageName } from "@/i18n/config";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -118,7 +117,7 @@ export default function TranslationsPage() {
           <div className="space-y-2">
             <Label htmlFor="locale">Language</Label>
             <select id="locale" className={SELECT} value={locale} onChange={(e) => setLocale(e.target.value)}>
-              {WORLD_LANGUAGE_CODES.map((c) => <option key={c} value={c}>{nativeLanguageName(c)} ({c})</option>)}
+              {SUPPORTED_LOCALES.map((c) => <option key={c} value={c}>{nativeLanguageName(c)} ({c})</option>)}
             </select>
           </div>
           <div className="space-y-2">

@@ -183,10 +183,11 @@ public static class LoginAnnouncementAudience
         }
 
         // Member — any active club membership.
-        var memberships = await conn.ExecuteScalarAsync<int>(@"
+        var memberships = await conn.ExecuteScalarAsync<int>($@"
             SELECT COUNT(*) FROM club_members cm
             JOIN club_master c ON c.pk_club_id = cm.fk_club_id AND c.isdeleted = 0
-            WHERE cm.fk_member_master_profile_id = @Id AND cm.IsActive = 1 AND cm.isdeleted = 0",
+            WHERE cm.fk_member_master_profile_id = @Id AND cm.IsActive = 1 AND cm.isdeleted = 0
+              AND {HierarchyScopeSql.ClubLive("c")}",
             new { Id = memberId });
         if (memberships > 0) keys.Add("Member");
 
@@ -284,25 +285,29 @@ public static class LoginAnnouncementAudience
         private async Task LoadUnitsAsync()
         {
             if (_clubs != null) return;
-            _clubs = (await _conn.QueryAsync<int?>(@"
+            _clubs = (await _conn.QueryAsync<int?>($@"
                 SELECT cm.fk_club_id FROM club_members cm
                 JOIN club_master c ON c.pk_club_id = cm.fk_club_id AND c.isdeleted = 0
                 WHERE cm.fk_member_master_profile_id = @Id AND cm.IsActive = 1 AND cm.isdeleted = 0
+                  AND {HierarchyScopeSql.ClubLive("c")}
                 UNION
                 SELECT mr.fk_club_id FROM member_roles mr
                 WHERE mr.fk_member_master_profile_id = @Id AND mr.IsActive = 1 AND mr.isdeleted = 0 AND mr.fk_club_id > 0
+                  AND {HierarchyScopeSql.ClubIdLive("mr.fk_club_id")}
                 UNION
                 SELECT b.fk_club_id FROM board_of_directors b
                 JOIN designation_master dm ON dm.pk_designation_id = b.fk_designation_id
                 JOIN rotary_year_master y ON y.pk_year_id = b.fk_year_id AND y.IsCurrent = 1
                 WHERE b.fk_member_master_profile_id = @Id AND b.isdeleted = 0
+                  AND {HierarchyScopeSql.ClubIdLive("b.fk_club_id")}
                   AND dm.designation_name IN ('Club President', 'Club Secretary')",
                 new { Id = _memberId })).Where(x => x is > 0).Select(x => x!.Value).Distinct().ToList();
 
-            _adminDistricts = (await _conn.QueryAsync<int?>(@"
+            _adminDistricts = (await _conn.QueryAsync<int?>($@"
                 SELECT DISTINCT mr.fk_district_id FROM member_roles mr
                 JOIN roles r ON r.pk_role_id = mr.fk_role_id
                 WHERE mr.fk_member_master_profile_id = @Id AND mr.IsActive = 1 AND mr.isdeleted = 0
+                  AND {HierarchyScopeSql.DistrictIdLive("mr.fk_district_id")}
                   AND r.RoleName IN ('Admin', 'AG')
                   AND mr.fk_district_id > 0 AND (mr.fk_club_id IS NULL OR mr.fk_club_id = 0)",
                 new { Id = _memberId })).Where(x => x is > 0).Select(x => x!.Value).ToList();

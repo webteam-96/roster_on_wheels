@@ -29,7 +29,10 @@ public class NewsletterService : INewsletterService
         using var connection = CreateConnection();
         await connection.OpenAsync();
 
-        var whereClause = districtId.HasValue ? "n.fk_district_id = @EntityId" : "n.fk_club_id = @EntityId";
+        // Hierarchy scope (2026-10-21): an inactive club / district (or its zone) lists nothing.
+        var whereClause = districtId.HasValue
+            ? "n.fk_district_id = @EntityId AND " + HierarchyScopeSql.DistrictIdLive("n.fk_district_id")
+            : "n.fk_club_id = @EntityId AND " + HierarchyScopeSql.ClubIdLive("n.fk_club_id");
         var entityId = districtId.HasValue ? districtId.Value : clubId;
 
         var statusCondition = string.IsNullOrEmpty(status) ? "" : @"AND (

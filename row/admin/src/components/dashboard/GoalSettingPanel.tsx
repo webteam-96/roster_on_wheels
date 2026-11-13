@@ -113,16 +113,16 @@ function livePercentages(fields: GoalFieldWithValueDto[], buffers: Record<number
     if (r.mode === "ratio") {
       pct = tgt > 0 ? (ach / tgt) * 100 : 0;
     } else if (r.mode === "ratioWhole") {
-      pct = tgt > 0 ? Math.max(0, Math.min(100, (ach / tgt) * 100)) : 0;
+      pct = tgt > 0 ? Math.max(0, (ach / tgt) * 100) : 0;
     } else if (r.mode === "growth") {
       const base = num(r.baseline);
       const planned = tgt - base;
       // Target 0 = "no target set" → 0%. Target = baseline (a real target, no planned growth) → 100% once met.
       pct = planned > 0 ? ((ach - base) / planned) * 100 : (tgt > 0 && ach >= tgt ? 100 : 0);
-      pct = Math.max(0, Math.min(100, pct));
+      pct = Math.max(0, pct);   // no 100% cap (upstream 2026-10-16): 24 of 12 = 200%
     } else {
       const base = num(r.baseline);
-      pct = tgt > 0 ? Math.max(0, Math.min(100, ((ach - base) / tgt) * 100)) : 0;
+      pct = tgt > 0 ? Math.max(0, ((ach - base) / tgt) * 100) : 0;
     }
     out[pctField.fieldId] = String(Math.round(pct * 100) / 100);
   }

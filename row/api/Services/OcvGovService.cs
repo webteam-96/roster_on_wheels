@@ -521,11 +521,11 @@ public class OcvGovService : IOcvGovService
         // Club identity + district/zone (single join). ClubRotaryId = the club's ROW id,
         // DistrictNumber is a VARCHAR ("5656" etc.), ZoneName from zone_master (no ZoneCode column).
         var identity = await connection.QueryFirstOrDefaultAsync<(string? ClubName, string? ClubRotaryId, string? DistrictNumber, string? ZoneName)>(
-            @"SELECT c.ClubName, c.ClubRotaryId, d.DistrictNumber, z.ZoneName
+            $@"SELECT c.ClubName, c.ClubRotaryId, d.DistrictNumber, z.ZoneName
               FROM club_master c
               LEFT JOIN district_master d ON d.pk_district_id = c.fk_district_id
               LEFT JOIN zone_master z ON z.pk_zone_id = d.fk_zone_id
-              WHERE c.pk_club_id = @ClubId",
+              WHERE c.pk_club_id = @ClubId AND {HierarchyScopeSql.ClubLive("c")}",
             new { ClubId = clubId });
         data.ClubName = identity.ClubName ?? "";
         data.ClubRotaryId = identity.ClubRotaryId ?? "";
@@ -715,7 +715,7 @@ public class OcvGovService : IOcvGovService
             case "attendance":
                 {
                     var total = await conn.ExecuteScalarAsync<int>(
-                        "SELECT COUNT(*) FROM club_members WHERE fk_club_id = @C AND IsActive = 1 AND isdeleted = 0",
+                        $"SELECT COUNT(*) FROM club_members WHERE fk_club_id = @C AND IsActive = 1 AND isdeleted = 0 AND {HierarchyScopeSql.ClubIdLive("club_members.fk_club_id")}",
                         new { C = clubId });
                     return await conn.QueryAsync<dynamic>(@"
                         SELECT a.EventName AS eventName, a.EventDateTime AS eventDateTime,
@@ -742,12 +742,13 @@ public class OcvGovService : IOcvGovService
 
             case "members":
                 // Birth/anniversary dates are deliberately omitted — full dates are not exported.
-                return await conn.QueryAsync<dynamic>(@"
+                return await conn.QueryAsync<dynamic>($@"
                     SELECT m.MemberName AS memberName, m.PrimaryMobileNumber AS mobile, m.EmailId AS email,
                            m.RotaryId AS rotaryId, cm.JoinedDate AS joinedDate, cm.IsActive AS isActive
                     FROM club_members cm
                     JOIN member_master_profile m ON m.pk_member_master_profile_id = cm.fk_member_master_profile_id AND m.isdeleted = 0
                     WHERE cm.fk_club_id = @ClubId AND cm.isdeleted = 0
+                      AND {HierarchyScopeSql.ClubIdLive("cm.fk_club_id")}
                     ORDER BY m.MemberName",
                     new { ClubId = clubId });
 

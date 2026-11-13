@@ -14,8 +14,11 @@ public class PastPresidentsController : ControllerBase
     private readonly string _connectionString;
     private readonly IWebHostEnvironment _env;
 
-    public PastPresidentsController(IPastPresidentService pastPresidentService, IConfiguration configuration, IWebHostEnvironment env)
+    private readonly AdminYearGuard _guard;
+
+    public PastPresidentsController(AdminYearGuard guard, IPastPresidentService pastPresidentService, IConfiguration configuration, IWebHostEnvironment env)
     {
+        _guard = guard;
         _pastPresidentService = pastPresidentService;
         _connectionString = configuration.GetConnectionString("DefaultConnection")!;
         _env = env;
@@ -45,6 +48,9 @@ public class PastPresidentsController : ControllerBase
     [HttpPost]
     public async Task<ActionResult> Create(int clubId, [FromForm] CreatePastPresidentDto dto, IFormFile? photo)
     {
+        var denied = await _guard.ClubYearAsync(User, clubId, dto.YearId);
+        if (denied != null) return denied;
+
         var id = await _pastPresidentService.CreateAsync(clubId, dto, photo, GetUserId(), _env);
         return Ok(new { id });
     }
@@ -53,6 +59,13 @@ public class PastPresidentsController : ControllerBase
     [OwnedBy(Owns.PastPresident, "id", "clubId")]
     public async Task<ActionResult> Update(int clubId, int id, [FromForm] UpdatePastPresidentDto dto, IFormFile? photo)
     {
+        // UpdatePastPresidentDto carries a YearId, so an edit can RE-FILE the
+        // president under a different year. Both ends must be ours.
+        var currentDenied = await _guard.ClubRecordYearAsync(
+            User, clubId, "past_presidents", "pk_past_president_id", id);
+        var denied = currentDenied ?? await _guard.ClubYearAsync(User, clubId, dto.YearId);
+        if (denied != null) return denied;
+
         await _pastPresidentService.UpdateAsync(id, dto, photo, GetUserId(), _env);
         return Ok(new { message = "Past president updated successfully." });
     }
@@ -61,6 +74,10 @@ public class PastPresidentsController : ControllerBase
     [OwnedBy(Owns.PastPresident, "id", "clubId")]
     public async Task<ActionResult> Delete(int clubId, int id)
     {
+        var denied = await _guard.ClubRecordYearAsync(
+            User, clubId, "past_presidents", "pk_past_president_id", id);
+        if (denied != null) return denied;
+
         await _pastPresidentService.DeleteAsync(id, GetUserId());
         return Ok(new { message = "Past president deleted successfully." });
     }

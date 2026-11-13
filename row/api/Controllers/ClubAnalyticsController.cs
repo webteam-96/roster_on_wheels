@@ -107,7 +107,7 @@ public class ClubAnalyticsController : ControllerBase
                    {Bod("Club Secretary", "m.EmailId")} AS secretaryEmail
             FROM club_master c
             JOIN district_master d ON d.pk_district_id = c.fk_district_id
-            WHERE {clubFilter} AND c.isdeleted = 0 AND COALESCE(c.IsActive, 1) = 1{(!ClubScopeSql.HideRotaract(IsSuperAdmin()) ? "" : " AND " + ClubScopeSql.NotRotaract("c"))}
+            WHERE {clubFilter} AND c.isdeleted = 0 AND COALESCE(c.IsActive, 1) = 1 AND {HierarchyScopeSql.ClubLive("c")}{(!ClubScopeSql.HideRotaract(IsSuperAdmin()) ? "" : " AND " + ClubScopeSql.NotRotaract("c"))}
             ORDER BY d.DistrictNumber, c.ClubName";   // user 2026-10-08: Rotaract only for SuperAdmin
 
         var rows = (await conn.QueryAsync<dynamic>(sql,
@@ -316,7 +316,7 @@ public class ClubAnalyticsController : ControllerBase
         string[] headers =
         {
             "Sr.No.", "District Number", "Club Name", "Club ID", "RI Sync", "Club Website",
-            "Member Count", "BOD Count", "Club Meeting Count", "Service Project Count",
+            "Member Count", "BOD Count", "Attendance Meeting Count", "Service Project Count",
             "Club Service", "Community Service", "Vocational Service", "International Service",
             "New Generation Service", "Public Image Initiative",
             "NewsLetters", "OCV", "Announcement", "Events",

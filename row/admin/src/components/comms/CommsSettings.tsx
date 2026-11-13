@@ -264,7 +264,7 @@ function LanguageSection({ scope, id, settings, onSaved }: {
 
   const save = async () => {
     const lang = form.defaultLanguage?.trim() || null;
-    if (lang && !isLanguageCode(lang)) return setError("Language must be a code such as en, es or pt-BR.");
+    if (lang && !isLanguageCode(lang)) return setError("Language must be one of en, fr, de, it, ja, ko, pt, es.");
     const giving = form.foundationGivingUrl?.trim() || null;
     if (giving && !isGivingUrl(giving)) return setError("The Foundation giving link must be a full https:// address.");
     setBusy(true); setError(null); setNotice(null);

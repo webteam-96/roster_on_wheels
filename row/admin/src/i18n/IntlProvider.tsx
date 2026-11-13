@@ -8,19 +8,19 @@ import {
   DEFAULT_LOCALE,
   LOCALE_COOKIE,
   PSEUDO_LOCALE,
+  SUPPORTED_LOCALES,
   namespacesFor,
   resolveLocale,
   isMachineTranslated,
 } from "@/i18n/config";
 import { applyOverrides, fetchOverrides, fillBrandName, loadMessages, loadRawMessages, type Messages } from "@/i18n/messages";
-import { WORLD_LANGUAGE_CODES } from "@/i18n/worldLanguages";
 import { translateCatalog } from "@/i18n/translateCatalog";
 import englishCommon from "../../messages/en/common.json";
 import englishErrors from "../../messages/en/errors.json";
 
 const PSEUDO_ALLOWED = process.env.NODE_ENV !== "production";
 
-const WORLD_SET = new Set<string>(WORLD_LANGUAGE_CODES);
+const SUPPORTED_SET = new Set<string>(SUPPORTED_LOCALES);
 
 // Bundled so the server render and the first client paint already have English
 // text; route namespaces and other languages load afterwards.
@@ -88,7 +88,7 @@ export function IntlProvider({ children }: { children: React.ReactNode }) {
   // any world language is allowed and filled in by machine translation.
   useEffect(() => {
     const cookie = readCookie(LOCALE_COOKIE);
-    if (cookie && (WORLD_SET.has(cookie) || (PSEUDO_ALLOWED && cookie === PSEUDO_LOCALE))) {
+    if (cookie && (SUPPORTED_SET.has(cookie) || (PSEUDO_ALLOWED && cookie === PSEUDO_LOCALE))) {
       setLocaleState(cookie);
     } else {
       setLocaleState(
@@ -137,9 +137,9 @@ export function IntlProvider({ children }: { children: React.ReactNode }) {
   const control = useMemo<LocaleControl>(
     () => ({
       locale,
-      // Any world language is selectable (not limited to the brand's region); languages
+      // The eight launch languages (RI official languages, build spec i18n); languages
       // without static message files are machine-translated. Pseudo stays dev-only.
-      available: PSEUDO_ALLOWED ? [...WORLD_LANGUAGE_CODES, PSEUDO_LOCALE] : [...WORLD_LANGUAGE_CODES],
+      available: PSEUDO_ALLOWED ? [...SUPPORTED_LOCALES, PSEUDO_LOCALE] : [...SUPPORTED_LOCALES],
       setLocale,
     }),
     [locale, setLocale],

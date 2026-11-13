@@ -39,11 +39,12 @@ public class AgReportsController : ControllerBase
     {
         var memberId = GetUserId();
         if (memberId == 0) return new List<int>();
-        var rows = await conn.QueryAsync<int>(@"
+        var rows = await conn.QueryAsync<int>($@"
             SELECT fk_club_id
             FROM district_ag
             WHERE fk_member_id = @MemberId AND isdeleted = 0 AND is_active = 1
-              AND (@YearId IS NULL OR fk_year_id = @YearId)",
+              AND (@YearId IS NULL OR fk_year_id = @YearId)
+              AND {HierarchyScopeSql.ClubIdLive("district_ag.fk_club_id")}",
             new { MemberId = memberId, YearId = yearFilter });
         var ids = rows.Distinct().ToList();
         if (clubFilter.HasValue) ids = ids.Where(x => x == clubFilter.Value).ToList();
@@ -70,7 +71,7 @@ public class AgReportsController : ControllerBase
         using var conn = CreateConnection();
         await conn.OpenAsync();
         var memberId = GetUserId();
-        var rows = await conn.QueryAsync<dynamic>(@"
+        var rows = await conn.QueryAsync<dynamic>($@"
             SELECT DISTINCT c.pk_club_id AS clubId, c.ClubName AS clubName, c.ClubRotaryId AS clubRotaryId,
                    d.DistrictNumber AS districtNumber
             FROM district_ag ag
@@ -78,6 +79,7 @@ public class AgReportsController : ControllerBase
             JOIN district_master d ON d.pk_district_id = c.fk_district_id
             WHERE ag.fk_member_id = @MemberId AND ag.isdeleted = 0 AND ag.is_active = 1
               AND (@YearId IS NULL OR ag.fk_year_id = @YearId)
+              AND {HierarchyScopeSql.ClubLive("c")}
             ORDER BY c.ClubName",
             new { MemberId = memberId, YearId = yearId });
         return Ok(rows);

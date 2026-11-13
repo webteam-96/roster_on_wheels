@@ -27,13 +27,14 @@ function shareSummary(description: string | null): string {
   return (lastSpace > 100 ? cut.slice(0, lastSpace) : cut).replace(/[\s,;:.-]+$/, "") + "…";
 }
 
-export async function generateMetadata({
-  params,
-  searchParams,
-}: {
-  params: { id: string };
-  searchParams: { yearId?: string };
-}): Promise<Metadata> {
+export async function generateMetadata(
+  props: {
+    params: Promise<{ id: string }>;
+    searchParams: Promise<{ yearId?: string }>;
+  }
+): Promise<Metadata> {
+  const searchParams = await props.searchParams;
+  const params = await props.params;
   const id = Number(params.id);
   const yearId = parseYearId(searchParams);
   const data = await getProjectDetail(id, yearId);
@@ -78,13 +79,14 @@ function splitLede(text: string): [string | null, string] {
   return [null, text];
 }
 
-export default async function ProjectDetailPage({
-  params,
-  searchParams,
-}: {
-  params: { id: string };
-  searchParams: { yearId?: string };
-}) {
+export default async function ProjectDetailPage(
+  props: {
+    params: Promise<{ id: string }>;
+    searchParams: Promise<{ yearId?: string }>;
+  }
+) {
+  const searchParams = await props.searchParams;
+  const params = await props.params;
   const id = Number(params.id);
   // One fetch only: speculative "related projects" lookups multiply upstream
   // calls during render and keep the response stream open when the API is

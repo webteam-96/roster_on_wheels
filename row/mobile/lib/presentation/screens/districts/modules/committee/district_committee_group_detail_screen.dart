@@ -339,7 +339,7 @@ class _DistrictCommitteeGroupDetailScreenState
   @override
   Widget build(BuildContext context) {
     final canManage =
-        context.watch<AuthProvider>().isDistrictAdminOf(widget.districtId);
+        context.watch<AuthProvider>().canEditDistrict(widget.districtId);
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: CustomAppBar(title: widget.groupName),

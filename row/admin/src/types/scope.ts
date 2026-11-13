@@ -12,6 +12,22 @@ export interface RoleScopeDto {
   districtNumber?: string;
   clubId?: number;
   clubName?: string;
+  /**
+   * Year-wise Admin Rights, sent by /my-context. Both may be absent when the
+   * server predates the feature — treat that as "no restriction" so an older
+   * API never locks anyone out. See canEditYear().
+   */
+  allYears?: boolean;
+  yearIds?: number[];
+  yearSources?: string[];
+  /**
+   * Is the year rule itself switched ON for this assignment's scope?
+   * (Settings -> Year-wise Admin Rights.) Different question from allYears,
+   * which says only WHICH years. Absent on a server that predates the switch --
+   * treat that as ON, which is how the platform behaved before it existed.
+   * See isCurrentYearSelected().
+   */
+  yearRuleEnabled?: boolean;
 }
 
 export interface ZoneScopeDto {

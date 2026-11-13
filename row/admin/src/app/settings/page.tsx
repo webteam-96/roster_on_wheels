@@ -102,6 +102,12 @@ const settingsCards: SettingsCard[] = [
     href: "/settings/login-announcement",
   },
   {
+    title: "Year-wise Admin Rights",
+    description: "Switch the year rule on per district or club, and edit the View only wording",
+    icon: ShieldCheck,
+    href: "/settings/year-wise-admin-rights",
+  },
+  {
     title: "Club Leadership",
     description: "Add/Edit club Presidents & Secretaries across districts",
     icon: UserCog2,

@@ -35,6 +35,16 @@ public class DistrictReportController : ControllerBase
     private string NotRotaractUnlessSa(string alias = "c") =>
         !ClubScopeSql.HideRotaract(UserPermissionHelper.IsSuperAdmin(User)) ? "" : " AND " + ClubScopeSql.NotRotaract(alias);
 
+    // User 2026-10-21: the club lists every report narrows to also drop inactive clubs (and clubs
+    // under an inactive district / zone) - for everyone, SuperAdmin included. alias "" = bare club_master.
+    private string ClubVisible(string alias = "c") =>
+        NotRotaractUnlessSa(alias) + " AND " + HierarchyScopeSql.ClubLive(string.IsNullOrEmpty(alias) ? "club_master" : alias);
+
+    // A single requested club id (Club Wise filter) that is hidden returns an empty report.
+    private static async Task<bool> IsClubLiveAsync(MySqlConnection conn, int clubId) =>
+        await conn.ExecuteScalarAsync<int>(
+            $"SELECT CASE WHEN {HierarchyScopeSql.ClubIdLive("@Id")} THEN 1 ELSE 0 END", new { Id = clubId }) == 1;
+
     // The currency a district's project-cost totals are expressed in (its DefaultCurrency, or a
     // country-based guess). Per-project rows keep their own currency; totals convert into this.
     private static async Task<string> ResolveDistrictCurrencyAsync(MySqlConnection conn, int districtId)
@@ -54,13 +64,14 @@ public class DistrictReportController : ControllerBase
         MySqlConnection conn, int districtId, int yearId, int? agMemberId)
     {
         if (!agMemberId.HasValue || agMemberId.Value <= 0) return null;
-        var ids = (await conn.QueryAsync<int>(@"
+        var ids = (await conn.QueryAsync<int>($@"
             SELECT DISTINCT a.fk_club_id
             FROM district_ag a
             JOIN club_master c ON c.pk_club_id = a.fk_club_id AND c.isdeleted = 0
             WHERE a.fk_member_id = @Ag AND a.fk_year_id = @YearId
               AND a.isdeleted = 0 AND a.is_active = 1
-              AND c.fk_district_id = @D",
+              AND c.fk_district_id = @D
+              AND {HierarchyScopeSql.ClubLive("c")}",
             new { Ag = agMemberId.Value, YearId = yearId, D = districtId })).ToList();
         return ids;
     }
@@ -341,7 +352,7 @@ public class DistrictReportController : ControllerBase
                    CASE WHEN m.IsYouth = 1 THEN 'Yes' ELSE 'No' END AS youthFlag,
                    m.BirthDate AS dob,
                    m.AnniversaryDate AS doa,
-                   m.BloodGroup AS bloodGroup,
+                   m.BloodGroup AS bloodGroup, (SELECT ts.SizeName FROM event_tshirt_sizes ts WHERE ts.pk_id = m.fk_tshirt_size_id) AS tshirtSize,
                    m.LastDeviceName AS deviceName,
                    CASE WHEN m.LastDeviceName IS NULL OR m.LastDeviceName = '' THEN 'No' ELSE 'Yes' END AS downloaded,
                    (SELECT CONCAT_WS(', ',
@@ -371,7 +382,7 @@ public class DistrictReportController : ControllerBase
             SELECT c.pk_club_id AS clubId, c.ClubName AS clubName, d.DistrictNumber AS districtNumber,
                    m.MemberName AS ownerName, 'Member' AS relation,
                    m.MemberName AS personName, m.PrimaryMobileNumber AS mobile,
-                   m.EmailId AS email, m.BloodGroup AS bloodGroup,
+                   m.EmailId AS email, m.BloodGroup AS bloodGroup, (SELECT ts.SizeName FROM event_tshirt_sizes ts WHERE ts.pk_id = m.fk_tshirt_size_id) AS tshirtSize,
                    c.ClubName AS sortClub, m.MemberName AS sortName, 0 AS sortFamily
             FROM club_members cm
             JOIN member_master_profile m ON m.pk_member_master_profile_id = cm.fk_member_master_profile_id AND m.isdeleted = 0
@@ -383,7 +394,7 @@ public class DistrictReportController : ControllerBase
             SELECT c.pk_club_id AS clubId, c.ClubName AS clubName, d.DistrictNumber AS districtNumber,
                    m.MemberName AS ownerName, COALESCE(NULLIF(f.Relation,''),'Family') AS relation,
                    f.Name AS personName, f.PhoneNumber AS mobile,
-                   f.EmailId AS email, f.BloodGroup AS bloodGroup,
+                   f.EmailId AS email, f.BloodGroup AS bloodGroup, NULL AS tshirtSize,
                    c.ClubName AS sortClub, m.MemberName AS sortName, 1 AS sortFamily
             FROM club_members cm
             JOIN member_master_profile m ON m.pk_member_master_profile_id = cm.fk_member_master_profile_id AND m.isdeleted = 0
@@ -505,13 +516,14 @@ public class DistrictReportController : ControllerBase
 
         // AG — year-scoped (district_ag.fk_year_id). District report renders for one year,
         // so the AG list must be scoped to that year too.
-        var ags = (await conn.QueryAsync<dynamic>(@"
+        var ags = (await conn.QueryAsync<dynamic>($@"
             SELECT m.MemberName AS memberName, m.PrimaryMobileNumber AS mobile, m.EmailId AS email,
                    c.ClubName AS clubName
             FROM district_ag a
             JOIN member_master_profile m ON m.pk_member_master_profile_id = a.fk_member_id
             JOIN club_master c ON c.pk_club_id = a.fk_club_id
             WHERE a.fk_district_id = @D AND a.fk_year_id = @YearId AND a.isdeleted = 0 AND a.is_active = 1
+              AND {HierarchyScopeSql.ClubLive("c")}
             ORDER BY c.ClubName",
             p)).ToList();
 
@@ -882,6 +894,10 @@ public class DistrictReportController : ControllerBase
                 $"SELECT pk_club_id FROM club_master WHERE fk_district_id = @D AND isdeleted = 0{NotRotaractUnlessSa("")}",
                 new { D = districtId })).ToList();
 
+        if (clubIds.Count > 0)
+            clubIds = (await conn.QueryAsync<int>(
+                $"SELECT c.pk_club_id FROM club_master c WHERE c.pk_club_id IN @Ids AND {HierarchyScopeSql.ClubLive("c")}",
+                new { Ids = clubIds })).ToList();
         if (clubIds.Count == 0) return Ok(new { districtNumber = "", clubs = new List<object>() });
 
         var districtNumber = await conn.ExecuteScalarAsync<string>(
@@ -1154,6 +1170,7 @@ public class DistrictReportController : ControllerBase
             LEFT JOIN funding_master f        ON f.pk_funding_id = p.fk_funding_id
             WHERE c.fk_district_id = @D
               AND p.isdeleted = 0
+              AND {HierarchyScopeSql.ClubLive("c")}
               {agFilterAv}
             ORDER BY c.ClubName, p.project_date DESC, p.pk_project_id DESC",
             new { D = districtId });

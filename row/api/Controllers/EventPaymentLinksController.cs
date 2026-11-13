@@ -17,8 +17,11 @@ public class EventPaymentLinksController : ControllerBase
     private readonly ISubGroupService _subGroupService;
     private readonly string _connectionString;
 
-    public EventPaymentLinksController(IEventPaymentLinkService service, IWebHostEnvironment env, ISubGroupService subGroupService, IConfiguration configuration)
+    private readonly AdminYearGuard _guard;
+
+    public EventPaymentLinksController(IEventPaymentLinkService service, IWebHostEnvironment env, ISubGroupService subGroupService, IConfiguration configuration, AdminYearGuard guard)
     {
+        _guard = guard;
         _service = service;
         _env = env;
         _subGroupService = subGroupService;
@@ -113,6 +116,9 @@ public class EventPaymentLinksController : ControllerBase
     [HttpPost("")]
     public async Task<ActionResult> CreatePaymentLink([FromForm] CreateEventPaymentLinkDto dto, IFormFile? logo, IFormFile? eventImage, IFormFile? bgImage, IFormFile? emailLogo)
     {
+        var denied = await _guard.ClubYearlessAsync(User, dto.FkClubId ?? 0);
+        if (denied != null) return denied;
+
         if (!await ManagesAsync(dto.FkClubId, dto.FkDistrictMasterId)) return StatusCode(403, new { message = "Access denied." });
         if (!IsSuperAdminOrAdmin()) return StatusCode(403, new { message = "Access denied." });
         var imgErr = ValidateImageFile(logo) ?? ValidateImageFile(eventImage) ?? ValidateImageFile(bgImage) ?? ValidateImageFile(emailLogo);
@@ -131,6 +137,9 @@ public class EventPaymentLinksController : ControllerBase
     [HttpPost("create-full")]
     public async Task<ActionResult> CreateFullPaymentLink([FromForm] CreateFullEventPaymentLinkDto dto, IFormFile? logo, IFormFile? bgImage, IFormFile? emailLogo)
     {
+        var denied = await _guard.ClubYearlessAsync(User, dto.FkClubId ?? 0);
+        if (denied != null) return denied;
+
         if (!await ManagesAsync(dto.FkClubId, dto.FkDistrictMasterId)) return StatusCode(403, new { message = "Access denied." });
         if (!IsSuperAdminOrAdmin()) return StatusCode(403, new { message = "Access denied." });
         var imgErr = ValidateImageFile(logo) ?? ValidateImageFile(bgImage) ?? ValidateImageFile(emailLogo);
@@ -149,6 +158,9 @@ public class EventPaymentLinksController : ControllerBase
     [HttpPut("{linkId}/update-full")]
     public async Task<ActionResult> UpdateFullPaymentLink(int linkId, [FromForm] CreateFullEventPaymentLinkDto dto, IFormFile? logo, IFormFile? bgImage, IFormFile? emailLogo)
     {
+        var denied = await _guard.EventPaymentLinkAsync(User, linkId);
+        if (denied != null) return denied;
+
         if (!await CanReadLinkAsync(linkId) || !await ManagesAsync(dto.FkClubId, dto.FkDistrictMasterId)) return StatusCode(403, new { message = "Access denied." });
         if (!IsSuperAdminOrAdmin()) return StatusCode(403, new { message = "Access denied." });
         var imgErr = ValidateImageFile(logo) ?? ValidateImageFile(bgImage) ?? ValidateImageFile(emailLogo);
@@ -167,6 +179,9 @@ public class EventPaymentLinksController : ControllerBase
     [HttpPut("{linkId}")]
     public async Task<ActionResult> UpdatePaymentLink(int linkId, [FromForm] UpdateEventPaymentLinkDto dto, IFormFile? logo, IFormFile? eventImage, IFormFile? bgImage, IFormFile? emailLogo)
     {
+        var denied = await _guard.EventPaymentLinkAsync(User, linkId);
+        if (denied != null) return denied;
+
         if (!await CanReadLinkAsync(linkId) || !await ManagesAsync(dto.FkClubId, dto.FkDistrictMasterId)) return StatusCode(403, new { message = "Access denied." });
         if (!IsSuperAdminOrAdmin()) return StatusCode(403, new { message = "Access denied." });
         var imgErr = ValidateImageFile(logo) ?? ValidateImageFile(eventImage) ?? ValidateImageFile(bgImage) ?? ValidateImageFile(emailLogo);
@@ -185,6 +200,9 @@ public class EventPaymentLinksController : ControllerBase
     [HttpDelete("{linkId}")]
     public async Task<ActionResult> DeletePaymentLink(int linkId)
     {
+        var denied = await _guard.EventPaymentLinkAsync(User, linkId);
+        if (denied != null) return denied;
+
         if (!await CanReadLinkAsync(linkId)) return StatusCode(403, new { message = "Access denied." });
         if (!IsSuperAdminOrAdmin()) return StatusCode(403, new { message = "Access denied." });
         try
@@ -201,6 +219,9 @@ public class EventPaymentLinksController : ControllerBase
     [HttpPatch("{linkId}/toggle-active")]
     public async Task<ActionResult> ToggleActive(int linkId)
     {
+        var denied = await _guard.EventPaymentLinkAsync(User, linkId);
+        if (denied != null) return denied;
+
         if (!await CanReadLinkAsync(linkId)) return StatusCode(403, new { message = "Access denied." });
         if (!IsSuperAdminOrAdmin()) return StatusCode(403, new { message = "Access denied." });
         try
@@ -236,6 +257,9 @@ public class EventPaymentLinksController : ControllerBase
     [HttpPost("{linkId}/registrations")]
     public async Task<ActionResult> SaveRegistration(int linkId, [FromBody] CreateEventRegistrationDto dto)
     {
+        var denied = await _guard.EventPaymentLinkAsync(User, linkId);
+        if (denied != null) return denied;
+
         if (!await CanReadLinkAsync(linkId)) return StatusCode(403, new { message = "Access denied." });
         if (!IsSuperAdminOrAdmin()) return StatusCode(403, new { message = "Access denied." });
         var id = await _service.SaveRegistrationAsync(linkId, dto, GetUserId());
@@ -246,6 +270,9 @@ public class EventPaymentLinksController : ControllerBase
     [OwnedBy(Owns.EventRegistration, "regId", "linkId")]
     public async Task<ActionResult> UpdateRegistration(int linkId, int regId, [FromBody] CreateEventRegistrationDto dto)
     {
+        var denied = await _guard.EventPaymentLinkAsync(User, linkId);
+        if (denied != null) return denied;
+
         if (!await CanReadLinkAsync(linkId)) return StatusCode(403, new { message = "Access denied." });
         if (!IsSuperAdminOrAdmin()) return StatusCode(403, new { message = "Access denied." });
         await _service.UpdateRegistrationAsync(linkId, regId, dto, GetUserId());
@@ -256,6 +283,9 @@ public class EventPaymentLinksController : ControllerBase
     [OwnedBy(Owns.EventRegistration, "regId", "linkId")]
     public async Task<ActionResult> DeleteRegistration(int linkId, int regId)
     {
+        var denied = await _guard.EventPaymentLinkAsync(User, linkId);
+        if (denied != null) return denied;
+
         if (!await CanReadLinkAsync(linkId)) return StatusCode(403, new { message = "Access denied." });
         if (!IsSuperAdminOrAdmin()) return StatusCode(403, new { message = "Access denied." });
         await _service.DeleteRegistrationAsync(regId, GetUserId());
@@ -275,6 +305,9 @@ public class EventPaymentLinksController : ControllerBase
     [HttpPost("{linkId}/vendor-splits")]
     public async Task<ActionResult> SaveVendorSplits(int linkId, [FromBody] SaveVendorSplitsDto dto)
     {
+        var denied = await _guard.EventPaymentLinkAsync(User, linkId);
+        if (denied != null) return denied;
+
         if (!await CanReadLinkAsync(linkId)) return StatusCode(403, new { message = "Access denied." });
         if (!IsSuperAdminOrAdmin()) return StatusCode(403, new { message = "Access denied." });
         await _service.SaveVendorSplitsAsync(linkId, dto, GetUserId());
@@ -294,6 +327,9 @@ public class EventPaymentLinksController : ControllerBase
     [HttpPost("{linkId}/designations")]
     public async Task<ActionResult> SaveDesignation(int linkId, [FromBody] CreateEventDesignationDto dto)
     {
+        var denied = await _guard.EventPaymentLinkAsync(User, linkId);
+        if (denied != null) return denied;
+
         if (!await CanReadLinkAsync(linkId)) return StatusCode(403, new { message = "Access denied." });
         if (!IsSuperAdminOrAdmin()) return StatusCode(403, new { message = "Access denied." });
         var id = await _service.SaveDesignationAsync(linkId, dto, GetUserId());
@@ -304,6 +340,9 @@ public class EventPaymentLinksController : ControllerBase
     [OwnedBy(Owns.EventDesignation, "desigId", "linkId")]
     public async Task<ActionResult> DeleteDesignation(int linkId, int desigId)
     {
+        var denied = await _guard.EventPaymentLinkAsync(User, linkId);
+        if (denied != null) return denied;
+
         if (!await CanReadLinkAsync(linkId)) return StatusCode(403, new { message = "Access denied." });
         if (!IsSuperAdminOrAdmin()) return StatusCode(403, new { message = "Access denied." });
         await _service.DeleteDesignationAsync(desigId, GetUserId());
@@ -333,6 +372,9 @@ public class EventPaymentLinksController : ControllerBase
     [HttpPost("{linkId}/members/offline-payment")]
     public async Task<ActionResult> RecordOfflinePayment(int linkId, [FromForm] RecordOfflinePaymentDto dto, IFormFile? attachment)
     {
+        var denied = await _guard.EventPaymentLinkAsync(User, linkId);
+        if (denied != null) return denied;
+
         if (!await CanReadLinkAsync(linkId)) return StatusCode(403, new { message = "Access denied." });
         if (!ModelState.IsValid)
         {
@@ -373,6 +415,9 @@ public class EventPaymentLinksController : ControllerBase
     [HttpPut("members/{memberPaymentId}/update-offline")]
     public async Task<ActionResult> UpdateOfflinePayment(int memberPaymentId, [FromForm] RecordOfflinePaymentDto dto, IFormFile? attachment)
     {
+        var denied = await _guard.EventPaymentLinkAsync(User, memberPaymentId, byMemberPayment: true);
+        if (denied != null) return denied;
+
         if (!await CanManageMemberPaymentAsync(memberPaymentId)) return StatusCode(403, new { message = "Access denied." });
         if (!IsSuperAdminOrAdmin()) return StatusCode(403, new { message = "Access denied." });
 
@@ -398,6 +443,9 @@ public class EventPaymentLinksController : ControllerBase
     [HttpPost("members/{memberPaymentId}/send-receipt")]
     public async Task<ActionResult> SendReceipt(int memberPaymentId, [FromBody] SendEmailRemarkDto? dto = null)
     {
+        var denied = await _guard.EventPaymentLinkAsync(User, memberPaymentId, byMemberPayment: true);
+        if (denied != null) return denied;
+
         if (!await CanManageMemberPaymentAsync(memberPaymentId)) return StatusCode(403, new { message = "Access denied." });
         if (!IsSuperAdminOrAdmin()) return StatusCode(403, new { message = "Access denied." });
         try
@@ -414,6 +462,9 @@ public class EventPaymentLinksController : ControllerBase
     [HttpPost("members/{memberPaymentId}/send-reminder-email")]
     public async Task<ActionResult> SendReminderEmail(int memberPaymentId, [FromBody] SendEmailRemarkDto? dto = null)
     {
+        var denied = await _guard.EventPaymentLinkAsync(User, memberPaymentId, byMemberPayment: true);
+        if (denied != null) return denied;
+
         if (!await CanManageMemberPaymentAsync(memberPaymentId)) return StatusCode(403, new { message = "Access denied." });
         if (!IsSuperAdminOrAdmin()) return StatusCode(403, new { message = "Access denied." });
         try
@@ -430,6 +481,9 @@ public class EventPaymentLinksController : ControllerBase
     [HttpPost("{linkId}/members/bulk-reminder-email")]
     public async Task<ActionResult> BulkReminderEmail(int linkId, [FromBody] SendEmailRemarkDto? dto = null)
     {
+        var denied = await _guard.EventPaymentLinkAsync(User, linkId);
+        if (denied != null) return denied;
+
         if (!await CanReadLinkAsync(linkId)) return StatusCode(403, new { message = "Access denied." });
         if (!IsSuperAdminOrAdmin()) return StatusCode(403, new { message = "Access denied." });
         try
@@ -446,6 +500,9 @@ public class EventPaymentLinksController : ControllerBase
     [HttpDelete("{linkId}/delete-google-sheet")]
     public async Task<ActionResult> DeleteGoogleSheet(int linkId)
     {
+        var denied = await _guard.EventPaymentLinkAsync(User, linkId);
+        if (denied != null) return denied;
+
         if (!await CanReadLinkAsync(linkId)) return StatusCode(403, new { message = "Access denied." });
         if (!IsSuperAdminOrAdmin()) return StatusCode(403, new { message = "Access denied." });
         try
@@ -466,6 +523,9 @@ public class EventPaymentLinksController : ControllerBase
     [HttpPost("{linkId}/create-google-sheet")]
     public async Task<ActionResult> CreateGoogleSheet(int linkId)
     {
+        var denied = await _guard.EventPaymentLinkAsync(User, linkId);
+        if (denied != null) return denied;
+
         if (!await CanReadLinkAsync(linkId)) return StatusCode(403, new { message = "Access denied." });
         if (!IsSuperAdminOrAdmin()) return StatusCode(403, new { message = "Access denied." });
         try
@@ -486,6 +546,9 @@ public class EventPaymentLinksController : ControllerBase
     [HttpPost("{linkId}/settlement-refresh")]
     public async Task<ActionResult> RefreshSettlements(int linkId)
     {
+        var denied = await _guard.EventPaymentLinkAsync(User, linkId);
+        if (denied != null) return denied;
+
         if (!await CanReadLinkAsync(linkId)) return StatusCode(403, new { message = "Access denied." });
         if (!IsSuperAdminOrAdmin()) return StatusCode(403, new { message = "Access denied." });
         try

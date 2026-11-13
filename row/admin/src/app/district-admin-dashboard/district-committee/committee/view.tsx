@@ -9,7 +9,7 @@
  * and defaults returnTo/back to the DA-dashboard landing page.
  */
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { RotaryYear } from "@/types/rotaryYear";
 import {
@@ -20,6 +20,9 @@ import {
 import { useDragSort } from "@/hooks/useDragSort";
 import { GripVertical } from "@/components/icons";
 import { useAuth } from "@/contexts/AuthContext";
+import { districtYearRights, canEditYear, heldYearLabels } from "@/lib/adminYears";
+import { useRotaryYears } from "@/hooks/useRotaryYears";
+import ViewOnlyBadge from "@/components/ViewOnlyBadge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -66,7 +69,7 @@ function NonMemberChip() {
 }
 
 export function CommitteeMembersView({ embedded = false }: { embedded?: boolean } = {}) {
-  const { selectedDistrictId, isSuperAdmin, isAdmin } = useAuth();
+  const { selectedDistrictId, isSuperAdmin, isAdmin, user } = useAuth();
   const districtId = selectedDistrictId ?? 0;
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -84,7 +87,6 @@ export function CommitteeMembersView({ embedded = false }: { embedded?: boolean 
     `/district-admin-dashboard/district-committee${backQs ? `?${backQs}` : ""}`,
   );
 
-  const canManage = isSuperAdmin || isAdmin;
 
   const [districtName, setDistrictName] = useState("");
   const [members, setMembers] = useState<any[]>([]);
@@ -94,6 +96,13 @@ export function CommitteeMembersView({ embedded = false }: { embedded?: boolean 
   const [allYears, setAllYears] = useState<RotaryYear[]>([]);
   const [allRotaryYears, setAllRotaryYears] = useState<RotaryYear[]>([]);
   const [selectedYearId, setSelectedYearId] = useState<string>("");
+
+  // A committee group and its members belong to a Rotary year. Sub-groups hang
+  // off a group, so the group's year governs those too.
+  const { years: rotaryYears } = useRotaryYears();
+  const rights = useMemo(() => districtYearRights(user?.scopedRoles, districtId), [user?.scopedRoles, districtId]);
+  const canManage = (isSuperAdmin || isAdmin) && canEditYear(rights, Number(selectedYearId) || undefined, isSuperAdmin);
+  const editableYears = heldYearLabels(rights, rotaryYears.map((y) => ({ id: y.id, label: y.yearLabel })));
   const [searchTerm, setSearchTerm] = useState("");
   const [searchDraft, setSearchDraft] = useState("");
   const [loading, setLoading] = useState(true);
@@ -353,6 +362,10 @@ export function CommitteeMembersView({ embedded = false }: { embedded?: boolean 
 
   const body = (
       <div className="space-y-6">
+        {!canManage && (
+          <ViewOnlyBadge editableYears={editableYears} className="mb-4" />
+        )}
+
         {!embedded && <DistrictMembershipTabBar />}
         {!embedded && (
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">

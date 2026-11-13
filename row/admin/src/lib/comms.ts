@@ -1,3 +1,4 @@
+import { SUPPORTED_LOCALES } from "@/i18n/config";
 // N5 Communication: small rules shared by the settings page, the campaign card and the compose pages.
 // The server checks the same rules (api/Services/CommsService.cs); these only give early feedback.
 
@@ -12,7 +13,9 @@ export const CAMPAIGN_PLACEHOLDERS = "{{member_name}}, {{club_name}}";
 
 export const isTemplateKey = (key: string) => /^[a-z0-9][a-z0-9_-]{0,49}$/.test(key);
 
-export const isLanguageCode = (code: string) => /^[A-Za-z]{2,3}(-[A-Za-z0-9]{2,8})?$/.test(code);
+/** One of the eight launch languages (SUPPORTED_LOCALES), optionally with a region: "es", "pt-BR". */
+export const isLanguageCode = (code: string) =>
+  /^[A-Za-z]{2,3}(-[A-Za-z0-9]{2,8})?$/.test(code) && (SUPPORTED_LOCALES as readonly string[]).includes(code.split("-")[0].toLowerCase());
 
 /** The district's Foundation giving link: a full https:// address of at most 500 characters, with no spaces, quotes,
  *  angle brackets or sign-in part (CommsService.IsGivingUrl). Empty means no link and is checked by the caller. */

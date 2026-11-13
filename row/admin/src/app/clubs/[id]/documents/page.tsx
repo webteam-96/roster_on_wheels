@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { DocumentListItem } from "@/types/document";
 import {
@@ -9,6 +9,10 @@ import {
   deleteDocument,
 } from "@/services/api";
 import { useAuth } from "@/contexts/AuthContext";
+import { clubYearRights, canEditYearless } from "@/lib/adminYears";
+import { useRotaryYears } from "@/hooks/useRotaryYears";
+import ViewOnlyBadge from "@/components/ViewOnlyBadge";
+import { useCurrentRotaryYear } from "@/hooks/useCurrentRotaryYear";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -71,7 +75,7 @@ export default function DocumentsPage() {
   const params = useParams();
   const router = useRouter();
   const clubId = Number(params.id);
-  const { isSuperAdmin, isAdmin } = useAuth();
+  const { isSuperAdmin, isAdmin, user } = useAuth();
 
   const [clubName, setClubName] = useState("");
   const [documents, setDocuments] = useState<DocumentListItem[]>([]);
@@ -88,8 +92,21 @@ export default function DocumentsPage() {
   const [deleteTarget, setDeleteTarget] = useState<DocumentListItem | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
 
-  const canManage = isSuperAdmin || isAdmin;
+  // This module carries no Rotary year, so editing it needs CURRENT-year rights —
+  // the same rule AdminYearGuard.ClubYearlessAsync applies on the server.
+  const currentYearId = useCurrentRotaryYear();
+  const { years: ywarYears } = useRotaryYears();
+  const yearRights = useMemo(() => clubYearRights(user?.scopedRoles, clubId), [user?.scopedRoles, clubId]);
+  const isClubAdmin = isSuperAdmin || isAdmin;
+  const canManage = isClubAdmin && canEditYearless(yearRights, currentYearId, isSuperAdmin);
+  // YWAR-BADGE-YEARLESS — name the CURRENT year, not the years held.
+  // This data is not filed by Rotary year, so "you can make changes in
+  // 2025-26" is untrue: those years cannot help here. See ViewOnlyBadge.
+  const ywarCurrentYearLabel =
+    ywarYears.find((y) => y.id === currentYearId)?.yearLabel ?? "";
 
+  // ⚠️ View must NOT depend on canManage — see the comment in projects/page.tsx.
+  const canView = isClubAdmin;
   useEffect(() => {
     async function init() {
       try {
@@ -184,6 +201,10 @@ export default function DocumentsPage() {
           )}
         </div>
 
+        {isClubAdmin && !canManage && (
+          <ViewOnlyBadge currentYearOnly={ywarCurrentYearLabel} className="mb-4" />
+        )}
+
         {/* Status filter + Search */}
         <div className="flex flex-col sm:flex-row gap-4">
           <div className="w-full sm:w-44">
@@ -266,7 +287,7 @@ export default function DocumentsPage() {
                     <TableHead className="text-base font-semibold">Expiry Date & Time</TableHead>
                     <TableHead className="text-base font-semibold text-center">Status</TableHead>
                     <TableHead className="w-12 text-base font-semibold text-center">Download</TableHead>
-                    {canManage && (
+                    {canView && (
                       <TableHead className="w-12"></TableHead>
                     )}
                   </TableRow>
@@ -322,7 +343,7 @@ export default function DocumentsPage() {
                           )
                         )}
                       </TableCell>
-                      {canManage && (
+                      {canView && (
                         <TableCell>
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
@@ -332,14 +353,16 @@ export default function DocumentsPage() {
                               <DropdownMenuItem onClick={() => router.push(`/clubs/${clubId}/documents/${doc.id}`)}>
                                 <Eye className="mr-2 h-4 w-4" />View
                               </DropdownMenuItem>
-                              {doc.status !== "Expired" && (
+                              {doc.status !== "Expired" && canManage && (
                                 <DropdownMenuItem onClick={() => router.push(`/clubs/${clubId}/documents/${doc.id}/edit`)}>
                                   <Pencil className="mr-2 h-4 w-4" />Edit
                                 </DropdownMenuItem>
                               )}
-                              <DropdownMenuItem className="text-destructive" onClick={() => setDeleteTarget(doc)}>
-                                <Trash2 className="mr-2 h-4 w-4" />Delete
-                              </DropdownMenuItem>
+                              {canManage && (
+                                <DropdownMenuItem className="text-destructive" onClick={() => setDeleteTarget(doc)}>
+                                  <Trash2 className="mr-2 h-4 w-4" />Delete
+                                </DropdownMenuItem>
+                              )}
                             </DropdownMenuContent>
                           </DropdownMenu>
                         </TableCell>

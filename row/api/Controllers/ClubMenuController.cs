@@ -15,8 +15,10 @@ public class ClubMenuController : ControllerBase
     private readonly string _connectionString;
     private readonly IClubSiteCachePurger _purger;
 
-    public ClubMenuController(IClubMenuService service, IConfiguration configuration, IClubSiteCachePurger purger)
+    private readonly AdminYearGuard _guard;
+    public ClubMenuController(AdminYearGuard guard, IClubMenuService service, IConfiguration configuration, IClubSiteCachePurger purger)
     {
+        _guard = guard;
         _service = service;
         _connectionString = configuration.GetConnectionString("DefaultConnection")!;
         _purger = purger;
@@ -72,6 +74,9 @@ public class ClubMenuController : ControllerBase
     [HttpPost("api/clubs/{clubId}/website-data/menu_list")]
     public async Task<ActionResult> CreateMenu(int clubId, [FromBody] CreateClubMenuDto dto)
     {
+        var denied = await _guard.ClubYearlessAsync(User, clubId);
+        if (denied != null) return denied;
+
         var linkErr = ValidateExternalLink(dto.LinkType, dto.LinkValue);
         if (linkErr != null) return BadRequest(new { message = linkErr });
 
@@ -99,6 +104,9 @@ public class ClubMenuController : ControllerBase
     [HttpPut("api/clubs/{clubId}/website-data/menu_list/{id}")]
     public async Task<ActionResult> UpdateMenu(int clubId, int id, [FromBody] UpdateClubMenuDto dto)
     {
+        var denied = await _guard.ClubYearlessAsync(User, clubId);
+        if (denied != null) return denied;
+
         var existing = await _service.GetMenuByIdAsync(id);
         if (existing == null) return NotFound(new { message = "Menu not found." });
         if (existing.IsDefault)
@@ -166,6 +174,9 @@ public class ClubMenuController : ControllerBase
     [HttpPut("api/clubs/{clubId}/website-data/menu_list/reorder")]
     public async Task<ActionResult> ReorderMenus(int clubId, [FromBody] ReorderMenusDto dto)
     {
+        var denied = await _guard.ClubYearlessAsync(User, clubId);
+        if (denied != null) return denied;
+
         await _service.ReorderMenusAsync(dto.Id1, dto.Id2);
         _purger.PurgeByClub(clubId);
         return Ok(new { message = "Menus reordered successfully." });
@@ -174,6 +185,9 @@ public class ClubMenuController : ControllerBase
     [HttpPost("api/clubs/{clubId}/website-data/menu_list/upload-document")]
     public async Task<ActionResult<object>> UploadDocument(int clubId, IFormFile file)
     {
+        var denied = await _guard.ClubYearlessAsync(User, clubId);
+        if (denied != null) return denied;
+
         if (file == null || file.Length == 0)
             return BadRequest(new { message = "No file uploaded" });
 
@@ -230,6 +244,9 @@ public class ClubMenuController : ControllerBase
     [HttpDelete("api/clubs/{clubId}/website-data/menu_list/{menuId}/submenus/{id}")]
     public async Task<ActionResult> DeleteSubMenu(int clubId, int menuId, int id)
     {
+        var denied = await _guard.ClubYearlessAsync(User, clubId);
+        if (denied != null) return denied;
+
         try
         {
             await _service.DeleteSubMenuAsync(id, GetUserId());
@@ -245,6 +262,9 @@ public class ClubMenuController : ControllerBase
     [HttpPut("api/clubs/{clubId}/website-data/menu_list/{menuId}/submenus/reorder")]
     public async Task<ActionResult> ReorderSubMenus(int clubId, int menuId, [FromBody] ReorderSubMenusDto dto)
     {
+        var denied = await _guard.ClubYearlessAsync(User, clubId);
+        if (denied != null) return denied;
+
         await _service.ReorderSubMenusAsync(dto.Id1, dto.Id2);
         _purger.PurgeByClub(clubId);
         return Ok(new { message = "Sub-menus reordered successfully." });
@@ -254,6 +274,9 @@ public class ClubMenuController : ControllerBase
     [HttpPut("api/clubs/{clubId}/website-data/menu_list/reorder-bulk")]
     public async Task<ActionResult> ReorderMenusBulk(int clubId, [FromBody] BulkReorderDto dto)
     {
+        var denied = await _guard.ClubYearlessAsync(User, clubId);
+        if (denied != null) return denied;
+
         await _service.ReorderMenusBulkAsync(clubId, dto.OrderedIds ?? new List<int>());
         _purger.PurgeByClub(clubId);
         return Ok(new { message = "Menus reordered successfully." });
@@ -262,6 +285,9 @@ public class ClubMenuController : ControllerBase
     [HttpPut("api/clubs/{clubId}/website-data/menu_list/{menuId}/submenus/reorder-bulk")]
     public async Task<ActionResult> ReorderSubMenusBulk(int clubId, int menuId, [FromBody] BulkReorderDto dto)
     {
+        var denied = await _guard.ClubYearlessAsync(User, clubId);
+        if (denied != null) return denied;
+
         await _service.ReorderSubMenusBulkAsync(menuId, dto.OrderedIds ?? new List<int>());
         _purger.PurgeByClub(clubId);
         return Ok(new { message = "Sub-menus reordered successfully." });

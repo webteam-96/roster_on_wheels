@@ -8,6 +8,14 @@ using RotaryApi.Services;
 
 namespace RotaryApi.Controllers;
 
+/// <summary>Years picked in the "Make Admin" popup. Optional throughout: an older
+/// client that posts no body still works, and gets the current year only.</summary>
+public class AssignDistrictAdminYearsDto
+{
+    public List<int>? YearIds { get; set; }
+    public bool? AllYears { get; set; }
+}
+
 public class DistrictProjectDto
 {
     public string Title { get; set; } = "";
@@ -102,7 +110,12 @@ public class DistrictModulesController : ControllerBase
     private readonly IDcAutoGroupService _dcAutoGroups;
     private readonly IYearTableResolver _yearTables;
 
+    private readonly AdminYearGuard _guard;
+    private readonly IAdminYearService _adminYears;
+
     public DistrictModulesController(
+        AdminYearGuard guard,
+        IAdminYearService adminYears,
         IUpcomingEventService eventService,
         IAnnouncementService announcementService,
         INewsletterService newsletterService,
@@ -119,6 +132,8 @@ public class DistrictModulesController : ControllerBase
         IDcAutoGroupService dcAutoGroups,
         IYearTableResolver yearTables)
     {
+        _guard = guard;
+        _adminYears = adminYears;
         _eventService = eventService;
         _announcementService = announcementService;
         _newsletterService = newsletterService;
@@ -183,6 +198,9 @@ public class DistrictModulesController : ControllerBase
     [HttpPost("api/districts/{districtId}/upcoming-events")]
     public async Task<ActionResult> CreateDistrictEvent(int districtId, [FromBody] CreateUpcomingEventDto dto)
     {
+        var denied = await _guard.DistrictYearlessAsync(User, districtId);
+        if (denied != null) return denied;
+
         var id = await _eventService.CreateAsync(0, dto, GetUserId(), districtId);
         return Ok(new { id });
     }
@@ -191,6 +209,9 @@ public class DistrictModulesController : ControllerBase
     [OwnedBy(Owns.DistrictEvent, "id", "districtId")]
     public async Task<ActionResult> UpdateDistrictEvent(int districtId, int id, [FromBody] UpdateUpcomingEventDto dto)
     {
+        var denied = await _guard.DistrictYearlessAsync(User, districtId);
+        if (denied != null) return denied;
+
         await _eventService.UpdateAsync(id, dto, GetUserId());
         return Ok(new { message = "Event updated successfully." });
     }
@@ -199,6 +220,9 @@ public class DistrictModulesController : ControllerBase
     [OwnedBy(Owns.DistrictEvent, "id", "districtId")]
     public async Task<ActionResult> DeleteDistrictEvent(int districtId, int id)
     {
+        var denied = await _guard.DistrictYearlessAsync(User, districtId);
+        if (denied != null) return denied;
+
         await _eventService.DeleteAsync(id, GetUserId());
         return Ok(new { message = "Event deleted successfully." });
     }
@@ -206,6 +230,9 @@ public class DistrictModulesController : ControllerBase
     [HttpPost("api/districts/{districtId}/upcoming-events/upload")]
     public async Task<ActionResult<object>> UploadDistrictEventImage(int districtId, IFormFile file)
     {
+        var denied = await _guard.DistrictYearlessAsync(User, districtId);
+        if (denied != null) return denied;
+
         if (file == null || file.Length == 0)
             return BadRequest(new { message = "No file uploaded" });
 
@@ -245,6 +272,9 @@ public class DistrictModulesController : ControllerBase
     [HttpPost("api/districts/{districtId}/announcements")]
     public async Task<ActionResult> CreateDistrictAnnouncement(int districtId, [FromBody] CreateAnnouncementDto dto)
     {
+        var denied = await _guard.DistrictYearlessAsync(User, districtId);
+        if (denied != null) return denied;
+
         var id = await _announcementService.CreateAsync(0, dto, GetUserId(), districtId);
         return Ok(new { id });
     }
@@ -253,6 +283,9 @@ public class DistrictModulesController : ControllerBase
     [OwnedBy(Owns.DistrictAnnouncement, "id", "districtId")]
     public async Task<ActionResult> UpdateDistrictAnnouncement(int districtId, int id, [FromBody] UpdateAnnouncementDto dto)
     {
+        var denied = await _guard.DistrictYearlessAsync(User, districtId);
+        if (denied != null) return denied;
+
         await _announcementService.UpdateAsync(id, dto, GetUserId());
         return Ok(new { message = "Announcement updated successfully." });
     }
@@ -261,6 +294,9 @@ public class DistrictModulesController : ControllerBase
     [OwnedBy(Owns.DistrictAnnouncement, "id", "districtId")]
     public async Task<ActionResult> DeleteDistrictAnnouncement(int districtId, int id)
     {
+        var denied = await _guard.DistrictYearlessAsync(User, districtId);
+        if (denied != null) return denied;
+
         await _announcementService.DeleteAsync(id, GetUserId());
         return Ok(new { message = "Announcement deleted successfully." });
     }
@@ -307,6 +343,13 @@ public class DistrictModulesController : ControllerBase
     [HttpPost("api/districts/{districtId}/newsletters")]
     public async Task<ActionResult> CreateDistrictNewsletter(int districtId, [FromBody] CreateNewsletterDto dto)
     {
+        // A newsletter IS year-wise: the service derives fk_year_id from the publish
+        // date. The year-less guard asked for CURRENT-year rights instead, which let
+        // one be filed into any year (QA 2026-10-16, blocker B5). These three now
+        // mirror the club twin in NewslettersController.
+        var denied = await _guard.DistrictYearForDateAsync(User, districtId, dto.PublishDateTime);
+        if (denied != null) return denied;
+
         var id = await _newsletterService.CreateAsync(0, dto, GetUserId(), districtId);
         return Ok(new { id });
     }
@@ -315,6 +358,14 @@ public class DistrictModulesController : ControllerBase
     [OwnedBy(Owns.DistrictNewsletter, "id", "districtId")]
     public async Task<ActionResult> UpdateDistrictNewsletter(int districtId, int id, [FromBody] UpdateNewsletterDto dto)
     {
+        // The service re-resolves fk_year_id from the new publish date, so this edit
+        // can MOVE the newsletter between Rotary years. Both ends must be ours, or a
+        // single-year admin could push a record out of their own reach or pull
+        // someone else's into it.
+        var denied = await _guard.DistrictRecordMoveByDateAsync(
+            User, districtId, "newsletters", "pk_newsletter_id", id, dto.PublishDateTime);
+        if (denied != null) return denied;
+
         await _newsletterService.UpdateAsync(id, dto, GetUserId());
         return Ok(new { message = "Newsletter updated successfully." });
     }
@@ -323,6 +374,10 @@ public class DistrictModulesController : ControllerBase
     [OwnedBy(Owns.DistrictNewsletter, "id", "districtId")]
     public async Task<ActionResult> DeleteDistrictNewsletter(int districtId, int id)
     {
+        var denied = await _guard.DistrictRecordYearAsync(
+            User, districtId, "newsletters", "pk_newsletter_id", id);
+        if (denied != null) return denied;
+
         await _newsletterService.DeleteAsync(id, GetUserId());
         return Ok(new { message = "Newsletter deleted successfully." });
     }
@@ -330,6 +385,9 @@ public class DistrictModulesController : ControllerBase
     [HttpPost("api/districts/{districtId}/newsletters/upload")]
     public async Task<ActionResult<object>> UploadDistrictNewsletterFile(int districtId, IFormFile file)
     {
+        var denied = await _guard.DistrictYearlessAsync(User, districtId);
+        if (denied != null) return denied;
+
         if (districtId <= 0)
             return BadRequest(new { message = "Invalid district id. Files cannot be uploaded without a district context." });
 
@@ -380,6 +438,9 @@ public class DistrictModulesController : ControllerBase
     [HttpPost("api/districts/{districtId}/documents")]
     public async Task<ActionResult> CreateDistrictDocument(int districtId, [FromBody] CreateDocumentDto dto)
     {
+        var denied = await _guard.DistrictYearlessAsync(User, districtId);
+        if (denied != null) return denied;
+
         var id = await _documentService.CreateAsync(0, dto, GetUserId(), districtId);
         return Ok(new { id });
     }
@@ -388,6 +449,9 @@ public class DistrictModulesController : ControllerBase
     [OwnedBy(Owns.DistrictDocument, "id", "districtId")]
     public async Task<ActionResult> UpdateDistrictDocument(int districtId, int id, [FromBody] UpdateDocumentDto dto)
     {
+        var denied = await _guard.DistrictYearlessAsync(User, districtId);
+        if (denied != null) return denied;
+
         await _documentService.UpdateAsync(id, dto, GetUserId());
         return Ok(new { message = "Document updated successfully." });
     }
@@ -396,6 +460,9 @@ public class DistrictModulesController : ControllerBase
     [OwnedBy(Owns.DistrictDocument, "id", "districtId")]
     public async Task<ActionResult> DeleteDistrictDocument(int districtId, int id)
     {
+        var denied = await _guard.DistrictYearlessAsync(User, districtId);
+        if (denied != null) return denied;
+
         await _documentService.DeleteAsync(id, GetUserId());
         return Ok(new { message = "Document deleted successfully." });
     }
@@ -429,6 +496,9 @@ public class DistrictModulesController : ControllerBase
     [HttpPut("api/districts/{districtId}/greetings")]
     public async Task<ActionResult> UpdateDistrictGreetingSettings(int districtId, [FromBody] UpdateDistrictGreetingSettingsDto dto)
     {
+        var denied = await _guard.DistrictYearlessAsync(User, districtId);
+        if (denied != null) return denied;
+
         await _greetingService.UpdateDistrictSettingsAsync(districtId, dto, GetUserId());
         return Ok(new { message = "District greeting settings updated successfully." });
     }
@@ -456,6 +526,9 @@ public class DistrictModulesController : ControllerBase
     [HttpPost("api/districts/{districtId}/weblinks")]
     public async Task<ActionResult> CreateDistrictWeblink(int districtId, [FromForm] CreateWeblinkDto dto, IFormFile? logo, IFormFile? banner, IFormFile? pdf)
     {
+        var denied = await _guard.DistrictYearlessAsync(User, districtId);
+        if (denied != null) return denied;
+
         // Validate logo
         if (logo != null)
         {
@@ -555,6 +628,9 @@ public class DistrictModulesController : ControllerBase
     [OwnedBy(Owns.DistrictWeblink, "weblinkId", "districtId")]
     public async Task<ActionResult> DeleteDistrictWeblink(int districtId, int weblinkId)
     {
+        var denied = await _guard.DistrictYearlessAsync(User, districtId);
+        if (denied != null) return denied;
+
         await _weblinkService.DeleteWeblinkAsync(weblinkId, GetUserId());
         return Ok(new { message = "Weblink deleted successfully." });
     }
@@ -563,6 +639,9 @@ public class DistrictModulesController : ControllerBase
     [OwnedBy(Owns.DistrictWeblink, "weblinkId", "districtId")]
     public async Task<ActionResult> ToggleDistrictWeblinkActive(int districtId, int weblinkId)
     {
+        var denied = await _guard.DistrictYearlessAsync(User, districtId);
+        if (denied != null) return denied;
+
         await _weblinkService.ToggleActiveAsync(weblinkId, GetUserId());
         return Ok(new { message = "Weblink status toggled successfully." });
     }
@@ -616,6 +695,9 @@ public class DistrictModulesController : ControllerBase
     [HttpPost("api/districts/{districtId}/sub-groups")]
     public async Task<ActionResult> CreateDistrictSubGroup(int districtId, [FromBody] CreateSubGroupDto dto)
     {
+        var denied = await _guard.DistrictYearAsync(User, districtId, dto.YearId);
+        if (denied != null) return denied;
+
         if (!await SubGroupMembersInDistrictAsync(districtId, dto.MemberIds)) return BadRequest(new { message = "Every member must belong to a club of this district." });
         var result = await _subGroupService.CreateSubGroupAsync(0, dto, GetUserId(), districtId);
         return Ok(result);
@@ -625,6 +707,14 @@ public class DistrictModulesController : ControllerBase
     [OwnedBy(Owns.DistrictSubGroup, "subGroupId", "districtId")]
     public async Task<ActionResult> UpdateDistrictSubGroup(int districtId, int subGroupId, [FromBody] UpdateSubGroupDto dto)
     {
+        // UpdateSubGroupDto carries its own YearId, so this edit can MOVE the
+        // group between years. Guard the year it is in AND the year it is going
+        // to — checking only one end lets a group be dragged across the line.
+        var currentDenied = await _guard.DistrictRecordYearByTableAsync(
+            User, districtId, "sub_groups", "pk_sub_group_id", subGroupId);
+        var denied = currentDenied ?? await _guard.DistrictYearAsync(User, districtId, dto.YearId);
+        if (denied != null) return denied;
+
         if (!await SubGroupMembersInDistrictAsync(districtId, dto.MemberIds)) return BadRequest(new { message = "Every member must belong to a club of this district." });
         var result = await _subGroupService.UpdateSubGroupAsync(subGroupId, dto, GetUserId());
         return Ok(result);
@@ -634,6 +724,10 @@ public class DistrictModulesController : ControllerBase
     [OwnedBy(Owns.DistrictSubGroup, "subGroupId", "districtId")]
     public async Task<ActionResult> DeleteDistrictSubGroup(int districtId, int subGroupId)
     {
+        var denied = await _guard.DistrictRecordYearByTableAsync(
+            User, districtId, "sub_groups", "pk_sub_group_id", subGroupId);
+        if (denied != null) return denied;
+
         await _subGroupService.DeleteSubGroupAsync(subGroupId, GetUserId());
         return Ok(new { message = "Sub group deleted successfully." });
     }
@@ -682,6 +776,9 @@ public class DistrictModulesController : ControllerBase
     [HttpPost("api/districts/{districtId}/mass-emails")]
     public async Task<ActionResult> CreateDistrictMassEmail(int districtId, [FromBody] CreateMassEmailDto dto)
     {
+        var denied = await _guard.DistrictYearlessAsync(User, districtId);
+        if (denied != null) return denied;
+
         try
         {
             var id = await _massEmailService.CreateAsync(0, dto, GetUserId(), districtId);
@@ -790,9 +887,61 @@ public class DistrictModulesController : ControllerBase
     // ── District Members Admin Actions ────────────────────────────────────
     // ══════════════════════════════════════════════════════════════════════
 
-    [HttpPost("api/districts/{districtId}/members/{memberId}/assign-admin")]
-    public async Task<ActionResult> AssignDistrictAdmin(int districtId, int memberId)
+    /// <summary>District dates arrive as free text. A value we cannot parse is left
+    /// to the existing validators to reject — the guard must not pass it off as "no
+    /// date supplied" and open a hole.</summary>
+    private static DateTime? ParseDistrictDate(string? text) =>
+        DateTime.TryParse(text, out var d) ? d : null;
+
+    /// <summary>
+    /// Works out which Rotary years this caller may hand to a new District Admin.
+    /// Returns a 403 to pass straight back, or the clamped set to grant.
+    ///
+    /// ⚠️ Clamping is the whole point: without it a single-year District Admin
+    /// could promote someone to every year and then be promoted back by them.
+    /// </summary>
+    private async Task<(ActionResult? Error, List<int> Years, bool AllYears)>
+        ResolveGrantableDistrictYearsAsync(int districtId, AssignDistrictAdminYearsDto? request)
     {
+        using var conn = CreateConnection();
+        await conn.OpenAsync();
+
+        var grantable = await _adminYears.GetGrantableDistrictYearsAsync(conn, GetUserId(), districtId);
+
+        var wantsAll = request?.AllYears == true;
+        if (wantsAll && !grantable.AllYears)
+            return (StatusCode(403, new { message = "Only a Super Admin can grant All Years." }), new List<int>(), false);
+
+        var requested = request?.YearIds?.Where(y => y > 0).Distinct().ToList() ?? new List<int>();
+
+        // An older client sends no years at all. Give the current year rather than
+        // nothing — nothing would leave the new admin unable to open anything.
+        if (!wantsAll && requested.Count == 0)
+        {
+            var current = await AdminYearService.GetCurrentYearIdAsync(conn);
+            if (current is not int cy)
+                return (StatusCode(500, new { message = "No current Rotary year is configured." }), new List<int>(), false);
+            requested = new List<int> { cy };
+        }
+
+        if (!wantsAll)
+        {
+            var refused = requested.Where(y => !grantable.Covers(y)).ToList();
+            if (refused.Count > 0)
+                return (StatusCode(403, new { message = "You can only grant Rotary years you hold yourself." }), new List<int>(), false);
+        }
+
+        return (null, requested, wantsAll);
+    }
+
+    [HttpPost("api/districts/{districtId}/members/{memberId}/assign-admin")]
+    public async Task<ActionResult> AssignDistrictAdmin(int districtId, int memberId, [FromBody] AssignDistrictAdminYearsDto? request = null)
+    {
+        // The years being granted decide (clamped to the caller's own); no separate year-less guard.
+        var (yearError, requestedYears, wantsAllYears) =
+            await ResolveGrantableDistrictYearsAsync(districtId, request);
+        if (yearError != null) return yearError;
+
         using var connection = CreateConnection();
         await connection.OpenAsync();
 
@@ -893,6 +1042,12 @@ public class DistrictModulesController : ControllerBase
                 new { MemberId = memberId, ModifiedBy = assignedBy }, transaction: tx);
         }
 
+        // The year grants belong to the same all-or-nothing unit as the role row:
+        // a District Admin with no years can open nothing, which would read as the
+        // promotion having silently failed.
+        await _adminYears.SetManualGrantsAsync(
+            connection, memberId, null, districtId, requestedYears, wantsAllYears, assignedBy, tx);
+
         // Commit DB writes BEFORE sending email. If the commit fails the email
         // never goes — guarantees that any sent promotion email corresponds to a
         // real persisted member_roles row.
@@ -920,10 +1075,49 @@ public class DistrictModulesController : ControllerBase
     [HttpPost("api/districts/{districtId}/members/{memberId}/remove-admin")]
     public async Task<ActionResult> RemoveDistrictAdmin(int districtId, int memberId, [FromQuery] bool sendEmail = true)
     {
+        var denied = await _guard.DistrictYearlessAsync(User, districtId);
+        if (denied != null) return denied;
+
         using var connection = CreateConnection();
         await connection.OpenAsync();
 
+        // ⚠️ A SITTING District Governor cannot be un-admined here. Their year is
+        // granted by the DG record itself, read live, so switching the role off
+        // would not remove their rights — it would only remove their way IN,
+        // leaving a governor who holds the year and cannot open the dashboard.
+        // That exact state happened to a real club president and had to be
+        // repaired by hand. Change the DG record instead.
+        var sittingOffice = await _adminYears.SittingOfficeAsync(connection, memberId, null, districtId);
+        if (sittingOffice != null)
+            return BadRequest(new
+            {
+                message = $"This member is the {sittingOffice} for the current Rotary year, "
+                        + "which is what makes them a District Admin. Change the District Governor "
+                        + "record to remove their access."
+            });
+
         var revokedBy = GetUserId();
+
+        // ⚠️ Removing is scoped to the years the REMOVER holds — the mirror of
+        // granting. A 2025-26 admin takes back 2025-26 and nothing else; a year
+        // they could never have given is not theirs to destroy.
+        var removal = await _adminYears.RemoveYearsYouHoldAsync(
+            connection, memberId, null, districtId, revokedBy, revokedBy);
+
+        if (removal.Refused)
+            return BadRequest(new { message = removal.Refusal });
+
+        // ⚠️ The Admin ROLE only comes off when nothing of theirs is left. Taking
+        // it while they still hold another year would leave them with rights and
+        // no way to reach them — and would also kill their credentials below.
+        if (removal.StillHasRights)
+            return Ok(new
+            {
+                message = $"Removed {string.Join(", ", removal.RemovedYears)}. "
+                        + "This member is still a District Admin for the other Rotary years they hold.",
+                removedYears = removal.RemovedYears,
+                stillAdmin = true,
+            });
 
         // Deactivate district admin role
         var rowsAffected = await connection.ExecuteAsync(@"
@@ -977,6 +1171,13 @@ public class DistrictModulesController : ControllerBase
             });
         }
 
+        // Only reachable when NOTHING of theirs survived the scoped removal above
+        // (otherwise we returned early), so this is belt-and-braces: it clears any
+        // grant row the scoped pass could not see, rather than undoing its work.
+        // ⚠️ Do not move it above the early return — there it would wipe the very
+        // years the remover was not entitled to touch.
+        await _adminYears.RevokeManualGrantsAsync(connection, memberId, null, districtId, GetUserId());
+
         return Ok(new { message = sendEmail ? "District Admin role removed successfully." : "District Admin role removed (no email sent)." });
     }
 
@@ -988,6 +1189,9 @@ public class DistrictModulesController : ControllerBase
     [HttpPost("api/districts/{districtId}/members/{memberId}/club-access")]
     public async Task<ActionResult> SetDistrictAdminClubAccess(int districtId, int memberId, [FromBody] DistrictAdminClubAccessDto dto)
     {
+        var denied = await _guard.DistrictYearlessAsync(User, districtId);
+        if (denied != null) return denied;
+
         var roles = User.FindFirst("roles")?.Value ?? "";
         if (!roles.Contains("SuperAdmin"))
             return StatusCode(403, new { message = "Only SuperAdmin can change District Admin club access." });
@@ -1014,7 +1218,7 @@ public class DistrictModulesController : ControllerBase
     // (AllClubsAccess stays 0 — only SuperAdmin can grant that). Reuses AssignDistrictAdmin
     // so credentials + notification email behave identically.
     [HttpPost("api/district-admin/districts/{districtId}/members/{memberId}/assign-admin")]
-    public async Task<ActionResult> AssignDistrictAdminByDistrictAdmin(int districtId, int memberId)
+    public async Task<ActionResult> AssignDistrictAdminByDistrictAdmin(int districtId, int memberId, [FromBody] AssignDistrictAdminYearsDto? request = null)
     {
         var roles = User.FindFirst("roles")?.Value ?? "";
         if (!roles.Contains("SuperAdmin"))
@@ -1030,7 +1234,7 @@ public class DistrictModulesController : ControllerBase
                 return StatusCode(403, new { message = "You are not a District Admin for this district." });
         }
         // Delegate — the INSERT/reactivate never sets AllClubsAccess, so no club access is granted.
-        return await AssignDistrictAdmin(districtId, memberId);
+        return await AssignDistrictAdmin(districtId, memberId, request);
     }
 
     // user 2026-10-08: Rotaract clubs (ClubType = 'Rotaract Club') are listed only for SuperAdmin;
@@ -1060,7 +1264,7 @@ public class DistrictModulesController : ControllerBase
         var clubs = await connection.QueryAsync<dynamic>($@"
             SELECT pk_club_id AS clubId, ClubName AS clubName, ClubRotaryId AS clubRotaryId
             FROM club_master
-            WHERE fk_district_id = @DistrictId AND isdeleted = 0{NotRotaractUnlessSa("")}
+            WHERE fk_district_id = @DistrictId AND isdeleted = 0 AND {HierarchyScopeSql.ClubLive("club_master")}{NotRotaractUnlessSa("")}
             ORDER BY ClubName",
             new { DistrictId = districtId });
         return Ok(clubs);
@@ -1284,6 +1488,9 @@ public class DistrictModulesController : ControllerBase
     [HttpPost("api/districts/{districtId}/projects")]
     public async Task<ActionResult> CreateDistrictProject(int districtId, [FromBody] DistrictProjectDto dto)
     {
+        var denied = await _guard.DistrictYearForDateAsync(User, districtId, ParseDistrictDate(dto.ProjectDate ?? dto.EventDate));
+        if (denied != null) return denied;
+
         if (dto.Photos == null || dto.Photos.Count == 0)
             return BadRequest(new { message = "At least 1 photo is required to save this project." });
         // project_date decides the year-partitioned table below, so a typo'd year creates a junk
@@ -1364,6 +1571,9 @@ public class DistrictModulesController : ControllerBase
     [HttpPut("api/districts/{districtId}/projects/{yearId}/{id}")]
     public async Task<ActionResult> UpdateDistrictProject(int districtId, int yearId, int id, [FromBody] DistrictProjectDto dto)
     {
+        var denied = await _guard.DistrictYearAsync(User, districtId, yearId);
+        if (denied != null) return denied;
+
         if (!await DistrictRecordInYearAsync(districtId, yearId, id)) return NotFound(new { message = "Not found." });
         if (dto.Photos == null || dto.Photos.Count == 0)
             return BadRequest(new { message = "At least 1 photo is required to save this project." });
@@ -1448,6 +1658,9 @@ public class DistrictModulesController : ControllerBase
     [HttpDelete("api/districts/{districtId}/projects/{yearId}/{id}")]
     public async Task<ActionResult> DeleteDistrictProject(int districtId, int yearId, int id)
     {
+        var denied = await _guard.DistrictYearAsync(User, districtId, yearId);
+        if (denied != null) return denied;
+
         using var conn = CreateConnection();
         await conn.OpenAsync();
         var info = await _yearTables.ResolveByYearIdAsync(conn, yearId);
@@ -1460,6 +1673,9 @@ public class DistrictModulesController : ControllerBase
     [HttpPost("api/districts/{districtId}/projects/upload")]
     public async Task<ActionResult> UploadDistrictProjectPhoto(int districtId, IFormFile file, [FromQuery] bool strict = false)
     {
+        var denied = await _guard.DistrictYearlessAsync(User, districtId);
+        if (denied != null) return denied;
+
         // Compress oversized (mobile-raw) photos to ≤5 MB before the size guard; web uploads pass through.
         file = RotaryApi.Services.ImageCompressor.EnsureWithinLimit(file);
         var v = RotaryApi.Services.ImageQualityValidator.Validate(file, strict);
@@ -1547,6 +1763,9 @@ public class DistrictModulesController : ControllerBase
     [HttpPost("api/districts/{districtId}/district-events")]
     public async Task<ActionResult> CreateDistrictEvent(int districtId, [FromBody] DistrictEventDto dto)
     {
+        var denied = await _guard.DistrictYearForDateAsync(User, districtId, ParseDistrictDate(dto.EventDate ?? dto.ProjectDate));
+        if (denied != null) return denied;
+
         if (dto.Photos == null || dto.Photos.Count == 0)
             return BadRequest(new { message = "At least 1 photo is required to save this event." });
         // District events share the year-partitioned project tables — a typo'd date creates a junk
@@ -1587,6 +1806,9 @@ public class DistrictModulesController : ControllerBase
     [HttpPut("api/districts/{districtId}/district-events/{yearId}/{id}")]
     public async Task<ActionResult> UpdateDistrictEventItem(int districtId, int yearId, int id, [FromBody] DistrictEventDto dto)
     {
+        var denied = await _guard.DistrictYearAsync(User, districtId, yearId);
+        if (denied != null) return denied;
+
         if (!await DistrictRecordInYearAsync(districtId, yearId, id)) return NotFound(new { message = "Not found." });
         if (dto.Photos == null || dto.Photos.Count == 0)
             return BadRequest(new { message = "At least 1 photo is required to save this event." });
@@ -1729,6 +1951,9 @@ public class DistrictModulesController : ControllerBase
     [HttpPost("api/districts/{districtId}/projects/{yearId}/{id}/move")]
     public async Task<ActionResult> MoveDistrictProject(int districtId, int yearId, int id, [FromBody] DistrictProjectDto dto)
     {
+        var denied = await _guard.DistrictYearMoveAsync(User, districtId, yearId, ParseDistrictDate(dto.ProjectDate ?? dto.EventDate));
+        if (denied != null) return denied;
+
         if (!await DistrictRecordInYearAsync(districtId, yearId, id)) return NotFound(new { message = "Not found." });
         if (dto.Photos == null || dto.Photos.Count == 0)
             return BadRequest(new { message = "At least 1 photo is required to save this project." });
@@ -1795,6 +2020,9 @@ public class DistrictModulesController : ControllerBase
     [HttpPost("api/districts/{districtId}/district-events/{yearId}/{id}/move")]
     public async Task<ActionResult> MoveDistrictEvent(int districtId, int yearId, int id, [FromBody] DistrictEventDto dto)
     {
+        var denied = await _guard.DistrictYearMoveAsync(User, districtId, yearId, ParseDistrictDate(dto.EventDate ?? dto.ProjectDate));
+        if (denied != null) return denied;
+
         if (!await DistrictRecordInYearAsync(districtId, yearId, id)) return NotFound(new { message = "Not found." });
         if (dto.Photos == null || dto.Photos.Count == 0)
             return BadRequest(new { message = "At least 1 photo is required to save this event." });
@@ -1951,6 +2179,10 @@ public class DistrictModulesController : ControllerBase
     [HttpPost("api/districts/{districtId}/website-data/banners")]
     public async Task<ActionResult> CreateDistrictBanner(int districtId, [FromBody] DistrictBannerDto dto)
     {
+        // Creating: the caller names the year the row is filed under.
+        var denied = await _guard.DistrictYearAsync(User, districtId, dto.YearId ?? 0);
+        if (denied != null) return denied;
+
         using var conn = CreateConnection();
         await conn.OpenAsync();
         int yearId = (int)(dto.YearId ?? await conn.ExecuteScalarAsync<int>(
@@ -1974,6 +2206,11 @@ public class DistrictModulesController : ControllerBase
     [HttpPut("api/districts/{districtId}/website-data/banners/{id}")]
     public async Task<ActionResult> UpdateDistrictBanner(int districtId, int id, [FromBody] DistrictBannerDto dto)
     {
+        // Year-scoped table — the record's own year decides.
+        var denied = await _guard.DistrictRecordYearByTableAsync(
+            User, districtId, "club_website_banner", "pk_club_website_banner_id", id);
+        if (denied != null) return denied;
+
         using var conn = CreateConnection();
         await conn.OpenAsync();
         string bannerImagePath = dto.BannerImagePath;
@@ -2008,6 +2245,9 @@ public class DistrictModulesController : ControllerBase
     [HttpPost("api/districts/{districtId}/website-data/banners/upload-document")]
     public async Task<ActionResult> UploadDistrictBannerDocument(int districtId, IFormFile file)
     {
+        var denied = await _guard.DistrictYearlessAsync(User, districtId);
+        if (denied != null) return denied;
+
         if (file == null || file.Length == 0) return BadRequest(new { message = "No file uploaded" });
         var allowed = new[] { ".pdf", ".doc", ".docx", ".xls", ".xlsx", ".ppt", ".pptx", ".jpg", ".jpeg", ".png" };
         if (!allowed.Contains(Path.GetExtension(file.FileName).ToLower()))
@@ -2045,6 +2285,12 @@ public class DistrictModulesController : ControllerBase
     [HttpPut("api/districts/{districtId}/website-data/banners/reorder-all")]
     public async Task<ActionResult> ReorderDistrictBannersAll(int districtId, [FromBody] ReorderDto dto)
     {
+        // Banners are year-wise (club_website_banner.fk_year_id), and a reorder
+        // carries only ids — so check the year of every row being moved.
+        var denied = await _guard.DistrictReorderYearsAsync(
+            User, districtId, "club_website_banner", "pk_club_website_banner_id", dto.OrderedIds);
+        if (denied != null) return denied;
+
         if (dto.OrderedIds == null || dto.OrderedIds.Count == 0)
             return BadRequest(new { message = "OrderedIds is required." });
 
@@ -2125,6 +2371,11 @@ public class DistrictModulesController : ControllerBase
     [HttpPut("api/districts/{districtId}/website-data/advertisements/{id}")]
     public async Task<ActionResult> UpdateDistrictAdvertisement(int districtId, int id, [FromBody] DistrictAdvertisementDto dto)
     {
+        // Year-scoped table — the record's own year decides.
+        var denied = await _guard.DistrictRecordYearByTableAsync(
+            User, districtId, "club_website_advertisement", "pk_club_website_advertisement_id", id);
+        if (denied != null) return denied;
+
         using var conn = CreateConnection();
         await conn.OpenAsync();
         string advertisementImagePath = dto.AdvertisementImagePath;
@@ -2194,6 +2445,12 @@ public class DistrictModulesController : ControllerBase
     [HttpPut("api/districts/{districtId}/website-data/advertisements/reorder-all")]
     public async Task<ActionResult> ReorderDistrictAdvertisementsAll(int districtId, [FromBody] ReorderDto dto)
     {
+        // Adverts are year-wise (club_website_advertisement.fk_year_id), and a reorder
+        // carries only ids — so check the year of every row being moved.
+        var denied = await _guard.DistrictReorderYearsAsync(
+            User, districtId, "club_website_advertisement", "pk_club_website_advertisement_id", dto.OrderedIds);
+        if (denied != null) return denied;
+
         if (dto.OrderedIds == null || dto.OrderedIds.Count == 0)
             return BadRequest(new { message = "OrderedIds is required." });
 
@@ -2232,6 +2489,9 @@ public class DistrictModulesController : ControllerBase
     [HttpPost("api/districts/{districtId}/website-data/social-links")]
     public async Task<ActionResult> CreateDistrictSocialLink(int districtId, [FromBody] DistrictSocialLinkDto dto)
     {
+        var denied = await _guard.DistrictYearlessAsync(User, districtId);
+        if (denied != null) return denied;
+
         using var conn = CreateConnection();
         await conn.OpenAsync();
         string platform = dto.Platform;
@@ -2312,6 +2572,9 @@ public class DistrictModulesController : ControllerBase
     [HttpPut("api/districts/{districtId}/website-data/social-links/reorder-all")]
     public async Task<ActionResult> ReorderDistrictSocialLinksAll(int districtId, [FromBody] ReorderDto dto)
     {
+        var denied = await _guard.DistrictYearlessAsync(User, districtId);
+        if (denied != null) return denied;
+
         if (dto.OrderedIds == null || dto.OrderedIds.Count == 0)
             return BadRequest(new { message = "OrderedIds is required." });
 
@@ -2688,6 +2951,10 @@ public class DistrictModulesController : ControllerBase
     [HttpPost("api/districts/{districtId}/website-data/contact-details")]
     public async Task<ActionResult> CreateDistrictContactDetail(int districtId, [FromBody] DistrictContactDetailDto dto)
     {
+        // Creating: the caller names the year the row is filed under.
+        var denied = await _guard.DistrictYearAsync(User, districtId, dto.YearId);
+        if (denied != null) return denied;
+
         using var conn = CreateConnection(); await conn.OpenAsync();
         var yearId = dto.YearId > 0 ? dto.YearId : await conn.ExecuteScalarAsync<int?>("SELECT pk_year_id FROM rotary_year_master WHERE IsCurrent = 1 LIMIT 1") ?? 1;
         var id = await conn.ExecuteScalarAsync<int>(@"
@@ -2701,6 +2968,11 @@ public class DistrictModulesController : ControllerBase
     [HttpPut("api/districts/{districtId}/website-data/contact-details/{id}")]
     public async Task<ActionResult> UpdateDistrictContactDetail(int districtId, int id, [FromBody] DistrictContactDetailDto dto)
     {
+        // Year-scoped table — the record's own year decides.
+        var denied = await _guard.DistrictRecordYearByTableAsync(
+            User, districtId, "club_website_contact_detail", "pk_club_website_contact_detail_id", id);
+        if (denied != null) return denied;
+
         using var conn = CreateConnection(); await conn.OpenAsync();
         await conn.ExecuteAsync(@"
             UPDATE club_website_contact_detail SET email = @Email, phone = @Phone, sort_order = @SortOrder, is_active = @IsActive,
@@ -3162,6 +3434,9 @@ public class DistrictModulesController : ControllerBase
     [HttpPost("api/districts/{districtId}/club-monthly-report/send-reminder/{yearId}/{month}")]
     public async Task<ActionResult> SendReportReminder(int districtId, int yearId, int month, [FromBody] SendReportReminderDto dto)
     {
+        var denied = await _guard.DistrictYearAsync(User, districtId, yearId);
+        if (denied != null) return denied;
+
         if (!dto.SendEmail)
             return BadRequest(new { message = "Select email to send reminders." });
 
@@ -3193,10 +3468,11 @@ public class DistrictModulesController : ControllerBase
                     "SELECT DistrictNumber FROM district_master WHERE pk_district_id = @Id", new { Id = districtId }) ?? "";
 
                 // user 2026-10-08: Rotaract clubs never get the monthly-report reminder.
-                var notSubmittedClubIds = (await conn.QueryAsync<int>(@"
+                var notSubmittedClubIds = (await conn.QueryAsync<int>($@"
                     SELECT c.pk_club_id
                     FROM club_master c
                     WHERE c.fk_district_id = @DistrictId AND c.isdeleted = 0 AND c.IsActive = 1
+                      AND {HierarchyScopeSql.ClubLive("c")}
                       AND COALESCE(c.ClubType,'') <> 'Rotaract Club'
                       AND c.pk_club_id NOT IN (
                         SELECT r.fk_club_id FROM club_monthly_reports r
@@ -3299,7 +3575,7 @@ public class DistrictModulesController : ControllerBase
         // Year filter: when yearId is supplied, scope to that year only. Without it,
         // return everything (used by reports/export). Frontend always passes the
         // currently-selected year from its dropdown.
-        var result = await conn.QueryAsync<dynamic>(@"
+        var result = await conn.QueryAsync<dynamic>($@"
             SELECT a.id, a.fk_district_id AS districtId, a.fk_member_id AS memberId,
                    a.fk_club_id AS clubId, a.fk_year_id AS yearId, a.is_active AS isActive,
                    m.MemberName AS memberName, m.PrimaryMobileNumber AS mobile, m.EmailId AS email,
@@ -3312,7 +3588,7 @@ public class DistrictModulesController : ControllerBase
                    y.YearLabel AS yearLabel
             FROM district_ag a
             INNER JOIN member_master_profile m ON m.pk_member_master_profile_id = a.fk_member_id AND m.isdeleted = 0
-            INNER JOIN club_master c ON c.pk_club_id = a.fk_club_id AND c.isdeleted = 0
+            INNER JOIN club_master c ON c.pk_club_id = a.fk_club_id AND c.isdeleted = 0 AND {HierarchyScopeSql.ClubLive("c")}
             LEFT JOIN rotary_year_master y ON y.pk_year_id = a.fk_year_id
             WHERE a.fk_district_id = @DistrictId AND a.isdeleted = 0
               AND (@YearId IS NULL OR a.fk_year_id = @YearId)
@@ -3374,7 +3650,7 @@ public class DistrictModulesController : ControllerBase
         // hiding the ineligible ones, surface WHY they can't be assigned (ineligibleReason,
         // null = eligible). Eligible members sort first. The frontend greys out and
         // disables the ineligible rows so admins can see the reason at a glance.
-        var members = await conn.QueryAsync<dynamic>(@"
+        var members = await conn.QueryAsync<dynamic>($@"
             SELECT m.pk_member_master_profile_id AS memberId,
                    m.MemberName AS name, m.PrimaryMobileNumber AS mobile,
                    m.EmailId AS email,
@@ -3404,7 +3680,7 @@ public class DistrictModulesController : ControllerBase
                        SUBSTRING_INDEX(GROUP_CONCAT(c.ClubName ORDER BY cm.IsActive DESC, cm.pk_club_member_id DESC SEPARATOR '||'), '||', 1) AS clubName
                 FROM club_members cm
                 JOIN club_master c ON c.pk_club_id = cm.fk_club_id AND c.fk_district_id = @DistrictId
-                WHERE cm.isdeleted = 0
+                WHERE cm.isdeleted = 0 AND {HierarchyScopeSql.ClubLive("c")}
                 GROUP BY cm.fk_member_master_profile_id
             ) dm
             JOIN member_master_profile m ON m.pk_member_master_profile_id = dm.mid AND m.isdeleted = 0
@@ -3428,6 +3704,13 @@ public class DistrictModulesController : ControllerBase
     [HttpPost("api/districts/{districtId}/ag")]
     public async Task<ActionResult> SaveAG(int districtId, [FromBody] AGDto dto)
     {
+        // An AG assignment is stored per district AND YEAR (district_ag.fk_year_id),
+        // so the year in the request is the year to check — not the current one.
+        // Guarding this year-LESS refused the admin of 2025-26 while they were
+        // adding a 2025-26 AG, with a message naming the year they were not on.
+        var denied = await _guard.DistrictYearAsync(User, districtId, dto.YearId);
+        if (denied != null) return denied;
+
         if (dto.ClubIds.Count == 0)
             return BadRequest(new { message = "Select at least one club." });
         if (dto.YearId <= 0)
@@ -3600,9 +3883,41 @@ public class DistrictModulesController : ControllerBase
         return Ok(new { message = "AG saved." });
     }
 
-    [HttpDelete("api/districts/{districtId}/ag/member/{memberId}")]
+        /// <summary>
+    /// Guards an AG removal. One year when <paramref name="yearId"/> is given;
+    /// every year the member is AG in when it is not, because that is what the
+    /// delete below actually does.
+    /// </summary>
+    private async Task<ObjectResult?> AgDeleteGuardAsync(int districtId, int memberId, int? yearId)
+    {
+        if (yearId is int one)
+            return await _guard.DistrictYearAsync(User, districtId, one);
+
+        using var conn = CreateConnection();
+        await conn.OpenAsync();
+        var years = await conn.QueryAsync<int>(
+            "SELECT DISTINCT fk_year_id FROM district_ag " +
+            "WHERE fk_district_id = @DistrictId AND fk_member_id = @MemberId AND COALESCE(isdeleted,0) = 0",
+            new { DistrictId = districtId, MemberId = memberId });
+
+        foreach (var y in years)
+        {
+            var denied = await _guard.DistrictYearAsync(User, districtId, y);
+            if (denied != null) return denied;
+        }
+        return null;   // nothing to delete — let the endpoint answer normally
+    }
+
+[HttpDelete("api/districts/{districtId}/ag/member/{memberId}")]
     public async Task<ActionResult> DeleteAGByMember(int districtId, int memberId, [FromQuery] int? yearId)
     {
+        // ⚠️ Omitting yearId deletes the member's AG rows in EVERY year (the
+        // legacy admin-tool behaviour below), so every one of those years has to
+        // be the caller's — otherwise a 2025-26 admin could clear an AG out of
+        // years they do not administer by simply leaving the parameter off.
+        var denied = await AgDeleteGuardAsync(districtId, memberId, yearId);
+        if (denied != null) return denied;
+
         using var conn = CreateConnection();
         await conn.OpenAsync();
         // Year-scoped delete: removing AG from 2024-25 doesn't touch a fresh 2025-26 assignment.
@@ -3701,6 +4016,11 @@ public class DistrictModulesController : ControllerBase
     [HttpPost("api/district-modules/{districtId}/citation/categories")]
     public async Task<ActionResult> CreateCitationCategory(int districtId, [FromBody] CitationCategoryDto dto)
     {
+        // The record is filed under dto.YearId, so THAT is the year to check —
+        // this module lets an admin work on the current year and future ones.
+        var denied = await _guard.DistrictYearAsync(User, districtId, dto.YearId);
+        if (denied != null) return denied;
+
         using var conn = CreateConnection();
         await conn.OpenAsync();
         var id = await conn.ExecuteScalarAsync<int>(@"
@@ -3713,6 +4033,13 @@ public class DistrictModulesController : ControllerBase
     [HttpPut("api/district-modules/{districtId}/citation/categories/{id}")]
     public async Task<ActionResult> UpdateCitationCategory(int districtId, int id, [FromBody] CitationCategoryDto dto)
     {
+        // Both ends: the year the record is in now, and the year the edit puts
+        // it in. Checking only one would let it be moved across the line.
+        var currentDenied = await _guard.DistrictRecordYearByTableAsync(
+            User, districtId, "district_citation_category", "pk_id", id);
+        var denied = currentDenied ?? await _guard.DistrictYearAsync(User, districtId, dto.YearId);
+        if (denied != null) return denied;
+
         using var conn = CreateConnection();
         await conn.OpenAsync();
         await conn.ExecuteAsync(@"UPDATE district_citation_category SET category_name=@Name, sort_order=@Sort, modified_by=@UserId WHERE pk_id=@Id AND fk_district_id=@DistrictId AND isdeleted=0",
@@ -3723,6 +4050,10 @@ public class DistrictModulesController : ControllerBase
     [HttpDelete("api/district-modules/{districtId}/citation/categories/{id}")]
     public async Task<ActionResult> DeleteCitationCategory(int districtId, int id)
     {
+        var denied = await _guard.DistrictRecordYearByTableAsync(
+            User, districtId, "district_citation_category", "pk_id", id);
+        if (denied != null) return denied;
+
         using var conn = CreateConnection();
         await conn.OpenAsync();
         // Check if any auto/manual questions use this category
@@ -3874,6 +4205,13 @@ public class DistrictModulesController : ControllerBase
     [HttpPut("api/district-modules/{districtId}/citation/auto-questions/{id}")]
     public async Task<ActionResult> UpdateCitationAutoQuestion(int districtId, int id, [FromBody] CitationAutoQuestionDto dto)
     {
+        // Both ends: the year the record is in now, and the year the edit puts
+        // it in. Checking only one would let it be moved across the line.
+        var currentDenied = await _guard.DistrictRecordYearByTableAsync(
+            User, districtId, "district_citation_auto_question", "pk_id", id);
+        var denied = currentDenied ?? await _guard.DistrictYearAsync(User, districtId, dto.YearId);
+        if (denied != null) return denied;
+
         using var conn = CreateConnection();
         await conn.OpenAsync();
         var userId = GetUserId();
@@ -3896,6 +4234,10 @@ public class DistrictModulesController : ControllerBase
     [HttpDelete("api/district-modules/{districtId}/citation/auto-questions/{id}")]
     public async Task<ActionResult> DeleteCitationAutoQuestion(int districtId, int id)
     {
+        var denied = await _guard.DistrictRecordYearByTableAsync(
+            User, districtId, "district_citation_auto_question", "pk_id", id);
+        if (denied != null) return denied;
+
         using var conn = CreateConnection();
         await conn.OpenAsync();
         var clubEntries = await conn.ExecuteScalarAsync<int>("SELECT COUNT(*) FROM district_citation_club_entry WHERE entry_type='auto' AND fk_question_id=@Id AND isdeleted=0", new { Id = id });
@@ -4020,6 +4362,13 @@ public class DistrictModulesController : ControllerBase
     [HttpPut("api/district-modules/{districtId}/citation/manual-criteria/{id}")]
     public async Task<ActionResult> UpdateCitationManualCriteria(int districtId, int id, [FromBody] CitationManualCriteriaDto dto)
     {
+        // Both ends: the year the record is in now, and the year the edit puts
+        // it in. Checking only one would let it be moved across the line.
+        var currentDenied = await _guard.DistrictRecordYearByTableAsync(
+            User, districtId, "district_citation_manual_criteria", "pk_id", id);
+        var denied = currentDenied ?? await _guard.DistrictYearAsync(User, districtId, dto.YearId);
+        if (denied != null) return denied;
+
         using var conn = CreateConnection();
         await conn.OpenAsync();
         var userId = GetUserId();
@@ -4055,6 +4404,10 @@ public class DistrictModulesController : ControllerBase
     [HttpDelete("api/district-modules/{districtId}/citation/manual-criteria/{id}")]
     public async Task<ActionResult> DeleteCitationManualCriteria(int districtId, int id)
     {
+        var denied = await _guard.DistrictRecordYearByTableAsync(
+            User, districtId, "district_citation_manual_criteria", "pk_id", id);
+        if (denied != null) return denied;
+
         using var conn = CreateConnection();
         await conn.OpenAsync();
         // Check if clubs have entries
@@ -4791,6 +5144,12 @@ public class DistrictModulesController : ControllerBase
     [HttpPost("api/clubs/{clubId}/citation/save-manual")]
     public async Task<ActionResult> SaveClubManualEntries(int clubId, [FromBody] List<ClubManualEntryDto> entries)
     {
+        // Year-LESS is right here, though the table is year-scoped: the method
+        // below pins yearId to the CURRENT year itself, so current-year rights
+        // is exactly the bar. Do not "fix" this to a request-supplied year.
+        var denied = await _guard.ClubYearlessAsync(User, clubId);
+        if (denied != null) return denied;
+
         if (entries.Count == 0) return Ok(new { message = "Nothing to save." });
         using var conn = CreateConnection();
         await conn.OpenAsync();
@@ -4837,6 +5196,9 @@ public class DistrictModulesController : ControllerBase
     [HttpPost("api/clubs/{clubId}/citation/refresh-auto")]
     public async Task<ActionResult> RefreshClubAutoPoints(int clubId, [FromQuery] int districtId)
     {
+        var denied = await _guard.ClubYearlessAsync(User, clubId);
+        if (denied != null) return denied;
+
         var bgService = HttpContext.RequestServices.GetRequiredService<CitationAutoPointsBackgroundService>();
         await bgService.CalculateForClubAsync(districtId, clubId);
         return Ok(new { message = "Auto points refreshed." });
@@ -4854,7 +5216,7 @@ public class DistrictModulesController : ControllerBase
             return Ok(Array.Empty<object>());
         using var conn = CreateConnection();
         await conn.OpenAsync();
-        var members = await conn.QueryAsync<dynamic>(@"
+        var members = await conn.QueryAsync<dynamic>($@"
             SELECT m.pk_member_master_profile_id AS memberId,
                    m.MemberName AS name,
                    m.PrimaryMobileNumber AS mobile,
@@ -4870,6 +5232,7 @@ public class DistrictModulesController : ControllerBase
             INNER JOIN club_members cm ON cm.fk_member_master_profile_id = m.pk_member_master_profile_id AND cm.IsActive = 1 AND cm.isdeleted = 0
             INNER JOIN club_master c ON c.pk_club_id = cm.fk_club_id
             WHERE c.fk_district_id = @DistrictId
+              AND {HierarchyScopeSql.ClubLive("c")}
               AND m.isdeleted = 0
               AND (m.MemberName LIKE @Search OR m.PrimaryMobileNumber LIKE @Search OR m.EmailId LIKE @Search)
             ORDER BY m.MemberName
@@ -4882,9 +5245,80 @@ public class DistrictModulesController : ControllerBase
     // ── District Committee: Photo Upload ───────────────────────────────
     // ══════════════════════════════════════════════════════════════════════
 
+
+    // ── District Committee: which Rotary year does a record belong to? ────────
+    //
+    // ⚠️ Only committee GROUPS and top-level MEMBERS carry fk_year_id. Group
+    // members, sub-groups and sub-group members have no year of their own and
+    // inherit it through the group they hang off, so the year has to be read by
+    // joining back up the chain.
+    //
+    // Guarding this module year-LESS (current-year rights) locked a past-year
+    // district admin out of their OWN year's committee — reported from the
+    // 2025-26 committee screen, where Add Committee Member answered "Failed to
+    // save" for the admin of that very year.
+    //
+    // Returns null when the record is gone, so the endpoint answers 404 rather
+    // than arguing about years.
+    private async Task<int?> CommitteeYearAsync(string of, int id)
+    {
+        if (id <= 0) return null;
+        var sql = of switch
+        {
+            "member" => "SELECT fk_year_id FROM district_committee_member WHERE id=@Id AND COALESCE(isdeleted,0)=0",
+            "group"  => "SELECT fk_year_id FROM district_committee_group  WHERE id=@Id AND COALESCE(isdeleted,0)=0",
+            "groupMember" =>
+                "SELECT g.fk_year_id FROM district_committee_group_member m " +
+                "JOIN district_committee_group g ON g.id = m.fk_group_id " +
+                "WHERE m.id=@Id AND COALESCE(m.isdeleted,0)=0",
+            "subGroup" =>
+                "SELECT g.fk_year_id FROM district_committee_sub_group s " +
+                "JOIN district_committee_group g ON g.id = s.fk_group_id " +
+                "WHERE s.id=@Id AND COALESCE(s.isdeleted,0)=0",
+            "subGroupMember" =>
+                "SELECT g.fk_year_id FROM district_committee_sub_group_member sm " +
+                "JOIN district_committee_sub_group s ON s.id = sm.fk_sub_group_id " +
+                "JOIN district_committee_group g ON g.id = s.fk_group_id " +
+                "WHERE sm.id=@Id AND COALESCE(sm.isdeleted,0)=0",
+            _ => throw new ArgumentOutOfRangeException(nameof(of), of, "Unknown committee record kind."),
+        };
+
+        using var conn = CreateConnection();
+        await conn.OpenAsync();
+        return await conn.ExecuteScalarAsync<int?>(sql, new { Id = id });
+    }
+
+    /// <summary>Guards one committee record by the Rotary year it sits in.</summary>
+    private async Task<ObjectResult?> CommitteeGuardAsync(int districtId, string of, int id)
+    {
+        var year = await CommitteeYearAsync(of, id);
+        if (year is not int y) return null;          // missing row → endpoint 404s
+        return await _guard.DistrictYearAsync(User, districtId, y);
+    }
+
+    /// <summary>
+    /// Guards a reorder. Every id must be in a year the caller holds — a list
+    /// normally belongs to one year, but the ids come from the client and a
+    /// mixed list must not slip a foreign year through on the back of a held one.
+    /// </summary>
+    private async Task<ObjectResult?> CommitteeReorderGuardAsync(int districtId, string of, IEnumerable<int> ids)
+    {
+        foreach (var id in ids.Distinct())
+        {
+            var denied = await CommitteeGuardAsync(districtId, of, id);
+            if (denied != null) return denied;
+        }
+        return null;
+    }
+
     [HttpPost("api/districts/{districtId}/committee/upload-photo")]
     public async Task<ActionResult> UploadCommitteePhoto(int districtId, IFormFile file, [FromQuery] bool isMember = false, [FromQuery] int? clubId = null)
     {
+        // No record and no year — a bare file upload. Current-year rights is
+        // the right bar for it, unlike everything else in this module.
+        var denied = await _guard.DistrictYearlessAsync(User, districtId);
+        if (denied != null) return denied;
+
         if (file == null || file.Length == 0) return BadRequest(new { message = "No file uploaded" });
         // Rotarian photos go to /Documents/directory/ (matches legacy example.org layout).
         // Non-member photos go to /Documents/DistrictCommittee/Group<clubId|districtId>/
@@ -4924,7 +5358,7 @@ public class DistrictModulesController : ControllerBase
         using var conn = CreateConnection();
         await conn.OpenAsync();
 
-        var where = @"WHERE dcm.fk_district_id = @DistrictId AND dcm.isdeleted = 0";
+        var where = @"WHERE dcm.fk_district_id = @DistrictId AND dcm.isdeleted = 0 AND " + HierarchyScopeSql.ClubIdLive("dcm.fk_club_id");
         if (yearId.HasValue) where += " AND dcm.fk_year_id = @YearId";
         if (!string.IsNullOrWhiteSpace(search))
         {
@@ -5011,6 +5445,10 @@ public class DistrictModulesController : ControllerBase
     [HttpPost("api/districts/{districtId}/committee/members")]
     public async Task<ActionResult> CreateCommitteeMember(int districtId, [FromBody] DistrictCommitteeMemberDto dto)
     {
+        // Filed under dto.YearId — that is the year to check.
+        var denied = await _guard.DistrictYearAsync(User, districtId, dto.YearId);
+        if (denied != null) return denied;
+
         using var conn = CreateConnection();
         await conn.OpenAsync();
         // Append to the END of the manually-sorted list (per district + year) so a
@@ -5032,6 +5470,11 @@ public class DistrictModulesController : ControllerBase
     [HttpPut("api/districts/{districtId}/committee/members/{id}")]
     public async Task<ActionResult> UpdateCommitteeMember(int districtId, int id, [FromBody] DistrictCommitteeMemberDto dto)
     {
+        // Both ends: the year it is in now, and the year the edit moves it to.
+        var denied = await CommitteeGuardAsync(districtId, "member", id)
+                     ?? await _guard.DistrictYearAsync(User, districtId, dto.YearId);
+        if (denied != null) return denied;
+
         using var conn = CreateConnection();
         await conn.OpenAsync();
         await conn.ExecuteAsync(@"
@@ -5047,6 +5490,9 @@ public class DistrictModulesController : ControllerBase
     [HttpDelete("api/districts/{districtId}/committee/members/{id}")]
     public async Task<ActionResult> DeleteCommitteeMember(int districtId, int id)
     {
+        var denied = await CommitteeGuardAsync(districtId, "member", id);
+        if (denied != null) return denied;
+
         using var conn = CreateConnection();
         await conn.OpenAsync();
         await conn.ExecuteAsync("UPDATE district_committee_member SET isdeleted=1 WHERE id=@Id AND fk_district_id=@DistrictId",
@@ -5063,7 +5509,8 @@ public class DistrictModulesController : ControllerBase
         await conn.OpenAsync();
         var where = @"WHERE dcm.fk_district_id = @DistrictId AND dcm.isdeleted = 1 AND dcm.fk_club_id IS NOT NULL
                       AND EXISTS (SELECT 1 FROM club_master c WHERE c.pk_club_id = dcm.fk_club_id
-                                    AND c.isdeleted = 0 AND IFNULL(c.IsSyncedFromRotaryOrg,0) = 0)";
+                                    AND c.isdeleted = 0 AND IFNULL(c.IsSyncedFromRotaryOrg,0) = 0
+                                    AND " + HierarchyScopeSql.ClubLive("c") + ")";
         if (yearId.HasValue) where += " AND dcm.fk_year_id = @YearId";
         var items = await conn.QueryAsync<dynamic>(@"
             SELECT dcm.id, dcm.fk_member_id AS memberId, dcm.is_member AS isMember, dcm.name, dcm.mobile, dcm.email,
@@ -5112,7 +5559,7 @@ public class DistrictModulesController : ControllerBase
     {
         using var conn = CreateConnection();
         await conn.OpenAsync();
-        var items = await conn.QueryAsync<dynamic>(@"
+        var items = await conn.QueryAsync<dynamic>($@"
             SELECT gm.id, gm.fk_member_id AS memberId, gm.is_member AS isMember, gm.name, gm.mobile, gm.email,
                    gm.district_designation AS districtDesignation, gm.fk_club_id AS clubId, c.ClubName AS clubName,
                    gm.district_remark AS districtRemark, gm.profile_photo AS profilePhoto
@@ -5120,7 +5567,8 @@ public class DistrictModulesController : ControllerBase
             LEFT JOIN club_master c ON c.pk_club_id = gm.fk_club_id
             WHERE gm.fk_group_id = @GroupId AND gm.isdeleted = 1 AND gm.fk_club_id IS NOT NULL
               AND EXISTS (SELECT 1 FROM club_master cc WHERE cc.pk_club_id = gm.fk_club_id
-                            AND cc.isdeleted = 0 AND IFNULL(cc.IsSyncedFromRotaryOrg,0) = 0)
+                            AND cc.isdeleted = 0 AND IFNULL(cc.IsSyncedFromRotaryOrg,0) = 0
+                            AND {HierarchyScopeSql.ClubLive("cc")})
             ORDER BY gm.name",
             new { GroupId = groupId });
         return Ok(new { items });
@@ -5131,6 +5579,9 @@ public class DistrictModulesController : ControllerBase
     [OwnedBy(Owns.CommitteeGroupMember, "id", "groupId")]
     public async Task<ActionResult> AddGroupMemberAsNonMember(int districtId, int groupId, int id)
     {
+        var denied = await CommitteeGuardAsync(districtId, "groupMember", id);
+        if (denied != null) return denied;
+
         using var conn = CreateConnection();
         await conn.OpenAsync();
         var rejection = await RejectIfAutoManagedGroupByIdAsync(conn, groupId);
@@ -5162,7 +5613,7 @@ public class DistrictModulesController : ControllerBase
     {
         using var conn = CreateConnection();
         await conn.OpenAsync();
-        var items = await conn.QueryAsync<dynamic>(@"
+        var items = await conn.QueryAsync<dynamic>($@"
             SELECT sgm.id, sgm.fk_member_id AS memberId, sgm.is_member AS isMember, sgm.name, sgm.mobile, sgm.email,
                    sgm.district_designation AS districtDesignation, sgm.fk_club_id AS clubId, c.ClubName AS clubName,
                    sgm.district_remark AS districtRemark, sgm.profile_photo AS profilePhoto
@@ -5170,7 +5621,8 @@ public class DistrictModulesController : ControllerBase
             LEFT JOIN club_master c ON c.pk_club_id = sgm.fk_club_id
             WHERE sgm.fk_sub_group_id = @SubGroupId AND sgm.isdeleted = 1 AND sgm.fk_club_id IS NOT NULL
               AND EXISTS (SELECT 1 FROM club_master cc WHERE cc.pk_club_id = sgm.fk_club_id
-                            AND cc.isdeleted = 0 AND IFNULL(cc.IsSyncedFromRotaryOrg,0) = 0)
+                            AND cc.isdeleted = 0 AND IFNULL(cc.IsSyncedFromRotaryOrg,0) = 0
+                            AND {HierarchyScopeSql.ClubLive("cc")})
             ORDER BY sgm.name",
             new { SubGroupId = subGroupId });
         return Ok(new { items });
@@ -5181,6 +5633,9 @@ public class DistrictModulesController : ControllerBase
     [OwnedBy(Owns.CommitteeSubGroupMember, "id", "subGroupId")]
     public async Task<ActionResult> AddSubGroupMemberAsNonMember(int districtId, int subGroupId, int id)
     {
+        var denied = await CommitteeGuardAsync(districtId, "subGroupMember", id);
+        if (denied != null) return denied;
+
         using var conn = CreateConnection();
         await conn.OpenAsync();
         var src = await conn.QueryFirstOrDefaultAsync<dynamic>(
@@ -5288,6 +5743,9 @@ public class DistrictModulesController : ControllerBase
     [HttpPost("api/districts/{districtId}/committee/groups")]
     public async Task<ActionResult> CreateCommitteeGroup(int districtId, [FromBody] DistrictCommitteeGroupDto dto)
     {
+        var denied = await _guard.DistrictYearAsync(User, districtId, dto.YearId);
+        if (denied != null) return denied;
+
         // Reject if user tries to manually create a "Club Presidents" or "Club Secretaries" group
         var rejection = RejectIfAutoManagedGroupByName(dto.GroupName);
         if (rejection != null) return rejection;
@@ -5309,6 +5767,11 @@ public class DistrictModulesController : ControllerBase
     [HttpPut("api/districts/{districtId}/committee/groups/{id}")]
     public async Task<ActionResult> UpdateCommitteeGroup(int districtId, int id, [FromBody] DistrictCommitteeGroupDto dto)
     {
+        // Both ends — a group edit can carry a different year.
+        var denied = await CommitteeGuardAsync(districtId, "group", id)
+                     ?? await _guard.DistrictYearAsync(User, districtId, dto.YearId);
+        if (denied != null) return denied;
+
         using var conn = CreateConnection();
         await conn.OpenAsync();
         // Block if EITHER the existing group OR the new name is an auto-managed CP/CS group
@@ -5333,6 +5796,9 @@ public class DistrictModulesController : ControllerBase
     [HttpDelete("api/districts/{districtId}/committee/groups/{id}")]
     public async Task<ActionResult> DeleteCommitteeGroup(int districtId, int id)
     {
+        var denied = await CommitteeGuardAsync(districtId, "group", id);
+        if (denied != null) return denied;
+
         using var conn = CreateConnection();
         await conn.OpenAsync();
         var rejection = await RejectIfAutoManagedGroupByIdAsync(conn, id);
@@ -5363,7 +5829,7 @@ public class DistrictModulesController : ControllerBase
         using var conn = CreateConnection();
         await conn.OpenAsync();
 
-        var where = "WHERE gm.fk_group_id = @GroupId AND gm.isdeleted = 0";
+        var where = "WHERE gm.fk_group_id = @GroupId AND gm.isdeleted = 0 AND " + HierarchyScopeSql.ClubIdLive("gm.fk_club_id");
         if (!string.IsNullOrWhiteSpace(search))
         {
             where += @" AND (gm.name LIKE @Search OR gm.mobile LIKE @Search OR m.PrimaryMobileNumber LIKE @Search OR gm.email LIKE @Search OR m.EmailId LIKE @Search
@@ -5464,6 +5930,10 @@ public class DistrictModulesController : ControllerBase
     [OwnedBy(Owns.CommitteeGroup, "groupId", "districtId")]
     public async Task<ActionResult> CreateGroupMember(int districtId, int groupId, [FromBody] DistrictCommitteeMemberDto dto)
     {
+        // A group member has no year of its own — it inherits the group's.
+        var denied = await CommitteeGuardAsync(districtId, "group", groupId);
+        if (denied != null) return denied;
+
         using var conn = CreateConnection();
         await conn.OpenAsync();
         var rejection = await RejectIfAutoManagedGroupByIdAsync(conn, groupId);
@@ -5489,6 +5959,9 @@ public class DistrictModulesController : ControllerBase
     [OwnedBy(Owns.CommitteeGroupMember, "id", "groupId")]
     public async Task<ActionResult> UpdateGroupMember(int districtId, int groupId, int id, [FromBody] DistrictCommitteeMemberDto dto)
     {
+        var denied = await CommitteeGuardAsync(districtId, "group", groupId);
+        if (denied != null) return denied;
+
         using var conn = CreateConnection();
         await conn.OpenAsync();
         var rejection = await RejectIfAutoManagedGroupByIdAsync(conn, groupId);
@@ -5590,7 +6063,7 @@ public class DistrictModulesController : ControllerBase
         if (!await RotaryApi.Services.KillSwitchHelper.IsDistrictDrillReachableAsync(_connectionString, districtId)) return StatusCode(403, new { message = "This district or its zone is inactive. Reactivate it first to access this data." });
         using var conn = CreateConnection();
         await conn.OpenAsync();
-        var result = await conn.QueryAsync<dynamic>(@"
+        var result = await conn.QueryAsync<dynamic>($@"
             SELECT sgm.id, sgm.fk_sub_group_id AS subGroupId, sgm.fk_member_id AS memberId, sgm.is_member AS isMember,
                    sgm.name,
                    -- Member rows: LIVE profile mobile + email (same rule as level-1 committee).
@@ -5617,6 +6090,7 @@ public class DistrictModulesController : ControllerBase
             LEFT JOIN club_master c ON c.pk_club_id = sgm.fk_club_id
             LEFT JOIN member_master_profile m ON m.pk_member_master_profile_id = sgm.fk_member_id AND m.isdeleted = 0
             WHERE sgm.fk_sub_group_id = @SubGroupId AND sgm.isdeleted = 0
+              AND {HierarchyScopeSql.ClubIdLive("sgm.fk_club_id")}
             ORDER BY sgm.sort_order, sgm.name",
             new { SubGroupId = subGroupId });
         return Ok(result);
@@ -5626,6 +6100,9 @@ public class DistrictModulesController : ControllerBase
     [OwnedBy(Owns.CommitteeSubGroup, "subGroupId", "districtId")]
     public async Task<ActionResult> CreateSubGroupMember(int districtId, int subGroupId, [FromBody] DistrictCommitteeMemberDto dto)
     {
+        var denied = await CommitteeGuardAsync(districtId, "subGroup", subGroupId);
+        if (denied != null) return denied;
+
         using var conn = CreateConnection();
         await conn.OpenAsync();
         // Append to the END of the sub-group's manually-sorted member list.
@@ -5679,6 +6156,9 @@ public class DistrictModulesController : ControllerBase
     [HttpPut("api/districts/{districtId}/committee/members/reorder")]
     public async Task<ActionResult> ReorderCommitteeMembers(int districtId, [FromBody] ReorderDto dto)
     {
+        var denied = await CommitteeReorderGuardAsync(districtId, "member", dto.OrderedIds);
+        if (denied != null) return denied;
+
         using var conn = CreateConnection();
         await conn.OpenAsync();
         for (int i = 0; i < dto.OrderedIds.Count; i++)
@@ -5690,6 +6170,9 @@ public class DistrictModulesController : ControllerBase
     [HttpPut("api/districts/{districtId}/committee/groups/reorder")]
     public async Task<ActionResult> ReorderCommitteeGroups(int districtId, [FromBody] ReorderDto dto)
     {
+        var denied = await CommitteeReorderGuardAsync(districtId, "group", dto.OrderedIds);
+        if (denied != null) return denied;
+
         using var conn = CreateConnection();
         await conn.OpenAsync();
         for (int i = 0; i < dto.OrderedIds.Count; i++)

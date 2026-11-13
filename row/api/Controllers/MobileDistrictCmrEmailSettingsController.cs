@@ -18,8 +18,11 @@ public class MobileDistrictCmrEmailSettingsController : ControllerBase
     private readonly IDistrictCmrEmailSettingsService _service;
     private readonly string _connectionString;
 
-    public MobileDistrictCmrEmailSettingsController(IDistrictCmrEmailSettingsService service, IConfiguration configuration)
+    private readonly AdminYearGuard _guard;
+
+    public MobileDistrictCmrEmailSettingsController(IDistrictCmrEmailSettingsService service, IConfiguration configuration, AdminYearGuard guard)
     {
+        _guard = guard;
         _service = service;
         _connectionString = configuration.GetConnectionString("DefaultConnection")!;
     }
@@ -54,6 +57,9 @@ public class MobileDistrictCmrEmailSettingsController : ControllerBase
     {
         if (!IsDistrictAdmin()) return Forbid();
         if (districtId <= 0 || yearId <= 0) return BadRequest(new { message = "districtId and yearId are required." });
+        var denied = await _guard.DistrictYearAsync(User, districtId, yearId);
+        if (denied != null) return denied;
+
         await _service.SaveAsync(districtId, yearId, request.SendToDistrictGovernor, request.CcEmails, GetUserId());
         return Ok(new { message = "Saved." });
     }

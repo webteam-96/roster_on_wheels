@@ -17,7 +17,7 @@
  *   - Design palette: navy #17458f, gold #F7A81B, slate borders/text.
  */
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   createDistrictMassEmail, updateDistrictMassEmail, sendDistrictMassEmail,
@@ -26,6 +26,8 @@ import {
   getDistrictCreditBalance, getRotaryYears, getMassEmailSenderInfo,
 } from "@/services/api";
 import { useAuth } from "@/contexts/AuthContext";
+import { districtYearRights, canEditYearless } from "@/lib/adminYears";
+import { useRotaryYears } from "@/hooks/useRotaryYears";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -57,7 +59,7 @@ interface ClubOption { id: number; clubName: string; }
 interface SubGroupOption { id: number; groupName: string; memberCount: number; }
 
 export default function DistrictAdminMassEmailComposePage() {
-  const { selectedDistrictId } = useAuth();
+  const { selectedDistrictId, isSuperAdmin, isAdmin, user } = useAuth();
   const districtId = selectedDistrictId ?? 0;
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -66,6 +68,23 @@ export default function DistrictAdminMassEmailComposePage() {
   const editId = searchParams.get("editId") ? Number(searchParams.get("editId")) : null;
 
   const goBack = () => router.push(withSearch(returnTo || BASE, { yearId }));
+
+  // A mass email carries no Rotary year, so writing one needs CURRENT-year
+  // rights. There is nothing to READ on a compose screen, so someone without
+  // them goes back to the listing rather than filling in a form the server
+  // would refuse. The listing hides the Compose button for the same reason —
+  // this only catches a typed URL.
+  const { currentYearId: dCurrentYearId } = useRotaryYears();
+  const rights = useMemo(() => districtYearRights(user?.scopedRoles, districtId), [user?.scopedRoles, districtId]);
+  const canManage = (isSuperAdmin || isAdmin) && canEditYearless(rights, dCurrentYearId, isSuperAdmin);
+
+  // ⚠️ Waits for dCurrentYearId. Until the years arrive it is undefined, which
+  // reads as "cannot edit" — bouncing on that would throw out an admin who is
+  // perfectly entitled to be here, on nothing more than a slow request.
+  const backTo = withSearch(returnTo || BASE, { yearId });
+  useEffect(() => {
+    if (dCurrentYearId !== undefined && !canManage) router.replace(backTo);
+  }, [canManage, dCurrentYearId, backTo, router]);
 
   const [districtName, setDistrictName] = useState("");
   const [loading, setLoading] = useState(!!editId);
@@ -274,6 +293,8 @@ export default function DistrictAdminMassEmailComposePage() {
   const toggleSubgroup = (id: number) => setSelectedSubgroupIds((prev) => { const n = new Set(prev); if (n.has(id)) n.delete(id); else n.add(id); return n; });
 
   if (!districtId) return null;
+  // The effect above is already sending them back; don't flash the form first.
+  if (dCurrentYearId !== undefined && !canManage) return null;
   if (loading) return <div className="flex justify-center py-20"><ListPageSkeleton /></div>;
 
   return (

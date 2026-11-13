@@ -299,10 +299,11 @@ public class AttendanceService : IAttendanceService
         // 2026-08-25) — an honorary member is not an active member of the club, so they
         // don't appear in this roster either.
         var result = await connection.QueryAsync<ClubMemberSimpleDto>(
-            @"SELECT m.pk_member_master_profile_id AS Id, m.MemberName
+            $@"SELECT m.pk_member_master_profile_id AS Id, m.MemberName
               FROM member_master_profile m
               INNER JOIN club_members cm ON cm.fk_member_master_profile_id = m.pk_member_master_profile_id
               WHERE cm.fk_club_id = @ClubId
+                AND {HierarchyScopeSql.ClubIdLive("cm.fk_club_id")}
                 AND m.isdeleted = 0
                 AND cm.isdeleted = 0
                 AND cm.IsActive = 1

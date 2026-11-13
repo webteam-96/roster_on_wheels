@@ -6,6 +6,7 @@ import { ClubMemberItem } from "@/types/club";
 import { PagedResult } from "@/types/member";
 import { getClub, getClubMembers, getClubMemberYears, removeClubMember, getPhotoUrl, assignRole, removeRole, getMemberRemovalPreview, getDistricts, getRotaryYears, updateCogDesignation, getRiCodes } from "@/services/api";
 import { MemberRemovalPreview } from "@/types/memberRemoval";
+import AdminYearsDialog from "@/components/AdminYearsDialog";
 import { formatDMY } from "@/lib/dateUtils";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -52,6 +53,8 @@ export default function ClubMembersPage() {
   })();
   const { isSuperAdmin } = useAuth();
   const [clubName, setClubName] = useState("");
+  // upstream 2026-10-21: club, district or zone inactive, so this is a SuperAdmin-only view.
+  const [clubInactive, setClubInactive] = useState(false);
   const [, setDistrictId] = useState<number | null>(null);
   const [data, setData] = useState<PagedResult<ClubMemberItem> | null>(null);
   const [loading, setLoading] = useState(true);
@@ -70,6 +73,9 @@ export default function ClubMembersPage() {
     getRiCodes().then((c) => setTerminationReasons(c.filter((x) => x.kind === "termination_reason"))).catch(() => {});
   }, []);
   const [roleLoading, setRoleLoading] = useState<number | null>(null);
+  // Admin rights are per Rotary year, so the promotion goes through a year
+  // picker rather than straight to assignRole.
+  const [adminYearTarget, setAdminYearTarget] = useState<{ id: number; name: string } | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [detailMemberId, setDetailMemberId] = useState<number | null>(null);
 
@@ -110,6 +116,7 @@ export default function ClubMembersPage() {
         const c = await getClub(clubId);
         setClubName(c.clubName);
         setDistrictId(c.fkDistrictId);
+        setClubInactive(c.isChainActive === false);
       } catch { /* ignore */ }
     }
     fetchClub();
@@ -225,14 +232,29 @@ export default function ClubMembersPage() {
     }
   };
 
-  const handleMakeAdmin = async (memberId: number, memberName: string) => {
+  // Opens the year picker. The actual promotion happens in handleConfirmAdminYears.
+  const handleMakeAdmin = (memberId: number, memberName: string) => {
+    setAdminYearTarget({ id: memberId, name: memberName });
+  };
+
+  const handleConfirmAdminYears = async (picked: { yearIds: number[]; allYears: boolean }) => {
+    if (!adminYearTarget) return;
+    const { id: memberId, name: memberName } = adminYearTarget;
     setRoleLoading(memberId);
     try {
-      await assignRole({ memberId, roleId: 2, clubId });
-      setSuccessMessage(`${memberName} has been made Admin.`);
+      await assignRole({ memberId, roleId: 2, clubId, yearIds: picked.yearIds, allYears: picked.allYears });
+      setAdminYearTarget(null);
+      setSuccessMessage(
+        picked.allYears
+          ? `${memberName} has been made Admin for all Rotary years.`
+          : `${memberName} has been made Admin for ${picked.yearIds.length} Rotary year${picked.yearIds.length === 1 ? "" : "s"}.`
+      );
       fetchMembers();
     } catch (err: any) {
+      // Rethrown so the dialog shows the reason in place and stays open — the
+      // server refuses years the granter does not hold, which is worth reading.
       setErrorMessage(err?.response?.data?.message || err?.response?.data || "Failed to assign Admin role.");
+      throw err;
     } finally {
       setRoleLoading(null);
     }
@@ -294,6 +316,11 @@ export default function ClubMembersPage() {
   return (
     <ProtectedRoute>
       <div className="space-y-6">
+        {clubInactive && (
+          <p className="text-sm font-semibold text-red-700">
+            This club (or its district or zone) is inactive and hidden everywhere. Only SuperAdmin can see this.
+          </p>
+        )}
         {/* Header */}
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-3">
@@ -633,7 +660,7 @@ export default function ClubMembersPage() {
                               )}
                             </div>
                           </TableCell>
-                          <TableCell className="font-semibold text-primary break-words max-w-[14rem] whitespace-normal">{member.memberName}</TableCell>
+                          <TableCell className="font-semibold text-primary break-words max-w-[14rem] whitespace-normal">{member.memberName}{clubInactive && <span className="ml-2 text-xs font-semibold text-red-700">Inactive</span>}</TableCell>
                           <TableCell className="hidden md:table-cell">{member.rotaryId || "-"}</TableCell>
                           <TableCell className="hidden md:table-cell">{member.emailId || "-"}</TableCell>
                           <TableCell className="hidden lg:table-cell">{member.primaryMobileNumber || "-"}</TableCell>
@@ -756,6 +783,18 @@ export default function ClubMembersPage() {
         <SuccessAlert open={!!successMessage} title="Success" description={successMessage || ""} onOk={() => setSuccessMessage(null)} />
         <ErrorAlert open={!!errorMessage} title="Error" description={errorMessage || ""} onOk={() => setErrorMessage(null)} />
         <MemberDetailDialog memberId={detailMemberId} open={detailMemberId !== null} onClose={() => setDetailMemberId(null)} />
+
+        {adminYearTarget && (
+          <AdminYearsDialog
+            open
+            scope={{ kind: "club", clubId }}
+            memberId={adminYearTarget.id}
+            memberName={adminYearTarget.name}
+            scopeName={clubName}
+            onCancel={() => setAdminYearTarget(null)}
+            onConfirm={handleConfirmAdminYears}
+          />
+        )}
       </div>
     </ProtectedRoute>
   );

@@ -12,6 +12,13 @@ public class AssignRoleRequestDto
     public int MemberId { get; set; }
     public int RoleId { get; set; } = 2; // Default to Admin role
     public int? ClubId { get; set; } // Club-specific admin role
+
+    // Year-wise Admin Rights (upstream): which Rotary years this admin may edit in. Both optional so an older
+    // client keeps working. Omitted entirely = the current year only (never silently every year).
+    public List<int>? YearIds { get; set; }
+
+    /// <summary>Every year, including ones not created yet. SuperAdmin only.</summary>
+    public bool? AllYears { get; set; }
 }
 
 public class RemoveRoleRequestDto

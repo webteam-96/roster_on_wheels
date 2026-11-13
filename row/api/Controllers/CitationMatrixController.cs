@@ -52,7 +52,7 @@ public class CitationMatrixController : ControllerBase
         if (resolvedYearId <= 0) return BadRequest(new { message = "No current rotary year configured." });
 
         var district = await conn.QueryFirstOrDefaultAsync<dynamic>(
-            "SELECT pk_district_id AS districtId, DistrictNumber AS districtNumber FROM district_master WHERE pk_district_id = @D AND isdeleted = 0",
+            $"SELECT pk_district_id AS districtId, DistrictNumber AS districtNumber FROM district_master WHERE pk_district_id = @D AND isdeleted = 0 AND {RotaryApi.Services.HierarchyScopeSql.DistrictLive("district_master")}",
             new { D = districtId });
         if (district == null) return NotFound(new { message = "District not found." });
 
@@ -67,7 +67,7 @@ public class CitationMatrixController : ControllerBase
         var clubs = (await conn.QueryAsync<dynamic>($@"
             SELECT pk_club_id AS clubId, ClubName AS clubName
             FROM club_master
-            WHERE fk_district_id = @D AND isdeleted = 0{clubFilter}
+            WHERE fk_district_id = @D AND isdeleted = 0 AND {RotaryApi.Services.HierarchyScopeSql.ClubLive("club_master")}{clubFilter}
             ORDER BY ClubName",
             new { D = districtId, ClubId = clubId })).ToList();
 

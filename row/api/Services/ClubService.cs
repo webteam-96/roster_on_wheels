@@ -24,7 +24,7 @@ public class ClubService : IClubService
 
     private MySqlConnection CreateConnection() => new(_connectionString);
 
-    public async Task<PagedResult<ClubListDto>> GetAllAsync(int page, int pageSize, string? search, int? districtId, string? city, string? meetingDay, int? isActive, int? zoneId = null, bool excludeRotaract = false)
+    public async Task<PagedResult<ClubListDto>> GetAllAsync(int page, int pageSize, string? search, int? districtId, string? city, string? meetingDay, int? isActive, int? zoneId = null, bool excludeRotaract = false, bool includeInactive = false)
     {
         // Inline SQL (was sp_club_get_all_paginated / sp_club_get_all_count).
         // Switched 2026-07-03 to add IsSyncedFromRotaryOrg to the listing —
@@ -53,6 +53,9 @@ public class ClubService : IClubService
               AND (@ZoneId IS NULL OR d.fk_zone_id = @ZoneId)";
         // user 2026-10-08: Rotaract clubs hidden from everyone except SuperAdmin.
         if (excludeRotaract) whereSql += " AND " + ClubScopeSql.NotRotaract("c");
+        // User 2026-10-21: inactive clubs (or clubs of an inactive district / zone) are hidden
+        // everywhere; only the Club master listing (includeInactive, SuperAdmin) still shows them.
+        if (!includeInactive) whereSql += " AND " + HierarchyScopeSql.ClubLive("c");
 
         var countSql = $@"
             SELECT COUNT(*)
@@ -160,6 +163,7 @@ public class ClubService : IClubService
                    c.ActiveFromDate AS ActiveFromDate, c.ActiveToDate AS ActiveToDate,
                    c.IsAutomaticMeetingReminder AS IsAutomaticMeetingReminder,
                    c.IsFamilyLogin AS IsFamilyLogin, c.IsActive AS IsActive,
+                   CASE WHEN " + HierarchyScopeSql.ClubLive("c") + @" THEN 1 ELSE 0 END AS IsChainActive,
                    c.created_by AS CreatedBy, c.created_date AS CreatedDate,
                    c.modified_by AS ModifiedBy, c.modified_date AS ModifiedDate,
                    (SELECT COUNT(*) FROM club_members cm
@@ -779,9 +783,18 @@ public class ClubService : IClubService
 
         // Re-joining member: restore the address + family rows soft-deleted at their last-club removal
         // (they were soft-deleted on removal; the person is the same, so bring their data back).
+        // Only when the member has NO live address (a real re-join after the last club), and only the
+        // batch soft-deleted at that removal, not every old copy left by past saves. Bringing them all
+        // back for a member already active elsewhere doubled their addresses (upstream 2026-11-02).
         await connection.ExecuteAsync(@"
-            UPDATE member_address_details SET isdeleted = 0, modified_date = NOW()
-            WHERE fk_member_master_profile_id = @MemberId AND isdeleted = 1",
+            UPDATE member_address_details a
+            JOIN (SELECT MAX(modified_date) AS last_del FROM member_address_details
+                  WHERE fk_member_master_profile_id = @MemberId AND isdeleted = 1) d
+              ON a.modified_date = d.last_del
+            SET a.isdeleted = 0, a.modified_date = NOW()
+            WHERE a.fk_member_master_profile_id = @MemberId AND a.isdeleted = 1
+              AND NOT EXISTS (SELECT 1 FROM (SELECT fk_member_master_profile_id FROM member_address_details
+                                             WHERE fk_member_master_profile_id = @MemberId AND isdeleted = 0) live)",
             new { MemberId = dto.MemberId }, transaction: tx);
         // Restore ONLY the batch soft-deleted at the last removal (one UPDATE, so one modified_date),
         // and only when the member has no live family rows. Restoring every isdeleted=1 row brought

@@ -13,7 +13,8 @@ export function generateStaticParams() {
   return EVENTS.map((e) => ({ slug: eventSlug(e) }));
 }
 
-export function generateMetadata({ params }: { params: { slug: string } }): Metadata {
+export async function generateMetadata(props: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  const params = await props.params;
   const event = getEventBySlug(params.slug);
   if (!event) return { title: "Event | ROW" };
   return {
@@ -22,7 +23,8 @@ export function generateMetadata({ params }: { params: { slug: string } }): Meta
   };
 }
 
-export default function EventDetailPage({ params }: { params: { slug: string } }) {
+export default async function EventDetailPage(props: { params: Promise<{ slug: string }> }) {
+  const params = await props.params;
   const event = getEventBySlug(params.slug);
   if (!event) notFound();
 

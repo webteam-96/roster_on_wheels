@@ -4,17 +4,9 @@
 class FormConstants {
   static const bloodGroups = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
   static const genders = ['Male', 'Female', 'Other'];
+  // The eight launch languages, as on the web (admin/src/lib/constants.ts LANGUAGES).
   static const languages = [
-    'English',
-    'Hindi',
-    'Marathi',
-    'Gujarati',
-    'Tamil',
-    'Telugu',
-    'Kannada',
-    'Bengali',
-    'Punjabi',
-    'Other',
+    'English', 'French', 'German', 'Italian', 'Japanese', 'Korean', 'Portuguese', 'Spanish', 'Other',
   ];
   static const relations = [
     'Brother',

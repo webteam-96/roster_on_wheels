@@ -14,10 +14,13 @@ public class ProjectsController : ControllerBase
 {
     private readonly IProjectService _service;
     private readonly string _connectionString;
-    private readonly IClubSiteCachePurger _purger;
+    private readonly IClubSiteCachePurger _purger;
 
-    public ProjectsController(IProjectService service, IConfiguration configuration, IClubSiteCachePurger purger)
+    private readonly AdminYearGuard _guard;
+
+    public ProjectsController(IProjectService service, IConfiguration configuration, IClubSiteCachePurger purger, AdminYearGuard guard)
     {
+        _guard = guard;
         _service = service;
         _connectionString = configuration.GetConnectionString("DefaultConnection")!;
         _purger = purger;
@@ -58,6 +61,12 @@ public class ProjectsController : ControllerBase
         // project_date decides the year-partitioned table, so a typo'd year creates a junk
         // rotary year that pollutes the public year filter. See Services/ProjectDateValidator.
         var dateError = ProjectDateValidator.Validate(dto.ProjectDate);
+        if (dateError == null)
+        {
+            // The DATE decides the year, so the date is what gets authorised.
+            var deniedCreate = await _guard.ClubYearForDateAsync(User, clubId, dto.ProjectDate);
+            if (deniedCreate != null) return deniedCreate;
+        }
         if (dateError != null) return BadRequest(new { message = dateError });
 
         var id = await _service.CreateAsync(clubId, dto, GetUserId());
@@ -68,6 +77,11 @@ public class ProjectsController : ControllerBase
     [HttpPut("api/clubs/{clubId}/projects/{yearId}/{id}")]
     public async Task<ActionResult> Update(int clubId, int yearId, int id, [FromBody] UpdateProjectDto dto)
     {
+        // The {yearId} in the route IS the record's stored year — it selects the
+        // year-partitioned table the row lives in, so it cannot be spoofed to
+        // reach a row in another year.
+        var deniedYear = await _guard.ClubYearAsync(User, clubId, yearId);
+        if (deniedYear != null) return deniedYear;
         if (dto.Photos == null || dto.Photos.Count == 0)
             return BadRequest(new { message = "At least 1 photo is required to save this project." });
 
@@ -112,6 +126,15 @@ public class ProjectsController : ControllerBase
         var dateError = ProjectDateValidator.Validate(dto.ProjectDate);
         if (dateError != null) return BadRequest(new { message = dateError });
 
+        // ⚠️ A move changes the year, so BOTH ends must be yours: the year it is
+        // leaving and the year it is going to. Checking only one would let a
+        // single-year admin pull another year's project into theirs, or push one
+        // of theirs somewhere they can no longer reach.
+        var deniedFrom = await _guard.ClubYearAsync(User, clubId, yearId);
+        if (deniedFrom != null) return deniedFrom;
+        var deniedTo = await _guard.ClubYearForDateAsync(User, clubId, dto.ProjectDate);
+        if (deniedTo != null) return deniedTo;
+
         try
         {
             var (newYearId, newId, newYearLabel) = await _service.MoveProjectAsync(id, yearId, dto, GetUserId());
@@ -133,6 +156,11 @@ public class ProjectsController : ControllerBase
     [HttpDelete("api/clubs/{clubId}/projects/{yearId}/{id}")]
     public async Task<ActionResult> Delete(int clubId, int yearId, int id)
     {
+        // The {yearId} in the route IS the record's stored year — it selects the
+        // year-partitioned table the row lives in, so it cannot be spoofed to
+        // reach a row in another year.
+        var deniedYear = await _guard.ClubYearAsync(User, clubId, yearId);
+        if (deniedYear != null) return deniedYear;
         await _service.DeleteAsync(id, yearId, GetUserId());
         _purger.PurgeByClub(clubId);
         return Ok(new { message = "Project deleted successfully." });
@@ -161,6 +189,16 @@ public class ProjectsController : ControllerBase
     [HttpPost("api/clubs/{clubId}/projects/upload")]
     public async Task<ActionResult<object>> UploadImage(int clubId, IFormFile file, [FromQuery] int? projectId = null, [FromQuery] int? yearId = null, [FromQuery] bool strict = false)
     {
+        // ⚠️ Honour the yearId the caller already sends. A 2025-26 admin editing
+        // a 2025-26 project may add a photo to it — guarding the upload year-LESS
+        // let them edit the project but refused its picture, which reads as a
+        // broken upload rather than a permission rule. upload-document below
+        // takes no year, so it stays year-less.
+        var deniedUpload = yearId is int uy && uy > 0
+            ? await _guard.ClubYearAsync(User, clubId, uy)
+            : await _guard.ClubYearlessAsync(User, clubId);
+        if (deniedUpload != null) return deniedUpload;
+
         // The web frontend shrinks photos in the browser before upload; the mobile app
         // sends the raw photo, so a large capture would fail the 5 MB size guard below.
         // Compress oversized images to ≤5 MB server-side FIRST (already-small uploads —
@@ -177,6 +215,9 @@ public class ProjectsController : ControllerBase
     [HttpPost("api/clubs/{clubId}/projects/upload-document")]
     public async Task<ActionResult<object>> UploadDocument(int clubId, IFormFile file)
     {
+        var deniedUpload = await _guard.ClubYearlessAsync(User, clubId);
+        if (deniedUpload != null) return deniedUpload;
+
         if (file == null || file.Length == 0)
             return BadRequest(new { message = "No file uploaded." });
 
@@ -209,6 +250,9 @@ public class ProjectsController : ControllerBase
     [HttpPost("api/clubs/{clubId}/projects/{yearId}/{id}/photos")]
     public async Task<ActionResult> AddPhoto(int clubId, int yearId, int id, [FromBody] ProjectPhotoInput dto)
     {
+        // Photos live under the project, so they inherit the project's year.
+        var deniedYear = await _guard.ClubYearAsync(User, clubId, yearId);
+        if (deniedYear != null) return deniedYear;
         if (!await ProjectInClubAsync(clubId, yearId, id)) return NotFound(new { message = "Not found." });
         var photoId = await _service.AddPhotoAsync(id, yearId, dto.ImagePath, dto.Description, dto.IsPrimary, dto.SortOrder);
         return Ok(new { id = photoId });
@@ -217,6 +261,9 @@ public class ProjectsController : ControllerBase
     [HttpDelete("api/clubs/{clubId}/projects/{yearId}/{projectId}/photos/{photoId}")]
     public async Task<ActionResult> DeletePhoto(int clubId, int yearId, int projectId, int photoId)
     {
+        // Photos live under the project, so they inherit the project's year.
+        var deniedYear = await _guard.ClubYearAsync(User, clubId, yearId);
+        if (deniedYear != null) return deniedYear;
         if (!await ProjectInClubAsync(clubId, yearId, projectId, photoId)) return NotFound(new { message = "Not found." });
         await _service.DeletePhotoAsync(photoId, yearId);
         return Ok(new { message = "Photo deleted successfully." });
@@ -225,6 +272,9 @@ public class ProjectsController : ControllerBase
     [HttpPut("api/clubs/{clubId}/projects/{yearId}/{projectId}/photos/{photoId}/primary")]
     public async Task<ActionResult> SetPrimaryPhoto(int clubId, int yearId, int projectId, int photoId)
     {
+        // Photos live under the project, so they inherit the project's year.
+        var deniedYear = await _guard.ClubYearAsync(User, clubId, yearId);
+        if (deniedYear != null) return deniedYear;
         if (!await ProjectInClubAsync(clubId, yearId, projectId, photoId)) return NotFound(new { message = "Not found." });
         await _service.SetPrimaryPhotoAsync(projectId, photoId, yearId);
         return Ok(new { message = "Primary photo set successfully." });

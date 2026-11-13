@@ -7,7 +7,7 @@
  * (the Communication → Mass Email tab).
  */
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   createMassEmail, updateMassEmail, sendMassEmail, getMassEmailDetail, getClub,
@@ -15,6 +15,8 @@ import {
   getMassEmailRecipientCount, getClubCreditBalance,
 } from "@/services/api";
 import { useAuth } from "@/contexts/AuthContext";
+import { clubYearRights, canEditYearless } from "@/lib/adminYears";
+import { useRotaryYears } from "@/hooks/useRotaryYears";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -39,10 +41,26 @@ interface MemberOption { memberId: number; memberName: string; email: string; }
 export default function ClubAdminComposeMassEmailPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const { selectedClubId, isSuperAdmin, isAdmin } = useAuth();
+  const { selectedClubId, isSuperAdmin, isAdmin, user } = useAuth();
   const clubId = selectedClubId ?? 0;
   const editId = searchParams.get("editId") ? Number(searchParams.get("editId")) : null;
   const returnTo = searchParams.get("returnTo") || "/club-admin-dashboard/communication?tab=massemail";
+
+  // A mass email carries no Rotary year, so writing one needs CURRENT-year
+  // rights — the same rule the list uses. There is nothing to READ on a compose
+  // screen, so someone without them goes back to the list rather than filling
+  // in a form the server would refuse. The list hides Compose for the same
+  // reason; this only catches a typed URL.
+  //
+  // ⚠️ Waits for currentYearId. Until the years arrive it is undefined, which
+  // reads as "cannot edit" — bouncing on that would throw out an admin who is
+  // entitled to be here, on nothing more than a slow request.
+  const { currentYearId } = useRotaryYears();
+  const yearRights = useMemo(() => clubYearRights(user?.scopedRoles, clubId), [user?.scopedRoles, clubId]);
+  const canManage = (isSuperAdmin || isAdmin) && canEditYearless(yearRights, currentYearId, isSuperAdmin);
+  useEffect(() => {
+    if (currentYearId !== undefined && !canManage) router.replace(returnTo);
+  }, [canManage, currentYearId, returnTo, router]);
 
   const [clubName, setClubName] = useState("");
   const [loading, setLoading] = useState(!!editId);
@@ -163,6 +181,8 @@ export default function ClubAdminComposeMassEmailPage() {
   const filteredMembers = members.filter((m) => !memberSearch || m.memberName.toLowerCase().includes(memberSearch.toLowerCase()) || m.email.toLowerCase().includes(memberSearch.toLowerCase()));
 
   if (!clubId) return null;
+  // The effect above is already sending them back; don't flash the form first.
+  if (currentYearId !== undefined && !canManage) return null;
   if (loading) return <RotaryLoader />;
 
   return (

@@ -61,14 +61,16 @@ public class AgDashboardService : IAgDashboardService
         // has picked one from the topbar), join club_master to restrict the result
         // to that district. Without the filter, behavior is unchanged.
         var sql = districtId.HasValue && districtId.Value > 0
-            ? @"SELECT DISTINCT da.fk_club_id FROM district_ag da
+            ? $@"SELECT DISTINCT da.fk_club_id FROM district_ag da
                 JOIN club_master c ON c.pk_club_id = da.fk_club_id AND c.isdeleted = 0
                 WHERE da.fk_member_id = @MemberId AND da.isdeleted = 0 AND da.is_active = 1
                   AND (@YearId IS NULL OR da.fk_year_id = @YearId)
-                  AND c.fk_district_id = @DistrictId"
-            : @"SELECT DISTINCT fk_club_id FROM district_ag
+                  AND c.fk_district_id = @DistrictId
+                  AND {HierarchyScopeSql.ClubLive("c")}"
+            : $@"SELECT DISTINCT fk_club_id FROM district_ag
                 WHERE fk_member_id = @MemberId AND isdeleted = 0 AND is_active = 1
-                  AND (@YearId IS NULL OR fk_year_id = @YearId)";
+                  AND (@YearId IS NULL OR fk_year_id = @YearId)
+                  AND {HierarchyScopeSql.ClubIdLive("district_ag.fk_club_id")}";
         var rows = await conn.QueryAsync<int>(sql,
             new { MemberId = memberId, YearId = yearId, DistrictId = districtId });
         return rows.ToList();
@@ -109,17 +111,19 @@ public class AgDashboardService : IAgDashboardService
         // Restrict to a district only when the AG spans several and has picked one —
         // mirrors GetAgClubIdsAsync so the year list matches the clubs on screen.
         var sql = districtId.HasValue && districtId.Value > 0
-            ? @"SELECT DISTINCT y.pk_year_id AS Id, y.YearLabel AS Label, y.IsCurrent AS IsCurrent, y.StartDate
+            ? $@"SELECT DISTINCT y.pk_year_id AS Id, y.YearLabel AS Label, y.IsCurrent AS IsCurrent, y.StartDate
                 FROM district_ag da
                 JOIN club_master c        ON c.pk_club_id = da.fk_club_id AND c.isdeleted = 0
                 JOIN rotary_year_master y ON y.pk_year_id = da.fk_year_id AND y.isdeleted = 0
                 WHERE da.fk_member_id = @MemberId AND da.isdeleted = 0 AND da.is_active = 1
                   AND c.fk_district_id = @DistrictId
+                  AND {HierarchyScopeSql.ClubLive("c")}
                 ORDER BY y.StartDate DESC"
-            : @"SELECT DISTINCT y.pk_year_id AS Id, y.YearLabel AS Label, y.IsCurrent AS IsCurrent, y.StartDate
+            : $@"SELECT DISTINCT y.pk_year_id AS Id, y.YearLabel AS Label, y.IsCurrent AS IsCurrent, y.StartDate
                 FROM district_ag da
                 JOIN rotary_year_master y ON y.pk_year_id = da.fk_year_id AND y.isdeleted = 0
                 WHERE da.fk_member_id = @MemberId AND da.isdeleted = 0 AND da.is_active = 1
+                  AND {HierarchyScopeSql.ClubIdLive("da.fk_club_id")}
                 ORDER BY y.StartDate DESC";
 
         var years = (await conn.QueryAsync<(int Id, string Label, sbyte IsCurrent, DateTime? StartDate)>(
@@ -292,12 +296,13 @@ public class AgDashboardService : IAgDashboardService
 
     private async Task<AgIdentityDto> BuildIdentityAsync(MySqlConnection conn, int memberId, int yearId)
     {
-        var ident = await conn.QueryFirstOrDefaultAsync<dynamic>(@"
+        var ident = await conn.QueryFirstOrDefaultAsync<dynamic>($@"
             SELECT m.MemberName AS name, COALESCE(d.DistrictNumber,'') AS districtNumber
             FROM member_master_profile m
             LEFT JOIN district_ag ag ON ag.fk_member_id = m.pk_member_master_profile_id
               AND ag.isdeleted = 0 AND ag.is_active = 1
               AND (@YearId = 0 OR ag.fk_year_id = @YearId)
+              AND {HierarchyScopeSql.ClubIdLive("ag.fk_club_id")}
             LEFT JOIN club_master c ON c.pk_club_id = ag.fk_club_id
             LEFT JOIN district_master d ON d.pk_district_id = c.fk_district_id
             WHERE m.pk_member_master_profile_id = @MemberId AND m.isdeleted = 0
@@ -368,12 +373,22 @@ public class AgDashboardService : IAgDashboardService
             JOIN member_master_profile m     ON m.pk_member_master_profile_id = bod.fk_member_master_profile_id AND m.isdeleted = 0
             WHERE bod.fk_club_id IN @ClubIds AND bod.isdeleted = 0
               AND bod.fk_year_id = @YearId
-              AND ( (dm.designation_name LIKE '%President%'
-                     AND dm.designation_name NOT LIKE '%Past%'
-                     AND dm.designation_name NOT LIKE '%Vice%')
-                 OR (dm.designation_name LIKE '%Secretary%'
-                     AND dm.designation_name NOT LIKE '%Joint%') )",
-            new { ClubIds = clubIds, YearId = yearId })).ToList();
+              -- Matched by designation ID, never by name.
+              -- The old text match (LIKE '%President%' / '%Secretary%' with a
+              -- hand-kept list of exclusions) silently swept up the near-misses:
+              --   'President Elect' (5)                     → counted as President
+              --   'Club Executive Secretary/Director' (6)   → counted as Secretary
+              -- On production that is ~1,700 and ~23,500 board rows respectively.
+              -- designation_master also holds soft-deleted DUPLICATES of several
+              -- names, which name matching cannot tell apart either.
+              AND dm.pk_designation_id IN (@PresidentId, @SecretaryId)",
+            new
+            {
+                ClubIds = clubIds,
+                YearId = yearId,
+                PresidentId = AdminYearService.DesignationClubPresident,
+                SecretaryId = AdminYearService.DesignationClubSecretary,
+            })).ToList();
 
         foreach (var g in rows.GroupBy(r => r.clubId))
         {
@@ -655,9 +670,9 @@ public class AgDashboardService : IAgDashboardService
             new { ClubId = clubIds.First() });
         if (districtId == null || districtId.Value <= 0) return result;
 
-        var districtClubIds = (await conn.QueryAsync<int>(@"
+        var districtClubIds = (await conn.QueryAsync<int>($@"
             SELECT pk_club_id FROM club_master
-            WHERE fk_district_id = @DistrictId AND isdeleted = 0",
+            WHERE fk_district_id = @DistrictId AND isdeleted = 0 AND {HierarchyScopeSql.ClubLive("club_master")}",
             new { DistrictId = districtId.Value })).ToList();
         if (districtClubIds.Count == 0) return result;
 
@@ -763,8 +778,8 @@ public class AgDashboardService : IAgDashboardService
                 new { ClubId = clubIds.First() });
             if (districtId.HasValue)
             {
-                totalClubsInDistrict = await conn.ExecuteScalarAsync<int>(@"
-                    SELECT COUNT(*) FROM club_master WHERE fk_district_id = @DistrictId AND isdeleted = 0",
+                totalClubsInDistrict = await conn.ExecuteScalarAsync<int>($@"
+                    SELECT COUNT(*) FROM club_master WHERE fk_district_id = @DistrictId AND isdeleted = 0 AND {HierarchyScopeSql.ClubLive("club_master")}",
                     new { DistrictId = districtId.Value });
             }
         }

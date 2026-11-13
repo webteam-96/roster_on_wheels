@@ -15,6 +15,10 @@ import type {
 } from "@/types/clubAdminDashboard";
 import KpiCard from "@/components/dashboard/KpiCard";
 import { fmtInt, fmtDate } from "@/components/dashboard/formatters";
+import { clubYearRights, canEditYearless } from "@/lib/adminYears";
+import { useRotaryYears } from "@/hooks/useRotaryYears";
+import { useCurrentRotaryYear } from "@/hooks/useCurrentRotaryYear";
+import ViewOnlyBadge from "@/components/ViewOnlyBadge";
 
 // Re-enabled per user request. Kept as a plain (unexported) function rather
 // than deleted, in case the "Coming Soon" placeholder needs to come back.
@@ -58,7 +62,13 @@ function isToggleView(v: string | null): v is ToggleView {
 // wrapper. When embedded we DON'T sync ?view= to the URL — that would clobber
 // the parent page's ?tab= param.
 export function DashboardRotaryNetworkView({ embedded = false }: { embedded?: boolean } = {}) {
-  const { selectedClubId } = useAuth();
+  const { selectedClubId, user, isSuperAdmin } = useAuth();
+
+  // Potential members carry NO Rotary year — they are the club's current pipeline.
+  // Year-less data follows the same rule the server applies: changing it needs
+  // CURRENT-year rights, so a past-year admin can read but not alter it.
+  const currentYearId = useCurrentRotaryYear();
+  const { years: ywarYears } = useRotaryYears();
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -211,6 +221,14 @@ export function DashboardRotaryNetworkView({ embedded = false }: { embedded?: bo
   const terminatedPending = view === "terminated" && terminatedCountLoading;
 
   const clubId = data.club.clubId;
+  const yearRights = clubYearRights(user?.scopedRoles, clubId);
+  const canManage = canEditYearless(yearRights, currentYearId, isSuperAdmin);
+  // YWAR-BADGE-YEARLESS — name the CURRENT year, not the years held.
+  // This data is not filed by Rotary year, so "you can make changes in
+  // 2025-26" is untrue: those years cannot help here. See ViewOnlyBadge.
+  const ywarCurrentYearLabel =
+    ywarYears.find((y) => y.id === currentYearId)?.yearLabel ?? "";
+
   // Encode the current view in returnTo so V2 form Save/Back lands on the same view.
   const returnTo = encodeURIComponent(
     `/club-admin-dashboard/dashboard/rotary-network?view=${view}`,
@@ -222,6 +240,10 @@ export function DashboardRotaryNetworkView({ embedded = false }: { embedded?: bo
 
   return (
     <div className="space-y-5">
+      {!canManage && view === "potential" && (
+        <ViewOnlyBadge currentYearOnly={ywarCurrentYearLabel} className="mb-4" />
+      )}
+
       {/* Cards "This Rotary Year", "Now Member", "Lack of Participation" removed
           per user request (2026-06-12). Only Total Terminated retained — shows
           live Rotary.org count once that fetch lands. */}
@@ -294,7 +316,7 @@ export function DashboardRotaryNetworkView({ embedded = false }: { embedded?: bo
             </div>
             {/* Add is hidden for Terminated Members — terminated rows come from
                 the upstream API and are not user-creatable from this screen. */}
-            {view === "potential" && (
+            {view === "potential" && canManage && (
               <Link
                 href={addUrl}
                 className="inline-flex items-center gap-1.5 text-xs font-semibold px-4 h-10 rounded-full bg-[#17458F] text-white hover:bg-[#17458F]"
@@ -377,26 +399,30 @@ export function DashboardRotaryNetworkView({ embedded = false }: { embedded?: bo
                     {view === "potential" && (
                       <td className="px-3 py-2 text-right whitespace-nowrap">
                         <div className="inline-flex items-center justify-end gap-1">
-                          <Link
-                            href={editUrl}
-                            className="inline-flex items-center justify-center w-7 h-7 rounded text-slate-500 hover:text-blue-700 hover:bg-blue-50"
-                            aria-label="Edit potential member"
-                            title="Edit potential member"
-                          >
-                            <Edit3 size={13} />
-                          </Link>
-                          <button
-                            type="button"
-                            onClick={() => handleDeletePotential(r)}
-                            disabled={deletingId === r.id}
-                            className="inline-flex items-center justify-center w-7 h-7 rounded text-slate-500 hover:text-red-700 hover:bg-red-50 disabled:opacity-50"
-                            aria-label="Delete potential member"
-                            title="Delete potential member"
-                          >
-                            {deletingId === r.id
-                              ? <RotaryLoader size="sm" />
-                              : <Trash2 size={13} />}
-                          </button>
+                          {canManage && (
+                            <Link
+                              href={editUrl}
+                              className="inline-flex items-center justify-center w-7 h-7 rounded text-slate-500 hover:text-blue-700 hover:bg-blue-50"
+                              aria-label="Edit potential member"
+                              title="Edit potential member"
+                            >
+                              <Edit3 size={13} />
+                            </Link>
+                          )}
+                          {canManage && (
+                            <button
+                              type="button"
+                              onClick={() => handleDeletePotential(r)}
+                              disabled={deletingId === r.id}
+                              className="inline-flex items-center justify-center w-7 h-7 rounded text-slate-500 hover:text-red-700 hover:bg-red-50 disabled:opacity-50"
+                              aria-label="Delete potential member"
+                              title="Delete potential member"
+                            >
+                              {deletingId === r.id
+                                ? <RotaryLoader size="sm" />
+                                : <Trash2 size={13} />}
+                            </button>
+                          )}
                         </div>
                       </td>
                     )}

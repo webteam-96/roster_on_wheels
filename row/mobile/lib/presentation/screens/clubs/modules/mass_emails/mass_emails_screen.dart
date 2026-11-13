@@ -261,7 +261,7 @@ class _MassEmailsScreenState extends State<MassEmailsScreen> {
   bool get canManage =>
       !widget.viewOnly &&
       Provider.of<AuthProvider>(context, listen: false)
-          .isClubAdminOf(widget.clubId);
+          .canEditClub(widget.clubId);
 
   @override
   Widget build(BuildContext context) {
@@ -679,7 +679,7 @@ class _MassEmailDetailScreenState extends State<_MassEmailDetailScreen> {
 
   bool get _canManage =>
       Provider.of<AuthProvider>(context, listen: false)
-          .isClubAdminOf(widget.clubId);
+          .canEditClub(widget.clubId);
 
   @override
   void initState() {

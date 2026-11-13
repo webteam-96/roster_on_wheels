@@ -58,6 +58,12 @@ class _ProfileEditScreenState extends State<ProfileEditScreen>
   final _intro = TextEditingController();
   String? _gender;
   String? _bloodGroup;
+  // T-shirt size (upstream 2026-11-06): optional, never public; only the member edits it in the app.
+  // Sent only when changed: null on the server keeps it, 0 clears it.
+  int? _tshirtSizeId;
+  int? _tshirtSizeOriginal;
+  String? _tshirtSizeName;
+  List<({int id, String name})> _tshirtSizes = const [];
   String? _language;
   DateTime? _birthDate;
   DateTime? _anniversaryDate;
@@ -127,7 +133,23 @@ class _ProfileEditScreenState extends State<ProfileEditScreen>
     super.dispose();
   }
 
+  Future<void> _loadProfileOptions() async {
+    try {
+      final resp = await _api.get<Map<String, dynamic>>('/api/mobile/member-profile-options',
+          fromJson: (j) => j as Map<String, dynamic>);
+      final raw = (resp.data?['tshirtSizes'] as List<dynamic>?) ?? const [];
+      if (!mounted) return;
+      setState(() => _tshirtSizes = [
+            for (final e in raw)
+              (id: (e as Map<String, dynamic>)['id'] as int, name: e['sizeName'] as String),
+          ]);
+    } catch (_) {
+      // Options are optional: without them the field shows only the saved size.
+    }
+  }
+
   Future<void> _load() async {
+    _loadProfileOptions();
     setState(() {
       _loading = true;
       _error = null;
@@ -161,9 +183,10 @@ class _ProfileEditScreenState extends State<ProfileEditScreen>
         _bloodGroup = FormConstants.bloodGroups.contains(m.bloodGroup)
             ? m.bloodGroup
             : null;
-        _language = FormConstants.languages.contains(m.primaryLanguage)
-            ? m.primaryLanguage
-            : null;
+        _tshirtSizeId = memberJson['tshirtSizeId'] as int?;
+        _tshirtSizeOriginal = _tshirtSizeId;
+        _tshirtSizeName = memberJson['tshirtSize'] as String?;
+        _language = m.primaryLanguage; // kept even when not in the list, so saving does not erase it
         _birthDate = _parseDate(m.birthDate);
         _anniversaryDate = _parseDate(m.anniversaryDate);
         _primaryCountryId = m.fkPrimaryCountryId;
@@ -181,7 +204,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen>
         _youtube.text = m.youtube ?? '';
         _website.text = m.website ?? '';
         _residential = m.addresses.firstWhere(
-          (a) => a.addressType == 'Residential',
+          (a) => isHomeAddressType(a.addressType),
           orElse: () => const MemberAddressModel(addressType: 'Residential'),
         );
         _business = m.addresses.firstWhere(
@@ -455,6 +478,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen>
       'anniversaryDate':
           _anniversaryDate != null ? _formatForApi(_anniversaryDate!) : null,
       'bloodGroup': _bloodGroup,
+      if (_tshirtSizeId != _tshirtSizeOriginal) 'tshirtSizeId': _tshirtSizeId ?? 0,
       'gender': _gender,
       'primaryLanguage': _language,
       'rotaryId': _rotaryId.text.trim(),
@@ -616,6 +640,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen>
         items: FormConstants.bloodGroups,
         onChanged: (v) => setState(() => _bloodGroup = v),
       ),
+      _tshirtDropdown(),
       _staticDropdown(
         label: 'Gender',
         value: _gender,
@@ -624,7 +649,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen>
       ),
       _staticDropdown(
         label: 'Primary Language',
-        value: _language,
+        value: FormConstants.languages.contains(_language) ? _language : null,
         items: FormConstants.languages,
         onChanged: (v) => setState(() => _language = v),
       ),
@@ -1156,6 +1181,27 @@ class _ProfileEditScreenState extends State<ProfileEditScreen>
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(10),
         borderSide: const BorderSide(color: AppColors.primary),
+      ),
+    );
+  }
+
+  Widget _tshirtDropdown() {
+    final items = <DropdownMenuItem<int>>[
+      const DropdownMenuItem(value: 0, child: Text('Not set')),
+      for (final t in _tshirtSizes) DropdownMenuItem(value: t.id, child: Text(t.name)),
+      // keep a saved size visible even if it was switched off in the master list
+      if (_tshirtSizeId != null && !_tshirtSizes.any((t) => t.id == _tshirtSizeId))
+        DropdownMenuItem(value: _tshirtSizeId, child: Text(_tshirtSizeName ?? 'Current size')),
+    ];
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: DropdownButtonFormField<int>(
+        key: ValueKey('tshirt-${_tshirtSizes.length}'),
+        initialValue: _tshirtSizeId ?? 0,
+        isExpanded: true,
+        decoration: _decoration('T-Shirt Size'),
+        items: items,
+        onChanged: (v) => setState(() => _tshirtSizeId = (v == null || v == 0) ? null : v),
       ),
     );
   }

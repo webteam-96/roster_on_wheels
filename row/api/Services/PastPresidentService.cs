@@ -338,7 +338,7 @@ public class PastPresidentService : IPastPresidentService
         using var connection = CreateConnection();
         await connection.OpenAsync();
         var searchTerm = search ?? "";
-        var rows = await connection.QueryAsync<ClubMemberSearchDto>(@"
+        var rows = await connection.QueryAsync<ClubMemberSearchDto>($@"
             SELECT
                 m.pk_member_master_profile_id AS Id,
                 m.MemberName,
@@ -353,6 +353,7 @@ public class PastPresidentService : IPastPresidentService
               AND cm.IsActive = 1
               AND cm.isdeleted = 0
               AND m.isdeleted = 0
+              AND {HierarchyScopeSql.ClubIdLive("cm.fk_club_id")}
               AND (@Search = '' OR m.MemberName LIKE CONCAT('%', @Search, '%'))
             ORDER BY m.MemberName
             LIMIT 20",

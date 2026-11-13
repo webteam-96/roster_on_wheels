@@ -229,7 +229,7 @@ class _ClubWebsiteAdvertisementsScreenState extends State<ClubWebsiteAdvertiseme
   @override
   Widget build(BuildContext context) {
     final auth = context.watch<AuthProvider>();
-    final canManage = auth.isClubAdminOf(widget.clubId);
+    final canManage = auth.canEditClub(widget.clubId);
 
     return Scaffold(
       backgroundColor: AppColors.background,

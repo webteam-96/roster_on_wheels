@@ -42,6 +42,8 @@ import {
 import { ClubContactDetail } from "@/types/contactDetail";
 import { RotaryYear } from "@/types/rotaryYear";
 import { useAuth } from "@/contexts/AuthContext";
+import { clubYearRights, canEditYear, heldYearLabels } from "@/lib/adminYears";
+import ViewOnlyBadge from "@/components/ViewOnlyBadge";
 import KpiCard from "@/components/dashboard/KpiCard";
 import { fmtInt } from "@/components/dashboard/formatters";
 import ProtectedRoute from "@/components/ProtectedRoute";
@@ -73,8 +75,7 @@ export default function ContactDetailsV2Page() {
   const returnTo = search.get("returnTo") || "";
   const backHref = returnTo || `/clubs/${clubId}/website-data`;
 
-  const { isSuperAdmin, isAdmin } = useAuth();
-  const canManage = isSuperAdmin || isAdmin;
+  const { isSuperAdmin, isAdmin, user } = useAuth();
 
   const [clubName, setClubName] = useState("");
   const [allYears, setAllYears] = useState<RotaryYear[]>([]);
@@ -82,6 +83,15 @@ export default function ContactDetailsV2Page() {
   // the "add" year picker uses allYears.
   const [dataYears, setDataYears] = useState<{ id: number; yearLabel: string; isCurrent: boolean }[]>([]);
   const [selectedYearId, setSelectedYearId] = useState<string>("");
+
+  // ⚠️ Club website content IS year-scoped: each Rotary year has its own banners,
+  // adverts and contact details. So a member may only change the year they
+  // administer — including the year the LIVE public site is showing.
+  const yearRights = useMemo(() => clubYearRights(user?.scopedRoles, clubId), [user?.scopedRoles, clubId]);
+  const canManageYear = (isSuperAdmin || isAdmin) && canEditYear(yearRights, Number(selectedYearId) || undefined, isSuperAdmin);
+  const canManage = canManageYear;
+  const editableYears = heldYearLabels(yearRights, dataYears.map((y) => ({ id: y.id, label: y.yearLabel })));
+
 
   const [contact, setContact] = useState<ClubContactDetail | null>(null);
   const [loading, setLoading] = useState(true);
@@ -304,6 +314,10 @@ export default function ContactDetailsV2Page() {
 
   return (
     <ProtectedRoute>
+      {!canManage && selectedYearId && (
+        <ViewOnlyBadge editableYears={editableYears} className="mb-4" />
+      )}
+
       <ClubAdminShell
         pageTitle="Contact Details"
         pageSubtitle="Public contact information"

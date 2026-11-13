@@ -15,12 +15,15 @@
  *   - Design palette: navy #17458f, gold #F7A81B, slate borders/text.
  */
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import {
   getDistrictMassEmailDetail, sendDistrictMassEmail, deleteDistrictMassEmail, getDistrict,
 } from "@/services/api";
 import { useAuth } from "@/contexts/AuthContext";
+import { districtYearRights, canEditYearless } from "@/lib/adminYears";
+import { useRotaryYears } from "@/hooks/useRotaryYears";
+import ViewOnlyBadge from "@/components/ViewOnlyBadge";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -58,12 +61,24 @@ export default function DistrictAdminMassEmailDetailPage() {
   const params = useParams();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { selectedDistrictId, isSuperAdmin, isAdmin } = useAuth();
+  const { selectedDistrictId, isSuperAdmin, isAdmin, user } = useAuth();
   const districtId = selectedDistrictId ?? 0;
   const emailId = Number(params.emailId);
   const returnTo = searchParams.get("returnTo");
   const yearId = searchParams.get("yearId");
-  const canManage = isSuperAdmin || isAdmin;
+
+  // A mass email carries no Rotary year of its own, so sending or deleting one
+  // needs CURRENT-year rights — the same rule the listing uses.
+  // ⚠️ Only the Send and Delete buttons hang off this. The email itself stays
+  // readable in every year: this page is the only way to see who it went to.
+  const { years: rotaryYears, currentYearId: dCurrentYearId } = useRotaryYears();
+  const rights = useMemo(() => districtYearRights(user?.scopedRoles, districtId), [user?.scopedRoles, districtId]);
+  const canManage = (isSuperAdmin || isAdmin) && canEditYearless(rights, dCurrentYearId, isSuperAdmin);
+  // YWAR-BADGE-YEARLESS — name the CURRENT year, not the years held.
+  // This data is not filed by Rotary year, so "you can make changes in
+  // 2025-26" is untrue: those years cannot help here. See ViewOnlyBadge.
+  const ywarCurrentYearLabel =
+    rotaryYears.find((y) => y.id === dCurrentYearId)?.yearLabel ?? "";
 
   const goBack = () => router.push(withSearch(returnTo || BASE, { yearId }));
 
@@ -135,6 +150,13 @@ export default function DistrictAdminMassEmailDetailPage() {
 
   return (
     <ProtectedRoute>
+      {/* Only a draft has anything to act on. A sent email is read-only for
+          everybody, so the badge there would explain an absence that is not
+          about years at all. */}
+      {!canManage && isDraft && (
+        <ViewOnlyBadge currentYearOnly={ywarCurrentYearLabel} className="mb-4" />
+      )}
+
       <div className="space-y-6 max-w-5xl mx-auto">
         {/* Header */}
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">

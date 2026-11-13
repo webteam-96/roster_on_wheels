@@ -5,10 +5,13 @@
  * clubId from useAuth().selectedClubId; emailId from the route; Back returns to ?returnTo=.
  */
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { getMassEmailDetail, sendMassEmail, getClub } from "@/services/api";
 import { useAuth } from "@/contexts/AuthContext";
+import { clubYearRights, canEditYearless } from "@/lib/adminYears";
+import { useRotaryYears } from "@/hooks/useRotaryYears";
+import ViewOnlyBadge from "@/components/ViewOnlyBadge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -34,11 +37,22 @@ export default function ClubAdminMassEmailViewPage() {
   const params = useParams();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { selectedClubId, isSuperAdmin, isAdmin } = useAuth();
+  const { selectedClubId, isSuperAdmin, isAdmin, user } = useAuth();
   const clubId = selectedClubId ?? 0;
   const emailId = Number(params.emailId);
   const returnTo = searchParams.get("returnTo") || "/club-admin-dashboard/communication?tab=massemail";
-  const canManage = isSuperAdmin || isAdmin;
+  // A mass email carries no Rotary year of its own, so retrying a failed send
+  // needs CURRENT-year rights — the same rule the list uses (MassEmailSection).
+  // ⚠️ Only Retry hangs off this. The email itself stays readable in every
+  // year: this page is the only way to see who it went to and what failed.
+  const { years: rotaryYears, currentYearId } = useRotaryYears();
+  const yearRights = useMemo(() => clubYearRights(user?.scopedRoles, clubId), [user?.scopedRoles, clubId]);
+  const canManage = (isSuperAdmin || isAdmin) && canEditYearless(yearRights, currentYearId, isSuperAdmin);
+  // YWAR-BADGE-YEARLESS — name the CURRENT year, not the years held.
+  // This data is not filed by Rotary year, so "you can make changes in
+  // 2025-26" is untrue: those years cannot help here. See ViewOnlyBadge.
+  const ywarCurrentYearLabel =
+    rotaryYears.find((y) => y.id === currentYearId)?.yearLabel ?? "";
 
   const [detail, setDetail] = useState<MassEmailDetail | null>(null);
   const [clubName, setClubName] = useState("");
@@ -81,6 +95,13 @@ export default function ClubAdminMassEmailViewPage() {
 
   return (
     <ProtectedRoute>
+      {/* Only a FAILED send has anything to act on. On any other status the
+          Retry button is absent for everyone, so the badge would be explaining
+          an absence that has nothing to do with years. */}
+      {!canManage && detail.status === "Failed" && (
+        <ViewOnlyBadge currentYearOnly={ywarCurrentYearLabel} className="mb-4" />
+      )}
+
       <div className="space-y-6 max-w-5xl mx-auto">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-3">

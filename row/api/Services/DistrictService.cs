@@ -21,7 +21,7 @@ public class DistrictService : IDistrictService
     // Blank = the brand's zone (NULL). The controller has refused anything that is not an IANA id.
     private static string? NormalizeZone(string? zone) => string.IsNullOrWhiteSpace(zone) ? null : zone.Trim();
 
-    public async Task<PagedResult<DistrictListDto>> GetAllAsync(int page, int pageSize, string? search, int? isActive, int? zoneId = null, bool? hasClubs = null, bool? hasMembers = null, bool? hasSyncClubs = null)
+    public async Task<PagedResult<DistrictListDto>> GetAllAsync(int page, int pageSize, string? search, int? isActive, int? zoneId = null, bool? hasClubs = null, bool? hasMembers = null, bool? hasSyncClubs = null, bool includeInactive = false)
     {
         using var connection = CreateConnection();
         await connection.OpenAsync();
@@ -54,6 +54,10 @@ public class DistrictService : IDistrictService
         {
             hasClubsClause = string.Empty;
         }
+
+        // User 2026-10-21: inactive districts (or districts of an inactive zone) are hidden everywhere;
+        // only the District master listing (includeInactive, SuperAdmin) still shows them.
+        if (!includeInactive) hasClubsClause += $" AND {HierarchyScopeSql.DistrictLive("d")}";
 
         // Inline SQL (replaces sp_district_get_all_count) — needed so projection includes new Country column
         var countSql = $@"
@@ -129,6 +133,7 @@ public class DistrictService : IDistrictService
                     ELSE CONCAT('/uploads/district/', d.DistrictLogoPath)
                 END AS DistrictLogoPath,
                 d.IsActive,
+                CASE WHEN " + HierarchyScopeSql.DistrictLive("d") + @" THEN 1 ELSE 0 END AS IsChainActive,
                 d.created_by AS CreatedBy,
                 d.created_date AS CreatedDate,
                 d.modified_by AS ModifiedBy,

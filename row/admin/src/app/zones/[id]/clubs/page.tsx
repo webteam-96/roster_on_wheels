@@ -27,6 +27,8 @@ export default function ZoneClubsPage() {
   const zoneId = Number(params.id);
   const { isSuperAdmin } = useAuth();
   const [zoneName, setZoneName] = useState("");
+  // upstream 2026-10-21: zone inactive, so this is a SuperAdmin-only view.
+  const [zoneInactive, setZoneInactive] = useState(false);
   const [data, setData] = useState<PagedResult<ClubListItem> | null>(null);
   const [districts, setDistricts] = useState<DistrictListItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -47,6 +49,7 @@ export default function ZoneClubsPage() {
       try {
         const z = await getZone(zoneId);
         setZoneName(z.zoneName);
+        setZoneInactive(!z.isActive);
       } catch { /* ignore */ }
     }
     fetchZone();
@@ -73,7 +76,8 @@ export default function ZoneClubsPage() {
         city || undefined,
         meetingDay || undefined,
         undefined,
-        zoneId
+        zoneId,
+        true
       );
       setData(result);
     } catch (err) {
@@ -101,7 +105,8 @@ export default function ZoneClubsPage() {
       city || undefined,
       meetingDay || undefined,
       undefined,
-      zoneId
+      zoneId,
+      true
     )
       .then(result => setData(result))
       .catch(err => setError(err instanceof Error ? err.message : "Failed to fetch clubs"))
@@ -156,6 +161,11 @@ export default function ZoneClubsPage() {
           </div>
         )}
 
+        {zoneInactive && (
+          <p className="text-sm font-semibold text-red-700">
+            This zone is inactive and hidden everywhere. Only SuperAdmin can see this.
+          </p>
+        )}
         {error && (
           <div className="flex flex-col items-center justify-center py-20 text-center">
             <AlertCircle className="h-12 w-12 text-destructive mb-4" />
@@ -193,10 +203,10 @@ export default function ZoneClubsPage() {
                 <>
                   {viewMode === "grid" ? (
                     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                      {filteredItems.map((club) => <ClubCard key={club.id} club={club} onDelete={setDeleteTarget} isSuperAdmin={isSuperAdmin} />)}
+                      {filteredItems.map((club) => <ClubCard key={club.id} club={club} onDelete={setDeleteTarget} isSuperAdmin={isSuperAdmin} parentInactive={zoneInactive} />)}
                     </div>
                   ) : (
-                    <ClubTable clubs={filteredItems} onDelete={setDeleteTarget} isSuperAdmin={isSuperAdmin} />
+                    <ClubTable clubs={filteredItems} onDelete={setDeleteTarget} isSuperAdmin={isSuperAdmin} parentInactive={zoneInactive} />
                   )}
                   <Pagination page={data.page} totalPages={data.totalPages} totalCount={data.totalCount} pageSize={data.pageSize} onPageChange={handlePageChange} />
                 </>

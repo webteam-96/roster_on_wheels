@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { NewsletterListItem } from "@/types/newsletter";
 import {
@@ -10,6 +10,8 @@ import {
   getNewsletterYears,
 } from "@/services/api";
 import { useAuth } from "@/contexts/AuthContext";
+import { clubYearRights, canEditYear, heldYearLabels } from "@/lib/adminYears";
+import ViewOnlyBadge from "@/components/ViewOnlyBadge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -76,7 +78,7 @@ export default function NewslettersPage() {
   const clubId = Number(params.id);
   const from = searchParams.get("from");
   const urlYearId = searchParams.get("yearId");
-  const { isSuperAdmin, isAdmin } = useAuth();
+  const { isSuperAdmin, isAdmin, user } = useAuth();
 
   const [clubName, setClubName] = useState("");
   const [newsletters, setNewsletters] = useState<NewsletterListItem[]>([]);
@@ -96,7 +98,14 @@ export default function NewslettersPage() {
   const [deleteTarget, setDeleteTarget] = useState<NewsletterListItem | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
 
-  const canManage = isSuperAdmin || isAdmin;
+  const yearRights = useMemo(() => clubYearRights(user?.scopedRoles, clubId), [user?.scopedRoles, clubId]);
+  const isClubAdmin = isSuperAdmin || isAdmin;
+  const canManage = isClubAdmin && canEditYear(yearRights, selectedYearId, isSuperAdmin);
+  // ⚠️ View must NOT depend on canManage — hiding Edit would otherwise hide the
+  // only way into a record and leave a list you cannot open.
+  const canView = isClubAdmin;
+  const editableYears = heldYearLabels(yearRights, years.map((y) => ({ id: y.id, label: y.yearLabel })));
+  const viewingYearLabel = years.find((y) => y.id === selectedYearId)?.yearLabel;
 
   // Build back URL and from param, passing yearId back to OCV
   const backUrl = from === "ocv-gov"
@@ -212,6 +221,10 @@ export default function NewslettersPage() {
           )}
         </div>
 
+        {isClubAdmin && !canManage && selectedYearId && (
+          <ViewOnlyBadge yearLabel={viewingYearLabel} editableYears={editableYears} className="mb-4" />
+        )}
+
         {/* Year selector + Status filter + Search */}
         <div className="flex flex-col sm:flex-row gap-4">
           <div className="w-full sm:w-48">
@@ -310,7 +323,7 @@ export default function NewslettersPage() {
                     <TableHead className="text-base font-semibold text-center">Type</TableHead>
                     <TableHead className="text-base font-semibold text-center">Status</TableHead>
                     <TableHead className="w-12 text-base font-semibold text-center">Download</TableHead>
-                    {canManage && (
+                    {canView && (
                       <TableHead className="w-12"></TableHead>
                     )}
                   </TableRow>
@@ -350,7 +363,7 @@ export default function NewslettersPage() {
                           </a>
                         ) : "-"}
                       </TableCell>
-                      {canManage && (
+                      {canView && (
                         <TableCell>
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
@@ -360,14 +373,16 @@ export default function NewslettersPage() {
                               <DropdownMenuItem onClick={() => router.push(`/clubs/${clubId}/newsletters/${nl.id}${fromParam}`)}>
                                 <Eye className="mr-2 h-4 w-4" />View
                               </DropdownMenuItem>
-                              {nl.status !== "Expired" && (
+                              {nl.status !== "Expired" && canManage && (
                                 <DropdownMenuItem onClick={() => router.push(`/clubs/${clubId}/newsletters/${nl.id}/edit${fromParam}`)}>
                                   <Pencil className="mr-2 h-4 w-4" />Edit
                                 </DropdownMenuItem>
                               )}
-                              <DropdownMenuItem className="text-destructive" onClick={() => setDeleteTarget(nl)}>
-                                <Trash2 className="mr-2 h-4 w-4" />Delete
-                              </DropdownMenuItem>
+                              {canManage && (
+                                <DropdownMenuItem className="text-destructive" onClick={() => setDeleteTarget(nl)}>
+                                  <Trash2 className="mr-2 h-4 w-4" />Delete
+                                </DropdownMenuItem>
+                              )}
                             </DropdownMenuContent>
                           </DropdownMenu>
                         </TableCell>

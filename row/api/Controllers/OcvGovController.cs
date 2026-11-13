@@ -17,8 +17,11 @@ public class OcvGovController : ControllerBase
     private readonly string? _frontendUrl;
     private readonly string? _sofficePath;
 
-    public OcvGovController(IOcvGovService service, IWebHostEnvironment env, IConfiguration configuration)
+    private readonly AdminYearGuard _guard;
+
+    public OcvGovController(AdminYearGuard guard, IOcvGovService service, IWebHostEnvironment env, IConfiguration configuration)
     {
+        _guard = guard;
         _service = service;
         _env = env;
         _connectionString = configuration.GetConnectionString("DefaultConnection")!;
@@ -63,6 +66,9 @@ public class OcvGovController : ControllerBase
     [HttpPost("documents")]
     public async Task<ActionResult> UploadDocument(int clubId, [FromForm] UploadOcvDocumentDto dto, IFormFile file)
     {
+        var denied = await _guard.ClubYearAsync(User, clubId, dto.YearId);
+        if (denied != null) return denied;
+
         if (file == null || file.Length == 0)
             return BadRequest(new { message = "No file uploaded." });
 
@@ -88,6 +94,10 @@ public class OcvGovController : ControllerBase
     [HttpPut("documents/{documentId}")]
     public async Task<ActionResult> UpdateDocument(int clubId, int documentId, [FromForm] UpdateOcvDocumentDto dto, IFormFile? file)
     {
+        var denied = await _guard.ClubRecordYearAsync(
+            User, clubId, "ocv_documents", "pk_document_id", documentId);
+        if (denied != null) return denied;
+
         if (file != null && file.Length > 0)
         {
             var allowedExtensions = new[] { ".pdf", ".doc", ".docx", ".xls", ".xlsx", ".jpg", ".jpeg", ".png", ".gif" };
@@ -110,6 +120,10 @@ public class OcvGovController : ControllerBase
     [OwnedBy(Owns.OcvDocument, "documentId", "clubId")]
     public async Task<ActionResult> DeleteDocument(int clubId, int documentId)
     {
+        var denied = await _guard.ClubRecordYearAsync(
+            User, clubId, "ocv_documents", "pk_document_id", documentId);
+        if (denied != null) return denied;
+
         await _service.DeleteDocumentAsync(documentId, GetUserId());
         return Ok(new { message = "Document deleted successfully." });
     }
@@ -274,6 +288,9 @@ public class OcvGovController : ControllerBase
     [HttpPost("settings/document-types")]
     public async Task<ActionResult> CreateDocumentType(int clubId, [FromBody] CreateOcvDocumentTypeDto dto)
     {
+        var denied = await _guard.ClubYearlessAsync(User, clubId);
+        if (denied != null) return denied;
+
         if (GetRoleName() != "SuperAdmin")
             return Forbid();
 

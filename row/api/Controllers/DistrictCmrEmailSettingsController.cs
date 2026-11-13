@@ -13,7 +13,13 @@ namespace RotaryApi.Controllers;
 public class DistrictCmrEmailSettingsController : ControllerBase
 {
     private readonly IDistrictCmrEmailSettingsService _service;
-    public DistrictCmrEmailSettingsController(IDistrictCmrEmailSettingsService service) => _service = service;
+    private readonly AdminYearGuard _guard;
+
+    public DistrictCmrEmailSettingsController(IDistrictCmrEmailSettingsService service, AdminYearGuard guard)
+    {
+        _service = service;
+        _guard = guard;
+    }
 
     private int GetUserId() => int.TryParse(User.FindFirst("memberId")?.Value, out var id) ? id : 0;
 
@@ -42,6 +48,9 @@ public class DistrictCmrEmailSettingsController : ControllerBase
     {
         if (!IsDistrictAdmin()) return Forbid();
         if (districtId <= 0 || yearId <= 0) return BadRequest(new { message = "districtId and yearId are required." });
+        var denied = await _guard.DistrictYearAsync(User, districtId, yearId);
+        if (denied != null) return denied;
+
         await _service.SaveAsync(districtId, yearId, request.SendToDistrictGovernor, request.CcEmails, GetUserId());
         return Ok(new { message = "Saved." });
     }

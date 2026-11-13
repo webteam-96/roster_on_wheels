@@ -1,6 +1,18 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+/* Astryx ships its CSS in cascade layers; Tailwind 3 emits unlayered CSS, which would beat every layer.
+   Putting Tailwind into named layers keeps the order set in layers.css: Astryx reset < Tailwind preflight
+   < Astryx components < Astryx theme < Tailwind components < Tailwind utilities. */
+@import "@astryxdesign/core/reset.css";
+@import "@astryxdesign/core/astryx.css";
+
+@layer tw-base {
+  @tailwind base;
+}
+@layer tw-components {
+  @tailwind components;
+}
+@layer tw-utilities {
+  @tailwind utilities;
+}
 
 @layer utilities {
   .text-balance {

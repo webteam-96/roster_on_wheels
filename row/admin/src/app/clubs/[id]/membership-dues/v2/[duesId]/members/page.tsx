@@ -15,7 +15,7 @@
  * v2 reads ONLY `?returnTo=` — never any other param name.
  */
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, useMemo } from "react";
 import DateField from "@/components/DateField";
 import { useParams, useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
@@ -26,6 +26,9 @@ import {
 import RotaryLoader from "@/components/RotaryLoader";
 import { getMembershipDuesMembers, getMembershipDuesDetail, recordMembershipDuesOffline, approveMembershipDuesPayment, getMembershipDuesOfflineDetails, updateMembershipDuesOffline, deleteMembershipDuesPayment, sendMembershipDuesReceipt, sendMembershipDuesReminder, bulkMembershipDuesReminderEmail } from "@/services/api";
 import { useAuth } from "@/contexts/AuthContext";
+import { clubYearRights, canEditYear, yearIdForLabel, heldYearLabels } from "@/lib/adminYears";
+import { useRotaryYears } from "@/hooks/useRotaryYears";
+import ViewOnlyBadge from "@/components/ViewOnlyBadge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -130,7 +133,7 @@ function PendingDetailsPanel({ details }: { details: any }) {
 
 export default function ClubMembershipDuesV2MembersPage() {
   useSyncClubIdFromUrl();
-  const { isSuperAdmin, isAdmin } = useAuth();
+  const { isSuperAdmin, isAdmin, user } = useAuth();
   const params = useParams();
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -140,6 +143,14 @@ export default function ClubMembershipDuesV2MembersPage() {
 
   const [members, setMembers] = useState<any[]>([]);
   const [detail, setDetail] = useState<any>(null);
+
+  // Reachable by direct URL, so it re-checks rather than trusting the caller.
+  // The setup's year arrives on the detail response as a LABEL ("2026-27").
+  const { years } = useRotaryYears();
+  const duesRights = useMemo(() => clubYearRights(user?.scopedRoles, clubId), [user?.scopedRoles, clubId]);
+  const canManage = (isSuperAdmin || isAdmin)
+    && canEditYear(duesRights, yearIdForLabel(detail?.rotaryYear, years), isSuperAdmin);
+  const editableYears = heldYearLabels(duesRights, years.map((y) => ({ id: y.id, label: y.yearLabel })));
   const [loading, setLoading] = useState(true);
   const [searchInput, setSearchInput] = useState("");
   const [search, setSearch] = useState("");
@@ -736,6 +747,10 @@ export default function ClubMembershipDuesV2MembersPage() {
 
   return (
     <ProtectedRoute>
+      {!canManage && detail && (
+        <ViewOnlyBadge yearLabel={detail?.rotaryYear} editableYears={editableYears} className="mb-4" />
+      )}
+
       <ClubAdminShell
         pageTitle={pageTitle}
         pageSubtitle={pageSubtitle || "View and manage member payments"}
@@ -849,10 +864,12 @@ export default function ClubMembershipDuesV2MembersPage() {
                           {ft.label}
                         </th>
                       ))}
-                      <th className="px-3 py-2.5 text-center">Offline Entry</th>
-                      <th className="px-3 py-2.5 text-center">Reminder</th>
-                      <th className="px-3 py-2.5 text-center">Receipt</th>
-                      <th className="px-3 py-2.5 text-center">Approve / Reject</th>
+                      {canManage && (<>
+                        <th className="px-3 py-2.5 text-center">Offline Entry</th>
+                        <th className="px-3 py-2.5 text-center">Reminder</th>
+                        <th className="px-3 py-2.5 text-center">Receipt</th>
+                        <th className="px-3 py-2.5 text-center">Approve / Reject</th>
+                      </>)}
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
@@ -907,6 +924,11 @@ export default function ClubMembershipDuesV2MembersPage() {
                             );
                           })}
 
+                          {/* Offline Entry / Reminder / Receipt / Approve are all
+                              management actions on a year this member may not
+                              administer — the header columns hide with them so the
+                              table does not shear. */}
+                          {canManage && (<>
                           {/* Offline Entry — single button, smart fee-type pre-fill */}
                           <td className="px-3 py-2 text-center">
                             {!isNew && (
@@ -984,6 +1006,7 @@ export default function ClubMembershipDuesV2MembersPage() {
                               </div>
                             )}
                           </td>
+                          </>)}
                         </tr>
                       );
                     })}

@@ -49,6 +49,15 @@ public static class FeatureGate
         new("club_excellence", "Club excellence / youth tracking", Kind.Flagged,
             new[] { @"^/api/(mobile/)?ag-dashboard/(excellence|youth)(/|$)" },
             new[] { @"^/ag-dashboard/(excellence|youth)(/|$)" }),
+        // New Goal Setting (Rotary.org) with DG Sync, ported from upstream 2026-11-09. One module (owner 2026-11-09):
+        // off until a SuperAdmin turns it on.
+        new("goal_setting_rotary", "Rotary.org goals and DG Sync", Kind.Flagged,
+            new[] { @"^/api/goal-setting-rotary(/|$)" },
+            new[] { @"/goal-setting-rotary(/|$)" }),
+        // AI Assistant, ported from upstream 2026-11-09: also needs Assistant:Enabled=true and its keys on the server.
+        new("ai_assistant", "AI Assistant", Kind.Flagged,
+            new[] { @"^/api/assistant(/|$)" },
+            Array.Empty<string>()),
         new("club_monthly_report", "Club monthly report", Kind.Flagged,
             new[] { @"/(club-)?monthly-reports?(/|$)" },
             new[] { @"/club-monthly-report(/|$)" }),

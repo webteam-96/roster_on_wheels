@@ -27,7 +27,8 @@ public class AnnouncementService : IAnnouncementService
         using var connection = CreateConnection();
         await connection.OpenAsync();
 
-        var whereClause = districtId.HasValue ? "a.fk_district_id = @EntityId" : "a.fk_club_id = @EntityId";
+        var whereClause = (districtId.HasValue ? "a.fk_district_id = @EntityId" : "a.fk_club_id = @EntityId")
+            + $" AND {HierarchyScopeSql.ClubIdLive("a.fk_club_id")} AND {HierarchyScopeSql.DistrictIdLive("a.fk_district_id")}";
         var entityId = districtId.HasValue ? districtId.Value : clubId;
 
         var statusCondition = string.IsNullOrEmpty(status) ? "" : @"AND (

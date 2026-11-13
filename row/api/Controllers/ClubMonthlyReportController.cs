@@ -18,8 +18,11 @@ public class ClubMonthlyReportController : ControllerBase
     private readonly string? _mediaRedirectBase;
     private readonly IServiceScopeFactory _scopeFactory;
 
-    public ClubMonthlyReportController(IClubMonthlyReportService service, IConfiguration configuration, IWebHostEnvironment env, IServiceScopeFactory scopeFactory)
+    private readonly AdminYearGuard _guard;
+
+    public ClubMonthlyReportController(AdminYearGuard guard, IClubMonthlyReportService service, IConfiguration configuration, IWebHostEnvironment env, IServiceScopeFactory scopeFactory)
     {
+        _guard = guard;
         _service = service;
         _connectionString = configuration.GetConnectionString("DefaultConnection")!;
         _env = env;
@@ -56,6 +59,9 @@ public class ClubMonthlyReportController : ControllerBase
     [HttpPost("init/{yearId:int}/{month:int}")]
     public async Task<IActionResult> CreateOrGetReport(int clubId, int yearId, int month)
     {
+        var denied = await _guard.ClubYearAsync(User, clubId, yearId);
+        if (denied != null) return denied;
+
         var reportId = await _service.CreateOrGetReportAsync(clubId, yearId, month, GetUserId());
         return Ok(new { reportId });
     }
@@ -125,6 +131,10 @@ public class ClubMonthlyReportController : ControllerBase
     [OwnedBy(Owns.ClubMonthlyReport, "reportId", "clubId")]
     public async Task<IActionResult> SaveMemberInfo(int clubId, int reportId, [FromBody] SaveMemberInfoDto dto)
     {
+        var denied = await _guard.ClubRecordYearAsync(
+            User, clubId, "club_monthly_reports", "pk_report_id", reportId);
+        if (denied != null) return denied;
+
         try
         {
             await _service.SaveMemberInfoAsync(reportId, dto, GetUserId());
@@ -154,6 +164,10 @@ public class ClubMonthlyReportController : ControllerBase
     [HttpPost("upload-to-district/{reportId:int}")]
     public async Task<IActionResult> UploadToDistrict(int clubId, int reportId)
     {
+        var denied = await _guard.ClubRecordYearAsync(
+            User, clubId, "club_monthly_reports", "pk_report_id", reportId);
+        if (denied != null) return denied;
+
         await _service.UploadToDistrictAsync(reportId, GetUserId());
 
         // Fire-and-forget: build the detailed PDF and email it to DG / AG / President / Secretary.
@@ -173,6 +187,11 @@ public class ClubMonthlyReportController : ControllerBase
     [HttpPost("send-report-email")]
     public async Task<IActionResult> SendReportEmail(int clubId, [FromBody] SendReportEmailDto dto)
     {
+        if (!await RotaryApi.Services.KillSwitchHelper.IsClubDrillReachableAsync(_connectionString, clubId)) return StatusCode(403, new { message = "This club, its district, or its zone is inactive. Reactivate it first to access this data." });
+
+        var denied = await _guard.ClubYearAsync(User, clubId, dto.YearId);
+        if (denied != null) return denied;
+
         try
         {
             var result = await _service.SendReportEmailAsync(clubId, dto);

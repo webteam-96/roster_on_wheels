@@ -32,16 +32,18 @@ public static class NonSyncLoginGuardHelper
     /// <summary>Returns true if the member is allowed to log in per the non-sync rules.</summary>
     public static async Task<bool> IsLoginAllowedAsync(MySqlConnection conn, int memberId)
     {
-        var r = await conn.QueryFirstAsync<(int activeClubs, int exemptClubs, int globalRoles)>(@"
+        var r = await conn.QueryFirstAsync<(int activeClubs, int exemptClubs, int globalRoles)>($@"
             SELECT
               (SELECT COUNT(*) FROM club_members cm
                  WHERE cm.fk_member_master_profile_id = @Id
-                   AND cm.isdeleted = 0 AND IFNULL(cm.IsActive, 1) = 1) AS activeClubs,
+                   AND cm.isdeleted = 0 AND IFNULL(cm.IsActive, 1) = 1
+                   AND {HierarchyScopeSql.ClubIdLive("cm.fk_club_id")}) AS activeClubs,
               (SELECT COUNT(*) FROM club_members cm
                  JOIN club_master c   ON c.pk_club_id = cm.fk_club_id
                  JOIN district_master d ON d.pk_district_id = c.fk_district_id
                  WHERE cm.fk_member_master_profile_id = @Id
-                   AND d.DistrictNumber IN @Exempt) AS exemptClubs,
+                   AND d.DistrictNumber IN @Exempt
+                   AND {HierarchyScopeSql.ClubLive("c")}) AS exemptClubs,
               (SELECT COUNT(*) FROM member_roles mr
                  JOIN roles r ON r.pk_role_id = mr.fk_role_id
                  WHERE mr.fk_member_master_profile_id = @Id

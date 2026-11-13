@@ -10,10 +10,12 @@ namespace RotaryApi.Controllers;
 public class DocumentsController : ControllerBase
 {
     private readonly IDocumentService _service;
+    private readonly AdminYearGuard _guard;
     private readonly string _connectionString;
 
-    public DocumentsController(IDocumentService service, IConfiguration configuration)
+    public DocumentsController(IDocumentService service, AdminYearGuard guard, IConfiguration configuration)
     {
+        _guard = guard;
         _service = service;
         _connectionString = configuration.GetConnectionString("DefaultConnection")!;
     }
@@ -40,6 +42,9 @@ public class DocumentsController : ControllerBase
     [HttpPost("api/clubs/{clubId}/documents")]
     public async Task<ActionResult> Create(int clubId, [FromBody] CreateDocumentDto dto)
     {
+        var denied = await _guard.ClubYearlessAsync(User, clubId);
+        if (denied != null) return denied;
+
         var id = await _service.CreateAsync(clubId, dto, GetUserId());
         return Ok(new { id });
     }
@@ -48,6 +53,9 @@ public class DocumentsController : ControllerBase
     [OwnedBy(Owns.ClubDocument, "id", "clubId")]
     public async Task<ActionResult> Update(int clubId, int id, [FromBody] UpdateDocumentDto dto)
     {
+        var denied = await _guard.ClubYearlessAsync(User, clubId);
+        if (denied != null) return denied;
+
         await _service.UpdateAsync(id, dto, GetUserId());
         return Ok(new { message = "Document updated successfully." });
     }
@@ -56,6 +64,9 @@ public class DocumentsController : ControllerBase
     [OwnedBy(Owns.ClubDocument, "id", "clubId")]
     public async Task<ActionResult> Delete(int clubId, int id)
     {
+        var denied = await _guard.ClubYearlessAsync(User, clubId);
+        if (denied != null) return denied;
+
         await _service.DeleteAsync(id, GetUserId());
         return Ok(new { message = "Document deleted successfully." });
     }
@@ -63,6 +74,9 @@ public class DocumentsController : ControllerBase
     [HttpPost("api/clubs/{clubId}/documents/upload")]
     public async Task<ActionResult<object>> UploadFile(int clubId, IFormFile file)
     {
+        var denied = await _guard.ClubYearlessAsync(User, clubId);
+        if (denied != null) return denied;
+
         if (file == null || file.Length == 0)
             return BadRequest(new { message = "No file uploaded" });
 

@@ -152,7 +152,7 @@ public class DashboardResolverController : ControllerBase
         // but its row has fk_club_id set, not fk_district_id. Without this filter
         // a multi-role user (CA + AG) with a stale or malformed row could land on
         // the DA dashboard incorrectly.
-        var districtAdmins = await connection.QueryAsync<dynamic>(@"
+        var districtAdmins = await connection.QueryAsync<dynamic>($@"
             SELECT mr.fk_district_id AS districtId,
                    d.DistrictNumber AS districtNumber,
                    d.fk_zone_id AS zoneId,
@@ -166,6 +166,7 @@ public class DashboardResolverController : ControllerBase
               AND (mr.fk_club_id IS NULL OR mr.fk_club_id = 0)
               AND mr.IsActive = 1 AND mr.isdeleted = 0
               AND d.isdeleted = 0
+              AND {RotaryApi.Services.HierarchyScopeSql.DistrictLive("d")}
             ORDER BY CAST(d.DistrictNumber AS UNSIGNED), d.DistrictNumber",
             new { MemberId = memberId });
         foreach (var row in districtAdmins)
@@ -183,7 +184,7 @@ public class DashboardResolverController : ControllerBase
         }
 
         // AG rows — one entry per district (AG is district-scoped per member_roles convention).
-        var agRows = await connection.QueryAsync<dynamic>(@"
+        var agRows = await connection.QueryAsync<dynamic>($@"
             SELECT mr.fk_district_id AS districtId,
                    d.DistrictNumber AS districtNumber,
                    d.fk_zone_id AS zoneId,
@@ -195,6 +196,7 @@ public class DashboardResolverController : ControllerBase
               AND mr.fk_role_id = 6
               AND mr.IsActive = 1 AND mr.isdeleted = 0
               AND (d.isdeleted IS NULL OR d.isdeleted = 0)
+              AND {RotaryApi.Services.HierarchyScopeSql.DistrictLive("d")}
             ORDER BY CAST(d.DistrictNumber AS UNSIGNED), d.DistrictNumber",
             new { MemberId = memberId });
         foreach (var row in agRows)
@@ -212,7 +214,7 @@ public class DashboardResolverController : ControllerBase
         }
 
         // Club Admin rows — one entry per club.
-        var clubAdmins = await connection.QueryAsync<dynamic>(@"
+        var clubAdmins = await connection.QueryAsync<dynamic>($@"
             SELECT mr.fk_club_id AS clubId,
                    c.ClubName AS clubName,
                    c.fk_district_id AS districtId,
@@ -228,6 +230,7 @@ public class DashboardResolverController : ControllerBase
               AND mr.fk_club_id IS NOT NULL AND mr.fk_club_id > 0
               AND mr.IsActive = 1 AND mr.isdeleted = 0
               AND c.isdeleted = 0
+              AND {RotaryApi.Services.HierarchyScopeSql.ClubLive("c")}
             ORDER BY c.ClubName",
             new { MemberId = memberId });
         foreach (var row in clubAdmins)

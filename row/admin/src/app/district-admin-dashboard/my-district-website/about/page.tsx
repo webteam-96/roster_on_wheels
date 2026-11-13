@@ -26,7 +26,7 @@
  *   - Add / Edit / Delete via Dialog + AlertModal.
  */
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import dynamic from "next/dynamic";
 import type { LucideIcon } from "@/components/icons";
@@ -39,6 +39,9 @@ import {
   uploadDistrictAboutImage, getDistrict,
 } from "@/services/api";
 import { useAuth } from "@/contexts/AuthContext";
+import { districtYearRights, canEditYearless } from "@/lib/adminYears";
+import { useRotaryYears } from "@/hooks/useRotaryYears";
+import ViewOnlyBadge from "@/components/ViewOnlyBadge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
@@ -67,7 +70,7 @@ interface DistrictAboutRecord {
 }
 
 export default function DistrictAdminAboutPage() {
-  const { selectedDistrictId, isSuperAdmin, isAdmin } = useAuth();
+  const { selectedDistrictId, isSuperAdmin, isAdmin, user } = useAuth();
   const districtId = selectedDistrictId ?? 0;
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -81,7 +84,17 @@ export default function DistrictAdminAboutPage() {
     router.push(`${dest}${sep}yearId=${encodeURIComponent(currentYearId)}`);
   };
 
-  const canManage = isSuperAdmin || isAdmin;
+  // No Rotary year on this data — one menu, one set of links, one About page,
+  // all live now — so changing it needs CURRENT-year rights.
+  // Named siteCurrentYearId: this page already has its own currentYearId.
+  const { years: rotaryYears, currentYearId: siteCurrentYearId } = useRotaryYears();
+  const siteRights = useMemo(() => districtYearRights(user?.scopedRoles, districtId), [user?.scopedRoles, districtId]);
+  const canManage = (isSuperAdmin || isAdmin) && canEditYearless(siteRights, siteCurrentYearId, isSuperAdmin);
+  // YWAR-BADGE-YEARLESS — name the CURRENT year, not the years held.
+  // This data is not filed by Rotary year, so "you can make changes in
+  // 2025-26" is untrue: those years cannot help here. See ViewOnlyBadge.
+  const ywarCurrentYearLabel =
+    rotaryYears.find((y) => y.id === siteCurrentYearId)?.yearLabel ?? "";
 
   const [districtName, setDistrictName] = useState("");
   const [about, setAbout] = useState<DistrictAboutRecord | null>(null);
@@ -253,6 +266,10 @@ export default function DistrictAdminAboutPage() {
 
   return (
     <ProtectedRoute>
+      {!canManage && (
+        <ViewOnlyBadge currentYearOnly={ywarCurrentYearLabel} className="mb-4" />
+      )}
+
       <div className="space-y-5">
         <SuccessAlert open={!!successMessage} title="Success" description={successMessage || ""} onOk={() => setSuccessMessage(null)} />
         <ErrorAlert open={!!errorMessage} title="Error" description={errorMessage || ""} onOk={() => setErrorMessage(null)} />

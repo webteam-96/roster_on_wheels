@@ -278,7 +278,7 @@ class _UpcomingEventsScreenState extends State<UpcomingEventsScreen> {
   bool get canManage =>
       !widget.viewOnly &&
       Provider.of<AuthProvider>(context, listen: false)
-          .isClubAdminOf(widget.clubId);
+          .canEditClub(widget.clubId);
 
   @override
   Widget build(BuildContext context) {
@@ -1388,7 +1388,7 @@ class _UpcomingEventDetailScreenState
 
   bool get _canManage =>
       Provider.of<AuthProvider>(context, listen: false)
-          .isClubAdminOf(widget.clubId);
+          .canEditClub(widget.clubId);
 
   @override
   void initState() {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { getDistrict, getDistrictGreetingSettings, updateDistrictGreetingSettings } from "@/services/api";
 import { Button } from "@/components/ui/button";
@@ -15,6 +15,9 @@ import Link from "next/link";
 import DistrictAdminShell from "@/components/v2/DistrictAdminShell";
 import { useSyncDistrictIdFromUrl } from "@/hooks/useSyncDistrictIdFromUrl";
 import { useAuth } from "@/contexts/AuthContext";
+import { districtYearRights, canEditYearless, isCurrentYearSelected, heldYearLabels } from "@/lib/adminYears";
+import { useRotaryYears } from "@/hooks/useRotaryYears";
+import ViewOnlyBadge from "@/components/ViewOnlyBadge";
 import GreetingPauseNotice from "@/components/GreetingPauseNotice";
 import { ListPageSkeleton } from "@/components/row/AppKit";
 
@@ -42,8 +45,24 @@ export default function DistrictGreetingsSettingsPage() {
   // Return target for Back / post-save — honors ?returnTo= (e.g. the Communication
   // tab's "Edit messages" link); falls back to the legacy district dashboard hub.
   const backTo = searchParams.get("returnTo") || `/districts/${districtId}/dashboard`;
-  const { isSuperAdmin, isAdmin } = useAuth();
-  const canManage = isSuperAdmin || isAdmin;
+  const { isSuperAdmin, isAdmin, user } = useAuth();
+  // Greeting settings carry no Rotary year — they govern what goes out from now
+  // on — so changing them needs CURRENT-year rights.
+  const { years: rotaryYears, currentYearId } = useRotaryYears();
+  const gRights = useMemo(() => districtYearRights(user?.scopedRoles, districtId), [user?.scopedRoles, districtId]);
+  // ⚠️ AND the picker: greeting settings have no Rotary year, so the year-less
+  // rule alone left Save on screen while a past year was selected — which reads
+  // as the year rule having failed. Nothing else on the page changes.
+  // searchParams is already declared above, so no second hook is added.
+  const selectedYearId = Number(searchParams.get("yearId") ?? "") || 0;
+  // The badge on these screens names the CURRENT year, not the member's own
+  // years — those do not help here, because only a current-year admin can
+  // ever change this data.
+  const currentYearLabel = rotaryYears.find((y) => y.isCurrent)?.yearLabel ?? "";
+  const canManage = (isSuperAdmin || isAdmin)
+    && canEditYearless(gRights, currentYearId, isSuperAdmin)
+    && isCurrentYearSelected(selectedYearId, currentYearId, gRights);
+  const editableYears = heldYearLabels(gRights, rotaryYears.map((y) => ({ id: y.id, label: y.yearLabel })));
 
   const [districtName, setDistrictName] = useState("");
   const [loading, setLoading] = useState(true);
@@ -150,6 +169,10 @@ export default function DistrictGreetingsSettingsPage() {
 
   return (
     <DistrictAdminShell pageTitle="Greetings Settings" pageSubtitle={districtName} activeNavHref="/district-admin-dashboard/communication">
+      {!canManage && (
+        <ViewOnlyBadge currentYearOnly={currentYearLabel} className="mb-4" />
+      )}
+
       <div className="space-y-6 max-w-3xl mx-auto">
         <div className="flex items-center gap-3">
           <Button variant="outline" size="icon" asChild>

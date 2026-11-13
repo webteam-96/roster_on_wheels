@@ -21,7 +21,7 @@
  * ---------------------------------------------------------------------------
  */
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   getAGs, getAGYearsWithData, getRotaryYears, getAvailableClubsForAG, saveAG,
@@ -29,6 +29,9 @@ import {
   searchMembersForAG, getDistrict, getPhotoUrl,
 } from "@/services/api";
 import { useAuth } from "@/contexts/AuthContext";
+import { districtYearRights, canEditYear, heldYearLabels } from "@/lib/adminYears";
+import { useRotaryYears } from "@/hooks/useRotaryYears";
+import ViewOnlyBadge from "@/components/ViewOnlyBadge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -63,8 +66,7 @@ export default function DistrictAdminAGPage() {
   const fallbackBack = "/district-admin-dashboard/membership";
   const goBack = () => router.push(returnTo || fallbackBack);
 
-  const { isSuperAdmin, isAdmin, selectedDistrictId } = useAuth();
-  const canManage = isSuperAdmin || isAdmin;
+  const { isSuperAdmin, isAdmin, selectedDistrictId, user } = useAuth();
   const districtId = selectedDistrictId ?? 0;
 
   const [districtName, setDistrictName] = useState("");
@@ -78,6 +80,14 @@ export default function DistrictAdminAGPage() {
   const [dataYears, setDataYears] = useState<DataYear[]>([]);
   const [allYears, setAllYears] = useState<RotaryYear[]>([]);
   const [selectedYearId, setSelectedYearId] = useState<string>("");
+
+  // An AG assignment belongs to a Rotary year, and this page has its own year
+  // selector, so that year decides.
+  const { years: rotaryYears, currentYearId: dCurrentYearId } = useRotaryYears();
+  const rights = useMemo(() => districtYearRights(user?.scopedRoles, districtId), [user?.scopedRoles, districtId]);
+  const canManage = (isSuperAdmin || isAdmin) && canEditYear(rights, Number(selectedYearId) || undefined, isSuperAdmin);
+  const editableYears = heldYearLabels(rights, rotaryYears.map((y) => ({ id: y.id, label: y.yearLabel })));
+
   const currentYearId = allYears.find((y) => y.isCurrent)?.id;
 
   // Dialog
@@ -333,6 +343,10 @@ export default function DistrictAdminAGPage() {
 
   return (
     <ProtectedRoute>
+      {!canManage && (
+        <ViewOnlyBadge editableYears={editableYears} className="mb-4" />
+      )}
+
       <div className="space-y-6">
         <DistrictMembershipTabBar />
         {/* ── Header card ────────────────────────────────────────────── */}

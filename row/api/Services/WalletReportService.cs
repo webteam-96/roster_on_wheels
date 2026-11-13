@@ -114,6 +114,7 @@ public class WalletReportService : IWalletReportService
               AND (@DateToExclusive IS NULL OR o.created_date < @DateToExclusive)
               AND (@DistrictId IS NULL OR o.fk_district_id = @DistrictId)
               AND (@SearchLike IS NULL OR c.ClubName LIKE @SearchLike)
+              AND {HierarchyScopeSql.ClubLive("c")}
             ORDER BY o.created_date DESC";
     }
 
@@ -154,13 +155,14 @@ public class WalletReportService : IWalletReportService
                   AND (@DateToExclusive IS NULL OR o.created_date < @DateToExclusive)
                   AND (@DistrictId IS NULL OR o.fk_district_id = @DistrictId)
                   AND (@SearchLike IS NULL OR c.ClubName LIKE @SearchLike)
+                  AND {HierarchyScopeSql.ClubLive("c")}
                 ORDER BY o.created_date DESC";
         }
 
         // District scope: no "District Secretary" role exists anywhere in this codebase — only
         // district_governors. Secretary columns are left NULL (not omitted) so the report's
         // column set stays uniform across all 5 report types.
-        return @"
+        return $@"
             SELECT
                 d.DistrictNumber AS DistrictNumber,
                 CONCAT('RI District ', d.DistrictNumber) AS ClubName,
@@ -192,6 +194,7 @@ public class WalletReportService : IWalletReportService
               AND (@DateToExclusive IS NULL OR o.created_date < @DateToExclusive)
               AND (@DistrictId IS NULL OR o.fk_district_id = @DistrictId)
               AND (@SearchLike IS NULL OR d.DistrictNumber LIKE @SearchLike)
+              AND {HierarchyScopeSql.DistrictLive("d")}
             ORDER BY o.created_date DESC";
     }
 
@@ -255,6 +258,8 @@ public class WalletReportService : IWalletReportService
               AND (@DateToExclusive IS NULL OR x.EntryDate < @DateToExclusive)
               AND (@SearchLike IS NULL OR c.ClubName LIKE @SearchLike OR d.DistrictNumber LIKE @SearchLike
                    OR x.TransactionId LIKE @SearchLike)
+              AND {HierarchyScopeSql.DistrictIdLive("x.DistrictId")}
+              AND {HierarchyScopeSql.ClubIdLive("x.ClubId")}
             ORDER BY x.EntryDate DESC";
 
         var rows = await conn.QueryAsync<WalletCreditEntryRow>(sql, new

@@ -79,7 +79,7 @@ export default function GoalImportsPage() {
     document.body.appendChild(a); a.click(); a.remove();
     URL.revokeObjectURL(url);
   };
-  const ts = () => new Date().toISOString().slice(0, 19).replace(/[-:T]/g, "");
+  const ts = () => new Date().toISOString().slice(0, 19).replace(/[T:-]/g, "");
   const handleDownloadDistrictSample = async () => {
     setDlSample("district");
     try { saveBlob(await downloadGoalFoundationSample(), `foundation_district_sample_${ts()}.xlsx`); }

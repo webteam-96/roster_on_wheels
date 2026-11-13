@@ -21,6 +21,8 @@ export const DISTRICT_ADMIN_NAV: NavItem[] = [
   { to: "/district-admin-dashboard/chat-moderation", label: "Chat Moderation" },
   { to: "/district-admin-dashboard/egovernance",   label: "E-Governance",   moduleKey: "reports" },
   { to: "/district-admin-dashboard/goal-setting",  label: "Goal Setting",   moduleKey: "goal_setting" },
+  // Rotary.org figures + DG Sync. Hidden while the goal_setting_rotary module is off (Settings > Features).
+  { to: "/district-admin-dashboard/goal-setting-rotary", label: "Rotary.org Goals" },
   // Grants: platform switch "grants" (FeatureGate hides the link while it is off).
   { to: "/district-admin-dashboard/grants",        label: "Grants" },
   // Live target against actual per club. Hidden while the target_dashboard feature is off.

@@ -4,7 +4,7 @@ namespace RotaryApi.Services;
 
 public interface IZoneService
 {
-    Task<PagedResult<ZoneListDto>> GetAllAsync(int page, int pageSize, string? search, int? isActive);
+    Task<PagedResult<ZoneListDto>> GetAllAsync(int page, int pageSize, string? search, int? isActive, bool includeInactive = false);
     Task<ZoneDetailDto?> GetByIdAsync(int id);
     Task<int> CreateAsync(CreateZoneDto dto, int createdBy);
     Task UpdateAsync(int id, UpdateZoneDto dto, int modifiedBy);

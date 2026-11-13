@@ -21,6 +21,11 @@ public class GlobalMemberSearchController : ControllerBase
     }
 
     private MySqlConnection CreateConnection() => new(_connectionString);
+
+    // A member_roles row whose zone / district / club scope is not hidden (0 / NULL = unscoped).
+    private static string RoleScopeLive(string a) =>
+        $"{HierarchyScopeSql.ClubIdLive(a + ".fk_club_id")} AND {HierarchyScopeSql.DistrictIdLive(a + ".fk_district_id")}"
+        + $" AND NOT EXISTS (SELECT 1 FROM zone_master hz2 WHERE hz2.pk_zone_id = {a}.fk_zone_id AND COALESCE(hz2.IsActive,1) = 0)";
     private bool IsSuperAdmin() => User.FindFirst("roles")?.Value?.Contains("SuperAdmin") == true;
     private int GetUserId() => int.TryParse(User.FindFirst("memberId")?.Value, out var id) ? id : 0;
 
@@ -40,9 +45,11 @@ public class GlobalMemberSearchController : ControllerBase
         //   B) members holding an ACTIVE admin role (SuperAdmin / AG / Admin) matched by profile
         //      fields — EVEN IF they have no active club membership, which leg A alone would drop.
         //      Plain members with no club and no role stay hidden (soft-delete behaviour preserved).
-        var members = (await conn.QueryAsync<dynamic>(@"
+        var members = (await conn.QueryAsync<dynamic>($@"
             SELECT * FROM (
-                SELECT m.*
+                SELECT m.*, CASE WHEN EXISTS (SELECT 1 FROM club_members lcm WHERE lcm.fk_member_master_profile_id = m.pk_member_master_profile_id
+                                    AND lcm.isdeleted = 0 AND lcm.IsActive = 1 AND {HierarchyScopeSql.ClubIdLive("lcm.fk_club_id")})
+                       THEN 0 ELSE 1 END AS isHiddenMember
                 FROM member_master_profile m
                 INNER JOIN club_members cm ON cm.fk_member_master_profile_id = m.pk_member_master_profile_id AND cm.isdeleted = 0
                 INNER JOIN club_master c ON c.pk_club_id = cm.fk_club_id AND c.isdeleted = 0
@@ -56,7 +63,9 @@ public class GlobalMemberSearchController : ControllerBase
                       OR c.ClubName LIKE @Search
                   )
                 UNION
-                SELECT m.*
+                SELECT m.*, CASE WHEN EXISTS (SELECT 1 FROM club_members lcm WHERE lcm.fk_member_master_profile_id = m.pk_member_master_profile_id
+                                    AND lcm.isdeleted = 0 AND lcm.IsActive = 1 AND {HierarchyScopeSql.ClubIdLive("lcm.fk_club_id")})
+                       THEN 0 ELSE 1 END AS isHiddenMember
                 FROM member_master_profile m
                 INNER JOIN member_roles mr ON mr.fk_member_master_profile_id = m.pk_member_master_profile_id
                      AND mr.isdeleted = 0 AND mr.IsActive = 1
@@ -100,6 +109,7 @@ public class GlobalMemberSearchController : ControllerBase
                    d.pk_district_id AS districtId, d.DistrictNumber AS districtNumber,
                    z.pk_zone_id AS zoneId, z.ZoneName AS zoneName,
                    " + CogDesignationHelper.JoinedDateExpr("cm") + @" AS joinedDate, cm.IsActive AS isActive,
+                   CASE WHEN " + HierarchyScopeSql.ClubLive("c") + @" THEN 0 ELSE 1 END AS chainInactive,
                " + CogDesignationHelper.SelectColumns("cm") + @",
                    cm.TerminationDate AS terminationDate, cm.TerminationReason AS terminationReason
             FROM club_members cm
@@ -124,39 +134,39 @@ public class GlobalMemberSearchController : ControllerBase
             WHERE mr.fk_member_master_profile_id IN @Ids AND mr.isdeleted = 0 AND mr.IsActive = 1");
 
         // BOD designations (all years)
-        var designationsBy = await BatchAsync(@"
+        var designationsBy = await BatchAsync($@"
             SELECT b.fk_member_master_profile_id AS __mid, dm.designation_name AS designationName, c.ClubName AS clubName,
                    y.YearLabel AS yearLabel, y.IsCurrent AS isCurrent
             FROM board_of_directors b
             JOIN designation_master dm ON dm.pk_designation_id = b.fk_designation_id
             JOIN club_master c ON c.pk_club_id = b.fk_club_id
             JOIN rotary_year_master y ON y.pk_year_id = b.fk_year_id
-            WHERE b.fk_member_master_profile_id IN @Ids AND b.isdeleted = 0
+            WHERE b.fk_member_master_profile_id IN @Ids AND b.isdeleted = 0 AND {HierarchyScopeSql.ClubLive("c")}
             ORDER BY y.pk_year_id DESC, dm.sort_order");
 
         // District Committee member entries
-        var districtCommitteeBy = await BatchAsync(@"
+        var districtCommitteeBy = await BatchAsync($@"
             SELECT dcm.fk_member_id AS __mid, dcm.district_designation AS designation, dcm.district_remark AS remark,
                    d.DistrictNumber AS districtNumber, y.YearLabel AS yearLabel
             FROM district_committee_member dcm
             JOIN district_master d ON d.pk_district_id = dcm.fk_district_id
             JOIN rotary_year_master y ON y.pk_year_id = dcm.fk_year_id
-            WHERE dcm.fk_member_id IN @Ids AND dcm.isdeleted = 0
+            WHERE dcm.fk_member_id IN @Ids AND dcm.isdeleted = 0 AND {HierarchyScopeSql.DistrictLive("d")}
             ORDER BY y.pk_year_id DESC");
 
         // Group Committee member entries
-        var groupCommitteeBy = await BatchAsync(@"
+        var groupCommitteeBy = await BatchAsync($@"
             SELECT gm.fk_member_id AS __mid, gm.district_designation AS designation, gm.district_remark AS remark,
                    g.group_name AS groupName, d.DistrictNumber AS districtNumber, y.YearLabel AS yearLabel
             FROM district_committee_group_member gm
             JOIN district_committee_group g ON g.id = gm.fk_group_id
             JOIN district_master d ON d.pk_district_id = g.fk_district_id
             JOIN rotary_year_master y ON y.pk_year_id = g.fk_year_id
-            WHERE gm.fk_member_id IN @Ids AND gm.isdeleted = 0
+            WHERE gm.fk_member_id IN @Ids AND gm.isdeleted = 0 AND {HierarchyScopeSql.DistrictLive("d")}
             ORDER BY y.pk_year_id DESC");
 
         // Sub Group Committee member entries
-        var subGroupCommitteeBy = await BatchAsync(@"
+        var subGroupCommitteeBy = await BatchAsync($@"
             SELECT sgm.fk_member_id AS __mid, sgm.district_designation AS designation, sgm.district_remark AS remark,
                    sg.sub_group_name AS subGroupName, g.group_name AS groupName,
                    d.DistrictNumber AS districtNumber, y.YearLabel AS yearLabel
@@ -165,48 +175,48 @@ public class GlobalMemberSearchController : ControllerBase
             JOIN district_committee_group g ON g.id = sg.fk_group_id
             JOIN district_master d ON d.pk_district_id = g.fk_district_id
             JOIN rotary_year_master y ON y.pk_year_id = g.fk_year_id
-            WHERE sgm.fk_member_id IN @Ids AND sgm.isdeleted = 0
+            WHERE sgm.fk_member_id IN @Ids AND sgm.isdeleted = 0 AND {HierarchyScopeSql.DistrictLive("d")}
             ORDER BY y.pk_year_id DESC");
 
         // District Governor entries
-        var districtGovernorBy = await BatchAsync(@"
+        var districtGovernorBy = await BatchAsync($@"
             SELECT dg.fk_member_id AS __mid, d.DistrictNumber AS districtNumber, y.YearLabel AS yearLabel
             FROM district_governors dg
             JOIN district_master d ON d.pk_district_id = dg.fk_district_id
             JOIN rotary_year_master y ON y.pk_year_id = dg.fk_year_id
-            WHERE dg.fk_member_id IN @Ids AND dg.isdeleted = 0
+            WHERE dg.fk_member_id IN @Ids AND dg.isdeleted = 0 AND {HierarchyScopeSql.DistrictLive("d")}
             ORDER BY y.pk_year_id DESC");
 
         // Past Presidents
-        var pastPresidentBy = await BatchAsync(@"
+        var pastPresidentBy = await BatchAsync($@"
             SELECT pp.fk_member_master_profile_id AS __mid, c.ClubName AS clubName, y.YearLabel AS yearLabel
             FROM past_presidents pp
             JOIN club_master c ON c.pk_club_id = pp.fk_club_id
             JOIN rotary_year_master y ON y.pk_year_id = pp.fk_year_id
-            WHERE pp.fk_member_master_profile_id IN @Ids AND pp.isdeleted = 0
+            WHERE pp.fk_member_master_profile_id IN @Ids AND pp.isdeleted = 0 AND {HierarchyScopeSql.ClubLive("c")}
             ORDER BY y.pk_year_id DESC");
 
         // Assistant Governor assignments (one per club/year). member_roles carries the 'AG'
         // role flag; this table carries WHICH club + year the member is AG for.
-        var assistantGovernorBy = await BatchAsync(@"
+        var assistantGovernorBy = await BatchAsync($@"
             SELECT ag.fk_member_id AS __mid, c.ClubName AS clubName, d.DistrictNumber AS districtNumber,
                    y.YearLabel AS yearLabel, y.IsCurrent AS isCurrent
             FROM district_ag ag
             JOIN club_master c ON c.pk_club_id = ag.fk_club_id
             JOIN district_master d ON d.pk_district_id = ag.fk_district_id
             LEFT JOIN rotary_year_master y ON y.pk_year_id = ag.fk_year_id
-            WHERE ag.fk_member_id IN @Ids AND ag.isdeleted = 0
+            WHERE ag.fk_member_id IN @Ids AND ag.isdeleted = 0 AND {HierarchyScopeSql.ClubLive("c")}
             ORDER BY y.pk_year_id DESC");
 
         // Club-level sub-groups / committees (includes CP/CS auto-groups) — year-wise.
-        var clubSubGroupsBy = await BatchAsync(@"
+        var clubSubGroupsBy = await BatchAsync($@"
             SELECT sgm.fk_member_master_profile_id AS __mid, sg.GroupName AS groupName, c.ClubName AS clubName,
                    y.YearLabel AS yearLabel, y.IsCurrent AS isCurrent
             FROM sub_group_members sgm
             JOIN sub_groups sg ON sg.pk_sub_group_id = sgm.fk_sub_group_id AND sg.isdeleted = 0
             JOIN club_master c ON c.pk_club_id = sg.fk_club_id
             LEFT JOIN rotary_year_master y ON y.pk_year_id = sg.fk_year_id
-            WHERE sgm.fk_member_master_profile_id IN @Ids AND sgm.isdeleted = 0
+            WHERE sgm.fk_member_master_profile_id IN @Ids AND sgm.isdeleted = 0 AND {HierarchyScopeSql.ClubLive("c")}
             ORDER BY y.pk_year_id DESC");
 
         // ── Tier 2: transactional participation ──
@@ -222,7 +232,7 @@ public class GlobalMemberSearchController : ControllerBase
             ORDER BY epm.created_date DESC");
 
         // Membership dues instalments billed to / paid by the member.
-        var membershipDuesBy = await BatchAsync(@"
+        var membershipDuesBy = await BatchAsync($@"
             SELECT dp.fk_member_profile_id AS __mid, COALESCE(NULLIF(md.Purpose, ''), 'Membership Dues') AS purpose,
                    md.RotaryYear AS rotaryYear, c.ClubName AS clubName,
                    dp.FeeType AS feeType, dp.Amount AS amount, dp.IsPaid AS isPaid,
@@ -230,7 +240,7 @@ public class GlobalMemberSearchController : ControllerBase
             FROM membership_dues_payments dp
             JOIN membership_dues md ON md.pk_membership_dues_id = dp.fk_membership_dues_id
             JOIN club_master c ON c.pk_club_id = md.fk_club_id
-            WHERE dp.fk_member_profile_id IN @Ids AND dp.isdeleted = 0
+            WHERE dp.fk_member_profile_id IN @Ids AND dp.isdeleted = 0 AND {HierarchyScopeSql.ClubLive("c")}
             ORDER BY dp.created_date DESC");
 
         var result = new List<object>();
@@ -302,11 +312,12 @@ public class GlobalMemberSearchController : ControllerBase
         if (member == null) return NotFound(new { message = "Member not found." });
 
         // Active memberships first; a terminated one still says where they were.
-        var clubs = await conn.QueryAsync<dynamic>(@"
+        var clubs = await conn.QueryAsync<dynamic>($@"
             SELECT c.pk_club_id AS clubId, c.ClubName AS clubName, c.ClubRotaryId AS clubRotaryId,
                    c.City AS city, c.State AS state,
                    d.pk_district_id AS districtId, d.DistrictNumber AS districtNumber,
-                   z.ZoneName AS zoneName, cm.IsActive AS isActive
+                   z.ZoneName AS zoneName, cm.IsActive AS isActive,
+                   CASE WHEN {HierarchyScopeSql.ClubLive("c")} THEN 0 ELSE 1 END AS chainInactive
             FROM club_members cm
             JOIN club_master c ON c.pk_club_id = cm.fk_club_id AND c.isdeleted = 0
             JOIN district_master d ON d.pk_district_id = c.fk_district_id

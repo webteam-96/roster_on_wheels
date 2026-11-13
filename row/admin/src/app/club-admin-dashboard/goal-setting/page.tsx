@@ -1,8 +1,11 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
+import { clubYearRights, canEditYear, heldYearLabels } from "@/lib/adminYears";
+import { useRotaryYears } from "@/hooks/useRotaryYears";
+import ViewOnlyBadge from "@/components/ViewOnlyBadge";
 import GoalSettingPanel from "@/components/dashboard/GoalSettingPanel";
 import GoalTargetSplitPanel from "@/components/dashboard/GoalTargetSplitPanel";
 import { getClubGoalForm, saveClubGoalForm, getClubMonthlyGoals, saveClubTargetSplit } from "@/services/api";
@@ -12,7 +15,7 @@ import ClubGoalComingSoon from "@/components/ClubGoalComingSoon";
 import { CLUB_GOAL_SETTING_COMING_SOON } from "@/lib/clubGoalSetting";
 
 export default function ClubAdminGoalSettingPage() {
-  const { selectedClubId } = useAuth();
+  const { selectedClubId, user, isSuperAdmin } = useAuth();
   // Follow the dashboard's global rotary-year picker (?yearId=). Past years load
   // read-only; the current/future year is editable (enforced server-side).
   const searchParams = useSearchParams();
@@ -21,6 +24,18 @@ export default function ClubAdminGoalSettingPage() {
   // Track the loaded form so the club↔district message thread targets the right
   // (category, district, club, year) — its ids come straight off the form response.
   const [form, setForm] = useState<GoalCategoryFormDto | null>(null);
+
+  // Goals belong to a Rotary year, so entering them needs rights for the year on
+  // screen. The panel already knows how to render read-only; the server enforces
+  // it regardless (GoalSettingService.EnsureYearRightsAsync).
+  const { years, currentYearId } = useRotaryYears();
+  const yearRights = useMemo(
+    () => clubYearRights(user?.scopedRoles, selectedClubId ?? 0),
+    [user?.scopedRoles, selectedClubId]);
+  const viewingYearId = yearId ?? currentYearId;
+  const canEditThisYear = canEditYear(yearRights, viewingYearId, isSuperAdmin);
+  const editableYears = heldYearLabels(yearRights, years.map((y) => ({ id: y.id, label: y.yearLabel })));
+  const viewingYearLabel = years.find((y) => y.id === viewingYearId)?.yearLabel;
 
   const fetchForm = useCallback((categoryId: number): Promise<GoalCategoryFormDto> => {
     return getClubGoalForm(categoryId, yearId, selectedClubId);
@@ -59,6 +74,9 @@ export default function ClubAdminGoalSettingPage() {
 
   return (
     <div className="space-y-6">
+      {!canEditThisYear && (
+        <ViewOnlyBadge yearLabel={viewingYearLabel} editableYears={editableYears} />
+      )}
       <GoalSettingPanel
         title="Goal Setting"
         subtitle="Set your club's targets for the year, by category"
@@ -67,6 +85,7 @@ export default function ClubAdminGoalSettingPage() {
         reloadKey={yearId ?? "current"}
         onFormLoaded={setForm}
         belowCategories={<GoalTargetSplitPanel form={monthly} onSave={saveSplit} reloadKey={`${catId}-${yearId ?? "cur"}`} />}
+        readOnly={!canEditThisYear}
       />
     </div>
   );

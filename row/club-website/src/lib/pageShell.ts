@@ -24,8 +24,10 @@ export interface PageShell {
 }
 
 /** The club for this host; one lookup per request (layout, metadata and page share it). */
-export const currentTenant = cache(() =>
-  resolveTenant(headers().get("x-tenant-host") || headers().get("host") || ""));
+export const currentTenant = cache(async () => {
+  const h = await headers();
+  return resolveTenant(h.get("x-tenant-host") || h.get("host") || "");
+});
 
 export const buildShell = cache(async (): Promise<PageShell | null> => {
   const tenant = await currentTenant();
@@ -43,12 +45,12 @@ export const buildShell = cache(async (): Promise<PageShell | null> => {
         getSiteLanguage(tenant.clubId),
       ]);
 
-  const yearCookie = cookies().get(YEAR_COOKIE)?.value;
+  const yearCookie = (await cookies()).get(YEAR_COOKIE)?.value;
   const currentYearId = pickCurrentYear(years, yearCookie);
   // The club's logos, contacts and socials follow the picked year, as on the RIZones site.
   const about = isLocked ? null : await getAboutV2(tenant.clubId, currentYearId);
   const aboutText = siteText(lang, "about")?.body;
-  const themeKey = activeThemeKey(tenant.themeKey);
+  const themeKey = await activeThemeKey(tenant.themeKey);
   return {
     tenant, themeKey,
     about: about && aboutText ? { ...about, content: aboutText } : about,

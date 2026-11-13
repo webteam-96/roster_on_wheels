@@ -235,7 +235,7 @@ class _ClubWebsiteSocialLinksScreenState extends State<ClubWebsiteSocialLinksScr
   @override
   Widget build(BuildContext context) {
     final auth = context.watch<AuthProvider>();
-    final canManage = auth.isClubAdminOf(widget.clubId);
+    final canManage = auth.canEditClub(widget.clubId);
 
     return Scaffold(
       backgroundColor: AppColors.background,

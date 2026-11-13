@@ -92,10 +92,8 @@ async function serveFromSnapshot(
   }
 }
 
-export async function GET(
-  req: NextRequest,
-  { params }: { params: { path: string[] } }
-) {
+export async function GET(req: NextRequest, props: { params: Promise<{ path: string[] }> }) {
+  const params = await props.params;
   const segments = params.path ?? [];
   if (segments.length === 0 || !ALLOWED_PREFIXES.includes(segments[0])) {
     return NextResponse.json({ message: "Not found." }, { status: 404 });

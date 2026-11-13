@@ -13,8 +13,11 @@ public class TrfContributionsController : ControllerBase
     private readonly ITrfContributionService _service;
     private readonly string _connectionString;
 
-    public TrfContributionsController(ITrfContributionService service, IConfiguration configuration)
+    private readonly AdminYearGuard _guard;
+
+    public TrfContributionsController(AdminYearGuard guard, ITrfContributionService service, IConfiguration configuration)
     {
+        _guard = guard;
         _service = service;
         _connectionString = configuration.GetConnectionString("DefaultConnection")!;
     }
@@ -35,6 +38,9 @@ public class TrfContributionsController : ControllerBase
     [HttpPost("settings/funds")]
     public async Task<ActionResult> CreateFund(int clubId, [FromBody] CreateTrfFundDto dto)
     {
+        var denied = await _guard.ClubYearlessAsync(User, clubId);
+        if (denied != null) return denied;
+
         if (GetRoleName() != "SuperAdmin")
             return Forbid();
 
@@ -75,6 +81,9 @@ public class TrfContributionsController : ControllerBase
     [HttpPost]
     public async Task<ActionResult> CreateContribution(int clubId, [FromBody] CreateTrfContributionDto dto)
     {
+        var denied = await _guard.ClubYearAsync(User, clubId, dto.YearId);
+        if (denied != null) return denied;
+
         var result = await _service.CreateContributionAsync(clubId, dto, GetUserId());
         return Ok(result);
     }
@@ -82,6 +91,12 @@ public class TrfContributionsController : ControllerBase
     [HttpPut("{trfId}")]
     public async Task<ActionResult> UpdateContribution(int clubId, int trfId, [FromBody] UpdateTrfContributionDto dto)
     {
+        // UpdateTrfContributionDto carries no year, so the contribution stays
+        // where it is — its OWN year decides.
+        var denied = await _guard.ClubRecordYearAsync(
+            User, clubId, "trf_contributions", "pk_trf_id", trfId);
+        if (denied != null) return denied;
+
         var result = await _service.UpdateContributionAsync(clubId, trfId, dto, GetUserId());
         return Ok(result);
     }
@@ -90,6 +105,10 @@ public class TrfContributionsController : ControllerBase
     [OwnedBy(Owns.TrfContribution, "trfId", "clubId")]
     public async Task<ActionResult> DeleteContribution(int clubId, int trfId)
     {
+        var denied = await _guard.ClubRecordYearAsync(
+            User, clubId, "trf_contributions", "pk_trf_id", trfId);
+        if (denied != null) return denied;
+
         await _service.DeleteContributionAsync(trfId, GetUserId());
         return Ok(new { message = "Contribution deleted successfully." });
     }

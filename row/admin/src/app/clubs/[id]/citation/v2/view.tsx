@@ -41,6 +41,9 @@ import ClubAdminShell from "@/components/v2/ClubAdminShell";
 import DistrictEgovernanceTabBar from "@/components/dashboard/DistrictEgovernanceTabBar";
 import DistrictEgovernanceKpis from "@/components/dashboard/DistrictEgovernanceKpis";
 import { useSyncClubIdFromUrl } from "@/hooks/useSyncClubIdFromUrl";
+import { clubYearRights, canEditYearless } from "@/lib/adminYears";
+import { useCurrentRotaryYear } from "@/hooks/useCurrentRotaryYear";
+import ViewOnlyBadge from "@/components/ViewOnlyBadge";
 
 import { appLocale } from "@/lib/appFormat";
 import { SkeletonRows } from "@/components/row/AppKit";
@@ -97,7 +100,15 @@ export function ClubCitationV2View({ clubId: propClubId, embedded = false, readO
   // activation flag: if a SuperAdmin has DISABLED awards for this district+year, point entry is
   // read-only here too (and the API rejects saves regardless).
   const [awardsDisabled, setAwardsDisabled] = useState(false);
-  const canManage = !readOnly && !awardsDisabled;
+  // Citation entry can only ever write the CURRENT Rotary year — the service
+  // resolves IsCurrent = 1 itself and there is no way to target a past one. So
+  // the year rule here is the current-year one, not "the year on screen".
+  const { user, isSuperAdmin } = useAuth();
+  const currentYearId = useCurrentRotaryYear();
+  const citationYearRights = useMemo(
+    () => clubYearRights(user?.scopedRoles, clubId), [user?.scopedRoles, clubId]);
+  const hasCurrentYearRights = canEditYearless(citationYearRights, currentYearId, isSuperAdmin);
+  const canManage = !readOnly && !awardsDisabled && hasCurrentYearRights;
 
   const [clubName, setClubName] = useState("");
   const [districtId, setDistrictId] = useState(districtIdParam);

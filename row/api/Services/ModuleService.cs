@@ -532,6 +532,16 @@ public class ModuleService : IModuleService
     // module list is filtered by module_master.IsDefaultForMember = 1 when
     // the caller isn't an Admin of that scope. Admin sees the full list.
 
+    // User 2026-10-21: an inactive zone/district/club hides its dashboard for everyone (SP results
+    // can't be filtered in SQL, so check the hierarchy here).
+    private static async Task<bool> IsDistrictHiddenAsync(MySqlConnection conn, int districtId) =>
+        await conn.ExecuteScalarAsync<int>(
+            $"SELECT CASE WHEN {HierarchyScopeSql.DistrictIdLive("@Id")} THEN 0 ELSE 1 END", new { Id = districtId }) == 1;
+
+    private static async Task<bool> IsClubHiddenAsync(MySqlConnection conn, int clubId) =>
+        await conn.ExecuteScalarAsync<int>(
+            $"SELECT CASE WHEN {HierarchyScopeSql.ClubIdLive("@Id")} THEN 0 ELSE 1 END", new { Id = clubId }) == 1;
+
     private async Task<bool> IsAdminOfDistrictAsync(MySqlConnection conn, int districtId, int memberId)
     {
         return await conn.ExecuteScalarAsync<int>(@"

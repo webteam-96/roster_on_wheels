@@ -134,7 +134,7 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
       final canManage =
           !widget.viewOnly &&
           Provider.of<AuthProvider>(context, listen: false)
-              .isClubAdminOf(widget.clubId);
+              .canEditClub(widget.clubId);
       final effectiveStatus = canManage ? _statusFilter : 'published';
       final resp = await _api.get<Map<String, dynamic>>(
         '/api/clubs/${widget.clubId}/documents',
@@ -244,7 +244,7 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
     final auth = context.watch<AuthProvider>();
     // Per-level gating: only club admins of THIS club can manage.
     final canManage =
-        !widget.viewOnly && auth.isClubAdminOf(widget.clubId);
+        !widget.viewOnly && auth.canEditClub(widget.clubId);
     if (widget.embedded) {
       return Scaffold(
         backgroundColor: AppColors.background,
@@ -1024,7 +1024,7 @@ class _DocumentDetailScreenState extends State<_DocumentDetailScreen> {
 
   bool get _canManage =>
       Provider.of<AuthProvider>(context, listen: false)
-          .isClubAdminOf(widget.clubId);
+          .canEditClub(widget.clubId);
 
   Future<void> _edit() async {
     final d = _doc;

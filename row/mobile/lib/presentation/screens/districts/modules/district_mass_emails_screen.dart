@@ -498,7 +498,7 @@ class _DistrictMassEmailsScreenState extends State<DistrictMassEmailsScreen> {
     // viewOnly overrides admin access — used by the unified flow.
     // Per-level gating: only district admins of THIS district can manage.
     final canManage =
-        !widget.viewOnly && auth.isDistrictAdminOf(widget.districtId);
+        !widget.viewOnly && auth.canEditDistrict(widget.districtId);
 
     final body = Column(
       children: [

@@ -137,6 +137,9 @@ public class MembersController : ControllerBase
         {
             (member.Id, (Action)(() => member.PrimaryMobileNumber = null), (Action)(() => member.EmailId = null))
         });
+        // T-shirt size is never public (upstream 2026-11-06): only the member, Admins and Super Admin.
+        if (GetCurrentMemberId() != id && !UserPermissionHelper.CanCrudDirectoryMember(User) && !UserPermissionHelper.CanPartialEditDirectoryMember(User))
+        { member.TshirtSizeId = null; member.TshirtSize = null; }
         return Ok(member);
     }
 
@@ -358,6 +361,9 @@ public class MembersController : ControllerBase
         // their own profile from the mobile app cannot rewrite mobile / Rotary ID /
         // email / honorary flag — changes there would silently break login + billing.
         // Web self-edit (SA editing own profile from the portal) is NOT gated.
+        // T-shirt size on mobile: only the member edits their own (upstream 2026-11-06).
+        if (!isSelf && UserPermissionHelper.IsMobileLogin(User)) dto.TshirtSizeId = null;
+
         if (isSelf && UserPermissionHelper.IsMobileLogin(User))
         {
             var mLocked = UserPermissionHelper.MobileSelfEditLockedFields;

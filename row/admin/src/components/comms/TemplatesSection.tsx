@@ -42,7 +42,7 @@ export default function TemplatesSection({ scope, id, defaultLanguage }: { scope
     if (!draft) return;
     const key = draft.templateKey.trim().toLowerCase();
     if (!isTemplateKey(key)) return setError("Key: lower-case letters, digits, '-' or '_'.");
-    if (!isLanguageCode(draft.language.trim())) return setError("Language must be a code such as en, es or pt-BR.");
+    if (!isLanguageCode(draft.language.trim())) return setError("Language must be one of en, fr, de, it, ja, ko, pt, es.");
     setBusy(true); setError(null); setNotice(null);
     try {
       await saveCommTemplate(scope, id, { ...draft, templateKey: key, language: draft.language.trim() });
@@ -71,7 +71,7 @@ export default function TemplatesSection({ scope, id, defaultLanguage }: { scope
   };
 
   const translate = async () => {
-    if (!translateFrom || !isLanguageCode(target.trim())) return setError("Enter the language code to translate into, such as es.");
+    if (!translateFrom || !isLanguageCode(target.trim())) return setError("Enter a language to translate into: fr, de, it, ja, ko, pt or es.");
     setBusy(true); setError(null); setNotice(null);
     try {
       const [subject, bodyHtml] = await machineTranslate(target.trim(), [translateFrom.subject, translateFrom.bodyHtml]);

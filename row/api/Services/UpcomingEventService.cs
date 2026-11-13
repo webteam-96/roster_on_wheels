@@ -27,7 +27,9 @@ public class UpcomingEventService : IUpcomingEventService
         using var connection = CreateConnection();
         await connection.OpenAsync();
 
-        var whereClause = districtId.HasValue ? "e.fk_district_id = @EntityId" : "e.fk_club_id = @EntityId";
+        var whereClause = districtId.HasValue
+            ? $"e.fk_district_id = @EntityId AND {HierarchyScopeSql.DistrictIdLive("e.fk_district_id")}"
+            : $"e.fk_club_id = @EntityId AND {HierarchyScopeSql.ClubIdLive("e.fk_club_id")}";
         var entityId = districtId.HasValue ? districtId.Value : clubId;
 
         var statusCondition = string.IsNullOrEmpty(status) ? "" : @"AND (

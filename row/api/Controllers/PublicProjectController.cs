@@ -83,7 +83,8 @@ public class PublicProjectController : ControllerBase
             LEFT JOIN club_master c ON c.pk_club_id = p.fk_club_id
             LEFT JOIN district_master d ON d.pk_district_id = c.fk_district_id
             LEFT JOIN zone_master z ON z.pk_zone_id = d.fk_zone_id
-            WHERE p.pk_project_id = @Id AND p.isdeleted = 0", new { Id = id });
+            WHERE p.pk_project_id = @Id AND p.isdeleted = 0
+              AND {HierarchyScopeSql.ClubIdLive("p.fk_club_id")}", new { Id = id });
 
         if (project == null) return NotFound(new { message = "Project not found." });
 

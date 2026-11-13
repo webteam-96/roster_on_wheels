@@ -1,4 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:rotary_flutter_app/presentation/widgets/view_only_notice.dart';
 import 'package:flutter/material.dart' hide Text;
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -276,6 +277,8 @@ class _DistrictDashboardScreenState extends State<DistrictDashboardScreen>
               ),
             ],
           ),
+           if (isAdminHere && !context.watch<AuthProvider>().canEditDistrict(widget.districtId))
+             const SliverToBoxAdapter(child: ViewOnlyNotice()),
           SliverToBoxAdapter(
             child: _loading
                 ? const Padding(

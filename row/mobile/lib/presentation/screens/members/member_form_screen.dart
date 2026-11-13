@@ -201,9 +201,7 @@ class _MemberFormScreenState extends State<MemberFormScreen>
           _bloodGroup = FormConstants.bloodGroups.contains(m.bloodGroup)
               ? m.bloodGroup
               : null;
-          _language = FormConstants.languages.contains(m.primaryLanguage)
-              ? m.primaryLanguage
-              : null;
+          _language = m.primaryLanguage; // kept even when not in the list, so saving does not erase it
           _birthDate = _parseDate(m.birthDate);
           _anniversaryDate = _parseDate(m.anniversaryDate);
           // joinedDate is a real calendar date (not day-month) and lives on the
@@ -224,7 +222,7 @@ class _MemberFormScreenState extends State<MemberFormScreen>
           _youtube.text = m.youtube ?? '';
           _website.text = m.website ?? '';
           _residential = m.addresses.firstWhere(
-            (a) => a.addressType == 'Residential',
+            (a) => isHomeAddressType(a.addressType),
             orElse: () => const MemberAddressModel(addressType: 'Residential'),
           );
           _business = m.addresses.firstWhere(
@@ -742,7 +740,7 @@ class _MemberFormScreenState extends State<MemberFormScreen>
       ),
       _staticDropdown(
         label: 'Primary Language',
-        value: _language,
+        value: FormConstants.languages.contains(_language) ? _language : null,
         items: FormConstants.languages,
         onChanged: (v) => setState(() => _language = v),
         enabled: !_languageLocked,

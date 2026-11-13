@@ -1,0 +1,4 @@
+/* Cascade-layer order for Tailwind 3 + Astryx. Must be the first stylesheet the page loads (imported first in
+   layout.tsx): the first file that names a layer fixes its rank, and Turbopack inlines globals.css's @imports
+   above anything written in globals.css itself. */
+@layer reset, tw-base, astryx-base, astryx-theme, tw-components, tw-utilities;

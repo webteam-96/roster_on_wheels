@@ -8,6 +8,11 @@ Pages come from row/admin/src/app/**/page.tsx. A route's [id] is filled from the
 zones, members); routes with any other dynamic segment are detail pages and are skipped. Payment pages are skipped
 (payments are on hold). Per page it records: final URL, console errors, page errors, API responses >= 400, and
 whether an error screen ("Something went wrong", "Not available", Next.js error overlay) is visible.
+
+Languages: add lang=<code> (en fr de it ja ko pt es) to crawl in that language (NEXT_LOCALE cookie). Each page then also
+records its visible text lines and whether the page scrolls sideways (with a screenshot next to <out.json>).
+Compare languages with kb/tools/i18n_crawl_report.py. Run the API with a translation provider set.
+Add only=/path1,/path2 to open just those pages.
 """
 import json, os, re, sys, time, urllib.request
 from pathlib import Path
@@ -59,7 +64,12 @@ def crawl():
     results = []
     with sync_playwright() as p:
         browser = p.chromium.launch()
-        ctx = browser.new_context()
+        ctx = browser.new_context(viewport={'width': 1280, 'height': 800})
+        lang = ids.get('lang')
+        if lang:
+            ctx.add_cookies([{'name': 'NEXT_LOCALE', 'value': lang, 'url': base}])
+            shots = Path(out).with_suffix('')
+            shots.mkdir(exist_ok=True)
         page = ctx.new_page()
         page.goto(base + '/login', wait_until='networkidle', timeout=180000)  # hydrated, or the form posts natively
         page.fill('input[type="email"]', email)
@@ -67,7 +77,7 @@ def crawl():
         page.click('button[type="submit"]')
         page.wait_for_url(lambda u: '/login' not in u, timeout=30000)
 
-        for url in routes():
+        for url in (ids['only'].split(',') if 'only' in ids else routes()):
             rec = {'url': url, 'console': [], 'pageerror': [], 'api': []}
             on_console = lambda m: m.type == 'error' and rec['console'].append(m.text[:300])
             on_error = lambda e: rec['pageerror'].append(str(e)[:300])
@@ -89,9 +99,20 @@ def crawl():
                             rec[k].clear()
                         continue
                     rec['pageerror'].append(f'navigation: {str(e)[:200]}')
+            if lang and lang != 'en':
+                time.sleep(1.5)  # LiveTranslate batches what is on screen after the page settles
+                try:
+                    page.wait_for_load_state('networkidle', timeout=30000)
+                except Exception:
+                    pass
             body = page.inner_text('body') if page.url else ''
             m = ERROR_TEXT.search(body)
             rec.update(final=page.url.replace(base, ''), ms=int((time.time() - t) * 1000), screen=m.group(0) if m else '')
+            if lang:
+                rec['text'] = sorted({s.strip() for s in body.splitlines() if 1 < len(s.strip()) <= 200})
+                rec['overflow'] = page.evaluate('document.documentElement.scrollWidth > window.innerWidth + 1')
+                if rec['overflow']:
+                    page.screenshot(path=str(shots / (re.sub(r'\W+', '_', url).strip('_') or 'root') + '.png'), full_page=False)
             page.remove_listener('console', on_console)
             page.remove_listener('pageerror', on_error)
             page.remove_listener('response', on_resp)

@@ -48,12 +48,12 @@ public class ClubFinderController : ControllerBase
         using var conn = CreateConnection();
         await conn.OpenAsync();
 
-        var whereSql = @"
+        var whereSql = $@"
             FROM club_master c
             JOIN district_master d ON d.pk_district_id = c.fk_district_id AND d.isdeleted = 0 AND d.IsActive = 1
             LEFT JOIN zone_master z ON z.pk_zone_id = d.fk_zone_id AND z.isdeleted = 0
             LEFT JOIN country_master co ON co.CountryName = c.Country AND co.isdeleted = 0
-            WHERE c.isdeleted = 0 AND c.IsActive = 1";
+            WHERE c.isdeleted = 0 AND c.IsActive = 1 AND {HierarchyScopeSql.ClubLive("c")}";
 
         var p = new DynamicParameters();
 
@@ -118,11 +118,11 @@ public class ClubFinderController : ControllerBase
         var latDelta = range.Value / 111m;
         var lngDelta = range.Value / (111m * (decimal)Math.Cos((double)userLatitude.Value * Math.PI / 180.0));
 
-        var whereSql = @"
+        var whereSql = $@"
             FROM club_master c
             JOIN district_master d ON d.pk_district_id = c.fk_district_id AND d.isdeleted = 0 AND d.IsActive = 1
             LEFT JOIN zone_master z ON z.pk_zone_id = d.fk_zone_id AND z.isdeleted = 0
-            WHERE c.isdeleted = 0 AND c.IsActive = 1
+            WHERE c.isdeleted = 0 AND c.IsActive = 1 AND {HierarchyScopeSql.ClubLive("c")}
               AND c.Latitude IS NOT NULL AND c.Longitude IS NOT NULL
               AND c.Latitude BETWEEN @MinLat AND @MaxLat
               AND c.Longitude BETWEEN @MinLng AND @MaxLng";
@@ -419,7 +419,7 @@ public class ClubFinderController : ControllerBase
         using var conn = CreateConnection();
         await conn.OpenAsync();
 
-        var member = await conn.QueryFirstOrDefaultAsync<dynamic>(@"
+        var member = await conn.QueryFirstOrDefaultAsync<dynamic>($@"
             SELECT m.pk_member_master_profile_id AS memberId,
                    m.MemberName AS memberName,
                    CASE
@@ -457,7 +457,11 @@ public class ClubFinderController : ControllerBase
             FROM member_master_profile m
             LEFT JOIN country_master pc ON pc.pk_country_id = m.fk_primary_country_id
             LEFT JOIN country_master sc ON sc.pk_country_id = m.fk_secondary_country_id
-            WHERE m.pk_member_master_profile_id = @Id AND m.isdeleted = 0",
+            WHERE m.pk_member_master_profile_id = @Id AND m.isdeleted = 0
+              -- 2026-10-21: hidden when every active club of the member is inactive (or under an inactive district/zone).
+              AND NOT (EXISTS (SELECT 1 FROM club_members hcm WHERE hcm.fk_member_master_profile_id = m.pk_member_master_profile_id AND hcm.IsActive = 1 AND hcm.isdeleted = 0)
+                       AND NOT EXISTS (SELECT 1 FROM club_members hcm WHERE hcm.fk_member_master_profile_id = m.pk_member_master_profile_id AND hcm.IsActive = 1 AND hcm.isdeleted = 0
+                                       AND {HierarchyScopeSql.ClubIdLive("hcm.fk_club_id")}))",
             new { Id = memberId });
         if (member == null) return NotFound(new { message = "Member not found." });
 
@@ -511,6 +515,7 @@ public class ClubFinderController : ControllerBase
             JOIN club_master c ON c.pk_club_id = cm.fk_club_id AND c.isdeleted = 0
             LEFT JOIN district_master d ON d.pk_district_id = c.fk_district_id
             WHERE cm.fk_member_master_profile_id = @Id AND cm.isdeleted = 0 AND cm.IsActive = 1
+              AND " + HierarchyScopeSql.ClubLive("c") + @"
             ORDER BY cm.JoinedDate DESC",
             new { Id = memberId });
 
@@ -520,13 +525,14 @@ public class ClubFinderController : ControllerBase
         var currentRoles = (IEnumerable<dynamic>)Array.Empty<dynamic>();
         if (currentYearId.HasValue)
         {
-            currentRoles = await conn.QueryAsync<dynamic>(@"
+            currentRoles = await conn.QueryAsync<dynamic>($@"
                 SELECT b.fk_club_id AS clubId, c.ClubName AS clubName,
                        dm.designation_name AS designationName, dm.sort_order AS sortOrder
                 FROM board_of_directors b
                 JOIN club_master c ON c.pk_club_id = b.fk_club_id AND c.isdeleted = 0
                 JOIN designation_master dm ON dm.pk_designation_id = b.fk_designation_id
                 WHERE b.fk_member_master_profile_id = @Id AND b.fk_year_id = @YearId AND b.isdeleted = 0
+                  AND {HierarchyScopeSql.ClubLive("c")}
                 ORDER BY dm.sort_order",
                 new { Id = memberId, YearId = currentYearId.Value });
         }
@@ -581,7 +587,7 @@ public class ClubFinderController : ControllerBase
         using var conn = CreateConnection();
         await conn.OpenAsync();
 
-        var ev = await conn.QueryFirstOrDefaultAsync<dynamic>(@"
+        var ev = await conn.QueryFirstOrDefaultAsync<dynamic>($@"
             SELECT e.pk_upcoming_event_id AS eventId,
                    e.fk_club_id AS clubId, c.ClubName AS clubName,
                    CASE
@@ -610,7 +616,7 @@ public class ClubFinderController : ControllerBase
             JOIN club_master c ON c.pk_club_id = e.fk_club_id
             LEFT JOIN district_master d ON d.pk_district_id = c.fk_district_id
             LEFT JOIN member_master_profile cb ON cb.pk_member_master_profile_id = e.created_by
-            WHERE e.pk_upcoming_event_id = @Id AND e.isdeleted = 0",
+            WHERE e.pk_upcoming_event_id = @Id AND e.isdeleted = 0 AND {HierarchyScopeSql.ClubLive("c")}",
             new { Id = eventId });
         if (ev == null) return NotFound(new { message = "Event not found." });
 
@@ -764,7 +770,7 @@ public class ClubFinderController : ControllerBase
             LEFT JOIN area_of_focus_master a ON a.pk_area_of_focus_id = p.fk_area_of_focus_id
             LEFT JOIN funding_master f ON f.pk_funding_id = p.fk_funding_id
             LEFT JOIN member_master_profile cb ON cb.pk_member_master_profile_id = p.created_by
-            WHERE p.pk_project_id = @Id AND p.isdeleted = 0",
+            WHERE p.pk_project_id = @Id AND p.isdeleted = 0 AND {HierarchyScopeSql.ClubLive("c")}",
             new { Id = projectId });
         if (project == null) return NotFound(new { message = "Project not found." });
 

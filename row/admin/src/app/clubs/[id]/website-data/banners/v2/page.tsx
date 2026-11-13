@@ -31,6 +31,8 @@ import {
 import { ClubBanner } from "@/types/banner";
 import { useDragSort } from "@/hooks/useDragSort";
 import { useAuth } from "@/contexts/AuthContext";
+import { clubYearRights, canEditYear, heldYearLabels } from "@/lib/adminYears";
+import ViewOnlyBadge from "@/components/ViewOnlyBadge";
 import KpiCard from "@/components/dashboard/KpiCard";
 import { fmtInt } from "@/components/dashboard/formatters";
 import ProtectedRoute from "@/components/ProtectedRoute";
@@ -54,8 +56,7 @@ export default function BannerPhotosV2Page() {
   const params = useParams();
   const searchParams = useSearchParams();
   const clubId = Number(params.id);
-  const { isSuperAdmin, isAdmin } = useAuth();
-  const canManage = isSuperAdmin || isAdmin;
+  const { isSuperAdmin, isAdmin, user } = useAuth();
 
   const [clubName, setClubName] = useState("");
   // Year now comes from the global topbar (?yearId= URL param). We still fetch
@@ -66,6 +67,15 @@ export default function BannerPhotosV2Page() {
   const urlYearId = urlYearStr ? parseInt(urlYearStr, 10) || null : null;
   const currentYearFromList = filterYears.find((y) => y.isCurrent)?.id ?? filterYears[0]?.id ?? null;
   const selectedYearId = urlYearId ?? currentYearFromList;
+
+  // ⚠️ Club website content IS year-scoped: each Rotary year has its own banners,
+  // adverts and contact details. So a member may only change the year they
+  // administer — including the year the LIVE public site is showing.
+  const yearRights = useMemo(() => clubYearRights(user?.scopedRoles, clubId), [user?.scopedRoles, clubId]);
+  const canManageYear = (isSuperAdmin || isAdmin) && canEditYear(yearRights, selectedYearId, isSuperAdmin);
+  const canManage = canManageYear;
+  const editableYears = heldYearLabels(yearRights, filterYears.map((y) => ({ id: y.id, label: y.yearLabel })));
+
   const [records, setRecords] = useState<ClubBanner[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingRecords, setLoadingRecords] = useState(false);
@@ -214,6 +224,10 @@ export default function BannerPhotosV2Page() {
 
   return (
     <ProtectedRoute>
+      {!canManage && selectedYearId && (
+        <ViewOnlyBadge editableYears={editableYears} className="mb-4" />
+      )}
+
       <ClubAdminShell
         pageTitle="Banners"
         pageSubtitle="Public website banners"

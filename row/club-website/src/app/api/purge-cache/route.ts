@@ -31,15 +31,15 @@ export async function POST(req: NextRequest) {
   if (!host) {
     // No host → purge everything (used by admin "Clear all caches" panic button)
     purgeTenantCache();
-    revalidateTag("club-data");
+    revalidateTag("club-data", { expire: 0 }); // expire now: a purge must not serve stale pages
     return NextResponse.json({ purged: "all" });
   }
 
   purgeTenantCache(host);
   // Tag matches the one we set in lib/api.ts so all page-data fetches keyed
   // to this host are invalidated in Next.js's data cache.
-  revalidateTag(`host:${host}`);
-  revalidateTag("club-data");
+  revalidateTag(`host:${host}`, { expire: 0 }); // expire now: a purge must not serve stale pages
+  revalidateTag("club-data", { expire: 0 });
 
   return NextResponse.json({ purged: host });
 }

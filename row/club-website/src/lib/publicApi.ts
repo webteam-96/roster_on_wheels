@@ -245,7 +245,7 @@ export interface PublicProjectDetail {
 }
 
 export async function getProjectDetail(clubId: number, projectId: number) {
-  if (isSampleId(projectId) && inPreview()) return sampleProjectDetail(projectId);
+  if (isSampleId(projectId) && (await inPreview())) return sampleProjectDetail(projectId);
   return fetchJson<PublicProjectDetail>(`/api/public/club/${clubId}/projects/${projectId}`, 60);
 }
 export async function getMeetings(clubId: number, yearId?: number) {

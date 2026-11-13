@@ -31,6 +31,8 @@ export default function ZoneDistrictsPage() {
   const zoneId = Number(params.id);
   const { isSuperAdmin } = useAuth();
   const [zoneName, setZoneName] = useState("");
+  // upstream 2026-10-21: zone inactive, so this is a SuperAdmin-only view.
+  const [zoneInactive, setZoneInactive] = useState(false);
   const [data, setData] = useState<PagedResult<DistrictListItem> | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -48,6 +50,7 @@ export default function ZoneDistrictsPage() {
       try {
         const z = await getZone(zoneId);
         setZoneName(z.zoneName);
+        setZoneInactive(!z.isActive);
       } catch { /* ignore */ }
     }
     fetchZone();
@@ -58,7 +61,7 @@ export default function ZoneDistrictsPage() {
     setError(null);
     try {
       const isActive = status ? parseInt(status) : undefined;
-      const result = await getDistricts(pageNum || page, 20, search || undefined, isActive, zoneId);
+      const result = await getDistricts(pageNum || page, 20, search || undefined, isActive, zoneId, undefined, undefined, undefined, true);
       setData(result);
     } catch (err) {
       const message = err instanceof Error ? err.message : "Failed to fetch districts";
@@ -80,7 +83,7 @@ export default function ZoneDistrictsPage() {
     setLoading(true);
     setError(null);
     const isActive = status ? parseInt(status) : undefined;
-    getDistricts(newPage, 20, search || undefined, isActive, zoneId)
+    getDistricts(newPage, 20, search || undefined, isActive, zoneId, undefined, undefined, undefined, true)
       .then(result => setData(result))
       .catch(err => setError(err instanceof Error ? err.message : "Failed to fetch districts"))
       .finally(() => setLoading(false));
@@ -134,6 +137,11 @@ export default function ZoneDistrictsPage() {
           </div>
         )}
 
+        {zoneInactive && (
+          <p className="text-sm font-semibold text-red-700">
+            This zone is inactive and hidden everywhere. Only SuperAdmin can see this.
+          </p>
+        )}
         {error && (
           <div className="flex flex-col items-center justify-center py-20 text-center">
             <AlertCircle className="h-12 w-12 text-destructive mb-4" />
@@ -172,11 +180,11 @@ export default function ZoneDistrictsPage() {
                   {viewMode === "grid" ? (
                     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                       {filteredItems.map((district) => (
-                        <DistrictCard key={district.id} district={district} onDelete={setDeleteTarget} isSuperAdmin={isSuperAdmin} zoneId={zoneId} />
+                        <DistrictCard key={district.id} district={district} onDelete={setDeleteTarget} isSuperAdmin={isSuperAdmin} zoneId={zoneId} parentInactive={zoneInactive} />
                       ))}
                     </div>
                   ) : (
-                    <DistrictTable districts={filteredItems} onDelete={setDeleteTarget} isSuperAdmin={isSuperAdmin} zoneId={zoneId} />
+                    <DistrictTable districts={filteredItems} onDelete={setDeleteTarget} isSuperAdmin={isSuperAdmin} zoneId={zoneId} parentInactive={zoneInactive} />
                   )}
                   <Pagination page={data.page} totalPages={data.totalPages} totalCount={data.totalCount} pageSize={data.pageSize} onPageChange={handlePageChange} />
                 </>

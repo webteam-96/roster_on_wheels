@@ -23,6 +23,8 @@ public class DistrictDetailDto
     public string DistrictNumber { get; set; } = string.Empty;
     public string? DistrictLogoPath { get; set; }
     public bool IsActive { get; set; }
+    // upstream 2026-10-21: false when the district or its zone is inactive (SuperAdmin sees it marked).
+    public bool IsChainActive { get; set; } = true;
     public int? CreatedBy { get; set; }
     public DateTime? CreatedDate { get; set; }
     public int? ModifiedBy { get; set; }

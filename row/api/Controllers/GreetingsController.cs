@@ -12,8 +12,10 @@ public class GreetingsController : ControllerBase
     private readonly IGreetingService _greetingService;
     private readonly string _connectionString;
 
-    public GreetingsController(IGreetingService greetingService, IConfiguration configuration)
+    private readonly AdminYearGuard _guard;
+    public GreetingsController(AdminYearGuard guard, IGreetingService greetingService, IConfiguration configuration)
     {
+        _guard = guard;
         _greetingService = greetingService;
         _connectionString = configuration.GetConnectionString("DefaultConnection")!;
     }
@@ -32,6 +34,9 @@ public class GreetingsController : ControllerBase
     [HttpPut("api/clubs/{clubId}/greetings")]
     public async Task<ActionResult> UpdateSettings(int clubId, [FromBody] UpdateGreetingSettingsDto dto)
     {
+        var denied = await _guard.ClubYearlessAsync(User, clubId);
+        if (denied != null) return denied;
+
         await _greetingService.UpdateSettingsAsync(clubId, dto, GetUserId());
         return Ok(new { message = "Greeting settings updated successfully." });
     }

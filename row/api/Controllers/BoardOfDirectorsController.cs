@@ -14,8 +14,11 @@ public class BoardOfDirectorsController : ControllerBase
     private readonly string _connectionString;
     private readonly IClubSiteCachePurger _purger;
 
-    public BoardOfDirectorsController(IDesignationService designationService, IBoardDirectorService boardDirectorService, IConfiguration configuration, IClubSiteCachePurger purger)
+    private readonly AdminYearGuard _guard;
+
+    public BoardOfDirectorsController(IDesignationService designationService, IBoardDirectorService boardDirectorService, IConfiguration configuration, IClubSiteCachePurger purger, AdminYearGuard guard)
     {
+        _guard = guard;
         _designationService = designationService;
         _boardDirectorService = boardDirectorService;
         _connectionString = configuration.GetConnectionString("DefaultConnection")!;
@@ -114,6 +117,13 @@ public class BoardOfDirectorsController : ControllerBase
     [HttpPost("api/clubs/{clubId}/board-of-directors")]
     public async Task<ActionResult> Create(int clubId, [FromBody] CreateBoardDirectorDto dto)
     {
+        // ⚠️ The board is what GRANTS rights — President/Secretary of a year earn
+        // that year, Executive Secretary earns all of them. So writing the board
+        // for a year you don't hold is a straight privilege escalation: make
+        // yourself President of 2024-25 and you have just awarded yourself 2024-25.
+        var denied = await _guard.ClubYearAsync(User, clubId, dto.YearId);
+        if (denied != null) return denied;
+
         try
         {
             var id = await _boardDirectorService.CreateAsync(clubId, dto, GetUserId());
@@ -130,6 +140,18 @@ public class BoardOfDirectorsController : ControllerBase
     [OwnedBy(Owns.BoardDirector, "id", "clubId")]
     public async Task<ActionResult> Update(int clubId, int id, [FromBody] UpdateBoardDirectorDto dto)
     {
+        // Read the year from the RECORD, never from the request — otherwise a
+        // caller could claim a year they hold and edit a record in one they don't.
+        var scope = await _guard.LoadClubRecordScopeAsync("board_of_directors", "pk_board_director_id", id);
+        if (scope is not var (recordClubId, recordYearId) || recordClubId == 0)
+            return NotFound(new { message = "Board director not found." });
+        if (recordClubId != clubId)
+            return NotFound(new { message = "Board director not found in this club." });
+
+        // BOTH years: the one it sits in, and the one it is being moved to.
+        var denied = await _guard.ClubYearMoveAsync(User, clubId, recordYearId, dto.YearId);
+        if (denied != null) return denied;
+
         try
         {
             await _boardDirectorService.UpdateAsync(id, dto, GetUserId());
@@ -146,6 +168,15 @@ public class BoardOfDirectorsController : ControllerBase
     [OwnedBy(Owns.BoardDirector, "id", "clubId")]
     public async Task<ActionResult> Delete(int clubId, int id)
     {
+        var scope = await _guard.LoadClubRecordScopeAsync("board_of_directors", "pk_board_director_id", id);
+        if (scope is not var (recordClubId, recordYearId) || recordClubId == 0)
+            return NotFound(new { message = "Board director not found." });
+        if (recordClubId != clubId)
+            return NotFound(new { message = "Board director not found in this club." });
+
+        var denied = await _guard.ClubYearAsync(User, clubId, recordYearId);
+        if (denied != null) return denied;
+
         await _boardDirectorService.DeleteAsync(id, GetUserId());
         _purger.PurgeByClub(clubId);
         return Ok(new { message = "Board director deleted successfully." });
@@ -164,10 +195,50 @@ public class BoardOfDirectorsController : ControllerBase
     [HttpPut("api/clubs/{clubId}/board-of-directors/reorder")]
     public async Task<ActionResult> Reorder(int clubId, [FromBody] ReorderBoardOfDirectorsDto dto)
     {
+        // Reordering rewrites the sort order of ONE year's board — dto.YearId is
+        // passed straight to the service — so it is that year's rule, not the
+        // current year's.
+        var denied = await _guard.ClubYearAsync(User, clubId, dto.YearId);
+        if (denied != null) return denied;
+
         if (!await RotaryApi.Services.KillSwitchHelper.IsClubDrillReachableAsync(_connectionString, clubId)) return StatusCode(403, new { message = "This club, its district, or its zone is inactive. Reactivate it first to access this data." });
         if (dto.OrderedIds == null || dto.OrderedIds.Count == 0) return BadRequest(new { message = "OrderedIds is required." });
         await _boardDirectorService.ReorderAsync(clubId, dto.YearId, dto.OrderedIds, GetUserId());
         _purger.PurgeByClub(clubId);
         return Ok(new { message = "Order updated successfully." });
+    }
+
+    /// <summary>
+    /// A President, Secretary or Executive Secretary IS a Club Admin. This puts
+    /// the role on them, the same as the Club Leadership screen does
+    /// (ClubLeadershipController -> EnsureActiveClubAdminRoleAsync).
+    ///
+    /// ⚠️ Why it has to be here too: there are TWO ways to make someone
+    /// President — that screen and this one — and only that one granted the
+    /// role. The board row alone gives them the YEAR (AdminYearService reads
+    /// board_of_directors live) but not the way IN, so they ended up holding
+    /// rights to a dashboard they could not open. Found on a real account:
+    /// Remove Admin had switched the role off, re-making them President through
+    /// this screen changed nothing, and they were left a president with no
+    /// access.
+    ///
+    /// Only the three rights-bearing designations qualify — the same ids
+    /// AdminYearService grants years for. A Treasurer or a Director does not
+    /// become an admin.
+    ///
+    /// ⚠️ Deliberately one-way: it never DEMOTES. Handing the presidency on does
+    /// not strip the outgoing president, exactly as on the Club Leadership
+    /// screen. Removing an admin stays a separate, deliberate action.
+    /// </summary>
+    private async Task EnsureOfficeHolderIsClubAdminAsync(int? memberId, int clubId, int designationId)
+    {
+        if (memberId is not int mid || mid <= 0 || clubId <= 0) return;
+        if (designationId != AdminYearService.DesignationClubPresident
+            && designationId != AdminYearService.DesignationClubSecretary
+            && designationId != AdminYearService.DesignationClubExecutiveSecretary) return;
+
+        await using var conn = new MySqlConnector.MySqlConnection(_connectionString);
+        await conn.OpenAsync();
+        await ClubAdminAccessHelper.EnsureActiveClubAdminRoleAsync(conn, mid, clubId, GetUserId());
     }
 }

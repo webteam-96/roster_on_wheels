@@ -23,16 +23,22 @@ interface DistrictCardProps {
   onDelete: (district: DistrictListItem) => void;
   isSuperAdmin?: boolean;
   zoneId?: number;
+  // upstream 2026-10-21: parent zone / district inactive, so this row is hidden too (SuperAdmin sees it marked).
+  parentInactive?: boolean;
 }
 
-export default function DistrictCard({ district, onDelete, isSuperAdmin, zoneId }: DistrictCardProps) {
+export default function DistrictCard({ district, onDelete, isSuperAdmin, zoneId, parentInactive }: DistrictCardProps) {
   const logoUrl = getPhotoUrl(district.districtLogoPath);
   const router = useRouter();
   const [navigating, setNavigating] = useState(false);
 
   const handleCardClick = () => {
     if (navigating) return;
-    if (!district.isActive) return; // Inactive districts can't be drilled into — only edit (via menu) is allowed.
+    if (!district.isActive || parentInactive) {
+      // upstream 2026-10-21: inactive = hidden everywhere; SuperAdmin may still look inside (read-only).
+      if (isSuperAdmin) router.push(`/districts/${district.id}/clubs`);
+      return;
+    }
     setNavigating(true);
     router.push(`/districts/${district.id}/dashboard`);
   };
@@ -40,12 +46,12 @@ export default function DistrictCard({ district, onDelete, isSuperAdmin, zoneId 
   return (
     <Card
       className={`overflow-hidden border-primary/20 group relative transition-all duration-200 ${
-        district.isActive
+        district.isActive && !parentInactive
           ? "cursor-pointer hover:shadow-xl hover:-translate-y-1"
-          : "opacity-70 cursor-not-allowed"
+          : isSuperAdmin ? "opacity-70 cursor-pointer" : "opacity-70 cursor-not-allowed"
       } ${navigating ? "opacity-60 pointer-events-none" : ""}`}
       onClick={handleCardClick}
-      title={!district.isActive ? "District is inactive. Click Edit (⋮) to activate." : undefined}
+      title={parentInactive && district.isActive ? "Its parent is inactive, so it is hidden everywhere. SuperAdmin view only." : !district.isActive ? "District is inactive. Click Edit (⋮) to activate." : undefined}
     >
       {navigating && (
         <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/50 rounded-lg">
@@ -67,8 +73,8 @@ export default function DistrictCard({ district, onDelete, isSuperAdmin, zoneId 
             <div className="flex items-start justify-between">
               <div>
                 <h3 className="font-semibold text-lg text-white">District {district.districtNumber}</h3>
-                <Badge className={`text-xs mt-1 ${district.isActive ? "bg-green-700 text-white border-green-400/50" : "bg-red-500/80 text-white border-red-400/50"}`}>
-                  {district.isActive ? "Active" : "Inactive"}
+                <Badge className={`text-xs mt-1 ${district.isActive && !parentInactive ? "bg-green-700 text-white border-green-400/50" : "bg-red-500/80 text-white border-red-400/50"}`}>
+                  {district.isActive && !parentInactive ? "Active" : "Inactive"}
                 </Badge>
               </div>
               {isSuperAdmin && (

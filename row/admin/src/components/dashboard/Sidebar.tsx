@@ -94,7 +94,6 @@ export default function Sidebar({
 
       {/* Nav */}
       <ScrollArea className="flex-1 px-3 py-4">
-        <p className="text-[12px] font-semibold text-[#64748B] px-4 pb-2">Navigation</p>
         <nav className="flex flex-col gap-0.5">
           {nav.map((item) => {
             const isActive = item.to

@@ -340,7 +340,7 @@ public class TrainingAppointmentService : ITrainingAppointmentService
         await using var conn = NewConn();
         await conn.OpenAsync();
         return (await QueryAppointmentsAsync(conn,
-            "a.fk_club_id = @C AND a.Status <> 'Cancelled' AND a.isdeleted = 0 AND a.SlotStart >= (NOW() - INTERVAL 1 DAY)",
+            $"a.fk_club_id = @C AND a.Status <> 'Cancelled' AND a.isdeleted = 0 AND a.SlotStart >= (NOW() - INTERVAL 1 DAY) AND {HierarchyScopeSql.ClubIdLive("a.fk_club_id")}",
             "a.SlotStart ASC", new { C = clubId })).ToList();
     }
 
@@ -348,7 +348,7 @@ public class TrainingAppointmentService : ITrainingAppointmentService
     {
         await using var conn = NewConn();
         await conn.OpenAsync();
-        return (await QueryAppointmentsAsync(conn, "a.isdeleted = 0", "a.SlotStart DESC", new { })).ToList();
+        return (await QueryAppointmentsAsync(conn, $"a.isdeleted = 0 AND {HierarchyScopeSql.ClubIdLive("a.fk_club_id")}", "a.SlotStart DESC", new { })).ToList();
     }
 
     public async Task<int?> GetAppointmentClubIdAsync(long appointmentId)

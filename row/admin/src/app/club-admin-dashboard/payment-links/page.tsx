@@ -32,6 +32,10 @@ import KpiCard from "@/components/dashboard/KpiCard";
 import { fmtInt } from "@/components/dashboard/formatters";
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
+import { useAuth } from "@/contexts/AuthContext";
+import { clubYearRights, canEditYearless, heldYearLabels } from "@/lib/adminYears";
+import { useRotaryYears } from "@/hooks/useRotaryYears";
+import ViewOnlyBadge from "@/components/ViewOnlyBadge";
 
 import { appLocale } from "@/lib/appFormat";
 import { ListPageSkeleton } from "@/components/row/AppKit";
@@ -52,6 +56,14 @@ export default function ClubAdminPaymentLinksPage() {
   const router = useRouter();
   const { membershipDues, status, refresh } = useClubAdminCache();
   const clubId = membershipDues?.club.clubId ?? null;
+
+  // A payment link carries NO Rotary year — it is live and taking money now — so
+  // editing one needs CURRENT-year rights, the same rule the server applies.
+  const { user, isSuperAdmin, isAdmin } = useAuth();
+  const { years, currentYearId } = useRotaryYears();
+  const linkRights = useMemo(() => clubYearRights(user?.scopedRoles, clubId ?? 0), [user?.scopedRoles, clubId]);
+  const canManage = (isSuperAdmin || isAdmin) && canEditYearless(linkRights, currentYearId, isSuperAdmin);
+  const editableYears = heldYearLabels(linkRights, years.map((y) => ({ id: y.id, label: y.yearLabel })));
 
   const [items, setItems] = useState<EventPaymentLinkRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -328,15 +340,19 @@ export default function ClubAdminPaymentLinksPage() {
                       </button>
                     </td>
                     <td className="px-4 py-2.5 text-center">
-                      <button
-                        type="button"
-                        onClick={() => router.push(`/clubs/${clubId}/event-payment-links/v2/edit?editId=${item.id}&returnTo=${returnTo}`)}
-                        className="inline-flex items-center justify-center w-7 h-7 rounded text-slate-500 hover:text-blue-700 hover:bg-blue-50"
-                        aria-label="Edit payment link"
-                        title="Manage in full editor"
-                      >
-                        <Edit3 size={13} />
-                      </button>
+                      {canManage ? (
+                        <button
+                          type="button"
+                          onClick={() => router.push(`/clubs/${clubId}/event-payment-links/v2/edit?editId=${item.id}&returnTo=${returnTo}`)}
+                          className="inline-flex items-center justify-center w-7 h-7 rounded text-slate-500 hover:text-blue-700 hover:bg-blue-50"
+                          aria-label="Edit payment link"
+                          title="Manage in full editor"
+                        >
+                          <Edit3 size={13} />
+                        </button>
+                      ) : (
+                        <span className="text-xs text-slate-300">-</span>
+                      )}
                     </td>
                   </tr>
                 );

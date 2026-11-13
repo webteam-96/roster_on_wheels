@@ -16,6 +16,8 @@
  * across the app still link to it. Migrating those references is a follow-up.
  */
 
+import { sameAddressType, onePerAddressType, isHomeAddressType } from "@/lib/memberAddress";
+import TshirtSizeSelect from "@/components/TshirtSizeSelect";
 import { useBrand, useFeature } from "@/contexts/BrandContext";
 import { familyDuplicateError } from "@/lib/familyValidation";
 import { Suspense, useEffect, useState } from "react";
@@ -52,7 +54,7 @@ function formatDateForInput(date: string | null | undefined): string {
 }
 
 function getAddress(addresses: MemberAddress[] | undefined, type: string): MemberAddress | undefined {
-  return addresses?.find((a) => a.addressType === type);
+  return addresses?.find((a) => sameAddressType(a.addressType, type));
 }
 
 const emptyFamilyMember: Omit<FamilyMember, "id" | "fkMemberMasterProfileId"> = {
@@ -70,7 +72,7 @@ const emptyFamilyMember: Omit<FamilyMember, "id" | "fkMemberMasterProfileId"> = 
 };
 
 const emptyResidentialAddress: Partial<MemberAddress> = {
-  addressType: "Residential",
+  addressType: "Residence",
   fkCountryId: 0,
   country: "",
   countryPhoneCode: "",
@@ -325,7 +327,7 @@ function AddMemberV2Form() {
 
   const updateAddress = (type: "Residential" | "Business", field: string, value: unknown) => {
     const addresses = [...(formData.addresses || [])] as MemberAddress[];
-    const idx = addresses.findIndex((a) => a.addressType === type);
+    const idx = addresses.findIndex((a) => sameAddressType(a.addressType, type));
     if (idx >= 0) {
       addresses[idx] = { ...addresses[idx], [field]: value };
     } else {
@@ -339,7 +341,7 @@ function AddMemberV2Form() {
     const id = parseInt(countryId);
     const country = countries.find((c) => c.id === id);
     const addresses = [...(formData.addresses || [])] as MemberAddress[];
-    const idx = addresses.findIndex((a) => a.addressType === type);
+    const idx = addresses.findIndex((a) => sameAddressType(a.addressType, type));
     if (idx >= 0) {
       addresses[idx] = {
         ...addresses[idx],
@@ -426,8 +428,9 @@ function AddMemberV2Form() {
     try {
       const submissionData: Partial<Member> = { ...formData };
       if (submissionData.addresses) {
-        submissionData.addresses = submissionData.addresses.filter((a) => {
-          if (a.addressType === "Residential") {
+        // One home + one Business row only (upstream 2026-11-02).
+        submissionData.addresses = onePerAddressType(submissionData.addresses).filter((a) => {
+          if (isHomeAddressType(a.addressType)) {
             return a.address || a.city || a.state || a.phoneNumber || a.pinCode;
           }
           return a.businessName || a.address || a.city || a.state;
@@ -830,6 +833,11 @@ function AddMemberV2Form() {
             />
           </div>
           {showBloodGroup && renderSelect("bloodGroup", "Blood Group", BLOOD_GROUPS)}
+          <div>
+            <FieldLabel dot="bg-blue-500" required={false}>T-Shirt Size</FieldLabel>
+            <TshirtSizeSelect value={formData.tshirtSizeId} currentName={formData.tshirtSize}
+              onChange={(v) => updateField("tshirtSizeId", v ?? 0)} className={inputCls} />
+          </div>
           {renderSelect("gender", "Gender", GENDERS)}
           {renderSelect("primaryLanguage", "Primary Language", LANGUAGES)}
           {renderCountrySelect("fkSecondaryCountryId", "Secondary Country")}

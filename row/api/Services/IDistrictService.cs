@@ -4,7 +4,7 @@ namespace RotaryApi.Services;
 
 public interface IDistrictService
 {
-    Task<PagedResult<DistrictListDto>> GetAllAsync(int page, int pageSize, string? search, int? isActive, int? zoneId = null, bool? hasClubs = null, bool? hasMembers = null, bool? hasSyncClubs = null);
+    Task<PagedResult<DistrictListDto>> GetAllAsync(int page, int pageSize, string? search, int? isActive, int? zoneId = null, bool? hasClubs = null, bool? hasMembers = null, bool? hasSyncClubs = null, bool includeInactive = false);
     Task<DistrictDetailDto?> GetByIdAsync(int id);
     Task<int> CreateAsync(CreateDistrictDto dto, int createdBy);
     Task UpdateAsync(int id, UpdateDistrictDto dto, int modifiedBy);

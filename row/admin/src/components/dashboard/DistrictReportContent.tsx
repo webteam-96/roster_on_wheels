@@ -1314,7 +1314,7 @@ export default function DistrictReportContent({ districtId, initialYearId, servi
     { key: "youthFlag", label: "Youth Flag", width: 10 },
     { key: "dob", label: "DOB", width: 12, format: dayMonth },
     { key: "doa", label: "DOA", width: 12, format: dayMonth },
-    ...(showBloodGroup ? [{ key: "bloodGroup", label: "Blood Group", width: 12 }] : []),
+    ...(showBloodGroup ? [{ key: "bloodGroup", label: "Blood Group", width: 12 }] : []), { key: "tshirtSize", label: "T-Shirt Size", width: 12 },
     { key: "deviceName", label: "Device Name", width: 14 },
     { key: "downloaded", label: "Downloaded", width: 12 },
     { key: "address", label: "Residence Address", width: 45 },
@@ -1560,7 +1560,7 @@ export default function DistrictReportContent({ districtId, initialYearId, servi
                 { key: "relation", label: "Relation", width: 16 },
                 { key: "mobile", label: "Mobile Number", width: 16 },
                 { key: "email", label: "Email Id", width: 30 },
-                { key: "bloodGroup", label: "Blood Group", width: 12 },
+                { key: "bloodGroup", label: "Blood Group", width: 12 }, { key: "tshirtSize", label: "T-Shirt Size", width: 12 },
               ]}
               onDownload={exportWithFilename}
             />

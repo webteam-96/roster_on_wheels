@@ -14,8 +14,10 @@ public class ClubAdvertisementController : ControllerBase
     private readonly IClubAdvertisementService _service;
     private readonly string _connectionString;
 
-    public ClubAdvertisementController(IClubAdvertisementService service, IConfiguration configuration)
+    private readonly AdminYearGuard _guard;
+    public ClubAdvertisementController(AdminYearGuard guard, IClubAdvertisementService service, IConfiguration configuration)
     {
+        _guard = guard;
         _service = service;
         _connectionString = configuration.GetConnectionString("DefaultConnection")!;
     }
@@ -57,6 +59,9 @@ public class ClubAdvertisementController : ControllerBase
     [HttpPost("api/clubs/{clubId}/website-data/advertisements")]
     public async Task<ActionResult> Create(int clubId, [FromBody] CreateClubAdvertisementDto dto)
     {
+        var denied = await _guard.ClubYearAsync(User, clubId, dto.YearId);
+        if (denied != null) return denied;
+
         var id = await _service.CreateAsync(clubId, dto, GetUserId());
         return Ok(new { id });
     }
@@ -65,6 +70,10 @@ public class ClubAdvertisementController : ControllerBase
     [OwnedBy(Owns.ClubAdvertisement, "id", "clubId")]
     public async Task<ActionResult> Update(int clubId, int id, [FromBody] UpdateClubAdvertisementDto dto)
     {
+        var denied = await _guard.ClubRecordYearAsync(
+            User, clubId, "club_website_advertisement", "pk_club_website_advertisement_id", id);
+        if (denied != null) return denied;
+
         await _service.UpdateAsync(id, dto, GetUserId());
         return Ok(new { message = "Advertisement updated successfully." });
     }
@@ -73,6 +82,10 @@ public class ClubAdvertisementController : ControllerBase
     [OwnedBy(Owns.ClubAdvertisement, "id", "clubId")]
     public async Task<ActionResult> Delete(int clubId, int id)
     {
+        var denied = await _guard.ClubRecordYearAsync(
+            User, clubId, "club_website_advertisement", "pk_club_website_advertisement_id", id);
+        if (denied != null) return denied;
+
         await _service.DeleteAsync(id, GetUserId());
         return Ok(new { message = "Advertisement deleted successfully." });
     }
@@ -80,6 +93,9 @@ public class ClubAdvertisementController : ControllerBase
     [HttpPost("api/clubs/{clubId}/website-data/advertisements/upload-image")]
     public async Task<ActionResult<object>> UploadImage(int clubId, IFormFile file)
     {
+        var denied = await _guard.ClubYearlessAsync(User, clubId);
+        if (denied != null) return denied;
+
         if (file == null || file.Length == 0)
             return BadRequest(new { message = "No file uploaded" });
 
@@ -117,6 +133,14 @@ public class ClubAdvertisementController : ControllerBase
     [HttpPut("api/clubs/{clubId}/website-data/advertisements/reorder")]
     public async Task<ActionResult> Reorder(int clubId, [FromBody] ReorderAdvertisementsDto dto)
     {
+        // Adverts are year-wise (club_website_advertisement.fk_year_id). This swaps TWO rows
+        // and names only their ids, so the year-less rule asked for
+        // current-year rights on rows that may belong to any year — the
+        // same fault reorder-all had. Check the year of both.
+        var denied = await _guard.ClubReorderYearsAsync(
+            User, clubId, "club_website_advertisement", "pk_club_website_advertisement_id", [dto.Id1, dto.Id2]);
+        if (denied != null) return denied;
+
         await _service.ReorderAsync(dto.Id1, dto.Id2);
         return Ok(new { message = "Advertisements reordered successfully." });
     }
@@ -126,6 +150,12 @@ public class ClubAdvertisementController : ControllerBase
     [HttpPut("api/clubs/{clubId}/website-data/advertisements/reorder-all")]
     public async Task<ActionResult> ReorderAll(int clubId, [FromBody] ReorderDto dto)
     {
+        // Adverts are year-wise (club_website_advertisement.fk_year_id), and a reorder
+        // carries only ids — so check the year of every row being moved.
+        var denied = await _guard.ClubReorderYearsAsync(
+            User, clubId, "club_website_advertisement", "pk_club_website_advertisement_id", dto.OrderedIds);
+        if (denied != null) return denied;
+
         if (dto.OrderedIds == null || dto.OrderedIds.Count == 0)
             return BadRequest(new { message = "OrderedIds is required." });
 

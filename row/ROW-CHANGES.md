@@ -6,6 +6,11 @@ unless marked "done"; decide them when the area is worked on.
 
 ## Security and privacy
 
+- **Year and club guards were never wired** (found 2026-11-12 by `kb/tools/security_guards_e2e.py`). 30 controllers
+  from the RIZones pull take `AdminYearGuard guard` but did not assign `_guard = guard;`, so every guarded write
+  (attendance, sub groups, payment links, board, documents, dues and more) failed with a 500 for every caller.
+  Nothing leaked: the crash came before any write. Fixed in all 30. `RotaryApi.csproj` now treats CS0649 (a field
+  never assigned) as a build error, and the unused `DuesSheetRow` class it found was deleted.
 - **Records reached by id belong to the URL's club or district** (Phase 1b, 2026-10-23). `[OwnedBy]`
   (`Services/OwnedByAttribute.cs`, queries in `Services/Owns.cs`) answers 404 unless the record in the route belongs
   to the club, district or parent record in the same route: 79 actions in 16 controllers (club advertisements,
@@ -687,3 +692,160 @@ It replaces the admin's own translate route and the second provider client in th
 - **Smaller:** `/api/clubs` paging no longer 500s on a negative page; website quote dates carry no server offset; hydration errors on `/admin/admin*` fixed (`RootShell` reads the route tree, because `usePathname` removes the base path twice there).
 - **New test:** `kb/tools/go_live_fixes_e2e.py`.
 
+
+## 2026-11-09: RIZones pull of 2026-11-06, web items (done)
+
+Plan: `docs/plans/2026-11-09-rizones-pull-build-plan.md`. Check: `python -I kb/tools/rizones_pull_e2e.py <api> 3317 <db>`.
+
+- **Inactive zone, district or club hides everything below it** (`Services/HierarchyScopeSql.cs`, ported from RIZones
+  `2f604269`): lists, reports, counts, searches, dashboards, public sites, push and email audiences. Nothing is
+  written to child rows: switching the parent back on brings everything back. Only the Zone, District and Club master
+  listings show inactive rows (`includeInactive=true`, SuperAdmin only); SuperAdmin may still open an inactive unit
+  (read-only, marked Inactive). About 300 queries in 70 files; RIZones call sites in modules ROW removed were skipped.
+  Not ported: the mobile login block (mobile item M4).
+- **Member T-shirt size**: `member_master_profile.fk_tshirt_size_id` (sizes XS to XXXL from Event Masters). Returned
+  only to the member, Admins and SuperAdmin; on mobile only the member edits it. Member forms and the Club, District
+  and SuperAdmin member reports. Production: `database/maintenance/2026-11-09-member-tshirt-size.sql` (start-up adds
+  it too).
+- **One Business and one home address per member**: "Residence" and "Residential" are the same home slot
+  (`admin/src/lib/memberAddress.ts`, `MemberService.OneAddressPerType`). Saves keep one row of each; lists use the
+  newest row; a re-join restores only the last removed batch; the Rotary.org sync upsert matches either name.
+- **Public Image**: cost, funding (with Global Grant / CSR details), man hours and Rotarians involved are optional.
+- **Goal %** is no longer capped at 100 (24 of 12 = 200%).
+- **Project years** always include the current Rotary year.
+- **Club Analytics Excel**: "Club Meeting Count" renamed "Attendance Meeting Count".
+- **Rotary.org "Comparison to 1 July" import**: uses the last two "# Club" / "# Member" pairs, so the new file with a
+  "PRIOR YEAR" block in front still imports. Not tested with a real file yet.
+- **Not built (owner 2026-11-09)**: goal group messages (web W7, app M5). RIZones builds every group from the goal
+  oversight roles (RI Director, Zone Coordinator, co-ordinators and assistants), which ROW removed per the module
+  sheet. The existing district goal messages stay.
+
+## 2026-11-09: RIZones pull of 2026-11-06, app items (done)
+
+- **Public Image** (app): funding (with Global Grant / CSR details), man hours, Rotarians and Rotaractors are optional,
+  as on the web (`_ModuleCaps.financialImpactOptional`). The other avenues keep them required.
+- **Home address** (app): "Residence" and "Residential" are one slot (`isHomeAddressType` in `member_model.dart`) on
+  the profile and member edit forms, the board of directors detail and the district directory detail.
+- **T-shirt size** (app): own profile only, set or clear ("Not set"); sent only when changed. Sizes from the new
+  `GET /api/mobile/member-profile-options` (XS to XXXL and blood groups).
+- **Sign-in blocked when the member's only club, its district or its zone is inactive**: the existing login guard now
+  uses the cascade, at sign-in and on app open (`api/auth/my-context` answers 401 with X-Force-Relogin).
+- **Goal % above 100**: no app change needed; the app shows the API's value.
+- Checks: `flutter analyze` (no new issues), `flutter test` 62/62 (new `test/member_address_test.dart`).
+
+## 2026-11-09: Year-wise Admin Rights (RIZones `3bc6080e` + `aca901bd`), backend done, web in part
+
+Admins may add, edit and delete only in the Rotary years they hold, with a SuperAdmin ON/OFF switch per district
+and per club. Owner decisions 2026-11-09: every current admin gets **All Years**; the rule ships **OFF**.
+
+- **API (done)**: `AdminYearService`, `AdminYearGuard`, `YearRuleScopeHelper`, `YearRuleMessagesHelper`,
+  `YearRuleSettingsController` (SuperAdmin only). Tables `member_admin_years`, `year_rule_scope_settings` (platform
+  default seeded OFF), `year_rule_messages` (start-up creates them). 226 guarded writes in the controllers ROW kept
+  (RIZones has 320; the rest are in removed modules). Make Admin (club and district) takes `yearIds` / `allYears`,
+  clamped to the years the caller holds; a DG row now also makes that member a District Admin. `my-context` carries
+  the year rights and the editable "View only" wording. Goal-role year rights are not ported (ROW has no goal roles).
+- **Production data**: `database/maintenance/2026-11-09-year-wise-admin-rights.sql` (All-Years grant per active
+  admin, re-runnable, ends with a check that must read 0), rollback `...-down.sql`. On `row_prod_copy`: 132 grants,
+  0 admins left without one.
+- **Web (part)**: Settings > Year-wise Admin Rights (switches, preflight, wording), `AdminYearsDialog` on the club
+  members page Make Admin, `ViewOnlyBadge`, `lib/adminYears.ts`, `lib/yearRuleMessages.ts`.
+  **Still to do**: the year dialog on the other three Make Admin pages and the View only gating on about 85 pages.
+  Until then a page may offer a button the server refuses when the rule is ON for that scope (no data risk: 403,
+  nothing written). With the rule OFF nothing changes.
+- **App**: not started (View only notice).
+- UI copy: RIZones' em dashes replaced ("View only: ...").
+- Check: `python -I kb/tools/year_admin_rights_e2e.py <api> 3317 <db>` (needs the grants script first).
+
+## 2026-11-09 (later): Year-wise Admin Rights finished; DG Sync and AI Assistant ported (off); browser + device checks
+
+- **Year-wise Admin Rights, web (done)**: the upstream web commit applied (about 490 hunks); Make Admin year picker
+  on the club and district member pages; View only badge and Add / Edit / Delete gating on the year-wise pages; the
+  Actions column header follows the same rule as its cells. Settings "Edited" badge fixed (a seeded default no
+  longer counts as edited; upstream bug).
+- **Year-wise Admin Rights, app (done)**: `my-context` now carries `currentYearId`; `AuthProvider.canEditClub` /
+  `canEditDistrict` check the year (64 write checks in module screens); `ViewOnlyNotice` on the club and district
+  dashboards when the admin does not hold the current year.
+- **New Goal Setting (Rotary.org)**: API parts ported behind the `goal_setting_rotary` feature (off). Web pages NOT
+  ported: they need the newer upstream goal module (per-category goal locks, source dates, goal messages) that ROW
+  does not have. Owner decision pending.
+- **DG Sync from Rotary.org**: `workers/RccGoalsFetcher` (Playwright; blank `appsettings.json`, secrets only in
+  `appsettings.secrets.json` or environment), API `api/goal-setting-rotary/sync` behind `rotary_org_dg_sync` (off),
+  tables `goal_rotary_org_values` and `rotary_org_club_member_sync_status`. The login is stored encrypted with
+  `RotaryOrgSync:CredentialKey` (server only). No sync button yet: it lives on the New Goal Setting pages.
+- **AI Assistant**: API (`Services/Assistant`, `api/assistant`, behind `ai_assistant` (off) and `Assistant:Enabled`),
+  index worker `workers/AssistantIndexWorker`, chat site `assistant-web` (static export), tests `api.Tests`.
+  No keys anywhere: Anthropic, Gemini and Qdrant keys go in the server settings only. ROW wording, UTC (not IST),
+  ROW logo and font, ROW domain in the CSP. Goal-role scopes removed. Tests: 34 pass against `row_prod_copy`
+  (every tool's SQL runs on ROW's schema); 4 skipped (they expect upstream's own data).
+- **Bug found by the device test and fixed**: the T-shirt size was saved only on the admin path, not on the
+  member's own profile save (`MemberService.UpdateAsync`).
+- **Checked in a browser** (headless Chromium, local): Year-wise settings, member edit (T-shirt), Public Image add,
+  district drill-in with an inactive district (banner, clubs marked Inactive), club members, Settings link; no
+  console errors. **On the Android emulator**: sign-in, T-shirt set and clear (saved and cleared in the DB), home
+  address on a "Residence" row, Public Image form (optional fields), current year listed, no View only notice with
+  the rule off.
+- **Rotary.org goals page (owner 2026-11-09, "create that page too and keep it off")**: District dashboard >
+  "Rotary.org Goals" (`admin/src/app/district-admin-dashboard/goal-setting-rotary`): the district's Rotary.org
+  figures by year, District and All clubs Excel reports, and the DG "Sync from Rotary.org" panel. One module
+  switch `goal_setting_rotary` ("Rotary.org goals and DG Sync") covers the page, its menu link and every
+  `api/goal-setting-rotary` route, sync included; off until a SuperAdmin turns it on in Settings > Features (the
+  API caches switches for 30 s). Figures are readable by SuperAdmin and the district's own admins / current DG.
+  Checked locally: off = page and link hidden; on = page renders, both Excel reports build, sync status answers
+  "not configured" until the credential key is set.
+
+## 2026-11-12: Eight languages only
+
+ROW offers only the eight launch languages from the build spec: English, French, German, Italian, Japanese, Korean,
+Portuguese, Spanish (`en fr de it ja ko pt es`). Before this, the web offered 110+ languages and the app 30, while
+the server translated only 8.
+
+- **API:** `CommsTemplates.SupportedLanguages` / `IsSupported`. `LanguageOf` returns null for any other language, so a
+  member whose stored language is, say, Hindi gets their tenant's language, then English. `LocalizationService.TranslateAsync`
+  returns English for other targets (nothing is sent to the provider). Comms settings and templates reject other codes.
+  Test: `api.Tests/LanguageTests.cs`.
+- **Web:** the UI picker, Settings > Translations, the website languages editor and the member "Primary Language" field
+  use `SUPPORTED_LOCALES` (`admin/src/i18n/config.ts`). `admin/src/i18n/worldLanguages.ts` deleted. `isLanguageCode`
+  (comms) accepts only the eight.
+- **App:** Settings > Language and the member language field list the eight.
+- **Fixed (app):** the member and profile forms set an unlisted stored language to null and saved it, so editing a
+  profile erased it. The stored value is now kept unless the member picks another.
+- Stored data is not changed: a member's existing "Hindi" stays in the database and is shown blank in the select.
+- **App string list refreshed:** `lib/core/i18n/ui_strings.g.dart` was out of date after the RIZones pull, so new text
+  such as "Quick access" was never sent for translation. Re-ran `tool/gen_ui_strings.py` (4,704 strings).
+- **App home, Quick access labels:** fixed line height (`StrutStyle`); the Japanese and Korean fonts are taller and the
+  second line was cut off.
+- **Language test, 2026-11-12:** LibreTranslate on the dev machine (not the server script, no scheduled task); web pages
+  crawled in all 8 languages with `kb/tools/admin_crawl.py lang=<code>` and compared by `kb/tools/i18n_crawl_report.py`;
+  app checked on the emulator (home, menu, settings, language screen) in all 8.
+- **UI label glossary (owner decision 2026-11-12: glossary + DeepL):** machine translation gets one- and two-word labels
+  wrong (Korean "Club" -> "(주)", "Sign In" -> "이름 *"; German "Sign In" -> "Zeichen"). 1,995 short labels (one to four
+  words) from the web and app: menus, buttons, headings, field names, status messages and first screens, are translated in `database/translations/ui-labels-*.json` (Rotary
+  terminology: Club, District, Dues, Governor, avenues of service, Foundation funds; Brazilian Portuguese). They load
+  into `translation_memory` as `is_override = 1, provider = 'glossary'`, which beats the provider; a hand correction
+  from Settings > Translations is never overwritten. Build: `python -I row/database/translations/build_sql.py`
+  (checks every key is real web or app text). Output: `database/maintenance/2026-11-12-ui-label-glossary.sql` (+ `-down`).
+  - **Batch 10 (2026-11-12):** labels LibreTranslate returned unchanged (still English) and cached, found by the
+    all-language crawl. Left in English on purpose: brand names, language names, people and place names in demo
+    text, and words the language itself uses (German "Dashboard", "Past President"; Italian "Email"; French "Total").
+  - **Batches 11-20 (2026-11-13), app without a provider:** every app UI string in `ui_strings.g.dart` that the
+    glossary did not cover (1,760 strings, 7 languages each; glossary now 3,755 labels, 26,285 rows). With these the
+    app runs in all 8 languages on `Translation__Provider = none`: the API serves memory rows and sends nothing out,
+    and what users type is never translated. Left out on purpose (about 1,400 entries): code fragments, field keys,
+    date formats, MIME types, e-mail placeholders, network error tokens, and the Indian demo names and places from
+    the mock data.
+  - **Batches 21-28 (2026-11-13), web labels:** text from the 2026-11-12 English admin crawl that is in the admin
+    source but not in the glossary (839 labels: page headings, help text, empty states, Super Admin settings, and the
+    country list in `constants/countries.ts`). Glossary now 4,594 labels, 32,158 rows. Left out on purpose: route
+    paths, time-zone IDs, code tokens, brand and platform names, counts with numbers in them, and the text of the
+    legal pages (terms, privacy, cookies, refunds, data processing agreement): legal text needs a reviewed
+    translation, not a glossary one. `build_sql.py` now also checks keys against `.ts` files, not only `.tsx`.
+  - **Production:** run the SQL file, then recycle the API app pool (the API caches translations in memory). Web and
+    app drop their saved translations by themselves (the file bumps `translation_memory_version`).
+  - **DeepL for the rest:** in the server's `api\web.config` set `Translation__Provider = deepl` and
+    `Translation__ApiKey = <key>` (a free key ends in `:fx`; the free plan is 500,000 characters a month and
+    `Translation__MonthlyCharLimit` defaults to 450,000). Then recycle. Note: page text, member names included, then
+    goes to DeepL's servers.
+  - Not covered: longer sentences (DeepL handles them well) and text built at run time. Add any label DeepL gets wrong
+    to the JSON files and rebuild.
+  - Found while building it: `mobile/lib/data/mock/district_overview_mock.dart` holds Indian demo clubs and people
+    (Airoli, Dombivli, Agarwal...) and `core/services/district_analytics_service.dart` still reads it. To check.

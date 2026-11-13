@@ -59,7 +59,8 @@ export default function ClubsPage() {
         search || undefined,
         districtId ? parseInt(districtId) : undefined,
         city || undefined,
-        meetingDay || undefined
+        meetingDay || undefined,
+        undefined, undefined, true
       );
       setData(result);
     } catch (err) {
@@ -83,7 +84,8 @@ export default function ClubsPage() {
       search || undefined,
       districtId ? parseInt(districtId) : undefined,
       city || undefined,
-      meetingDay || undefined
+      meetingDay || undefined,
+      undefined, undefined, true
     )
       .then(result => setData(result))
       .catch(err => setError(err instanceof Error ? err.message : "Failed to fetch clubs"))

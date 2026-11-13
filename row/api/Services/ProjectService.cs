@@ -351,9 +351,9 @@ public class ProjectService : IProjectService
         if (dto.SendEmail && clubId > 0)
         {
             int emailMemberCount = await conn.ExecuteScalarAsync<int>(
-                @"SELECT COUNT(*) FROM club_members cm
+                $@"SELECT COUNT(*) FROM club_members cm
                   JOIN member_master_profile m ON m.pk_member_master_profile_id = cm.fk_member_master_profile_id
-                  WHERE cm.fk_club_id = @Id AND cm.IsActive = 1 AND cm.isdeleted = 0 AND m.isdeleted = 0
+                  WHERE cm.fk_club_id = @Id AND cm.IsActive = 1 AND cm.isdeleted = 0 AND m.isdeleted = 0 AND {HierarchyScopeSql.ClubIdLive("cm.fk_club_id")}
                     AND m.EmailId IS NOT NULL AND m.EmailId <> ''",
                 new { Id = clubId });
             if (emailMemberCount > 0)
@@ -518,9 +518,9 @@ public class ProjectService : IProjectService
         if (dto.SendEmail && clubIdForCheck > 0)
         {
             int emailMemberCount = await conn.ExecuteScalarAsync<int>(
-                @"SELECT COUNT(*) FROM club_members cm
+                $@"SELECT COUNT(*) FROM club_members cm
                   JOIN member_master_profile m ON m.pk_member_master_profile_id = cm.fk_member_master_profile_id
-                  WHERE cm.fk_club_id = @Id AND cm.IsActive = 1 AND cm.isdeleted = 0 AND m.isdeleted = 0
+                  WHERE cm.fk_club_id = @Id AND cm.IsActive = 1 AND cm.isdeleted = 0 AND m.isdeleted = 0 AND {HierarchyScopeSql.ClubIdLive("cm.fk_club_id")}
                     AND m.EmailId IS NOT NULL AND m.EmailId <> ''",
                 new { Id = clubIdForCheck });
             if (emailMemberCount > 0)
@@ -1048,7 +1048,7 @@ public class ProjectService : IProjectService
         using var conn = CreateConnection();
         await conn.OpenAsync();
         var tables = await _yearTables.GetAllExistingYearTablesAsync(conn);
-        if (tables.Count == 0) return new List<ProjectYearDto>();
+        var years = new List<ProjectYearDto>();
 
         // Each UNION leg is wrapped in parens — MySQL rejects `LIMIT 1 UNION ALL` without them.
         // The leg returns at most one row per year (LIMIT 1 inside the parens) — that row only
@@ -1063,8 +1063,20 @@ public class ProjectService : IProjectService
                 WHERE fk_club_id = @ClubId AND fk_module_id = @ModuleId AND isdeleted = 0
                 LIMIT 1)"));
 
-        return (await conn.QueryAsync<ProjectYearDto>(
-            $"SELECT * FROM ({unionLegs}) u ORDER BY u.IsCurrent DESC, u.StartDate DESC",
-            new { ClubId = clubId, ModuleId = moduleId })).ToList();
+        if (tables.Count > 0)
+            years = (await conn.QueryAsync<ProjectYearDto>(
+                $"SELECT * FROM ({unionLegs}) u ORDER BY u.IsCurrent DESC, u.StartDate DESC",
+                new { ClubId = clubId, ModuleId = moduleId })).ToList();
+
+        // The current Rotary year is always listed, even with no projects yet (upstream 2026-11-03),
+        // so a club can open it and add its first project of the year.
+        if (!years.Any(y => y.IsCurrent))
+        {
+            var current = await conn.QueryFirstOrDefaultAsync<ProjectYearDto>(@"
+                SELECT pk_year_id AS Id, YearLabel, StartDate, EndDate, IsCurrent
+                FROM rotary_year_master WHERE IsCurrent = 1 AND isdeleted = 0 ORDER BY pk_year_id DESC LIMIT 1");
+            if (current != null) years.Insert(0, current);
+        }
+        return years;
     }
 }

@@ -47,6 +47,12 @@ public class MembershipDuesService : IMembershipDuesService
 
     private MySqlConnection GetConnection() => new(_connStr);
 
+    // Dues campaign row (alias) belongs to a live club and a live district: an inactive club /
+    // district / zone hides its dues listings, member lists, reports and reminder recipients.
+    // Payment / receipt / webhook paths deliberately do NOT use this (money must still reconcile).
+    private static string DuesLiveSql(string a = "md") =>
+        $" AND {HierarchyScopeSql.ClubIdLive(a + ".fk_club_id")} AND {HierarchyScopeSql.DistrictIdLive(a + ".fk_district_id")}";
+
     // Online amount is always DERIVED from the ONE true (base/offline) amount
     // plus the campaign's own OnlineSurchargePercent — never separately
     // stored. Mirrors ClubDuesService's onlineOwed formula/rounding.

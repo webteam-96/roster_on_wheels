@@ -20,11 +20,12 @@ export const metadata: Metadata = {
 //
 // The PageBanner is not decorative — the hub's first child is a -mt-16 filter console
 // that expects a banner seam directly above it, and it carries the page's only <h1>.
-export default async function ProjectsPage({
-  searchParams,
-}: {
-  searchParams: { area?: string | string[] };
-}) {
+export default async function ProjectsPage(
+  props: {
+    searchParams: Promise<{ area?: string | string[] }>;
+  }
+) {
+  const searchParams = await props.searchParams;
   // ?area=<cause> deep-link from the home page, About and /projects/[id]; the
   // hub matches it loosely via normArea(). A repeated param arrives as an
   // array — ignore it rather than hand normArea() a non-string.

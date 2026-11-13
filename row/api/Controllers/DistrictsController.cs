@@ -49,9 +49,11 @@ public class DistrictsController : ControllerBase
         [FromQuery] int? zoneId = null,
         [FromQuery] bool? hasClubs = null,
         [FromQuery] bool? hasMembers = null,
-        [FromQuery] bool? hasSyncClubs = null)
+        [FromQuery] bool? hasSyncClubs = null,
+        [FromQuery] bool includeInactive = false)
     {
-        var result = await _districtService.GetAllAsync(page, pageSize, search, isActive, zoneId, hasClubs, hasMembers, hasSyncClubs);
+        // includeInactive = District master listing only (SuperAdmin); everyone else sees live districts.
+        var result = await _districtService.GetAllAsync(page, pageSize, search, isActive, zoneId, hasClubs, hasMembers, hasSyncClubs, includeInactive && IsSuperAdmin());
         return Ok(result);
     }
 

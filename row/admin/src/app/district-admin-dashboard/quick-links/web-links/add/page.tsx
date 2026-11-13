@@ -20,6 +20,8 @@ import dynamic from "next/dynamic";
 import { WeblinkTree } from "@/types/weblink";
 import { createDistrictWeblink, getDistrictWeblinkTree } from "@/services/api";
 import { useAuth } from "@/contexts/AuthContext";
+import { districtYearRights, canEditYearless } from "@/lib/adminYears";
+import { useRotaryYears } from "@/hooks/useRotaryYears";
 import { isValidWebUrl, INVALID_URL_MESSAGE } from "@/lib/urlValidation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -64,7 +66,7 @@ function linkTypeOptions(level: number): string[] {
 }
 
 export default function AddWebLinkPage() {
-  const { selectedDistrictId } = useAuth();
+  const { selectedDistrictId, isSuperAdmin, isAdmin, user } = useAuth();
   const districtId = selectedDistrictId ?? 0;
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -119,6 +121,22 @@ export default function AddWebLinkPage() {
 
   const goBack = () => router.push(returnTo || listingFallback);
 
+  // Web links carry NO Rotary year — one live set — so adding one needs
+  // CURRENT-year rights, the same rule as the listing. Nothing here is worth
+  // reading, so someone without those rights goes straight back rather than
+  // filling in a form the server would refuse.
+  //
+  // ⚠️ Waits for dCurrentYearId. Until the years arrive it is undefined, which
+  // reads as "cannot edit" — bouncing on that would throw out an admin who is
+  // entitled to be here, on nothing more than a slow request.
+  const { currentYearId: dCurrentYearId } = useRotaryYears();
+  const rights = useMemo(() => districtYearRights(user?.scopedRoles, districtId), [user?.scopedRoles, districtId]);
+  const canManage = (isSuperAdmin || isAdmin) && canEditYearless(rights, dCurrentYearId, isSuperAdmin);
+  const backTo = returnTo || listingFallback;
+  useEffect(() => {
+    if (dCurrentYearId !== undefined && !canManage) router.replace(backTo);
+  }, [canManage, dCurrentYearId, backTo, router]);
+
   const handleSave = async () => {
     if (!title.trim()) { setErrorMessage("Title is required."); return; }
     if (linkType === "URL" && !linkUrl.trim()) { setErrorMessage("Link URL is required."); return; }
@@ -149,6 +167,8 @@ export default function AddWebLinkPage() {
   };
 
   if (!districtId) return null;
+  // The effect above is already sending them back; don't flash the form first.
+  if (dCurrentYearId !== undefined && !canManage) return null;
 
   const showLinkTypeSelect = level <= 2;
   const showUrl = linkType === "URL" || level === 3;

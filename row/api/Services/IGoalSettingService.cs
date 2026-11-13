@@ -86,4 +86,10 @@ public interface IGoalSettingService
     // Club Foundation sample (MCR layout, one row per current synced club, 0 baseline).
     Task<byte[]> BuildFoundationClubSampleExcelAsync();
     Task<(byte[] File, int Filled, int Missing)> ConvertFoundationMcrToClubFileAsync(Stream mcrStream);
+
+    // New Goal Setting (Rotary.org), ported from upstream.
+    Task<byte[]?> BuildRotaryDistrictReportAsync(int memberId, IReadOnlyList<int> districtIds, int? yearId, bool oversight);
+    Task<byte[]?> BuildRotaryClubReportAsync(int memberId, int clubId, int? yearId);
+    Task<byte[]?> BuildRotaryAllClubsReportAsync(int memberId, int districtId, int? yearId, bool oversight);
+    Task<(int Changed, int Skipped)> SetDistrictClubsLockAsync(int memberId, int districtId, int yearId, IReadOnlyList<int> categoryIds, int clubId, bool locked);
 }

@@ -50,7 +50,9 @@ public class CreditManagementService : ICreditManagementService
         using var connection = CreateConnection();
         await connection.OpenAsync();
 
-        var conditions = new List<string> { "cc.isdeleted = 0" };
+        var conditions = new List<string> { "cc.isdeleted = 0",
+            // Hidden club / district (inactive club, district or zone, user 2026-10-21) drop out of the list.
+            HierarchyScopeSql.DistrictIdLive("cc.fk_district_id"), HierarchyScopeSql.ClubIdLive("cc.fk_club_id") };
         if (districtId.HasValue && districtId > 0) conditions.Add("cc.fk_district_id = @DistrictId");
         if (clubId.HasValue && clubId > 0) conditions.Add("cc.fk_club_id = @ClubId");
         if (!string.IsNullOrEmpty(creditType)) conditions.Add("cc.CreditType = @CreditType");
@@ -567,7 +569,7 @@ public class CreditManagementService : ICreditManagementService
     public async Task<List<CreditUsageHistoryDto>> GetUsageHistoryAsync(int? clubId, int? districtId, string? creditType, int page, int pageSize)
     {
         using var connection = CreateConnection();
-        var conditions = new List<string>();
+        var conditions = new List<string> { HierarchyScopeSql.DistrictIdLive("h.fk_district_id"), HierarchyScopeSql.ClubIdLive("h.fk_club_id") };
         if (clubId.HasValue && clubId > 0) conditions.Add("h.fk_club_id = @ClubId");
         if (districtId.HasValue && districtId > 0) conditions.Add("h.fk_district_id = @DistrictId");
         if (!string.IsNullOrEmpty(creditType)) conditions.Add("h.CreditType = @CreditType");

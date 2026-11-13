@@ -184,7 +184,7 @@ public class SubGroupService : ISubGroupService
         await connection.OpenAsync();
 
         return await connection.QueryAsync<SubGroupMemberDto>(
-            @"SELECT m.pk_member_master_profile_id AS MemberId, m.MemberName, m.EmailId AS Email,
+            $@"SELECT m.pk_member_master_profile_id AS MemberId, m.MemberName, m.EmailId AS Email,
                      m.PrimaryMobileNumber AS MobileNumber,
                      CASE
                          WHEN m.ProfilePhotoPath IS NULL OR m.ProfilePhotoPath = '' THEN NULL
@@ -194,6 +194,7 @@ public class SubGroupService : ISubGroupService
               FROM member_master_profile m
               INNER JOIN club_members cm ON cm.fk_member_master_profile_id = m.pk_member_master_profile_id
               WHERE cm.fk_club_id = @ClubId AND cm.IsActive = 1 AND cm.isdeleted = 0 AND m.isdeleted = 0
+                AND {HierarchyScopeSql.ClubIdLive("cm.fk_club_id")}
               ORDER BY m.MemberName",
             new { ClubId = clubId });
     }
@@ -204,7 +205,7 @@ public class SubGroupService : ISubGroupService
         await connection.OpenAsync();
 
         return await connection.QueryAsync<SubGroupMemberDto>(
-            @"SELECT DISTINCT m.pk_member_master_profile_id AS MemberId, m.MemberName, m.EmailId AS Email,
+            $@"SELECT DISTINCT m.pk_member_master_profile_id AS MemberId, m.MemberName, m.EmailId AS Email,
                      m.PrimaryMobileNumber AS MobileNumber,
                      CASE
                          WHEN m.ProfilePhotoPath IS NULL OR m.ProfilePhotoPath = '' THEN NULL
@@ -216,6 +217,7 @@ public class SubGroupService : ISubGroupService
               INNER JOIN club_members cm ON cm.fk_member_master_profile_id = m.pk_member_master_profile_id
               INNER JOIN club_master c ON c.pk_club_id = cm.fk_club_id
               WHERE c.fk_district_id = @DistrictId AND cm.IsActive = 1 AND cm.isdeleted = 0 AND m.isdeleted = 0
+                AND {HierarchyScopeSql.ClubLive("c")}
               ORDER BY c.ClubName, m.MemberName",
             new { DistrictId = districtId });
     }

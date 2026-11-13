@@ -24,7 +24,7 @@
  * ---------------------------------------------------------------------------
  */
 
-import { useState, useEffect, useCallback, useRef, Fragment } from "react";
+import { useState, useEffect, useCallback, useRef, Fragment, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ClubMenu, ClubSubMenu, LINK_TYPES, isHomeMenu } from "@/types/menu";
 import {
@@ -44,6 +44,9 @@ import {
 } from "@/services/api";
 import { useDragSort } from "@/hooks/useDragSort";
 import { useAuth } from "@/contexts/AuthContext";
+import { districtYearRights, canEditYearless } from "@/lib/adminYears";
+import { useRotaryYears } from "@/hooks/useRotaryYears";
+import ViewOnlyBadge from "@/components/ViewOnlyBadge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -144,7 +147,7 @@ export default function DistrictAdminMenuListPage() {
     router.push(`${dest}${sep}yearId=${encodeURIComponent(currentYearId)}`);
   };
 
-  const { isSuperAdmin, isAdmin, selectedDistrictId } = useAuth();
+  const { isSuperAdmin, isAdmin, selectedDistrictId, user } = useAuth();
   const districtId = selectedDistrictId ?? 0;
 
   const [districtNumber, setDistrictNumber] = useState("");
@@ -178,7 +181,17 @@ export default function DistrictAdminMenuListPage() {
   // Delete
   const [deleteTarget, setDeleteTarget] = useState<{ type: "menu" | "submenu"; item: ClubMenu | ClubSubMenu; menuId?: number } | null>(null);
 
-  const canManage = isSuperAdmin || isAdmin;
+  // No Rotary year on this data — one menu, one set of links, one About page,
+  // all live now — so changing it needs CURRENT-year rights.
+  // Named siteCurrentYearId: this page already has its own currentYearId.
+  const { years: rotaryYears, currentYearId: siteCurrentYearId } = useRotaryYears();
+  const siteRights = useMemo(() => districtYearRights(user?.scopedRoles, districtId), [user?.scopedRoles, districtId]);
+  const canManage = (isSuperAdmin || isAdmin) && canEditYearless(siteRights, siteCurrentYearId, isSuperAdmin);
+  // YWAR-BADGE-YEARLESS — name the CURRENT year, not the years held.
+  // This data is not filed by Rotary year, so "you can make changes in
+  // 2025-26" is untrue: those years cannot help here. See ViewOnlyBadge.
+  const ywarCurrentYearLabel =
+    rotaryYears.find((y) => y.id === siteCurrentYearId)?.yearLabel ?? "";
 
   const filteredMenus = menus.filter((menu) => {
     if (!searchQuery.trim()) return true;
@@ -664,6 +677,10 @@ export default function DistrictAdminMenuListPage() {
 
   return (
     <ProtectedRoute>
+      {!canManage && (
+        <ViewOnlyBadge currentYearOnly={ywarCurrentYearLabel} className="mb-4" />
+      )}
+
       <div className="space-y-6">
         {/* ── Header card ────────────────────────────────────────────── */}
         <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">

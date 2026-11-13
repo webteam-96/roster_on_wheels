@@ -34,8 +34,7 @@ import {
   ResetPasswordRequest,
   ChangePasswordRequest,
   AssignRoleRequest,
-  RemoveRoleRequest,
-} from "@/types/auth";
+  RemoveRoleRequest, AdminYearOptions } from "@/types/auth";
 import { DistrictListItem, District, CreateDistrictRequest, UpdateDistrictRequest, DistrictMember } from "@/types/district";
 import { ClubListItem, Club, CreateClubRequest, UpdateClubRequest, ClubMemberItem, AddClubMemberRequest, TerminatedMember } from "@/types/club";
 import { ZoneListItem, Zone, CreateZoneRequest, UpdateZoneRequest } from "@/types/zone";
@@ -1307,6 +1306,19 @@ export async function getLoginLogs(
   return response.data;
 }
 
+// Year-wise Admin Rights: what years the caller may grant, and what the target
+// member already holds. Club and district return the SAME shape on purpose, so
+// AdminYearsDialog can render either without branching.
+export async function getAdminYearOptions(
+  scope: { kind: "club"; clubId: number } | { kind: "district"; districtId: number },
+  memberId: number
+): Promise<AdminYearOptions> {
+  const res = scope.kind === "club"
+    ? await api.get("/api/admin/club-admin-years", { params: { clubId: scope.clubId, memberId } })
+    : await api.get("/api/admin/district-admin-years", { params: { districtId: scope.districtId, memberId } });
+  return res.data;
+}
+
 // Admin APIs
 export async function assignRole(
   data: AssignRoleRequest
@@ -1433,11 +1445,14 @@ export async function getZones(
   page: number = 1,
   pageSize: number = 12,
   search?: string,
-  isActive?: number
+  isActive?: number,
+  includeInactive?: boolean
 ): Promise<PagedResult<ZoneListItem>> {
-  const params: Record<string, string | number> = { page, pageSize };
+  const params: Record<string, string | number | boolean> = { page, pageSize };
   if (search) params.search = search;
   if (isActive !== undefined && isActive !== null) params.isActive = isActive;
+  // Zone master listing only: inactive zones are hidden everywhere else.
+  if (includeInactive) params.includeInactive = true;
   const response = await api.get("/api/zones", { params });
   return response.data;
 }
@@ -1677,7 +1692,8 @@ export async function getDistricts(
   zoneId?: number,
   hasClubs?: boolean,
   hasMembers?: boolean,
-  hasSyncClubs?: boolean
+  hasSyncClubs?: boolean,
+  includeInactive?: boolean
 ): Promise<PagedResult<DistrictListItem>> {
   const params: Record<string, string | number | boolean> = { page, pageSize };
   if (search) params.search = search;
@@ -1686,6 +1702,8 @@ export async function getDistricts(
   if (hasClubs !== undefined && hasClubs !== null) params.hasClubs = hasClubs;
   if (hasMembers !== undefined && hasMembers !== null) params.hasMembers = hasMembers;
   if (hasSyncClubs !== undefined && hasSyncClubs !== null) params.hasSyncClubs = hasSyncClubs;
+  // District master listing only: inactive districts are hidden everywhere else.
+  if (includeInactive) params.includeInactive = true;
   const response = await api.get("/api/districts", { params });
   return response.data;
 }
@@ -1752,15 +1770,18 @@ export async function getClubs(
   city?: string,
   meetingDay?: string,
   isActive?: number,
-  zoneId?: number
+  zoneId?: number,
+  includeInactive?: boolean
 ): Promise<PagedResult<ClubListItem>> {
-  const params: Record<string, string | number> = { page, pageSize };
+  const params: Record<string, string | number | boolean> = { page, pageSize };
   if (search) params.search = search;
   if (districtId) params.districtId = districtId;
   if (city) params.city = city;
   if (meetingDay) params.meetingDay = meetingDay;
   if (isActive !== undefined && isActive !== null) params.isActive = isActive;
   if (zoneId) params.zoneId = zoneId;
+  // Club master listing only: inactive clubs are hidden everywhere else.
+  if (includeInactive) params.includeInactive = true;
   const response = await api.get("/api/clubs", { params });
   return response.data;
 }
@@ -4317,8 +4338,11 @@ export async function getMassEmailSenderInfo(): Promise<{ senderEmail: string }>
 }
 
 // ===== District Members (Directory) Admin =====
-export async function assignDistrictAdmin(districtId: number, memberId: number) {
-  const res = await api.post(`/api/districts/${districtId}/members/${memberId}/assign-admin`);
+export async function assignDistrictAdmin(
+  districtId: number, memberId: number, years?: { yearIds: number[]; allYears: boolean }
+) {
+  // Body is optional server-side: sending none means the current year only.
+  const res = await api.post(`/api/districts/${districtId}/members/${memberId}/assign-admin`, years ?? {});
   return res.data;
 }
 
@@ -4336,8 +4360,10 @@ export async function setDistrictAdminClubAccess(districtId: number, memberId: n
 
 // District Admin (or SuperAdmin): promote a member to District Admin for this district.
 // Never grants club access — that stays SuperAdmin-only.
-export async function assignDistrictAdminByDistrictAdmin(districtId: number, memberId: number) {
-  const res = await api.post(`/api/district-admin/districts/${districtId}/members/${memberId}/assign-admin`);
+export async function assignDistrictAdminByDistrictAdmin(
+  districtId: number, memberId: number, years?: { yearIds: number[]; allYears: boolean }
+) {
+  const res = await api.post(`/api/district-admin/districts/${districtId}/members/${memberId}/assign-admin`, years ?? {});
   return res.data;
 }
 
@@ -7421,4 +7447,156 @@ export async function getOnboardingKitHtml(districtId: number, clubId: number): 
 }
 export async function sendOnboardingNudge(districtId: number, clubId: number): Promise<{ sent: number }> {
   return (await api.post<{ sent: number }>(`/api/districts/${districtId}/onboarding-kit/clubs/${clubId}/nudge`)).data;
+}
+
+// ── Year-wise Admin Rights (upstream pull 2026-11-06) ──
+export interface YearRuleScopeOverride {
+  districtId: number;
+  districtNumber: string | null;
+  clubId: number;
+  clubName: string | null;
+  isEnabled: boolean;
+  notes: string | null;
+  modifiedDate: string | null;
+  modifiedByName: string | null;
+}
+
+export interface YearRuleSettings {
+  globalEnabled: boolean;
+  globalModifiedDate: string | null;
+  globalModifiedByName: string | null;
+  districts: YearRuleScopeOverride[];
+  clubs: YearRuleScopeOverride[];
+}
+
+export interface YearRulePreflightAdmin {
+  memberId: number;
+  memberName: string;
+  sources: string[];
+  years: string[];
+  allYears: boolean;
+  /** No years at all — every edit button goes away the moment the rule applies. */
+  wouldLoseAccess: boolean;
+}
+
+export interface YearRulePreflight {
+  scopeLabel: string;
+  allYearsCount: number;
+  someYearsCount: number;
+  noYearsCount: number;
+  admins: YearRulePreflightAdmin[];
+  /** District flips only: clubs underneath that will newly start enforcing. */
+  cascadeClubCount: number;
+  cascadeAdminsWithNoYears: number;
+}
+
+export async function getYearRuleSettings(): Promise<YearRuleSettings> {
+  const { data } = await api.get("/api/settings/year-rule");
+  return data;
+}
+
+export async function setYearRuleGlobal(isEnabled: boolean): Promise<{ message: string; isEnabled: boolean }> {
+  const { data } = await api.put("/api/settings/year-rule/global", { isEnabled });
+  return data;
+}
+
+export async function setYearRuleDistrict(districtId: number, isEnabled: boolean, notes?: string) {
+  const { data } = await api.put(`/api/settings/year-rule/district/${districtId}`, { isEnabled, notes });
+  return data as { message: string; isEnabled: boolean };
+}
+
+export async function clearYearRuleDistrict(districtId: number) {
+  const { data } = await api.delete(`/api/settings/year-rule/district/${districtId}`);
+  return data as { message: string };
+}
+
+export async function setYearRuleClub(clubId: number, isEnabled: boolean, notes?: string) {
+  const { data } = await api.put(`/api/settings/year-rule/club/${clubId}`, { isEnabled, notes });
+  return data as { message: string; isEnabled: boolean };
+}
+
+export async function clearYearRuleClub(clubId: number) {
+  const { data } = await api.delete(`/api/settings/year-rule/club/${clubId}`);
+  return data as { message: string };
+}
+
+// Who loses what if this scope is switched ON. Pass exactly one of the two ids.
+export async function getYearRulePreflight(params: { clubId?: number; districtId?: number }): Promise<YearRulePreflight> {
+  const { data } = await api.get("/api/settings/year-rule/preflight", { params });
+  return data;
+}
+
+export interface YearRuleMessageSetting {
+  /** current_year_only | wrong_year_with_years | wrong_year_no_years | default_actions */
+  key: string;
+  /** What readers see today — the stored text, or the default. */
+  template: string;
+  default: string;
+  /** False when nobody has edited it, so "Reset" can be hidden. */
+  isCustom: boolean;
+  modifiedDate: string | null;
+  modifiedByName: string | null;
+}
+
+export interface YearRuleToken {
+  token: string;
+  describes: string;
+  /** What a screen that cannot fill this token shows instead. */
+  fallback: string;
+}
+
+export interface YearRuleMessagesSettings {
+  messages: YearRuleMessageSetting[];
+  tokens: YearRuleToken[];
+}
+
+export async function getYearRuleMessageSettings(): Promise<YearRuleMessagesSettings> {
+  const { data } = await api.get("/api/settings/year-rule/messages");
+  return data;
+}
+
+/** A blank or omitted `template` resets that message to its default. */
+export async function setYearRuleMessage(key: string, template?: string) {
+  const { data } = await api.put("/api/settings/year-rule/messages", { key, template });
+  return data as { message: string; key: string; isCustom: boolean; template: string };
+}
+
+// ─── Goal Setting: DG "Sync from Rotary.org" (2026-11-06) ─────────────────────────────────────
+export interface RotaryOrgSyncStatus {
+  canSync: boolean; asOn: string | null; configured?: boolean; estimateMinutes?: number;
+  current?: { id: number; status: "QUEUED" | "RUNNING"; stage: string | null; clubsDone: number; clubsTotal: number; queuePosition: number; etaSeconds: number; startedAt: string | null; requestedAt: string } | null;
+  savedLogin?: { email: string; allowNightly: boolean; status: "NEW" | "OK" | "EXPIRED" | "MFA" | "DISABLED"; statusMessage: string | null; lastOkAt: string | null } | null;
+  last?: { status: "DONE" | "FAILED" | "LOGIN_FAILED"; finishedAt: string | null; error: string | null; rows: number; clubs: number } | null;
+}
+export async function getRotaryOrgSyncStatus(districtId: number): Promise<RotaryOrgSyncStatus> {
+  return (await api.get("/api/goal-setting-rotary/sync/status", { params: { districtId } })).data;
+}
+export async function getRotaryOrgSyncAsOn(districtId: number): Promise<{ asOn: string | null }> {
+  return (await api.get("/api/goal-setting-rotary/sync/as-on", { params: { districtId } })).data;
+}
+export async function startRotaryOrgSync(body: { districtId: number; email?: string; password?: string; savePassword?: boolean; allowNightly?: boolean }): Promise<{ requestId: number; alreadyRunning: boolean }> {
+  return (await api.post("/api/goal-setting-rotary/sync/start", body)).data;
+}
+export async function setRotaryOrgSyncNightly(districtId: number, allowNightly: boolean) {
+  return (await api.post("/api/goal-setting-rotary/sync/nightly", { districtId, allowNightly })).data;
+}
+export async function removeRotaryOrgSyncLogin(districtId: number) {
+  return (await api.post("/api/goal-setting-rotary/sync/remove-login", { districtId })).data;
+}
+
+
+// ─── Rotary.org goals page (ROW, 2026-11-09): years, figures, Excel reports ──────────────────
+export interface GoalRotaryYear { id: number; yearLabel: string; isCurrent: boolean | number }
+export interface GoalRotaryOrgValue { itemName: string; kind: string; value: number | null; source: string | null; updatedAt: string }
+export async function getGoalRotaryYears(): Promise<GoalRotaryYear[]> {
+  return (await api.get("/api/goal-setting-rotary/years")).data;
+}
+export async function getGoalRotaryOrgValues(yearId: number, districtId: number): Promise<{ isCurrentYear: boolean; updatedAt: string | null; values: GoalRotaryOrgValue[] }> {
+  return (await api.get("/api/goal-setting-rotary/rotary-org-values", { params: { yearId, districtId } })).data;
+}
+export async function downloadGoalRotaryDistrictReport(districtId: number, yearId: number): Promise<Blob> {
+  return (await api.get("/api/goal-setting-rotary/report/districts", { params: { districtIds: String(districtId), yearId }, responseType: "blob" })).data;
+}
+export async function downloadGoalRotaryClubsReport(districtId: number, yearId: number): Promise<Blob> {
+  return (await api.get("/api/goal-setting-rotary/report/clubs-all", { params: { districtId, yearId }, responseType: "blob" })).data;
 }

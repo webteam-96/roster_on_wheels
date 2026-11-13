@@ -5,14 +5,63 @@ using RotaryApi.DTOs;
 
 namespace RotaryApi.Services;
 
-public class GoalSettingService : IGoalSettingService
+public partial class GoalSettingService : IGoalSettingService
 {
     private readonly string _cs;
+    private readonly IAdminYearService _adminYears;
 
-    public GoalSettingService(IConfiguration configuration)
+    public GoalSettingService(IConfiguration configuration, IAdminYearService adminYears)
     {
         _cs = configuration.GetConnectionString("DefaultConnection")
             ?? throw new InvalidOperationException("DefaultConnection missing");
+        _adminYears = adminYears;
+    }
+
+    /// <summary>
+    /// Year-wise Admin Rights for goal setting.
+    ///
+    /// The check lives HERE rather than in the controller because the club or
+    /// district is resolved inside this service — the caller may send no id at
+    /// all and get their own scope. Checking upstairs would have to guess it.
+    ///
+    /// Throws UnauthorizedAccessException, which the controllers already turn
+    /// into a 403 with the message intact.
+    /// </summary>
+    private async Task EnsureYearRightsAsync(
+        MySqlConnection conn, int memberId, int clubId, int districtId, int yearId)
+    {
+        if (yearId <= 0) return;   // the callers validate this themselves
+
+        // ROW has no goal oversight roles (module sheet), so upstream' GoalRoleYears check is not ported.
+
+        var rights = clubId > 0
+            ? await _adminYears.GetClubRightsAsync(conn, memberId, clubId)
+            : await _adminYears.GetDistrictRightsAsync(conn, memberId, districtId);
+
+        // ⚠️ Only people whose authority COMES FROM admin years are year-limited.
+        // ResolveClubIdAsync / ResolveDistrictIdAsync also admit a Zonal
+        // Coordinator (role 4) setting goals anywhere in their zone, and they
+        // hold no club or district admin row at all — rights.Any is false for
+        // them. Year-limiting on "no rights" would block the very people those
+        // resolvers just authorised, so defer to the scope check that already ran.
+        //
+        // ⚠️ But rights.Any is the WRONG test for that, because it is equally false
+        // for a scoped admin nobody has granted a year to — which is the DEFAULT
+        // state of an admin, not an exception. Testing it alone inverted the rule:
+        // fewer grants meant more power, and an un-granted admin could write and
+        // lock any year (QA 2026-10-16, blocker B2). So ask the question the comment
+        // above actually means — "does this person hold an admin row HERE?" — and
+        // exempt only those who do not, i.e. the ones another path authorised.
+        if (!rights.Any
+            && !await _adminYears.HasAdminStandingAsync(conn, memberId, clubId, districtId))
+            return;
+
+        if (rights.Covers(yearId)) return;
+
+        var label = await conn.ExecuteScalarAsync<string?>(
+            "SELECT YearLabel FROM rotary_year_master WHERE pk_year_id = @Id", new { Id = yearId })
+            ?? $"year {yearId}";
+        throw new UnauthorizedAccessException($"You do not have admin rights for {label}.");
     }
 
     private MySqlConnection CreateConnection() => new(_cs);
@@ -36,6 +85,15 @@ public class GoalSettingService : IGoalSettingService
     // Same shape as FoundationGoalsService.ResolveClubIdAsync, but the District Admin
     // override is UNCONDITIONAL here (no AllClubsAccess gate) — every District Admin must
     // be able to view/edit every one of their clubs' goals, per the Goal Setting spec.
+    // Hidden (inactive club / district / zone, user 2026-10-21): goal screens and Excel show nothing for it.
+    private static async Task<bool> GoalClubHiddenAsync(MySqlConnection conn, int clubId) =>
+        clubId > 0 && await conn.ExecuteScalarAsync<int>(
+            $"SELECT CASE WHEN {HierarchyScopeSql.ClubIdLive("@Id")} THEN 0 ELSE 1 END", new { Id = clubId }) == 1;
+
+    private static async Task<bool> GoalDistrictHiddenAsync(MySqlConnection conn, int districtId) =>
+        districtId > 0 && await conn.ExecuteScalarAsync<int>(
+            $"SELECT CASE WHEN {HierarchyScopeSql.DistrictIdLive("@Id")} THEN 0 ELSE 1 END", new { Id = districtId }) == 1;
+
     private async Task<int> ResolveClubIdAsync(MySqlConnection conn, int memberId, int? requestedClubId)
     {
         if (memberId <= 0) return 0;
@@ -259,7 +317,7 @@ public class GoalSettingService : IGoalSettingService
                 var tgTarget = list.FirstOrDefault(f => f.FieldKey == "total_contributions_target")?.NumericValue ?? 0m;
                 var tgAch = tgAchieved?.NumericValue ?? 0m;
                 tgPct.NumericValue = tgTarget > 0m
-                    ? Math.Round(Math.Max(0m, Math.Min(100m, tgAch / tgTarget * 100m)), 2, MidpointRounding.AwayFromZero)
+                    ? Math.Round(Math.Max(0m, tgAch / tgTarget * 100m), 2, MidpointRounding.AwayFromZero)
                     : 0m;
             }
         }
@@ -286,7 +344,7 @@ public class GoalSettingService : IGoalSettingService
                 var ctTarget = list.FirstOrDefault(f => f.FieldKey == "club_total_target")?.NumericValue ?? 0m;
                 var ctAch = clubTotal?.NumericValue ?? 0m;
                 clubTotalPct.NumericValue = ctTarget > 0m
-                    ? Math.Round(Math.Max(0m, Math.Min(100m, ctAch / ctTarget * 100m)), 2, MidpointRounding.AwayFromZero)
+                    ? Math.Round(Math.Max(0m, ctAch / ctTarget * 100m), 2, MidpointRounding.AwayFromZero)
                     : 0m;
             }
         }
@@ -340,7 +398,7 @@ public class GoalSettingService : IGoalSettingService
                 // Target 0 = "no target set" → 0% (nothing to measure, never 100%). Target = baseline
                 // (0 planned growth, but a real target) → 100% once you're at/above it.
                 pct = planned > 0m ? gained / planned * 100m : (tgt > 0m && ach >= tgt ? 100m : 0m);
-                pct = Math.Round(Math.Max(0m, Math.Min(100m, pct)), 0, MidpointRounding.AwayFromZero);
+                pct = Math.Round(Math.Max(0m, pct), 0, MidpointRounding.AwayFromZero);   // no 100% cap (upstream 2026-10-16): 24 of 12 = 200%
             }
             pctField.NumericValue = pct;
         }
@@ -364,7 +422,7 @@ public class GoalSettingService : IGoalSettingService
             var exist = list.FirstOrDefault(f => f.FieldKey == existKey)?.NumericValue ?? 0m;
             var planned = list.FirstOrDefault(f => f.FieldKey == planKey)?.NumericValue ?? 0m;
             pctField.NumericValue = planned > 0m
-                ? Math.Round(Math.Max(0m, Math.Min(100m, (ach - exist) / planned * 100m)), 0, MidpointRounding.AwayFromZero)
+                ? Math.Round(Math.Max(0m, (ach - exist) / planned * 100m), 0, MidpointRounding.AwayFromZero)
                 : 0m;
         }
 
@@ -446,8 +504,9 @@ public class GoalSettingService : IGoalSettingService
     {
         if (districtId <= 0) return 0;
         return await conn.ExecuteScalarAsync<int>(
-            @"SELECT COUNT(*) FROM club_master
+            $@"SELECT COUNT(*) FROM club_master
               WHERE fk_district_id = @Id AND IsActive = 1 AND isdeleted = 0
+                AND {HierarchyScopeSql.ClubLive("club_master")}
                 AND (@AsOf IS NULL OR ClubCharterDate IS NULL OR ClubCharterDate < @AsOf)",
             new { Id = districtId, AsOf = asOf });
     }
@@ -461,14 +520,14 @@ public class GoalSettingService : IGoalSettingService
     {
         if (districtId <= 0) return 0;
         return await conn.ExecuteScalarAsync<int>(
-            @"SELECT COUNT(DISTINCT m.pk_member_master_profile_id)
+            $@"SELECT COUNT(DISTINCT m.pk_member_master_profile_id)
               FROM club_members cm
               JOIN club_master c ON c.pk_club_id = cm.fk_club_id
               JOIN member_master_profile m ON m.pk_member_master_profile_id = cm.fk_member_master_profile_id
               WHERE c.fk_district_id = @Id
                 AND cm.IsActive = 1 AND cm.isdeleted = 0 AND cm.IsHonoraryMember = 0
                 AND c.IsActive = 1 AND c.isdeleted = 0
-                AND c.IsSyncedFromRotaryOrg = 1
+                AND c.IsSyncedFromRotaryOrg = 1 AND {HierarchyScopeSql.ClubLive("c")}
                 AND m.isdeleted = 0
                 AND (@AsOf IS NULL OR cm.JoinedDate IS NULL OR cm.JoinedDate < @AsOf)",
             new { Id = districtId, AsOf = asOf });
@@ -478,10 +537,10 @@ public class GoalSettingService : IGoalSettingService
     {
         if (clubId <= 0) return 0;
         return await conn.ExecuteScalarAsync<int>(
-            @"SELECT COUNT(DISTINCT m.pk_member_master_profile_id)
+            $@"SELECT COUNT(DISTINCT m.pk_member_master_profile_id)
               FROM club_members cm
               JOIN member_master_profile m ON m.pk_member_master_profile_id = cm.fk_member_master_profile_id
-              WHERE cm.fk_club_id = @Id
+              WHERE cm.fk_club_id = @Id AND {HierarchyScopeSql.ClubIdLive("cm.fk_club_id")}
                 AND cm.IsActive = 1 AND cm.isdeleted = 0 AND cm.IsHonoraryMember = 0
                 AND m.isdeleted = 0
                 AND (@AsOf IS NULL OR cm.JoinedDate IS NULL OR cm.JoinedDate < @AsOf)",
@@ -496,14 +555,14 @@ public class GoalSettingService : IGoalSettingService
     {
         if (districtId <= 0) return 0;
         return await conn.ExecuteScalarAsync<int>(
-            @"SELECT COUNT(DISTINCT m.pk_member_master_profile_id)
+            $@"SELECT COUNT(DISTINCT m.pk_member_master_profile_id)
               FROM club_members cm
               JOIN club_master c ON c.pk_club_id = cm.fk_club_id
               JOIN member_master_profile m ON m.pk_member_master_profile_id = cm.fk_member_master_profile_id
               WHERE c.fk_district_id = @Id
                 AND cm.IsActive = 1 AND cm.isdeleted = 0 AND cm.IsHonoraryMember = 0
                 AND c.IsActive = 1 AND c.isdeleted = 0
-                AND c.IsSyncedFromRotaryOrg = 1
+                AND c.IsSyncedFromRotaryOrg = 1 AND {HierarchyScopeSql.ClubLive("c")}
                 AND m.isdeleted = 0 AND m.Gender = 'Female'
                 AND (@AsOf IS NULL OR cm.JoinedDate IS NULL OR cm.JoinedDate < @AsOf)",
             new { Id = districtId, AsOf = asOf });
@@ -513,10 +572,10 @@ public class GoalSettingService : IGoalSettingService
     {
         if (clubId <= 0) return 0;
         return await conn.ExecuteScalarAsync<int>(
-            @"SELECT COUNT(DISTINCT m.pk_member_master_profile_id)
+            $@"SELECT COUNT(DISTINCT m.pk_member_master_profile_id)
               FROM club_members cm
               JOIN member_master_profile m ON m.pk_member_master_profile_id = cm.fk_member_master_profile_id
-              WHERE cm.fk_club_id = @Id
+              WHERE cm.fk_club_id = @Id AND {HierarchyScopeSql.ClubIdLive("cm.fk_club_id")}
                 AND cm.IsActive = 1 AND cm.isdeleted = 0 AND cm.IsHonoraryMember = 0
                 AND m.isdeleted = 0 AND m.Gender = 'Female'
                 AND (@AsOf IS NULL OR cm.JoinedDate IS NULL OR cm.JoinedDate < @AsOf)",
@@ -530,8 +589,9 @@ public class GoalSettingService : IGoalSettingService
     {
         if (districtId <= 0) return 0;
         return await conn.ExecuteScalarAsync<int>(
-            @"SELECT COUNT(*) FROM club_master
+            $@"SELECT COUNT(*) FROM club_master
               WHERE fk_district_id = @Id AND IsActive = 1 AND isdeleted = 0
+                AND {HierarchyScopeSql.ClubLive("club_master")}
                 AND ClubCharterDate IS NOT NULL
                 AND ClubCharterDate >= @S AND ClubCharterDate <= @E",
             new { Id = districtId, S = start, E = end });
@@ -542,14 +602,14 @@ public class GoalSettingService : IGoalSettingService
     {
         if (districtId <= 0) return 0;
         return await conn.ExecuteScalarAsync<int>(
-            @"SELECT COUNT(DISTINCT m.pk_member_master_profile_id)
+            $@"SELECT COUNT(DISTINCT m.pk_member_master_profile_id)
               FROM club_members cm
               JOIN club_master c ON c.pk_club_id = cm.fk_club_id
               JOIN member_master_profile m ON m.pk_member_master_profile_id = cm.fk_member_master_profile_id
               WHERE c.fk_district_id = @Id
                 AND cm.IsActive = 1 AND cm.isdeleted = 0 AND cm.IsHonoraryMember = 0
                 AND c.IsActive = 1 AND c.isdeleted = 0
-                AND c.IsSyncedFromRotaryOrg = 1
+                AND c.IsSyncedFromRotaryOrg = 1 AND {HierarchyScopeSql.ClubLive("c")}
                 AND m.isdeleted = 0 AND m.Gender = 'Female'
                 AND cm.JoinedDate IS NOT NULL
                 AND cm.JoinedDate >= @S AND cm.JoinedDate <= @E",
@@ -561,10 +621,10 @@ public class GoalSettingService : IGoalSettingService
     {
         if (clubId <= 0) return 0;
         return await conn.ExecuteScalarAsync<int>(
-            @"SELECT COUNT(DISTINCT m.pk_member_master_profile_id)
+            $@"SELECT COUNT(DISTINCT m.pk_member_master_profile_id)
               FROM club_members cm
               JOIN member_master_profile m ON m.pk_member_master_profile_id = cm.fk_member_master_profile_id
-              WHERE cm.fk_club_id = @Id
+              WHERE cm.fk_club_id = @Id AND {HierarchyScopeSql.ClubIdLive("cm.fk_club_id")}
                 AND cm.IsActive = 1 AND cm.isdeleted = 0 AND cm.IsHonoraryMember = 0
                 AND m.isdeleted = 0 AND m.Gender = 'Female'
                 AND cm.JoinedDate IS NOT NULL
@@ -577,14 +637,14 @@ public class GoalSettingService : IGoalSettingService
     {
         if (districtId <= 0) return 0;
         return await conn.ExecuteScalarAsync<int>(
-            @"SELECT COUNT(DISTINCT m.pk_member_master_profile_id)
+            $@"SELECT COUNT(DISTINCT m.pk_member_master_profile_id)
               FROM club_members cm
               JOIN club_master c ON c.pk_club_id = cm.fk_club_id
               JOIN member_master_profile m ON m.pk_member_master_profile_id = cm.fk_member_master_profile_id
               WHERE c.fk_district_id = @Id
                 AND cm.IsActive = 1 AND cm.isdeleted = 0 AND cm.IsHonoraryMember = 0
                 AND c.IsActive = 1 AND c.isdeleted = 0
-                AND c.IsSyncedFromRotaryOrg = 1
+                AND c.IsSyncedFromRotaryOrg = 1 AND {HierarchyScopeSql.ClubLive("c")}
                 AND m.isdeleted = 0
                 AND cm.JoinedDate IS NOT NULL
                 AND cm.JoinedDate >= @S AND cm.JoinedDate <= @E",
@@ -596,10 +656,10 @@ public class GoalSettingService : IGoalSettingService
     {
         if (clubId <= 0) return 0;
         return await conn.ExecuteScalarAsync<int>(
-            @"SELECT COUNT(DISTINCT m.pk_member_master_profile_id)
+            $@"SELECT COUNT(DISTINCT m.pk_member_master_profile_id)
               FROM club_members cm
               JOIN member_master_profile m ON m.pk_member_master_profile_id = cm.fk_member_master_profile_id
-              WHERE cm.fk_club_id = @Id
+              WHERE cm.fk_club_id = @Id AND {HierarchyScopeSql.ClubIdLive("cm.fk_club_id")}
                 AND cm.IsActive = 1 AND cm.isdeleted = 0 AND cm.IsHonoraryMember = 0
                 AND m.isdeleted = 0
                 AND cm.JoinedDate IS NOT NULL
@@ -614,7 +674,7 @@ public class GoalSettingService : IGoalSettingService
     {
         if (districtId <= 0) return (0, 0, 0, 0);
         var row = await conn.QueryFirstOrDefaultAsync<dynamic>(
-            @"SELECT
+            $@"SELECT
                   COALESCE(SUM(mc BETWEEN 10 AND 25), 0) AS Red,
                   COALESCE(SUM(mc BETWEEN 26 AND 40), 0) AS Amber,
                   -- GREEN is 41+ (was 41-50): the 'Super Green 51+' field was retired, so every club
@@ -630,7 +690,7 @@ public class GoalSettingService : IGoalSettingService
                   JOIN member_master_profile m ON m.pk_member_master_profile_id = cm.fk_member_master_profile_id
                        AND m.isdeleted = 0
                   WHERE c.fk_district_id = @Id AND c.IsActive = 1 AND c.isdeleted = 0
-                        AND c.IsSyncedFromRotaryOrg = 1
+                        AND c.IsSyncedFromRotaryOrg = 1 AND {HierarchyScopeSql.ClubLive("c")}
                   GROUP BY c.pk_club_id
               ) t",
             new { Id = districtId });
@@ -1629,6 +1689,10 @@ public class GoalSettingService : IGoalSettingService
             }
             if (hdr == 0)
                 throw new InvalidOperationException($"{what} file: could not find the District / # Club / # Member header. Upload Rotary.org's \"Comparison to 1 July\" file.");
+            // From Oct 2026 Rotary.org puts a "PRIOR YEAR" block (1 July of last year) in front; the
+            // current year's "1 July" and report-date columns are always the LAST two pairs (upstream 2026-11-04).
+            clubCols = clubCols.TakeLast(2).ToList();
+            memCols = memCols.TakeLast(2).ToList();
 
             // The report date sits above the second "# Club" column ("30 September 2026").
             DateTime? found = null;
@@ -1996,9 +2060,10 @@ public class GoalSettingService : IGoalSettingService
     // Clubs chartered per (year, month) — district (active, synced AND non-synced). Same filters as AchievedNewClubsDistrictAsync.
     private static Task<Dictionary<(int, int), int>> MonthlyNewClubsDistrictAsync(MySqlConnection conn, int districtId, DateTime start, DateTime end) =>
         MonthBucketsAsync(conn,
-            @"SELECT YEAR(ClubCharterDate) AS y, MONTH(ClubCharterDate) AS mo, COUNT(*) AS cnt
+            $@"SELECT YEAR(ClubCharterDate) AS y, MONTH(ClubCharterDate) AS mo, COUNT(*) AS cnt
               FROM club_master
               WHERE fk_district_id = @Id AND IsActive = 1 AND isdeleted = 0
+                AND {HierarchyScopeSql.ClubLive("club_master")}
                 AND ClubCharterDate IS NOT NULL AND ClubCharterDate >= @S AND ClubCharterDate <= @E
               GROUP BY YEAR(ClubCharterDate), MONTH(ClubCharterDate)",
             new { Id = districtId, S = start, E = end });
@@ -2006,13 +2071,13 @@ public class GoalSettingService : IGoalSettingService
     // Members joined per (year, month) — district (active, synced, non-honorary). Same filters as the Live/Achieved members query.
     private static Task<Dictionary<(int, int), int>> MonthlyNewMembersDistrictAsync(MySqlConnection conn, int districtId, DateTime start, DateTime end) =>
         MonthBucketsAsync(conn,
-            @"SELECT YEAR(cm.JoinedDate) AS y, MONTH(cm.JoinedDate) AS mo, COUNT(DISTINCT m.pk_member_master_profile_id) AS cnt
+            $@"SELECT YEAR(cm.JoinedDate) AS y, MONTH(cm.JoinedDate) AS mo, COUNT(DISTINCT m.pk_member_master_profile_id) AS cnt
               FROM club_members cm
               JOIN club_master c ON c.pk_club_id = cm.fk_club_id
               JOIN member_master_profile m ON m.pk_member_master_profile_id = cm.fk_member_master_profile_id
               WHERE c.fk_district_id = @Id
                 AND cm.IsActive = 1 AND cm.isdeleted = 0 AND cm.IsHonoraryMember = 0
-                AND c.IsActive = 1 AND c.isdeleted = 0 AND c.IsSyncedFromRotaryOrg = 1
+                AND c.IsActive = 1 AND c.isdeleted = 0 AND c.IsSyncedFromRotaryOrg = 1 AND {HierarchyScopeSql.ClubLive("c")}
                 AND m.isdeleted = 0
                 AND cm.JoinedDate IS NOT NULL AND cm.JoinedDate >= @S AND cm.JoinedDate <= @E
               GROUP BY YEAR(cm.JoinedDate), MONTH(cm.JoinedDate)",
@@ -2020,13 +2085,13 @@ public class GoalSettingService : IGoalSettingService
 
     private static Task<Dictionary<(int, int), int>> MonthlyNewWomenDistrictAsync(MySqlConnection conn, int districtId, DateTime start, DateTime end) =>
         MonthBucketsAsync(conn,
-            @"SELECT YEAR(cm.JoinedDate) AS y, MONTH(cm.JoinedDate) AS mo, COUNT(DISTINCT m.pk_member_master_profile_id) AS cnt
+            $@"SELECT YEAR(cm.JoinedDate) AS y, MONTH(cm.JoinedDate) AS mo, COUNT(DISTINCT m.pk_member_master_profile_id) AS cnt
               FROM club_members cm
               JOIN club_master c ON c.pk_club_id = cm.fk_club_id
               JOIN member_master_profile m ON m.pk_member_master_profile_id = cm.fk_member_master_profile_id
               WHERE c.fk_district_id = @Id
                 AND cm.IsActive = 1 AND cm.isdeleted = 0 AND cm.IsHonoraryMember = 0
-                AND c.IsActive = 1 AND c.isdeleted = 0 AND c.IsSyncedFromRotaryOrg = 1
+                AND c.IsActive = 1 AND c.isdeleted = 0 AND c.IsSyncedFromRotaryOrg = 1 AND {HierarchyScopeSql.ClubLive("c")}
                 AND m.isdeleted = 0 AND m.Gender = 'Female'
                 AND cm.JoinedDate IS NOT NULL AND cm.JoinedDate >= @S AND cm.JoinedDate <= @E
               GROUP BY YEAR(cm.JoinedDate), MONTH(cm.JoinedDate)",
@@ -2034,10 +2099,10 @@ public class GoalSettingService : IGoalSettingService
 
     private static Task<Dictionary<(int, int), int>> MonthlyNewMembersClubAsync(MySqlConnection conn, int clubId, DateTime start, DateTime end) =>
         MonthBucketsAsync(conn,
-            @"SELECT YEAR(cm.JoinedDate) AS y, MONTH(cm.JoinedDate) AS mo, COUNT(DISTINCT m.pk_member_master_profile_id) AS cnt
+            $@"SELECT YEAR(cm.JoinedDate) AS y, MONTH(cm.JoinedDate) AS mo, COUNT(DISTINCT m.pk_member_master_profile_id) AS cnt
               FROM club_members cm
               JOIN member_master_profile m ON m.pk_member_master_profile_id = cm.fk_member_master_profile_id
-              WHERE cm.fk_club_id = @Id
+              WHERE cm.fk_club_id = @Id AND {HierarchyScopeSql.ClubIdLive("cm.fk_club_id")}
                 AND cm.IsActive = 1 AND cm.isdeleted = 0 AND cm.IsHonoraryMember = 0
                 AND m.isdeleted = 0
                 AND cm.JoinedDate IS NOT NULL AND cm.JoinedDate >= @S AND cm.JoinedDate <= @E
@@ -2046,10 +2111,10 @@ public class GoalSettingService : IGoalSettingService
 
     private static Task<Dictionary<(int, int), int>> MonthlyNewWomenClubAsync(MySqlConnection conn, int clubId, DateTime start, DateTime end) =>
         MonthBucketsAsync(conn,
-            @"SELECT YEAR(cm.JoinedDate) AS y, MONTH(cm.JoinedDate) AS mo, COUNT(DISTINCT m.pk_member_master_profile_id) AS cnt
+            $@"SELECT YEAR(cm.JoinedDate) AS y, MONTH(cm.JoinedDate) AS mo, COUNT(DISTINCT m.pk_member_master_profile_id) AS cnt
               FROM club_members cm
               JOIN member_master_profile m ON m.pk_member_master_profile_id = cm.fk_member_master_profile_id
-              WHERE cm.fk_club_id = @Id
+              WHERE cm.fk_club_id = @Id AND {HierarchyScopeSql.ClubIdLive("cm.fk_club_id")}
                 AND cm.IsActive = 1 AND cm.isdeleted = 0 AND cm.IsHonoraryMember = 0
                 AND m.isdeleted = 0 AND m.Gender = 'Female'
                 AND cm.JoinedDate IS NOT NULL AND cm.JoinedDate >= @S AND cm.JoinedDate <= @E
@@ -2503,7 +2568,7 @@ public class GoalSettingService : IGoalSettingService
         var (resolvedYearId, yearLabel, isEditable) = await ResolveYearAsync(conn, yearId);
         if (resolvedYearId == 0) return null;
         var row = await conn.QueryFirstOrDefaultAsync<dynamic>(
-            "SELECT c.ClubName AS name, d.DistrictNumber AS num FROM club_master c LEFT JOIN district_master d ON d.pk_district_id = c.fk_district_id WHERE c.pk_club_id = @Id AND c.isdeleted = 0",
+            $"SELECT c.ClubName AS name, d.DistrictNumber AS num FROM club_master c LEFT JOIN district_master d ON d.pk_district_id = c.fk_district_id WHERE c.pk_club_id = @Id AND c.isdeleted = 0 AND {HierarchyScopeSql.ClubLive("c")}",
             new { Id = clubId });
         if (row == null) return null;
         string clubName = (row.name as string) ?? $"Club {clubId}";
@@ -2623,9 +2688,9 @@ public class GoalSettingService : IGoalSettingService
             decimal b = baseline ?? 0m;
             decimal planned = target.Value - b;
             if (planned <= 0m) return 0m;
-            return Math.Max(0m, Math.Min(100m, Math.Round((ach - b) / planned * 100m, 1)));
+            return Math.Max(0m, Math.Round((ach - b) / planned * 100m, 1));   // no 100% cap
         }
-        return Math.Max(0m, Math.Min(100m, Math.Round(ach / target.Value * 100m, decimals)));
+        return Math.Max(0m, Math.Round(ach / target.Value * 100m, decimals));
     }
 
     // One category's metric rows for one entity, with baseline / target / achieved / % resolved.
@@ -3071,7 +3136,7 @@ public class GoalSettingService : IGoalSettingService
                     // "385%" reads like a fault. Month-wise and Quarter only - the yearly screens keep
                     // showing the true figure.
                     decimal? pct = (qt.HasValue && qt.Value != 0m && qa.HasValue)
-                        ? Math.Min(100m, Math.Round(qa.Value / qt.Value * 100m, m.TwoDecimalPct ? 2 : 0, MidpointRounding.AwayFromZero)) : (decimal?)null;
+                        ? Math.Round(qa.Value / qt.Value * 100m, m.TwoDecimalPct ? 2 : 0, MidpointRounding.AwayFromZero) : (decimal?)null;   // no 100% cap
                     SetPctCell(s.Cell(r, c), pct, m.TwoDecimalPct);
                     c++;
                 }
@@ -3272,11 +3337,11 @@ public class GoalSettingService : IGoalSettingService
             decimal planned = target - baseline;
             decimal gained = cumAchieved - baseline;
             decimal pct = planned > 0m ? gained / planned * 100m : (target > 0m && cumAchieved >= target ? 100m : 0m);
-            return Math.Round(Math.Max(0m, Math.Min(100m, pct)), 0, MidpointRounding.AwayFromZero);
+            return Math.Round(Math.Max(0m, pct), 0, MidpointRounding.AwayFromZero);
         }
         // TRF had no cap here while the Membership branch above always had one, so a fund that beat
         // its target printed 118% on the Month-wise sheet. Capped to match (user 2026-09-25).
-        return target > 0m ? Math.Min(100m, Math.Round(cumAchieved / target * 100m, m.TwoDecimalPct ? 2 : 0, MidpointRounding.AwayFromZero)) : (decimal?)null;
+        return target > 0m ? Math.Round(cumAchieved / target * 100m, m.TwoDecimalPct ? 2 : 0, MidpointRounding.AwayFromZero) : (decimal?)null;   // no 100% cap
     }
 
     // ── ALL CLUBS in a district — one workbook (2 sheets: YTD + Month wise) with every club's goals
@@ -3313,6 +3378,7 @@ public class GoalSettingService : IGoalSettingService
             "SELECT DistrictNumber FROM district_master WHERE pk_district_id = @Id", new { Id = districtId }) ?? "";
         var clubs = (await conn.QueryAsync<(int Id, string Name)>(
             "SELECT pk_club_id AS Id, ClubName AS Name FROM club_master WHERE fk_district_id = @D AND isdeleted = 0 AND IsActive = 1"
+            + " AND " + HierarchyScopeSql.ClubLive("club_master")
             + (excludeRotaract ? " AND " + ClubScopeSql.NotRotaract("") : "") + " ORDER BY ClubName",
             new { D = districtId })).ToList();
         if (clubs.Count == 0) return null;
@@ -3677,7 +3743,7 @@ public class GoalSettingService : IGoalSettingService
 
         if (!await ClubAdminAccessHelper.IsSuperAdminAsync(conn, memberId)) return null;
 
-        string where = "d.isdeleted=0 AND d.IsActive=1";
+        string where = $"d.isdeleted=0 AND d.IsActive=1 AND {HierarchyScopeSql.DistrictLive("d")}";
         if (districtId is > 0) where += " AND d.pk_district_id=@Did";
         else if (zoneId is > 0) where += " AND d.fk_zone_id=@Zid";
         var districts = (await conn.QueryAsync<(int Id, string Number)>(
@@ -3736,7 +3802,7 @@ public class GoalSettingService : IGoalSettingService
         var districtId = await ResolveDistrictIdAsync(conn, memberId, requestedDistrictId);
         if (districtId == 0) return new List<GoalClubSummaryDto>();
 
-        var rows = await conn.QueryAsync<dynamic>(@"
+        var rows = await conn.QueryAsync<dynamic>($@"
             SELECT c.pk_club_id AS clubId, c.ClubName AS clubName,
                    (SELECT COUNT(*) FROM goal_entries e
                      JOIN goal_fields f ON f.pk_field_id = e.fk_field_id AND f.isdeleted = 0
@@ -3748,6 +3814,7 @@ public class GoalSettingService : IGoalSettingService
                        AND e.EntityType = 'Club' AND e.fk_club_id = c.pk_club_id AND e.isdeleted = 0) AS lastUpdatedDate
             FROM club_master c
             WHERE c.fk_district_id = @DistrictId AND c.isdeleted = 0 AND c.IsActive = 1
+              AND {HierarchyScopeSql.ClubLive("c")}
             ORDER BY c.ClubName",
             new { CategoryId = categoryId, YearId = yearId, DistrictId = districtId });
 
@@ -3797,6 +3864,7 @@ public class GoalSettingService : IGoalSettingService
         var clubs = (await conn.QueryAsync<(int Id, string Name)>(
             @"SELECT pk_club_id AS Id, ClubName AS Name FROM club_master
               WHERE fk_district_id = @D AND isdeleted = 0 AND IsActive = 1"
+            + " AND " + HierarchyScopeSql.ClubLive("club_master")
             + (excludeRotaract ? " AND " + ClubScopeSql.NotRotaract("") : "") + " ORDER BY ClubName",
             new { D = districtId })).ToList();
 
@@ -3888,6 +3956,7 @@ public class GoalSettingService : IGoalSettingService
         var clubs = (await conn.QueryAsync<(int Id, string Name)>(
             @"SELECT pk_club_id AS Id, ClubName AS Name FROM club_master
               WHERE fk_district_id = @D AND isdeleted = 0 AND IsActive = 1"
+            + " AND " + HierarchyScopeSql.ClubLive("club_master")
             + (excludeRotaract ? " AND " + ClubScopeSql.NotRotaract("") : "") + " ORDER BY ClubName",
             new { D = districtId })).ToList();
 
@@ -3947,13 +4016,13 @@ public class GoalSettingService : IGoalSettingService
     private static async Task<(string Band, int Count)> LiveClubRagBandAsync(MySqlConnection conn, int clubId)
     {
         var mc = await conn.ExecuteScalarAsync<int>(
-            @"SELECT COUNT(DISTINCT m.pk_member_master_profile_id)
+            $@"SELECT COUNT(DISTINCT m.pk_member_master_profile_id)
               FROM club_master c
               JOIN club_members cm ON cm.fk_club_id = c.pk_club_id
                    AND cm.IsActive = 1 AND cm.isdeleted = 0 AND cm.IsHonoraryMember = 0
               JOIN member_master_profile m ON m.pk_member_master_profile_id = cm.fk_member_master_profile_id
                    AND m.isdeleted = 0
-              WHERE c.pk_club_id = @Id AND c.IsActive = 1 AND c.isdeleted = 0 AND c.IsSyncedFromRotaryOrg = 1",
+              WHERE c.pk_club_id = @Id AND c.IsActive = 1 AND c.isdeleted = 0 AND c.IsSyncedFromRotaryOrg = 1 AND {HierarchyScopeSql.ClubLive("c")}",
             new { Id = clubId });
         string band = mc >= 51 ? "SuperGreen" : mc >= 41 ? "Green" : mc >= 26 ? "Amber" : mc >= 10 ? "Red" : "None";
         return (band, mc);
@@ -4199,9 +4268,9 @@ public class GoalSettingService : IGoalSettingService
         {
             decimal planned = target.Value - baseline.Value;
             if (planned <= 0m) return null;
-            return Math.Max(0m, Math.Min(100m, Math.Round((ach - baseline.Value) / planned * 100m, 0, MidpointRounding.AwayFromZero)));
+            return Math.Max(0m, Math.Round((ach - baseline.Value) / planned * 100m, 0, MidpointRounding.AwayFromZero));
         }
-        return Math.Max(0m, Math.Min(100m, Math.Round(ach / target.Value * 100m, decimals, MidpointRounding.AwayFromZero)));
+        return Math.Max(0m, Math.Round(ach / target.Value * 100m, decimals, MidpointRounding.AwayFromZero));
     }
     private static string? FormatPct(decimal? p) => p.HasValue ? p.Value.ToString("0.##") + "%" : null;
 
@@ -4286,7 +4355,7 @@ public class GoalSettingService : IGoalSettingService
         await conn.OpenAsync();
 
         var zoneName = await conn.ExecuteScalarAsync<string?>(
-            "SELECT ZoneName FROM zone_master WHERE pk_zone_id = @Id", new { Id = zoneId });
+            $"SELECT z.ZoneName FROM zone_master z WHERE z.pk_zone_id = @Id AND {HierarchyScopeSql.ZoneLive("z")}", new { Id = zoneId });
         if (zoneName == null) return null;
 
         var (resolvedYearId, yearLabel, isEditable) = await ResolveYearAsync(conn, yearId);
@@ -4295,10 +4364,10 @@ public class GoalSettingService : IGoalSettingService
         var categoryName = await GetCategoryNameAsync(conn, categoryId);
 
         // Active districts of the zone.
-        var districtRows = (await conn.QueryAsync<dynamic>(@"
+        var districtRows = (await conn.QueryAsync<dynamic>($@"
             SELECT pk_district_id AS id, DistrictNumber AS number
             FROM district_master
-            WHERE fk_zone_id = @Z AND isdeleted = 0 AND IsActive = 1
+            WHERE fk_zone_id = @Z AND isdeleted = 0 AND IsActive = 1 AND {HierarchyScopeSql.DistrictLive("district_master")}
             ORDER BY DistrictNumber", new { Z = zoneId })).ToList();
 
         var districts = districtRows.Select(r => new GoalOverviewDistrictDto
@@ -4479,7 +4548,7 @@ public class GoalSettingService : IGoalSettingService
         if (!await ClubAdminAccessHelper.IsSuperAdminAsync(conn, memberId))
             throw new UnauthorizedAccessException("You have no goal-setting oversight access for this category.");
 
-        var rows = await conn.QueryAsync<dynamic>(@"
+        var rows = await conn.QueryAsync<dynamic>($@"
             SELECT d.pk_district_id AS districtId, d.DistrictNumber AS districtNumber, d.fk_zone_id AS zoneId, z.ZoneName AS zoneName,
                    (SELECT COUNT(*) FROM goal_entries e
                      JOIN goal_fields f ON f.pk_field_id = e.fk_field_id AND f.isdeleted = 0
@@ -4491,7 +4560,8 @@ public class GoalSettingService : IGoalSettingService
                        AND e.EntityType = 'District' AND e.fk_district_id = d.pk_district_id AND e.isdeleted = 0) AS lastUpdatedDate
             FROM district_master d
             LEFT JOIN zone_master z ON z.pk_zone_id = d.fk_zone_id
-            WHERE d.isdeleted = 0 AND d.IsActive = 1
+            WHERE d.isdeleted = 0 AND d.IsActive = 1 AND {HierarchyScopeSql.DistrictLive("d")}
+              AND {HierarchyScopeSql.DistrictLive("d")}
             ORDER BY d.DistrictNumber",
             new { CategoryId = categoryId, YearId = yearId });
 

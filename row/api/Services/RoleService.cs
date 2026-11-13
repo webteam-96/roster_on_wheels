@@ -291,7 +291,7 @@ public class RoleService : IRoleService
         var ids = items.Select(i => i.Id).ToList();
         if (ids.Count > 0)
         {
-            var clubRows = await connection.QueryAsync<dynamic>(@"
+            var clubRows = await connection.QueryAsync<dynamic>($@"
                 SELECT cm.fk_member_master_profile_id AS MemberId,
                        GROUP_CONCAT(DISTINCT c.ClubName ORDER BY c.ClubName SEPARATOR ', ') AS ClubNames,
                        GROUP_CONCAT(DISTINCT d.DistrictNumber ORDER BY d.DistrictNumber SEPARATOR ', ') AS DistrictNumbers
@@ -300,6 +300,7 @@ public class RoleService : IRoleService
                 LEFT JOIN district_master d ON d.pk_district_id = c.fk_district_id AND COALESCE(d.isdeleted, 0) = 0
                 WHERE cm.fk_member_master_profile_id IN @Ids
                   AND cm.IsActive = 1 AND COALESCE(cm.isdeleted, 0) = 0
+                  AND {HierarchyScopeSql.ClubLive("c")}
                 GROUP BY cm.fk_member_master_profile_id",
                 new { Ids = ids });
 

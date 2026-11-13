@@ -27,7 +27,7 @@
  * behaviour are preserved 1:1 with V1.
  */
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { SOCIAL_PLATFORMS } from "@/types/socialLink";
 import {
@@ -40,6 +40,9 @@ import {
 } from "@/services/api";
 import { useDragSort } from "@/hooks/useDragSort";
 import { useAuth } from "@/contexts/AuthContext";
+import { districtYearRights, canEditYearless } from "@/lib/adminYears";
+import { useRotaryYears } from "@/hooks/useRotaryYears";
+import ViewOnlyBadge from "@/components/ViewOnlyBadge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -96,7 +99,7 @@ interface SocialLinkItem {
 }
 
 export default function DistrictAdminSocialLinksPage() {
-  const { selectedDistrictId, isSuperAdmin, isAdmin } = useAuth();
+  const { selectedDistrictId, isSuperAdmin, isAdmin, user } = useAuth();
   const districtId = selectedDistrictId ?? 0;
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -128,7 +131,17 @@ export default function DistrictAdminSocialLinksPage() {
 
   const [deleteTarget, setDeleteTarget] = useState<SocialLinkItem | null>(null);
 
-  const canManage = isSuperAdmin || isAdmin;
+  // No Rotary year on this data — one menu, one set of links, one About page,
+  // all live now — so changing it needs CURRENT-year rights.
+  // Named siteCurrentYearId: this page already has its own currentYearId.
+  const { years: rotaryYears, currentYearId: siteCurrentYearId } = useRotaryYears();
+  const siteRights = useMemo(() => districtYearRights(user?.scopedRoles, districtId), [user?.scopedRoles, districtId]);
+  const canManage = (isSuperAdmin || isAdmin) && canEditYearless(siteRights, siteCurrentYearId, isSuperAdmin);
+  // YWAR-BADGE-YEARLESS — name the CURRENT year, not the years held.
+  // This data is not filed by Rotary year, so "you can make changes in
+  // 2025-26" is untrue: those years cannot help here. See ViewOnlyBadge.
+  const ywarCurrentYearLabel =
+    rotaryYears.find((y) => y.id === siteCurrentYearId)?.yearLabel ?? "";
 
   const filteredLinks = links.filter((link) => {
     if (!searchQuery.trim()) return true;
@@ -269,6 +282,10 @@ export default function DistrictAdminSocialLinksPage() {
 
   return (
     <ProtectedRoute>
+      {!canManage && (
+        <ViewOnlyBadge currentYearOnly={ywarCurrentYearLabel} className="mb-4" />
+      )}
+
       <div className="space-y-6">
         {/* Header */}
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">

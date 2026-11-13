@@ -30,6 +30,8 @@ import {
 import { RotaryYear } from "@/types/rotaryYear";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAuth } from "@/contexts/AuthContext";
+import { districtYearRights, canEditYear, heldYearLabels } from "@/lib/adminYears";
+import ViewOnlyBadge from "@/components/ViewOnlyBadge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -50,7 +52,7 @@ function withSearch(base: string, extra: Record<string, string | null | undefine
 }
 
 export default function DistrictAdminEditSubGroupPage() {
-  const { selectedDistrictId } = useAuth();
+  const { selectedDistrictId, isSuperAdmin, isAdmin, user } = useAuth();
   const districtId = selectedDistrictId ?? 0;
   const router = useRouter();
   const params = useParams();
@@ -73,6 +75,18 @@ export default function DistrictAdminEditSubGroupPage() {
   const [saving, setSaving] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  // A sub-group belongs to a Rotary year, and this form can MOVE it to another
+  // one — so both ends have to be the admin's: the year it is in now
+  // (dataYearId) and the year the picker is on. The server checks the same two
+  // (DistrictModulesController.UpdateDistrictSubGroup); checking one end here
+  // would offer a save it refuses.
+  // ⚠️ selectedYearId is a string; Number("") is 0, which reads as "no year".
+  const rights = useMemo(() => districtYearRights(user?.scopedRoles, districtId), [user?.scopedRoles, districtId]);
+  const canManage = (isSuperAdmin || isAdmin)
+    && canEditYear(rights, dataYearId ?? undefined, isSuperAdmin)
+    && canEditYear(rights, Number(selectedYearId) || undefined, isSuperAdmin);
+  const editableYears = heldYearLabels(rights, years.map((y) => ({ id: y.id, label: y.yearLabel })));
 
   const loadData = useCallback(async () => {
     if (!districtId || !subGroupId) return;
@@ -174,6 +188,12 @@ export default function DistrictAdminEditSubGroupPage() {
 
   return (
     <ProtectedRoute>
+      {/* Not while loading — dataYearId is still null then, which would flash
+          "view only" at an admin who turns out to hold the year. */}
+      {!loading && !canManage && (
+        <ViewOnlyBadge editableYears={editableYears} className="mb-4" />
+      )}
+
       <div className="space-y-6">
         {/* ── Header ─────────────────────────────────────────────────── */}
         <div className="flex items-center gap-3">
@@ -344,7 +364,7 @@ export default function DistrictAdminEditSubGroupPage() {
               </Button>
               <Button
                 onClick={handleSave}
-                disabled={saving || !groupName.trim() || !selectedYearId || selectedMemberIds.size === 0}
+                disabled={!canManage || saving || !groupName.trim() || !selectedYearId || selectedMemberIds.size === 0}
                 className="bg-azure hover:bg-mint-ink text-white disabled:bg-slate-300 disabled:text-slate-500"
               >
                 {saving ? "Saving..." : "Update"}

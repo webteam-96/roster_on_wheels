@@ -53,13 +53,13 @@ public class FindRotarianController : ControllerBase
         using var conn = CreateConnection();
         await conn.OpenAsync();
 
-        var whereSql = @"
+        var whereSql = $@"
             FROM member_master_profile m
             JOIN club_members cm ON cm.fk_member_master_profile_id = m.pk_member_master_profile_id
                  AND cm.IsActive = 1 AND cm.isdeleted = 0
             JOIN club_master c ON c.pk_club_id = cm.fk_club_id AND c.isdeleted = 0
             JOIN district_master d ON d.pk_district_id = c.fk_district_id AND d.isdeleted = 0 AND d.IsActive = 1
-            WHERE m.isdeleted = 0";
+            WHERE m.isdeleted = 0 AND {HierarchyScopeSql.ClubLive("c")}";
 
         var p = new DynamicParameters();
 
@@ -84,6 +84,7 @@ public class FindRotarianController : ControllerBase
                     SELECT 1 FROM club_members cm2
                     WHERE cm2.fk_member_master_profile_id = m.pk_member_master_profile_id
                       AND COALESCE(cm2.isdeleted, 0) = 0
+                      AND " + HierarchyScopeSql.ClubIdLive("cm2.fk_club_id") + @"
                       AND (cm2.Designation LIKE @Kw OR cm2.ClassificationProfession LIKE @Kw)
                 )
             )";
@@ -281,6 +282,7 @@ public class FindRotarianController : ControllerBase
             JOIN district_master d ON d.pk_district_id = c.fk_district_id
             LEFT JOIN zone_master z ON z.pk_zone_id = d.fk_zone_id
             WHERE cm.fk_member_master_profile_id = @Id AND cm.IsActive = 1 AND cm.isdeleted = 0
+              AND " + HierarchyScopeSql.ClubLive("c") + @"
             ORDER BY c.ClubName",
             new { Id = memberId });
 
@@ -288,13 +290,14 @@ public class FindRotarianController : ControllerBase
             "SELECT pk_year_id FROM rotary_year_master WHERE IsCurrent = 1 LIMIT 1");
 
         var designations = currentYearId.HasValue
-            ? await conn.QueryAsync<dynamic>(@"
+            ? await conn.QueryAsync<dynamic>($@"
                 SELECT dm.designation_name AS designationName, c.ClubName AS clubName,
                        dm.sort_order AS sortOrder
                 FROM board_of_directors b
                 JOIN designation_master dm ON dm.pk_designation_id = b.fk_designation_id
                 JOIN club_master c ON c.pk_club_id = b.fk_club_id
                 WHERE b.fk_member_master_profile_id = @Id AND b.fk_year_id = @YearId AND b.isdeleted = 0
+                  AND {HierarchyScopeSql.ClubLive("c")}
                 ORDER BY dm.sort_order",
                 new { Id = memberId, YearId = currentYearId.Value })
             : Enumerable.Empty<dynamic>();

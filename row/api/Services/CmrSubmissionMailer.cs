@@ -72,6 +72,12 @@ public class CmrSubmissionMailer : ICmrSubmissionMailer
             // that district: Yes/No for emailing the District Governor + always-CC extra addresses.
             int districtId = await conn.QueryFirstOrDefaultAsync<int>(
                 "SELECT fk_district_id FROM club_master WHERE pk_club_id = @Id", new { Id = clubId });
+            // Hidden club (inactive club / district / zone, user 2026-10-21) → no submission email.
+            if (await conn.ExecuteScalarAsync<int>($"SELECT CASE WHEN {HierarchyScopeSql.ClubIdLive("@Id")} THEN 1 ELSE 0 END", new { Id = clubId }) == 0)
+            {
+                _logger.LogInformation("CMR submission email skipped: club {Club} is hidden (inactive club/district/zone).", clubId);
+                return;
+            }
             var (sendToDG, extraCc) = await _districtSettings.ResolveAsync(conn, districtId, yearId);
 
             var recipients = await ResolveRecipientsAsync(conn, clubId, yearId, reportId, sendToDG, extraCc);

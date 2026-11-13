@@ -95,6 +95,7 @@ public class ClubLeadershipController : ControllerBase
                 WHERE b.fk_year_id = @YearId AND b.isdeleted = 0 AND d.designation_name = 'Club Secretary'
             ) sec ON sec.fk_club_id = c.pk_club_id
             WHERE c.fk_district_id = @DistrictId AND c.isdeleted = 0
+              AND " + HierarchyScopeSql.ClubLive("c") + @"
             ORDER BY c.ClubName",
             new { DistrictId = districtId, YearId = yearId, AdminRoleId = ADMIN_ROLE_ID });
 
@@ -116,6 +117,7 @@ public class ClubLeadershipController : ControllerBase
             FROM club_members cm
             JOIN member_master_profile m ON m.pk_member_master_profile_id = cm.fk_member_master_profile_id
             WHERE cm.fk_club_id = @ClubId AND cm.IsActive = 1 AND cm.isdeleted = 0 AND m.isdeleted = 0
+              AND " + HierarchyScopeSql.ClubIdLive("cm.fk_club_id") + @"
             ORDER BY m.MemberName",
             new { ClubId = clubId });
         return Ok(members);
@@ -290,7 +292,8 @@ public class ClubLeadershipController : ControllerBase
             JOIN member_master_profile m ON m.pk_member_master_profile_id = b.fk_member_master_profile_id
             WHERE c.fk_district_id = @D AND b.fk_year_id = @Y AND b.isdeleted = 0
               AND d.designation_name IN ('Club President', 'Club Secretary')
-              AND m.EmailId IS NOT NULL AND m.EmailId <> ''",
+              AND m.EmailId IS NOT NULL AND m.EmailId <> ''
+              AND " + HierarchyScopeSql.ClubLive("c"),
             new { D = req.DistrictId, Y = req.YearId });
         if (recipients == 0)
             return BadRequest(new { message = "No Presidents or Secretaries with email found for this district/year." });
@@ -495,7 +498,7 @@ public class ClubLeadershipController : ControllerBase
             FROM club_leadership_email_schedule s
             LEFT JOIN district_master d ON d.pk_district_id = s.fk_district_id
             LEFT JOIN rotary_year_master y ON y.pk_year_id = s.fk_year_id
-            WHERE s.isdeleted = 0
+            WHERE s.isdeleted = 0 AND " + HierarchyScopeSql.DistrictIdLive("s.fk_district_id") + @"
             ORDER BY s.ScheduleDateTime DESC");
         return Ok(schedules);
     }
@@ -516,7 +519,7 @@ public class ClubLeadershipController : ControllerBase
             FROM club_leadership_email_log l
             JOIN club_master c ON c.pk_club_id = l.fk_club_id
             JOIN member_master_profile m ON m.pk_member_master_profile_id = l.fk_member_id
-            WHERE l.fk_schedule_id = @Id
+            WHERE l.fk_schedule_id = @Id AND " + HierarchyScopeSql.ClubLive("c") + @"
             ORDER BY c.ClubName, l.DesignationName",
             new { Id = scheduleId });
         return Ok(logs);
@@ -546,7 +549,7 @@ public class ClubLeadershipController : ControllerBase
             FROM club_leadership_email_log l
             JOIN club_master c ON c.pk_club_id = l.fk_club_id
             JOIN member_master_profile m ON m.pk_member_master_profile_id = l.fk_member_id
-            WHERE l.fk_district_id = @D AND l.fk_year_id = @Y
+            WHERE l.fk_district_id = @D AND l.fk_year_id = @Y AND " + HierarchyScopeSql.ClubLive("c") + @"
             ORDER BY l.created_date DESC",
             new { D = districtId, Y = yearId })).ToList();
 

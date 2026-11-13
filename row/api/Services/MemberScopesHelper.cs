@@ -39,6 +39,148 @@ public static class MemberScopesHelper
         public MemberMobileDashboardDto MemberMobileDashboard { get; set; } = new();
     }
 
+    /// <summary>
+    /// Fills in <see cref="RoleScopeDto.AllYears"/> / <see cref="RoleScopeDto.YearIds"/>
+    /// for every Admin assignment. Uses the same rules as
+    /// <see cref="AdminYearService"/>: manual grants from member_admin_years,
+    /// plus club office held on board_of_directors (by designation ID).
+    ///
+    /// Non-Admin roles are left untouched — only Club/District Admin rights are
+    /// year-wise.
+    ///
+    /// ⚠️ This is a SECOND implementation of the year rules, parallel to
+    /// AdminYearService — it fills what the CLIENTS read, while AdminYearService
+    /// decides what the server ALLOWS. Anything that changes who may edit which
+    /// year has to be applied in both, or the two disagree and the symptom is
+    /// nasty: writes succeed but every button stays hidden, or the reverse.
+    ///
+    /// The per-scope ON/OFF switch (Settings → Year-wise Admin Rights) is applied
+    /// in two parts, through the same resolver AdminYearService uses: its STATE is
+    /// stamped on every Admin / SuperAdmin row first (the clients need it even
+    /// where there is nothing to widen), then AllYears is widened where it is off.
+    /// Resolving per assignment rather than once is deliberate: one member can hold
+    /// admin in a district where the rule is on and a club where it is off.
+    /// </summary>
+    private static async Task AttachAdminYearsAsync(
+        MySqlConnection conn, int memberId, List<RoleScopeDto> roles)
+    {
+        // ── Per-scope ON/OFF switch, part 1 of 2: report the rule's STATE ───
+        // Stamped before anything below can return, because the clients need the
+        // state even where there is nothing to widen. Both skipped cases matter:
+        // a SuperAdmin has no Admin row at all, and a Club Executive Secretary
+        // already holds AllYears -- and both sit on the screens whose year-picker
+        // rule this switch has to lift. Only Admin and SuperAdmin rows are
+        // resolved; no other role is year-wise, so none of them would be read.
+        foreach (var r in roles.Where(r => r.RoleName == "Admin" || r.RoleName == "SuperAdmin"))
+        {
+            var (ruleOn, _) = r.ClubId is int rcid && rcid > 0
+                ? await YearRuleScopeHelper.ResolveClubUncachedAsync(conn, rcid)
+                : r.DistrictId is int rdid && rdid > 0
+                    ? await YearRuleScopeHelper.ResolveDistrictUncachedAsync(conn, rdid)
+                    // Global scope: nothing more specific exists, so the platform
+                    // default decides.
+                    : await YearRuleScopeHelper.ResolveGlobalUncachedAsync(conn);
+            r.YearRuleEnabled = ruleOn;
+        }
+
+        var admins = roles.Where(r => r.RoleName == "Admin").ToList();
+        if (admins.Count == 0) return;
+
+        // SuperAdmin is never year-restricted, and outranks everything below.
+        var isSuperAdmin = roles.Any(r => r.RoleName == "SuperAdmin");
+        if (isSuperAdmin)
+        {
+            foreach (var a in admins)
+            {
+                a.AllYears = true;
+                a.YearSources.Add("SuperAdmin");
+            }
+            return;
+        }
+
+        // One query for every manual grant this member holds, in any scope.
+        var grants = (await conn.QueryAsync<(int? ClubId, int? DistrictId, int? YearId, bool AllYears)>(@"
+            SELECT fk_club_id AS ClubId, fk_district_id AS DistrictId,
+                   fk_year_id AS YearId, AllYears
+            FROM member_admin_years
+            WHERE fk_member_master_profile_id = @MemberId
+              AND IsActive = 1 AND COALESCE(isdeleted,0) = 0",
+            new { MemberId = memberId })).ToList();
+
+        // One query for every club office this member holds, any club, any year.
+        var offices = (await conn.QueryAsync<(int ClubId, int DesignationId, int YearId)>(@"
+            SELECT fk_club_id AS ClubId, fk_designation_id AS DesignationId, fk_year_id AS YearId
+            FROM board_of_directors
+            WHERE fk_member_master_profile_id = @MemberId
+              AND COALESCE(isdeleted,0) = 0
+              AND fk_designation_id IN (@Pres, @Sec, @ExecSec)",
+            new
+            {
+                MemberId = memberId,
+                Pres = AdminYearService.DesignationClubPresident,
+                Sec = AdminYearService.DesignationClubSecretary,
+                ExecSec = AdminYearService.DesignationClubExecutiveSecretary,
+            })).ToList();
+
+        foreach (var a in admins)
+        {
+            foreach (var g in grants)
+            {
+                var sameScope =
+                    (a.ClubId is int c && (g.ClubId ?? 0) == c) ||
+                    (a.ClubId is null && a.DistrictId is int d && (g.DistrictId ?? 0) == d);
+                if (!sameScope) continue;
+
+                if (g.AllYears) a.AllYears = true;
+                // > 0 guard: an AllYears grant stores year 0 (not NULL, so the
+                // unique index works), and 0 is not a real year.
+                else if (g.YearId is int y && y > 0) a.YearIds.Add(y);
+                if (!a.YearSources.Contains("Granted")) a.YearSources.Add("Granted");
+            }
+
+            if (a.ClubId is not int clubId) continue;
+            foreach (var o in offices.Where(o => o.ClubId == clubId))
+            {
+                if (o.DesignationId == AdminYearService.DesignationClubExecutiveSecretary)
+                {
+                    // Not a year-wise post — holding it covers every year.
+                    a.AllYears = true;
+                    if (!a.YearSources.Contains("Club Executive Secretary"))
+                        a.YearSources.Add("Club Executive Secretary");
+                    continue;
+                }
+                a.YearIds.Add(o.YearId);
+                var label = o.DesignationId == AdminYearService.DesignationClubPresident
+                    ? "Club President"
+                    : "Club Secretary";
+                if (!a.YearSources.Contains(label)) a.YearSources.Add(label);
+            }
+        }
+
+        // ── Per-scope ON/OFF switch, part 2 of 2: WIDEN where it is off ─────
+        // Where the year rule is switched off, this assignment is not year-wise at
+        // all, so it reports All Years — which is what both clients already read as
+        // "do not hide a year" (web canEditYear(), Flutter canEditClubYear /
+        // clubYearRuleExempt).
+        //
+        // Reads the flag stamped above rather than resolving again: one resolution
+        // per row, and the state the client is told cannot drift from the widening
+        // done here.
+        //
+        // Standing is not re-checked: these rows ARE this member's admin
+        // assignments, so the fact that the row exists already establishes it. That
+        // is the difference from AdminYearService, which starts from a bare member
+        // id and must prove standing before widening anything.
+        foreach (var a in admins)
+        {
+            if (a.AllYears) continue;        // already unrestricted — nothing to widen
+            if (a.YearRuleEnabled) continue; // rule applies here — leave as computed
+
+            a.AllYears = true;
+            a.YearSources.Add("Year rule off for this " + (a.ClubId is int ? "club" : "district"));
+        }
+    }
+
     public static async Task<MemberScopesResult> BuildScopesAsync(
         MySqlConnection conn,
         int memberId,
@@ -53,7 +195,7 @@ public static class MemberScopesHelper
         //     One row per (role × scoping unit). The COALESCE on zoneId derives zone from
         //     mr → district → club (whichever is present) so RoleScopeDto.ZoneId is always
         //     populated when the assignment is district/club scoped.
-        var elevatedSql = @"
+        var elevatedSql = $@"
             SELECT r.RoleName AS roleName,
                    COALESCE(mr.fk_zone_id, d.fk_zone_id, cd.fk_zone_id) AS zoneId,
                    COALESCE(z.ZoneName, dz.ZoneName, cdz.ZoneName) AS zoneName,
@@ -69,7 +211,10 @@ public static class MemberScopesHelper
             LEFT JOIN district_master cd ON cd.pk_district_id = c.fk_district_id
             LEFT JOIN zone_master cdz ON cdz.pk_zone_id = cd.fk_zone_id
             WHERE mr.fk_member_master_profile_id = @MemberId
-              AND mr.IsActive = 1 AND mr.isdeleted = 0"
+              AND mr.IsActive = 1 AND mr.isdeleted = 0
+              AND {HierarchyScopeSql.ZoneLive("z")}
+              AND {HierarchyScopeSql.DistrictLive("d")}
+              AND {HierarchyScopeSql.ClubLive("c")}"
             + (excludeSuperAdmin ? " AND r.RoleName <> 'SuperAdmin'" : "");
 
         var elevated = await conn.QueryAsync<dynamic>(elevatedSql, new { MemberId = memberId });
@@ -121,8 +266,18 @@ public static class MemberScopesHelper
             rolesList.Add(scope);
         }
 
+        // (1b) Year-wise Admin Rights — attach the editable years to each ADMIN
+        //      assignment, so web and the app share one source of truth instead
+        //      of each working it out for themselves.
+        //
+        //      ⚠️ Rights are ADVISORY here: they drive what the UI enables. The
+        //      server still checks on every write (AdminYearService) — an old
+        //      build that ignores these fields must not become a way around the
+        //      rule, and a cached my-context must not become a cached permission.
+        await AttachAdminYearsAsync(conn, memberId, rolesList);
+
         // (2) Implicit "Member" role for every active club membership
-        var clubMemberships = await conn.QueryAsync<dynamic>(@"
+        var clubMemberships = await conn.QueryAsync<dynamic>($@"
             SELECT c.pk_club_id AS clubId, c.ClubName, c.fk_district_id AS districtId,
                    d.DistrictNumber, d.fk_zone_id AS zoneId, z.ZoneName AS zoneName
             FROM club_members cm
@@ -131,7 +286,8 @@ public static class MemberScopesHelper
             LEFT JOIN zone_master z ON z.pk_zone_id = d.fk_zone_id
             WHERE cm.fk_member_master_profile_id = @MemberId
               AND cm.IsActive = 1 AND cm.isdeleted = 0
-              AND c.isdeleted = 0",
+              AND c.isdeleted = 0
+              AND {HierarchyScopeSql.ClubLive("c")}",
             new { MemberId = memberId });
 
         foreach (var row in clubMemberships)
@@ -166,11 +322,11 @@ public static class MemberScopesHelper
         if (accessibleDistricts.Count > 0)
         {
             var districtIds = accessibleDistricts.Keys.ToList();
-            var districtCounts = await conn.QueryAsync<dynamic>(@"
+            var districtCounts = await conn.QueryAsync<dynamic>($@"
                 SELECT fk_district_id AS districtId,
                        COUNT(*) AS totalClubs,
                        SUM(CASE WHEN IsSyncedFromRotaryOrg = 1 THEN 1 ELSE 0 END) AS syncedClubs
-                FROM club_master WHERE fk_district_id IN @Ids AND isdeleted = 0
+                FROM club_master WHERE fk_district_id IN @Ids AND isdeleted = 0 AND {HierarchyScopeSql.ClubLive("club_master")}
                 GROUP BY fk_district_id", new { Ids = districtIds });
             foreach (var dc in districtCounts)
             {
@@ -181,13 +337,14 @@ public static class MemberScopesHelper
                     accessibleDistricts[dId].IsSynced = Convert.ToInt64(dc.syncedClubs ?? 0L) > 0;
                 }
             }
-            var districtMemberCounts = await conn.QueryAsync<dynamic>(@"
+            var districtMemberCounts = await conn.QueryAsync<dynamic>($@"
                 SELECT c.fk_district_id AS districtId,
                        COUNT(DISTINCT cm.fk_member_master_profile_id) AS totalMembers
                 FROM club_members cm
                 JOIN club_master c ON c.pk_club_id = cm.fk_club_id
                 JOIN member_master_profile m ON m.pk_member_master_profile_id = cm.fk_member_master_profile_id
                 WHERE c.fk_district_id IN @Ids AND cm.IsActive = 1 AND cm.isdeleted = 0 AND c.isdeleted = 0 AND m.isdeleted = 0
+                  AND {HierarchyScopeSql.ClubLive("c")}
                 GROUP BY c.fk_district_id", new { Ids = districtIds });
             foreach (var dm in districtMemberCounts)
             {
@@ -400,7 +557,7 @@ public static class MemberScopesHelper
 
         // District-Admin all-clubs access: districts where this member holds a DA row
         // (fk_role_id=2, fk_district_id>0, fk_club_id NULL/0) with AllClubsAccess=1.
-        var dcaRows = await conn.QueryAsync<dynamic>(@"
+        var dcaRows = await conn.QueryAsync<dynamic>($@"
             SELECT mr.fk_district_id AS id, d.DistrictNumber
             FROM member_roles mr
             JOIN district_master d ON d.pk_district_id = mr.fk_district_id AND d.isdeleted = 0
@@ -408,7 +565,8 @@ public static class MemberScopesHelper
               AND mr.fk_role_id = 2 AND mr.fk_district_id > 0
               AND (mr.fk_club_id IS NULL OR mr.fk_club_id = 0)
               AND mr.AllClubsAccess = 1
-              AND mr.IsActive = 1 AND mr.isdeleted = 0",
+              AND mr.IsActive = 1 AND mr.isdeleted = 0
+              AND {HierarchyScopeSql.DistrictLive("d")}",
             new { MemberId = memberId });
         var districtClubAccess = dcaRows
             .Select(r => new DistrictScopeDto { Id = (int)r.id, Number = (string?)r.DistrictNumber ?? "" })

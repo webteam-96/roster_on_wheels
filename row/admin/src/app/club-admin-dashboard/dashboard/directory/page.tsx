@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import {
   Users, BadgeCheck, Crown, Search, Eye, X, Pencil,
@@ -12,6 +13,10 @@ import type { LucideIcon } from "@/components/icons";
 import { useAuth } from "@/contexts/AuthContext";
 import { useFeature } from "@/contexts/BrandContext";
 import { getClubAdminDashboardDirectory, getMember, getPhotoUrl, assignRole, removeRole, setClubMemberHonorary } from "@/services/api";
+import { clubYearRights, canEditYearless, isCurrentYearSelected } from "@/lib/adminYears";
+import { useRotaryYears } from "@/hooks/useRotaryYears";
+import ViewOnlyBadge from "@/components/ViewOnlyBadge";
+import AdminYearsDialog from "@/components/AdminYearsDialog";
 import type {
   ClubAdminDashboardDirectoryResponse,
   ClubAdminDashboardDirectoryMemberRow,
@@ -49,13 +54,20 @@ function fmtDate(d: string | null | undefined): string {
 }
 
 function MemberRow({
-  row, onView, canEdit, clubId, onMakeAdmin, onRemoveAdmin, roleActionLoading,
+  row, onView, canEdit, canMakeAdmin, clubId, onMakeAdmin, onRemoveAdmin,
+  roleActionLoading,
 }: {
   row: ClubAdminDashboardDirectoryMemberRow;
   onView: (row: ClubAdminDashboardDirectoryMemberRow) => void;
   // Pencil shows only when the current user has edit rights (SA + Club Admin).
   // Backend partial-edit gate enforces the 10-field lock for Club Admin.
   canEdit: boolean;
+  /**
+   * Make Admin alone, which does NOT need current-year rights — see
+   * YWAR-MAKE-ADMIN-ANY-YEAR below. Separate from `canEdit` because the pencil
+   * and Remove Admin do need them.
+   */
+  canMakeAdmin: boolean;
   clubId: number | null;
   onMakeAdmin: (row: ClubAdminDashboardDirectoryMemberRow) => void;
   onRemoveAdmin: (row: ClubAdminDashboardDirectoryMemberRow) => void;
@@ -124,7 +136,7 @@ function MemberRow({
           {/* Make/Remove Admin button — mirrors V1 /clubs/[id]/members.
               Remove only revokes admin in THIS club (sp_role_deactivate_admin
               filters by p_ClubId), never in other clubs the member may admin. */}
-          {canEdit && !row.isClubAdmin && (
+          {canMakeAdmin && !row.isClubAdmin && (
             <button
               type="button"
               onClick={() => onMakeAdmin(row)}
@@ -155,11 +167,91 @@ function MemberRow({
 }
 
 export default function DashboardDirectoryPage() {
-  const { isSuperAdmin, isAdmin, selectedClubId } = useAuth();
+  const { isSuperAdmin, selectedClubId, user } = useAuth();
   // SA always edits. Club Admin sees the pencil too — backend (MembersController
   // + UserPermissionHelper.DirectoryMemberLockedFields) silently locks the 10
   // identity fields server-side. Other roles see only the eye/view button.
-  const canEdit = isSuperAdmin || isAdmin;
+  //
+  // ⚠️ SCOPE: this used to be `isSuperAdmin || isAdmin`, and `isAdmin` is TRUE
+  // for an admin of ANY club or district — so an admin of one club saw Edit and
+  // Make Admin on a DIFFERENT club's directory. Scope it to the club actually
+  // open. (The server refused those writes anyway; the buttons were the bug.)
+  //
+  // Any year counts, NOT just the current one: Make Admin / Remove Admin are
+  // scoped server-side to the years the caller holds
+  // (AdminController.RemoveYearsYouHoldAsync), so a past-year admin is meant to
+  // reach this for their own year. Editing a member profile carries no year rule
+  // at all — a person exists across years. Asking for current-year rights here
+  // would lock out a past-year admin the server would have allowed.
+  //
+  // `unknown` (an older API that sends no year data) counts as held, matching
+  // canEditYear — silence must never read as a lockout.
+  const clubRights = useMemo(
+    () => clubYearRights(user?.scopedRoles, selectedClubId ?? 0),
+    [user?.scopedRoles, selectedClubId],
+  );
+  // ── YWAR-DIR-COMMS-PATTERN ──────────────────────────────────────────────
+  // Directory now follows the same rule as Communication
+  // (club-admin-dashboard/communication/sections.tsx:368), because a member
+  // record carries no Rotary year — there is ONE live list, and the year picker
+  // does not filter it. Three parts, all three required:
+  //   1. CURRENT-year rights  (canEditYearless)
+  //   2. the picker must be ON the current year  (isCurrentYearSelected)
+  //   3. a badge saying why, whenever the buttons are hidden
+  //
+  // Part 2 is about CONTEXT, not permission: whatever the picker says, the
+  // record being changed belongs to today, so the picker has to be on today.
+  // It returns TRUE while the year is still loading, so buttons do not blink.
+  //
+  // The club SCOPE fix stays either way: clubRights is for the club actually
+  // open, where this used to read `isAdmin` (admin of ANY club or district).
+  //
+  // TO REVERT: restore
+  //   const isAdminOfThisClub =
+  //     clubRights.allYears || clubRights.yearIds.length > 0 || clubRights.unknown;
+  //   const canEdit = isSuperAdmin || isAdminOfThisClub;
+  // and drop the badge block plus the useSearchParams/useRotaryYears additions.
+  // Backup: MD_files/revert_backups_2026-09-28/web_directory_page.tsx.bak
+  // Marker: YWAR-DIR-COMMS-PATTERN
+  const { years: rotaryYears, currentYearId } = useRotaryYears();
+  const yearParams = useSearchParams();
+  const selectedYearId = Number(yearParams?.get("yearId") ?? "") || 0;
+  const currentYearLabel =
+    rotaryYears.find((y) => y.id === currentYearId)?.yearLabel ?? "";
+  // YWAR-DIR-EXECSEC-EXEMPT — a Club Executive Secretary holds EVERY year
+  // (AdminYearService: "the post is not year-wise"), so the year on screen is
+  // not a reason to hide anything — they keep the actions on ANY selected year.
+  // `unknown` rides along: an older API that sends no year data must keep
+  // behaving exactly as before. A President/Secretary is NOT exempt — they earn
+  // only the year they hold the office, so the picker rule still applies.
+  const yearRuleExempt =
+    isSuperAdmin || clubRights.allYears || clubRights.unknown;
+  const canEdit =
+    canEditYearless(clubRights, currentYearId, isSuperAdmin) &&
+    (yearRuleExempt || isCurrentYearSelected(selectedYearId, currentYearId, clubRights));
+  // ── YWAR-MAKE-ADMIN-ANY-YEAR (user 2026-10-26) ──────────────────────────
+  // Make Admin is NOT year-less, so it must not ride on canEdit. The server
+  // route (AdminController.AssignRole) clamps the granted years to the ones the
+  // caller holds and carries no current-year check — a past-year admin is meant
+  // to appoint for their own year, and the year picker only offers them that
+  // year. Gating it the year-less way hid a working action.
+  //
+  // Holding the role in ANY year is enough, which is what this page did before
+  // YWAR-DIR-COMMS-PATTERN folded Make Admin in with the pencil. It matches the
+  // district Directory tab, where Make Admin was never year-gated.
+  //
+  // Remove Admin keeps canEdit, which is STRICTER than its server route. That
+  // route (AdminController.RemoveRole) takes back only the years the caller
+  // holds, so a past-year admin would succeed on their own year and be refused
+  // when the target holds none of it — and the row data carries no years, so the
+  // client cannot tell which. Offering a button whose outcome it cannot predict
+  // is worse than hiding it, and it matches the district tab, where Remove Admin
+  // IS year-less (DistrictYearlessAsync) and always refused.
+  const canMakeAdmin =
+    isSuperAdmin ||
+    clubRights.allYears ||
+    clubRights.unknown ||
+    clubRights.yearIds.length > 0;
   const [data, setData] = useState<ClubAdminDashboardDirectoryResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -169,24 +261,34 @@ export default function DashboardDirectoryPage() {
   const [viewRow, setViewRow] = useState<ClubAdminDashboardDirectoryMemberRow | null>(null);
   // Make-Admin in-flight tracker (memberId currently being promoted).
   const [makeAdminId, setMakeAdminId] = useState<number | null>(null);
+  // Admin rights are per Rotary year — the promotion goes through a year picker.
+  const [adminYearTarget, setAdminYearTarget] = useState<{ id: number; name: string } | null>(null);
   // Bump to force a refetch after a successful promotion.
   const [reloadTick, setReloadTick] = useState(0);
 
-  const handleMakeAdmin = async (row: ClubAdminDashboardDirectoryMemberRow) => {
+  // The year picker replaces the old window.confirm: it already names the member
+  // and the club, and it asks the question that actually matters now.
+  const handleMakeAdmin = (row: ClubAdminDashboardDirectoryMemberRow) => {
+    if (!data?.club?.clubId) return;
+    setAdminYearTarget({ id: row.memberId, name: row.name });
+  };
+
+  const handleConfirmAdminYears = async (picked: { yearIds: number[]; allYears: boolean }) => {
     const clubId = data?.club?.clubId;
-    if (!clubId) return;
-    if (!window.confirm(`Make ${row.name} an Admin of ${data?.club?.clubName ?? "this club"}?`)) return;
+    if (!clubId || !adminYearTarget) return;
     try {
-      setMakeAdminId(row.memberId);
-      await assignRole({ memberId: row.memberId, roleId: 2, clubId });
+      setMakeAdminId(adminYearTarget.id);
+      await assignRole({
+        memberId: adminYearTarget.id, roleId: 2, clubId,
+        yearIds: picked.yearIds, allYears: picked.allYears,
+      });
+      setAdminYearTarget(null);
       // Refetch the directory so the badge + sort order reflect the new admin.
       setReloadTick((t) => t + 1);
     } catch (e) {
-      const err = e as { response?: { data?: { message?: string } | string } };
-      const msg = typeof err?.response?.data === "string"
-        ? err.response.data
-        : err?.response?.data?.message;
-      alert(msg || "Failed to assign Admin role.");
+      // Rethrown so the dialog stays open and shows why — typically a year the
+      // granter does not hold themselves.
+      throw e;
     } finally {
       setMakeAdminId(null);
     }
@@ -297,6 +399,20 @@ export default function DashboardDirectoryPage() {
 
   return (
     <div className="space-y-5">
+      {/* YWAR-DIR-COMMS-PATTERN part 3 — say WHY the actions are missing.
+          `currentYearOnly` (not `editableYears`) on purpose: a member record has
+          no Rotary year, so naming a past year the user DOES hold would mislead —
+          that year cannot help them here. Same choice Communication makes. */}
+      {/* Wording matched to the district Directory tab (user 2026-10-26) so the
+          two screens read identically. The View (eye) button is outside
+          `canEdit`, so the profile stays readable — only the actions go. */}
+      {!canEdit && (
+        <ViewOnlyBadge
+          currentYearOnly={currentYearLabel}
+          currentYearOnlyActions="remove an admin, or add, edit and delete"
+          className="mb-1"
+        />
+      )}
       {/* Card sequence per user request (2026-06-12):
           Active Members (formerly "Paid Members" / "Full Members"), Male, Female, Honorary, Total Members */}
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
@@ -354,7 +470,7 @@ export default function DashboardDirectoryPage() {
                 <th className="px-4 py-2.5 text-left">Name</th>
                 <th className="px-4 py-2.5 text-left">Mobile No.</th>
                 <th className="px-4 py-2.5 text-left">Email</th>
-                <th className="px-4 py-2.5 text-right w-24">{canEdit ? "Actions" : "View"}</th>
+                <th className="px-4 py-2.5 text-right w-24">{canEdit || canMakeAdmin ? "Actions" : "View"}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
@@ -364,6 +480,7 @@ export default function DashboardDirectoryPage() {
                   row={m}
                   onView={setViewRow}
                   canEdit={canEdit}
+                  canMakeAdmin={canMakeAdmin}
                   clubId={data?.club?.clubId ?? null}
                   onMakeAdmin={handleMakeAdmin}
                   onRemoveAdmin={handleRemoveAdmin}
@@ -389,6 +506,18 @@ export default function DashboardDirectoryPage() {
           row={viewRow}
           clubId={data?.club?.clubId ?? 0}
           onClose={() => setViewRow(null)}
+        />
+      )}
+
+      {adminYearTarget && data?.club?.clubId && (
+        <AdminYearsDialog
+          open
+          scope={{ kind: "club", clubId: data.club.clubId }}
+          memberId={adminYearTarget.id}
+          memberName={adminYearTarget.name}
+          scopeName={data.club.clubName}
+          onCancel={() => setAdminYearTarget(null)}
+          onConfirm={handleConfirmAdminYears}
         />
       )}
     </div>

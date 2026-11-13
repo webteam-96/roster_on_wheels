@@ -22,7 +22,7 @@
  * cards, blue/white gradient header strip, compact KPI tiles at the top.
  */
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { useParams, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import dynamic from "next/dynamic";
@@ -37,6 +37,9 @@ import {
   uploadAboutImage, getClub,
 } from "@/services/api";
 import { useAuth } from "@/contexts/AuthContext";
+import { clubYearRights, canEditYearless } from "@/lib/adminYears";
+import { useRotaryYears } from "@/hooks/useRotaryYears";
+import ViewOnlyBadge from "@/components/ViewOnlyBadge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
@@ -65,8 +68,18 @@ export default function AboutV2Page() {
   const params = useParams();
   const searchParams = useSearchParams();
   const clubId = Number(params.id);
-  const { isSuperAdmin, isAdmin } = useAuth();
-  const canManage = isSuperAdmin || isAdmin;
+  const { isSuperAdmin, isAdmin, user } = useAuth();
+  // This part of the club website carries NO Rotary year — one menu, one set of
+  // social links, one About page, one theme. Changing it is a change to the LIVE
+  // site, so it needs CURRENT-year rights.
+  const { years, currentYearId } = useRotaryYears();
+  const siteRights = useMemo(() => clubYearRights(user?.scopedRoles, clubId), [user?.scopedRoles, clubId]);
+  const canManage = (isSuperAdmin || isAdmin) && canEditYearless(siteRights, currentYearId, isSuperAdmin);
+  // YWAR-BADGE-YEARLESS — name the CURRENT year, not the years held.
+  // This data is not filed by Rotary year, so "you can make changes in
+  // 2025-26" is untrue: those years cannot help here. See ViewOnlyBadge.
+  const ywarCurrentYearLabel =
+    years.find((y) => y.id === currentYearId)?.yearLabel ?? "";
 
   // Back arrow honors ?returnTo= so the user lands back on the upstream tab
   // (e.g. /club-admin-dashboard/my-club-website) instead of the legacy hub.
@@ -239,6 +252,10 @@ export default function AboutV2Page() {
 
   return (
     <ProtectedRoute>
+      {!canManage && (
+        <ViewOnlyBadge currentYearOnly={ywarCurrentYearLabel} className="mb-4" />
+      )}
+
       <ClubAdminShell
         pageTitle="About Us"
         pageSubtitle="Your club story on the public website"

@@ -194,10 +194,10 @@ public class MobileDistrictAwardsController : ControllerBase
         using var conn = Conn();
         await conn.OpenAsync();
 
-        var clubs = (await conn.QueryAsync<dynamic>(@"
+        var clubs = (await conn.QueryAsync<dynamic>($@"
             SELECT pk_club_id AS clubId, ClubName AS clubName, ClubCode AS clubRotaryId
             FROM club_master
-            WHERE fk_district_id=@DistrictId AND isdeleted=0
+            WHERE fk_district_id=@DistrictId AND isdeleted=0 AND {HierarchyScopeSql.ClubLive("club_master")}
             ORDER BY ClubName",
             new { DistrictId = districtId })).ToList();
 

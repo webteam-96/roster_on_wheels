@@ -130,10 +130,11 @@ public class DistrictWebsitesController : ControllerBase
         if (!IsSuperAdmin()) return Forbid();
         using var conn = CreateConnection();
         await conn.OpenAsync();
-        var districts = await conn.QueryAsync<dynamic>(@"
+        var districts = await conn.QueryAsync<dynamic>($@"
             SELECT d.pk_district_id AS id, d.DistrictNumber AS districtNumber
             FROM district_master d
             WHERE d.isdeleted = 0
+              AND {HierarchyScopeSql.DistrictLive("d")}
               AND NOT EXISTS (
                 SELECT 1 FROM district_websites w
                 WHERE w.fk_district_id = d.pk_district_id AND w.isdeleted = 0

@@ -1407,6 +1407,8 @@ class _LinkChip extends StatelessWidget {
                 textAlign: TextAlign.center,
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
+                // Same line height in every script: the Japanese and Korean fallback fonts are taller and were cut off.
+                strutStyle: const StrutStyle(fontSize: 13, height: 1.3, forceStrutHeight: true),
                 style: AppFonts.body(color: Colors.white.withOpacity(0.9),
                   fontWeight: FontWeight.w600,
                   fontSize: 13,

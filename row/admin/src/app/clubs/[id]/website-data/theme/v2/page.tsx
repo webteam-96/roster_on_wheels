@@ -27,6 +27,9 @@ import {
   getPhotoUrl,
 } from "@/services/api";
 import { useAuth } from "@/contexts/AuthContext";
+import { clubYearRights, canEditYearless } from "@/lib/adminYears";
+import { useRotaryYears } from "@/hooks/useRotaryYears";
+import ViewOnlyBadge from "@/components/ViewOnlyBadge";
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
 import AlertModal from "@/components/AlertModal";
@@ -68,8 +71,18 @@ export default function ChangeThemeV2Page() {
   const params = useParams();
   const searchParams = useSearchParams();
   const clubId = Number(params.id);
-  const { isSuperAdmin, isAdmin } = useAuth();
-  const canManage = isSuperAdmin || isAdmin;
+  const { isSuperAdmin, isAdmin, user } = useAuth();
+  // This part of the club website carries NO Rotary year — one menu, one set of
+  // social links, one About page, one theme. Changing it is a change to the LIVE
+  // site, so it needs CURRENT-year rights.
+  const { years, currentYearId } = useRotaryYears();
+  const siteRights = useMemo(() => clubYearRights(user?.scopedRoles, clubId), [user?.scopedRoles, clubId]);
+  const canManage = (isSuperAdmin || isAdmin) && canEditYearless(siteRights, currentYearId, isSuperAdmin);
+  // YWAR-BADGE-YEARLESS — name the CURRENT year, not the years held.
+  // This data is not filed by Rotary year, so "you can make changes in
+  // 2025-26" is untrue: those years cannot help here. See ViewOnlyBadge.
+  const ywarCurrentYearLabel =
+    years.find((y) => y.id === currentYearId)?.yearLabel ?? "";
 
   const returnTo = searchParams.get("returnTo") || "";
   const defaultBack = `/clubs/${clubId}/website-data`;
@@ -134,6 +147,10 @@ export default function ChangeThemeV2Page() {
 
   return (
     <ProtectedRoute>
+      {!canManage && (
+        <ViewOnlyBadge currentYearOnly={ywarCurrentYearLabel} className="mb-4" />
+      )}
+
       <ClubAdminShell
         pageTitle="Theme"
         pageSubtitle="Public website theme"

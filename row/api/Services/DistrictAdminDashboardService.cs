@@ -34,11 +34,31 @@ public class DistrictAdminDashboardService : IDistrictAdminDashboardService
     private readonly IYearTableResolver _yearTables;
     private readonly IRotaryOrgApiClient _rotaryOrgClient;
 
-    public DistrictAdminDashboardService(IConfiguration configuration, IYearTableResolver yearTables, IRotaryOrgApiClient rotaryOrgClient)
+    private readonly IAdminYearService _adminYears;
+
+    public DistrictAdminDashboardService(IConfiguration configuration, IYearTableResolver yearTables, IRotaryOrgApiClient rotaryOrgClient, IAdminYearService adminYears)
     {
         _connectionString = configuration.GetConnectionString("DefaultConnection")!;
         _yearTables = yearTables;
         _rotaryOrgClient = rotaryOrgClient;
+        _adminYears = adminYears;
+    }
+
+    /// <summary>
+    /// Year-wise Admin Rights. Sits beside EnsureDistrictAdminAsync — that one
+    /// answers "is this your district", this one answers "is this your year".
+    /// Only the WRITE paths call it; reading a past year stays open.
+    /// </summary>
+    private async Task EnsureDistrictYearAsync(MySqlConnection conn, int memberId, int districtId, int yearId)
+    {
+        if (yearId <= 0) return;   // callers raise their own "YearId is required"
+        var rights = await _adminYears.GetDistrictRightsAsync(conn, memberId, districtId);
+        if (rights.Covers(yearId)) return;
+
+        var label = await conn.ExecuteScalarAsync<string?>(
+            "SELECT YearLabel FROM rotary_year_master WHERE pk_year_id = @Id", new { Id = yearId })
+            ?? $"year {yearId}";
+        throw new UnauthorizedAccessException($"You do not have admin rights for {label}.");
     }
 
     private MySqlConnection CreateConnection() => new(_connectionString);
@@ -77,16 +97,23 @@ public class DistrictAdminDashboardService : IDistrictAdminDashboardService
             if (isAdmin == 0)
                 throw new UnauthorizedAccessException("You are not an active admin for this district.");
 
-            return requestedDistrictId.Value;
+            // Hidden hierarchy (inactive district / zone): the dashboard shows nothing. Queries
+            // below are all district-scoped, so they only add the club's own IsActive.
+            var live = await conn.ExecuteScalarAsync<int>($@"
+                SELECT COUNT(*) FROM district_master d
+                WHERE d.pk_district_id = @DistrictId AND {HierarchyScopeSql.DistrictLive("d")}",
+                new { DistrictId = requestedDistrictId.Value });
+            return live > 0 ? requestedDistrictId.Value : 0;
         }
 
-        var districtId = await conn.ExecuteScalarAsync<int?>(@"
+        var districtId = await conn.ExecuteScalarAsync<int?>($@"
             SELECT fk_district_id FROM member_roles
             WHERE fk_member_master_profile_id = @MemberId
               AND fk_role_id = 2
               AND fk_district_id IS NOT NULL AND fk_district_id > 0
               AND (fk_club_id IS NULL OR fk_club_id = 0)
               AND IsActive = 1 AND isdeleted = 0
+              AND {HierarchyScopeSql.DistrictIdLive("member_roles.fk_district_id")}
             ORDER BY pk_member_role_id ASC
             LIMIT 1",
             new { MemberId = memberId });

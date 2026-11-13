@@ -323,7 +323,7 @@ public class ClubReportController : ControllerBase
                    CASE WHEN m.IsYouth = 1 THEN 'Yes' ELSE 'No' END AS youthFlag,
                    m.BirthDate AS dob,
                    m.AnniversaryDate AS doa,
-                   m.BloodGroup AS bloodGroup,
+                   m.BloodGroup AS bloodGroup, (SELECT ts.SizeName FROM event_tshirt_sizes ts WHERE ts.pk_id = m.fk_tshirt_size_id) AS tshirtSize,
                    m.LastDeviceName AS deviceName,
                    CASE WHEN m.LastDeviceName IS NULL OR m.LastDeviceName = '' THEN 'No' ELSE 'Yes' END AS downloaded,
                    (SELECT CONCAT_WS(', ',
@@ -409,7 +409,7 @@ public class ClubReportController : ControllerBase
             SELECT c.ClubName AS clubName, d.DistrictNumber AS districtNumber,
                    m.MemberName AS ownerName, 'Member' AS relation,
                    m.MemberName AS personName, m.PrimaryMobileNumber AS mobile,
-                   m.EmailId AS email, m.BloodGroup AS bloodGroup,
+                   m.EmailId AS email, m.BloodGroup AS bloodGroup, (SELECT ts.SizeName FROM event_tshirt_sizes ts WHERE ts.pk_id = m.fk_tshirt_size_id) AS tshirtSize,
                    m.MemberName AS sortName, 0 AS sortFamily
             FROM club_members cm
             JOIN member_master_profile m ON m.pk_member_master_profile_id = cm.fk_member_master_profile_id AND m.isdeleted = 0
@@ -421,7 +421,7 @@ public class ClubReportController : ControllerBase
             SELECT c.ClubName AS clubName, d.DistrictNumber AS districtNumber,
                    m.MemberName AS ownerName, COALESCE(NULLIF(f.Relation,''),'Family') AS relation,
                    f.Name AS personName, f.PhoneNumber AS mobile,
-                   f.EmailId AS email, f.BloodGroup AS bloodGroup,
+                   f.EmailId AS email, f.BloodGroup AS bloodGroup, NULL AS tshirtSize,
                    m.MemberName AS sortName, 1 AS sortFamily
             FROM club_members cm
             JOIN member_master_profile m ON m.pk_member_master_profile_id = cm.fk_member_master_profile_id AND m.isdeleted = 0

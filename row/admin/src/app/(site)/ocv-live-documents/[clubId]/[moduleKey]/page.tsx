@@ -11,13 +11,14 @@ function parseYearId(searchParams: { yearId?: string }): number | undefined {
   return Number.isInteger(n) && n > 0 ? n : undefined;
 }
 
-export async function generateMetadata({
-  params,
-  searchParams,
-}: {
-  params: { clubId: string; moduleKey: string };
-  searchParams: { yearId?: string };
-}): Promise<Metadata> {
+export async function generateMetadata(
+  props: {
+    params: Promise<{ clubId: string; moduleKey: string }>;
+    searchParams: Promise<{ yearId?: string }>;
+  }
+): Promise<Metadata> {
+  const searchParams = await props.searchParams;
+  const params = await props.params;
   const clubId = Number(params.clubId);
   const yearId = parseYearId(searchParams);
   if (!Number.isFinite(clubId) || !yearId) return { title: "Live Documents | Rotary" };
@@ -29,13 +30,14 @@ export async function generateMetadata({
   };
 }
 
-export default async function OcvLiveDocumentsPage({
-  params,
-  searchParams,
-}: {
-  params: { clubId: string; moduleKey: string };
-  searchParams: { yearId?: string };
-}) {
+export default async function OcvLiveDocumentsPage(
+  props: {
+    params: Promise<{ clubId: string; moduleKey: string }>;
+    searchParams: Promise<{ yearId?: string }>;
+  }
+) {
+  const searchParams = await props.searchParams;
+  const params = await props.params;
   const clubId = Number(params.clubId);
   const yearId = parseYearId(searchParams);
   const moduleKey = params.moduleKey;

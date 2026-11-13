@@ -19,8 +19,16 @@ public class MobileClubAdminMembershipDuesController : ControllerBase
     private readonly IMembershipDuesService _service;
     private readonly IWebHostEnvironment _env;
 
-    public MobileClubAdminMembershipDuesController(IMembershipDuesService service, IWebHostEnvironment env)
+    // Year-wise Admin Rights. The web twin keeps this guard in the controller rather
+    // than in the shared service, so these mobile routes had no year check at all —
+    // and no club check either, since the roles claim says "Admin", not "Admin of
+    // THIS club" (QA 2026-10-16, blocker B3).
+    private readonly AdminYearGuard _guard;
+
+    public MobileClubAdminMembershipDuesController(
+        IMembershipDuesService service, IWebHostEnvironment env, AdminYearGuard guard)
     {
+        _guard = guard;
         _service = service;
         _env = env;
     }
@@ -92,6 +100,9 @@ public class MobileClubAdminMembershipDuesController : ControllerBase
     [HttpPost("{id}/members/{memberFeeId}/offline-payment")]
     public async Task<ActionResult> RecordOfflinePayment(int id, int memberFeeId, [FromForm] RecordOfflineDuesPaymentDto dto, IFormFile? attachment)
     {
+        var denied = await _guard.MembershipDuesYearAsync(User, id);
+        if (denied != null) return denied;
+
         if (!IsSuperAdminOrAdmin()) return StatusCode(403, new { message = "Access denied." });
         var err = ValidateAttachment(attachment);
         if (err != null) return BadRequest(new { message = err });
@@ -156,6 +167,9 @@ public class MobileClubAdminMembershipDuesController : ControllerBase
     [HttpPut("payments/{paymentId}/update-offline")]
     public async Task<ActionResult> UpdateOfflinePayment(int paymentId, [FromForm] RecordOfflineDuesPaymentDto dto, IFormFile? attachment, [FromForm] bool sendReceiptOnUpdate = false)
     {
+        var denied = await _guard.MembershipDuesYearAsync(User, paymentId, MembershipDuesIdKind.Payment);
+        if (denied != null) return denied;
+
         if (!IsSuperAdminOrAdmin()) return StatusCode(403, new { message = "Access denied." });
         var err = ValidateAttachment(attachment);
         if (err != null) return BadRequest(new { message = err });

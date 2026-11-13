@@ -69,7 +69,7 @@ public class CommsService
     public async Task<string?> SaveSettingsAsync(Tenant t, CommSettingsDto dto, int by)
     {
         var lang = Blank(dto.DefaultLanguage);
-        if (lang != null && !CommsTemplates.LanguageCode.IsMatch(lang)) return "Language must be a code such as \"en\" or \"pt-BR\".";
+        if (lang != null && !CommsTemplates.IsSupported(lang)) return "Language must be one of en, fr, de, it, ja, ko, pt, es.";
 
         // The Governor note and the Foundation giving link belong to the district; a club row never holds them.
         string? gName = null, gPhoto = null, gMessage = null, foundation = null;
@@ -171,7 +171,7 @@ public class CommsService
         var subject = Blank(dto.Subject);
         var body = PublicHtml.Clean(Blank(dto.BodyHtml));
         if (key == null || !TemplateKey.IsMatch(key)) return (null, "Key is required: lower-case letters, digits, '-' or '_' (50 at most).");
-        if (lang == null || !CommsTemplates.LanguageCode.IsMatch(lang)) return (null, "Language must be a code such as \"en\" or \"pt-BR\".");
+        if (lang == null || !CommsTemplates.IsSupported(lang)) return (null, "Language must be one of en, fr, de, it, ja, ko, pt, es.");
         if (subject == null || subject.Length > 300 || subject.IndexOfAny(new[] { '\r', '\n' }) >= 0) return (null, "Subject is required, one line, 300 characters at most.");
         if (string.IsNullOrWhiteSpace(body) || body.Length > 100_000) return (null, "Body is required (100,000 characters at most).");
 

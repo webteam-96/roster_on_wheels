@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, Fragment } from "react";
+import { useState, useEffect, useCallback, Fragment, useMemo } from "react";
 import { useParams, useSearchParams, useRouter } from "next/navigation";
 import { ProjectListItem } from "@/types/project";
 import {
@@ -12,6 +12,8 @@ import {
   getCurrentRotaryYear,
 } from "@/services/api";
 import { useAuth } from "@/contexts/AuthContext";
+import { clubYearRights, canEditYear, heldYearLabels } from "@/lib/adminYears";
+import ViewOnlyBadge from "@/components/ViewOnlyBadge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -66,7 +68,7 @@ export default function ProjectsPage() {
   const router = useRouter();
   const clubId = Number(params.id);
   const moduleKey = searchParams.get("module") || "community_service";
-  const { isSuperAdmin, isAdmin } = useAuth();
+  const { isSuperAdmin, isAdmin, user } = useAuth();
 
   const [clubName, setClubName] = useState("");
   const [moduleId, setModuleId] = useState<number | null>(null);
@@ -95,7 +97,23 @@ export default function ProjectsPage() {
   // Expanded ongoing parents (show child projects)
   const [expandedParents, setExpandedParents] = useState<Set<number>>(new Set());
 
-  const canManage = isSuperAdmin || isAdmin;
+  // Being an admin of this club is no longer enough — admin rights are per
+  // Rotary year, so the selected year decides whether this is editable.
+  const yearRights = useMemo(
+    () => clubYearRights(user?.scopedRoles, clubId),
+    [user?.scopedRoles, clubId],
+  );
+  const isClubAdmin = isSuperAdmin || isAdmin;
+  const canManage = isClubAdmin && canEditYear(yearRights, selectedYearId, isSuperAdmin);
+  // ⚠️ VIEW is deliberately NOT gated on canManage. Without this the row's only
+  // way into a project disappears with the Edit button and the page becomes a
+  // list you cannot open.
+  const canView = isClubAdmin;
+  const editableYears = heldYearLabels(
+    yearRights,
+    years.map((y) => ({ id: y.id, label: y.yearLabel })),
+  );
+  const viewingYearLabel = years.find((y) => y.id === selectedYearId)?.yearLabel;
   const moduleLabel = MODULE_LABELS[moduleKey] || "Projects";
 
   // Fetch club, module, then years (needs moduleId)
@@ -278,22 +296,27 @@ export default function ProjectsPage() {
         <TableCell>{formatDate(project.projectDate)}</TableCell>
         <TableCell>{project.location || "-"}</TableCell>
         <TableCell className="text-right">{project.projectCost != null ? formatMoney(project.projectCost, project.currency) : "-"}</TableCell>
-        {canManage && (
+        {canView && (
           <TableCell>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon" className="h-8 w-8"><MoreHorizontal className="h-4 w-4" /></Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
+                {/* Always offered. A year you cannot edit is still a year you can read. */}
                 <DropdownMenuItem onClick={() => router.push(`/clubs/${clubId}/projects/${project.id}?module=${moduleKey}&yearId=${selectedYearId}`)}>
                   <Eye className="mr-2 h-4 w-4" />View
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => router.push(`/clubs/${clubId}/projects/${project.id}/edit?module=${moduleKey}&yearId=${selectedYearId}`)}>
-                  <Pencil className="mr-2 h-4 w-4" />Edit
-                </DropdownMenuItem>
-                <DropdownMenuItem className="text-destructive" onClick={() => setDeleteTarget(project)}>
-                  <Trash2 className="mr-2 h-4 w-4" />Delete
-                </DropdownMenuItem>
+                {canManage && (
+                  <DropdownMenuItem onClick={() => router.push(`/clubs/${clubId}/projects/${project.id}/edit?module=${moduleKey}&yearId=${selectedYearId}`)}>
+                    <Pencil className="mr-2 h-4 w-4" />Edit
+                  </DropdownMenuItem>
+                )}
+                {canManage && (
+                  <DropdownMenuItem className="text-destructive" onClick={() => setDeleteTarget(project)}>
+                    <Trash2 className="mr-2 h-4 w-4" />Delete
+                  </DropdownMenuItem>
+                )}
                 {isOngoingParent && childCount > 0 && (
                   <DropdownMenuItem onClick={() => toggleExpand(project.id)}>
                     {isExpanded ? <ChevronDown className="mr-2 h-4 w-4" /> : <ChevronRight className="mr-2 h-4 w-4" />}
@@ -330,6 +353,10 @@ export default function ProjectsPage() {
             </Button>
           )}
         </div>
+
+        {isClubAdmin && !canManage && selectedYearId && (
+          <ViewOnlyBadge yearLabel={viewingYearLabel} editableYears={editableYears} className="mb-4" />
+        )}
 
         {/* Year selector + Type filter + Search */}
         <div className="flex flex-col sm:flex-row gap-4">
@@ -414,7 +441,7 @@ export default function ProjectsPage() {
                     <TableHead className="text-base font-semibold">Date</TableHead>
                     <TableHead className="text-base font-semibold">Location</TableHead>
                     <TableHead className="text-base font-semibold text-right">Cost</TableHead>
-                    {canManage && (
+                    {canView && (
                       <TableHead className="w-12"></TableHead>
                     )}
                   </TableRow>

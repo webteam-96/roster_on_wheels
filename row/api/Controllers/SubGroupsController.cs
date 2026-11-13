@@ -13,8 +13,11 @@ public class SubGroupsController : ControllerBase
     private readonly ISubGroupService _service;
     private readonly string _connectionString;
 
-    public SubGroupsController(ISubGroupService service, IConfiguration configuration)
+    private readonly AdminYearGuard _guard;
+
+    public SubGroupsController(AdminYearGuard guard, ISubGroupService service, IConfiguration configuration)
     {
+        _guard = guard;
         _service = service;
         _connectionString = configuration.GetConnectionString("DefaultConnection")!;
     }
@@ -58,6 +61,9 @@ public class SubGroupsController : ControllerBase
     [HttpPost]
     public async Task<ActionResult> CreateSubGroup(int clubId, [FromBody] CreateSubGroupDto dto)
     {
+        var denied = await _guard.ClubYearAsync(User, clubId, dto.YearId);
+        if (denied != null) return denied;
+
         if (!await MembersInClubAsync(clubId, dto.MemberIds)) return BadRequest(new { message = "Every member must belong to this club." });
         var result = await _service.CreateSubGroupAsync(clubId, dto, GetUserId());
         return Ok(result);
@@ -67,6 +73,13 @@ public class SubGroupsController : ControllerBase
     [OwnedBy(Owns.ClubSubGroup, "subGroupId", "clubId")]
     public async Task<ActionResult> UpdateSubGroup(int clubId, int subGroupId, [FromBody] UpdateSubGroupDto dto)
     {
+        // UpdateSubGroupDto carries its own YearId, so this edit can move the
+        // group between years. Guard the year it is in AND the year it is going to.
+        var currentDenied = await _guard.ClubRecordYearAsync(
+            User, clubId, "sub_groups", "pk_sub_group_id", subGroupId);
+        var denied = currentDenied ?? await _guard.ClubYearAsync(User, clubId, dto.YearId);
+        if (denied != null) return denied;
+
         if (!await MembersInClubAsync(clubId, dto.MemberIds)) return BadRequest(new { message = "Every member must belong to this club." });
         var result = await _service.UpdateSubGroupAsync(subGroupId, dto, GetUserId());
         return Ok(result);
@@ -76,6 +89,10 @@ public class SubGroupsController : ControllerBase
     [OwnedBy(Owns.ClubSubGroup, "subGroupId", "clubId")]
     public async Task<ActionResult> DeleteSubGroup(int clubId, int subGroupId)
     {
+        var denied = await _guard.ClubRecordYearAsync(
+            User, clubId, "sub_groups", "pk_sub_group_id", subGroupId);
+        if (denied != null) return denied;
+
         await _service.DeleteSubGroupAsync(subGroupId, GetUserId());
         return Ok(new { message = "Sub group deleted successfully." });
     }

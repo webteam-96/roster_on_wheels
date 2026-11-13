@@ -74,7 +74,7 @@ open the file for the text. Do not edit by hand.
   -   19. Gates
   - … 15 more headings
 
-## row (49 documents)
+## row (65 documents)
 
 - **row/HANDOFF.md** (13 KB)
   - ROW: session handoff (read this first)
@@ -111,7 +111,7 @@ open the file for the text. Do not edit by hand.
   -   Configuration (set per server as environment variables; never commit values)
   -   Checks
   -   Refreshing from a newer RIZones copy
-- **row/ROW-CHANGES.md** (71 KB)
+- **row/ROW-CHANGES.md** (82 KB)
   - ROW changes to consider later
   -   Security and privacy
   -   Providers
@@ -137,7 +137,7 @@ open the file for the text. Do not edit by hand.
   -   2026-10-23: Skipped modules removed, 10 new spec modules, security fixes
   -   2026-10-23 (part 2): security and read review, time zones, planning mode, escalation, rebranding
   -   2026-10-28: Build spec completion (plan `docs/superpowers/plans/2026-10-28-build-spec-completion.md`)
-  - … 4 more headings
+  - … 9 more headings
 - **row/STATUS-REPORT.md** (6 KB)
   - ROW status report (updated 2026-10-23, evening)
   -   Done (verified on a local copy of production, `row_prod_copy`)
@@ -174,6 +174,8 @@ open the file for the text. Do not edit by hand.
   -   5. New spec modules (Build Specification v4.1)
   -   6. Blocked or on hold
   -   7. Launch items (build guide)
+- **row/admin/AGENTS.md** (0 KB)
+  -   This is NOT the Next.js you know
 - **row/admin/README.md** (1 KB)
   -   Getting Started
   - or
@@ -181,6 +183,35 @@ open the file for the text. Do not edit by hand.
   - or
   -   Learn More
   -   Deploy on Vercel
+- **row/assistant-web/README.md** (1 KB)
+  - Rotary AI Assistant — web chat UI
+  -   Develop
+  -   Build
+  -   Deploy (IIS)
+- **row/assistant-web/out/__next.__PAGE__.txt** (3 KB)
+  - _1:"$Sreact.fragment"_
+- **row/assistant-web/out/__next._full.txt** (4 KB)
+  - _1:"$Sreact.fragment"_
+- **row/assistant-web/out/__next._tree.txt** (0 KB)
+  - _:HL["/_next/static/chunks/091ep1a6rm4nb.css","style"]_
+- **row/assistant-web/out/index.txt** (4 KB)
+  - _1:"$Sreact.fragment"_
+- **row/assistant-web/out/_not-found/__next._full.txt** (5 KB)
+  - _1:"$Sreact.fragment"_
+- **row/assistant-web/out/_not-found/__next._tree.txt** (0 KB)
+  - _:HL["/_next/static/chunks/091ep1a6rm4nb.css","style"]_
+- **row/assistant-web/out/_not-found/index.txt** (5 KB)
+  - _1:"$Sreact.fragment"_
+- **row/assistant-web/out/_not-found/__next._not-found/__PAGE__.txt** (4 KB)
+  - _1:"$Sreact.fragment"_
+- **row/assistant-web/out/login/__next._full.txt** (4 KB)
+  - _1:"$Sreact.fragment"_
+- **row/assistant-web/out/login/__next._tree.txt** (0 KB)
+  - _:HL["/_next/static/chunks/091ep1a6rm4nb.css","style"]_
+- **row/assistant-web/out/login/index.txt** (4 KB)
+  - _1:"$Sreact.fragment"_
+- **row/assistant-web/out/login/__next.login/__PAGE__.txt** (3 KB)
+  - _1:"$Sreact.fragment"_
 - **row/club-website/README.md** (2 KB)
   - Club Website
   -   Phases
@@ -529,8 +560,24 @@ open the file for the text. Do not edit by hand.
   -   6. Accessibility (non-negotiable, port to every surface)
   -   7. Porting checklist
   -   8. Application screens (admin portal and mobile app)
+- **row/workers/AssistantIndexWorker/qdrant/README.md** (7 KB)
+  - Qdrant + AssistantIndexWorker — Windows server setup
+  -   1. Install Qdrant v1.20.0
+  -   2. Set the API key (environment variables, never in a file)
+  -   3. Run Qdrant as a service (WinSW)
+  -   4. Firewall: do not expose Qdrant
+  -   5. Nightly snapshots
+  -   6. Run the worker
+  - copy publish-worker\* to <server folder>\AssistantIndexWorker\
+- **row/workers/RccGoalsFetcher/WORKER_SETUP.md** (4 KB)
+  - RccGoalsFetcher worker: District Governor syncs
+  -   Requirements
+  -   Install as a Windows Service (elevated command prompt)
+  -   Statuses
+  -   The normal scheduled run is separate
+  -   Checking the database mapping (read-only)
 
-## reference (110 documents)
+## reference (247 documents)
 
 - **reference/RotaryIndia_Admin_API_Claude/Announcements.txt** (0 KB)
   - _Announcements:_
@@ -543,6 +590,18 @@ open the file for the text. Do not edit by hand.
   -   FirebaseAdmin .NET (C#) — if you use the Admin SDK
   -   Notes / gotchas
   -   Quick test checklist
+- **reference/RotaryIndia_Admin_API_Claude/CLAUDE.md** (5 KB)
+  - CLAUDE.md — Rotary India Admin Platform
+  -   What this is
+  -   Understand the codebase fast — use the graph
+  -   Rules — do not violate
+  -   Git topology (read before any git command)
+  -   Backend safety
+  - CLAUDE.md
+  -   1. Think Before Coding
+  -   2. Simplicity First
+  -   3. Surgical Changes
+  -   4. Goal-Driven Execution
 - **reference/RotaryIndia_Admin_API_Claude/Cashfree KYC.txt** (12 KB)
   - _Cashfree KYC(listing/Add/Edit/Delete/active/inactive/view/refresh,):No rotary year_
 - **reference/RotaryIndia_Admin_API_Claude/Club Monthly Report.txt** (5 KB)
@@ -609,6 +668,21 @@ open the file for the text. Do not edit by hand.
   - _Online Event link:_
 - **reference/RotaryIndia_Admin_API_Claude/PPH Camp.txt** (1 KB)
   - _PPH camp(listing/Add/Edit/Delete/active/inactive):No rotary year_
+- **reference/RotaryIndia_Admin_API_Claude/PROJECT_ONBOARDING.md** (22 KB)
+  - Project Onboarding — Rotary India Admin Platform
+  -   0. TL;DR — how to understand this project fast
+  -   1. What this project is
+  -   2. Where knowledge is stored in this repo
+  -   3. Critical working rules (do not violate)
+  -   4. Architecture highlights
+  -   5. Build / run / verify
+  - Flutter (from the app folder — REQUIRED for analyze)
+  - Backend
+  - Web
+  -   6. First-hour checklist for a fresh Claude session
+  -   7. Known state / open items (as of 2026-09-30)
+  -   8. How to regenerate / extend the knowledge graph
+  - choose scope "all code + real docs" when prompted (skips screenshots/videos/test folders)
 - **reference/RotaryIndia_Admin_API_Claude/Public Image Initiative.txt** (1 KB)
   - _Public Image Initiative(listing/Add/Edit/Delete)_
 - **reference/RotaryIndia_Admin_API_Claude/Role correct screen.txt** (0 KB)
@@ -629,6 +703,30 @@ open the file for the text. Do not edit by hand.
   - _On save button you have to save in both year wise and month wise. if project comes then you have consider month wise to _
 - **reference/RotaryIndia_Admin_API_Claude/Zonal Awards.txt** (7 KB)
   - _Zonal Awards Module:_
+- **reference/RotaryIndia_Admin_API_Claude/.claude/agents/api-contract-mapper.md** (1 KB)
+  -   Steps
+  -   Output → `parity/02-api.md`
+- **reference/RotaryIndia_Admin_API_Claude/.claude/agents/app-inventory.md** (1 KB)
+  -   Steps
+  -   Flutter-specific things people miss — check each one
+  -   Output → `parity/app/<module>.md`
+  -   Notes
+- **reference/RotaryIndia_Admin_API_Claude/.claude/agents/gap-writer.md** (1 KB)
+  -   Steps
+  -   Output → `parity/GAP.md`
+- **reference/RotaryIndia_Admin_API_Claude/.claude/agents/web-inventory.md** (1 KB)
+  -   Steps
+  -   What counts as a capability
+  -   Output → `parity/web/<module>.md`
+  -   Notes
+- **reference/RotaryIndia_Admin_API_Claude/.claude/commands/parity.md** (2 KB)
+  - Parity audit
+  -   Rules
+  -   Phase 0 — Ground rules (run once)
+  -   Phase 1 — API contract
+  -   Phase 2 — Inventories (per module)
+  -   Phase 3 — Gap report
+  -   Phase 4 — Runtime spot-check (only if I ask)
 - **reference/RotaryIndia_Admin_API_Claude/.planning/v1-deletion-list.md** (18 KB)
   -   (entries appended below by each module's commit)
   -   club-service (replaced 2026-06-04)
@@ -691,6 +789,20 @@ open the file for the text. Do not edit by hand.
   -   MAJOR (3)
 - **reference/RotaryIndia_Admin_API_Claude/.planning/review-findings/vocational-service.md** (2 KB)
   -   MAJOR (5)
+- **reference/RotaryIndia_Admin_API_Claude/AssistantEvals/README.md** (2 KB)
+  - AssistantEvals
+  -   Before a run
+  -   personas.json
+  -   Case types
+- **reference/RotaryIndia_Admin_API_Claude/AssistantIndexWorker/qdrant/README.md** (7 KB)
+  - Qdrant + AssistantIndexWorker — Windows server setup
+  -   1. Install Qdrant v1.20.0
+  -   2. Set the API key (environment variables, never in a file)
+  -   3. Run Qdrant as a service (WinSW)
+  -   4. Firewall: do not expose Qdrant
+  -   5. Nightly snapshots
+  -   6. Run the worker
+  - copy publish-worker\* to D:\inetpub\vhosts\rizones45678.org\httpdocs\AssistantIndexWorker\
 - **reference/RotaryIndia_Admin_API_Claude/Club_Website/DEPLOY-PHASE5.md** (8 KB)
   - Phase 5 — Deploy runbook (Club Website)
   -   1. Source folder
@@ -754,6 +866,196 @@ open the file for the text. Do not edit by hand.
   -   6. Country List Management
   -   7. Future Considerations
   -   8. Screen Wireframe Summary
+- **reference/RotaryIndia_Admin_API_Claude/MD_files/BACKEND_NOTE_RIZO-53_calendar_designation_2026-10-26.md** (3 KB)
+  - Backend note — RIZO-53: the calendar's role line is free text, not the real office
+  -   Diagnosis
+  -   Fix (backend) — recommended
+  -   The other half — a data decision for the client
+  -   App side — no change made
+- **reference/RotaryIndia_Admin_API_Claude/MD_files/BACKEND_NOTE_credit_purchase_unguarded_2026-10-26.md** (3 KB)
+  - Backend note — credit purchase has no role check and no year check
+  -   What we found
+  -   Why it matters for Year-wise Admin Rights
+  -   Fix (backend)
+  -   App side (already shipped in `rotary_flutter_app/`)
+- **reference/RotaryIndia_Admin_API_Claude/MD_files/BACKEND_NOTE_district_newsletter_rename_gml_2026-10-26.md** (2 KB)
+  - Backend note — rename the DISTRICT "Newsletters" module to "GML"
+  -   What and why
+  -   Fix (backend/platform)
+  -   Web side — NOT done
+  -   App side (already shipped in `rotary_flutter_app/`)
+- **reference/RotaryIndia_Admin_API_Claude/MD_files/BACKEND_NOTE_district_upcoming_event_push_wrong_deeplink_2026-10-22.md** (3 KB)
+  - Backend note — district Upcoming Event push sends the wrong deep-link (clubId 0)
+  -   Symptom (reported by a tester, with screenshot)
+  -   Root cause
+  -   Fix (backend)
+  -   App contract (already shipped in `rotary_flutter_app/`, waiting on this)
+- **reference/RotaryIndia_Admin_API_Claude/MD_files/BACKEND_NOTE_member_count_honorary_contract_2026-10-26.md** (3 KB)
+  - Backend note — `TotalMembers` / `HonoraryMembers`: the DTO comment contradicts the SQL
+  -   The contradiction
+  -   What it cost
+  -   Fix (backend) — small, but worth doing
+  -   App side (already shipped in `rotary_flutter_app/`)
+- **reference/RotaryIndia_Admin_API_Claude/MD_files/BACKEND_NOTE_ywar_district_dashboard_goals_unguarded_2026-10-07.md** (3 KB)
+  - Backend note — the district dashboard controllers have no year guard at all
+  -   What is wrong
+  -   The fix
+  -   Web side
+  -   What the app now does
+- **reference/RotaryIndia_Admin_API_Claude/MD_files/BACKEND_NOTE_ywar_dues_guard_inside_catch_2026-10-06.md** (4 KB)
+  - Backend note — Membership Dues: the Year-wise Admin Rights guard never runs
+  -   What is wrong
+  -   How it happened
+  -   The fix
+  -   The 12 endpoints to correct
+  -   Scope
+  -   What the clients now do
+- **reference/RotaryIndia_Admin_API_Claude/MD_files/BACKEND_NOTE_ywar_foundation_goals_unguarded_2026-10-06.md** (4 KB)
+  - Backend note — Club Foundation Goals has no Year-wise Admin Rights guard
+  -   What is wrong
+  -   Why `IsEditable` is not the fix
+  -   The fix
+  -   Web side
+  -   What the app now does
+- **reference/RotaryIndia_Admin_API_Claude/MD_files/BACKEND_NOTE_ywar_project_photo_upload_yearless_2026-10-07.md** (6 KB)
+  - Backend note — a past-year admin can add a project but not its photo
+  -   What they hit
+  -   Cause
+  -   ⚠️ This also broke the WEBSITE — now fixed there too (2026-10-07)
+  -   The real fix is on the server, and it is a design point
+  -   Second gap — the DISTRICT upload has no year parameter at all
+  -   What the app now does
+- **reference/RotaryIndia_Admin_API_Claude/MD_files/BACKEND_NOTE_ywar_yearless_upload_sweep_2026-10-08.md** (8 KB)
+  - Backend note — the year-less-upload class, swept
+  -   The shape
+  -   Method
+  -   ⚠️ Confirmed instances of the bug
+  -   ✅ Correct as they stand — do not change
+  -   Client fix made from this sweep
+  -   Note on the method
+  -   Addendum 2026-10-12 — the gap in the method above, now closed
+  -   Client fix made from this addendum
+  -   What this means for the QA note above
+- **reference/RotaryIndia_Admin_API_Claude/MD_files/Backend_Custom_Notification_Sound.md** (4 KB)
+  - Backend hand-off — Custom notification sound for FCM pushes
+  -   What to add to every push message
+  -   FCM HTTP v1 — JSON example
+  -   FirebaseAdmin .NET (C#) — if you use the Admin SDK
+  -   Notes / gotchas
+  -   Quick test checklist
+- **reference/RotaryIndia_Admin_API_Claude/MD_files/Backend_Handoff_GoalSetting_YearScoped_Authorization.md** (7 KB)
+  - Backend Handoff — Goal Setting write-authorization is NOT year-scoped
+  -   1. Symptom (reported) + the exact rule
+  -   STATUS UPDATE (2026-09-30): fixed on the mobile app; backend = defense-in-depth
+  -   1a. The web frontend behaves the SAME (client-wise) — server is the enforcer
+  -   2. It is NOT the mobile app
+  -   3. Root cause
+  -   4. The fix
+  -   5. Definition of done
+  -   6. Notes for the mobile side (no code change)
+- **reference/RotaryIndia_Admin_API_Claude/MD_files/Backend_Handoff_Mobile_GoalSetting_MonthWise_And_Reports.md** (6 KB)
+  - Backend Handoff — Add Month-wise + Report routes to the **mobile** Goal Setting controller
+  -   1. Why this note
+  -   2. What to add (month-wise — the priority)
+  -   3. What to add (reports — optional, second priority)
+  -   4. Scope / out of scope
+  -   5. Definition of done
+- **reference/RotaryIndia_Admin_API_Claude/MD_files/Backend_Mobile_Token_NoExpiry_Change.md** (8 KB)
+  - Backend Task — Make Mobile Sessions "Never Expire" for Active Users
+  -   Why
+  -   What to change
+  -   Full file (drop-in replacement)
+  -   Behavior after the change
+  -   Notes & trade-offs
+  -   Quick test
+- **reference/RotaryIndia_Admin_API_Claude/MD_files/Backend_MyDues_Receipt_PaymentId_In_List.md** (3 KB)
+  - Backend request — expose `paymentId` on the My Dues fee list
+  -   Summary
+  -   The change
+  -   How the app consumes it
+  -   How to verify
+- **reference/RotaryIndia_Admin_API_Claude/MD_files/Backend_Note_Devices_Logout_On_Update_JWT_Secret.md** (4 KB)
+  - Backend Note — Devices Logging Out on Updates / Server Restarts
+  -   How tokens work today (for reference)
+  -   What to verify (in priority order)
+  -   Quick triage checklist next time it happens
+- **reference/RotaryIndia_Admin_API_Claude/MD_files/Backend_Notification_Wrong_Timestamp_2032y.md** (5 KB)
+  - Backend hand-off — Push notifications show a wrong timestamp ("2032y" / "2032 years ago")
+  -   Root cause: it's the FCM payload, not the app
+  -   The fix (pick ONE — option A is simplest and recommended)
+  -   Where to look in the sender code
+  -   Correct FCM HTTP v1 message (Option A — no timestamp field)
+  -   How to verify
+  -   Notes / gotchas
+- **reference/RotaryIndia_Admin_API_Claude/MD_files/Backend_OTP_Autofill_SMS_Retriever.md** (8 KB)
+  - Backend Task — Make the OTP SMS Auto-Fill on Android (SMS Retriever API)
+  -   TL;DR — what the SMS must look like
+  -   Why this format (how it works)
+  -   ⚠️ The #1 gotcha: there are THREE different hashes
+  -   How to get each hash
+  -   DLT / template registration (India)
+  -   iOS — what happens there (no backend hash needed)
+  -   Test checklist
+- **reference/RotaryIndia_Admin_API_Claude/MD_files/Backend_Spec_Member_Privacy_Notifications_Phase2_ReadGating.md** (9 KB)
+  - Backend Spec — Member Privacy & Notifications, **Phase 2 (read-side enforcement)**
+  -   0. The 8 flags (already exist, already saved)
+  -   PART A — Privacy (phone / email visibility on reads)
+  -   PART B — Notifications (push suppression)
+  -   PART C — Acceptance tests
+  -   Summary checklist for backend dev
+- **reference/RotaryIndia_Admin_API_Claude/MD_files/Backend_Spec_Member_Privacy_and_Notification_Settings.md** (13 KB)
+  - Backend Spec — Per-Club Member Privacy + Notification Settings (mobile)
+  -   1. What the feature is (from the old app + screenshots)
+  -   2. Relationship to existing privacy flags (IMPORTANT)
+  -   3. New tables (DatabaseInitializer.cs, raw `CREATE TABLE IF NOT EXISTS`)
+  -   4. DTOs (`DTOs/`, namespace `RotaryApi.DTOs`, PascalCase, camelCase JSON)
+  -   5. Endpoints (controller `MobileMemberSettingsController`, `[Route("api/mobile")]`, `[Authorize]`)
+  -   6. Wiring the per-club rule into existing read endpoints (the actual behavior)
+  -   7. Notification delivery (out of immediate scope, note for later)
+  -   8. Summary checklist for backend
+- **reference/RotaryIndia_Admin_API_Claude/MD_files/Backend_Spec_Website_Provisioning_Push_Notification.md** (7 KB)
+  - Backend Spec — Push notification when a club website finishes provisioning
+  -   1. Why
+  -   2. What to build
+  -   3. Everything you need already exists
+  -   4. Recipient tokens — query
+  -   5. Notification content
+  -   6. Suggested implementation (mirrors ReminderPushBackgroundService)
+  -   7. Testing
+  -   8. Out of scope
+- **reference/RotaryIndia_Admin_API_Claude/MD_files/Backend_Spec_YWAR_Per_Scope_Enable_Disable_2026-10-14.md** (26 KB)
+  - Spec — Turn Year-wise Admin Rights ON/OFF per district or club
+  -   1. The finding that makes this cheap
+  -   2. ⚠️ The trap — read before writing any code
+  -   3. Storage
+  -   4. Resolution — most specific wins
+  -   5. Preflight check — this is what prevents an outage
+  -   6. API
+  -   7. Clients — nothing to build
+  -   8. QA — the cases that matter
+  -   9. Risks
+  -   10. Effort
+  -   Appendix A — the web page
+  - AS BUILT — 2026-10-14
+  -   Deviations from the spec above, and why
+  -   Verification run
+  -   NOT yet verified — needs a SuperAdmin login
+  - FIX — 2026-10-14, same day: the switch had no effect on the clients
+  -   Cause — §7 of this spec was half wrong
+  -   What changed
+  -   Still not fully lifted — one deliberate gap
+  -   FOLLOW-UP 2026-10-15 — the year-PICKER gate now lifts too
+- **reference/RotaryIndia_Admin_API_Claude/MD_files/DEPLOY_PLAN_Year_Wise_Admin_Rights_2026-10-28.md** (16 KB)
+  - Year-wise Admin Rights — deployment plan
+  -   Status — all five QA blockers are fixed (28 Oct 2026)
+  -   Phase 0 — before anything (code hygiene)
+  -   Phase 1 — database (run BEFORE the code goes live)
+  -   Phase 2 — deploy the code
+  -   Phase 3 — verify on production (rule still OFF)
+  -   Phase 4 — switch the rule ON
+  -   Rollback
+  -   One thing that is already right
+  -   Reference
 - **reference/RotaryIndia_Admin_API_Claude/MD_files/Districts_and_Clubs_Module.md** (26 KB)
   - Districts & Clubs Module – Rotary Club Management Application
   -   1. Overview
@@ -781,10 +1083,190 @@ open the file for the text. Do not edit by hand.
   -   Dashboard API Response Format
   -   Auto-Assignment Logic (Pseudocode)
   -   Summary
+- **reference/RotaryIndia_Admin_API_Claude/MD_files/Feature_And_Access_Map_2026-09-10.md** (18 KB)
+  - Rotary India — Feature & Access Map
+  -   1. Two clients, one API
+  -   2. Club Admin features
+  -   3. District Admin features
+  -   4. Club Member features
+  -   5. Zonal Coordinator features
+  -   6. The remaining roles (reference)
+  -   7. Access model
+  -   8. Module catalogue (`module_master`, seeded)
+  -   9. Data model
+- **reference/RotaryIndia_Admin_API_Claude/MD_files/Firebase_Notification_DeepLink_Contract_Club.md** (7 KB)
+  - Firebase (FCM) Push-Notification Deep-Link Contract — CLUB
+  -   1. How this works
+  -   2. ✅ App-side status
+  -   3. Communication
+  -   4. Birthday / Anniversary
+  -   5. Projects (6 avenues)
+  -   6. Quick reference — all `type` values
+- **reference/RotaryIndia_Admin_API_Claude/MD_files/Firebase_Notification_Routes.md** (6 KB)
+  - Firebase (FCM) Push-Notification Deep-Link Contract — CLUB
+  -   1. How this works
+  -   2. Communication
+  -   3. Birthday / Anniversary
+  -   4. Projects (6 avenues)
+  -   6. Quick reference — all `type` values
+- **reference/RotaryIndia_Admin_API_Claude/MD_files/Flutter_App_Additional_APIs_and_Roles.md** (12 KB)
+  - Rotary India — Flutter App
+  -   API Requirements & User Roles
+  -   1. User Roles & Authentication
+  -   2. User Profile Section
+  -   3. Dashboard Modules (Home Screen)
+  -   4. Notifications & Updates
+  -   Overall Recommendation
+- **reference/RotaryIndia_Admin_API_Claude/MD_files/Force_Update_Flow_Backend_Handoff.md** (10 KB)
+  - Force / Optional App Update Flow — Backend Handoff
+  -   1. How it works (one paragraph)
+  -   2. Database
+  -   3. Endpoints
+  -   4. Version comparison — READ THIS, there is a real bug to avoid
+  -   5. Client behavior (so you know what your response drives)
+  -   6. Reuse checklist for a new project
+- **reference/RotaryIndia_Admin_API_Claude/MD_files/MOBILE_NOTE_tshirt_size_blood_group_2026-11-06.md** (2 KB)
+  - Mobile: T-Shirt Size + Blood Group on the member profile (2026-11-06)
+  -   Rules
+  -   1. Dropdown options — NEW
+  -   2. Read the profile (existing endpoint, new fields)
+  -   3. Save (existing endpoint, new field)
+  -   Where it shows on web (for reference)
 - **reference/RotaryIndia_Admin_API_Claude/MD_files/Members_list_add_Edit.md** (1 KB)
   - _Create members listing, add, edit, delete_
+- **reference/RotaryIndia_Admin_API_Claude/MD_files/Pagination_LoadMore_Added_Log.md** (3 KB)
+  - Load-More Pagination — Change Log
+  -   ✅ Added
+  -   ⏭️ Reviewed — no change needed
+  -   Already paginated (no work required)
+  -   Endpoints intentionally NOT paginated (backend returns plain `List`)
+- **reference/RotaryIndia_Admin_API_Claude/MD_files/QA_Checklist_2026-09-17.md** (7 KB)
+  - What changed today — a walkthrough for checking it
+  -   1. Greetings — the pause warning
+  -   2. Goal Setting oversight — the district table
+  -   3. Oversight — the two per-district buttons
+  -   4. Oversight — tapping a district row
+  -   5. Oversight — messages
+  -   6. Oversight — "Viewing as"
+  -   7. Login announcements
+  -   8. Health camps — history by phone number
+  -   Also worth a look (server-side, no app change)
+  -   One thing to pass to the backend developer
+- **reference/RotaryIndia_Admin_API_Claude/MD_files/REVERT_ywar_directory_comms_pattern_2026-09-28.md** (3 KB)
+  - Revert note — Directory follows the Communication pattern
+  -   What changed
+  -   Find every change
+  -   The three places
+  -   Backups (in-repo, survive a reboot)
+  -   Exception: Club Executive Secretary   (marker `YWAR-DIR-EXECSEC-EXEMPT`)
+  -   NOT changed this time
+  -   Consequence
+- **reference/RotaryIndia_Admin_API_Claude/MD_files/ROTARY_MASTER_PROMPT.md** (7 KB)
+  - 🔒 ROTARY PROJECT — CLAUDE CODE MASTER PROMPT
+  -   ⚠️ GOLDEN RULE: READ-ONLY ANALYSIS MODE
+  -   🎯 OBJECTIVE
+  -   📋 ROLE REGISTRY (16 Roles)
+  -   🔍 ANALYSIS TASKS (Execute in Order)
+  -   🚫 STRICT RULES
+  -   🔎 SEARCH STRATEGY
+  - Find role definitions
+  - Find route definitions
+  - Find auth/guard files
+  - Find dashboard components
+  - Find sidebar/navigation
+  - Find permission checks
+  - Find API endpoint definitions (backend)
+  -   📄 OUTPUT FORMAT
+  -   💡 TIPS FOR ACCURACY
+  -   🏁 START COMMAND
+- **reference/RotaryIndia_Admin_API_Claude/MD_files/Rotary_AI_Assistant.md** (7 KB)
+  - Rotary AI Assistant
+  -   How a question is answered
+  -   What each role can see
+  -   Where the code is
+  -   Go-live checklist
+  -   Day-to-day
+  -   Known limits
+- **reference/RotaryIndia_Admin_API_Claude/MD_files/Route_Maintenance_Mode_Backend_Spec.md** (23 KB)
+  - Route "Under Maintenance" Mode — Backend Spec
+  -   Goal
+  -   ⚠️ Read first — who builds what (3 parts)
+  -   How it works (high level)
+  -   IMPORTANT: use the route PATTERN as the key (not the concrete URL)
+  -   Database
+  -   API endpoints
+  -   Flutter side (handled in the app — for reference)
+  -   Full route list (seed data)
+  -   Dashboard TABS (Club / District / AG) — NOT routes
+  -   Decisions to confirm
 - **reference/RotaryIndia_Admin_API_Claude/MD_files/Tech.txt** (6 KB)
   - _Plan to implement                                                                                                       _
+- **reference/RotaryIndia_Admin_API_Claude/MD_files/WEB_NOTE_ywar_district_club_dues_2026-10-06.md** (3 KB)
+  - Web note — District Club Dues shows buttons the server refuses
+  -   The situation
+  -   The fix
+  -   What the app now does
+- **reference/RotaryIndia_Admin_API_Claude/MD_files/YWAR_Full_QA_Report_2026-10-16.md** (21 KB)
+  - Year-wise Admin Rights — full pre-release QA report
+  -   0. Ground truth at test time
+  -   1. What works correctly (verified in a live browser)
+  -   2. BLOCKERS — server-side, the rule is bypassed entirely
+  -   3. Missing authorization found alongside (not YWAR, but gates the same data)
+  -   4. UI gaps — buttons shown that the server will refuse
+  -   5. Lower severity
+  -   6. Rule-OFF pass — PASSED, including precedence
+  -   7. Suggested order of fixing
+  -   8. Module-by-module verdict
+- **reference/RotaryIndia_Admin_API_Claude/MD_files/YWAR_TEST_CHECKLIST_2026-09-29.md** (5 KB)
+  - Year-wise Admin Rights — manual test checklist
+  -   Test account
+  -   ⚠️ Read this before logging any bug
+  -   Group A — YEAR-WISE modules (21)
+  -   Group B — YEAR-LESS modules (29)
+  -   Group C — PER-ROW modules (6)
+  -   Group D — DETAIL screens that inherit the year (3)
+  -   Group E — MONEY / Payments (app only, club dashboard)
+  -   Known gaps — do NOT log these
+  -   How to record a result
+- **reference/RotaryIndia_Admin_API_Claude/MD_files/Year_wise_Admin_Rights.md** (10 KB)
+  - Task: Year-wise Admin Rights (Backend + Web Frontend + Flutter App)
+  -   Context
+  -   Git Rules (strict)
+  -   Requirement 1: Admin rights become year-wise
+  -   Requirement 2: Automatic Club Admin by club role
+  -   Requirement 3: Year-wise permissions (web + Flutter)
+  -   Requirement 4: "Make Admin" popup (District Admin + Club Admin)
+  -   Requirement 5: Keep existing admins
+  -   How to Work
+  -   Possible Issues to Check
+  -   Suggestions to Evaluate
+  -   Questions to Confirm With Me
+  -   Test Cases
+- **reference/RotaryIndia_Admin_API_Claude/MD_files/Year_wise_Admin_Rights_STEP1_Findings.md** (30 KB)
+  - Year-wise Admin Rights — Step 1 findings
+  -   0. FIRST — two things that block your Git Rules
+  -   1. What I understood
+  -   2. What exists today
+  -   3. A simple plan
+  -   4. Module list — which modules are year-based
+  -   5. Possible issues — every point checked
+  -   6. Suggestions
+  -   7. Questions I need answered before building
+  -   8. DECISIONS CONFIRMED (2026-09-17) — these now drive the build
+  -   9. BUILD PROGRESS
+  -   10. WHERE WE STOPPED — 2026-09-17, evening
+  - wait for "ready for connections", then:
+  -   11. LOCAL ENVIRONMENT + THE TWO FIXES — 2026-09-18
+  -   12. GRANT FLOW WITH YEARS — built 2026-09-18
+  -   13. ENFORCEMENT — started 2026-09-18
+- **reference/RotaryIndia_Admin_API_Claude/MD_files/Year_wise_Admin_Rights_STEP3_Enforcement.md** (6 KB)
+  - Year-wise Admin Rights — Step 3: backend enforcement rollout
+  -   The rule being enforced
+  -   One guard, called everywhere
+  -   Coverage
+  -   Granting years
+  -   Verification
+  -   Not done yet
 - **reference/RotaryIndia_Admin_API_Claude/MD_files/Zone_Management_Module.md** (5 KB)
   - Zone Management Module
   -   Overview
@@ -799,6 +1281,1008 @@ open the file for the text. Do not edit by hand.
   -   District Table Update
   -   SQL Schema
   -   Summary
+- **reference/RotaryIndia_Admin_API_Claude/MD_files/avenue_services_list_redesign_design_2026-06-30.md** (17 KB)
+  - Avenue of Service — List Page UI Redesign (Design Spec)
+  -   1. Summary
+  -   2. Goals & Non-Goals
+  -   3. Current State (what we're replacing)
+  -   4. Approved Design — Option A (app-native card) + overflow menu
+  -   5. Design tokens used (all already in `AppColors` / `AppTextStyles`)
+  -   6. Functionality freeze list (MUST NOT CHANGE)
+  -   7. Implementation surface (files touched)
+  -   8. Verification
+  -   9. Risks & mitigations
+  -   10. Out of scope / future (not in this change)
+- **reference/RotaryIndia_Admin_API_Claude/MD_files/avenue_services_list_redesign_plan_2026-06-30.md** (23 KB)
+  - Avenue of Service — List Page Redesign — Implementation Plan
+  -   File Structure
+  -   Task 1: Replace the card helper widgets
+  -   Task 2: Rewrite `_ProjectCard`
+  -   Task 3: Light scaffold polish (search field + filter chips)
+  -   Task 4: Whole-file verification + device QA
+  -   Self-Review (done after writing this plan)
+- **reference/RotaryIndia_Admin_API_Claude/MD_files/club_admin_overview_mobile_parity_redesign_2026-06-18.md** (11 KB)
+  - Club Admin Overview Dashboard — Mobile Parity & Clarity Redesign
+  -   1. The root problem this fixes
+  -   2. Shared foundation (new widgets — built once, used by every tab)
+  -   3. Tab 1 — Service Projects (full web parity)
+  -   4. Remaining tabs — parity gap checklists (each gets its own design cycle)
+  -   5. Out of scope / notes
+- **reference/RotaryIndia_Admin_API_Claude/MD_files/club_overview_tab1_service_projects_plan_2026-06-18.md** (33 KB)
+  - Club Overview Redesign — Tab 1 (Foundation + Service Projects) Implementation Plan
+  -   File Structure
+  -   Task 1: Shared money/number formatter
+  -   Task 2: `LabeledStat` + `StatGrid`
+  -   Task 3: `ExpandableRecordCard`
+  -   Task 4: `RyContextChip`
+  -   Task 5: Parse `avgAttendanceStayedPercent` in `SpAvenueKpis`
+  -   Task 6: All-view — expandable avenue summary cards (the screenshot fix)
+  -   Task 7: Club Service KPIs — Avg Attendance Stayed (web parity)
+  -   Task 8: Club Service meetings — search, pagination, expandable labeled rows
+  -   Task 9: Non-club projects — expandable cards, search, pagination, scoped toggle
+  -   Task 10: Hide project KPIs for PPH Camp (web parity)
+  -   Task 11: Pending-approval contact actions (avenue view)
+  -   Task 12: Header + RY chip; retire local formatters; honest counts
+  -   Task 13: Full-tab analyze + on-device acceptance pass
+  -   Self-review (done)
+- **reference/RotaryIndia_Admin_API_Claude/MD_files/flutter_change_report_2026-04-08.md** (12 KB)
+  - Flutter Implementation Report — Pull: 2026-04-08
+  -   Summary of Changes
+  -   1. CORS Fix (Program.cs)
+  -   2. New Database Tables
+  -   3. New Roles
+  -   4. Club Moderator Module
+  -   5. AG (Assistant Governor) Module
+  -   6. District Dashboard Changes
+  -   7. Flutter Implementation Plan
+  -   8. Data Grouping Logic (Important)
+  -   9. Files Changed in This Pull (Non-Flutter)
+- **reference/RotaryIndia_Admin_API_Claude/MD_files/flutter_change_report_2026-04-10.md** (19 KB)
+  - Flutter Implementation Report — Pull: 2026-04-10
+  -   High-Level Summary
+  -   1. MOBILE AUTH — OTP Login (MOST IMPORTANT FOR FLUTTER)
+  -   2. DISTRICT PPH CAMPS
+  -   3. DISTRICT CITATION (Complex module)
+  -   4. ZONAL AWARDS
+  -   5. EVENT PAYMENT LINKS (District Level)
+  -   6. DISTRICT DASHBOARD — New Tiles
+  -   7. FILES CHANGED (Non-Flutter)
+  -   8. FLUTTER IMPLEMENTATION ORDER
+  -   9. KEY NOTES FOR FLUTTER
+- **reference/RotaryIndia_Admin_API_Claude/MD_files/flutter_change_report_2026-04-14.md** (11 KB)
+  - Flutter Change Report — 2026-04-14
+  -   Summary of Changes
+  -   1. Unified Module Detail Screen (task1.md)
+  -   2. Embedded Support Added to 15 Screens
+  -   3. Gradient AppBar Theme Cascade
+  -   4. Login Flow Redesign (5 Screens)
+  -   5. Bug Fix — My Connections Showing Wrong Zones
+  -   6. Bug Fix — Zone Clubs Tab Showing 1 Club Instead of 7
+  -   7. Routing Updates
+  -   Files Changed (Summary)
+  -   Build Status
+- **reference/RotaryIndia_Admin_API_Claude/MD_files/flutter_change_report_2026-04-17.md** (40 KB)
+  - Flutter Implementation Report — Pull: 2026-04-17
+  -   Summary of Changes
+  -   1. Audit Middleware
+  -   2. District Governor Module
+  -   3. Login Announcement Module
+  -   4. Club Finder (Mobile API)
+  -   5. Find Rotarian (Mobile API)
+  -   6. District Directory (Mobile/PDF Export)
+  -   7. Mobile Calendar Endpoints
+  -   8. Mobile Membership Dues
+  -   9. Drag & Drop Reorder Endpoints
+  -   10. Frontend New Pages
+  -   11. New Frontend API Functions (api.ts)
+  -   12. Settings Page Updates
+  -   13. ClientProviders.tsx Update
+  -   14. New Utilities
+  -   Flutter Implementation Plan
+  -   Files Changed Summary
+  -   Flutter Gap Summary
+  -   Implementation Priority
+- **reference/RotaryIndia_Admin_API_Claude/MD_files/flutter_change_report_2026-04-21.md** (13 KB)
+  - Flutter Implementation Report — Pull: 2026-04-21
+  -   Summary of Changes
+  -   1. Mobile Club Finder v2 (MAJOR Flutter work)
+  -   2. Mobile Find Rotarian v2 (MAJOR Flutter work)
+  -   3. Club Report (Aggregated)
+  -   4. District Report (Aggregated)
+  -   5. Live Documents Export (OCV/Gov)
+  -   6. Club Websites (Plesk Automation) — Web Admin Only
+  -   7. District Websites — Web Admin Only
+  -   8. Club Leadership (President/Secretary Bulk Setup) — Web Admin Only
+  -   9. Global Member Search — Web Admin Only (SuperAdmin)
+  -   10. Map Picker (Club Lat/Lon)
+  -   11. Email Verifier (Backend)
+  -   12. BOD Role Enforcement
+  -   Flutter Work Priority
+  -   Notes
+- **reference/RotaryIndia_Admin_API_Claude/MD_files/flutter_change_report_2026-04-22.md** (14 KB)
+  - Flutter Implementation Report — Pull: 2026-04-22
+  -   Summary of Changes
+  -   1. `accessibleClubs[].websiteUrl` — ✅ **Already wired up in this session**
+  -   2. AG Reports (HIGH-priority Flutter work)
+  -   3. ClubFinder SQL column rename — **PARTIAL fix, workaround must stay (now hedged)**
+  -   4. Directory Data Collection (no Flutter)
+  -   5. International President (no Flutter)
+  -   6. SuperAdmin Reports portal (no Flutter)
+  -   7. Plesk SSL refresh + IIS routing (deployment only)
+  -   Recommended Flutter follow-ups, in order
+  -   Known open items carried from earlier sessions
+  - Backend smoke-test (AG role)
+  - My-context now includes websiteUrl per accessible club
+  - ClubFinder projects/project-years no longer 500
+- **reference/RotaryIndia_Admin_API_Claude/MD_files/flutter_change_report_2026-05-07.md** (28 KB)
+  - Flutter Implementation Report — Pull: 2026-05-07
+  -   Summary of Changes
+  -   1. Zone/District/Club kill-switch on login (MEDIUM)
+  -   2. Mobile force-update gate (HIGH)
+  -   3. Push notifications now fire (MEDIUM)
+  -   4. CA/DA credit-balance visibility broadened (No impact today, future-looking)
+  -   5. Module `IsComingSoon` flag (MEDIUM)
+  -   6. Project funding-conditional fields (LOW–MEDIUM)
+  -   7. District project photo description (LOW)
+  -   8. MemberRemovalPreview (No impact)
+  -   9. SuperAdmin web-admin additions (No impact)
+  -   10. RotaryOrgSyncWorker (No impact, deployment only)
+  -   11. Drag-and-drop menu reorder (No impact)
+  -   12. Club website auto-seed 8 default menus + cascade delete (No impact)
+  -   13. DistrictAdmin auto-removal email + AG club-coverage email (No impact)
+  -   14. Login-logs filters (No impact)
+  -   15. Member create/edit `ClubId` + `JoinedDate` (LOW)
+  -   16. District `Country` field (Already wired)
+  -   17. OcvGov document download endpoint (LOW)
+  -   18. Mobile FCM register endpoint (LOW, future)
+  -   Recommended Flutter follow-ups, in order
+  -   Verification steps
+  - Force-update gate (no auth)
+  - Coming-Soon list (any logged-in user)
+  - Kill-switch — try logging in as a member whose club is set IsActive=0
+  - … 4 more headings
+- **reference/RotaryIndia_Admin_API_Claude/MD_files/flutter_change_report_2026-06-03.md** (25 KB)
+  - Flutter Implementation Report — Pull: 2026-06-03
+  -   ⚠️ Headline for mobile: two architecture changes that break existing Flutter calls
+  -   Summary of Changes
+  -   1. Year-partitioned Projects — club & district (HIGH, breaking)
+  -   2. Year-partitioned District Events (HIGH, breaking)
+  -   3. Kill-switch guard on ~170 endpoints (HIGH)
+  -   4. `ConvertZeroDateTime=true` connection-string fix (MEDIUM)
+  -   5. PPH Camps → 3-level model (HIGH)
+  -   6. Mobile family-login + cross-block guard (MEDIUM)
+  -   7. Past Presidents validation — shared controller (MEDIUM)
+  -   8. Reorder endpoints + ordered lists (LOW–MEDIUM)
+  -   9. Smaller DTO / behaviour changes (LOW)
+  -   10. No-impact (web / public / infra only)
+  -   Recommended Flutter follow-ups, in order
+  -   Verification steps
+  - Year-scoped district project detail (replaces the 404'ing one-segment route)
+  - available-years for the year dropdown
+  - Trigger the move protocol: PUT with a projectDate in a different rotary year → expect 409 requiresMove
+  - then confirm:
+  - Kill-switch 403 on a data call (member whose club/district/zone is inactive)
+  - PPH attendees + readings (new 3-level model)
+  -   Cross-reference to this sprint's open items
+- **reference/RotaryIndia_Admin_API_Claude/MD_files/flutter_change_report_2026-06-05.md** (36 KB)
+  - Flutter Implementation Report — Pull: 2026-06-05
+  -   ⚠️ Headline for mobile: the Club Overview dashboard now has REAL data
+  -   Summary of Changes
+  -   1. Mobile Club Admin Dashboard — the contract (HIGH)
+  -   2. Wiring map — Flutter `ClubOverviewScreen` mock → real mobile endpoint
+  -   3. Club Foundation Goals — persistence (MEDIUM)
+  -   4. Multi-role / multi-scope auth + landing resolver (MEDIUM, non-breaking)
+  -   5. Mobile AG Dashboard (LOW–MED — only if app exposes it)
+  -   6. Mobile District Admin Dashboard (LOW–MED — only if app exposes it)
+  -   7. Conventions & gotchas — get these exactly right (HIGH for correctness)
+  -   8. Server-side placeholder values — don't present as live
+  -   Recommended Flutter follow-ups, in order
+  -   Verification steps
+  - Club overview (default club from JWT, current year)
+  - A specific club + year (multi-club admin)
+  - Service-projects avenue detail
+  - Foundation goals (list) + save
+  - Multi-role landing + scope arrays
+  - 403 check: a non-admin token, or a clubId you don't admin → 403 "You are not an active admin for this club."
+  -   Cross-reference
+- **reference/RotaryIndia_Admin_API_Claude/MD_files/flutter_change_report_2026-06-06.md** (24 KB)
+  - Flutter Implementation Report — Pull: 2026-06-06 (AG Dashboard)
+  -   ⚠️ Headline for mobile: the AG dashboard is REAL on the backend but 100% MOCK on mobile
+  -   Summary of Changes
+  -   1. The 8 AG endpoints — UNCHANGED this commit (mobile contract stable)
+  -   2. AG Wave-12A — new / changed fields (field-by-field)
+  -   3. AG behavioral changes in the service (no new field, but observable)
+  -   4. Wiring map — mock AG screen → live endpoint + Wave-12A landing spots
+  -   5. District-Admin dashboard (mobile) — NEW endpoints + grown responses
+  -   6. Multi-scope login / redirect fixes (Flutter login + landing)
+  -   Recommended Flutter follow-ups, in order
+  -   Verification steps
+  - AG clubs (Wave-12A: nationalRank always null + nationalRankIsPending=true)
+  - AG TRF (percentOfAgTotal per club)
+  - AG excellence (awardStatus[] + awardStatusIsPending + goals[].myRotaryIsPending)
+  - AG district (NEW headToHeadTable / metricBars / radar)
+  - AG projects (manHoursIsPending per row)
+  - NEW District-Admin endpoints (DA token)
+  - club goals (AG or DA token)
+  -   Cross-reference
+- **reference/RotaryIndia_Admin_API_Claude/MD_files/flutter_change_report_2026-06-06_live-prep-wave2.md** (8 KB)
+  - Flutter Implementation Report — Pull: 2026-06-06 (Live-prep WAVE 2: Route Maintenance Mode)
+  -   Headline: a clean 3-part feature — backend + web shipped, Flutter is the remaining leg
+  -   1. Verified backend + web contract
+  -   2. Flutter implementation (part 3) — IMPLEMENTED
+- **reference/RotaryIndia_Admin_API_Claude/MD_files/flutter_change_report_2026-06-06_live-prep.md** (15 KB)
+  - Flutter Implementation Report — Pull: 2026-06-06 (Live-prep wave)
+  -   ⚠️ Headline: ONE confirmed P0 that crashes 3 mobile screens — everything else is safe/additive
+  -   Summary of Changes
+  -   1. 🔴 P0 — District-Committee endpoints are now paginated → 3 mobile screens crash
+  -   2. Auth — login allowlist (web-only) + OTP debug echo (mobile-safe)
+  -   3. New `MobileWeblinksController` — additive, existing mobile weblinks unaffected
+  -   4. DA dashboard — `ANY_VALUE()` SQL fix (no contract change)
+  -   5. Committee photo upload routing + full-path photos (P1)
+  -   6. Citation `answerType` — web added normalization; mobile has the same gap (P1 parity)
+  -   7. "Coming Soon" stubs — parity decision (not a break)
+  -   8. No-impact items
+  -   Recommended Flutter follow-ups, in order
+  -   Verification steps
+  - No mobile files in the wave (expect: empty)
+  - P0 — committee endpoints now return a paginated wrapper
+  - Allowlist is web-only (AuthService), not mobile (MobileAuthService)
+  - appsettings flags currently true (temporary)
+  - Live smoke: committee members now wrapped (mobile must unwrap)
+  - → { "items": [...], "totalCount": N, ... }   (mobile's `j as List` would throw on this)
+  -   Cross-reference
+- **reference/RotaryIndia_Admin_API_Claude/MD_files/flutter_change_report_2026-06-06_past-presidents-audit.md** (13 KB)
+  - Flutter Implementation Report — Pull: 2026-06-06 (Past Presidents refactor + active-member audit)
+  -   ⚠️ Headline for mobile: mostly VALUE changes — only 2 small additive code follow-ups, both NON-breaking
+  -   Summary of Changes
+  -   1. The active-member audit (the bulk of this commit)
+  -   2. Past Presidents — Member/Non-Member refactor + expired-year guard
+  -   3. Project Approval (club-moderator) — bug-fix + optional `yearId`
+  -   4. AG dashboard — new optional `approvalStatus`
+  -   5. Behavioural notes (re-test, no code) + web-only
+  -   Recommended Flutter follow-ups, in order
+  -   Verification steps
+  - Confirm no mobile delta in this wave (expect: empty)
+  - The active-member audit pattern (representative)
+  - Past Presidents DTO shape
+  - AG approvalStatus (new field)
+  - Project-approval strongly-typed mapping + yearId
+  - Live smoke (DA/AG/moderator tokens) — shapes unchanged, values corrected
+  -   Cross-reference
+- **reference/RotaryIndia_Admin_API_Claude/MD_files/flutter_change_report_2026-06-06_public-pages.md** (10 KB)
+  - Flutter Implementation Report — Pull: 2026-06-06 (Public Landing + Policy Pages)
+  -   ⚠️ Headline for mobile: ZERO impact — this is a web-only commit
+  -   Summary of Changes
+  -   1. Public landing + policy pages (Cashfree whitelisting) — web only
+  -   2. Backend (`RotaryApi/`) — no source change
+  -   3. The one cross-platform note — club Projects "empty year" fallback (web fix)
+  -   4. Still outstanding (NOT addressed by this commit)
+  -   Recommended Flutter follow-ups, in order
+  -   Verification steps
+  - Confirm there is no backend source delta in this commit (expect: empty)
+  - Confirm no mobile delta (expect: empty)
+  - The real authored source in this commit (expect: only rotary-frontend/src/* web files)
+  - Mobile API smoke-test is UNCHANGED from the 2026-06-06 (AG/District) report —
+  - no route in this commit, so no new curl to run. The only open backend item:
+  - GET /api/mobile/district-admin-dashboard/members  → still 500 (only_full_group_by), see §4.
+  -   Cross-reference
+- **reference/RotaryIndia_Admin_API_Claude/MD_files/flutter_change_report_2026-06-08_go-live-calendar.md** (11 KB)
+  - Flutter Implementation Report — Pull: 2026-06-08 (Go-live wave: district-calendar birthdays/anniversaries + media/route-maintenance hardening)
+  -   ⚠️ Headline for mobile: this wave SHIPS THE BACKEND for the district-calendar feature built locally this session — it's now end-to-end. Nothing breaks; no required code change.
+  -   Summary of Changes
+  -   1. District-calendar birthdays/anniversaries (the headline)
+  -   2. Route-maintenance cache (behavioural)
+  -   3. Config / media / web — no mobile shape change
+  -   Recommended Flutter follow-ups, in order
+  -   Verification steps
+  - Confirm no mobile delta in this wave (expect: 0)
+  - The district-calendar additive payload (birthdays/anniversaries)
+  - Route-maintenance cache attribute
+  - Media redirect + login allowlist + DB name
+  - Live smoke (district token) — district calendar now carries birthdays/anniversaries
+  -   Cross-reference
+- **reference/RotaryIndia_Admin_API_Claude/MD_files/flutter_change_report_2026-06-08_mobile-jwt-90d.md** (10 KB)
+  - Flutter Implementation Report — Pull: 2026-06-08 (Mobile JWT: 90-day TTL + daily top-up)
+  -   ⚠️ Headline for mobile: pure session-lifetime tuning — mobile is ALREADY compatible, zero code change required
+  -   Summary of Changes
+  -   1. The change itself (TTL + trigger)
+  -   2. Why mobile is already compatible (the existing Flutter path)
+  -   3. Optional follow-ups + re-test
+  -   4. Caveats carried over (not introduced here)
+  -   Verification steps
+  - Confirm no mobile delta in this wave (expect: empty)
+  - The whole functional change (two constants + one comparison)
+  - Mobile already consumes the (unchanged) header contract
+  - Live smoke — a request with a >1-day-old mobile token returns a fresh 90-day token header
+  -   Cross-reference
+- **reference/RotaryIndia_Admin_API_Claude/MD_files/flutter_change_report_2026-06-09_birthday-day-month-global-search.md** (15 KB)
+  - Flutter Implementation Report — Pull: 2026-06-09 (birthday/anniversary day-month-only + global search + partial-edit gate)
+  -   ⚠️ Headline for mobile: one real regression + a system-wide "birthday = day+month only" shift
+  -   Summary of Changes
+  -   1. Calendar day-view — birthday/anniversary caption regression (the one to fix)
+  -   2. Birthday/anniversary now store year 1900 — display shows "1900", entry year is discarded
+  -   3. Member partial-edit gate — admins can now edit others, 10 fields silently locked
+  -   4. New SuperAdmin endpoints + Program.cs — no mobile impact
+  -   Recommended Flutter follow-ups, in order
+  -   Verification steps
+  - Confirm no mobile delta in this wave (expect: empty)
+  - The calendar wire-format change (dd-mm)
+  - Year=1900 normalization on member writes
+  - Member partial-edit gate + locked field list
+  - Live smoke — calendar birthdays now carry "dd-mm" strings + a separate day int
+  - expect: { "memberId":…, "memberName":…, "profilePhoto":…, "birthDate":"08-06", "day":8, "clubId":…, "clubName":… }
+  -   Cross-reference
+- **reference/RotaryIndia_Admin_API_Claude/MD_files/flutter_change_report_2026-06-10_ca-unlock-force-relogin.md** (14 KB)
+  - Flutter Implementation Report — Pull: 2026-06-10 #2 (CA mobile/email unlock + force-relogin)
+  -   ⚠️ Headline #1: a member can now be force-logged-out mid-session (new 401 path)
+  -   ⚠️ Headline #2: Club Admin can now edit OTHER members' Mobile / Email / Country — my P1 lock now over-restricts
+  -   Summary of Changes
+  -   1. Force-relogin — the contract (detail)
+  -   2. (covered in Headline #2)
+  -   3. Duplicate-mobile / duplicate-email → 409
+  -   4. Club-service Agenda/MoM document path
+  -   5. Copy change — "Rotary Zones 4, 5, 6, 7 & 8"
+  -   Recommended Flutter follow-ups, in order
+  -   Verification steps
+  - 1. Confirm the mobile JWT carries `iat` (force-relogin depends on it):
+  - decode the token payload (base64url middle segment) and look for "iat".
+  - 2. Force-relogin: as a CA, change member X's primary mobile, then replay any
+  - mobile call with member X's OLD token → expect 401 + X-Force-Relogin: 1.
+  - 3. Duplicate mobile (CA editing another member to a taken number):
+  - 4. Club-service doc path (new uploads land under ClubMonthlyReport/Group{clubId}):
+  - upload a doc via the app's club-service form → response path starts /Documents/ClubMonthlyReport/Group<clubId>/
+  -   Cross-reference
+- **reference/RotaryIndia_Admin_API_Claude/MD_files/flutter_change_report_2026-06-10_upload-caps-self-edit-lock.md** (16 KB)
+  - Flutter Implementation Report — Pull: 2026-06-10 (Upload caps + Mobile self-edit lock)
+  -   ⚠️ Headline for mobile: self-editing your own profile now SILENTLY drops 4 fields
+  -   Summary of Changes
+  -   1. Mobile self-edit strip — the contract
+  -   2. `UserPermissionHelper` additions (backend, for reference)
+  -   3. Upload caps — what actually changed, and the mobile risk
+  -   4. PPS → PPH — confirmed label-only, no wire break
+  -   5. Other backend changes — minimal / no app impact
+  -   6. Recommended Flutter follow-ups, in order
+  -   Verification steps
+  - Self-edit strip: PUT your own record with a changed email/mobile/rotaryId →
+  - returns 204, but a follow-up GET shows the OLD values (server reverted them).
+  - Photo cap: a >5 MB image to an ImageQualityValidator endpoint → 400.
+  - A <80 KB / <1200x800 image (previously rejected) → now 200.
+  - Member/family photo (unchanged 5 MB):
+  - Doc cap raised to 20 MB (district newsletter/document) → a 12 MB PDF now 200.
+  -   Cross-reference
+- **reference/RotaryIndia_Admin_API_Claude/MD_files/flutter_change_report_2026-06-11_brevo-module-bugs.md** (15 KB)
+  - Flutter Implementation Report — Pull: 2026-06-11 (Brevo + 8-module bug batch)
+  -   ⚠️ Headline for mobile: two changes we ALREADY half-shipped, now confirmed canonical — plus parity gaps to close
+  -   Summary of Changes (mobile-relevant)
+  -   1. Newsletter — status is now BINARY (close parity gap)
+  -   2. Club Service attendance cap REMOVED (close parity gap)
+  -   3. Mobile calendar — new contact fields + family birthdays (`MobileCalendarController.cs`)
+  -   4. Server-side re-ordering — render-only (re-test, no code)
+  -   5. SMS OTP wording — and the still-pending autofill change
+  -   Recommended Flutter follow-ups, in order
+  -   Verification steps
+  - Newsletter status now binary — no row should ever return status "Expired"
+  - expect only "Unpublished" / "Published"
+  - Club calendar — new contact fields on birthdays/anniversaries
+  - expect email/primaryMobile/secondaryMobile/classificationProfession/spouseName keys
+  - District calendar — NEW familyBirthdays array
+  - Member listing order — admins should sort first
+  - Club Service project — attendance > member count should now SUCCEED (no 400)
+  -   Cross-reference
+- **reference/RotaryIndia_Admin_API_Claude/MD_files/flutter_change_report_2026-06-12_dashboard-wave-calendar-payments.md** (28 KB)
+  - Flutter Implementation Report — Pull: 2026-06-12 (Club-Admin-Dashboard 9-phase wave + calendar family contacts + payment proxy)
+  -   ⚠️ Headlines for mobile
+  -   Summary of Changes (mobile-relevant)
+  -   1. Calendar — family birthdays + anniversaries with contact (`87eb01f`) — VERIFY-ONLY
+  -   2. Club Admin Dashboard — shared-service ripple (`7b93c8d`,`dc04b48`,`f352c73`,`81a60a9`,`f40198e`)
+  -   3. Club Citation gained optional `?yearId=` (`ef9f50f`) — VERIFY-ONLY
+  -   4. Membership Dues + Cashfree payment proxy (`ac3a254`) — VERIFY-ONLY
+  -   5. Live terminated-members proxy — web-only (`d8d1af6`) — NONE
+  -   6. Infra / web / PHP — proven no mobile impact
+  -   Recommended Flutter follow-ups, in order
+  -   Verification steps
+  - 1. Calendar family arrays — both club and district now carry family BD + Anniv with contact fields
+  - expect email/mobile/countryCode/phoneCode keys on a row
+  - 2. Dashboard identity now carries REAL rotaryOrgSyncEnabled + credit balances (mobile ignores them today)
+  - 3. New mobile endpoint (currently unconsumed)
+  - 4. Directory now carries male/female (mobile ignores them)
+  - 5. Club citation — mobile sends NO yearId, gets current year (unchanged shape)
+  - 6. My Dues unchanged; payUrl opens the web pay page (where the proxy + IsPaid-NULL fix live)
+  -   Cross-reference
+- **reference/RotaryIndia_Admin_API_Claude/MD_files/flutter_parity_gap_backlog_2026-06-12_club-admin-dashboard.md** (30 KB)
+  - Flutter Parity-Gap Backlog — Club-Admin-Dashboard Wave (`2ad1642..f40198e`)
+  -   Build order (recommended)
+  -   Master backlog (all gaps)
+  -   1. Global Rotary-Year context (`7b93c8d`, `f40198e`) — the keystone
+  -   2. Overview tab (`f352c73`, `dc04b48`, `81a60a9`, `f40198e`)
+  -   3. Directory tab (`480c859`, `dc04b48`, `f40198e`)
+  -   4. Communication tab (`f40198e`) — **three live features hidden behind "Coming Soon"**
+  -   5. My Club Website tab (`ef9f50f`, `f40198e`) — **a whole built tab is dead code**
+  -   6. Service Projects & E-Governance (`ef9f50f`, `f40198e`)
+  -   7. Membership Dues + Payments (`026cfc0`, `ac3a254`)
+  -   8. V2 module pages (`ef9f50f`, `f40198e`)
+  -   9. Rotary Network / BOD / Marketplace / Nav (`d8d1af6`, `dc04b48`, `f40198e`)
+  -   ⚠️ Deferred — decision-gated & needs-backend (do NOT auto-build)
+  -   Cross-cutting notes & corrections
+  -   Cross-reference
+- **reference/RotaryIndia_Admin_API_Claude/MD_files/flutter_parity_gap_backlog_2026-06-16_district-awards-member-filter.md** (15 KB)
+  - Flutter Parity-Gap Backlog — Member Module Filter + District Awards (`01c1b12..bad0693`, deploy 2026-06-16)
+  -   Master list
+  -   1. Member-aware module filter on the dashboard endpoints `[DASH-FILTER]` ✅ + `[DASH-1 · P2 · S]`
+  -   2. District Awards — member read-only view `[AWARD-1]` ✅ VERIFIED — already works, no build
+  -   3. Rename + points formatting `[AWARD-RENAME · P3]` 🟡 / `[AWARD-2 · P3 · S]` 🔶
+  -   4. District e-governance DTO rename `[EGOV-AWARD-1]` ✅ VERIFIED — not a bug
+  -   Recommended order
+  -   Cross-reference
+- **reference/RotaryIndia_Admin_API_Claude/MD_files/flutter_parity_gap_backlog_2026-06-16_dues-mobile-wave.md** (17 KB)
+  - Flutter Parity-Gap Backlog — Dues Mobile-API + Module Member-Flag Wave (`dba33c7..8ad35ac`, deploy 2026-06-16)
+  -   Master list
+  -   1. Module "default-for-member" flag — `memberMobileModules` `[MODFLAG-1 · P1 · M]` ⏸ DEFERRED
+  -   2. Member's own dues screen is orphaned `[MYDUES-ORPHAN · P1 · S]` ✅ DONE 2026-06-16
+  -   3. Dues admin editor — offline-entry smart flow `[MDUES-OFFLINE · P2 · L]` 🔴
+  -   4. Dues admin editor — Approve/Reject dialogs `[MDUES-APPROVE · P2 · M]` 🔴
+  -   5. Dues admin editor — channel marker, fee filter, button, endpoints
+  -   6. Member dues — detail screen + signed pay link
+  -   Recommended order
+  -   Cross-reference
+- **reference/RotaryIndia_Admin_API_Claude/MD_files/flutter_parity_gap_backlog_2026-06-16_member-dashboard-modules.md** (8 KB)
+  - Flutter Parity-Gap Backlog — Member Mobile Dashboard Modules (`8ad35ac..01c1b12`, deploy 2026-06-16)
+  -   Master list
+  -   1. Member mobile dashboard module groups — `memberMobileDashboard` `[MODFLAG-2 · P1 · M]` 🔴 READY
+  -   2. Not Flutter work
+  -   Recommended order
+  -   Cross-reference
+- **reference/RotaryIndia_Admin_API_Claude/MD_files/flutter_parity_gap_backlog_2026-06-16_post-pull.md** (12 KB)
+  - Flutter Parity-Gap Backlog — Post-Pull (`f40198e..dba33c7`, deploy 2026-06-13)
+  -   Master list (this report)
+  -   1. The pull — both items are verify-only ✅
+  -   2. Membership Dues — this week's work + genuine follow-ups
+  -   3. Carry-over gap from the 2026-06-12 backlog — still open
+  -   4. Deferred / decision-gated / won't-do (unchanged from 2026-06-12)
+  -   5. Verify-only batch (no expected code change)
+  -   Recommended order
+  -   Cross-reference
+- **reference/RotaryIndia_Admin_API_Claude/MD_files/flutter_parity_gap_backlog_2026-06-18_district-awards-and-member-fields-wave.md** (15 KB)
+  - Flutter Parity-Gap Backlog — District Awards rebuild + Member-field move (`01c1b12..8eb3783`, deploy 2026-06-17/18)
+  -   Master list
+  -   1. Member fields moved address → top-level — `MEMBER-FIELD-1` `[P1 · S–M]` 🔴 REGRESSION
+  -   2. `joinedDate` future-date validation — `MEMBER-FIELD-2` `[P3 · XS]` 🟡 VERIFY
+  -   3. Read-only mobile Awards API — `AWARDS-MOBILE-1` `[P3 · M]` 🟡 PRODUCT CALL
+  -   4. Integer-only points + dropped "pts" suffix — `AWARDS-PTS-1` `[P3 · XS]` 🟡 COSMETIC
+  -   5. Not Flutter build work (verify / informational)
+  -   Recommended order
+  -   Cross-reference
+- **reference/RotaryIndia_Admin_API_Claude/MD_files/flutter_parity_gap_backlog_2026-06-22_dues-receipt-hardening-wave.md** (6 KB)
+  - Flutter Parity-Gap Backlog — Dues receipt hardening + public-dues UI wave (`c7723c7..193e967`, deploy 2026-06-22 eve)
+  -   Master list
+  -   1. Dues receipt resilience — `DUES-RECEIPT-HARDEN` 🟢 FREE, VERIFY ONLY
+  -   2. Not Flutter build work (web-only)
+  -   Recommended order
+  -   Cross-reference
+- **reference/RotaryIndia_Admin_API_Claude/MD_files/flutter_parity_gap_backlog_2026-06-22_member-fields-dues-family-wave.md** (13 KB)
+  - Flutter Parity-Gap Backlog — Designation/Classification address→clubs + dues/family/state wave (`1a4dd64..c7723c7`, deploy 2026-06-22 pm)
+  -   Master list
+  -   1. Designation/Classification moved address → clubs — `MEMBER-FIELD-3` `[P1 · S]` 🔴 REGRESSION
+  -   2. Dues members-list active filter — `DUES-ACTIVE-FILTER` 🟢 FREE, VERIFY ONLY
+  -   3. Family relations list — `FAMILY-RELATIONS` ✅ ALREADY AT PARITY
+  -   4. State field free textbox — `STATE-TEXTBOX` ✅ ALREADY AT PARITY
+  -   5. Not Flutter build work (web-only)
+  -   Recommended order
+  -   Cross-reference
+- **reference/RotaryIndia_Admin_API_Claude/MD_files/flutter_parity_gap_backlog_2026-06-22_website-url-contract.md** (15 KB)
+  - Flutter Parity-Gap Backlog — Website-URL contract + photo-path convergence (`8eb3783..1a4dd64`, deploy 2026-06-22)
+  -   Headline — the backend now feeds the app's *existing* fields, so the live bugs are fixed without a rebuild
+  -   Master list
+  -   1. Club-finder website URL — `WEB-URL-1` ✅ RESOLVED SERVER-SIDE (optional cleanup)
+  -   2. District-website openers — `WEB-URL-2` ✅ RESOLVED SERVER-SIDE (optional cleanup)
+  -   3. Club-overview Website tab — `WEB-URL-3` ✅ RESOLVED SERVER-SIDE (optional cleanup)
+  -   4. Single-club website fast path — `WEB-URL-4` ✅ RESOLVED, VERIFY ONLY
+  -   5. Photo URL path convergence — `PHOTO-PATH-1` `[P3 · XS]` 🟢 TRANSPARENT, VERIFY
+  -   6. Not Flutter build work (web / backend / infra only)
+  -   Recommended order
+  -   Cross-reference
+- **reference/RotaryIndia_Admin_API_Claude/MD_files/flutter_parity_gap_backlog_2026-06-23_district-report-avenue-of-service-wave.md** (11 KB)
+  - Flutter Parity-Gap Backlog — District Admin Reports "Avenue Of Service" Excel wave (`193e967..04c0a81`, pulled 2026-06-23)
+  -   Master list
+  -   1. Avenue Of Service (All Clubs) flat sheet — `AVENUE-ALL-1` 🔴 P2
+  -   2. Avenue Of Service (Club Wise Count) scorecard — `AVENUE-COUNT-1` 🔴 P3
+  -   3. Not Flutter build work
+  -   4. Pre-existing, out of this wave (flagged, not introduced here)
+  -   Recommended order
+- **reference/RotaryIndia_Admin_API_Claude/MD_files/flutter_parity_gap_backlog_2026-06-23_membership-dues-setups-list-design.md** (15 KB)
+  - Flutter Parity-Gap Backlog — Membership Dues setups-list page DESIGN (web `club-admin-dashboard/membership-dues`, audited 2026-06-23)
+  -   Architecture — why the screenshot maps to TWO mobile screens (and neither matches it fully)
+  -   Side-by-side — web setups-list page vs Flutter `MembershipDuesScreen`
+  -   Master list
+  -   1. Money KPI cards — `DUES-KPI-1` 🔴 P1 (the headline of the screenshot)
+  -   2. Per-setup row actions — `DUES-ROW-1…4`
+  -   3. Cosmetic / divergences
+  -   Recommended order
+  -   BUILT 2026-06-23 — DUES-KPI-1 + DUES-ROW-1…4 + DUES-YEAR-1 (analyze-clean, needs device QA)
+  -   MERGED into ONE screen 2026-06-23 (per user — "make both one like the frontend")
+- **reference/RotaryIndia_Admin_API_Claude/MD_files/flutter_parity_gap_backlog_2026-06-24_dues-xlsx-report-and-reports-lazyload-wave.md** (11 KB)
+  - Flutter Parity-Gap Backlog — Dues XLSX-report + Reports lazy-load wave (pulled `04c0a81..7bc0f18`, audited 2026-06-24)
+  -   The pull at a glance — 6 commits, what's in scope
+  -   Master list
+  -   1. Dues report CSV → XLSX — `DUES-XLSX-1` 🔴 P1 (the one real regression)
+  -   2. Confirm before receipt send — `DUES-RECEIPT-CONFIRM-1` 🟠 P2
+  -   3. Default-template hint card on the edit form — `DUES-HINT-1` ⚪ P3 (cosmetic)
+  -   4. Free wins — verify only, no build
+  -   5. Net-new capability mobile never had — `REPORT-DC-SHEETS` ⚪ P3 (defer)
+  -   Recommended order
+- **reference/RotaryIndia_Admin_API_Claude/MD_files/flutter_parity_gap_backlog_2026-06-24_website-menu-documents-wave.md** (7 KB)
+  - Flutter Parity-Gap Backlog — Website Menu-Documents wave (pulled `7bc0f18..9467760`, audited 2026-06-24)
+  -   The pull at a glance — 1 commit
+  -   Master list
+  -   1. "Open / View" on menu rows — `MENU-VIEW-1` 🟠 P3
+  -   2. Free / verify-only
+  -   Recommended order
+- **reference/RotaryIndia_Admin_API_Claude/MD_files/flutter_parity_gap_backlog_2026-06-26_honorary-perclub-refactor-wave.md** (11 KB)
+  - Flutter Parity-Gap Backlog — Honorary per-club refactor wave (pulled `b9ce95f..7646bf8`, audited 2026-06-26)
+  -   The pull at a glance — 1 commit
+  -   Master list
+  -   1. Honorary toggle is now broken on the member edit form — `HONORARY-1` 🔴 P2
+  -   2. Model cleanup — `HONORARY-2` 🟠 P3
+  -   3. Free / verify-only
+  -   4. Out of scope (public website / infra / web admin)
+  -   Recommended order
+- **reference/RotaryIndia_Admin_API_Claude/MD_files/flutter_parity_gap_backlog_2026-06-26_mobile-settings-calendar-cog-search-wave.md** (14 KB)
+  - Flutter Parity-Gap Backlog — Mobile Settings + Calendar + COG-Search wave (pulled `9467760..b9ce95f`, audited 2026-06-26)
+  -   The pull at a glance — 2 commits
+  -   Master list
+  -   1. Member privacy + notification Settings — `SETTINGS-1` 🔴 P1 (UNBLOCKED)
+  -   2. Calendar designation — `CAL-DESIG-1` 🟠 P3
+  -   3. Directory search — `DIR-SEARCH-HINT-1` 🟠 P3 + `DIR-SEARCH-FREE` ✅
+  -   4. Free / verify-only
+  -   5. Investigate — `DUES-OFFLINE-AMT` 🟡 P3
+  -   6. Out of scope (separate public website / web admin / infra)
+  -   Recommended order
+- **reference/RotaryIndia_Admin_API_Claude/MD_files/flutter_parity_gap_backlog_2026-06-26_newsletter-yearsync-citation-decimal-family-cal-wave.md** (8 KB)
+  - Flutter Parity-Gap Backlog — Newsletter year-sync + Citation decimal + Family-calendar designation wave (pulled `7646bf8..209cb04`, audited 2026-06-26)
+  -   The pull at a glance — 1 commit, 6 files (backend only, no flutter files)
+  -   Master list
+  -   1. Family-calendar designation — `FAMILY-CAL-DESIG-1` 🟠 P3 (ready, but user-deferred)
+  -   2. Newsletter year-sync + soft-delete — `NEWSLETTER-LISTING-FREE` ✅ verify-only
+  -   3. Newsletter push still missing — `NEWSLETTER-PUSH-GAP` ⚪ (unchanged)
+  -   4. Citation save-manual decimal — `CITATION-DECIMAL-1` 🟡 P3 (verify / maybe-revert)
+  -   Recommended order
+- **reference/RotaryIndia_Admin_API_Claude/MD_files/flutter_parity_gap_backlog_2026-06-30_website-subdomain-thirdparty-domain-plesk-wave.md** (10 KB)
+  - Flutter Parity-Gap Backlog — Website subdomain + third-party domain + Plesk wave (pulled `209cb04..c2f3e34`, audited 2026-06-30)
+  -   The pull at a glance — 1 commit, 7 files (backend + web + infra, NO flutter files)
+  -   Master list
+  -   1. Subdomain-FQDN no longer doubles — `WEB-URL-DOUBLE-FREE` ✅ verify-only (the one that matters)
+  -   2. Third-party domain stored verbatim — `WEB-URL-VERBATIM-FREE` ✅ verify-only
+  -   3. Plesk parent → rotaryindia.org — `WEB-URL-PARENT-OPS` ⚪ ops/data, not mobile
+  -   4. SuperAdmin / web-only — `WEB-ADMIN-SUPERADMIN-OUT` + `WEB-FRONTEND-OUT` ⚪ OUT
+  -   Recommended order
+- **reference/RotaryIndia_Admin_API_Claude/MD_files/flutter_parity_gap_backlog_2026-07-02_wallet-website-selfservice-and-dashboard-v2-wave.md** (32 KB)
+  - Flutter Parity-Gap Backlog — Wallet + Club-Website self-service + Dashboard v2 + Scheduled-send wave (pulled `c2f3e34..a45222f`, audited 2026-07-02)
+  -   The pull at a glance — 13 commits, ~175 files, ~18.4k insertions (RotaryApi = 44 files / ~3.6k)
+  -   Platform constraint you must read first (frames every payment item)
+  -   Master list
+  - DEEP FOCUS 1 — Wallet (Razorpay credits)
+  - DEEP FOCUS 2 — "My Club Website" self-service
+  - DEEP FOCUS 3 — Overview dashboard (Club Admin)
+  - Other BUILD / PARTIAL items
+  -   Verify-only (app inherits — device-QA, no code)
+  -   OPS (server/data — hand off, not mobile)
+  -   OUT (no mobile surface)
+  -   Recommended order
+- **reference/RotaryIndia_Admin_API_Claude/MD_files/flutter_parity_gap_backlog_2026-07-06_bod-nonmember-da-dashboard-redesign-cmr-detailed-wave.md** (24 KB)
+  - Flutter Parity-Gap Backlog — BOD non-member + District-Admin dashboard redesign + CMR detailed report + My-District-Website wave (pulled `a45222f..ecfd3fe`, audited 2026-07-06)
+  -   The pull at a glance — 14 commits (1 merge), 83 files, ~16.5k insertions (RotaryApi = 31 files)
+  -   Platform note (unchanged from last wave)
+  -   Master list
+  - DEEP FOCUS 1 — BOD non-member entries (the headline gap)
+  - DEEP FOCUS 2 — District-Admin dashboard redesign
+  - DEEP FOCUS 3 — Club Monthly Report
+  - Other BUILD / PARTIAL
+  -   Verify-only (app inherits — device-QA, no code)
+  -   OPS (server/data — hand off, not mobile)
+  -   OUT (no mobile surface)
+  -   Recommended order
+- **reference/RotaryIndia_Admin_API_Claude/MD_files/flutter_parity_gap_backlog_2026-07-08_dues-receipt-honorary-quicklinks-membersync-wave.md** (21 KB)
+  - Flutter Parity-Gap Backlog — dues receipt/reminder overhaul + honorary handling + Quick Links + member-sync wave (pulled `ecfd3fe..852085f`, audited 2026-07-08)
+  -   The pull at a glance — 1 commit, 29 files, ~4,019 insertions / 175 deletions
+  -   Platform note (unchanged)
+  -   Master list
+  - DEEP FOCUS 1 — Dues Send-Receipt endpoint (the headline — now broken)
+  - DEEP FOCUS 2 — Honorary members & dues amounts
+  - DEEP FOCUS 3 — Verify-only inherits
+  -   OPS (server/data — hand off, not mobile)
+  -   OUT (no mobile surface)
+  -   Recommended order
+- **reference/RotaryIndia_Admin_API_Claude/MD_files/flutter_parity_gap_backlog_2026-07-10_push-devicetoken-deeplink-dues-net-cog-designation-wave.md** (22 KB)
+  - Flutter Parity-Gap Backlog — push device-token API + notifications overhaul + dues-net + COG designation + district-directory wave (pulled `852085f..25bf425b`, audited 2026-07-10)
+  -   The pull at a glance — 8 commits, 149 files, ~9,154 insertions / ~4,882 deletions
+  -   Master list
+  - DEEP FOCUS 1 — Device-token re-registration (the headline — fixes the notification bug)
+  - DEEP FOCUS 2 — Notifications overhaul (verify-only; app already built to the contract)
+  - DEEP FOCUS 3 — Dues numbers (mostly free; one divergence to decide)
+  - Verify-only inherits & OPS
+  -   OUT (no mobile surface)
+  -   Recommended order
+- **reference/RotaryIndia_Admin_API_Claude/MD_files/flutter_parity_gap_backlog_2026-07-14_clubfinder-sync-flag-nonsync-cascade-website-pricing-wave.md** (19 KB)
+  - Flutter Parity-Gap Backlog — club-finder sync flag (UNBLOCKS the star) + non-sync member cascade + login guard + club-website server-priced wave (pulled `25bf425b..6846f196`, audited 2026-07-14)
+  -   The pull at a glance — 11 commits, 67 files, ~4,922 insertions / ~247 deletions
+  -   Master list
+  - DEEP FOCUS 1 — Club-finder non-sync star: backend valve-1 has SHIPPED (the headline)
+  - DEEP FOCUS 2 — Non-sync cascade login guard (a real mobile-login behavior change; app already handles it)
+  - DEEP FOCUS 3 — Club-website purchase now server-priced (inherited free)
+  - Verify-only inherits & OPS
+  -   OUT (no mobile surface)
+  -   Recommended order
+- **reference/RotaryIndia_Admin_API_Claude/MD_files/flutter_parity_gap_backlog_2026-07-14_mobile-report-pp-api-parity-razorpay-route-dues-innerjoin-wave.md** (22 KB)
+  - Flutter Parity-Gap Backlog — mobile report/Past-Presidents API twins + expanded district/club report columns + Razorpay-Route single-account + mobile-dues INNER-JOIN wave (pulled `6846f196..0f77e097`, audited 2026-07-14)
+  -   The pull at a glance — 10 commits, 58 files, ~4,579 insertions / ~1,229 deletions (0 Flutter files)
+  -   Master list
+  - DEEP FOCUS 1 — "Mobile API parity" is a *convenience twin*, not a fix — `MOBILE-REPORT-API-TWINS` / `MOBILE-PP-API-TWIN` 🟠 optional
+  - DEEP FOCUS 2 — Report DATA payloads gained columns — `REPORT-COLUMNS-EXPANDED` 🟠 verify + optional build · **P2**
+  - DEEP FOCUS 3 — Mobile My-Dues now shows the member's real amount — `DUES-INNERJOIN-MATCH` ✅ free (+ `DUES-INNERJOIN-SIGNAL-VERIFY` 🟠)
+  - Verify-only inherits & OPS
+  -   OUT (no mobile surface)
+  -   Recommended order
+- **reference/RotaryIndia_Admin_API_Claude/MD_files/flutter_parity_gap_backlog_2026-07-17_website-renewal-window-mobile-relogin-paylinks-da-allclubs-wave.md** (29 KB)
+  - Flutter Parity-Gap Backlog — club-website 15-day renewal window + mobile force-re-login + wallet/website pay-links + DA all-clubs access wave (pulled `0f77e097..72fb6fa3`, audited 2026-07-17)
+  -   The pull at a glance — 26 commits, 361 files, ~22,187 insertions / ~353 deletions (0 Flutter files)
+  -   Master list
+  - DEEP FOCUS 1 — The backend shipped our renewal gate, with a different rule — `WEBSITE-RENEWAL-WINDOW-1` 🔴 **P1**
+  - DEEP FOCUS 2 — Force re-login lands on two app defects — `RELOGIN-MESSAGE-1` + `RELOGIN-RESTORE-RACE-1` 🔴 **P1 ×2**
+  - Verify-only inherits & OPS
+  -   OUT (no mobile surface)
+  -   Recommended order
+- **reference/RotaryIndia_Admin_API_Claude/MD_files/flutter_parity_gap_backlog_2026-07-20_ag-dashboard-agreports-project-classification-wave.md** (25 KB)
+  - Flutter Parity-Gap Backlog — AG-dashboard enrichment (year picker + project detail + club/avenue fields) + AG-scoped district reports + project-classification smart search & AI suggest wave (pulled `72fb6fa3..e22d357f`, audited 2026-07-20)
+  -   The pull at a glance — 7 commits, 52 files, ~3,695 insertions / ~552 deletions (0 Flutter files)
+  -   Master list
+  - DEEP FOCUS 1 — The web enriched the AG dashboard; the mobile twins are shipped and waiting — `AG-YEAR-PICKER` + `AG-PROJECT-DETAIL` + `AG-CLUB-FIELDS` + `AG-AVENUE-FILTER` 🟠 **P2/P3 (one build)**
+  - DEEP FOCUS 2 — AGs can now read their own district report on mobile — `AG-REPORTS-MOBILE` 🟠 **P2**
+  - DEEP FOCUS 3 — Project-classification smart search + AI suggest — `CLASSIFY-SMART-SEARCH` + `CLASSIFY-AI-SUGGEST` 🟠 **P3**
+  - Verify-only inherits & OPS
+  -   OUT (no mobile surface)
+  -   Recommended order
+- **reference/RotaryIndia_Admin_API_Claude/MD_files/flutter_parity_gap_backlog_2026-07-23_pastpresident-multipart-clubdues-payer-currency-wave.md** (26 KB)
+  - Flutter Parity-Gap Backlog — Past-Presidents non-member photo (V1/V2/mobile → **multipart**) + Club-Dues officer pay surface + project/district currency + classification-accuracy redesign wave (pulled `e22d357f..fde164bd`, audited 2026-07-23)
+  -   The pull at a glance — 7 commits, 124 files, ~8,114 insertions / ~479 deletions (0 Flutter files)
+  -   Master list
+  - DEEP FOCUS 1 — Past-Presidents create/update is now **multipart** — the app's JSON save breaks — `PP-WRITE-MULTIPART` 🔴 **P1 (forced)** (+ `PP-NONMEMBER-PHOTO-WRITE` 🟠 P2 rider)
+  - DEEP FOCUS 2 — A brand-new mobile Club-Dues officer-pay surface is shipped and waiting — `CLUB-DUES-PAYER` 🟠 **P2** (+ `CLUB-DUES-ADMIN-CRUD` 🟠 P3)
+  - DEEP FOCUS 3 — Additive currency + redesigned classification + org-sync flag — mostly free, all optional — `PROJECT-CURRENCY-FREE` / `CLASSIFY-*` / `ORG-SYNC-STATUS` 🟠 **P3 / ✅ free**
+  - Verify-only inherits & OPS
+  -   OUT (no mobile surface)
+  -   Recommended order
+- **reference/RotaryIndia_Admin_API_Claude/MD_files/flutter_parity_gap_backlog_2026-07-27_dues-surcharge-beneficiary-clubid-banner83-districtdues-rename-wave.md** (28 KB)
+  - Flutter Parity-Gap Backlog — Membership/Club-Dues **online-surcharge** redesign + Beneficiary-approval **clubId** requirement + Banner **8:3** re-lock + "Club Dues → District Dues" rename + honorary-count split wave (pulled `fde164bd..32a8be2a`, audited 2026-07-27)
+  -   The pull at a glance — 15 commits, 129 files, ~3,799 insertions / ~1,955 deletions (0 Flutter files)
+  -   Master list
+  - DEEP FOCUS 1 — Two forced fixes on **today's** work + the banner re-lock — `BENEFICIARY-CLUBID` / `DUES-OFFLINE-AMOUNT` / `BANNER-RATIO-83`
+  - DEEP FOCUS 2 — The dues **online-surcharge** redesign reaches the app's live payer surface — `CLUBDUES-ONLINE-SURCHARGE` 🟠 **P1** (+ `CLUBDUES-RENAME` 🟠 P3)
+  - DEEP FOCUS 3 — Free inherits & verifies — honorary counts, notification sound, CMR, role self-heal — mostly ✅
+  - Verify-only inherits & OPS
+  -   OUT (no mobile surface)
+  -   Recommended order
+- **reference/RotaryIndia_Admin_API_Claude/MD_files/flutter_parity_gap_backlog_2026-07-30_multicurrency-projectcost-contactprivacy-basedues-whatsappotp-clubscopedjoindate-wave.md** (26 KB)
+  - Flutter Parity-Gap Backlog — **multi-currency project costs** + **member contact-privacy** nulling + membership-dues **BaseAmount** display + **WhatsApp OTP** for international members + **club-scoped join date** + public-site projects wave (pulled `32a8be2a..6bc59b45`, audited 2026-07-30)
+  -   The pull at a glance — 9 commits (0 Flutter files)
+  -   Master list
+  - DEEP FOCUS 1 — Member contact-privacy nulling — `CONTACT-PRIVACY-NULLS` 🟠 P1 (verify/harden)
+  - DEEP FOCUS 2 — Multi-currency project costs reach every project read — `PROJECT-CURRENCY-DISPLAY` 🟠 P2
+  - DEEP FOCUS 3 — Free light-ups & verifies — dues BaseAmount, WhatsApp OTP, club-scoped join date — mostly ✅
+  - Verify-only inherits & OPS
+  -   OUT (no mobile surface)
+  -   Recommended order
+- **reference/RotaryIndia_Admin_API_Claude/MD_files/flutter_parity_gap_backlog_2026-08-04_district-rotarynetwork-cmr-memberstats-futuredate-guard-whatsapp-otp-terminated-filter-wave.md** (28 KB)
+  - Flutter Parity-Gap Backlog — **District Rotary-Network page** + **CMR member-stats autofill** + **project/event future-date 400 guard** + **non-India WhatsApp OTP** + **terminated-list filter/blanking** + dues-report rebuild wave (pulled `6bc59b45..34a84409`, audited 2026-08-04)
+  -   The pull at a glance — 12 commits (0 Flutter files)
+  -   Master list
+  - DEEP FOCUS 1 — Project/event future-date `400` guard — `DISTRICT-EVENT-FUTUREDATE-400` 🔴 P1 (forced)
+  - DEEP FOCUS 2 — District Rotary-Network endpoints unblock the DA network tab — `DISTRICT-ROTARY-NETWORK` 🟠 P2
+  - DEEP FOCUS 3 — Free light-ups, verifies & the terminated-list behavioral change
+  - Carry-over status — what's still pending from the 2026-07-30 wave ("check hard")
+  - Verify-only inherits & OPS
+  -   OUT (no mobile surface)
+  -   Recommended order
+- **reference/RotaryIndia_Admin_API_Claude/MD_files/flutter_parity_gap_backlog_2026-08-06_trf-usd-relabel-district-dues-online-offline-tracks-cmr-freeze-wave.md** (25 KB)
+  - Flutter Parity-Gap Backlog — **TRF now shown in USD everywhere** + **District Dues independent Online/Offline tracks** + **CMR freeze-on-upload snapshot** + member-uniqueness/remove-admin/directory-collection wave (pulled `34a84409..05e78846`, audited 2026-08-06)
+  -   The pull at a glance — 18 commits (0 Flutter files)
+  -   Master list
+  - DEEP FOCUS 1 — TRF is now shown in USD, not INR — `TRF-USD-RELABEL` 🔴 P1 (forced)
+  - DEEP FOCUS 2 — District Dues independent Online/Offline tracks — `DISTRICT-CLUBDUES-AMOUNTOWED` 🟠 P2 (forced-ish) + `CLUBDUES-INDEPENDENT-TRACKS`
+  - DEEP FOCUS 3 — CMR freeze, member-uniqueness, and the free/verify items
+  - Carry-over status — what's still pending from prior waves
+  -   OUT (no mobile surface)
+  -   Recommended order
+- **reference/RotaryIndia_Admin_API_Claude/MD_files/flutter_parity_gap_backlog_2026-08-07_dues-rename-clubdues-nonexpiring-paylink-awards-disable-gate-wave.md** (16 KB)
+  - Flutter Parity-Gap Backlog — **"Membership Dues" → "Club Dues" rename** + **non-expiring dues pay-link** + **District-Awards disable gate** + OCV-Live-Documents / committee-redesign / public-site wave (pulled `05e78846..3e5db7a8`, audited 2026-08-07)
+  -   The pull at a glance — 14 commits (0 Flutter files)
+  -   Master list
+  - DEEP FOCUS 1 — Officer dues pay-link is now non-expiring — `DUES-PAYLINK-NONEXPIRING` 🟠 P2
+  - DEEP FOCUS 2 — "Membership Dues" → "Club Dues" rename — `DUES-RENAME-CLUBDUES` 🟠 P2 (labels only)
+  - DEEP FOCUS 3 — District Awards disable gate + free/verify — `DISTRICT-AWARDS-DISABLED-GATE` 🟠 P3
+  -   OUT (no mobile surface)
+  -   Recommended order
+- **reference/RotaryIndia_Admin_API_Claude/MD_files/flutter_parity_gap_backlog_2026-08-11_dues-blank-losing-channel-live-list-notification-feed-cog-ridirector-wave.md** (11 KB)
+  - Flutter Parity-Gap Backlog — **District-Dues "blank losing channel" now on the live list** + **mobile notification-feed endpoint** + COG report/edit + RI-Director-V2 + share-cards/cache wave (pulled `3e5db7a8..771eecb0`, audited 2026-08-11)
+  -   The pull at a glance — 15 commits (0 Flutter files)
+  -   Master list
+  - DEEP FOCUS — District Dues blank losing channel on the live list — `DISTRICT-DUES-BLANK-LOSING-CHANNEL` 🟠 P2
+  -   OUT (no mobile surface)
+  -   Recommended order
+- **reference/RotaryIndia_Admin_API_Claude/MD_files/flutter_parity_gap_backlog_2026-08-12_share_banner_upload_wave.md** (3 KB)
+  - Flutter Parity Gap Audit — 2026-08-12
+  -   Commit-by-commit
+  -   The only actionable mobile item
+  -   Carry-over still open (unchanged from prior waves)
+  -   Net
+- **reference/RotaryIndia_Admin_API_Claude/MD_files/flutter_parity_gap_backlog_2026-08-14_goalsetting_duesreceipt_wave.md** (5 KB)
+  - Flutter Parity Gap Audit — 2026-08-14 (wave 2)
+  -   Commit-by-commit
+  -   The forced/actionable item
+  -   The big new module (product decision, not a quiet parity fix)
+  -   Already handled / no mobile change
+  -   Carry-over still open (unchanged from prior waves)
+  -   Net
+- **reference/RotaryIndia_Admin_API_Claude/MD_files/flutter_parity_gap_backlog_2026-08-14_masemail_dedup_docorlink_wave.md** (7 KB)
+  - Flutter Parity Gap Audit — 2026-08-14
+  -   Commit-by-commit
+  -   Actionable mobile items (all P3, none forced)
+  -   Already satisfied this wave (no work)
+  -   Carry-over still open (unchanged from prior waves)
+  -   Net
+- **reference/RotaryIndia_Admin_API_Claude/MD_files/flutter_parity_gap_backlog_2026-08-31_goalsetting-duespaymentid-otpemail-honorary-wave.md** (10 KB)
+  - Flutter Parity Gap Audit — 2026-08-31
+  -   Commit-by-commit
+  -   Actionable mobile items
+  -   Automatic on mobile — reflects server-side, no app work
+  -   Already satisfied / not a gap
+  -   Carry-over still open (unchanged from prior waves)
+  -   Net
+- **reference/RotaryIndia_Admin_API_Claude/MD_files/flutter_parity_gap_backlog_2026-08-31b_mobile-goalsetting-api-newsletter-cmr-reminder-wave.md** (5 KB)
+  - Flutter Parity Gap Audit — 2026-08-31 (wave b)
+  -   Commit-by-commit
+  -   Actionable / decision item
+  -   Already satisfied this wave (no work)
+  -   Carry-over still open (unchanged from prior waves)
+  -   Net
+- **reference/RotaryIndia_Admin_API_Claude/MD_files/flutter_parity_gap_backlog_2026-09-03_goalsetting-restructure-trf-clubdues-wave.md** (7 KB)
+  - Flutter Parity Gap Audit — 2026-09-03
+  -   Commit-by-commit
+  -   Goal Setting — mobile build spec refresh (READ THIS BEFORE BUILDING)
+  -   Automatic on mobile — reflects server-side, no app work
+  -   New mobile-eligible surface (future item, not this build)
+  -   Carry-over still open (unchanged from prior waves)
+  -   Net
+- **reference/RotaryIndia_Admin_API_Claude/MD_files/flutter_parity_gap_backlog_2026-09-08_goalsetting-monthwise_whatsapp-hide_dues-multiaccount_wave.md** (9 KB)
+  - Flutter Parity Gap Audit — 2026-09-08
+  -   Commit-by-commit
+  -   Actionable mobile items
+  -   Already satisfied this wave (no work)
+  -   Carry-over still open (unchanged from prior waves)
+  -   Net
+  -   Note — appsettings.json local override (housekeeping, not parity)
+- **reference/RotaryIndia_Admin_API_Claude/MD_files/flutter_parity_gap_backlog_2026-09-10_goalsetting-reports_subdomain-fix_wave.md** (7 KB)
+  - Flutter Parity Gap Audit — 2026-09-10
+  -   Commit-by-commit
+  -   Actionable mobile items
+  -   Already satisfied / no work
+  -   Carry-over still open (unchanged by this wave)
+  -   Net
+- **reference/RotaryIndia_Admin_API_Claude/MD_files/flutter_parity_gap_backlog_2026-09-11_mobilephone_goalexcel_routes_wave.md** (13 KB)
+  - Flutter Parity Gap Audit — 2026-09-11
+  -   Commit-by-commit
+  -   Actionable mobile items
+  -   Backend ask (not app work)
+  -   Fixed this session (outside the wave) — Goal Setting Oversight redesign
+  -   Already satisfied this wave (no work)
+  -   Carry-over still open (unchanged from prior waves)
+  -   Net
+- **reference/RotaryIndia_Admin_API_Claude/MD_files/flutter_parity_gap_backlog_2026-09-15_goal_oversight_matrix_rebuild_wave.md** (15 KB)
+  - Flutter Parity Gap Audit — 2026-09-15
+  -   Direct answer: what Goal Setting work is left?
+  -   ⚠️ P1 — `GOAL-OVERSIGHT-MATRIX-REBUILD` — ✅ BUILT 2026-09-15
+  -   P2 — `GOAL-OVERSIGHT-MONTHWISE-POPUP`
+  -   P2 — `GOAL-OVERSIGHT-MESSAGES-POPUP`
+  -   P2 — `DISTRICT-ADMIN-CLUB-GOALS` — shape changed, build is now smaller
+  -   P2 — `GOAL-OVERSIGHT-ROLE-SWITCHER` (raised from P3)
+  -   Commit-by-commit
+  -   Backend asks (not app work)
+  -   Also open (non-goal, from this wave)
+  -   Carry-over (unchanged)
+  -   Net
+- **reference/RotaryIndia_Admin_API_Claude/MD_files/flutter_parity_gap_backlog_2026-09-17_goal_matrix_column_shapes_wave.md** (15 KB)
+  - Flutter Parity Gap Audit — 2026-09-17
+  -   ⚠️ P1 — `GOAL-MATRIX-COLUMN-SHAPES` — ✅ BUILT same day (2026-09-17), device-QA pending
+  -   P2 — `GREETINGS-PAUSE-NOTICE` — ✅ BUILT same day (2026-09-17), device-QA pending
+  -   P3 — `LOGIN-ANNOUNCEMENT-MULTI` — ✅ BUILT same day (2026-09-17), device-QA pending
+  -   P3 — `PPH-CROSS-CLUB-HISTORY` — ✅ BUILT same day (2026-09-17), device-QA pending
+  -   Free on the server — no app change, but worth QA
+  -   Out of scope this wave (each checked in source)
+  -   Backend ask — `GOAL-MOBILE-ROUTE-GAPS`, now **16 routes behind**
+  -   Net
+- **reference/RotaryIndia_Admin_API_Claude/MD_files/flutter_parity_gap_backlog_2026-10-01_clubservice_rename_wave.md** (8 KB)
+  - Flutter Parity Gap Audit — 2026-10-01
+  -   ⚠️ P1 — `AG-CLUBSERVICE-RENAME` — NOT BUILT, breaks on deploy
+  -   P2 — `MENU-ACTIVE-HOME-LOCK` — NOT BUILT
+  -   P2 — `GOAL-TARGET-SPLIT-PILOT` — not on mobile, and it lands on the TEST club
+  -   P3 — `GOAL-OVERSIGHT-SCOPE` — check, likely small
+  -   Free on the server — no app change, but worth QA
+  -   Out of scope this wave (each checked in source)
+  -   Backend ask — `GOAL-OVERSIGHT-CATEGORIES-ROUTE`
+  -   Net
+  -   Why the pull was not taken
+- **reference/RotaryIndia_Admin_API_Claude/MD_files/flutter_parity_gap_backlog_2026-10-05_rcc_clubservice_wave.md** (9 KB)
+  - Flutter Parity Gap Audit — 2026-10-05
+  -   ⚠️ P1 — `CLUB-GOAL-SETTING-PARKED` — DECISION NEEDED, app currently diverges
+  -   ⚠️ P1 — `PROJECT-ROTARACTORS-NO-LONGER-REQUIRED` — app blocks a valid save
+  -   P2 — `PROJECT-RCC-INVOLVED` — new field, absent from the app
+  -   P2 — `CURRENCY-LKR-NPR` — a Colombo project reads as Indian
+  -   P3 — `ATTENDANCE-PERCENT-DECIMALS` — ✅ BUILT 2026-10-07, device-QA pending
+  -   Free — the rename finished landing, and the app already absorbed it
+  -   Out of scope this wave (each checked in source)
+  -   Net
+  -   Why the pull was not taken
+- **reference/RotaryIndia_Admin_API_Claude/MD_files/flutter_parity_gap_backlog_2026-10-07_foundation_lock_family_dedupe_wave.md** (13 KB)
+  - Flutter Parity Gap Audit — 2026-10-07
+  -   ⚠️ P1 — `GOAL-TOTAL-GIVING-LOCKED` — ✅ BUILT same day (2026-10-07), device-QA pending
+  -   P2 — `MEMBER-FAMILY-DUPLICATE-GUARD` — ✅ BUILT same day (2026-10-07), device-QA pending
+  -   Free on the server — no app change, but worth QA
+  -   Out of scope this wave (each checked in source)
+  -   ⚠️ Upstream defect found while verifying the merge — web side, not ours
+  -   Pull and merge notes
+  -   Net
+- **reference/RotaryIndia_Admin_API_Claude/MD_files/flutter_parity_gap_backlog_2026-10-08_regional_leaders_zone6_wave.md** (3 KB)
+  - Flutter Parity Gap Audit — 2026-10-08
+  -   The only change — `REGIONAL-LEADERS-ZONE6` — no app work, reaches mobile for free
+  -   Free on the server — no app change
+  -   Out of scope this wave
+  -   Net
+  -   Pull notes
+- **reference/RotaryIndia_Admin_API_Claude/MD_files/flutter_parity_gap_backlog_2026-10-14_district_goal_messages_foundation_card_wave.md** (15 KB)
+  - Flutter Parity Gap Audit — 2026-10-14
+  -   ⚠️ P1 — `GOAL-MESSAGES-STICKY-DOT` — the red dot on the oversight Messages icon never clears — ✅ BUILT 2026-10-14, device-QA pending
+  -   ⚠️ P1 — `GOAL-SYSTEM-FILLED-FIELDS` — Youth Service values the server now ignores are still editable in the app — ✅ BUILT 2026-10-14, device-QA pending
+  -   P2 — `GOAL-DISTRICT-MESSAGES` — District Admin / DG can message their oversight; mobile has none of it
+  -   P2 — `GOAL-MONTHWISE-TARGET-ACHIEVED` — each month is now a Target | Achieved pair
+  -   P2 — `CLUB-FOUNDATION-ACHIEVED-CARD` — web's club Foundation page now shows different figures
+  -   P2 — `ROTARY-LOGO-CROP-PADDING` — a two-line Rotary logo loses its bottom line
+  -   P3 — `DISTRICT-REPORT-AREA-OF-FOCUS-COL`
+  -   Free on the server — no app change, but worth QA
+  -   Out of scope this wave (each checked in source)
+  -   Backend asks
+  -   Net
+- **reference/RotaryIndia_Admin_API_Claude/MD_files/flutter_parity_gap_backlog_2026-10-27_inactive_hierarchy_goal_chats_groups_wave.md** (19 KB)
+  - Flutter Parity Gap Audit — 2026-10-27
+  -   ⚠️ P1 — `GOAL-MONTHWISE-TARGET-BASE-CHANGED` — Target and Achieved in the same month no longer count from the same place
+  -   ⚠️ P1 — `GOAL-MESSAGES-STICKY-DOT-II` — the dot the app polls now has two sources the app cannot open
+  -   P2 — `GOAL-CHAT-AND-GROUPS` — a whole new messaging layer, fully mirrored to mobile, with no app screens
+  -   P2 — `CMR-PDF-SERVER-BUILT` — the app still builds the monthly-report PDF itself, so Marathi and Hindi come out as boxes
+  -   P2 — `THEME-TESTING-CLUBID` — the app offers website themes the club is not allowed to pick
+  -   P3 — `ARC-TO-ARMC-LABEL`
+  -   P3 — `GOAL-PCT-DECIMALS`
+  -   P3 — `GOAL-MONTH-RAG`
+  -   Free on the server — no app change, but worth QA
+  -   Out of scope this wave (each checked in source)
+  -   Backend asks
+  -   Net
+- **reference/RotaryIndia_Admin_API_Claude/MD_files/flutter_parity_gap_backlog_2026-11-06_assistant_donate_goal_rotary_wave.md** (24 KB)
+  - Flutter Parity Gap Audit — 2026-11-06
+  -   ✅ P1 FIXED 2026-11-06 — `PUBLIC-IMAGE-FIELDS-STILL-MANDATORY` — a Public Image project could not be saved from the app
+  -   ✅ P1 FIXED 2026-11-06 — `MEMBER-HOME-ADDRESS-TYPE-RESIDENCE` — a "Residence" row was invisible on mobile
+  -   ✅ P2 FIXED 2026-11-06 — `MEMBER-TSHIRT-SIZE` — a new member field, with a mobile-specific privacy rule
+  -   P2 — `GOAL-ROLE-YEAR-RIGHTS` — the oversight roles are now year-scoped, and mobile will offer refused buttons
+  -   P3 — `GOAL-ACTING-AS-NOT-SENT` — a District Assistant may see more on mobile than on web
+  -   P3 — `GOAL-ROLE-LABEL-DISPLAY`
+  -   Free on the server — no app change, but worth QA
+  -   Out of scope this wave (each checked in source)
+  -   Backend asks
+  -   Net
+- **reference/RotaryIndia_Admin_API_Claude/MD_files/flutter_parity_gap_backlog_2026-11-06b_dg_rotary_sync_profile_options_wave.md** (14 KB)
+  - Flutter Parity Gap Audit — 2026-11-06 (second wave of the day)
+  -   ⚠️ P1 — `TSHIRT-OPTIONS-ENDPOINT-SHIPPED` — the backend ask was answered, and the local patch for it is now the wrong fix
+  -   P2 — `DG-ROTARY-SYNC-WEB-ONLY` — the District Governor's own sync button exists only on web
+  -   P3 — `TSHIRT-CLEAR-NOT-SENT` — a member can set his size on mobile but never unset it
+  -   P3 — `GOAL-ROTARY-AS-ON-ROLLS-FORWARD` — a changed date semantic in a module mobile cannot reach
+  -   Free on the server — no app change, but worth QA
+  -   Out of scope this wave (each checked in source)
+  -   Backend asks
+  -   Net
+- **reference/RotaryIndia_Admin_API_Claude/MD_files/flutter_replication_prompt.md** (25 KB)
+  - 🚀 CLAUDE CODE MEGA-PROMPT: Replicate Rotary India Admin Frontend → Flutter App
+  -   ⚠️ CRITICAL INSTRUCTIONS — READ FULLY BEFORE WRITING ANY CODE
+  -   PHASE 0: DEEP ANALYSIS (DO THIS FIRST — NO CODE YET)
+  - Run these commands and study EVERY file:
+  - Frontend Analysis Report
+  -   1. ROUTES & NAVIGATION
+  -   2. API ENDPOINTS
+  -   3. STATE MANAGEMENT
+  -   4. COMPONENTS INVENTORY
+  -   5. FEATURES LIST
+  -   6. UI PATTERNS
+  -   7. THIRD-PARTY INTEGRATIONS
+  -   PHASE 1: FLUTTER PROJECT SETUP
+  -   PHASE 2: CORE INFRASTRUCTURE
+  -   PHASE 3: MODELS (Match Backend Response Exactly)
+  -   PHASE 4: UI SCREENS (Feature-by-Feature Replication)
+  -   PHASE 5: SHARED WIDGETS
+  -   PHASE 6: THEME & COLORS
+  -   PHASE 7: ERROR HANDLING & EDGE CASES
+  -   PHASE 8: FINAL VERIFICATION CHECKLIST
+  -   🚨🚨🚨 FILE PROTECTION RULES — HIGHEST PRIORITY 🚨🚨🚨
+  -   🔴 ABSOLUTE RULES — NEVER VIOLATE THESE
+  -   EXECUTION ORDER
+- **reference/RotaryIndia_Admin_API_Claude/MD_files/merged-dashboard-prompt.md** (7 KB)
+  - Task: Merge District & Club Dashboard Modules into a Single Unified List
+  -   Context
+  -   Goal
+  -   Navigation Flow
+  -   Merging Logic
+  -   Shared Modules (15 modules — exist in both APIs with same moduleKey)
+  -   District-Only Modules
+  -   Club-Only Modules
+  -   Expected Merged Module Data Structure
+  -   UI Behavior Summary
+  -   Implementation Steps
+- **reference/RotaryIndia_Admin_API_Claude/MD_files/navigation_flow_spec.md** (3 KB)
+  - Navigation Flow & Dashboard Specification
+  -   Overview
+  -   Navigation Flow
+  -   Club Dashboard
+  -   District Dashboard
+  -   Key Differences Between Dashboards
+  -   UI/UX Notes
+  -   Summary of Full Flow
+- **reference/RotaryIndia_Admin_API_Claude/MD_files/near_me_coming_soon_design_2026-07-01.md** (4 KB)
+  - Find a Club — Near Me "Coming Soon" Gate (Design Spec)
+  -   1. Problem
+  -   2. Decisions (locked)
+  -   3. Files changed (2)
+  -   4. Feature flag
+  -   5. `club_finder_search_screen.dart`
+  -   6. Behavior
+  -   7. Explicitly unchanged
+  -   8. Verification
+  -   9. Risks / notes
+- **reference/RotaryIndia_Admin_API_Claude/MD_files/near_me_coming_soon_plan_2026-07-01.md** (7 KB)
+  - Near Me "Coming Soon" Gate — Implementation Plan
+  -   File map
+  -   Task 1: Add the `kNearMeEnabled` feature flag
+  -   Task 2: Gate the Near Me tab in the Find-a-Club screen
+  -   Task 3: Verify end-to-end
+  -   Self-review (author checklist — already run)
+- **reference/RotaryIndia_Admin_API_Claude/MD_files/rotary_api_frontend_change_report_2026-04-14.md** (16 KB)
+  - RotaryApi + rotary-frontend Change Report — 2026-04-14
+  -   High-Level Summary
+  -   1. Mobile Auth — OTP Login System
+  -   2. District Citation Module
+  -   3. District PPH Camps
+  -   4. Zonal Awards
+  -   5. Club Moderator
+  -   6. AG (Assistant Governor)
+  -   7. District Committee (from commit `10315f9`)
+  -   8. Backend Infrastructure (Program.cs)
+  -   9. rotary-frontend Pages Added (All Commits)
+  -   Flutter Integration Priority
+- **reference/RotaryIndia_Admin_API_Claude/MD_files/website_banner_ad_crop_design_2026-07-01.md** (9 KB)
+  - Website Banner & Advertisement — In-App Crop + Rotate (Design Spec)
+  -   1. Problem
+  -   2. Key enabler
+  -   3. Decisions (locked)
+  -   4. Files changed (4, all in scope)
+  -   5. Banner change (files 1 & 2) — locked 16:5 + rotate
+  -   6. Advertisement change (files 3 & 4) — free-form crop + rotate
+  -   7. Quality preservation rationale
+  -   8. Explicitly unchanged (no functionality/field change)
+  -   9. Verification
+  -   10. Risks / notes
+- **reference/RotaryIndia_Admin_API_Claude/MD_files/website_banner_ad_crop_plan_2026-07-01.md** (20 KB)
+  - Website Banner & Advertisement Crop + Rotate — Implementation Plan
+  -   File map
+  -   Task 1: Club banner form — locked 16:5 crop + rotate
+  -   Task 2: District banner form — locked 16:5 crop + rotate (mirror)
+  -   Task 3: Club advertisement form — free-form crop + rotate
+  -   Task 4: District advertisement form — free-form crop + rotate (mirror)
+  -   Task 5: Full verification sweep + device QA
+  -   Self-review (author checklist — already run)
 - **reference/RotaryIndia_Admin_API_Claude/RIZones-To-Rotary.org-main/add-to-org/README.md** (6 KB)
   - Add to Org — rizones → Rotary.org SPC sync
   -   Architecture
@@ -860,6 +2344,30 @@ open the file for the text. Do not edit by hand.
   -   Inspect saved submissions
   - list saved files
   - or just look in:
+- **reference/RotaryIndia_Admin_API_Claude/RccGoalsFetcher/WORKER_SETUP.md** (4 KB)
+  - RccGoalsFetcher worker: District Governor syncs
+  -   Requirements
+  -   Install as a Windows Service (elevated command prompt)
+  -   Statuses
+  -   The normal scheduled run is separate
+  -   Checking the database mapping (read-only)
+- **reference/RotaryIndia_Admin_API_Claude/RotaryApi/SQL/year_wise_admin_rights/README.md** (4 KB)
+  - Year-wise Admin Rights — migration
+  -   Run it
+  - 1. Look first. Reads only — writes nothing, whatever you pass.
+  - 2. Read runs/<timestamp>/affected.tsv and get it approved.
+  - 3. Apply. Takes a backup first; there is no flag to skip that.
+  - 4. If it has to come back out:
+  -   The files
+  -   What it actually does
+  -   The four properties, and how each is guaranteed
+  -   Verified on a local copy of production
+  -   Order of operations for go-live
+- **reference/RotaryIndia_Admin_API_Claude/assistant-web/README.md** (2 KB)
+  - Rotary AI Assistant — web chat UI
+  -   Develop
+  -   Build
+  -   Deploy (IIS)
 - **reference/RotaryIndia_Admin_API_Claude/club-website/README.md** (2 KB)
   - Club Website
   -   Phases

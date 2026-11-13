@@ -179,7 +179,7 @@ public class DailyStatsReportService : IDailyStatsReportService
 
         // ── Newsletters (current year) ────────────────────────────────────────
         long newslettersCurYear = curYearId <= 0 ? 0 : await conn.ExecuteScalarAsync<long>(
-            "SELECT COUNT(*) FROM newsletters WHERE fk_year_id = @Y AND COALESCE(isdeleted,0) = 0",
+            $"SELECT COUNT(*) FROM newsletters WHERE fk_year_id = @Y AND COALESCE(isdeleted,0) = 0 AND {HierarchyScopeSql.ClubIdLive("newsletters.fk_club_id")}",
             new { Y = curYearId });
 
         // ── Project photos (incl. Club Service) — current year + all years ────
@@ -239,7 +239,7 @@ public class DailyStatsReportService : IDailyStatsReportService
         // counts, and the District Summary sync/non-sync TOTALs == headline. (Exempt + inactive
         // districts, Other Zones and null-zone districts are all excluded here too.)
         var pExcel = new { Exempt = ExemptDistrictNumbers, Zones = ScopeZones, AllZones };
-        var summary = (await conn.QueryAsync<SyncSummaryRow>(@"
+        var summary = (await conn.QueryAsync<SyncSummaryRow>($@"
             SELECT z.ZoneName AS ZoneName, d.DistrictNumber AS DistrictNumber,
                    CAST(SUM(c.IsSyncedFromRotaryOrg = 1) AS SIGNED) AS SyncClubs,
                    CAST(SUM(c.IsSyncedFromRotaryOrg = 0 OR c.IsSyncedFromRotaryOrg IS NULL) AS SIGNED) AS NonSyncClubs,
@@ -252,6 +252,7 @@ public class DailyStatsReportService : IDailyStatsReportService
             JOIN zone_master z ON z.pk_zone_id = d.fk_zone_id
             LEFT JOIN club_master c ON c.fk_district_id = d.pk_district_id AND c.isdeleted = 0
             WHERE d.isdeleted = 0 AND d.DistrictNumber NOT IN @Exempt AND d.IsActive = 1
+              AND {HierarchyScopeSql.DistrictLive("d")}
               AND (@AllZones = 1 OR z.ZoneName IN @Zones)
             GROUP BY d.pk_district_id, z.ZoneName, d.DistrictNumber
             HAVING (SyncClubs + NonSyncClubs) > 0
@@ -342,7 +343,7 @@ public class DailyStatsReportService : IDailyStatsReportService
             SELECT COUNT(*) FROM club_master c
             JOIN district_master d ON d.pk_district_id = c.fk_district_id
             LEFT JOIN zone_master z ON z.pk_zone_id = d.fk_zone_id
-            WHERE {syncCond} AND c.isdeleted = 0
+            WHERE {syncCond} AND c.isdeleted = 0 AND {HierarchyScopeSql.ClubLive("c")}
               AND d.DistrictNumber NOT IN @Exempt AND d.IsActive = 1 AND {zoneClause}", p);
     }
 
@@ -358,7 +359,7 @@ public class DailyStatsReportService : IDailyStatsReportService
             JOIN district_master d ON d.pk_district_id = c.fk_district_id AND d.DistrictNumber NOT IN @Exempt AND d.IsActive = 1
             LEFT JOIN zone_master z ON z.pk_zone_id = d.fk_zone_id
             JOIN member_master_profile m ON m.pk_member_master_profile_id = cm.fk_member_master_profile_id AND m.isdeleted = 0
-            WHERE cm.IsActive = 1 AND cm.isdeleted = 0 AND {zoneClause}", p);
+            WHERE cm.IsActive = 1 AND cm.isdeleted = 0 AND {HierarchyScopeSql.ClubLive("c")} AND {zoneClause}", p);
     }
 
     // Project photos are counted for SYNCED clubs in the zones only. p is the project table.
@@ -374,7 +375,7 @@ public class DailyStatsReportService : IDailyStatsReportService
                 JOIN club_master c ON c.pk_club_id = p.fk_club_id AND c.isdeleted = 0 AND c.IsSyncedFromRotaryOrg = 1
                 JOIN district_master d ON d.pk_district_id = c.fk_district_id AND d.DistrictNumber NOT IN @Exempt AND d.IsActive = 1
                 JOIN zone_master z ON z.pk_zone_id = d.fk_zone_id AND (@AllZones = 1 OR z.ZoneName IN @Zones)
-                WHERE COALESCE(p.isdeleted, 0) = 0",
+                WHERE COALESCE(p.isdeleted, 0) = 0 AND {HierarchyScopeSql.ClubLive("c")}",
                 new { Exempt = ExemptDistrictNumbers, Zones = ScopeZones, AllZones });
         }
         catch (Exception ex) { _logger.LogWarning(ex, "Daily report: photo count failed for {Table}", photoTable); return 0; }

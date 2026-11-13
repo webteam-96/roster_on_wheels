@@ -21,7 +21,7 @@
  * deactivate toggle, delete confirmation, success / error alerts.
  */
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { RotaryYear } from "@/types/rotaryYear";
 import {
@@ -29,6 +29,9 @@ import {
   deleteDistrictContactDetail, getDistrictContactDetailAvailableYears, getRotaryYears, getDistrict,
 } from "@/services/api";
 import { useAuth } from "@/contexts/AuthContext";
+import { districtYearRights, canEditYear, heldYearLabels } from "@/lib/adminYears";
+import { useRotaryYears } from "@/hooks/useRotaryYears";
+import ViewOnlyBadge from "@/components/ViewOnlyBadge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -44,7 +47,7 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import { ListPageSkeleton } from "@/components/row/AppKit";
 
 export default function DistrictAdminContactDetailsPage() {
-  const { isSuperAdmin, isAdmin, selectedDistrictId } = useAuth();
+  const { isSuperAdmin, isAdmin, selectedDistrictId, user } = useAuth();
   const districtId = selectedDistrictId ?? 0;
 
   const searchParams = useSearchParams();
@@ -80,7 +83,12 @@ export default function DistrictAdminContactDetailsPage() {
   const [formIsActive, setFormIsActive] = useState("1");
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
-  const canManage = isSuperAdmin || isAdmin;
+  // This part of the district website IS year-scoped — each Rotary year has its
+  // own rows — so editing needs rights for the year on screen.
+  const { years: rotaryYears } = useRotaryYears();
+  const siteRights = useMemo(() => districtYearRights(user?.scopedRoles, districtId), [user?.scopedRoles, districtId]);
+  const canManage = (isSuperAdmin || isAdmin) && canEditYear(siteRights, Number(selectedYearId) || undefined, isSuperAdmin);
+  const editableYears = heldYearLabels(siteRights, rotaryYears.map((y) => ({ id: y.id, label: y.yearLabel })));
 
   useEffect(() => {
     if (!districtId) return;
@@ -208,6 +216,10 @@ export default function DistrictAdminContactDetailsPage() {
 
   return (
     <ProtectedRoute>
+      {!canManage && (
+        <ViewOnlyBadge editableYears={editableYears} className="mb-4" />
+      )}
+
       <div className="space-y-6">
         {/* ── Header ────────────────────────────────────────────────── */}
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">

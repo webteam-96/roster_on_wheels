@@ -1,3 +1,10 @@
+/// A member keeps ONE Business and ONE home address (upstream 2026-11-02). The home address is stored as
+/// "Residence" (directory / migrated data) or "Residential" (sync / forms): the same address under two names.
+bool isHomeAddressType(String? t) {
+  final v = (t ?? '').toLowerCase();
+  return v == 'residence' || v == 'residential';
+}
+
 class MemberAddressModel {
   final int? id;
   final String addressType; // 'Residential' | 'Business'

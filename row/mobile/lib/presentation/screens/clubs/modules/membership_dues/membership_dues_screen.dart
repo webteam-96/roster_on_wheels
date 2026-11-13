@@ -223,7 +223,7 @@ class _MembershipDuesScreenState extends State<MembershipDuesScreen> {
   bool get _canManage =>
       !widget.viewOnly &&
       Provider.of<AuthProvider>(context, listen: false)
-          .isClubAdminOf(widget.clubId);
+          .canEditClub(widget.clubId);
 
   /// Backend `GET /api/membership-dues` returns 403 unless the caller has
   /// the SuperAdmin or Admin role (`MembershipDuesController.cs:43`). Plain

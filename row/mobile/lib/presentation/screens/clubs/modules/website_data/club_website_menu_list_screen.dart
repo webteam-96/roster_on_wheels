@@ -347,7 +347,7 @@ class _ClubWebsiteMenuListScreenState extends State<ClubWebsiteMenuListScreen> {
   @override
   Widget build(BuildContext context) {
     final auth = context.watch<AuthProvider>();
-    final canManage = auth.isClubAdminOf(widget.clubId);
+    final canManage = auth.canEditClub(widget.clubId);
 
     return Scaffold(
       backgroundColor: AppColors.background,

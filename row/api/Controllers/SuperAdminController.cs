@@ -97,7 +97,7 @@ public class SuperAdminController : ControllerBase
         await conn.OpenAsync();
 
         // Exclude members who are already active SuperAdmins (can't promote twice).
-        var rows = await conn.QueryAsync<dynamic>(@"
+        var rows = await conn.QueryAsync<dynamic>($@"
             SELECT m.pk_member_master_profile_id AS memberId,
                    m.MemberName AS memberName,
                    m.PrimaryMobileNumber AS mobile,
@@ -114,6 +114,7 @@ public class SuperAdminController : ControllerBase
                       AND (mr2.isdeleted IS NULL OR mr2.isdeleted = 0)) AS currentRoles
             FROM member_master_profile m
             LEFT JOIN club_members cm ON cm.fk_member_master_profile_id = m.pk_member_master_profile_id AND cm.isdeleted = 0 AND cm.IsActive = 1
+                  AND {HierarchyScopeSql.ClubIdLive("cm.fk_club_id")}
             LEFT JOIN club_master c ON c.pk_club_id = cm.fk_club_id AND c.isdeleted = 0
             LEFT JOIN district_master d ON d.pk_district_id = c.fk_district_id
             LEFT JOIN zone_master z ON z.pk_zone_id = d.fk_zone_id

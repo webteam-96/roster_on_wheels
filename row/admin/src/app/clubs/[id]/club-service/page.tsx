@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { ProjectListItem } from "@/types/project";
 import {
@@ -11,6 +11,8 @@ import {
   getProjectYears,
 } from "@/services/api";
 import { useAuth } from "@/contexts/AuthContext";
+import { clubYearRights, canEditYear, heldYearLabels } from "@/lib/adminYears";
+import ViewOnlyBadge from "@/components/ViewOnlyBadge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -54,7 +56,7 @@ export default function ClubServicePage() {
   const params = useParams();
   const router = useRouter();
   const clubId = Number(params.id);
-  const { isSuperAdmin, isAdmin } = useAuth();
+  const { isSuperAdmin, isAdmin, user } = useAuth();
 
   const [clubName, setClubName] = useState("");
   const [moduleId, setModuleId] = useState<number | null>(null);
@@ -75,7 +77,14 @@ export default function ClubServicePage() {
   const [deleteTarget, setDeleteTarget] = useState<ProjectListItem | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
 
-  const canManage = isSuperAdmin || isAdmin;
+  const yearRights = useMemo(() => clubYearRights(user?.scopedRoles, clubId), [user?.scopedRoles, clubId]);
+  const isClubAdmin = isSuperAdmin || isAdmin;
+  const canManage = isClubAdmin && canEditYear(yearRights, selectedYearId, isSuperAdmin);
+  // ⚠️ View must NOT depend on canManage — hiding Edit would otherwise hide the
+  // only way into a record and leave a list you cannot open.
+  const canView = isClubAdmin;
+  const editableYears = heldYearLabels(yearRights, years.map((y) => ({ id: y.id, label: y.yearLabel })));
+  const viewingYearLabel = years.find((y) => y.id === selectedYearId)?.yearLabel;
 
   useEffect(() => {
     async function init() {
@@ -186,6 +195,10 @@ export default function ClubServicePage() {
           )}
         </div>
 
+        {isClubAdmin && !canManage && selectedYearId && (
+          <ViewOnlyBadge yearLabel={viewingYearLabel} editableYears={editableYears} className="mb-4" />
+        )}
+
         {/* Year selector + Search */}
         <div className="flex flex-col sm:flex-row gap-4">
           <div className="w-full sm:w-48">
@@ -271,7 +284,7 @@ export default function ClubServicePage() {
                     <TableHead className="text-base font-semibold">Date</TableHead>
                     <TableHead className="text-base font-semibold text-center">Attendance</TableHead>
                     <TableHead className="text-base font-semibold text-center">Attendance %</TableHead>
-                    {canManage && (
+                    {canView && (
                       <TableHead className="w-12"></TableHead>
                     )}
                   </TableRow>
@@ -300,7 +313,7 @@ export default function ClubServicePage() {
                       <TableCell>{formatDate(project.projectDate)}</TableCell>
                       <TableCell className="text-center">{project.attendance ?? "-"}</TableCell>
                       <TableCell className="text-center">{project.attendancePercentage != null ? `${project.attendancePercentage}%` : "-"}</TableCell>
-                      {canManage && (
+                      {canView && (
                         <TableCell>
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
@@ -310,12 +323,16 @@ export default function ClubServicePage() {
                               <DropdownMenuItem onClick={() => router.push(`/clubs/${clubId}/club-service/${project.id}?yearId=${selectedYearId}`)}>
                                 <Eye className="mr-2 h-4 w-4" />View
                               </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => router.push(`/clubs/${clubId}/club-service/${project.id}/edit?yearId=${selectedYearId}`)}>
-                                <Pencil className="mr-2 h-4 w-4" />Edit
-                              </DropdownMenuItem>
-                              <DropdownMenuItem className="text-destructive" onClick={() => setDeleteTarget(project)}>
-                                <Trash2 className="mr-2 h-4 w-4" />Delete
-                              </DropdownMenuItem>
+                              {canManage && (
+                                <DropdownMenuItem onClick={() => router.push(`/clubs/${clubId}/club-service/${project.id}/edit?yearId=${selectedYearId}`)}>
+                                  <Pencil className="mr-2 h-4 w-4" />Edit
+                                </DropdownMenuItem>
+                              )}
+                              {canManage && (
+                                <DropdownMenuItem className="text-destructive" onClick={() => setDeleteTarget(project)}>
+                                  <Trash2 className="mr-2 h-4 w-4" />Delete
+                                </DropdownMenuItem>
+                              )}
                             </DropdownMenuContent>
                           </DropdownMenu>
                         </TableCell>

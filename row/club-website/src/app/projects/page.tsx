@@ -5,6 +5,9 @@ import { loaders } from "@/themes/shared/loaders";
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Projects" };
 
-export default function Page({ searchParams }: { searchParams: Record<string, string | string[] | undefined> }) {
+export default async function Page(
+  props: { searchParams: Promise<Record<string, string | string[] | undefined>> }
+) {
+  const searchParams = await props.searchParams;
   return <SitePage page="Projects" load={(shell) => loaders.Projects(shell, searchParams)} />;
 }

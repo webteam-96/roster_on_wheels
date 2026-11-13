@@ -23,7 +23,7 @@
  *   Slate  text/backgrounds/rings
  */
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { RotaryYear } from "@/types/rotaryYear";
 import {
@@ -41,6 +41,9 @@ import {
 import { useDragSort } from "@/hooks/useDragSort";
 import { fileNameOnly } from "@/lib/pathUtils";
 import { useAuth } from "@/contexts/AuthContext";
+import { districtYearRights, canEditYear, heldYearLabels } from "@/lib/adminYears";
+import { useRotaryYears } from "@/hooks/useRotaryYears";
+import ViewOnlyBadge from "@/components/ViewOnlyBadge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -93,7 +96,7 @@ interface BannerItem {
 
 export default function DistrictAdminBannerPhotosPage() {
   // ── District id from AuthContext (NOT URL) ────────────────────────────
-  const { selectedDistrictId, isSuperAdmin, isAdmin } = useAuth();
+  const { selectedDistrictId, isSuperAdmin, isAdmin, user } = useAuth();
   const districtId = selectedDistrictId ?? 0;
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -138,7 +141,12 @@ export default function DistrictAdminBannerPhotosPage() {
 
   const [deleteTarget, setDeleteTarget] = useState<BannerItem | null>(null);
 
-  const canManage = isSuperAdmin || isAdmin;
+  // This part of the district website IS year-scoped — each Rotary year has its
+  // own rows — so editing needs rights for the year on screen.
+  const { years: rotaryYears } = useRotaryYears();
+  const siteRights = useMemo(() => districtYearRights(user?.scopedRoles, districtId), [user?.scopedRoles, districtId]);
+  const canManage = (isSuperAdmin || isAdmin) && canEditYear(siteRights, Number(selectedYearId) || undefined, isSuperAdmin);
+  const editableYears = heldYearLabels(siteRights, rotaryYears.map((y) => ({ id: y.id, label: y.yearLabel })));
   const activeCount = banners.filter((b) => b.isActive).length;
 
   const filteredBanners = banners.filter((banner) => {
@@ -349,6 +357,10 @@ export default function DistrictAdminBannerPhotosPage() {
 
   return (
     <ProtectedRoute>
+      {!canManage && (
+        <ViewOnlyBadge editableYears={editableYears} className="mb-4" />
+      )}
+
       <div className="space-y-6">
         {/* ── Header ─────────────────────────────────────────────── */}
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">

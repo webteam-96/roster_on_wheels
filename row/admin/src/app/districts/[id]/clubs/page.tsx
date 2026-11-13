@@ -28,6 +28,8 @@ export default function DistrictClubsPage() {
   const isModuleView = searchParams.get("view") === "module";
   const { isSuperAdmin } = useAuth();
   const [districtNumber, setDistrictNumber] = useState("");
+  // upstream 2026-10-21: district or its zone inactive, so this is a SuperAdmin-only view.
+  const [districtInactive, setDistrictInactive] = useState(false);
   const [data, setData] = useState<PagedResult<ClubListItem> | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -44,6 +46,7 @@ export default function DistrictClubsPage() {
       try {
         const d = await getDistrict(districtId);
         setDistrictNumber(d.districtNumber);
+        setDistrictInactive(d.isChainActive === false || !d.isActive);
       } catch { /* ignore */ }
     }
     fetchDistrict();
@@ -56,7 +59,8 @@ export default function DistrictClubsPage() {
       const result = await getClubs(
         pageNum || page, 20,
         search || undefined,
-        districtId
+        districtId,
+        undefined, undefined, undefined, undefined, true
       );
       setData(result);
     } catch (err) {
@@ -88,7 +92,8 @@ export default function DistrictClubsPage() {
     getClubs(
       newPage, 20,
       search || undefined,
-      districtId
+      districtId,
+      undefined, undefined, undefined, undefined, true
     )
       .then(result => setData(result))
       .catch(err => setError(err instanceof Error ? err.message : "Failed to fetch clubs"))
@@ -163,6 +168,11 @@ export default function DistrictClubsPage() {
           </div>
         )}
 
+        {districtInactive && (
+          <p className="text-sm font-semibold text-red-700">
+            This district (or its zone) is inactive and hidden everywhere. Only SuperAdmin can see this.
+          </p>
+        )}
         {error && (
           <div className="flex flex-col items-center justify-center py-20 text-center">
             <AlertCircle className="h-12 w-12 text-destructive mb-4" />
@@ -201,11 +211,11 @@ export default function DistrictClubsPage() {
                   {viewMode === "grid" ? (
                     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                       {filteredItems.map((club) => (
-                        <ClubCard key={club.id} club={club} onDelete={setDeleteTarget} isSuperAdmin={!isModuleView && isSuperAdmin} districtId={districtId} viewOnly={isModuleView} />
+                        <ClubCard key={club.id} club={club} parentInactive={districtInactive} onDelete={setDeleteTarget} isSuperAdmin={!isModuleView && isSuperAdmin} districtId={districtId} viewOnly={isModuleView} />
                       ))}
                     </div>
                   ) : (
-                    <ClubTable clubs={filteredItems} onDelete={setDeleteTarget} isSuperAdmin={!isModuleView && isSuperAdmin} districtId={districtId} viewOnly={isModuleView} />
+                    <ClubTable clubs={filteredItems} parentInactive={districtInactive} onDelete={setDeleteTarget} isSuperAdmin={!isModuleView && isSuperAdmin} districtId={districtId} viewOnly={isModuleView} />
                   )}
                   <Pagination page={data.page} totalPages={data.totalPages} totalCount={data.totalCount} pageSize={data.pageSize} onPageChange={handlePageChange} />
                 </>

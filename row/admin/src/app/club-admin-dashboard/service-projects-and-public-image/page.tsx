@@ -23,6 +23,8 @@ import {
 } from "@/services/api";
 import { useClubAdminCache } from "@/contexts/ClubAdminDashboardCacheContext";
 import { useAuth } from "@/contexts/AuthContext";
+import { clubYearRights, canEditYear, heldYearLabels } from "@/lib/adminYears";
+import ViewOnlyBadge from "@/components/ViewOnlyBadge";
 import { shortMoney, moneyIconName } from "@/lib/currency";
 import type {
   ServiceProjectsOverviewResponse,
@@ -378,6 +380,8 @@ function ClubServiceSection({
   clubId: number;
   onRefresh: () => Promise<void> | void;
 }) {
+  const { canManage, editableYears, viewingYearLabel } =
+    useAvenuePermissions(clubId, data.selectedYearId ?? yearId, data.availableYears);
   const k = data.kpis;
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
@@ -434,10 +438,15 @@ function ClubServiceSection({
   const returnTo = encodeURIComponent(
     "/club-admin-dashboard/service-projects-and-public-image?tab=club_service",
   );
-  const addUrl = `/clubs/${clubId}/club-service/v2/add?returnTo=${returnTo}`;
+  // The year goes with it: the photo upload needs it, or a past-year admin is
+  // allowed to add the project but refused its picture (uploadProjectImage).
+  const addUrl = `/clubs/${clubId}/club-service/v2/add?returnTo=${returnTo}${(data.selectedYearId ?? yearId) ? `&yearId=${data.selectedYearId ?? yearId}` : ""}`;
 
   return (
     <div className="space-y-5">
+      {!canManage && (
+        <ViewOnlyBadge yearLabel={viewingYearLabel} editableYears={editableYears} />
+      )}
       {/* Club Service KPIs — "Avg Attendance Stayed" and "Members on Roll"
           removed per user request 2026-06-12 (item #10). */}
       <div className="grid grid-cols-2 lg:grid-cols-2 gap-4">
@@ -454,7 +463,9 @@ function ClubServiceSection({
           <div className="flex flex-wrap items-center gap-2">
             {/* Local YearSelect removed — use global topbar year selector. */}
             <SearchBox value={search} onChange={setSearch} />
-            <AgreeAddButton message={AGREE_MESSAGES.club_service} href={addUrl} label="Add Club Service" />
+            {canManage && (
+              <AgreeAddButton message={AGREE_MESSAGES.club_service} href={addUrl} label="Add Club Service" />
+            )}
           </div>
         </div>
 
@@ -468,9 +479,9 @@ function ClubServiceSection({
                 <th className="px-3 py-2.5 text-left">Type</th>
                 <th className="px-3 py-2.5 text-left">Attendance</th>
                 <th className="px-3 py-2.5 text-left">Att %</th>
-                <th className="px-3 py-2.5 text-right w-16">View</th>
-                <th className="px-3 py-2.5 text-right w-16">Edit</th>
-                <th className="px-3 py-2.5 text-right w-16">Delete</th>
+                {/* One actions column. Delete used to be its own <th>, which left a
+                    header with nothing under it whenever the year was read-only. */}
+                <th className="px-3 py-2.5 text-right w-24 whitespace-nowrap">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
@@ -495,39 +506,45 @@ function ClubServiceSection({
                       {Number(m.attendancePercent).toFixed(2)}%
                     </span>
                   </td>
-                  <td className="px-3 py-2 text-right">
-                    <button
-                      type="button"
-                      onClick={() => setViewTarget(m)}
-                      className="inline-flex items-center justify-center w-7 h-7 rounded text-slate-500 hover:text-emerald-700 hover:bg-emerald-50"
-                      aria-label="View meeting"
-                      title="View details"
-                    >
-                      <Eye size={13} />
-                    </button>
-                  </td>
-                  <td className="px-3 py-2 text-right">
-                    <Link
-                      href={`/clubs/${clubId}/club-service/v2/${m.id}/edit?returnTo=${returnTo}&yearId=${data.selectedYearId ?? yearId ?? ""}`}
-                      className="inline-flex items-center justify-center w-7 h-7 rounded text-slate-500 hover:text-blue-700 hover:bg-blue-50"
-                    >
-                      <Edit3 size={13} />
-                    </Link>
-                  </td>
-                  <td className="px-3 py-2 text-right">
-                    <button
-                      type="button"
-                      onClick={() => setDeleteTarget(m)}
-                      className="inline-flex items-center justify-center w-7 h-7 rounded text-slate-400 hover:text-rose-700 hover:bg-rose-50"
-                      aria-label="Delete meeting"
-                    >
-                      <Trash2 size={13} />
-                    </button>
-                  </td>
+                    <td className="px-3 py-2">
+                      <div className="flex items-center justify-end gap-0.5">
+                        {/* View is always offered — a year you cannot edit is still a
+                            year you can read. Opens in place so the year selector and
+                            filters stay as the context you are reading the row in. */}
+                        <button
+                          type="button"
+                          onClick={() => setViewTarget(m)}
+                          className="inline-flex items-center justify-center w-7 h-7 rounded text-slate-500 hover:text-teal-700 hover:bg-teal-50"
+                          title="View"
+                        >
+                          <Eye size={14} />
+                        </button>
+                        {canManage && (
+                          <Link
+                            href={`/clubs/${clubId}/club-service/v2/${m.id}/edit?returnTo=${returnTo}&yearId=${data.selectedYearId ?? yearId ?? ""}`}
+                            className="inline-flex items-center justify-center w-7 h-7 rounded text-slate-500 hover:text-blue-700 hover:bg-blue-50"
+                            title="Edit"
+                          >
+                            <Edit3 size={14} />
+                          </Link>
+                        )}
+                        {canManage && (
+                          <button
+                            type="button"
+                            onClick={() => setDeleteTarget(m)}
+                            className="inline-flex items-center justify-center w-7 h-7 rounded text-slate-400 hover:text-rose-700 hover:bg-rose-50"
+                            title="Delete"
+                            aria-label="Delete meeting"
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        )}
+                      </div>
+                    </td>
                 </tr>
               ))}
               {filtered.length === 0 && (
-                <tr><td colSpan={9} className="px-4 py-8 text-center text-slate-400">No meetings recorded.</td></tr>
+                <tr><td colSpan={7} className="px-4 py-8 text-center text-slate-400">No meetings recorded.</td></tr>
               )}
             </tbody>
           </table>
@@ -592,6 +609,31 @@ function ClubServiceSection({
 
 // ── Non-Club avenues: one-time / ongoing projects ──────────────────────
 
+
+/**
+ * Whether this dashboard section is editable for the year on screen.
+ *
+ * Admin rights are per Rotary year, so being a Club Admin is not enough — the
+ * selected year has to be one this member holds. `canView` stays true either
+ * way: a year you cannot edit is still a year you can read, and without it the
+ * row loses its only way into the record.
+ */
+function useAvenuePermissions(
+  clubId: number,
+  selectedYearId: number | null | undefined,
+  availableYears: { id: number; yearLabel: string }[],
+) {
+  const { user, isSuperAdmin } = useAuth();
+  const rights = useMemo(() => clubYearRights(user?.scopedRoles, clubId), [user?.scopedRoles, clubId]);
+  const canManage = canEditYear(rights, selectedYearId, isSuperAdmin);
+  return {
+    canManage,
+    canView: true,
+    editableYears: heldYearLabels(rights, availableYears.map((y) => ({ id: y.id, label: y.yearLabel }))),
+    viewingYearLabel: availableYears.find((y) => y.id === selectedYearId)?.yearLabel,
+  };
+}
+
 function NonClubAvenueSection({
   data, yearId, clubId, onRefresh,
 }: {
@@ -600,6 +642,8 @@ function NonClubAvenueSection({
   clubId: number;
   onRefresh: () => Promise<void> | void;
 }) {
+  const { canManage, editableYears, viewingYearLabel } =
+    useAvenuePermissions(clubId, data.selectedYearId ?? yearId, data.availableYears);
   const k = data.kpis;
   const [subTab, setSubTab] = useState<"one_time" | "ongoing">("one_time");
   const [search, setSearch] = useState("");
@@ -744,10 +788,15 @@ function NonClubAvenueSection({
     `/club-admin-dashboard/service-projects-and-public-image?tab=${data.avenueKey}`,
   );
   const slug = SLUG_MAP[data.avenueKey] ?? "projects";
-  const addUrl = `/clubs/${clubId}/${slug}/add?returnTo=${returnTo}`;
+  // The year goes with it: the photo upload needs it, or a past-year admin is
+  // allowed to add the project but refused its picture (uploadProjectImage).
+  const addUrl = `/clubs/${clubId}/${slug}/add?returnTo=${returnTo}${(data.selectedYearId ?? yearId) ? `&yearId=${data.selectedYearId ?? yearId}` : ""}`;
 
   return (
     <div className="space-y-5">
+      {!canManage && (
+        <ViewOnlyBadge yearLabel={viewingYearLabel} editableYears={editableYears} />
+      )}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <KpiCard title="Projects"      value={fmtInt(k.projects ?? 0)}                  subtitle={data.avenueName}     icon={Briefcase}   color="blue" />
         <KpiCard title="Beneficiaries" value={fmtInt(k.beneficiaries ?? 0)}             subtitle="Lives impacted"      icon={Users}       color="green" />
@@ -786,7 +835,9 @@ function NonClubAvenueSection({
             )}
             {/* Local YearSelect removed — use global topbar year selector. */}
             <SearchBox value={search} onChange={setSearch} />
-            <AgreeAddButton message={AGREE_MESSAGES[data.avenueKey] ?? ""} href={addUrl} label="Add Project" />
+            {canManage && (
+              <AgreeAddButton message={AGREE_MESSAGES[data.avenueKey] ?? ""} href={addUrl} label="Add Project" />
+            )}
           </div>
         </div>
 
@@ -801,9 +852,9 @@ function NonClubAvenueSection({
                 <th className="px-3 py-2.5 text-right">Cost</th>
                 <th className="px-3 py-2.5 text-right">Direct Benf</th>
                 <th className="px-3 py-2.5 text-right">Man Hours</th>
-                <th className="px-3 py-2.5 text-right w-16">View</th>
-                <th className="px-3 py-2.5 text-right w-16">Edit</th>
-                <th className="px-3 py-2.5 text-right w-16">Delete</th>
+                {/* One actions column. Delete used to be its own <th>, which left a
+                    header with nothing under it whenever the year was read-only. */}
+                <th className="px-3 py-2.5 text-right w-24 whitespace-nowrap">Actions</th>
                 {syncColumnVisible && <th className="px-3 py-2.5 text-right w-16">Rotary.org</th>}
               </tr>
             </thead>
@@ -851,25 +902,39 @@ function NonClubAvenueSection({
                     <td className="px-3 py-2 text-right text-slate-600 whitespace-nowrap">{r.cost > 0 ? shortMoney(Number(r.cost), r.currency) : "–"}</td>
                     <td className="px-3 py-2 text-right text-slate-600">{r.directBeneficiaries > 0 ? fmtInt(r.directBeneficiaries) : "–"}</td>
                     <td className="px-3 py-2 text-right text-slate-600">{r.manHours > 0 ? fmtInt(r.manHours) : "–"}</td>
-                    <td className="px-3 py-2 text-right">
-                      <button
-                        type="button"
-                        onClick={() => setViewTarget(r)}
-                        className="inline-flex items-center justify-center w-7 h-7 rounded text-slate-500 hover:text-emerald-700 hover:bg-emerald-50"
-                        aria-label="View project"
-                        title="View details"
-                      >
-                        <Eye size={13} />
-                      </button>
-                    </td>
-                    <td className="px-3 py-2 text-right">
-                      <div className="flex items-center justify-end gap-1">
-                        <Link
-                          href={`/clubs/${clubId}/${slug}/${r.id}/edit?returnTo=${returnTo}&yearId=${data.selectedYearId ?? yearId ?? ""}`}
-                          className="inline-flex items-center justify-center w-7 h-7 rounded text-slate-500 hover:text-blue-700 hover:bg-blue-50"
+                    <td className="px-3 py-2">
+                      <div className="flex items-center justify-end gap-0.5">
+                        {/* View is always offered — a year you cannot edit is still a
+                            year you can read. Opens in place so the year selector and
+                            filters stay as the context you are reading the row in. */}
+                        <button
+                          type="button"
+                          onClick={() => setViewTarget(r)}
+                          className="inline-flex items-center justify-center w-7 h-7 rounded text-slate-500 hover:text-teal-700 hover:bg-teal-50"
+                          title="View"
                         >
-                          <Edit3 size={13} />
-                        </Link>
+                          <Eye size={14} />
+                        </button>
+                        {canManage && (
+                          <Link
+                            href={`/clubs/${clubId}/${slug}/${r.id}/edit?returnTo=${returnTo}&yearId=${data.selectedYearId ?? yearId ?? ""}`}
+                            className="inline-flex items-center justify-center w-7 h-7 rounded text-slate-500 hover:text-blue-700 hover:bg-blue-50"
+                            title="Edit"
+                          >
+                            <Edit3 size={14} />
+                          </Link>
+                        )}
+                        {canManage && (
+                          <button
+                            type="button"
+                            onClick={() => setDeleteTarget(r)}
+                            className="inline-flex items-center justify-center w-7 h-7 rounded text-slate-400 hover:text-rose-700 hover:bg-rose-50"
+                            title="Delete"
+                            aria-label="Delete project"
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        )}
                       </div>
                     </td>
                     <td className="px-3 py-2 text-right">
@@ -944,23 +1009,40 @@ function NonClubAvenueSection({
                     <td className="px-3 py-2 text-right text-slate-500 whitespace-nowrap">{c.cost > 0 ? shortMoney(Number(c.cost), c.currency) : "–"}</td>
                     <td className="px-3 py-2 text-right text-slate-500">{c.directBeneficiaries > 0 ? fmtInt(c.directBeneficiaries) : "–"}</td>
                     <td className="px-3 py-2 text-right text-slate-500">{c.manHours > 0 ? fmtInt(c.manHours) : "–"}</td>
-                    <td className="px-3 py-2 text-right">
-                      <Link
-                        href={`/clubs/${clubId}/${slug}/${c.id}/edit?returnTo=${returnTo}&yearId=${data.selectedYearId ?? yearId ?? ""}`}
-                        className="inline-flex items-center justify-center w-7 h-7 rounded text-slate-500 hover:text-blue-700 hover:bg-blue-50"
-                      >
-                        <Edit3 size={13} />
-                      </Link>
-                    </td>
-                    <td className="px-3 py-2 text-right">
-                      <button
-                        type="button"
-                        onClick={() => setDeleteTarget(c)}
-                        className="inline-flex items-center justify-center w-7 h-7 rounded text-slate-400 hover:text-rose-700 hover:bg-rose-50"
-                        aria-label="Delete project"
-                      >
-                        <Trash2 size={13} />
-                      </button>
+                    <td className="px-3 py-2">
+                      <div className="flex items-center justify-end gap-0.5">
+                        {/* View is always offered — a year you cannot edit is still a
+                            year you can read. Opens in place so the year selector and
+                            filters stay as the context you are reading the row in. */}
+                        <button
+                          type="button"
+                          onClick={() => setViewTarget(c)}
+                          className="inline-flex items-center justify-center w-7 h-7 rounded text-slate-500 hover:text-teal-700 hover:bg-teal-50"
+                          title="View"
+                        >
+                          <Eye size={14} />
+                        </button>
+                        {canManage && (
+                          <Link
+                            href={`/clubs/${clubId}/${slug}/${c.id}/edit?returnTo=${returnTo}&yearId=${data.selectedYearId ?? yearId ?? ""}`}
+                            className="inline-flex items-center justify-center w-7 h-7 rounded text-slate-500 hover:text-blue-700 hover:bg-blue-50"
+                            title="Edit"
+                          >
+                            <Edit3 size={14} />
+                          </Link>
+                        )}
+                        {canManage && (
+                          <button
+                            type="button"
+                            onClick={() => setDeleteTarget(c)}
+                            className="inline-flex items-center justify-center w-7 h-7 rounded text-slate-400 hover:text-rose-700 hover:bg-rose-50"
+                            title="Delete"
+                            aria-label="Delete project"
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        )}
+                      </div>
                     </td>
                     {syncColumnVisible && (
                       <td className="px-3 py-2 text-right">

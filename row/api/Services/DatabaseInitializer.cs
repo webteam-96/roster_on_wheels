@@ -92,6 +92,8 @@ public partial class DatabaseInitializer
                     ("NotifyUpcomingEvents","ALTER TABLE member_master_profile ADD COLUMN NotifyUpcomingEvents TINYINT(1) NOT NULL DEFAULT 1 AFTER ShowEmailInAllClubs"),
                     ("NotifyAnnouncements", "ALTER TABLE member_master_profile ADD COLUMN NotifyAnnouncements TINYINT(1) NOT NULL DEFAULT 1 AFTER NotifyUpcomingEvents"),
                     ("NotifyNewsletters",   "ALTER TABLE member_master_profile ADD COLUMN NotifyNewsletters TINYINT(1) NOT NULL DEFAULT 1 AFTER NotifyAnnouncements"),
+                    // T-shirt size (upstream 2026-11-06): event_tshirt_sizes.pk_id; optional; never public.
+                    ("fk_tshirt_size_id",   "ALTER TABLE member_master_profile ADD COLUMN fk_tshirt_size_id INT NULL AFTER BloodGroup"),
                     ("NotifyDocuments",     "ALTER TABLE member_master_profile ADD COLUMN NotifyDocuments TINYINT(1) NOT NULL DEFAULT 1 AFTER NotifyNewsletters"),
                 })
                 {
@@ -3822,6 +3824,133 @@ public partial class DatabaseInitializer
 
                 // District Awards activation flag (per district + year) — SuperAdmin toggles it.
                 // Missing row = ENABLED by default (see DistrictAwardsConfigHelper).
+                // New Goal Setting (Rotary.org), ported from upstream: Rotary.org figures per district / club /
+                // year, written by the DG Sync worker (workers/RccGoalsFetcher). Upstream made this table by hand;
+                // the columns follow how the worker and the API use it.
+                await connection.ExecuteAsync(@"
+                    CREATE TABLE IF NOT EXISTS goal_rotary_org_values (
+                        pk_id BIGINT AUTO_INCREMENT PRIMARY KEY,
+                        fk_year_id INT NOT NULL,
+                        EntityType VARCHAR(20) NOT NULL,
+                        fk_district_id INT NOT NULL DEFAULT 0,
+                        fk_club_id INT NOT NULL DEFAULT 0,
+                        ItemName VARCHAR(255) NOT NULL,
+                        Kind VARCHAR(30) NOT NULL,
+                        NumericValue DECIMAL(18,2) NULL,
+                        Source VARCHAR(100) NULL,
+                        created_date DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                        modified_date DATETIME NULL,
+                        isdeleted TINYINT(1) NOT NULL DEFAULT 0,
+                        UNIQUE KEY uq_grov (fk_year_id, EntityType, fk_district_id, fk_club_id, ItemName, Kind),
+                        KEY ix_grov_district (fk_district_id, fk_year_id)
+                    )");
+                // Last good / failed Rotary.org member sync per club (shown as the "as on" date of member figures).
+                await connection.ExecuteAsync(@"
+                    CREATE TABLE IF NOT EXISTS rotary_org_club_member_sync_status (
+                        fk_club_id INT NOT NULL PRIMARY KEY,
+                        LastOkUtc DATETIME NULL,
+                        LastFailUtc DATETIME NULL,
+                        LastError VARCHAR(500) NULL,
+                        modified_date DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP)");
+
+                // Year-wise Admin Rights — MANUAL grants only. Role-based rights
+                // (President / Secretary / Executive Secretary) are computed LIVE from
+                // board_of_directors and are deliberately NOT stored here.
+                // Prod SkipInit → apply SQL/member_admin_years.sql by hand.
+                await connection.ExecuteAsync(@"
+                    CREATE TABLE IF NOT EXISTS member_admin_years (
+                        pk_member_admin_year_id INT AUTO_INCREMENT PRIMARY KEY,
+                        fk_member_master_profile_id INT NOT NULL,
+                        -- 0 not NULL: MySQL treats NULLs as distinct in a UNIQUE
+                        -- index, which would make idx_may_unique_grant useless.
+                        fk_club_id     INT NOT NULL DEFAULT 0,
+                        fk_district_id INT NOT NULL DEFAULT 0,
+                        fk_year_id     INT NOT NULL DEFAULT 0,
+                        AllYears TINYINT(1) NOT NULL DEFAULT 0,
+                        GrantedBy   INT NULL,
+                        GrantedDate DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                        RevokedBy   INT NULL,
+                        RevokedDate DATETIME NULL,
+                        IsActive  TINYINT(1) NOT NULL DEFAULT 1,
+                        isdeleted TINYINT(1) NOT NULL DEFAULT 0,
+                        created_by    INT NULL,
+                        created_date  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                        modified_by   INT NULL,
+                        modified_date DATETIME NULL ON UPDATE CURRENT_TIMESTAMP,
+                        INDEX idx_may_member (fk_member_master_profile_id, IsActive, isdeleted),
+                        INDEX idx_may_club     (fk_club_id, fk_year_id),
+                        INDEX idx_may_district (fk_district_id, fk_year_id),
+                        UNIQUE KEY idx_may_unique_grant
+                            (fk_member_master_profile_id, fk_club_id, fk_district_id, fk_year_id)
+                    )");
+
+                // Year-wise Admin Rights — per-scope ON/OFF switch. SuperAdmin decides, per
+                // district and per club, whether the year rule applies at all. Row shapes:
+                // (0,0) = platform default, (districtId,0) = district override,
+                // (0,clubId) = club override. "Inherit" is the ABSENCE of a row, never a
+                // third value in IsEnabled. 0-not-NULL on the scope columns for the same
+                // reason as member_admin_years above.
+                // Prod SkipInit → apply SQL/year_rule_scope_settings.sql by hand.
+                await connection.ExecuteAsync(@"
+                    CREATE TABLE IF NOT EXISTS year_rule_scope_settings (
+                        pk_year_rule_setting_id INT AUTO_INCREMENT PRIMARY KEY,
+                        fk_district_id INT NOT NULL DEFAULT 0,
+                        fk_club_id     INT NOT NULL DEFAULT 0,
+                        IsEnabled TINYINT(1) NOT NULL,
+                        Notes VARCHAR(255) NULL,
+                        created_by    INT NULL,
+                        created_date  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                        modified_by   INT NULL,
+                        modified_date DATETIME NULL ON UPDATE CURRENT_TIMESTAMP,
+                        isdeleted     TINYINT(1) NOT NULL DEFAULT 0,
+                        INDEX idx_yrs_district (fk_district_id, isdeleted),
+                        INDEX idx_yrs_club     (fk_club_id, isdeleted),
+                        UNIQUE KEY uq_year_rule_scope (fk_district_id, fk_club_id)
+                    )");
+
+                // ROW: seeded OFF, so a deploy changes nothing for any admin. SuperAdmin switches the
+                // rule on per district / club (staged rollout) on Settings > Year-wise Admin Rights.
+                await connection.ExecuteAsync(@"
+                    INSERT INTO year_rule_scope_settings (fk_district_id, fk_club_id, IsEnabled, Notes)
+                    VALUES (0, 0, 0, 'Platform default (off until SuperAdmin switches it on)')
+                    ON DUPLICATE KEY UPDATE pk_year_rule_setting_id = pk_year_rule_setting_id");
+
+                // Year-wise Admin Rights — the "View only" wording, editable by SuperAdmin on
+                // the same Settings page. Was hardcoded in BOTH clients, so changing a word
+                // meant a web deploy plus an app-store release. One row per message,
+                // platform-wide: the ON/OFF switch is policy and belongs per scope, but this
+                // is product copy and has to read the same everywhere.
+                // Tokens the clients substitute: {year} {currentYear} {years} {actions}.
+                // Prod SkipInit → apply SQL/year_rule_messages.sql by hand.
+                await connection.ExecuteAsync(@"
+                    CREATE TABLE IF NOT EXISTS year_rule_messages (
+                        pk_year_rule_message_id INT AUTO_INCREMENT PRIMARY KEY,
+                        MessageKey VARCHAR(40) NOT NULL,
+                        Template TEXT NOT NULL,
+                        created_by    INT NULL,
+                        created_date  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                        modified_by   INT NULL,
+                        modified_date DATETIME NULL ON UPDATE CURRENT_TIMESTAMP,
+                        isdeleted     TINYINT(1) NOT NULL DEFAULT 0,
+                        UNIQUE KEY uq_year_rule_message (MessageKey)
+                    )");
+
+                // Seeded with WHAT THE CLIENTS ALREADY SAY, so a fresh deploy changes nothing
+                // on screen. Both clients also compile these in as a fallback for an empty row
+                // or an older server — three copies by design, so change one, change all three.
+                // ON DUPLICATE KEY = itself: never overwrite a SuperAdmin's edit on restart.
+                await connection.ExecuteAsync(@"
+                    INSERT INTO year_rule_messages (MessageKey, Template) VALUES
+                        ('current_year_only',
+                         'View only: Only an admin for the current year ({currentYear}) can {actions}.'),
+                        ('wrong_year_with_years',
+                         'View only: you are not an admin for {year}, so you cannot add, edit or delete these records. You can make changes in {years}.'),
+                        ('wrong_year_no_years',
+                         'View only: you are not an admin for {year}, so you cannot add, edit or delete these records.'),
+                        ('default_actions',
+                         'add, edit or delete it')
+                    ON DUPLICATE KEY UPDATE pk_year_rule_message_id = pk_year_rule_message_id");
+
                 await connection.ExecuteAsync(@"
                     CREATE TABLE IF NOT EXISTS district_awards_config (
                         pk_id INT AUTO_INCREMENT PRIMARY KEY,
@@ -3858,6 +3987,9 @@ public partial class DatabaseInitializer
                 }
 
                 await EnsureContactsGrowthSchemaAsync(connection);
+
+                // AI Assistant tables (ported from upstream 2026-11-09).
+                await EnsureAssistantTablesAsync(connection);
 
                 _logger.LogInformation("Database tables and triggers ensured.");
 
