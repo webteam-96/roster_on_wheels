@@ -1,3 +1,4 @@
+import 'package:go_router/go_router.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_quill/flutter_quill.dart';
@@ -11,6 +12,7 @@ import 'core/theme/app_colors.dart';
 import 'core/theme/app_theme.dart';
 import 'presentation/providers/auth_provider.dart';
 import 'presentation/widgets/common/role_changed_dialog.dart';
+import 'presentation/widgets/common/subscription_lock_screen.dart';
 import 'presentation/widgets/common/website_provisioning_banner.dart';
 import 'package:rotary_flutter_app/core/brand/brand.dart';
 
@@ -26,6 +28,9 @@ class _RotaryAppState extends State<RotaryApp> with WidgetsBindingObserver {
   late final MaintenanceController _maintenance;
   late final FeatureController _features;
   late final WebsiteProvisioningController _websiteProvisioning;
+  // Created once: a router built in build() was replaced on every rebuild (e.g. a language change),
+  // which restarted navigation and lost the back stack.
+  late final GoRouter _router;
 
   @override
   void initState() {
@@ -34,6 +39,7 @@ class _RotaryAppState extends State<RotaryApp> with WidgetsBindingObserver {
     _maintenance = MaintenanceController(_authProvider);
     _features = FeatureController(_authProvider);
     _websiteProvisioning = WebsiteProvisioningController();
+    _router = AppRouter.createRouter(_authProvider, _maintenance, _features);
     // Re-attach to a website purchase that was still provisioning last time.
     _websiteProvisioning.resume();
     WidgetsBinding.instance.addObserver(this);
@@ -42,6 +48,7 @@ class _RotaryAppState extends State<RotaryApp> with WidgetsBindingObserver {
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    _router.dispose();
     _maintenance.dispose();
     _features.dispose();
     _websiteProvisioning.dispose();
@@ -78,7 +85,7 @@ class _RotaryAppState extends State<RotaryApp> with WidgetsBindingObserver {
       ],
       child: Builder(
         builder: (context) {
-          final router = AppRouter.createRouter(_authProvider, _maintenance, _features);
+          final router = _router;
           return GestureDetector(
             onTap: () {
               _authProvider.extendSession();
@@ -134,6 +141,9 @@ class _RotaryAppState extends State<RotaryApp> with WidgetsBindingObserver {
                             // screen the moment the live role set stops
                             // matching the JWT's `roles` claim.
                             const RoleChangeWatcher(),
+                            // KIS/ROW/SUB/01: covers the app while the
+                            // member's club has no Club subscription.
+                            const SubscriptionLockScreen(),
                           ],
                         ),
                       ),

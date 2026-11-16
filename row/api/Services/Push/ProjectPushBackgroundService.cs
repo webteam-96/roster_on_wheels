@@ -56,7 +56,7 @@ public class ProjectPushBackgroundService : BackgroundService
                       CONVERT('{t.ProjectsTable}' USING utf8mb4) COLLATE utf8mb4_general_ci AS YearTable
                FROM `{t.ProjectsTable}` p
                LEFT JOIN module_master md ON md.pk_module_id = p.fk_module_id
-               WHERE IFNULL(p.PushNotificationSent, 0) = 0 AND p.isdeleted = 0"));
+               WHERE IFNULL(p.PushNotificationSent, 0) = 0 AND p.isdeleted = 0{SubscriptionAccess.OwnerWorksSql("p.fk_club_id", "p.fk_district_id")}"));
         var due = (await conn.QueryAsync<dynamic>($"SELECT * FROM ({legs}) u LIMIT 5")).ToList();
         if (due.Count == 0) return;
 

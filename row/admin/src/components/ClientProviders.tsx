@@ -20,7 +20,8 @@ const ICON_DEFAULTS = { size: 24, weight: "bold" as const };
 
 export default function ClientProviders({ children }: { children: React.ReactNode }) {
   return (
-    <Theme theme={fellowshipTheme}>
+    // mode="light": the admin is light-only. The default "system" strips data-theme from <html>, and an OS in dark mode then paints inputs dark.
+    <Theme theme={fellowshipTheme} mode="light">
     <LinkProvider component={Link}>
     <IconContext.Provider value={ICON_DEFAULTS}>
     <BrandProvider>

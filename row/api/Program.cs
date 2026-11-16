@@ -26,6 +26,7 @@ var builder = WebApplication.CreateBuilder(new WebApplicationOptions
 
 // Instance brand (product name, domains, contacts) from the "Brand" section; see Services/Brand.cs.
 RotaryApi.Services.Brand.Init(builder.Configuration);
+RotaryApi.Services.SubscriptionAccess.Configure(builder.Configuration); // KIS/ROW/SUB/01: off until Subscriptions:Enforce=true
 
 // Add services to the container. The convention opens CORS (PublicOpen policy) on every controller
 // routed under api/public — see PublicCorsControllerConvention.
@@ -368,6 +369,10 @@ builder.Services.AddScoped<ICashfreeKycService, CashfreeKycService>();
 builder.Services.AddSingleton<RotaryApi.Services.Payments.IPaymentGateway, RotaryApi.Services.Payments.SimulatedPaymentGateway>();
 builder.Services.AddSingleton<RotaryApi.Services.Payments.PaymentCheckoutService>();
 builder.Services.AddScoped<RotaryApi.Services.Payments.PaymentSettlementService>();
+builder.Services.AddScoped<RotaryApi.Services.SubscriptionOfficers>(); // KIS/ROW/SUB/01: RI officer data
+builder.Services.AddScoped<RotaryApi.Services.SubscriptionBillingService>(); // KIS/ROW/SUB/01: buy / renew
+builder.Services.AddScoped<RotaryApi.Services.ExecutiveSignInService>(); // KIS/ROW/SUB/01: executive email-code sign-in
+builder.Services.AddScoped<RotaryApi.Services.SubscriptionDailyService>(); // KIS/ROW/SUB/01: renewal reminders, officer sync
 builder.Services.AddScoped<IWeblinkService, WeblinkService>();
 builder.Services.AddScoped<ISubGroupService, SubGroupService>();
 builder.Services.AddScoped<IEventPaymentLinkService, EventPaymentLinkService>();
@@ -414,6 +419,7 @@ var translationProvider = RotaryApi.Services.Localization.StringTranslationBackg
 RotaryApi.Services.Localization.ServerStrings.QueueEnabled = translationProvider != "none";
 if (translationProvider != "none") builder.Services.AddHostedService<RotaryApi.Services.Localization.StringTranslationBackgroundService>();
 if (enableBackgroundJobs) builder.Services.AddHostedService<TenantRenewalBackgroundService>();
+if (enableBackgroundJobs) builder.Services.AddHostedService<RotaryApi.Services.SubscriptionDailyBackgroundService>(); // KIS/ROW/SUB/01
 if (enableBackgroundJobs) builder.Services.AddHostedService<ClubLeadershipEmailBackgroundService>();
 if (enableBackgroundJobs) builder.Services.AddHostedService<ClubWebsiteReminderBackgroundService>();
 if (enableBackgroundJobs) builder.Services.AddHostedService<EngagementBackgroundService>();
@@ -788,6 +794,8 @@ app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseMiddleware<RotaryApi.Services.TemporaryPasswordGuard>(); // a temporary password opens only the password change
+// Before the scope guard, so a locked club or district answers with its reason code (the scope guard refuses a closed club too).
+app.UseMiddleware<RotaryApi.Services.SubscriptionGateMiddleware>(); // KIS/ROW/SUB/01: locked features answer 403 when Subscriptions:Enforce=true
 app.UseMiddleware<RotaryApi.Services.ScopeWriteGuardMiddleware>(); // club/district writes need a role for that club/district
 app.UseMiddleware<RotaryApi.Services.TrialLockMiddleware>(); // build spec 3.5: an ended trial locks its district out
 app.UseMiddleware<RotaryApi.Services.PlanningWriteGuardMiddleware>(); // planning districts: current year is read-only

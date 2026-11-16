@@ -196,6 +196,12 @@ const settingsCards: SettingsCard[] = [
     href: "/settings/tenants",
   },
   {
+    title: "Subscriptions",
+    description: "Yearly prices, activate an offline payment",
+    icon: Layers,
+    href: "/settings/subscriptions",
+  },
+  {
     title: "Editions",
     description: "Modules each edition switches on",
     icon: LayoutGrid,

@@ -63,7 +63,10 @@ android {
 
     buildTypes {
         release {
-            signingConfig = signingConfigs.getByName("release")
+            // No android/key.properties (a dev machine): sign with the debug key so a tester APK still builds.
+            // Store uploads must be built where key.properties and the upload keystore exist.
+            signingConfig = if (keystoreProperties.getProperty("storeFile") != null)
+                signingConfigs.getByName("release") else signingConfigs.getByName("debug")
         }
     }
 }

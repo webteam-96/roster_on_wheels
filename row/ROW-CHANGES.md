@@ -849,3 +849,68 @@ the server translated only 8.
     to the JSON files and rebuild.
   - Found while building it: `mobile/lib/data/mock/district_overview_mock.dart` holds Indian demo clubs and people
     (Airoli, Dombivli, Agarwal...) and `core/services/district_analytics_service.dart` still reads it. To check.
+
+## 2026-11-16: District and Club subscriptions (KIS/ROW/SUB/01), OMS ROW-48 to ROW-51, website price and link
+
+Spec: `document/ROW District and Club Subscription Flow.docx`. Everything is behind `Subscriptions:Enforce` (default
+false; `Subscriptions:GraceDays` default 30). With it off nothing is locked and the jobs and links behave as before.
+
+- **Access levels** (`Services/SubscriptionAccess.cs`): a club is None, Reporting (district subscribed) or Full (club
+  subscribed). Both subscriptions are rows of `tenant_subscriptions` (district row: `fk_club_id = 0`).
+- **Lock** (`Services/SubscriptionGateMiddleware.cs`, before the scope guard): 403 with a `code`:
+  `subscription_required`, `club_subscription_required`, `executives_only`, `app_subscription_required`. Covers
+  `api/clubs/{id}`, `api/districts/{id}`, the club / district / AG dashboards, `api/mobile`, and every other route
+  that names `clubId` or `districtId` in the route or the query. A club id carried only in a request body is closed
+  for level None through `ScopeWriteGuardMiddleware.AllowedAsync / ReadAllowedAsync`. Super Admins always pass.
+  A club at Reporting is closed the same way on a route that needs the Club subscription
+  (`SubscriptionGateMiddleware.OpenUnderReporting`, read by the scope checks), and the features whose controllers run their own access checks
+  (`FullMemberPrefixes`: chat, wallet, club website and its billing, payment accounts, training bookings, the
+  assistant, mass email, the email and push logs) need a seat that works: member or Admin of a club with a Club
+  subscription, or a district Admin or AG of a district whose subscription works. Not covered: a person with a
+  seat in one Full club who names a second, district-only club in the body of one of those routes.
+- **Buy and renew** (`Services/SubscriptionBillingService.cs`, `Controllers/SubscriptionsController.cs`): the price is
+  a Super Admin setting (`subscription_prices`), the office is checked against RI officers, checkout goes through
+  `PaymentCheckoutService` (flow `subscription`). Paying while active adds a year to the end of the term. Offline
+  payments: `POST api/subscriptions/activate-offline` (Super Admin). After a district is activated its clubs'
+  officers are read in the background, not in the payment request.
+- **Officers** (`Services/SubscriptionOfficers.cs`): RI club officers in `ri_club_officers`; an RI error is recorded
+  as `error` and is never read as "no officers" (`GetClubOfficersAsync(..., throwOnFailure: true)`).
+- **Executive sign-in** (`Services/ExecutiveSignInService.cs`, `/exec-signin`): a 6-digit email code; gives the club
+  Admin role marked `member_roles.via_subscription = 1`. A current executive of a club with no subscription may sign
+  in too, only to buy.
+- **Daily pass** (`Services/SubscriptionDailyService.cs`, behind `BackgroundJobs:Enabled`; by hand:
+  `POST api/subscriptions/run-daily`): reminders to the buyer 30, 7 and 1 days before the end; officer sync for clubs
+  with access, invitations to officers new on record, and the `via_subscription` role of people who left office is
+  switched off (roles given by hand stay). `TenantRenewalService` leaves bought subscriptions to this pass.
+- **Expiry**: scheduled emails (announcements, events, newsletters, projects, event reminders), push jobs, meeting
+  reminders, volunteer and duty reminders, guest invite prompts and the GreetingsWorker skip owners whose
+  subscription no longer works (`SubscriptionAccess.OwnerWorksSql`; the worker reads the same two settings from its
+  own appsettings). Public event and club dues pay links answer "This payment link is closed." Nothing is deleted.
+- **Admin**: `/club-admin-dashboard/subscription`, `/district-admin-dashboard/subscription`,
+  `/settings/subscriptions` (prices, offline activation); locked pages show "Available with Club subscription" and
+  locked sidebar entries are marked (`components/subscriptions/`).
+- **App**: `app_subscription_required` raises a full-screen locked screen
+  (`lib/presentation/widgets/common/subscription_lock_screen.dart`).
+- **Schema**: `database/maintenance/2026-11-13-subscriptions.sql` (+ `-down`), run on `row_production` on 2026-11-16.
+- **Tests**: `api.Tests/SubscriptionAccessTests.cs`; `kb/tools/subscriptions_e2e.py` (45 checks) and
+  `kb/tools/subscriptions_officers_e2e.py` (13 checks, the script is the RI server on port 5599). See their headers
+  for the API settings they need.
+
+Other fixes the same day:
+
+- **OMS ROW-49**: "Back to Search" on a dashboard opened from Global Search skipped the `/admin` base path and hit a
+  404 (`components/dashboard/DashboardShell.tsx`, `withBase`).
+- **OMS ROW-51**: clubs of the test district (`Scope:TestDistrictNumber`) may add a non-member board member for the
+  current Rotary year; elsewhere past years only.
+- **OMS ROW-48**: no code change. Production `email_log` shows every email failing at Brevo (key missing, then
+  invalid). Needs a valid `Brevo:ApiKey` in the server's `api\web.config`.
+- **OMS ROW-50**: the club was moved to district 5656 in production on 2026-11-13.
+- **Dark inputs**: the Astryx `Theme` defaulted to mode "system" and removed `data-theme` from `<html>`; now
+  `mode="light"` (`components/ClientProviders.tsx`).
+- **Club website price**: the defaults `Razorpay:WebsitePrice` 14999 / 10999 were RIZones rupee prices and showed as
+  US$14,999. They are 0 now; with no price set the quote and the order answer "The club website price is not set
+  yet." A Super Admin sets the price; there is no currency conversion.
+- **Club website link**: with no parent domain the link was `https://rcthane.`; it is hidden now
+  (`WebsiteReachability`, `MemberScopesHelper.BuildWebsiteUrl`). `ClubWebsiteParentDomain` was set to
+  `test.rosteronwheels.com` in production on 2026-11-16 for the demo; the wildcard DNS record
+  `*.test.rosteronwheels.com`, the IIS site and its certificate (deploy guide section 4) are still needed.

@@ -136,7 +136,7 @@ public class BoardDirectorService : IBoardDirectorService
             // Non-member: Name + Mobile + Email all required, and only for PAST years.
             if (string.IsNullOrWhiteSpace(nonMemberName) || string.IsNullOrWhiteSpace(nonMemberMobile) || string.IsNullOrWhiteSpace(nonMemberEmail))
                 throw new InvalidOperationException("A non-member board member requires Name, Mobile, and Email.");
-            await EnsureYearIsPastAsync(connection, dto.YearId);
+            await EnsureNonMemberYearAllowedAsync(connection, dto.YearId, clubId);
         }
 
         var desName = await connection.ExecuteScalarAsync<string?>(
@@ -225,7 +225,7 @@ public class BoardDirectorService : IBoardDirectorService
         {
             if (string.IsNullOrWhiteSpace(nonMemberName) || string.IsNullOrWhiteSpace(nonMemberMobile) || string.IsNullOrWhiteSpace(nonMemberEmail))
                 throw new InvalidOperationException("A non-member board member requires Name, Mobile, and Email.");
-            await EnsureYearIsPastAsync(connection, dto.YearId);
+            await EnsureNonMemberYearAllowedAsync(connection, dto.YearId, prev?.ClubId ?? 0);
         }
 
         var desName = await connection.ExecuteScalarAsync<string?>(
@@ -390,7 +390,8 @@ public class BoardDirectorService : IBoardDirectorService
             throw new InvalidOperationException("A board member must have either an existing member selected or a non-member's details, not both and not neither.");
     }
 
-    private static async Task EnsureYearIsPastAsync(MySqlConnection connection, int yearId)
+    /// <summary>Non-members: past years everywhere; the current year too, only in the test district (Scope:TestDistrictNumber).</summary>
+    private static async Task EnsureNonMemberYearAllowedAsync(MySqlConnection connection, int yearId, int clubId)
     {
         var status = await connection.ExecuteScalarAsync<string?>(@"
             SELECT CASE
@@ -404,7 +405,18 @@ public class BoardDirectorService : IBoardDirectorService
 
         if (status == null)
             throw new InvalidOperationException("Selected rotary year is invalid.");
-        if (status != "past")
-            throw new InvalidOperationException("Non-member board members can only be added for past rotary years, not the current or future year.");
+        if (status == "past") return;
+        if (status == "current" && await IsTestDistrictClubAsync(connection, clubId)) return;
+        throw new InvalidOperationException("Non-member board members can only be added for past rotary years, not the current or future year.");
+    }
+
+    /// <summary>True when the club belongs to the configured test district (OMS ROW-51: 5656 only).</summary>
+    public static async Task<bool> IsTestDistrictClubAsync(MySqlConnection connection, int clubId)
+    {
+        if (clubId <= 0 || string.IsNullOrWhiteSpace(Brand.TestDistrictNumber)) return false;
+        return await connection.ExecuteScalarAsync<int>(@"
+            SELECT COUNT(*) FROM club_master c JOIN district_master d ON d.pk_district_id = c.fk_district_id
+            WHERE c.pk_club_id = @ClubId AND d.DistrictNumber = @Number",
+            new { ClubId = clubId, Number = Brand.TestDistrictNumber }) > 0;
     }
 }

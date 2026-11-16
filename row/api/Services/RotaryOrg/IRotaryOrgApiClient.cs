@@ -38,7 +38,9 @@ public interface IRotaryOrgApiClient
 
     /// Club officers for a date range (startDate/endDate as MM/DD/YYYY), from
     /// /clubs/{type}/{id}/officers?startDate=..&endDate=.. — used by the Club Officers (From RI) report.
-    Task<List<RotaryOrgClubOfficerDto>> GetClubOfficersAsync(string clubType, int clubId, string startDate, string endDate, CancellationToken ct = default);
+    /// <param name="throwOnFailure">true: an RI error or an unreadable answer throws instead of returning an empty list,
+    /// for callers that act on "this club has no officers" (subscription rights).</param>
+    Task<List<RotaryOrgClubOfficerDto>> GetClubOfficersAsync(string clubType, int clubId, string startDate, string endDate, CancellationToken ct = default, bool throwOnFailure = false);
 
     /// <summary>
     /// GET /v1.1/clubs/{type}/{id}/members/0/1500/Honorary — honorary members for one club.

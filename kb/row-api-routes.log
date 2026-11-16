@@ -74,6 +74,7 @@ Mapped {api/designations/{id}, Delete}
 Mapped {api/designations/reorder, Put}
 Mapped {api/designations/reorder-all, Put}
 Mapped {api/clubs/{clubId}/board-of-directors, Get}
+Mapped {api/clubs/{clubId}/board-of-directors/rules, Get}
 Mapped {api/clubs/{clubId}/board-of-directors/years, Get}
 Mapped {api/clubs/{clubId}/board-of-directors/{id}, Get}
 Mapped {api/clubs/{clubId}/board-of-directors, Post}
@@ -739,6 +740,8 @@ Mapped {api/event-payment-links/{linkId}/create-google-sheet, Post}
 Mapped {api/event-payment-links/{linkId}/settlement-refresh, Post}
 Mapped {api/event-payment-links/{linkId}/settlement-report, Get}
 Mapped {api/event-payment-links/{linkId}/members/export, Get}
+Mapped {api/auth/exec-code/request, Post}
+Mapped {api/auth/exec-code/verify, Post}
 Mapped {api/features, Get}
 Mapped {api/features/{key}, Put}
 Mapped {api/mobile/find-rotarian, Get}
@@ -1315,6 +1318,15 @@ Mapped {api/clubs/{clubId}/sub-groups/{subGroupId}, Put}
 Mapped {api/clubs/{clubId}/sub-groups/{subGroupId}, Delete}
 Mapped {api/clubs/{clubId}/sub-groups/club-members, Get}
 Mapped {api/clubs/{clubId}/sub-groups/available-years, Get}
+Mapped {api/subscriptions/club/{clubId:int}, Get}
+Mapped {api/subscriptions/district/{districtId:int}, Get}
+Mapped {api/subscriptions/orders, Post}
+Mapped {api/subscriptions/orders/{orderId:long}, Get}
+Mapped {api/subscriptions/prices, Get}
+Mapped {api/subscriptions/prices/{kind}, Put}
+Mapped {api/subscriptions/activate-offline, Post}
+Mapped {api/subscriptions/club/{clubId:int}/executives, Get}
+Mapped {api/subscriptions/run-daily, Post}
 Mapped {api/admin/super-admins, Get}
 Mapped {api/admin/super-admins/search-members, Get}
 Mapped {api/admin/super-admins/send-otp, Post}

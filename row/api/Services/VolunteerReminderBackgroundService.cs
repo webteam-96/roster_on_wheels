@@ -77,7 +77,7 @@ public class VolunteerReminderBackgroundService : BackgroundService
             JOIN club_master cl ON cl.pk_club_id = sh.fk_club_id
             LEFT JOIN district_master dz ON dz.pk_district_id = cl.fk_district_id
             LEFT JOIN member_master_profile m ON m.pk_member_master_profile_id = su.fk_member_id AND IFNULL(m.isdeleted, 0) = 0
-            WHERE su.reminder_sent_at IS NULL
+            WHERE su.reminder_sent_at IS NULL{SubscriptionAccess.OwnerWorksSql("sh.fk_club_id", "0")}
               AND sl.starts_at > @Now AND sl.starts_at <= @Now + INTERVAL 24 HOUR AND {ZoneTime.Filter("dz")}
             ORDER BY sl.starts_at LIMIT 200", at)).Select(r =>
             {
@@ -92,7 +92,7 @@ public class VolunteerReminderBackgroundService : BackgroundService
             JOIN club_master cl ON cl.pk_club_id = d.fk_club_id
             LEFT JOIN district_master dz ON dz.pk_district_id = cl.fk_district_id
             LEFT JOIN member_master_profile m ON m.pk_member_master_profile_id = d.fk_member_id AND IFNULL(m.isdeleted, 0) = 0
-            WHERE d.reminder_sent_at IS NULL AND d.meeting_date BETWEEN @Today AND @Today + INTERVAL 2 DAY AND {ZoneTime.Filter("dz")}
+            WHERE d.reminder_sent_at IS NULL{SubscriptionAccess.OwnerWorksSql("d.fk_club_id", "0")} AND d.meeting_date BETWEEN @Today AND @Today + INTERVAL 2 DAY AND {ZoneTime.Filter("dz")}
             ORDER BY d.meeting_date LIMIT 200", at));
         }
 

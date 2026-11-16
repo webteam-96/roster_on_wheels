@@ -171,6 +171,14 @@ api.interceptors.response.use(
       const here = stripBase(window.location.pathname);
       window.location.href = withBase(here.startsWith("/report/") ? `/login?returnUrl=${encodeURIComponent(here)}` : "/login");
     }
+    // KIS/ROW/SUB/01: the whole club or district is closed (no working subscription, or not an executive). Pages
+    // outside the dashboards have no locked screen of their own, so they land on the subscription page.
+    const lockCode = error.response?.status === 403 ? error.response?.data?.code : undefined;
+    if (typeof window !== "undefined" && (lockCode === "subscription_required" || lockCode === "executives_only")) {
+      const here = stripBase(window.location.pathname);
+      const area = /^\/(district-admin-dashboard|ag-dashboard|districts)(\/|$)/.test(here) ? "district" : "club";
+      if (!/-admin-dashboard(\/|$)/.test(here)) window.location.href = withBase(`/${area}-admin-dashboard/subscription?locked=${lockCode}`);
+    }
     // A temporary-password session outside the sign-in page's change dialog (reload, typed address).
     if (error.response?.data?.code === "PASSWORD_CHANGE_REQUIRED" && typeof window !== "undefined" && !window.location.pathname.endsWith("/login")) {
       localStorage.removeItem("auth_token");
@@ -400,6 +408,17 @@ export async function uploadPhoto(
 }
 
 // Auth APIs
+/** KIS/ROW/SUB/01: club executives get a sign-in code by email (no password). */
+export async function requestExecutiveCode(email: string): Promise<{ message: string }> {
+  const response = await api.post("/api/auth/exec-code/request", { email });
+  return response.data;
+}
+
+export async function verifyExecutiveCode(email: string, code: string): Promise<LoginResponse> {
+  const response = await api.post("/api/auth/exec-code/verify", { email, code });
+  return response.data;
+}
+
 export async function login(data: LoginRequest): Promise<LoginResponse> {
   const response = await api.post("/api/auth/login", data);
   return response.data;
@@ -2198,6 +2217,12 @@ export async function getBoardYearsByClub(clubId: number): Promise<RotaryYear[]>
 
 export async function getBoardDirector(clubId: number, id: number): Promise<BoardDirector> {
   const response = await api.get(`/api/clubs/${clubId}/board-of-directors/${id}`);
+  return response.data;
+}
+
+/** OMS ROW-51: true when this club may add a non-member for the CURRENT year (test district only). */
+export async function getBoardDirectorRules(clubId: number): Promise<{ nonMemberCurrentYear: boolean }> {
+  const response = await api.get(`/api/clubs/${clubId}/board-of-directors/rules`);
   return response.data;
 }
 
@@ -7599,4 +7624,39 @@ export async function downloadGoalRotaryDistrictReport(districtId: number, yearI
 }
 export async function downloadGoalRotaryClubsReport(districtId: number, yearId: number): Promise<Blob> {
   return (await api.get("/api/goal-setting-rotary/report/clubs-all", { params: { districtId, yearId }, responseType: "blob" })).data;
+}
+
+// ── District and Club subscriptions (KIS/ROW/SUB/01) ─────────────────────────
+export type SubscriptionStateName = "None" | "Active" | "Grace" | "Expired";
+export interface SubscriptionTerm { state: SubscriptionStateName; termEnd: string | null }
+export interface ClubSubscriptionStatus {
+  clubId: number; districtId: number; clubName: string | null; canBuy: boolean;
+  level: "None" | "Reporting" | "Full";
+  clubSubscription: SubscriptionTerm; districtSubscription: SubscriptionTerm;
+  enforced: boolean; graceDays: number;
+}
+export interface DistrictSubscriptionStatus extends SubscriptionTerm {
+  districtId: number; districtNumber: string; canBuy: boolean; enforced: boolean; graceDays: number;
+  flaggedClubs: { clubId: number; clubName: string; reason: string; syncedAt: string | null }[] | null;
+}
+export interface SubscriptionPrice { kind: "district" | "club"; amount: number; currency: string }
+
+export async function getClubSubscription(clubId: number): Promise<ClubSubscriptionStatus> {
+  return (await api.get(`/api/subscriptions/club/${clubId}`)).data;
+}
+export async function getDistrictSubscription(districtId: number): Promise<DistrictSubscriptionStatus> {
+  return (await api.get(`/api/subscriptions/district/${districtId}`)).data;
+}
+export async function getSubscriptionPrices(): Promise<SubscriptionPrice[]> {
+  return (await api.get("/api/subscriptions/prices")).data;
+}
+/** Buy or renew. The amount is set by the server; the response carries the hosted checkout to send the buyer to. */
+export async function buySubscription(kind: "district" | "club", districtId: number, clubId: number, returnPath: string): Promise<unknown> {
+  return (await api.post("/api/subscriptions/orders", { kind, districtId, clubId, returnPath })).data;
+}
+export async function setSubscriptionPrice(kind: "district" | "club", amount: number, currency: string): Promise<void> {
+  await api.put(`/api/subscriptions/prices/${kind}`, { amount, currency });
+}
+export async function activateSubscriptionOffline(body: { kind: "district" | "club"; districtId: number; clubId: number; amount: number; currency: string }): Promise<{ orderId: number }> {
+  return (await api.post("/api/subscriptions/activate-offline", body)).data;
 }

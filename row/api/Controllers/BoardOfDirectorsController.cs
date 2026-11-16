@@ -96,6 +96,14 @@ public class BoardOfDirectorsController : ControllerBase
         return Ok(result);
     }
 
+    /// <summary>OMS ROW-51: may this club add a non-member for the current Rotary year? (test district only)</summary>
+    [HttpGet("api/clubs/{clubId}/board-of-directors/rules")]
+    public async Task<ActionResult<object>> GetRules(int clubId)
+    {
+        await using var conn = new MySqlConnector.MySqlConnection(_connectionString);
+        return Ok(new { nonMemberCurrentYear = await BoardDirectorService.IsTestDistrictClubAsync(conn, clubId) });
+    }
+
     [HttpGet("api/clubs/{clubId}/board-of-directors/years")]
     public async Task<ActionResult<List<BoardYearDto>>> GetYearsByClub(int clubId)
     {

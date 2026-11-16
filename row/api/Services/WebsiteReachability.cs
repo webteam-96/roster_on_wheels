@@ -55,7 +55,9 @@ public static class WebsiteReachability
         if (sub == null) return null;
         var scheme = useHttps ? "https" : "http";
         var parent = NormalizeHost(parentDomain);
-        var host = sub.Contains('.') || parent == null ? sub : $"{sub}.{parent}";
+        // A bare label with no parent domain is not an address ("https://rcthane" cannot resolve): no link at all.
+        if (!sub.Contains('.') && parent == null) return null;
+        var host = sub.Contains('.') ? sub : $"{sub}.{parent}";
         return $"{scheme}://{host}";
     }
 

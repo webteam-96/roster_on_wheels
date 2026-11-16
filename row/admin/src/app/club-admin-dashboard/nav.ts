@@ -50,6 +50,8 @@ export const CLUB_ADMIN_NAV: NavItem[] = [
   { to: "/club-admin-dashboard/wallet",                              label: "Wallet",                     feature: "modules.wallet" },
   // Connect the club's own Stripe / PayPal account (instances without split payments).
   { to: "/club-admin-dashboard/payment-accounts",                    label: "Payments",                   feature: "payments.connect" },
+  // KIS/ROW/SUB/01: status, buy and renew. Always visible, and always open (the way out of a locked club).
+  { to: "/club-admin-dashboard/subscription",                        label: "Subscription" },
 ];
 
 // Page titles per route. Top-level keys are the canonical paths; old paths kept
@@ -57,6 +59,7 @@ export const CLUB_ADMIN_NAV: NavItem[] = [
 // LayoutClient may briefly see the old URL during navigation).
 export const CLUB_ADMIN_PAGE_TITLES: Record<string, string> = {
   "/club-admin-dashboard":                                            "Club Dashboard",
+  "/club-admin-dashboard/subscription":                               "Subscription",
   "/club-admin-dashboard/dashboard":                                   "Club Dashboard",
   "/club-admin-dashboard/dashboard/overview":                          "Club Dashboard",
   "/club-admin-dashboard/dashboard/directory":                         "Club Dashboard - Directory",

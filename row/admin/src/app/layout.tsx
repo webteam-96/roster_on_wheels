@@ -34,7 +34,9 @@ export default function RootLayout({
   // data-add-to-org-ext on <html> before hydration (see lib/addToOrg.ts). This silences the
   // harmless "Extra attributes from the server" warning; scope is the <html> element only.
   return (
-    <html lang="en" className={`${body.variable} ${display.variable}`} suppressHydrationWarning>
+    // data-theme="light": the admin is light-only; without it Astryx sets color-scheme "light dark" and an
+    // OS in dark mode paints inputs that have no background of their own dark grey.
+    <html lang="en" data-theme="light" className={`${body.variable} ${display.variable}`} suppressHydrationWarning>
       <body className="font-sans antialiased">
         <ClientProviders>
           <RootShell>{children}</RootShell>

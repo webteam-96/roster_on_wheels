@@ -20,6 +20,7 @@ import {
   getBoardDirector,
   getDesignations,
   getRotaryYears,
+  getBoardDirectorRules,
   updateBoardDirector,
   searchBoardMembers,
   getPhotoUrl,
@@ -83,6 +84,11 @@ export default function BoardOfDirectorsV2EditPage() {
 
   const [designations, setDesignations] = useState<Designation[]>([]);
   const [allYears, setAllYears] = useState<RotaryYear[]>([]);
+  // OMS ROW-51: the test district may also add non-members for the current year.
+  const [nonMemberCurrentYear, setNonMemberCurrentYear] = useState(false);
+  useEffect(() => {
+    getBoardDirectorRules(clubId).then((r) => setNonMemberCurrentYear(!!r.nonMemberCurrentYear)).catch(() => {});
+  }, [clubId]);
 
   // Form fields
   const [personType, setPersonType] = useState<"member" | "nonmember">("member");
@@ -167,7 +173,8 @@ export default function BoardOfDirectorsV2EditPage() {
 
   // Non-member entries are allowed ONLY for past rotary years (endDate < today).
   const selectedYear = allYears.find((y) => String(y.id) === selectedYearId);
-  const pastYearSelected = !!selectedYear && new Date(selectedYear.endDate) < new Date();
+  const pastYearSelected = !!selectedYear && (new Date(selectedYear.endDate) < new Date()
+    || (nonMemberCurrentYear && new Date(selectedYear.startDate) <= new Date()));
 
   // If the user switches to a current/future year while in non-member mode, snap back to member.
   useEffect(() => {

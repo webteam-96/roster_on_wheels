@@ -377,7 +377,7 @@ public class MeetingReminderBackgroundService : BackgroundService
             JOIN zone_master z ON z.pk_zone_id = d.fk_zone_id AND z.isdeleted = 0 AND z.IsActive = 1
             JOIN club_members cm ON cm.fk_club_id = a.fk_club_id AND cm.IsActive = 1 AND cm.isdeleted = 0 AND cm.IsHonoraryMember = 0
             JOIN member_master_profile m ON m.pk_member_master_profile_id = cm.fk_member_master_profile_id AND m.isdeleted = 0
-            WHERE a.isdeleted = 0
+            WHERE a.isdeleted = 0{SubscriptionAccess.OwnerWorksSql("a.fk_club_id", "0")}
               AND a.EventDateTime > @Now
               AND a.EventDateTime <= DATE_ADD(@Now, INTERVAL {MeetingsService.ReminderLeadHours} HOUR)
               {(tz == "*" ? "" : "AND " + ZoneTime.Filter("d"))}

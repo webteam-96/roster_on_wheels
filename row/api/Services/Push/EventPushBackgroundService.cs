@@ -51,7 +51,7 @@ public class EventPushBackgroundService : BackgroundService
               -- dropped every event created for 'today' the moment its listed time passed —
               -- the common case for same-day events). Past-date events are still excluded.
               AND EventDate >= CURDATE()
-            ORDER BY PublishDate
+            ORDER BY PublishDate" + SubscriptionAccess.OwnerWorksSql("fk_club_id", "fk_district_id") + @"
             LIMIT 5")).ToList();
         if (due.Count == 0) return;
 

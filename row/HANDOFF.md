@@ -20,6 +20,12 @@ Events and QR with another developer. Work on the production DB is allowed; do n
 **2026-11-04, localization service:** see `ROW-CHANGES.md`. The hold on translation work is lifted. Provider key still to come. Test:
 `python -I kb/tools/localization_e2e.py <api> 3317 <db>` with the settings in its header.
 
+**2026-11-16, subscriptions:** District and Club subscriptions are built behind `Subscriptions:Enforce` (off). Read
+`ROW-CHANGES.md` (2026-11-16). Tests: `kb/tools/subscriptions_e2e.py` and `kb/tools/subscriptions_officers_e2e.py`.
+Still open: subscription prices and the club website price in USD (owner), the Brevo key on the server, the wildcard
+DNS for club sites, turning `Subscriptions:Enforce` on (owner decides
+when: it locks every club and district that has no subscription).
+
 ## Ground rules (from the user)
 
 - `row/` is the project. `reference/` (RIZones) is copy-source only: never run it or connect to its servers.
@@ -161,7 +167,8 @@ git worktree + DB copy per lane; `integrate.sh <id>` then `resolve.py <id>` merg
   `contacts_prospects_growth` (`ROW_E2E_EMAIL_SAFE=1`), `target_dashboard`, `meetings_links_compliance`,
   `communication_upgrades` (see its header: fake Brevo + DNS ports), `websites_multilingual`, `chat`,
   `calendar_scope`, `mass_email_scope`, `read_review_a_l`, `read_review_m_z`, `time_zones`, `planning_mode`,
-  `escalation_celebration`, `rebranding`, `security_guards`, `payments_simulated`. All scripts take the same three arguments.
+  `escalation_celebration`, `rebranding`, `security_guards`, `payments_simulated`, `subscriptions`,
+  `subscriptions_officers` (the last two: see the script headers for the API settings). All scripts take the same three arguments.
 - Admin: `npx tsc --noEmit -p tsconfig.json`, `npx vitest run`, `node scripts/check-design.mjs`.
 - App: `flutter analyze` (errors print as `  error -`), `flutter test`.
 - Then `bash kb/rebuild.sh`.

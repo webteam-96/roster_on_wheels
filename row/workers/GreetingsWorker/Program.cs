@@ -61,7 +61,12 @@ services.AddLogging(b => b
     .AddSimpleConsole(o => { o.SingleLine = true; o.TimestampFormat = "HH:mm:ss "; })
     .SetMinimumLevel(LogLevel.Information));
 services.AddHttpClient();
-services.AddSingleton(config.GetSection("Greetings").Get<GreetingsOptions>() ?? new GreetingsOptions());
+var greetingsOptions = config.GetSection("Greetings").Get<GreetingsOptions>() ?? new GreetingsOptions();
+// KIS/ROW/SUB/01 section 4.5: greetings stop when the club's or district's subscription no longer works.
+// Same switch and grace as the API (Subscriptions:Enforce, Subscriptions:GraceDays); set both alike on the server.
+greetingsOptions.SubscriptionsEnforce = config.GetValue("Subscriptions:Enforce", false);
+greetingsOptions.SubscriptionGraceDays = Math.Max(0, config.GetValue("Subscriptions:GraceDays", 30));
+services.AddSingleton(greetingsOptions);
 
 services.AddSingleton<BrevoEmailSender>(sp =>
 {

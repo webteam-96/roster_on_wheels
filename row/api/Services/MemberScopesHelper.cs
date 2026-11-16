@@ -649,8 +649,9 @@ public static class MemberScopesHelper
             return $"https://{host}";
 
         var sd = WebsiteDomainHelper.NormalizeSubdomain(subdomain);
-        if (!string.IsNullOrWhiteSpace(sd))
-            return $"https://{sd}.{parentDomain}";
+        // No parent domain configured: "https://rcthane." is not an address, so no link at all.
+        if (!string.IsNullOrWhiteSpace(sd) && !string.IsNullOrWhiteSpace(parentDomain))
+            return $"https://{sd}.{parentDomain.Trim('.')}";
         return "";
     }
 

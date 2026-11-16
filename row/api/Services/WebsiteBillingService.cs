@@ -101,6 +101,11 @@ public class WebsiteBillingService : IWebsiteBillingService
                 if (gateway != "route") gateway = "normal";
             }
         }
+        // No price set (no default, no override for this club): never quote or sell at 0 or at a leftover number.
+        if (baseAmount <= 0)
+            throw new InvalidOperationException("The club website price is not set yet. Ask ROW support.");
+        if (renewalAmount <= 0) renewalAmount = baseAmount;
+
         // Global "route all" override: when on, EVERY club-website payment settles via Route to
         // the one global account, regardless of the per-club Normal/Route setting.
         if (await IsRouteAllAsync(conn)) gateway = "route";

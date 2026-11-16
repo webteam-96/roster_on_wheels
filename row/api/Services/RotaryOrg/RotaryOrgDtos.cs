@@ -246,4 +246,7 @@ public class RotaryOrgClubOfficerDto
     // Rotary.org individual/member id → matched against member_master_profile.RotaryId
     // to fill email/mobile from our own DB when the API omits them.
     public string? RotaryId { get; set; }
+    // Term of this office, MM/dd/yyyy from RI (a 1 July start one year ahead = incoming officer).
+    public string? StartDate { get; set; }
+    public string? EndDate { get; set; }
 }

@@ -184,6 +184,10 @@ export default function LoginPage() {
               Sign In
             </Button>
 
+            <p className="text-center text-sm text-muted-foreground">
+              Club executive without a password?{" "}
+              <Link href="/exec-signin" className="font-semibold text-primary hover:underline">Sign in with an email code</Link>
+            </p>
           </form>
         </CardContent>
       </Card>

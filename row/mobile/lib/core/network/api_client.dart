@@ -12,6 +12,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../constants/api_constants.dart';
 import '../constants/app_constants.dart';
 import 'api_exceptions.dart';
+import 'subscription_lock.dart';
 import 'api_response.dart';
 
 class ApiClient {
@@ -579,6 +580,12 @@ class ApiClient {
           reason ?? bodyMessage ?? 'Unauthorized. Please log in again.');
     }
     if (statusCode == 403) {
+      // KIS/ROW/SUB/01: the whole app is closed for this member (no club
+      // with a Club subscription). The locked screen takes over.
+      if (decoded is Map && decoded['code'] == appSubscriptionRequiredCode) {
+        subscriptionLock.value =
+            bodyMessage ?? 'Available with Club subscription.';
+      }
       throw ForbiddenException(bodyMessage ?? 'Access denied.');
     }
     if (statusCode == 404) {

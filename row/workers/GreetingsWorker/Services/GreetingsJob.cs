@@ -183,7 +183,7 @@ public class GreetingsJob
             WHERE isdeleted = 0 AND IsActive = 1
               AND (IsEnableBirthdayNotification = 1 OR IsEnableAnniversaryNotification = 1
                    OR IsEnableBirthdayEmail = 1 OR IsEnableAnniversaryEmail = 1)
-              {nameClause}", new { ClubName = clubNameFilter, CurrentYearId = _currentYearId })).ToList();
+              {nameClause}{_opt.SubscriptionSql(club: true)}", new { ClubName = clubNameFilter, CurrentYearId = _currentYearId })).ToList();
 
         var governorNotes = new Dictionary<int, string?>();   // per district, for this run
         foreach (var c in clubs)
@@ -239,7 +239,7 @@ public class GreetingsJob
             WHERE isdeleted = 0 AND IsActive = 1
               AND (IsEnableBirthdayNotification = 1 OR IsEnableAnniversaryNotification = 1
                    OR IsEnableBirthdayEmail = 1 OR IsEnableAnniversaryEmail = 1)
-              {numClause}", new { DistrictNumber = districtNumberFilter, CurrentYearId = _currentYearId })).ToList();
+              {numClause}{_opt.SubscriptionSql(club: false)}", new { DistrictNumber = districtNumberFilter, CurrentYearId = _currentYearId })).ToList();
 
         foreach (var d in districts)
         {
@@ -1017,4 +1017,13 @@ public class GreetingsOptions
     public bool DeductCredits { get; set; } = true;
     /// <summary>Local hour (in each source's district time zone) from which the day's greetings go out.</summary>
     public int SendHour { get; set; } = 8;
+    /// <summary>Subscriptions:Enforce, the same switch as the API: only sources with a working subscription send.</summary>
+    public bool SubscriptionsEnforce { get; set; }
+    public int SubscriptionGraceDays { get; set; } = 30;
+
+    /// <summary>SQL condition: the club's own subscription works (club) or the district's does. Empty when not enforced.</summary>
+    public string SubscriptionSql(bool club) => !SubscriptionsEnforce ? "" : $@"
+              AND EXISTS (SELECT 1 FROM tenant_subscriptions t
+                          WHERE t.state = 'live' AND t.term_end >= UTC_DATE() - INTERVAL {SubscriptionGraceDays} DAY
+                            AND {(club ? "t.fk_club_id = club_master.pk_club_id" : "t.fk_district_id = district_master.pk_district_id AND t.fk_club_id = 0")})";
 }

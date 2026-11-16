@@ -14,6 +14,7 @@ import { useRotaryYears } from "@/hooks/useRotaryYears";
 import { ClubAdminDashboardCacheProvider, useClubAdminCache } from "@/contexts/ClubAdminDashboardCacheContext";
 import { getClubDuesOfficerClubs } from "@/services/api";
 import { CLUB_ADMIN_NAV, CLUB_ADMIN_PAGE_TITLES } from "./nav";
+import SubscriptionLock, { isLockedPath, useSubscriptionLevel } from "@/components/subscriptions/SubscriptionLock";
 
 // Pages that list every rotary year at once — the global year selector has nothing
 // to act on there, so we hide it rather than leave a control that appears dead.
@@ -93,10 +94,13 @@ function ClubAdminShell({ name, initials, title, showYearSelector, officerClubId
     ? Number(searchParams.get("yearId")) : currentYearId;
   const isAdminForSelectedYear = canEditYear(
     clubYearRights(user?.scopedRoles, openClubId ?? 0), selectedYearId, isSuperAdmin);
+  // KIS/ROW/SUB/01: under the District subscription alone, club features stay in the sidebar marked as locked.
+  const subscription = useSubscriptionLevel("club", openClubId);
   const nav = useMemo(
     () => (isOfficer ? CLUB_ADMIN_NAV : CLUB_ADMIN_NAV.filter((n) => !n.officerOnly))
-      .filter((n) => !n.adminYearOnly || isAdminForSelectedYear),
-    [isOfficer, isAdminForSelectedYear]
+      .filter((n) => !n.adminYearOnly || isAdminForSelectedYear)
+      .map((n) => (isLockedPath("club", subscription.level, n.to) ? { ...n, label: `${n.label} (locked)` } : n)),
+    [isOfficer, isAdminForSelectedYear, subscription.level]
   );
   return (
     <DashboardShell
@@ -118,7 +122,7 @@ function ClubAdminShell({ name, initials, title, showYearSelector, officerClubId
       }
     >
       <PlanningBanner clubId={openClubId} />
-      {children}
+      <SubscriptionLock kind="club" level={subscription.level} loading={subscription.loading}>{children}</SubscriptionLock>
     </DashboardShell>
   );
 }

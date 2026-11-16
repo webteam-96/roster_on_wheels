@@ -174,6 +174,7 @@ public sealed class PaymentSettlementService
     public const string FlowClubDues = "club_dues";
     public const string FlowMembershipDues = "membership_dues";
     public const string FlowEventLink = "event_link";
+    public const string FlowSubscription = "subscription";
 
     private readonly PaymentCheckoutService _checkout;
     private readonly IWalletService _wallet;
@@ -181,9 +182,11 @@ public sealed class PaymentSettlementService
     private readonly IClubDuesService _clubDues;
     private readonly IMembershipDuesService _membershipDues;
     private readonly IEventPaymentLinkService _eventLinks;
+    private readonly SubscriptionBillingService _subscriptions;
 
     public PaymentSettlementService(PaymentCheckoutService checkout, IWalletService wallet, IWebsiteBillingService website,
-        IClubDuesService clubDues, IMembershipDuesService membershipDues, IEventPaymentLinkService eventLinks)
+        IClubDuesService clubDues, IMembershipDuesService membershipDues, IEventPaymentLinkService eventLinks,
+        SubscriptionBillingService subscriptions)
     {
         _checkout = checkout;
         _wallet = wallet;
@@ -191,6 +194,7 @@ public sealed class PaymentSettlementService
         _clubDues = clubDues;
         _membershipDues = membershipDues;
         _eventLinks = eventLinks;
+        _subscriptions = subscriptions;
     }
 
     public async Task SettleAsync(string flow, long flowRef, string gatewayPaymentId)
@@ -202,6 +206,7 @@ public sealed class PaymentSettlementService
             case FlowClubDues: await _clubDues.SettleOnlineAsync((int)flowRef, gatewayPaymentId); break;
             case FlowMembershipDues: await _membershipDues.MarkOnlineDuesPaymentPaidAsync((int)flowRef, "Page", false, false); break;
             case FlowEventLink: await _eventLinks.SettleOnlineAsync((int)flowRef, gatewayPaymentId); break;
+            case FlowSubscription: await _subscriptions.SettleOnlineAsync(flowRef, gatewayPaymentId); break;
             default: throw new InvalidOperationException($"Unknown payment flow '{flow}'.");
         }
     }

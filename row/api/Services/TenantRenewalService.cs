@@ -12,6 +12,7 @@ namespace RotaryApi.Services;
 /// term_end (that it renews, or ends when auto-renew is off), and up to three reminders 7, 14 and 30 days after a
 /// term_end that has not been moved on (dunning). Renewing (a new term_end in Settings > Tenants) starts over.
 /// shortcut: email only, no charge; collecting the renewal comes with Stripe.
+/// Subscriptions bought under KIS/ROW/SUB/01 get their reminders from SubscriptionDailyService and are left out here.
 /// </summary>
 public class TenantRenewalService
 {
@@ -47,7 +48,8 @@ public class TenantRenewalService
                    t.dunning_stage AS Stage, t.dunning_for AS DunningFor
             FROM tenant_subscriptions t JOIN district_master d ON d.pk_district_id = t.fk_district_id AND d.isdeleted = 0
             WHERE t.fk_club_id = 0 AND t.term_end BETWEEN CURDATE() AND CURDATE() + INTERVAL 60 DAY
-              AND (t.renewal_notice_for IS NULL OR t.renewal_notice_for <> t.term_end)")).ToList();
+              AND (t.renewal_notice_for IS NULL OR t.renewal_notice_for <> t.term_end)
+              AND NOT EXISTS (SELECT 1 FROM subscription_orders o WHERE o.fk_district_id = t.fk_district_id AND o.fk_club_id = 0 AND o.status = 'paid')")).ToList();
         foreach (var t in notices)
         {
             var sent = await SendAsync(conn, t.DistrictId, L =>
@@ -68,7 +70,8 @@ public class TenantRenewalService
             SELECT t.fk_district_id AS DistrictId, d.DistrictNumber, t.term_end AS TermEnd, t.auto_renew = 1 AS AutoRenew,
                    t.dunning_stage AS Stage, t.dunning_for AS DunningFor
             FROM tenant_subscriptions t JOIN district_master d ON d.pk_district_id = t.fk_district_id AND d.isdeleted = 0
-            WHERE t.fk_club_id = 0 AND t.term_end < CURDATE() - INTERVAL 6 DAY")).ToList();
+            WHERE t.fk_club_id = 0 AND t.term_end < CURDATE() - INTERVAL 6 DAY
+              AND NOT EXISTS (SELECT 1 FROM subscription_orders o WHERE o.fk_district_id = t.fk_district_id AND o.fk_club_id = 0 AND o.status = 'paid')")).ToList();
         foreach (var t in overdue)
         {
             var stage = t.DunningFor == t.TermEnd ? t.Stage : 0; // a renewed term starts over

@@ -110,6 +110,7 @@ public class ScopeWriteGuardMiddleware
     /// the read review). members: false keeps the managers only (the club's managers and whoever manages its district).</summary>
     internal static async Task<bool> ReadAllowedAsync(string connectionString, int memberId, bool isClub, int scopeId, bool members = true)
     {
+        if (isClub && await ClosedBySubscriptionAsync(connectionString, memberId, scopeId)) return false;
         await using (var conn = new MySqlConnection(connectionString))
         {
             await conn.OpenAsync();
@@ -130,11 +131,25 @@ public class ScopeWriteGuardMiddleware
         return await AllowedAsync(connectionString, memberId, isClub, scopeId);
     }
 
+    /// <summary>
+    /// KIS/ROW/SUB/01: a club with no working subscription is closed to everyone but a Super Admin. Asked by both
+    /// scope checks, so controllers that take the club id from the request body (which the subscription gate cannot
+    /// see) refuse a closed club too. Always false while Subscriptions:Enforce is off.
+    /// </summary>
+    private static async Task<bool> ClosedBySubscriptionAsync(string connectionString, int memberId, int clubId)
+    {
+        if (!await SubscriptionGateMiddleware.ClubClosedAsync(connectionString, clubId)) return false;
+        await using var conn = new MySqlConnection(connectionString);
+        return await conn.ExecuteScalarAsync<int>(@"SELECT COUNT(*) FROM member_roles WHERE fk_member_master_profile_id = @M
+            AND fk_role_id = 3 AND IsActive = 1 AND isdeleted = 0", new { M = memberId }) == 0;
+    }
+
     /// <summary>True when the member manages this club (isClub) or district; also used by controllers that write
     /// to a club or district named outside the URL.</summary>
     internal static async Task<bool> AllowedAsync(string connectionString, int memberId, bool isClub, int scopeId)
     {
         if (isClub && scopeId <= 0) return false; // club 0 is no club: district Admin rows carry fk_club_id = 0
+        if (isClub && await ClosedBySubscriptionAsync(connectionString, memberId, scopeId)) return false;
         await using var conn = new MySqlConnection(connectionString);
         await conn.OpenAsync();
         const string active = "mr.fk_member_master_profile_id = @M AND mr.IsActive = 1 AND mr.isdeleted = 0";

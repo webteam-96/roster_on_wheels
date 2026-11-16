@@ -85,7 +85,7 @@ public class InvitePromptService
                     SELECT ip.pk_invite_prompt_id, ip.fk_club_id FROM invite_prompts ip
                     JOIN club_master c ON c.pk_club_id = ip.fk_club_id
                     LEFT JOIN district_master d ON d.pk_district_id = c.fk_district_id
-                    WHERE ip.status = 'scheduled' AND ip.send_on <= @Today AND ip.meeting_date >= @Today AND {ZoneTime.Filter("d")}",
+                    WHERE ip.status = 'scheduled'{SubscriptionAccess.OwnerWorksSql("ip.fk_club_id", "0")} AND ip.send_on <= @Today AND ip.meeting_date >= @Today AND {ZoneTime.Filter("d")}",
                     new { Today = ZoneTime.Local(zone).Date, Tz = tz }));
         foreach (var (id, clubId) in due)
         {

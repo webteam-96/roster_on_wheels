@@ -21,6 +21,7 @@ public class PublicMembershipDuesController : ControllerBase
     [HttpGet("{id}")]
     public async Task<ActionResult> GetPublicDues(int id)
     {
+        if (!await SubscriptionAccess.LinkOpenAsync(_config, "membership_dues", "pk_membership_dues_id", id)) return NotFound(new { message = "This payment link is closed." });
         var result = await _service.GetPublicDuesAsync(id);
         if (result == null) return NotFound(new { message = "Club dues not found or inactive." });
         return Ok(result);
@@ -118,6 +119,7 @@ public class PublicMembershipDuesController : ControllerBase
     [HttpPost("{id}/pay")]
     public async Task<ActionResult> CreatePaymentOrder(int id, [FromBody] PublicDuesPaymentSubmitDto dto)
     {
+        if (!await SubscriptionAccess.LinkOpenAsync(_config, "membership_dues", "pk_membership_dues_id", id)) return NotFound(new { message = "This payment link is closed." });
         if (!TryPayer(id, out var payer)) return Unauthorized(new { message = "Verify the code sent to your email first." });
         dto.FkMemberProfileId = payer;
         try

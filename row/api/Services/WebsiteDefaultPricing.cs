@@ -9,8 +9,10 @@ namespace RotaryApi.Services;
 // This is the LAST tier of the price-resolution chain used by both the club-admin self-service
 // flow and the SuperAdmin reminder links:
 //     per-club override row  →  per-district override row  →  THIS global default  →  appsettings seed.
-// When a key has never been set, we fall back to appsettings (Razorpay:WebsitePrice /
-// WebsiteRenewalPrice / GstPercent), so the system always has a price even before anyone edits it.
+// When a key has never been set, we fall back to appsettings (Razorpay:WebsitePrice / WebsiteRenewalPrice).
+// ROW ships those as 0 = "not set": the amount is in the brand currency and there is no currency conversion, so a
+// seeded number (RIZones had 14999 rupees) would be charged as that many dollars. WebsiteBillingService refuses to
+// quote or sell until a Super Admin sets the price.
 public static class WebsiteDefaultPricing
 {
     public const string KeyNew = "ClubWebsiteDefaultNewAmount";
@@ -22,7 +24,7 @@ public static class WebsiteDefaultPricing
 
     public static async Task<Defaults> ResolveAsync(MySqlConnection conn, IConfiguration config)
     {
-        decimal cfgNew = config.GetValue("Razorpay:WebsitePrice", 14999m);
+        decimal cfgNew = config.GetValue("Razorpay:WebsitePrice", 0m);
         decimal cfgRenewal = config.GetValue("Razorpay:WebsiteRenewalPrice", cfgNew);
         decimal cfgGst = config.GetValue("Payments:TaxPercent", 0m);
 

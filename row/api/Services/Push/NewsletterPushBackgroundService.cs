@@ -45,7 +45,7 @@ public class NewsletterPushBackgroundService : BackgroundService
             WHERE isdeleted = 0
               AND IFNULL(PushNotificationSent, 0) = 0
               AND PublishDateTime <= NOW()
-            ORDER BY PublishDateTime
+            ORDER BY PublishDateTime" + SubscriptionAccess.OwnerWorksSql("fk_club_id", "fk_district_id") + @"
             LIMIT 5")).ToList();
         if (due.Count == 0) return;
 

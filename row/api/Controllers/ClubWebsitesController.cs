@@ -88,7 +88,10 @@ public class ClubWebsitesController : ControllerBase
             (false, true) => "trial_expired",
         };
         var parentDomain = await conn.ExecuteScalarAsync<string?>(
-            "SELECT SettingValue FROM system_settings WHERE SettingKey = 'ClubWebsiteParentDomain' LIMIT 1") ?? _pleskParentDomain;
+            "SELECT SettingValue FROM system_settings WHERE SettingKey = 'ClubWebsiteParentDomain' LIMIT 1");
+        // The setting row can exist but be empty: fall through to the brand's club-site domain, then the host's.
+        if (string.IsNullOrWhiteSpace(parentDomain)) parentDomain = RotaryApi.Services.Brand.ClubSiteParentDomain;
+        if (string.IsNullOrWhiteSpace(parentDomain)) parentDomain = _pleskParentDomain;
         var visitUrl = await WebsiteReachability.ResolveAsync((string?)row.clientDomain, (string?)row.subdomain, parentDomain, _useHttps);
         return Ok(new { configured = true, status, daysRemaining, visitUrl, isPaid });
     }

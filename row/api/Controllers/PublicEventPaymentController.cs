@@ -21,6 +21,7 @@ public class PublicEventPaymentController : ControllerBase
     [HttpGet("{linkId}")]
     public async Task<ActionResult> GetPublicLinkDetails(int linkId)
     {
+        if (!await SubscriptionAccess.LinkOpenAsync(_config, "event_payment_links", "pk_id", linkId)) return NotFound(new { message = "This payment link is closed." });
         var result = await _service.GetPublicLinkDetailsAsync(linkId);
         if (result == null) return NotFound(new { message = "Payment link not found or inactive." });
         return Ok(result);
@@ -78,6 +79,7 @@ public class PublicEventPaymentController : ControllerBase
     [HttpPost("{linkId}/create-order")]
     public async Task<ActionResult> CreatePaymentOrder(int linkId, [FromBody] PublicPaymentSubmitDto dto)
     {
+        if (!await SubscriptionAccess.LinkOpenAsync(_config, "event_payment_links", "pk_id", linkId)) return NotFound(new { message = "This payment link is closed." });
         // Who pays comes from the verify-otp token, never from the request. A member's name and contacts come from their record.
         if (!EventPayerToken.TryVerify(Request.Headers["X-Payer-Token"].ToString(), linkId, _config["JwtSettings:Secret"] ?? "", out var memberId, out var email))
             return Unauthorized(new { message = "Verify the code sent to your email first." });

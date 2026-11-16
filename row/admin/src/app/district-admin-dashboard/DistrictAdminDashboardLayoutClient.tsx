@@ -9,6 +9,7 @@ import DistrictAdminYearSelector from "@/components/dashboard/DistrictAdminYearS
 import DistrictAdminTopbarStatus from "@/components/dashboard/DistrictAdminTopbarStatus";
 import DistrictAdminHeaderSubtitle from "@/components/dashboard/DistrictAdminHeaderSubtitle";
 import PlanningBanner from "@/components/planning/PlanningBanner";
+import SubscriptionLock, { useSubscriptionLevel } from "@/components/subscriptions/SubscriptionLock";
 import { useAuth } from "@/contexts/AuthContext";
 import { districtYearRights, canEditYear } from "@/lib/adminYears";
 import { useRotaryYears } from "@/hooks/useRotaryYears";
@@ -45,6 +46,8 @@ export default function DistrictAdminDashboardLayoutClient({ children }: { child
     () => DISTRICT_ADMIN_NAV.filter((n) => !n.adminYearOnly || isAdminForSelectedYear),
     [isAdminForSelectedYear]
   );
+  // KIS/ROW/SUB/01 section 4.5 step 4: district modules lock when the District subscription stops working.
+  const subscription = useSubscriptionLevel("district", selectedDistrictId);
 
   return (
     <DashboardGuard kind="district-admin">
@@ -68,7 +71,7 @@ export default function DistrictAdminDashboardLayoutClient({ children }: { child
             topbarCenter={<DistrictAdminYearSelector />}
           >
             <PlanningBanner districtId={selectedDistrictId} />
-            {children}
+            <SubscriptionLock kind="district" level={subscription.level} loading={subscription.loading}>{children}</SubscriptionLock>
           </DashboardShell>
         </DistrictAdminDashboardCacheProvider>
       </Suspense>

@@ -93,7 +93,7 @@ public class EmailScheduledSendBackgroundService : BackgroundService
                    Title, Description, ImagePath
             FROM announcements
             WHERE IsSendEmail = 1 AND EmailSentDate IS NULL AND isdeleted = 0
-              AND PublishDateTime <= NOW()
+              AND PublishDateTime <= NOW()" + SubscriptionAccess.OwnerWorksSql("fk_club_id", "fk_district_id") + @"
             LIMIT 20")).ToList();
 
         foreach (var rec in pending)
@@ -129,7 +129,7 @@ public class EmailScheduledSendBackgroundService : BackgroundService
                    Title, Description, ImagePath, EventDate, EventVenue, RegistrationLink
             FROM upcoming_events
             WHERE IsSendEmail = 1 AND EmailSentDate IS NULL AND isdeleted = 0
-              AND PublishDate <= NOW()
+              AND PublishDate <= NOW()" + SubscriptionAccess.OwnerWorksSql("fk_club_id", "fk_district_id") + @"
             LIMIT 20")).ToList();
 
         foreach (var rec in pending)
@@ -168,7 +168,7 @@ public class EmailScheduledSendBackgroundService : BackgroundService
                    Title, AttachmentType, LinkUrl, FilePath
             FROM newsletters
             WHERE IsSendEmail = 1 AND EmailSentDate IS NULL AND isdeleted = 0
-              AND PublishDateTime <= NOW()
+              AND PublishDateTime <= NOW()" + SubscriptionAccess.OwnerWorksSql("fk_club_id", "fk_district_id") + @"
             LIMIT 20")).ToList();
 
         foreach (var rec in pending)
@@ -221,7 +221,7 @@ public class EmailScheduledSendBackgroundService : BackgroundService
                FROM `{t.ProjectsTable}` p
                LEFT JOIN area_of_focus_master af ON af.pk_area_of_focus_id = p.fk_area_of_focus_id
                LEFT JOIN module_master mm ON mm.pk_module_id = p.fk_module_id
-               WHERE p.send_email = 1 AND p.EmailSentDate IS NULL AND p.isdeleted = 0"));
+               WHERE p.send_email = 1 AND p.EmailSentDate IS NULL AND p.isdeleted = 0{SubscriptionAccess.OwnerWorksSql("p.fk_club_id", "p.fk_district_id")}"));
         var pending = (await conn.QueryAsync<dynamic>(
             $"SELECT * FROM ({legs}) u LIMIT 20")).ToList();
 
@@ -289,7 +289,7 @@ public class EmailScheduledSendBackgroundService : BackgroundService
             WHERE r.IsActive = 1 AND r.EmailSentDate IS NULL
               AND r.ReminderDateTime <= NOW()
               AND e.IsSendEmail = 1 AND e.isdeleted = 0
-              AND e.EmailSentDate IS NOT NULL
+              AND e.EmailSentDate IS NOT NULL" + SubscriptionAccess.OwnerWorksSql("e.fk_club_id", "e.fk_district_id") + @"
             LIMIT 20")).ToList();
 
         foreach (var rec in pending)
@@ -330,7 +330,7 @@ public class EmailScheduledSendBackgroundService : BackgroundService
             WHERE r.IsActive = 1 AND r.EmailSentDate IS NULL
               AND r.ReminderDateTime <= NOW()
               AND a.IsSendEmail = 1 AND a.isdeleted = 0
-              AND a.EmailSentDate IS NOT NULL
+              AND a.EmailSentDate IS NOT NULL" + SubscriptionAccess.OwnerWorksSql("a.fk_club_id", "a.fk_district_id") + @"
             LIMIT 20")).ToList();
 
         foreach (var rec in pending)

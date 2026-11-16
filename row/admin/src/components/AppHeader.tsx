@@ -69,6 +69,7 @@ export default function AppHeader() {
   const hideOnPages = [
     "/login",
     "/forgot-password",
+    "/exec-signin",
     "/reset-password",
     // Public/marketing pages (Cashfree-compliance landing system).
     // These pages render their own PublicHeader; the V1 AppHeader would

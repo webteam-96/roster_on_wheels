@@ -135,11 +135,15 @@ class LiveTranslator extends ChangeNotifier {
     try {
       token = await const FlutterSecureStorage().read(key: AppConstants.tokenKey);
     } catch (_) {}
-    final res = await http
+    Future<http.Response> post(String? bearer) => http
         .post(Uri.parse('${ApiConstants.baseUrl}/api/i18n/translate'),
-            headers: {'Content-Type': 'application/json', if (token != null) 'Authorization': 'Bearer $token'},
+            headers: {'Content-Type': 'application/json', if (bearer != null) 'Authorization': 'Bearer $bearer'},
             body: jsonEncode({'target': target, 'source': 'en', 'q': texts}))
         .timeout(const Duration(seconds: 15));
+    var res = await post(token);
+    // The route is open without sign-in. An expired token (e.g. just after sign-out) must not leave
+    // the sign-in screen in English, so ask again without it.
+    if ((res.statusCode == 401 || res.statusCode == 403) && token != null) res = await post(null);
     if (res.statusCode != 200) return null;
     return ((jsonDecode(res.body) as Map)['translations'] as List).map((e) => e.toString()).toList();
   }

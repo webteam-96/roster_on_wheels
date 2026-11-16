@@ -46,10 +46,13 @@ export const DISTRICT_ADMIN_NAV: NavItem[] = [
   { to: "/district-admin-dashboard/payment-accounts", label: "Payments",    feature: "payments.connect" },
   // Export or erase a member's data on request.
   { to: "/district-admin-dashboard/privacy",        label: "Privacy Requests", feature: "privacy.enabled" },
+  // KIS/ROW/SUB/01: status, buy and renew. Always visible, and always open (the way out of a locked district).
+  { to: "/district-admin-dashboard/subscription",   label: "Subscription" },
 ];
 
 export const DISTRICT_ADMIN_PAGE_TITLES: Record<string, string> = {
   "/district-admin-dashboard":               "District Dashboard",
+  "/district-admin-dashboard/subscription":  "Subscription",
   "/district-admin-dashboard/overview":      "District Dashboard",
   "/district-admin-dashboard/membership":    "Membership",
   "/district-admin-dashboard/foundation-designations": "Foundation Designations",

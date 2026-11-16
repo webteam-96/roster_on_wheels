@@ -20,6 +20,7 @@ import ScopePicker from "./ScopePicker";
 import { useComingSoonModules } from "@/hooks/useComingSoonModules";
 import { useBrand } from "@/contexts/BrandContext";
 import { isFeatureOn } from "@/lib/brand";
+import { withBase } from "@/lib/basePath";
 
 export interface NavItem {
   to: string;
@@ -162,7 +163,7 @@ export default function DashboardShell({
     } catch { /* ignore */ }
     // Drop the borrowed scope (club AND district) so it doesn't linger on the SA's session.
     selectScope({ clubId: null, districtId: null });
-    window.location.assign(returnTo || "/settings/global-search");
+    window.location.assign(withBase(returnTo || "/settings/global-search")); // OMS ROW-49: a raw path skipped the /admin base path and hit a 404
   };
   const selectedDistrict = useSelectedDistrict();
   const districtAdminDistricts = useDistrictAdminDistricts();

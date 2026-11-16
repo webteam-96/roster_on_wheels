@@ -133,8 +133,8 @@ public class RotaryOrgApiClient : IRotaryOrgApiClient
     {
         // Rotary.org expects a custom `auth_token` header (not the standard Authorization: Bearer scheme).
         var token = await GetTokenAsync(ct);
-        _logger.LogInformation("🔑 [RI.org] GET {Path} — token len={Len} startsWith={Start}",
-            path, token.Length, token.Substring(0, Math.Min(20, token.Length)));
+        // Never log the token or any part of it (secrets stay out of logs).
+        _logger.LogInformation("🔑 [RI.org] GET {Path}", path);
 
         using var req1 = new HttpRequestMessage(HttpMethod.Get, path);
         req1.Headers.TryAddWithoutValidation("auth_token", token);
@@ -210,13 +210,18 @@ public class RotaryOrgApiClient : IRotaryOrgApiClient
         return wrapper?.ClubMembers ?? new List<RotaryOrgClubMemberDto>();
     }
 
-    public async Task<List<RotaryOrgClubOfficerDto>> GetClubOfficersAsync(string clubType, int clubId, string startDate, string endDate, CancellationToken ct = default)
+    public async Task<List<RotaryOrgClubOfficerDto>> GetClubOfficersAsync(string clubType, int clubId, string startDate, string endDate, CancellationToken ct = default, bool throwOnFailure = false)
     {
         if (string.IsNullOrWhiteSpace(clubType)) clubType = "Rotary Club";
         var path = $"clubs/{Uri.EscapeDataString(clubType)}/{clubId}/officers?startDate={Uri.EscapeDataString(startDate)}&endDate={Uri.EscapeDataString(endDate)}";
         using var resp = await SendAuthenticatedAsync(path, ct);
         var body = await resp.Content.ReadAsStringAsync(ct);
-        if (!resp.IsSuccessStatusCode) return new List<RotaryOrgClubOfficerDto>();
+        if (!resp.IsSuccessStatusCode)
+        {
+            // An error is not "no officers": callers that end rights on an empty list must be able to tell.
+            if (throwOnFailure) throw new HttpRequestException($"Rotary.org officers failed: {(int)resp.StatusCode}");
+            return new List<RotaryOrgClubOfficerDto>();
+        }
 
         var result = new List<RotaryOrgClubOfficerDto>();
         try
@@ -244,10 +249,15 @@ public class RotaryOrgApiClient : IRotaryOrgApiClient
                     // Rotary individual id (used to fill email/mobile from our DB by RotaryId).
                     RotaryId = FirstStr(person, "Id", "id", "MemberId", "memberId", "IndividualId", "individualId", "RiIndividualId", "riIndividualId")
                                ?? FirstStr(o, "Id", "id", "MemberId", "memberId", "IndividualId", "individualId"),
+                    StartDate = FirstStr(o, "StartDate", "startDate"),
+                    EndDate = FirstStr(o, "EndDate", "endDate"),
                 });
             }
         }
-        catch { /* shape mismatch → empty */ }
+        catch (Exception ex) when (ex is JsonException or InvalidOperationException)
+        {
+            if (throwOnFailure) throw new InvalidOperationException("Rotary.org officers answer could not be read.", ex);
+        }
         return result;
     }
 

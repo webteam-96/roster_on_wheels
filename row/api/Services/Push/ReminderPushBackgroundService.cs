@@ -56,7 +56,7 @@ public class ReminderPushBackgroundService : BackgroundService
               AND r.PushSentAt IS NULL
               AND r.ReminderDateTime <= NOW()
               AND r.ReminderDateTime > DATE_SUB(NOW(), INTERVAL 24 HOUR)
-            ORDER BY r.ReminderDateTime
+            ORDER BY r.ReminderDateTime" + SubscriptionAccess.OwnerWorksSql("a.fk_club_id", "a.fk_district_id") + @"
             LIMIT 5")).ToList();
         if (due.Count == 0) return;
 
@@ -101,7 +101,7 @@ public class ReminderPushBackgroundService : BackgroundService
               AND r.PushSentAt IS NULL
               AND r.ReminderDateTime <= NOW()
               AND r.ReminderDateTime > DATE_SUB(NOW(), INTERVAL 24 HOUR)
-            ORDER BY r.ReminderDateTime
+            ORDER BY r.ReminderDateTime" + SubscriptionAccess.OwnerWorksSql("e.fk_club_id", "e.fk_district_id") + @"
             LIMIT 5")).ToList();
         if (due.Count == 0) return;
 
