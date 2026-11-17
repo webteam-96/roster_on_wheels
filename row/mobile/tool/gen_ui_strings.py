@@ -52,7 +52,8 @@ for f in (ROOT / 'lib').rglob('*.dart'):
     if f == OUT:
         continue
     text = f.read_text(encoding='utf-8')
-    for s in joined_runs(text):
+    code = re.sub(r'(?m)^\s*//.*$', '', text)  # commented-out code is not shown
+    for s in joined_runs(code):
         if LETTERS.search(s) and not SKIP.match(s.strip()):
             found.add(s)
     for line in text.splitlines():

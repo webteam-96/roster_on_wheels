@@ -40,6 +40,7 @@ import { formatMoney } from "@/lib/currency";
 
 import { appLocale } from "@/lib/appFormat";
 import { ListPageSkeleton } from "@/components/row/AppKit";
+import AgreeText from "@/components/AgreeText";
 const AGREE_MESSAGE = `The data I will enter is for a International Service project conducted by my club that has benefitted my community. E.g., Rotary Youth Exchange, Rotary Friendship Exchange, etc.
 
 Please Note: The content posted here will be displayed on the ROW Website, District Website, Club Monthly Report & ROW Integrated Club Website`;
@@ -320,7 +321,7 @@ export default function InternationalServicePage() {
           title="I Agree"
           description={
             <div className="whitespace-pre-line text-sm text-muted-foreground">
-              {AGREE_MESSAGE}
+              <AgreeText text={AGREE_MESSAGE} />
             </div>
           }
           confirmLabel="I Agree & Continue"

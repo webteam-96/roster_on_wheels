@@ -1,0 +1,93 @@
+{
+ "_columns": [
+  "fr",
+  "de",
+  "it",
+  "ja",
+  "ko",
+  "pt",
+  "es"
+ ],
+ "_note": "Project 'I Agree' notices and their shared note ({app} = product name, replaced in the app), translated whole (2026-11-17).",
+ "Please Note: The content posted here will be displayed on the {app} Website, District Website, Club Monthly Report & {app} Integrated Club Website": [
+  "Remarque : le contenu publié ici apparaîtra sur le site {app}, le site du district, le rapport mensuel du club et le site du club intégré à {app}",
+  "Hinweis: Die hier veröffentlichten Inhalte erscheinen auf der {app}-Website, der Distrikt-Website, im Club-Monatsbericht und auf der in {app} integrierten Club-Website",
+  "Nota: il contenuto pubblicato qui apparirà sul sito {app}, sul sito del distretto, nel rapporto mensile del club e sul sito del club integrato in {app}",
+  "注：ここに投稿した内容は、{app}ウェブサイト、地区ウェブサイト、クラブ月次報告、{app}連携のクラブウェブサイトに表示されます",
+  "참고: 여기에 게시한 내용은 {app} 웹사이트, 지구 웹사이트, 클럽 월간 보고서, {app} 연동 클럽 웹사이트에 표시됩니다",
+  "Observação: o conteúdo publicado aqui aparecerá no site do {app}, no site do distrito, no relatório mensal do clube e no site do clube integrado ao {app}",
+  "Nota: el contenido publicado aquí aparecerá en el sitio web de {app}, el sitio web del distrito, el informe mensual del club y el sitio web del club integrado en {app}"
+ ],
+ "The data I will enter is for a Meeting / Event conducted by my club. E.g., Installation, Navratri Celebration, Weekly Meetings, Etc.\n\nIt is not a Community / Vocational / International / New Generation Service. E.g., Blood Donation Camp, Tree Plantation, Heart Surgeries, etc.": [
+  "Les données que je vais saisir concernent une réunion / un événement organisé par mon club. Ex. : passation de pouvoirs, fête de Navratri, réunions hebdomadaires, etc.\n\nIl ne s'agit pas d'une action d'intérêt public, professionnelle, internationale ou Nouvelles générations. Ex. : collecte de sang, plantation d'arbres, chirurgies cardiaques, etc.",
+  "Die Daten, die ich eingebe, betreffen ein Meeting / eine Veranstaltung meines Clubs. Z. B. Amtsübergabe, Navratri-Feier, wöchentliche Meetings usw.\n\nEs ist kein Gemeindienst / Berufsdienst / Internationaler Dienst / Jugenddienst. Z. B. Blutspendeaktion, Baumpflanzung, Herzoperationen usw.",
+  "I dati che inserirò riguardano una riunione / un evento del mio club. Es.: insediamento, festa di Navratri, riunioni settimanali, ecc.\n\nNon è un'azione di pubblico interesse / professionale / internazionale / Nuove Generazioni. Es.: donazione del sangue, piantumazione di alberi, interventi al cuore, ecc.",
+  "入力するデータは、自分のクラブが実施した例会／イベントのものです。例：就任式、ナヴラートリ祭、週例会など。\n\n社会奉仕／職業奉仕／国際奉仕／青少年奉仕ではありません。例：献血、植樹、心臓手術など。",
+  "입력할 데이터는 우리 클럽이 진행한 모임/행사입니다. 예: 취임식, 나브라트리 축제, 주례 모임 등.\n\n지역사회봉사/직업봉사/국제봉사/청소년봉사가 아닙니다. 예: 헌혈 캠프, 나무 심기, 심장 수술 등.",
+  "Os dados que vou inserir são de uma reunião / evento realizado pelo meu clube. Ex.: posse, celebração de Navratri, reuniões semanais etc.\n\nNão é um projeto de Serviços à Comunidade / Profissionais / Internacionais / às Novas Gerações. Ex.: campanha de doação de sangue, plantio de árvores, cirurgias cardíacas etc.",
+  "Los datos que voy a introducir son de una reunión / evento realizado por mi club. P. ej.: toma de posesión, celebración de Navratri, reuniones semanales, etc.\n\nNo es un Servicio en la Comunidad / a través de la Ocupación / Internacional / a las Nuevas Generaciones. P. ej.: jornada de donación de sangre, plantación de árboles, cirugías cardíacas, etc."
+ ],
+ "The data I will enter is for a Community service project conducted by my club that has benefitted my community. E.g., Heart Surgeries, Tree Plantation, etc.": [
+  "Les données que je vais saisir concernent un projet d'action d'intérêt public mené par mon club au profit de ma collectivité. Ex. : chirurgies cardiaques, plantation d'arbres, etc.",
+  "Die Daten, die ich eingebe, betreffen ein Gemeindienstprojekt meines Clubs, das meiner Gemeinde zugutegekommen ist. Z. B. Herzoperationen, Baumpflanzung usw.",
+  "I dati che inserirò riguardano un progetto di azione di pubblico interesse svolto dal mio club a beneficio della mia comunità. Es.: interventi al cuore, piantumazione di alberi, ecc.",
+  "入力するデータは、自分のクラブが実施し、地域社会に役立った社会奉仕プロジェクトのものです。例：心臓手術、植樹など。",
+  "입력할 데이터는 우리 클럽이 진행하여 지역사회에 도움이 된 지역사회봉사 프로젝트입니다. 예: 심장 수술, 나무 심기 등.",
+  "Os dados que vou inserir são de um projeto de Serviços à Comunidade realizado pelo meu clube em benefício da minha comunidade. Ex.: cirurgias cardíacas, plantio de árvores etc.",
+  "Los datos que voy a introducir son de un proyecto de Servicio en la Comunidad realizado por mi club en beneficio de mi comunidad. P. ej.: cirugías cardíacas, plantación de árboles, etc."
+ ],
+ "The data I will enter is for a Vocational service project conducted by my club that has benefitted my community. E.g., Career Guidance and Skill Development, Computer Literacy, etc.": [
+  "Les données que je vais saisir concernent un projet d'action professionnelle mené par mon club au profit de ma collectivité. Ex. : orientation professionnelle et développement des compétences, initiation à l'informatique, etc.",
+  "Die Daten, die ich eingebe, betreffen ein Berufsdienstprojekt meines Clubs, das meiner Gemeinde zugutegekommen ist. Z. B. Berufsberatung und Kompetenzentwicklung, Computerkurse usw.",
+  "I dati che inserirò riguardano un progetto di azione professionale svolto dal mio club a beneficio della mia comunità. Es.: orientamento professionale e sviluppo delle competenze, alfabetizzazione informatica, ecc.",
+  "入力するデータは、自分のクラブが実施し、地域社会に役立った職業奉仕プロジェクトのものです。例：進路指導と技能開発、パソコン講座など。",
+  "입력할 데이터는 우리 클럽이 진행하여 지역사회에 도움이 된 직업봉사 프로젝트입니다. 예: 진로 지도 및 기술 개발, 컴퓨터 교육 등.",
+  "Os dados que vou inserir são de um projeto de Serviços Profissionais realizado pelo meu clube em benefício da minha comunidade. Ex.: orientação profissional e desenvolvimento de habilidades, alfabetização digital etc.",
+  "Los datos que voy a introducir son de un proyecto de Servicio a través de la Ocupación realizado por mi club en beneficio de mi comunidad. P. ej.: orientación profesional y desarrollo de habilidades, alfabetización informática, etc."
+ ],
+ "The data I will enter is for a International Service project conducted by my club that has benefitted my community. E.g., Rotary Youth Exchange, Rotary Friendship Exchange, etc.": [
+  "Les données que je vais saisir concernent un projet d'action internationale mené par mon club au profit de ma collectivité. Ex. : Échange de jeunes du Rotary, Échange amical du Rotary, etc.",
+  "Die Daten, die ich eingebe, betreffen ein Projekt des Internationalen Dienstes meines Clubs, das meiner Gemeinde zugutegekommen ist. Z. B. Rotary-Jugendaustausch, Rotary Friendship Exchange usw.",
+  "I dati che inserirò riguardano un progetto di azione internazionale svolto dal mio club a beneficio della mia comunità. Es.: Scambio giovani del Rotary, Rotary Friendship Exchange, ecc.",
+  "入力するデータは、自分のクラブが実施し、地域社会に役立った国際奉仕プロジェクトのものです。例：ロータリー青少年交換、ロータリー友情交換など。",
+  "입력할 데이터는 우리 클럽이 진행하여 지역사회에 도움이 된 국제봉사 프로젝트입니다. 예: 로타리 청소년 교환, 로타리 우정 교환 등.",
+  "Os dados que vou inserir são de um projeto de Serviços Internacionais realizado pelo meu clube em benefício da minha comunidade. Ex.: Intercâmbio de Jovens do Rotary, Intercâmbio Rotário da Amizade etc.",
+  "Los datos que voy a introducir son de un proyecto de Servicio Internacional realizado por mi club en beneficio de mi comunidad. P. ej.: Intercambio de Jóvenes de Rotary, Intercambio Rotario de la Amistad, etc."
+ ],
+ "The data I will enter is for a New generation Service Project conducted by my club that has benefitted my community. E.g., Formation of an Interact Club, Formation of a Rotaract Club, etc.": [
+  "Les données que je vais saisir concernent un projet d'action Nouvelles générations mené par mon club au profit de ma collectivité. Ex. : création d'un club Interact, création d'un club Rotaract, etc.",
+  "Die Daten, die ich eingebe, betreffen ein Jugenddienstprojekt meines Clubs, das meiner Gemeinde zugutegekommen ist. Z. B. Gründung eines Interact Clubs, Gründung eines Rotaract Clubs usw.",
+  "I dati che inserirò riguardano un progetto di azione Nuove Generazioni svolto dal mio club a beneficio della mia comunità. Es.: fondazione di un Interact club, fondazione di un Rotaract club, ecc.",
+  "入力するデータは、自分のクラブが実施し、地域社会に役立った青少年奉仕プロジェクトのものです。例：インターアクトクラブの設立、ローターアクトクラブの設立など。",
+  "입력할 데이터는 우리 클럽이 진행하여 지역사회에 도움이 된 청소년봉사 프로젝트입니다. 예: 인터랙트 클럽 창립, 로타랙트 클럽 창립 등.",
+  "Os dados que vou inserir são de um projeto de Serviços às Novas Gerações realizado pelo meu clube em benefício da minha comunidade. Ex.: fundação de um Interact Club, fundação de um Rotaract Club etc.",
+  "Los datos que voy a introducir son de un proyecto de Servicio a las Nuevas Generaciones realizado por mi club en beneficio de mi comunidad. P. ej.: fundación de un club Interact, fundación de un club Rotaract, etc."
+ ],
+ "The data I will enter is for a Public Image Initiative conducted by my club. E.g., Hoardings, Marathons, Rotary Stories on News Papers / Radio / TV ads, etc.": [
+  "Les données que je vais saisir concernent une action d'image publique menée par mon club. Ex. : panneaux publicitaires, marathons, articles sur le Rotary dans les journaux / spots radio / TV, etc.",
+  "Die Daten, die ich eingebe, betreffen eine Öffentlichkeitsarbeit-Initiative meines Clubs. Z. B. Plakatwände, Marathons, Rotary-Berichte in Zeitungen / Radio- und TV-Spots usw.",
+  "I dati che inserirò riguardano un'iniziativa di immagine pubblica del mio club. Es.: cartelloni, maratone, notizie sul Rotary su giornali / spot radio / TV, ecc.",
+  "入力するデータは、自分のクラブが実施した公共イメージの取り組みのものです。例：屋外広告、マラソン、新聞・ラジオ・テレビでのロータリー紹介など。",
+  "입력할 데이터는 우리 클럽이 진행한 공공 이미지 활동입니다. 예: 옥외 광고판, 마라톤, 신문/라디오/TV의 로타리 소식 등.",
+  "Os dados que vou inserir são de uma iniciativa de imagem pública realizada pelo meu clube. Ex.: outdoors, maratonas, matérias sobre o Rotary em jornais / anúncios de rádio / TV etc.",
+  "Los datos que voy a introducir son de una iniciativa de imagen pública realizada por mi club. P. ej.: vallas publicitarias, maratones, noticias de Rotary en periódicos / anuncios de radio / TV, etc."
+ ],
+ "Please Note: The content posted here will be displayed on the ROW Website, District Website, Club Monthly Report & ROW Integrated Club Website": [
+  "Remarque : le contenu publié ici apparaîtra sur le site ROW, le site du district, le rapport mensuel du club et le site du club intégré à ROW",
+  "Hinweis: Die hier veröffentlichten Inhalte erscheinen auf der ROW-Website, der Distrikt-Website, im Club-Monatsbericht und auf der in ROW integrierten Club-Website",
+  "Nota: il contenuto pubblicato qui apparirà sul sito ROW, sul sito del distretto, nel rapporto mensile del club e sul sito del club integrato in ROW",
+  "注：ここに投稿した内容は、ROWウェブサイト、地区ウェブサイト、クラブ月次報告、ROW連携のクラブウェブサイトに表示されます",
+  "참고: 여기에 게시한 내용은 ROW 웹사이트, 지구 웹사이트, 클럽 월간 보고서, ROW 연동 클럽 웹사이트에 표시됩니다",
+  "Observação: o conteúdo publicado aqui aparecerá no site do ROW, no site do distrito, no relatório mensal do clube e no site do clube integrado ao ROW",
+  "Nota: el contenido publicado aquí aparecerá en el sitio web de ROW, el sitio web del distrito, el informe mensual del club y el sitio web del club integrado en ROW"
+ ],
+ "The data I will enter is for a Meeting / Event conducted by my club. E.g., Installation, Navratri Celebration, Weekly Meetings, Etc.": [
+  "Les données que je vais saisir concernent une réunion / un événement organisé par mon club. Ex. : passation de pouvoirs, fête de Navratri, réunions hebdomadaires, etc.",
+  "Die Daten, die ich eingebe, betreffen ein Meeting / eine Veranstaltung meines Clubs. Z. B. Amtsübergabe, Navratri-Feier, wöchentliche Meetings usw.",
+  "I dati che inserirò riguardano una riunione / un evento del mio club. Es.: insediamento, festa di Navratri, riunioni settimanali, ecc.",
+  "入力するデータは、自分のクラブが実施した例会／イベントのものです。例：就任式、ナヴラートリ祭、週例会など。",
+  "입력할 데이터는 우리 클럽이 진행한 모임/행사입니다. 예: 취임식, 나브라트리 축제, 주례 모임 등.",
+  "Os dados que vou inserir são de uma reunião / evento realizado pelo meu clube. Ex.: posse, celebração de Navratri, reuniões semanais etc.",
+  "Los datos que voy a introducir son de una reunión / evento realizado por mi club. P. ej.: toma de posesión, celebración de Navratri, reuniones semanales, etc."
+ ]
+}

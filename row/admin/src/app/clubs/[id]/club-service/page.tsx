@@ -40,6 +40,7 @@ import SearchBox from "@/components/SearchBox";
 
 import { appLocale } from "@/lib/appFormat";
 import { ListPageSkeleton } from "@/components/row/AppKit";
+import AgreeText from "@/components/AgreeText";
 const MEETING_TYPE_LABELS: Record<string, string> = {
   regular: "Regular",
   fellowship: "Fellowship",
@@ -364,7 +365,7 @@ export default function ClubServicePage() {
           title="I Agree"
           description={
             <div className="whitespace-pre-line text-sm text-muted-foreground">
-              {AGREE_MESSAGE}
+              <AgreeText text={AGREE_MESSAGE} />
             </div>
           }
           confirmLabel="I Agree & Continue"

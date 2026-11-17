@@ -51,6 +51,7 @@ import AddToOrgConfirmDialog from "@/components/AddToOrgConfirmDialog";
 
 import { appLocale } from "@/lib/appFormat";
 import { SkeletonRows } from "@/components/row/AppKit";
+import AgreeText from "@/components/AgreeText";
 const SYNC_API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
 const AGREE_MESSAGE = `The data I will enter is for a Community service project conducted by my club that has benefitted my community. E.g., Heart Surgeries, Tree Plantation, etc.
@@ -489,7 +490,7 @@ export default function CommunityServiceV2Page() {
           title="I Agree"
           description={
             <div className="whitespace-pre-line text-sm text-muted-foreground">
-              {AGREE_MESSAGE}
+              <AgreeText text={AGREE_MESSAGE} />
             </div>
           }
           confirmLabel="I Agree & Continue"

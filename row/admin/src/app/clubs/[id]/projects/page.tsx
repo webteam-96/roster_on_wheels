@@ -42,6 +42,7 @@ import { formatMoney } from "@/lib/currency";
 
 import { appLocale } from "@/lib/appFormat";
 import { ListPageSkeleton } from "@/components/row/AppKit";
+import AgreeText from "@/components/AgreeText";
 const MODULE_LABELS: Record<string, string> = {
   club_service: "Club Service",
   community_service: "Community Service",
@@ -480,7 +481,7 @@ export default function ProjectsPage() {
           title="I Agree"
           description={
             <div className="whitespace-pre-line text-sm text-muted-foreground">
-              {AGREE_MESSAGES[moduleKey]}
+              <AgreeText text={AGREE_MESSAGES[moduleKey]} />
             </div>
           }
           confirmLabel="I Agree & Continue"

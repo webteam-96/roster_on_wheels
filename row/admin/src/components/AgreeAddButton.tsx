@@ -10,6 +10,7 @@ import { Plus, Info } from "@/components/icons";
 import AlertModal from "@/components/AlertModal";
 import RotaryLoader from "@/components/RotaryLoader";
 
+import AgreeText from "@/components/AgreeText";
 const DEFAULT_CLASS =
   "inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg bg-emerald-600 text-white hover:bg-emerald-700";
 
@@ -46,7 +47,7 @@ export default function AgreeAddButton({
         icon={Info}
         iconClassName="text-blue-500"
         title="I Agree"
-        description={<div className="whitespace-pre-line text-sm text-muted-foreground">{message}</div>}
+        description={<div className="whitespace-pre-line text-sm text-muted-foreground"><AgreeText text={message} /></div>}
         confirmLabel="I Agree & Continue"
         onConfirm={go}
         cancelLabel="Cancel"

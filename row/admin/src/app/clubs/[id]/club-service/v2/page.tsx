@@ -38,6 +38,7 @@ import { fileTimestamp } from "@/lib/dateUtils";
 import { useSyncClubIdFromUrl } from "@/hooks/useSyncClubIdFromUrl";
 import { SkeletonRows } from "@/components/row/AppKit";
 
+import AgreeText from "@/components/AgreeText";
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
 const MEETING_TYPE_LABELS: Record<string, string> = {
@@ -422,7 +423,7 @@ export default function ClubServiceV2Page() {
           title="I Agree"
           description={
             <div className="whitespace-pre-line text-sm text-muted-foreground">
-              {AGREE_MESSAGE}
+              <AgreeText text={AGREE_MESSAGE} />
             </div>
           }
           confirmLabel="I Agree & Continue"

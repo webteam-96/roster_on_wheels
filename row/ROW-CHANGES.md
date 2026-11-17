@@ -868,8 +868,9 @@ the server translated only 8.
     joins adjacent literals, so the ~35 sentences split over several source lines always showed in English.
     `tool/gen_ui_strings.py` now also lists the joined sentence; `join_split.py` writes their translations from the
     reviewed pieces (`ui-labels-29.json`, rerun after fixing a piece) and `ui-labels-30.json` holds five translated
-    whole. Still English: the six project-type notices in `projects_screen.dart`, which end in `$_kAgreeNote`
-    (interpolated, so never a fixed string).
+    whole. The project "I Agree" notices (app and web) showed in English for the same reason: the app now translates
+    the notice and its shared note separately (`{app}` stands for the product name in the note), and the web renders
+    each paragraph as its own element (`components/AgreeText.tsx`); their translations are in `ui-labels-31.json`.
   - **Production:** run the SQL file, then recycle the API app pool (the API caches translations in memory). Web and
     app drop their saved translations by themselves (the file bumps `translation_memory_version`).
   - **DeepL for the rest:** in the server's `api\web.config` set `Translation__Provider = deepl` and

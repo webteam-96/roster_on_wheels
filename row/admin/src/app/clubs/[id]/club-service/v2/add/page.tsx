@@ -44,6 +44,7 @@ import ImageCropDialog from "@/components/ImageCropDialog";
 import { useImageCropQueue } from "@/hooks/useImageCropQueue";
 import { ListPageSkeleton } from "@/components/row/AppKit";
 
+import AgreeText from "@/components/AgreeText";
 // Project photos are shown 16:9 on the public site (components/pages/projects/shared.tsx),
 // so the crop is locked to that shape. 1600×900 keeps the widest card retina-sharp.
 const PROJECT_PHOTO_ASPECT = 16 / 9;
@@ -642,7 +643,7 @@ export default function ClubServiceV2AddPage() {
             </DialogTitle>
           </DialogHeader>
           <div className="whitespace-pre-line text-sm text-slate-700">
-            {AGREE_MESSAGE}
+            <AgreeText text={AGREE_MESSAGE} />
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={handleAgreeCancel}>Cancel</Button>

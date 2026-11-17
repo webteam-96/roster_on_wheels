@@ -37,7 +37,7 @@ def unescape(s):
 out, missing = {"_columns": ["fr", "de", "it", "ja", "ko", "pt", "es"],
                 "_note": "Whole sentences the app joins from adjacent literals (2026-11-17). Each is the join of its reviewed pieces; edit the pieces, then rerun."}, []
 for p in sorted((ROW / "mobile/lib").rglob("*.dart")):
-    text = p.read_text(encoding="utf-8")
+    text = re.sub(r"(?m)^\s*//.*$", "", p.read_text(encoding="utf-8"))  # skip commented-out code
     for m in RUN.finditer(text):
         if text[:m.start()].rstrip()[-1:] in ("'", '"') or re.match(r"""\s*['"]""", text[m.end():]):
             continue

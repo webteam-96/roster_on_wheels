@@ -52,6 +52,7 @@ import AddToOrgConfirmDialog from "@/components/AddToOrgConfirmDialog";
 
 import { currencySymbol } from "@/lib/appFormat";
 import { SkeletonRows } from "@/components/row/AppKit";
+import AgreeText from "@/components/AgreeText";
 const SYNC_API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
 const MODULE_KEY = "public_image_initiative";
@@ -600,7 +601,7 @@ export default function PublicImageInitiativeV2Page() {
           title="I Agree"
           description={
             <div className="whitespace-pre-line text-sm text-muted-foreground">
-              {AGREE_MESSAGE}
+              <AgreeText text={AGREE_MESSAGE} />
             </div>
           }
           confirmLabel="I Agree & Continue"

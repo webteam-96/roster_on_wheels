@@ -27,6 +27,7 @@ import 'package:rotary_flutter_app/core/brand/brand.dart';
 import 'package:rotary_flutter_app/core/utils/currency_symbol.dart';
 import 'package:rotary_flutter_app/core/theme/app_fonts.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
+import 'package:rotary_flutter_app/core/i18n/live_translator.dart' show TranslationScope;
 
 // Flutter uses string module keys; backend requires numeric moduleId.
 // IDs are looked up dynamically from `/api/modules` (see _resolveModuleId)
@@ -57,61 +58,60 @@ String _canonicalModuleKey(String key) {
   }
 }
 
-/// The "Please Note" paragraph shared by every module's agreement text.
-String get _kAgreeNote =>
-    'Please Note: The content posted here will be displayed on the '
-    '${Brand.current.productName} Website, District Website, Club Monthly Report & '
-    '${Brand.current.productName} Integrated Club Website';
+/// The "Please Note" paragraph shared by every module's agreement text. Kept as one fixed string, with {app} for the
+/// product name, so it is translated whole (see `_showAgreementDialog`).
+const _kAgreeNote = 'Please Note: The content posted here will be displayed on the {app} Website, District Website, '
+    'Club Monthly Report & {app} Integrated Club Website';
 
 /// Per-module "I Agree" disclaimer text shown when tapping Add (mirrors the web
 /// frontend's AGREE_MESSAGE per module). Keyed by canonical module key.
-final Map<String, String> _kAgreeMessages = {
+const Map<String, String> _kAgreeMessages = {
   'club_service':
       'The data I will enter is for a Meeting / Event conducted by my club. '
           'E.g., Installation, Navratri Celebration, Weekly Meetings, Etc.\n\n'
           'It is not a Community / Vocational / International / New Generation '
           'Service. E.g., Blood Donation Camp, Tree Plantation, Heart Surgeries, '
-          'etc.\n\n$_kAgreeNote',
+          'etc.',
   'community_service':
       'The data I will enter is for a Community service project conducted by my '
           'club that has benefitted my community. E.g., Heart Surgeries, Tree '
-          'Plantation, etc.\n\n$_kAgreeNote',
+          'Plantation, etc.',
           // 'It is not a club meeting, fellowship meeting, club celebration or any '
           // 'other miscellaneous event or Project. E.g., Doctor\'s day celebration, '
           // 'Birthday and Anniversary celebration of members, Navratri Celebration, '
-          // 'etc.\n\n$_kAgreeNote',
+          // 'etc.',
   'vocational_service':
       'The data I will enter is for a Vocational service project conducted by my '
           'club that has benefitted my community. E.g., Career Guidance and Skill '
-          'Development, Computer Literacy, etc.\n\n$_kAgreeNote',
+          'Development, Computer Literacy, etc.',
           // 'It is not a club meeting, fellowship meeting, club celebration or any '
           // 'other miscellaneous event or Project. E.g., Doctor\'s day celebration, '
           // 'Birthday and Anniversary celebration of members, Blood Donation Camp, '
-          // 'etc.\n\n$_kAgreeNote',
+          // 'etc.',
   'international_service':
       'The data I will enter is for a International Service project conducted by '
           'my club that has benefitted my community. E.g., Rotary Youth Exchange, '
-          'Rotary Friendship Exchange, etc.\n\n$_kAgreeNote',
+          'Rotary Friendship Exchange, etc.',
           // 'It is not a club meeting, fellowship meeting, club celebration or any '
           // 'other miscellaneous event or Project. E.g., Doctor\'s day celebration, '
           // 'Birthday and Anniversary celebration of members, Blood Donation Camp, '
-          // 'etc.\n\n$_kAgreeNote',
+          // 'etc.',
   'new_generation_service':
       'The data I will enter is for a New generation Service Project conducted by '
           'my club that has benefitted my community. E.g., Formation of an Interact '
-          'Club, Formation of a Rotaract Club, etc.\n\n$_kAgreeNote',
+          'Club, Formation of a Rotaract Club, etc.',
           // 'It is not a club meeting, fellowship meeting, club celebration or any '
           // 'other miscellaneous event or Project. E.g., Doctor\'s day celebration, '
           // 'Birthday and Anniversary celebration of members, Blood Donation Camp, '
-          // 'etc.\n\n$_kAgreeNote',
+          // 'etc.',
   'public_image_initiative':
       'The data I will enter is for a Public Image Initiative conducted by my '
           'club. E.g., Hoardings, Marathons, Rotary Stories on News Papers / Radio '
-          '/ TV ads, etc.\n\n$_kAgreeNote',
+          '/ TV ads, etc.',
           // 'It is not a club meeting, fellowship meeting, club celebration or any '
           // 'other miscellaneous event or Project. E.g., Doctor\'s day celebration, '
           // 'Birthday and Anniversary celebration of members, Blood Donation Camp, '
-          // 'etc.\n\n$_kAgreeNote',
+          // 'etc.',
 };
 
 /// Fetches `/api/modules` and returns the id of the module whose moduleKey
@@ -943,8 +943,11 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
   /// Shows the per-module "I Agree" disclaimer (web parity). Returns true when
   /// the user taps "I Agree & Continue", false/null on Cancel or dismiss.
   Future<bool?> _showAgreementDialog() {
-    final message = _kAgreeMessages[_canonicalModuleKey(widget.moduleType)] ??
+    final body = _kAgreeMessages[_canonicalModuleKey(widget.moduleType)] ??
         _kAgreeMessages['community_service']!;
+    // Body and note are translated one by one: the joined text is never a fixed string, so it has no translation.
+    final message = '${TranslationScope.of(context, body)}\n\n'
+        '${TranslationScope.of(context, _kAgreeNote).replaceAll('{app}', Brand.current.productName)}';
     final maxH = MediaQuery.of(context).size.height * 0.8;
     return showDialog<bool>(
       context: context,

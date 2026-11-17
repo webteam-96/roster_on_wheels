@@ -40,6 +40,7 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 
 import { appLocale, currencySymbol } from "@/lib/appFormat";
 import { ListPageSkeleton } from "@/components/row/AppKit";
+import AgreeText from "@/components/AgreeText";
 const AGREE_MESSAGE = `The data I will enter is for a Public Image Initiative conducted by my club. E.g., Hoardings, Marathons, Rotary Stories on News Papers / Radio / TV ads, etc.
 
 Please Note: The content posted here will be displayed on the ROW Website, District Website, Club Monthly Report & ROW Integrated Club Website`;
@@ -422,7 +423,7 @@ export default function PublicImageInitiativePage() {
           title="I Agree"
           description={
             <div className="whitespace-pre-line text-sm text-muted-foreground">
-              {AGREE_MESSAGE}
+              <AgreeText text={AGREE_MESSAGE} />
             </div>
           }
           confirmLabel="I Agree & Continue"
