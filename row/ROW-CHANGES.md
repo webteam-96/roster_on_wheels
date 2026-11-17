@@ -862,6 +862,14 @@ the server translated only 8.
     paths, time-zone IDs, code tokens, brand and platform names, counts with numbers in them, and the text of the
     legal pages (terms, privacy, cookies, refunds, data processing agreement): legal text needs a reviewed
     translation, not a glossary one. `build_sql.py` now also checks keys against `.ts` files, not only `.tsx`.
+  - **Full review, all 7 languages (2026-11-17):** every label read, one term per Rotary concept per language
+    (corrections in `review/corrections/`, applied with `fix_labels.py`). Not a native-speaker review.
+  - **Split sentences (2026-11-17):** the app translates a text only when the whole string is in `uiStrings`, and Dart
+    joins adjacent literals, so the ~35 sentences split over several source lines always showed in English.
+    `tool/gen_ui_strings.py` now also lists the joined sentence; `join_split.py` writes their translations from the
+    reviewed pieces (`ui-labels-29.json`, rerun after fixing a piece) and `ui-labels-30.json` holds five translated
+    whole. Still English: the six project-type notices in `projects_screen.dart`, which end in `$_kAgreeNote`
+    (interpolated, so never a fixed string).
   - **Production:** run the SQL file, then recycle the API app pool (the API caches translations in memory). Web and
     app drop their saved translations by themselves (the file bumps `translation_memory_version`).
   - **DeepL for the rest:** in the server's `api\web.config` set `Translation__Provider = deepl` and

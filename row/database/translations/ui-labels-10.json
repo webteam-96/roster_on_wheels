@@ -221,7 +221,7 @@
 "Past President hinzufügen",
 "Aggiungi Past President",
 "パスト会長を追加",
-"역대 회장 추가",
+"전임 회장 추가",
 "Adicionar ex-presidente",
 "Agregar expresidente"
 ],
@@ -230,7 +230,7 @@
 "Potenzielles Mitglied hinzufügen",
 "Aggiungi socio potenziale",
 "入会候補者を追加",
-"잠재 회원 추가",
+"예비 회원 추가",
 "Adicionar associado em potencial",
 "Agregar socio potencial"
 ],
@@ -509,7 +509,7 @@
 "Club-Massen-E-Mails (Kampagnen)",
 "Email di massa del club (campagne)",
 "クラブ一斉メール（キャンペーン）",
-"클럽 단체 이메일 (캠페인)",
+"클럽 대량 이메일 (캠페인)",
 "E-mails em massa do clube (campanhas)",
 "Correos masivos del club (campañas)"
 ],
@@ -923,7 +923,7 @@
 "Rotary-Zonen verwalten",
 "Gestisci zone Rotary",
 "ロータリーゾーンを管理",
-"로타리 지역 관리",
+"로타리 존 관리",
 "Gerenciar zonas do Rotary",
 "Gestionar zonas de Rotary"
 ],
@@ -1256,7 +1256,7 @@
 "Past President speichern",
 "Salva Past President",
 "パスト会長を保存",
-"역대 회장 저장",
+"전임 회장 저장",
 "Salvar ex-presidente",
 "Guardar expresidente"
 ],

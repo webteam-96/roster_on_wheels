@@ -1,0 +1,386 @@
+[
+ {
+  "en": "Potential Members",
+  "lang": "ko",
+  "to": "예비 회원",
+  "why": "ko batch 1: terms"
+ },
+ {
+  "en": "Add Past President",
+  "lang": "ko",
+  "to": "전임 회장 추가",
+  "why": "ko batch 1: terms"
+ },
+ {
+  "en": "Add Potential Member",
+  "lang": "ko",
+  "to": "예비 회원 추가",
+  "why": "ko batch 1: terms"
+ },
+ {
+  "en": "Save Past President",
+  "lang": "ko",
+  "to": "전임 회장 저장",
+  "why": "ko batch 1: terms"
+ },
+ {
+  "en": "100% of AG total",
+  "lang": "ko",
+  "to": "지역대표 합계의 100%",
+  "why": "ko batch 1: terms"
+ },
+ {
+  "en": "AG Club Name",
+  "lang": "ko",
+  "to": "지역대표 클럽 이름",
+  "why": "ko batch 1: terms"
+ },
+ {
+  "en": "AG Email ID",
+  "lang": "ko",
+  "to": "지역대표 이메일",
+  "why": "ko batch 1: terms"
+ },
+ {
+  "en": "AG GROUP COMBINED TOTALS",
+  "lang": "ko",
+  "to": "지역대표 그룹 합계",
+  "why": "ko batch 1: terms"
+ },
+ {
+  "en": "AG GROUP IMPACT SUMMARY",
+  "lang": "ko",
+  "to": "지역대표 그룹 성과 요약",
+  "why": "ko batch 1: terms"
+ },
+ {
+  "en": "AG Mobile",
+  "lang": "ko",
+  "to": "지역대표 휴대폰",
+  "why": "ko batch 1: terms"
+ },
+ {
+  "en": "AG Name",
+  "lang": "ko",
+  "to": "지역대표 이름",
+  "why": "ko batch 1: terms"
+ },
+ {
+  "en": "AG Total",
+  "lang": "ko",
+  "to": "지역대표 합계",
+  "why": "ko batch 1: terms"
+ },
+ {
+  "en": "AG Total (All Clubs)",
+  "lang": "ko",
+  "to": "지역대표 합계(전체 클럽)",
+  "why": "ko batch 1: terms"
+ },
+ {
+  "en": "AG access required",
+  "lang": "ko",
+  "to": "지역대표 권한이 필요합니다",
+  "why": "ko batch 1: terms"
+ },
+ {
+  "en": "Add your first potential member.",
+  "lang": "ko",
+  "to": "첫 예비 회원을 추가하세요.",
+  "why": "ko batch 1: terms"
+ },
+ {
+  "en": "Attendance (AG wise)",
+  "lang": "ko",
+  "to": "출석(지역대표별)",
+  "why": "ko batch 1: terms"
+ },
+ {
+  "en": "Birthday & anniversary greetings are paused",
+  "lang": "ko",
+  "to": "생일 및 결혼기념일 축하가 일시 중지되었습니다",
+  "why": "ko batch 1: terms"
+ },
+ {
+  "en": "Club Monthly Report AG wise (Project Details)",
+  "lang": "ko",
+  "to": "지역대표별 클럽 월간 보고서(프로젝트 상세)",
+  "why": "ko batch 1: terms"
+ },
+ {
+  "en": "Could not generate any club report for this AG.",
+  "lang": "ko",
+  "to": "이 지역대표의 클럽 보고서를 만들 수 없습니다.",
+  "why": "ko batch 1: terms"
+ },
+ {
+  "en": "Delete this potential member?",
+  "lang": "ko",
+  "to": "이 예비 회원을 삭제하시겠습니까?",
+  "why": "ko batch 1: terms"
+ },
+ {
+  "en": "Deleted / Terminated",
+  "lang": "ko",
+  "to": "삭제됨 / 탈퇴",
+  "why": "ko batch 1: terms"
+ },
+ {
+  "en": "Edit Potential Member",
+  "lang": "ko",
+  "to": "예비 회원 편집",
+  "why": "ko batch 1: terms"
+ },
+ {
+  "en": "Enter newsletter title",
+  "lang": "ko",
+  "to": "소식지 제목 입력",
+  "why": "ko batch 1: terms"
+ },
+ {
+  "en": "Governor's Official Visit (AG Wise)",
+  "lang": "ko",
+  "to": "총재 공식 방문(지역대표별)",
+  "why": "ko batch 1: terms"
+ },
+ {
+  "en": "Manage terminated and prospective members",
+  "lang": "ko",
+  "to": "탈퇴 회원 및 예비 회원 관리",
+  "why": "ko batch 1: terms"
+ },
+ {
+  "en": "Members (AG wise)",
+  "lang": "ko",
+  "to": "회원(지역대표별)",
+  "why": "ko batch 1: terms"
+ },
+ {
+  "en": "New bulletins and newsletters",
+  "lang": "ko",
+  "to": "새 주보 및 소식지",
+  "why": "ko batch 1: terms"
+ },
+ {
+  "en": "Newsletters, announcements and mass emails",
+  "lang": "ko",
+  "to": "소식지, 공지사항 및 대량 이메일",
+  "why": "ko batch 1: terms"
+ },
+ {
+  "en": "No Potential Members",
+  "lang": "ko",
+  "to": "예비 회원이 없습니다",
+  "why": "ko batch 1: terms"
+ },
+ {
+  "en": "No club data available for this AG group.",
+  "lang": "ko",
+  "to": "이 지역대표 그룹의 클럽 데이터가 없습니다.",
+  "why": "ko batch 1: terms"
+ },
+ {
+  "en": "No clubs found under this AG for the year.",
+  "lang": "ko",
+  "to": "올해 이 지역대표 소속 클럽이 없습니다.",
+  "why": "ko batch 1: terms"
+ },
+ {
+  "en": "No newsletters have been posted yet.",
+  "lang": "ko",
+  "to": "아직 게시된 소식지가 없습니다.",
+  "why": "ko batch 1: terms"
+ },
+ {
+  "en": "No potential members.",
+  "lang": "ko",
+  "to": "예비 회원이 없습니다.",
+  "why": "ko batch 1: terms"
+ },
+ {
+  "en": "No prospective members.",
+  "lang": "ko",
+  "to": "예비 회원이 없습니다.",
+  "why": "ko batch 1: terms"
+ },
+ {
+  "en": "Only AG (Assistant Governor) can access this page.",
+  "lang": "ko",
+  "to": "이 페이지는 지역대표만 이용할 수 있습니다.",
+  "why": "ko batch 1: terms"
+ },
+ {
+  "en": "Please select an AG to download",
+  "lang": "ko",
+  "to": "다운로드할 지역대표를 선택하세요",
+  "why": "ko batch 1: terms"
+ },
+ {
+  "en": "Project activity, community impact, and monthly trends across your AG group",
+  "lang": "ko",
+  "to": "지역대표 그룹의 프로젝트 활동, 지역사회 영향 및 월별 추세",
+  "why": "ko batch 1: terms"
+ },
+ {
+  "en": "Prospective Members (All Clubs)",
+  "lang": "ko",
+  "to": "예비 회원(전체 클럽)",
+  "why": "ko batch 1: terms"
+ },
+ {
+  "en": "Ready: every club under this AG (zipped)",
+  "lang": "ko",
+  "to": "준비 완료: 이 지역대표의 모든 클럽(ZIP)",
+  "why": "ko batch 1: terms"
+ },
+ {
+  "en": "Search potential members...",
+  "lang": "ko",
+  "to": "예비 회원 검색...",
+  "why": "ko batch 1: terms"
+ },
+ {
+  "en": "Side-by-side activity across every club in the AG's scope",
+  "lang": "ko",
+  "to": "지역대표 담당 모든 클럽의 활동 비교",
+  "why": "ko batch 1: terms"
+ },
+ {
+  "en": "Tap + to create a new newsletter.",
+  "lang": "ko",
+  "to": "+를 눌러 새 소식지를 만드세요.",
+  "why": "ko batch 1: terms"
+ },
+ {
+  "en": "Terminated and prospective members across the district",
+  "lang": "ko",
+  "to": "지구 전체 탈퇴 회원 및 예비 회원",
+  "why": "ko batch 1: terms"
+ },
+ {
+  "en": "This newsletter is no longer available.",
+  "lang": "ko",
+  "to": "이 소식지는 더 이상 볼 수 없습니다.",
+  "why": "ko batch 1: terms"
+ },
+ {
+  "en": "Past President",
+  "lang": "ko",
+  "to": "전임 회장",
+  "why": "ko batch 1: terms"
+ },
+ {
+  "en": "Total Potential",
+  "lang": "ko",
+  "to": "전체 예비 회원",
+  "why": "ko batch 1: terms"
+ },
+ {
+  "en": "Year is not stored for birthdays & anniversaries.",
+  "lang": "ko",
+  "to": "생일과 결혼기념일의 연도는 저장되지 않습니다.",
+  "why": "ko batch 1: terms"
+ },
+ {
+  "en": "Birthdays & anniversaries",
+  "lang": "ko",
+  "to": "생일 및 결혼기념일",
+  "why": "ko batch 1: terms"
+ },
+ {
+  "en": "Emails sent to your club/district members (announcements, events, newsletters, credentials, etc.): full history from the email log.",
+  "lang": "ko",
+  "to": "클럽/지구 회원에게 보낸 이메일(공지, 행사, 소식지, 로그인 정보 등): 이메일 로그의 전체 기록.",
+  "why": "ko batch 1: terms"
+ },
+ {
+  "en": "Please post all the Club Services executed by your club. The content posted here will be displayed in the Club monthly report, District Website & ROW integrated Club website.",
+  "lang": "ko",
+  "to": "클럽이 수행한 모든 클럽봉사를 등록하세요. 여기에 등록한 내용은 클럽 월간 보고서, 지구 웹사이트, ROW 연동 클럽 웹사이트에 표시됩니다.",
+  "why": "ko batch 1: terms"
+ },
+ {
+  "en": "Enable Anniversary Email",
+  "lang": "ko",
+  "to": "결혼기념일 이메일 사용",
+  "why": "ko batch 1: terms"
+ },
+ {
+  "en": "Enable Anniversary Notifications",
+  "lang": "ko",
+  "to": "결혼기념일 알림 사용",
+  "why": "ko batch 1: terms"
+ },
+ {
+  "en": "No newsletters found",
+  "lang": "ko",
+  "to": "소식지를 찾을 수 없습니다",
+  "why": "ko batch 1: terms"
+ },
+ {
+  "en": "Document club service projects with photographs and impact data;",
+  "lang": "ko",
+  "to": "클럽봉사 프로젝트를 사진과 성과 데이터로 기록합니다;",
+  "why": "ko batch 1: terms"
+ },
+ {
+  "en": "Club service meetings and projects",
+  "lang": "ko",
+  "to": "클럽봉사 회의 및 프로젝트",
+  "why": "ko batch 1: terms"
+ },
+ {
+  "en": "Create a new club service meeting",
+  "lang": "ko",
+  "to": "새 클럽봉사 회의 만들기",
+  "why": "ko batch 1: terms"
+ },
+ {
+  "en": "No newsletters recorded for this year.",
+  "lang": "ko",
+  "to": "올해 등록된 소식지가 없습니다.",
+  "why": "ko batch 1: terms"
+ },
+ {
+  "en": "Newsletters are visible to members during the configured publish window. After the expiry date the newsletter is archived but stays viewable in the listing.",
+  "lang": "ko",
+  "to": "소식지는 설정한 게시 기간 동안 회원에게 표시됩니다. 만료일이 지나면 보관되지만 목록에서 계속 볼 수 있습니다.",
+  "why": "ko batch 1: terms"
+ },
+ {
+  "en": "Click \"Add Potential Member\" to add one.",
+  "lang": "ko",
+  "to": "'예비 회원 추가'를 클릭하여 추가하세요.",
+  "why": "ko batch 1: terms"
+ },
+ {
+  "en": "Manage district newsletters",
+  "lang": "ko",
+  "to": "지구 소식지 관리",
+  "why": "ko batch 1: terms"
+ },
+ {
+  "en": "District newsletters are visible to all clubs in the district during the configured publish window. After the expiry date the newsletter is archived but stays viewable in the listing.",
+  "lang": "ko",
+  "to": "지구 소식지는 설정한 게시 기간 동안 지구 내 모든 클럽에 표시됩니다. 만료일이 지나면 보관되지만 목록에서 계속 볼 수 있습니다.",
+  "why": "ko batch 1: terms"
+ },
+ {
+  "en": "Potential Members (Prospects)",
+  "lang": "ko",
+  "to": "예비 회원",
+  "why": "ko batch 1: terms"
+ },
+ {
+  "en": "5 service avenues (excl. Club Services)",
+  "lang": "ko",
+  "to": "5개 봉사 부문 (클럽봉사 제외)",
+  "why": "ko batch 1: terms"
+ },
+ {
+  "en": "Potential",
+  "lang": "ko",
+  "to": "예비 회원",
+  "why": "ko batch 1: terms"
+ }
+]

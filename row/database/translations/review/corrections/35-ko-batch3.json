@@ -1,0 +1,86 @@
+[
+ {
+  "en": "Lives impacted",
+  "lang": "ko",
+  "to": "수혜 인원",
+  "why": "ko batch 3"
+ },
+ {
+  "en": "Manage Rotary zones",
+  "lang": "ko",
+  "to": "로타리 존 관리",
+  "why": "ko batch 3"
+ },
+ {
+  "en": "Mobile number, email, Rotary ID and honorary status are managed by your ",
+  "lang": "ko",
+  "to": "휴대폰 번호, 이메일, 로타리 ID, 명예회원 여부는 ",
+  "why": "ko batch 3"
+ },
+ {
+  "en": "District Delegates",
+  "lang": "ko",
+  "to": "지구 대의원",
+  "why": "ko batch 3"
+ },
+ {
+  "en": "From meeting records",
+  "lang": "ko",
+  "to": "모임 기록 기준",
+  "why": "ko batch 3"
+ },
+ {
+  "en": "Manage meeting attendance",
+  "lang": "ko",
+  "to": "모임 출석 관리",
+  "why": "ko batch 3"
+ },
+ {
+  "en": "Derived from system data (projects, meetings, members, etc.)",
+  "lang": "ko",
+  "to": "시스템 데이터(프로젝트, 모임, 회원 등)에서 산출",
+  "why": "ko batch 3"
+ },
+ {
+  "en": "Manage club meetings & events",
+  "lang": "ko",
+  "to": "클럽 모임 및 행사 관리",
+  "why": "ko batch 3"
+ },
+ {
+  "en": "No meetings found",
+  "lang": "ko",
+  "to": "모임를 찾을 수 없습니다",
+  "why": "ko batch 3"
+ },
+ {
+  "en": "No meetings recorded for this year.",
+  "lang": "ko",
+  "to": "올해 기록된 모임가 없습니다.",
+  "why": "ko batch 3"
+ },
+ {
+  "en": "Honorary Member (this club)",
+  "lang": "ko",
+  "to": "명예회원 (이 클럽)",
+  "why": "ko batch 3"
+ },
+ {
+  "en": "RI member types, for example active and honorary.",
+  "lang": "ko",
+  "to": "RI 회원 유형(예: 정회원, 명예회원).",
+  "why": "ko batch 3"
+ },
+ {
+  "en": "ROW vs Rotary.org member count per sync club. Rotary.org count is live (Active + Honorary).",
+  "lang": "ko",
+  "to": "동기화 클럽별 ROW와 Rotary.org 회원 수. Rotary.org 수치는 실시간입니다(정회원 + 명예회원).",
+  "why": "ko batch 3"
+ },
+ {
+  "en": "Join reasons",
+  "lang": "ko",
+  "to": "입회 사유",
+  "why": "ko batch 3"
+ }
+]
