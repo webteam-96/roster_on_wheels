@@ -267,7 +267,7 @@ export default function MenuListV2AddPage() {
           <select
             value={formLinkType}
             onChange={(e) => { setFormLinkType(e.target.value); setFormLinkValue(""); setFormContentHtml(""); }}
-            className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42] bg-white mb-4"
+            className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42] bg-card mb-4"
           >
             {LINK_TYPES.map((t) => (
               <option key={t.value} value={t.value}>{t.label}</option>
@@ -337,7 +337,7 @@ export default function MenuListV2AddPage() {
               <select
                 value={formLinkValue}
                 onChange={(e) => setFormLinkValue(e.target.value)}
-                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42] bg-white"
+                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42] bg-card"
               >
                 <option value="">Select an existing page…</option>
                 {pageOptions.map((p) => (
@@ -386,7 +386,7 @@ export default function MenuListV2AddPage() {
               <select
                 value={formIsActive}
                 onChange={(e) => setFormIsActive(e.target.value)}
-                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42] bg-white"
+                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42] bg-card"
               >
                 <option value="1">Active</option>
                 <option value="0">Inactive</option>

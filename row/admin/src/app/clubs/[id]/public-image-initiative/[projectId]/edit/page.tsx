@@ -74,7 +74,7 @@ function Section({ icon: Icon, title, children, number }: {
   number: number;
 }) {
   return (
-    <div className="relative bg-white rounded-[20px] border shadow-sm overflow-hidden">
+    <div className="relative bg-card rounded-[20px] border shadow-sm overflow-hidden">
       <div className="flex items-center gap-3 px-5 py-3.5 bg-primary/5 border-b">
         <div className="flex items-center justify-center h-8 w-8 rounded-full bg-primary text-primary-foreground text-sm font-bold shrink-0">
           {number}
@@ -707,7 +707,7 @@ export default function PublicImageInitiativeEditPage() {
 
             {/* Funding-conditional: Global Grant fields */}
             {showGlobalGrantBlock && (
-              <div className="sm:col-span-2 lg:col-span-3 space-y-3 border-l-4 border-primary bg-primary/5 rounded-md p-4 mt-1">
+              <div className="sm:col-span-2 lg:col-span-3 space-y-3 border border-primary/30 bg-primary/5 rounded-md p-4 mt-1">
                 <h4 className="text-sm font-semibold text-primary">Global Grant Details</h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
@@ -746,7 +746,7 @@ export default function PublicImageInitiativeEditPage() {
 
             {/* Funding-conditional: CSR fields */}
             {showCsrBlock && (
-              <div className="sm:col-span-2 lg:col-span-3 space-y-3 border-l-4 border-primary bg-primary/5 rounded-md p-4 mt-1">
+              <div className="sm:col-span-2 lg:col-span-3 space-y-3 border border-primary/30 bg-primary/5 rounded-md p-4 mt-1">
                 <h4 className="text-sm font-semibold text-primary">CSR Details</h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-1.5 md:col-span-2">

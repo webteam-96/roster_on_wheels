@@ -1,3 +1,4 @@
+using RotaryApi.Services;
 using System.Text;
 using ClosedXML.Excel;
 using Dapper;
@@ -50,16 +51,16 @@ public class BodSyncWorker
             ?? throw new InvalidOperationException("ConnectionStrings:DefaultConnection missing");
     }
 
-    private MySqlConnection CreateConnection() => new(_connectionString);
+    private MySqlConnection CreateConnection() => RowDb.Connect(_connectionString);
 
     // specificClubRotaryId: the club's Rotary.org id (ClubRotaryId, e.g. 28046) — NOT the internal
     // pk_club_id. Matches the --club-sync convention so testing a single club uses the id you know.
     public async Task RunAsync(int? specificClubRotaryId = null, bool recentYearsOnly = false, CancellationToken ct = default)
     {
         var startedAt = DateTime.UtcNow;
-        Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] === BOD Sync START ===");
+        Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] === BOD Sync START ===");
         if (specificClubRotaryId.HasValue)
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] (Test mode — only ClubRotaryId {specificClubRotaryId.Value})");
+            Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] (Test mode — only ClubRotaryId {specificClubRotaryId.Value})");
 
         int logId;
         await using (var conn = CreateConnection())
@@ -72,7 +73,7 @@ public class BodSyncWorker
                 SELECT LAST_INSERT_ID();",
                 new { By = triggeredBy });
         }
-        Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Log row created — logId={logId}");
+        Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] Log row created — logId={logId}");
 
         var addedDesignations = new List<string>();
         var addedYears = new List<string>();   // Rotary years auto-created in rotary_year_master during this run
@@ -105,14 +106,14 @@ public class BodSyncWorker
                 ORDER BY pk_club_id";
             var clubs = (await dbConn.QueryAsync<(int pk_id, string clubRotaryId, string clubName, int districtId, DateTime? charterDate)>(
                 clubsSql, new { SpecificRotaryId = (specificClubRotaryId ?? 0).ToString() })).ToList();
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Synced clubs to process: {clubs.Count}");
+            Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] Synced clubs to process: {clubs.Count}");
 
             // Load designations (designation_name → pk_designation_id)
             var designations = (await dbConn.QueryAsync<(int pk_id, string designationName)>(@"
                 SELECT pk_designation_id AS pk_id, designation_name AS designationName
                 FROM designation_master WHERE isdeleted = 0"))
                 .ToDictionary(x => x.designationName, x => x.pk_id, StringComparer.OrdinalIgnoreCase);
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Loaded {designations.Count} designations");
+            Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] Loaded {designations.Count} designations");
 
             // Load all members by RotaryId (for fast lookup)
             var membersByRotaryId = (await dbConn.QueryAsync<(int pk_id, string rotaryId)>(@"
@@ -120,7 +121,7 @@ public class BodSyncWorker
                 FROM member_master_profile
                 WHERE isdeleted = 0 AND RotaryId IS NOT NULL AND RotaryId <> ''"))
                 .ToDictionary(x => x.rotaryId.Trim(), x => x.pk_id, StringComparer.OrdinalIgnoreCase);
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Loaded {membersByRotaryId.Count} members with RotaryId");
+            Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] Loaded {membersByRotaryId.Count} members with RotaryId");
 
             // Load rotary years (YearLabel → pk_year_id)
             // YearLabel is "YYYY-YY" e.g., "2024-25"
@@ -131,11 +132,11 @@ public class BodSyncWorker
             var yearsByLabel = years.ToDictionary(y => y.yearLabel, y => y, StringComparer.OrdinalIgnoreCase);
             var yearsByPk = years.ToDictionary(y => y.pk_id, y => y);
             var currentYearLabel = years.FirstOrDefault(y => y.isCurrent == 1).yearLabel ?? "";
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Loaded {years.Count} Rotary years — current is '{currentYearLabel}'");
+            Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] Loaded {years.Count} Rotary years — current is '{currentYearLabel}'");
 
             // Determine end year for syncing (current Rotary year + 2)
             // Current Rotary year starts July 1. If today >= July 1 → year = today.Year, else today.Year - 1.
-            var today = DateTime.Today;
+            var today = DateTime.UtcNow.Date;
             var currentRotaryStartYear = today.Month >= 7 ? today.Year : today.Year - 1;
             var maxFromYear = currentRotaryStartYear + 2;  // sync up to year+2 (e.g., 2027-28 starts 2027)
 
@@ -189,7 +190,7 @@ public class BodSyncWorker
                     totalErrors++;
                     var isTimeout = ex is OperationCanceledException;
                     errors.Add(new BodErrorRow { ClubId = club.pk_id, ClubName = club.clubName, YearLabel = "", MemberRotaryId = "", DesignationName = "", Reason = isTimeout ? "API: officers call timed out (90s) — club skipped this run" : $"API: {ex.Message}" });
-                    Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] [{clubIdx}/{clubs.Count}] {club.clubName,-40} API ERROR — {(isTimeout ? "timeout" : ex.Message)}");
+                    Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] [{clubIdx}/{clubs.Count}] {club.clubName,-40} API ERROR — {(isTimeout ? "timeout" : ex.Message)}");
                     perClub.Add((club.pk_id, club.clubName, 0, 0, 0, 0, 0, 0, 0, 1, "api error"));
                     continue;
                 }
@@ -216,7 +217,7 @@ public class BodSyncWorker
                         if (yInfo.pk_id != 0)
                         {
                             addedYears.Add(yLabel);
-                            Console.WriteLine($"[{DateTime.Now:HH:mm:ss}]   + auto-created Rotary year '{yLabel}' (id {yInfo.pk_id})");
+                            Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}]   + auto-created Rotary year '{yLabel}' (id {yInfo.pk_id})");
                         }
                     }
                     if (yInfo.pk_id == 0)
@@ -497,7 +498,7 @@ public class BodSyncWorker
                     }
                 }
 
-                Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] [{clubIdx}/{clubs.Count}] {club.clubName,-40} years={yearsProbed,2} found={officersFound,4} +{clubAdded,3} ~{clubUpdated,3} -{clubTerminated,3} dc={clubDcOps,3} skip={clubSkippedMember,3} err={clubErrors}");
+                Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] [{clubIdx}/{clubs.Count}] {club.clubName,-40} years={yearsProbed,2} found={officersFound,4} +{clubAdded,3} ~{clubUpdated,3} -{clubTerminated,3} dc={clubDcOps,3} skip={clubSkippedMember,3} err={clubErrors}");
                 perClub.Add((club.pk_id, club.clubName, yearsProbed, officersFound, clubAdded, clubUpdated, clubTerminated, clubDcOps, clubSkippedMember, clubErrors, status));
             }
 
@@ -521,7 +522,7 @@ public class BodSyncWorker
 
             var elapsed = DateTime.UtcNow - startedAt;
             Console.WriteLine("");
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] === BOD Sync DONE in {elapsed.TotalMinutes:F1} min ===");
+            Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] === BOD Sync DONE in {elapsed.TotalMinutes:F1} min ===");
             Console.WriteLine($"  Clubs processed:       {clubs.Count}");
             Console.WriteLine($"  Designations added:    {addedDesignations.Count}");
             Console.WriteLine($"  Years auto-created:    {addedYears.Count}{(addedYears.Count > 0 ? " (" + string.Join(", ", addedYears.Distinct()) + ")" : "")}");
@@ -546,7 +547,7 @@ public class BodSyncWorker
         }
         catch (Exception ex)
         {
-            Console.Error.WriteLine($"[{DateTime.Now:HH:mm:ss}] BOD SYNC FAILED: {ex.Message}");
+            Console.Error.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] BOD SYNC FAILED: {ex.Message}");
             _logger.LogError(ex, "BOD sync FAILED");
             try
             {
@@ -908,7 +909,7 @@ public class BodSyncWorker
                 using var ms = new MemoryStream();
                 workbook.SaveAs(ms);
                 bytes = ms.ToArray();
-                fileName = $"RotaryOrg_BodSync_Errors_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx";
+                fileName = $"RotaryOrg_BodSync_Errors_{DateTime.UtcNow:yyyyMMdd_HHmmss}.xlsx";
             }
 
             var triggeredByName = _config["RotaryOrgSync:TriggeredByName"] ?? "Admin";
@@ -998,13 +999,13 @@ public class BodSyncWorker
 <p>Regards,<br/><strong>Team ROW</strong></p>
 </div>";
 
-            await _emailSender.SendReportAsync($"[Weekly Sun] ROW BOD Sync — {DateTime.Now:dd MMM yyyy}", body, bytes, fileName);
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Email sent ({(bytes == null ? "no attachment" : $"errors-only Excel: {bytes.Length} bytes")}).");
+            await _emailSender.SendReportAsync($"[Weekly Sun] ROW BOD Sync — {DateTime.UtcNow:dd MMM yyyy}", body, bytes, fileName);
+            Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] Email sent ({(bytes == null ? "no attachment" : $"errors-only Excel: {bytes.Length} bytes")}).");
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "BOD sync email FAILED");
-            Console.Error.WriteLine($"[{DateTime.Now:HH:mm:ss}] Email failed: {ex.Message}");
+            Console.Error.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] Email failed: {ex.Message}");
         }
     }
 

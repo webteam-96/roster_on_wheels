@@ -29,7 +29,7 @@ function Section({ icon: Icon, title, number, children }: {
   icon: React.ElementType; title: string; number: number; children: React.ReactNode;
 }) {
   return (
-    <div className="relative bg-white rounded-[20px] border shadow-sm overflow-hidden">
+    <div className="relative bg-card rounded-[20px] border shadow-sm overflow-hidden">
       <div className="flex items-center gap-3 px-5 py-3.5 bg-primary/5 border-b">
         <div className="flex items-center justify-center h-8 w-8 rounded-full bg-primary text-primary-foreground text-sm font-bold shrink-0">{number}</div>
         <Icon className="h-5 w-5 text-primary shrink-0" />
@@ -166,7 +166,7 @@ export default function ClubServiceViewPage() {
           <DetailRow
             label="Type"
             value={
-              <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-[#CFE2F6] text-purple-700">
+              <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-[#CFE2F6] text-slate-700">
                 {MEETING_TYPE_LABELS[project.meetingType || ""] || project.meetingType || "-"}
               </span>
             }

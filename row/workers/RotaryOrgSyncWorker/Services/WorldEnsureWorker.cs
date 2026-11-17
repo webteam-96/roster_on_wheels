@@ -1,3 +1,4 @@
+using RotaryApi.Services;
 using ClosedXML.Excel;
 using Dapper;
 using Microsoft.Extensions.Configuration;
@@ -91,12 +92,12 @@ public class WorldEnsureWorker
             ?? throw new InvalidOperationException("ConnectionStrings:DefaultConnection missing");
     }
 
-    private MySqlConnection CreateConnection() => new(_connectionString);
+    private MySqlConnection CreateConnection() => RowDb.Connect(_connectionString);
 
     public async Task RunAsync(CancellationToken ct = default)
     {
         var startedAt = DateTime.UtcNow;
-        Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] === World Ensure START ===");
+        Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] === World Ensure START ===");
 
         int logId;
         await using (var conn = CreateConnection())
@@ -109,7 +110,7 @@ public class WorldEnsureWorker
                 SELECT LAST_INSERT_ID();",
                 new { By = triggeredBy });
         }
-        Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Log row created — logId={logId}");
+        Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] Log row created — logId={logId}");
 
         var perCountry = new List<(string Country, int FoundClubs, int ZonesAdded, int DistrictsAdded, int ClubsInserted, int ClubsAlreadyInDb, int Errors, string Status)>();
         int totalZonesAdded = 0;
@@ -128,7 +129,7 @@ public class WorldEnsureWorker
             var zoneCache = (await dbConn.QueryAsync<(int pk_id, string zoneName)>(
                 "SELECT pk_zone_id AS pk_id, ZoneName AS zoneName FROM zone_master WHERE isdeleted = 0"))
                 .ToDictionary(x => x.zoneName, x => x.pk_id, StringComparer.OrdinalIgnoreCase);
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Loaded {zoneCache.Count} existing zones");
+            Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] Loaded {zoneCache.Count} existing zones");
 
             // Cache existing districts as ((Country, DistrictNumber) → lowest pk) — case-insensitive
             var districtCache = new Dictionary<(string Country, string DistrictNumber), int>(new CountryDistrictKeyComparer());
@@ -141,14 +142,14 @@ public class WorldEnsureWorker
                 if (!districtCache.TryGetValue(key, out var existingPk) || d.pk_id < existingPk)
                     districtCache[key] = d.pk_id;
             }
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Loaded {districtCache.Count} existing (country, district) keys");
+            Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] Loaded {districtCache.Count} existing (country, district) keys");
 
             // Cache existing clubs by ClubRotaryId
             var existingClubs = (await dbConn.QueryAsync<string>(@"
                 SELECT ClubRotaryId FROM club_master
                 WHERE isdeleted = 0 AND ClubRotaryId IS NOT NULL AND ClubRotaryId <> ''"))
                 .ToHashSet(StringComparer.OrdinalIgnoreCase);
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Loaded {existingClubs.Count} existing clubs");
+            Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] Loaded {existingClubs.Count} existing clubs");
 
             int countryIdx = 0;
             foreach (var country in AllCountries)
@@ -172,14 +173,14 @@ public class WorldEnsureWorker
                     errorCount++;
                     _logger.LogError(ex, "Search failed for {Country}", country);
                     perCountry.Add((country, 0, 0, 0, 0, 0, 1, $"api error: {ex.Message}"));
-                    Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] [{countryIdx}/{AllCountries.Length}] {country,-30} API ERROR: {ex.Message}");
+                    Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] [{countryIdx}/{AllCountries.Length}] {country,-30} API ERROR: {ex.Message}");
                     continue;
                 }
 
                 if (clubs.Count == 0)
                 {
                     perCountry.Add((country, 0, 0, 0, 0, 0, 0, "no clubs in API"));
-                    Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] [{countryIdx}/{AllCountries.Length}] {country,-30} 0 clubs in API");
+                    Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] [{countryIdx}/{AllCountries.Length}] {country,-30} 0 clubs in API");
                     continue;
                 }
                 totalFetched += clubs.Count;
@@ -330,13 +331,13 @@ public class WorldEnsureWorker
                     }
                 }
 
-                Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] [{countryIdx}/{AllCountries.Length}] {country,-30} fetched={clubs.Count,5} +zone={zonesAdded}  +district={districtsAdded,3}  +club={clubsInserted,5}  inDB={clubsAlreadyInDb,5}  err={countryErrors}");
+                Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] [{countryIdx}/{AllCountries.Length}] {country,-30} fetched={clubs.Count,5} +zone={zonesAdded}  +district={districtsAdded,3}  +club={clubsInserted,5}  inDB={clubsAlreadyInDb,5}  err={countryErrors}");
                 perCountry.Add((country, clubs.Count, zonesAdded, districtsAdded, clubsInserted, clubsAlreadyInDb, countryErrors, status));
             }
 
             var elapsed = DateTime.UtcNow - startedAt;
             Console.WriteLine("");
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] === World Ensure DONE in {elapsed.TotalMinutes:F1} min ===");
+            Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] === World Ensure DONE in {elapsed.TotalMinutes:F1} min ===");
             Console.WriteLine($"  Countries probed:           {AllCountries.Length}");
             Console.WriteLine($"  Total clubs fetched:        {totalFetched}");
             Console.WriteLine($"  Zones added:                {totalZonesAdded}");
@@ -357,7 +358,7 @@ public class WorldEnsureWorker
         }
         catch (Exception ex)
         {
-            Console.Error.WriteLine($"[{DateTime.Now:HH:mm:ss}] WORLD ENSURE FAILED: {ex.Message}");
+            Console.Error.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] WORLD ENSURE FAILED: {ex.Message}");
             _logger.LogError(ex, "World ensure FAILED");
             try
             {
@@ -425,7 +426,7 @@ public class WorldEnsureWorker
             using var ms = new MemoryStream();
             workbook.SaveAs(ms);
             var bytes = ms.ToArray();
-            var fileName = $"RotaryOrg_WorldEnsure_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx";
+            var fileName = $"RotaryOrg_WorldEnsure_{DateTime.UtcNow:yyyyMMdd_HHmmss}.xlsx";
 
             var triggeredByName = _config["RotaryOrgSync:TriggeredByName"] ?? "Admin";
 
@@ -477,13 +478,13 @@ Members for foreign clubs are NOT synced (member sync remains scoped to India + 
 <p>Regards,<br/><strong>Team ROW</strong></p>
 </div>";
 
-            await _emailSender.SendReportAsync($"[One-time] ROW World Ensure — {DateTime.Now:dd MMM yyyy}", body, bytes, fileName);
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Email sent.");
+            await _emailSender.SendReportAsync($"[One-time] ROW World Ensure — {DateTime.UtcNow:dd MMM yyyy}", body, bytes, fileName);
+            Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] Email sent.");
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "World ensure email FAILED");
-            Console.Error.WriteLine($"[{DateTime.Now:HH:mm:ss}] Email failed: {ex.Message}");
+            Console.Error.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] Email failed: {ex.Message}");
         }
     }
 

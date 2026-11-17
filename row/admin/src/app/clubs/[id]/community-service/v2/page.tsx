@@ -62,7 +62,7 @@ const PAGE_SIZE = 20;
 function projectTypeChipStyle(t: string): string {
   const lo = (t || "").toLowerCase();
   if (lo.includes("one"))    return "bg-blue-50 text-blue-700 border-blue-200";
-  if (lo.includes("recur") || lo.includes("ongoing")) return "bg-purple-50 text-purple-700 border-purple-200";
+  if (lo.includes("recur") || lo.includes("ongoing")) return "bg-slate-50 text-slate-700 border-slate-200";
   if (lo.includes("annual")) return "bg-amber-50 text-amber-700 border-amber-200";
   return "bg-slate-50 text-slate-700 border-slate-200";
 }
@@ -291,7 +291,7 @@ export default function CommunityServiceV2Page() {
         </div>
 
         {/* Table card */}
-        <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+        <div className="bg-card rounded-2xl border border-slate-200 overflow-hidden">
           <div className="px-5 py-3 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div>
               <h3 className="text-sm font-semibold text-slate-800">Community Service</h3>
@@ -317,7 +317,7 @@ export default function CommunityServiceV2Page() {
               <select
                 value={selectedYearId ?? ""}
                 onChange={(e) => setSelectedYearId(e.target.value ? Number(e.target.value) : null)}
-                className="px-2 h-10 py-0 text-sm border border-slate-200 rounded-[12px] bg-white focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                className="px-2 h-10 py-0 text-sm border border-slate-200 rounded-[12px] bg-card focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
               >
                 {years.length === 0 && <option value="">No years</option>}
                 {years.map((y) => (

@@ -20,7 +20,7 @@ public sealed class AssistantStore
 
     public async Task<MySqlConnection> OpenAsync(CancellationToken ct = default)
     {
-        var conn = new MySqlConnection(_settings.WriterConnectionString);
+        var conn = RowDb.Connect(_settings.WriterConnectionString);
         await conn.OpenAsync(ct);
         return conn;
     }

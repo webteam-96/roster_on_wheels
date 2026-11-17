@@ -72,7 +72,7 @@ export default function DistrictAdminGoalSettingPage() {
 
   return (
     <div className="space-y-6">
-      <div className="bg-white rounded-2xl border border-slate-200 p-4 flex items-center justify-between">
+      <div className="bg-card rounded-2xl border border-slate-200 p-4 flex items-center justify-between">
         <div>
           <h2 className="text-sm font-semibold text-slate-800">District Goal Setting</h2>
           <p className="text-xs text-slate-500">Set the district's own targets, or review each club's goals.</p>

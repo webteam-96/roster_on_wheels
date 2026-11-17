@@ -1,3 +1,4 @@
+using RotaryApi.Services;
 using ClosedXML.Excel;
 using Dapper;
 using Microsoft.Extensions.Configuration;
@@ -58,12 +59,12 @@ public class ClubNonSyncCascadeWorker
             ?? throw new InvalidOperationException("ConnectionStrings:DefaultConnection missing");
     }
 
-    private MySqlConnection CreateConnection() => new(_connectionString);
+    private MySqlConnection CreateConnection() => RowDb.Connect(_connectionString);
 
     public async Task RunAsync(bool apply, bool force = false, CancellationToken ct = default)
     {
         if (force) _logger.LogWarning("ClubNonSyncCascade running with --force — safety threshold bypassed");
-        Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] === Non-Sync Cascade {(apply ? "APPLY" : "AUDIT")} START ===");
+        Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] === Non-Sync Cascade {(apply ? "APPLY" : "AUDIT")} START ===");
 
         int logId;
         await using (var conn0 = CreateConnection())
@@ -80,10 +81,10 @@ public class ClubNonSyncCascadeWorker
         try
         {
             // 1. /clubs = authoritative CURRENT sync list.
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Fetching /clubs...");
+            Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] Fetching /clubs...");
             var syncClubs = await _api.GetClubsAsync(ct);
             var syncIds = new HashSet<string>(syncClubs.Select(x => x.ClubId.ToString()), StringComparer.OrdinalIgnoreCase);
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss}]   /clubs: {syncClubs.Count}");
+            Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}]   /clubs: {syncClubs.Count}");
 
             // 2. /Clubs/search = clubs that STILL EXIST on Rotary.org (any status).
             //    ROW: every country of the /clubs list plus every country of our own sync clubs
@@ -105,10 +106,10 @@ public class ClubNonSyncCascadeWorker
             foreach (var country in countrySet.OrderBy(s => s, StringComparer.OrdinalIgnoreCase))
             {
                 ct.ThrowIfCancellationRequested();
-                Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Fetching /Clubs/search for {country}...");
+                Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] Fetching /Clubs/search for {country}...");
                 var list = await _api.SearchClubsByCountryAsync(country, ct);
                 foreach (var c in list) searchIds.Add(c.ClubId.ToString());
-                Console.WriteLine($"[{DateTime.Now:HH:mm:ss}]   {country}: {list.Count}");
+                Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}]   {country}: {list.Count}");
             }
 
             await using var dbConn = CreateConnection();
@@ -161,7 +162,7 @@ public class ClubNonSyncCascadeWorker
 
             if (candidates.Count == 0)
             {
-                Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] No club has passed the grace period. Nothing to cascade.");
+                Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] No club has passed the grace period. Nothing to cascade.");
                 await dbConn.ExecuteAsync(
                     "UPDATE rotary_org_sync_log SET FinishedAtUtc = UTC_TIMESTAMP(), Status='Completed', TotalFetched=@T, ErrorDetail=@D WHERE pk_id=@Id",
                     new { Id = logId, T = syncClubs.Count,
@@ -207,7 +208,7 @@ public class ClubNonSyncCascadeWorker
                     await ApplyCascadeAsync(dbConn, c.pk_id, ct);
                     await dbConn.ExecuteAsync(
                         "UPDATE rotary_org_nonsync_watch SET Status='Cascaded' WHERE fk_club_id=@C", new { C = c.pk_id });
-                    Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Non-synced {c.clubName} (RID {c.clubRotaryId}) — flag→0, {detail.TotalRows} member row(s) soft-deleted");
+                    Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] Non-synced {c.clubName} (RID {c.clubRotaryId}) — flag→0, {detail.TotalRows} member row(s) soft-deleted");
                 }
             }
 
@@ -242,7 +243,7 @@ public class ClubNonSyncCascadeWorker
         }
         catch (Exception ex)
         {
-            Console.Error.WriteLine($"[{DateTime.Now:HH:mm:ss}] NON-SYNC CASCADE FAILED: {ex.Message}");
+            Console.Error.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] NON-SYNC CASCADE FAILED: {ex.Message}");
             _logger.LogError(ex, "Non-sync cascade FAILED");
             try
             {
@@ -484,7 +485,7 @@ public class ClubNonSyncCascadeWorker
             using var ms = new MemoryStream();
             wb.SaveAs(ms);
             var bytes = ms.ToArray();
-            var fileName = $"RotaryOrg_NonSync_{modeText.Replace(" ", "")}_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx";
+            var fileName = $"RotaryOrg_NonSync_{modeText.Replace(" ", "")}_{DateTime.UtcNow:yyyyMMdd_HHmmss}.xlsx";
 
             var triggeredByName = _config["RotaryOrgSync:TriggeredByName"] ?? "Admin";
             var color = aborted ? "#dc2626" : (apply ? "#b45309" : "#1a365d");
@@ -544,15 +545,15 @@ public class ClubNonSyncCascadeWorker
             var subject = aborted
                 ? "[ALERT] Non-Sync Cascade Aborted — safety threshold"
                 : clubCount == 0
-                ? $"[Waiting] {waiting.Count} club(s) missing from Rotary.org sync list — nothing deleted — {DateTime.Now:dd MMM yyyy}"
-                : $"[{(apply ? "Applied" : "Audit")}] ROW Non-Sync Cascade — {DateTime.Now:dd MMM yyyy}";
+                ? $"[Waiting] {waiting.Count} club(s) missing from Rotary.org sync list — nothing deleted — {DateTime.UtcNow:dd MMM yyyy}"
+                : $"[{(apply ? "Applied" : "Audit")}] ROW Non-Sync Cascade — {DateTime.UtcNow:dd MMM yyyy}";
             await _emailSender.SendReportAsync(subject, body, bytes, fileName);
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Email sent.");
+            Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] Email sent.");
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Non-sync cascade email FAILED");
-            Console.Error.WriteLine($"[{DateTime.Now:HH:mm:ss}] Email failed: {ex.Message}");
+            Console.Error.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] Email failed: {ex.Message}");
         }
     }
 

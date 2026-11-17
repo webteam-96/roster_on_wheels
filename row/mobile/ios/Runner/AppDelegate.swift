@@ -24,6 +24,12 @@ import LocalAuthentication
       }
     }
 
+    // The device's IANA time zone ("Europe/Paris"), sent with API requests (X-Time-Zone).
+    let zoneChannel = FlutterMethodChannel(name: "row/time_zone", binaryMessenger: controller.binaryMessenger)
+    zoneChannel.setMethodCallHandler { (call, result) in
+      if call.method == "localZone" { result(TimeZone.current.identifier) } else { result(FlutterMethodNotImplemented) }
+    }
+
     GeneratedPluginRegistrant.register(with: self)
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
   }

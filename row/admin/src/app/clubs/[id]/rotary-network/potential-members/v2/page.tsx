@@ -206,7 +206,7 @@ export default function PotentialMembersV2Page() {
         </div>
 
         {/* Table card */}
-        <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+        <div className="bg-card rounded-2xl border border-slate-200 overflow-hidden">
           <div className="px-5 py-3 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div>
               <h3 className="text-sm font-semibold text-slate-800">Potential Members</h3>
@@ -246,7 +246,7 @@ export default function PotentialMembersV2Page() {
                   aria-label="Stage"
                   value={stage}
                   onChange={(e) => { setPage(1); setStage(e.target.value); }}
-                  className="text-xs px-2 py-1.5 rounded-lg border border-slate-200 text-slate-700 bg-white"
+                  className="text-xs px-2 py-1.5 rounded-lg border border-slate-200 text-slate-700 bg-card"
                 >
                   <option value="">All stages</option>
                   {PROSPECT_STAGES.map((s) => <option key={s} value={s}>{label(s)}</option>)}

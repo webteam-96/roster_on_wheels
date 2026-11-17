@@ -20,7 +20,7 @@ public class EmailLogController : ControllerBase
     }
 
     private bool IsSuperAdmin() => User.FindFirst("roles")?.Value?.Contains("SuperAdmin") == true;
-    private MySqlConnection CreateConnection() => new(_connectionString);
+    private MySqlConnection CreateConnection() => RowDb.Connect(_connectionString);
 
     // List sent emails (SuperAdmin only). Supports filtering by date range, recipient, subject, status, type.
     [HttpGet("")]
@@ -129,7 +129,7 @@ public class EmailLogController : ControllerBase
         int r = 2;
         foreach (var row in rows)
         {
-            ws.Cell(r, 1).Value = row.sentAt != null ? ((DateTime)row.sentAt).ToString("dd-MM-yyyy HH:mm") : "";
+            ws.Cell(r, 1).Value = row.sentAt != null ? ZoneTime.Print((DateTime)row.sentAt, "dd-MM-yyyy HH:mm") : "";
             ws.Cell(r, 2).Value = (string?)row.status ?? "";
             ws.Cell(r, 3).Value = (string?)row.recipientEmail ?? "";
             ws.Cell(r, 4).Value = (string?)row.ccEmails ?? "";
@@ -146,7 +146,7 @@ public class EmailLogController : ControllerBase
 
         using var stream = new MemoryStream();
         wb.SaveAs(stream);
-        var ts = DateTime.Now.ToString("yyyyMMdd_HHmmss");
+        var ts = DateTime.UtcNow.ToString("yyyyMMdd_HHmmss");
         return File(stream.ToArray(), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
             $"Email_Log_{ts}.xlsx");
     }
@@ -285,7 +285,7 @@ public class EmailLogController : ControllerBase
         int r = 2;
         foreach (var row in rows)
         {
-            ws.Cell(r, 1).Value = row.sentAt != null ? ((DateTime)row.sentAt).ToString("dd-MM-yyyy HH:mm") : "";
+            ws.Cell(r, 1).Value = row.sentAt != null ? ZoneTime.Print((DateTime)row.sentAt, "dd-MM-yyyy HH:mm") : "";
             ws.Cell(r, 2).Value = (string?)row.status ?? "";
             ws.Cell(r, 3).Value = (string?)row.recipientEmail ?? "";
             ws.Cell(r, 4).Value = (string?)row.ccEmails ?? "";
@@ -300,7 +300,7 @@ public class EmailLogController : ControllerBase
         }
         ws.Columns().AdjustToContents();
         using var stream = new MemoryStream(); wb.SaveAs(stream);
-        var ts = DateTime.Now.ToString("yyyyMMdd_HHmmss");
+        var ts = DateTime.UtcNow.ToString("yyyyMMdd_HHmmss");
         return File(stream.ToArray(), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"Email_Log_{ts}.xlsx");
     }
 

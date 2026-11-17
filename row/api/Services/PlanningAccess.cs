@@ -87,7 +87,7 @@ public static class PlanningAccess
             if (!m.Success || !r.Methods.Split(' ').Contains(method) || !int.TryParse(m.Groups["s"].Value, out var scope)) continue;
             var years = new HashSet<int>();
             bool unknown = false, foreign = false;
-            await using var conn = new MySqlConnection(cs);
+            await using var conn = RowDb.Connect(cs);
             if (r.RouteYear)
             {
                 if (int.TryParse(ctx.GetRouteValue("yearId")?.ToString(), out var y)) years.Add(y); else unknown = true;
@@ -131,7 +131,7 @@ public static class PlanningAccess
     {
         if (!await FeatureGate.IsOnAsync(FeatureKey, cs)) return false;
         int? year;
-        await using (var conn = new MySqlConnection(cs))
+        await using (var conn = RowDb.Connect(cs))
             year = await ElectYearAsync(conn, memberId, isClub, scopeId);
         if (year == null) return false;
         if (Uploads.IsMatch(ctx.Request.Path.Value ?? "")) return true;
@@ -199,7 +199,7 @@ public static class PlanningAccess
     public static async Task EnsureDuesCollectableAsync(string cs, bool clubDues, int duesId)
     {
         if (!await FeatureGate.IsOnAsync(FeatureKey, cs)) return;
-        await using var conn = new MySqlConnection(cs);
+        await using var conn = RowDb.Connect(cs);
         var dues = await conn.QueryFirstOrDefaultAsync<(int? DistrictId, string? Year)?>(clubDues
             ? "SELECT fk_district_id, RotaryYear FROM club_dues WHERE pk_club_dues_id = @duesId"
             : @"SELECT (SELECT c.fk_district_id FROM club_master c WHERE c.pk_club_id = d.fk_club_id), d.RotaryYear

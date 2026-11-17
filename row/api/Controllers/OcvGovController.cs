@@ -247,7 +247,7 @@ public class OcvGovController : ControllerBase
             var frontendBase = _frontendUrl ?? "";
 
             var bytes = OcvReportExcelBuilder.Build(header, items, clubId, yearId, apiBase, mediaBase, frontendBase);
-            var fileName = $"OCV_Report_{header.ClubName}_{DateTime.Now:yyyy-MM-dd_HH-mm-ss}.xls"
+            var fileName = $"OCV_Report_{header.ClubName}_{DateTime.UtcNow:yyyy-MM-dd_HH-mm-ss}.xls"
                 .Replace(" ", "_").Replace("/", "-");
             return File(bytes, "application/vnd.ms-excel", fileName);
         }

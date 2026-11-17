@@ -79,7 +79,7 @@ export default function GoalCommentPanel({
     c.postedByRoleLabel || TIER_LABELS[c.postedByTier] || `Tier ${c.postedByTier}`;
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[70vh]">
+    <div className="bg-card rounded-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[70vh]">
       <div className="px-5 py-3 border-b border-slate-100 flex items-center gap-2 bg-blue-50">
         <MessagesSquare size={16} className="text-blue-600" />
         <h3 className="text-sm font-semibold text-slate-800">{title}</h3>
@@ -113,7 +113,7 @@ export default function GoalCommentPanel({
                 className={`max-w-[80%] px-3 py-2 rounded-2xl text-sm whitespace-pre-wrap break-words ${
                   mine
                     ? "bg-blue-600 text-white rounded-br-sm"
-                    : "bg-white text-slate-700 border border-slate-200 rounded-bl-sm"
+                    : "bg-card text-slate-700 border border-slate-200 rounded-bl-sm"
                 }`}
               >
                 {c.commentText}

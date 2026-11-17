@@ -43,7 +43,7 @@ public class ClubWebsitePublicDataV2Controller : ControllerBase
         _fx = fx;
     }
 
-    private MySqlConnection CreateConn() => new(_connectionString);
+    private MySqlConnection CreateConn() => RowDb.Connect(_connectionString);
 
     // Same kill-switch as the v1 controller — any inactive link in the
     // club → district → zone chain takes the public site offline.
@@ -690,7 +690,7 @@ public class ClubWebsitePublicDataV2Controller : ControllerBase
             ModuleName   = (string?)r.ModuleName ?? "",
             ImagePath    = (string?)r.ImagePath ?? "",
             IsPrimary    = r.IsPrimary == null ? false : Convert.ToBoolean(r.IsPrimary),
-            CreatedDate  = r.CreatedDate is DateTime cd ? cd.ToString("yyyy-MM-ddTHH:mm:ss") : null,
+            CreatedDate  = r.CreatedDate is DateTime cd ? ZoneTime.Iso(cd) : null,
         }).ToList();
 
         return Ok(new GalleryPageDto
@@ -845,8 +845,8 @@ public class ClubWebsitePublicDataV2Controller : ControllerBase
             ParentProjectId  = r.ParentProjectId == null ? (int?)null : Convert.ToInt32(r.ParentProjectId),
             ChildCount       = r.ChildCount == null ? 0 : Convert.ToInt32(r.ChildCount),
             PrimaryPhotoPath = (string?)r.PrimaryPhotoPath,
-            CreatedDate      = r.CreatedDate is DateTime cd ? cd.ToString("yyyy-MM-ddTHH:mm:ss") : null,
-            ModifiedDate     = r.ModifiedDate is DateTime md ? md.ToString("yyyy-MM-ddTHH:mm:ss") : null,
+            CreatedDate      = r.CreatedDate is DateTime cd ? ZoneTime.Iso(cd) : null,
+            ModifiedDate     = r.ModifiedDate is DateTime md ? ZoneTime.Iso(md) : null,
         }).ToList());
     }
 }

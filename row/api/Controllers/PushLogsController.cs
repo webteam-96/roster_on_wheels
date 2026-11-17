@@ -1,3 +1,4 @@
+using RotaryApi.Services;
 using Dapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -22,7 +23,7 @@ public class PushLogsController : ControllerBase
         _connectionString = config.GetConnectionString("DefaultConnection")!;
     }
 
-    private MySqlConnection CreateConnection() => new(_connectionString);
+    private MySqlConnection CreateConnection() => RowDb.Connect(_connectionString);
     private bool IsSuperAdmin() => User.FindFirst("roles")?.Value?.Contains("SuperAdmin") == true;
 
     /// <summary>List of recent push events grouped by entity (one row per push attempt).</summary>
@@ -33,8 +34,8 @@ public class PushLogsController : ControllerBase
         using var conn = CreateConnection();
         await conn.OpenAsync();
 
-        var fromDate = from ?? DateTime.Now.AddDays(-5);
-        var toDate = to ?? DateTime.Now.AddDays(1);
+        var fromDate = from ?? DateTime.UtcNow.AddDays(-5);
+        var toDate = to ?? DateTime.UtcNow.AddDays(1);
 
         var rows = new List<dynamic>();
 

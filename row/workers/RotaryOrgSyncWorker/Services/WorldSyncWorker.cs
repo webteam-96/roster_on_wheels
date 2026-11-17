@@ -1,3 +1,4 @@
+using RotaryApi.Services;
 using ClosedXML.Excel;
 using Dapper;
 using Microsoft.Extensions.Configuration;
@@ -87,12 +88,12 @@ public class WorldSyncWorker
             ?? throw new InvalidOperationException("ConnectionStrings:DefaultConnection missing");
     }
 
-    private MySqlConnection CreateConnection() => new(_connectionString);
+    private MySqlConnection CreateConnection() => RowDb.Connect(_connectionString);
 
     public async Task RunAsync(CancellationToken ct = default)
     {
         var startedAt = DateTime.UtcNow;
-        Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] === World Sync START ===");
+        Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] === World Sync START ===");
 
         // Insert log row
         int logId;
@@ -106,7 +107,7 @@ public class WorldSyncWorker
                 SELECT LAST_INSERT_ID();",
                 new { By = triggeredBy });
         }
-        Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Log row created — logId={logId}");
+        Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] Log row created — logId={logId}");
 
         var perCountryStats = new List<(string Country, int Found, int Inserted, int AlreadyInDb, int SkippedDistrictMissing, int SkippedZoneMissing, string Status)>();
         var skippedDistrictMissing = new List<SkippedClubRow>();
@@ -141,7 +142,7 @@ public class WorldSyncWorker
                     districtsByCountryAndNumber[key] = d.pk_id;
             }
             var countriesInDb = new HashSet<string>(districtsByCountryAndNumber.Keys.Select(k => k.Country), StringComparer.OrdinalIgnoreCase);
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Loaded {districtsByCountryAndNumber.Count} (country, district) lookup keys across {countriesInDb.Count} countries");
+            Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] Loaded {districtsByCountryAndNumber.Count} (country, district) lookup keys across {countriesInDb.Count} countries");
 
             // Load existing clubs by ClubRotaryId
             var existingByRotaryId = (await dbConn.QueryAsync<string>(@"
@@ -149,7 +150,7 @@ public class WorldSyncWorker
                 FROM club_master
                 WHERE isdeleted = 0 AND ClubRotaryId IS NOT NULL AND ClubRotaryId <> ''"))
                 .ToHashSet(StringComparer.OrdinalIgnoreCase);
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Loaded {existingByRotaryId.Count} existing club ClubRotaryIds");
+            Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] Loaded {existingByRotaryId.Count} existing club ClubRotaryIds");
 
             // Loop every country
             int countryIdx = 0;
@@ -166,7 +167,7 @@ public class WorldSyncWorker
 
                 if (!countriesInDb.Contains(country))
                 {
-                    Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] [{countryIdx}/{AllCountries.Length}] {country,-30} NO DISTRICTS IN DB — skipping country");
+                    Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] [{countryIdx}/{AllCountries.Length}] {country,-30} NO DISTRICTS IN DB — skipping country");
                     countriesWithoutZone.Add(country);
                     perCountryStats.Add((country, 0, 0, 0, 0, 0, "no districts"));
                     continue;
@@ -285,13 +286,13 @@ public class WorldSyncWorker
                     }
                 }
 
-                Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] [{countryIdx}/{AllCountries.Length}] {country,-30} found={countryFound,5}  ins={countryInserted,5}  inDB={countryAlreadyInDb,5}  skipDist={countrySkippedDistrict,5}");
+                Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] [{countryIdx}/{AllCountries.Length}] {country,-30} found={countryFound,5}  ins={countryInserted,5}  inDB={countryAlreadyInDb,5}  skipDist={countrySkippedDistrict,5}");
                 perCountryStats.Add((country, countryFound, countryInserted, countryAlreadyInDb, countrySkippedDistrict, countrySkippedZone, status));
             }
 
             var elapsed = DateTime.UtcNow - startedAt;
             Console.WriteLine("");
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] === World Sync DONE in {elapsed.TotalMinutes:F1} min ===");
+            Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] === World Sync DONE in {elapsed.TotalMinutes:F1} min ===");
             Console.WriteLine($"  Countries probed:           {AllCountries.Length}");
             Console.WriteLine($"  Countries with no zone:     {countriesWithoutZone.Count}");
             Console.WriteLine($"  Total clubs fetched:        {totalFetched}");
@@ -321,7 +322,7 @@ public class WorldSyncWorker
         }
         catch (Exception ex)
         {
-            Console.Error.WriteLine($"[{DateTime.Now:HH:mm:ss}] WORLD SYNC FAILED: {ex.Message}");
+            Console.Error.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] WORLD SYNC FAILED: {ex.Message}");
             _logger.LogError(ex, "World sync FAILED");
             try
             {
@@ -402,7 +403,7 @@ public class WorldSyncWorker
             using var ms = new MemoryStream();
             workbook.SaveAs(ms);
             var bytes = ms.ToArray();
-            var fileName = $"RotaryOrg_WorldSync_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx";
+            var fileName = $"RotaryOrg_WorldSync_{DateTime.UtcNow:yyyyMMdd_HHmmss}.xlsx";
 
             var triggeredByName = _config["RotaryOrgSync:TriggeredByName"] ?? "Admin";
 
@@ -463,13 +464,13 @@ public class WorldSyncWorker
 <p>Regards,<br/><strong>Team ROW</strong></p>
 </div>";
 
-            await _emailSender.SendReportAsync($"[One-time] ROW World Sync — {DateTime.Now:dd MMM yyyy}", body, bytes, fileName);
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Email sent.");
+            await _emailSender.SendReportAsync($"[One-time] ROW World Sync — {DateTime.UtcNow:dd MMM yyyy}", body, bytes, fileName);
+            Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] Email sent.");
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "World sync email FAILED");
-            Console.Error.WriteLine($"[{DateTime.Now:HH:mm:ss}] Email failed: {ex.Message}");
+            Console.Error.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] Email failed: {ex.Message}");
         }
     }
 

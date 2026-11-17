@@ -29,7 +29,7 @@ public class ClubMassEmailService : IClubMassEmailService
         _logger = logger;
     }
 
-    private MySqlConnection CreateConnection() => new(_connectionString);
+    private MySqlConnection CreateConnection() => RowDb.Connect(_connectionString);
 
     // Sub-group / hand-picked recipients: drop a member whose every active membership is in an
     // inactive club (or a club of an inactive district / zone). Members with no club row stay.
@@ -378,7 +378,7 @@ public class ClubMassEmailService : IClubMassEmailService
             {
                 using var scope = _scopeFactory.CreateScope();
                 var emailSvc = scope.ServiceProvider.GetRequiredService<IEmailService>();
-                using var conn = new MySqlConnection(connStr);
+                using var conn = RowDb.Connect(connStr);
                 await conn.OpenAsync();
 
                 int sentCount = 0;
@@ -427,7 +427,7 @@ public class ClubMassEmailService : IClubMassEmailService
                 _logger.LogError(ex, "Error sending mass email {EmailId}", emailId);
                 try
                 {
-                    using var conn = new MySqlConnection(connStr);
+                    using var conn = RowDb.Connect(connStr);
                     await conn.OpenAsync();
                     await conn.ExecuteAsync(
                         "UPDATE club_mass_emails SET Status = 'Failed', modified_date = NOW() WHERE pk_mass_email_id = @Id",

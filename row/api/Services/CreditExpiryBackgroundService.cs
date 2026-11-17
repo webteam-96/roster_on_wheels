@@ -38,7 +38,7 @@ public class CreditExpiryBackgroundService : BackgroundService
     private async Task ProcessExpiryAsync()
     {
         var connectionString = _configuration.GetConnectionString("DefaultConnection")!;
-        using var connection = new MySqlConnection(connectionString);
+        using var connection = RowDb.Connect(connectionString);
         await connection.OpenAsync();
 
         // 1. Mark expired credits as inactive

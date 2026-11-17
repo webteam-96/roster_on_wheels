@@ -37,7 +37,7 @@ public class DistrictAwardsConfigController : ControllerBase
     public async Task<ActionResult<AwardsConfigDto>> Get(int districtId, [FromQuery] int yearId)
     {
         if (districtId <= 0 || yearId <= 0) return BadRequest(new { message = "districtId and yearId are required." });
-        using var conn = new MySqlConnection(_connectionString);
+        using var conn = RowDb.Connect(_connectionString);
         await conn.OpenAsync();
         var enabled = await DistrictAwardsConfigHelper.IsEnabledAsync(conn, districtId, yearId);
         return Ok(new AwardsConfigDto { IsEnabled = enabled });
@@ -51,7 +51,7 @@ public class DistrictAwardsConfigController : ControllerBase
             return StatusCode(403, new { message = "Only SuperAdmin can enable/disable District Awards." });
         if (districtId <= 0 || dto.YearId <= 0) return BadRequest(new { message = "districtId and yearId are required." });
 
-        using var conn = new MySqlConnection(_connectionString);
+        using var conn = RowDb.Connect(_connectionString);
         await conn.OpenAsync();
         // UPSERT on the unique (district, year) key.
         await conn.ExecuteAsync(
@@ -81,7 +81,7 @@ public class DistrictAwardsConfigController : ControllerBase
     {
         if (!IsSuperAdmin()) return Ok(new ClearStatusDto { IsSuperAdmin = false });
         if (districtId <= 0 || yearId <= 0) return BadRequest(new { message = "districtId and yearId are required." });
-        using var conn = new MySqlConnection(_connectionString);
+        using var conn = RowDb.Connect(_connectionString);
         await conn.OpenAsync();
 
         var live = await conn.ExecuteScalarAsync<int>(
@@ -91,7 +91,7 @@ public class DistrictAwardsConfigController : ControllerBase
             "SELECT COUNT(DISTINCT fk_club_id) FROM district_citation_club_entry WHERE fk_district_id=@D AND fk_year_id=@Y AND isdeleted=0",
             new { D = districtId, Y = yearId });
         var batch = await conn.QueryFirstOrDefaultAsync<dynamic>(
-            @"SELECT batch_id AS batchId, DATE_FORMAT(MAX(cleared_date),'%Y-%m-%d %H:%i') AS clearedDate, COUNT(*) AS cnt
+            @"SELECT batch_id AS batchId, MAX(cleared_date) AS clearedDate, COUNT(*) AS cnt
               FROM district_citation_club_entry_backup
               WHERE fk_district_id=@D AND fk_year_id=@Y AND restored=0
               GROUP BY batch_id ORDER BY MAX(cleared_date) DESC LIMIT 1",
@@ -104,7 +104,7 @@ public class DistrictAwardsConfigController : ControllerBase
             LiveClubCount = liveClubs,
             CanClear = live > 0,
             CanRestore = batch != null,
-            LastClearedDate = batch?.clearedDate as string,
+            LastClearedDate = batch?.clearedDate is DateTime lcd ? ZoneTime.Print(lcd, "yyyy-MM-dd HH:mm", ViewerZone.Current) : null,
             LastClearedCount = batch == null ? 0 : (int)(long)batch.cnt,
         });
     }
@@ -116,7 +116,7 @@ public class DistrictAwardsConfigController : ControllerBase
         if (!IsSuperAdmin()) return StatusCode(403, new { message = "Only SuperAdmin can clear club points." });
         if (districtId <= 0 || yearId <= 0) return BadRequest(new { message = "districtId and yearId are required." });
 
-        using var conn = new MySqlConnection(_connectionString);
+        using var conn = RowDb.Connect(_connectionString);
         await conn.OpenAsync();
 
         var liveCount = await conn.ExecuteScalarAsync<int>(
@@ -125,7 +125,7 @@ public class DistrictAwardsConfigController : ControllerBase
         if (liveCount == 0) return BadRequest(new { message = "There are no club points to clear for this district and year." });
 
         var (districtNumber, yearLabel) = await DistrictYearLabelsAsync(conn, districtId, yearId);
-        var batchId = $"{districtId}-{yearId}-{DateTime.Now:yyyyMMddHHmmss}";
+        var batchId = $"{districtId}-{yearId}-{DateTime.UtcNow:yyyyMMddHHmmss}";
 
         // Build the Excel of exactly what's being cleared (BEFORE deleting).
         var excel = await BuildClearedEntriesExcelAsync(conn, districtId, yearId, districtNumber, yearLabel);
@@ -162,7 +162,7 @@ public class DistrictAwardsConfigController : ControllerBase
                 $"<h2 style='color:#17458F;margin-top:0;'>District Awards — Club Points Cleared</h2>" +
                 $"<p>Dear Sir/Madam,</p>" +
                 $"<p>The District Awards club points for <strong>District {districtNumber}</strong>, Rotary Year <strong>{yearLabel}</strong> " +
-                $"were cleared by a SuperAdmin on <strong>{DateTime.Now:dd MMM yyyy, hh:mm tt}</strong>.</p>" +
+                $"were cleared by a SuperAdmin on <strong>{DateTime.UtcNow:dd MMM yyyy, hh:mm tt}</strong>.</p>" +
                 $"<div style='background-color:#F7F9FC;border:1px solid #D5DEE8;border-radius:8px;padding:16px;margin:16px 0;'>" +
                 $"<p style='margin:0;'><strong>{liveCount}</strong> point entr{(liveCount == 1 ? "y was" : "ies were")} cleared.</p>" +
                 $"<p style='margin:8px 0 0;'>The full detail (club name, category, question / criteria, answer and points) is attached as an Excel file for your records.</p>" +
@@ -172,7 +172,7 @@ public class DistrictAwardsConfigController : ControllerBase
             try
             {
                 await _email.SendEmailWithAttachmentAsync(to, subject, body, excel,
-                    $"District-{districtNumber}-Awards-Cleared-{DateTime.Now:yyyyMMdd_HHmmss}.xlsx", cc);
+                    $"District-{districtNumber}-Awards-Cleared-{DateTime.UtcNow:yyyyMMdd_HHmmss}.xlsx", cc);
                 emailedTo.AddRange(recipients);
             }
             catch { /* clear + backup already committed; don't fail the request on email trouble */ }
@@ -194,7 +194,7 @@ public class DistrictAwardsConfigController : ControllerBase
         if (!IsSuperAdmin()) return StatusCode(403, new { message = "Only SuperAdmin can restore club points." });
         if (districtId <= 0 || yearId <= 0) return BadRequest(new { message = "districtId and yearId are required." });
 
-        using var conn = new MySqlConnection(_connectionString);
+        using var conn = RowDb.Connect(_connectionString);
         await conn.OpenAsync();
 
         var batchId = await conn.ExecuteScalarAsync<string?>(
@@ -290,7 +290,7 @@ public class DistrictAwardsConfigController : ControllerBase
 
         using var wb = new XLWorkbook();
         var ws = wb.Worksheets.Add("Cleared Points");
-        ws.Cell(1, 1).Value = $"District {districtNumber} — Award Club Points Cleared · RY {yearLabel} · {DateTime.Now:dd MMM yyyy, hh:mm tt}";
+        ws.Cell(1, 1).Value = $"District {districtNumber} — Award Club Points Cleared · RY {yearLabel} · {DateTime.UtcNow:dd MMM yyyy, hh:mm tt}";
         ws.Range(1, 1, 1, 8).Merge();
         ws.Cell(1, 1).Style.Font.Bold = true; ws.Cell(1, 1).Style.Font.FontSize = 13;
         ws.Cell(1, 1).Style.Font.FontColor = XLColor.White; ws.Cell(1, 1).Style.Fill.BackgroundColor = XLColor.FromHtml("#1e3a5f");

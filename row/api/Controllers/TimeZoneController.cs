@@ -24,7 +24,7 @@ public class TimeZoneController : ControllerBase
     public async Task<ActionResult> Get([FromQuery] int? clubId, [FromQuery] int? districtId)
     {
         if ((clubId is > 0) == (districtId is > 0)) return BadRequest(new { message = "Pass either clubId or districtId." });
-        await using var conn = new MySqlConnection(_connectionString);
+        await using var conn = RowDb.Connect(_connectionString);
         await conn.OpenAsync();
         var zone = clubId is > 0 ? await ZoneTime.OfClubAsync(conn, clubId.Value) : await ZoneTime.OfDistrictAsync(conn, districtId!.Value);
         return Ok(new { timeZone = ZoneTime.IanaId(zone) });

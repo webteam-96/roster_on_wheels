@@ -44,7 +44,7 @@ public class WebsiteLanguageService : IWebsiteLanguageService
 
     public async Task<WebsiteLanguageSettingsDto> GetSettingsAsync(string scope, int ownerId)
     {
-        await using var conn = new MySqlConnection(_connectionString);
+        await using var conn = RowDb.Connect(_connectionString);
         return await SettingsAsync(conn, scope, ownerId);
     }
 
@@ -74,7 +74,7 @@ public class WebsiteLanguageService : IWebsiteLanguageService
         if (languages.Any(l => !Language.IsMatch(l))) return "Use language codes such as en, fr or pt-BR.";
         if (languages.Count > MaxLanguages) return $"A website can have {MaxLanguages} languages at most.";
 
-        await using var conn = new MySqlConnection(_connectionString);
+        await using var conn = RowDb.Connect(_connectionString);
         await conn.ExecuteAsync(@"
             INSERT INTO website_languages (scope, owner_id, default_language, languages, updated_by)
             VALUES (@scope, @ownerId, @def, @languages, @memberId)
@@ -86,7 +86,7 @@ public class WebsiteLanguageService : IWebsiteLanguageService
 
     public async Task<List<WebsiteTranslationItemDto>?> GetItemsAsync(string scope, int ownerId, string language)
     {
-        await using var conn = new MySqlConnection(_connectionString);
+        await using var conn = RowDb.Connect(_connectionString);
         await conn.OpenAsync();
         var settings = await SettingsAsync(conn, scope, ownerId);
         if (!settings.Languages.Contains(language, StringComparer.OrdinalIgnoreCase)) return null;
@@ -133,7 +133,7 @@ public class WebsiteLanguageService : IWebsiteLanguageService
     public async Task<string?> SaveItemAsync(string scope, int ownerId, string language, string type, int itemId,
         SaveWebsiteTranslationDto dto, int memberId)
     {
-        await using var conn = new MySqlConnection(_connectionString);
+        await using var conn = RowDb.Connect(_connectionString);
         await conn.OpenAsync();
         var settings = await SettingsAsync(conn, scope, ownerId);
         var lang = settings.Languages.FirstOrDefault(l => l.Equals(language, StringComparison.OrdinalIgnoreCase));
@@ -197,7 +197,7 @@ public class WebsiteLanguageService : IWebsiteLanguageService
 
     public async Task<bool> DeleteItemAsync(string scope, int ownerId, string language, string type, int itemId)
     {
-        await using var conn = new MySqlConnection(_connectionString);
+        await using var conn = RowDb.Connect(_connectionString);
         return await conn.ExecuteAsync(@"DELETE FROM website_translations WHERE scope = @scope AND owner_id = @ownerId
             AND item_type = @type AND item_id = @itemId AND language = @language",
             new { scope, ownerId, type, itemId, language }) > 0;
@@ -205,7 +205,7 @@ public class WebsiteLanguageService : IWebsiteLanguageService
 
     public async Task<PublicWebsiteLanguagesDto?> GetPublicAsync(string scope, int ownerId, string? language)
     {
-        await using var conn = new MySqlConnection(_connectionString);
+        await using var conn = RowDb.Connect(_connectionString);
         await conn.OpenAsync();
         var live = scope == "club"
             ? await ClubWebsitePublicDataController.IsClubServiceableAsync(conn, ownerId)

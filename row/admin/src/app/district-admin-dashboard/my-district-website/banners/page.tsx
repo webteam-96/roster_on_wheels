@@ -368,7 +368,7 @@ export default function DistrictAdminBannerPhotosPage() {
             <button
               type="button"
               onClick={goBack}
-              className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 hover:text-slate-800"
+              className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 bg-card text-slate-600 hover:bg-slate-50 hover:text-slate-800"
               aria-label="Back"
             >
               <ArrowLeft className="h-4 w-4" />
@@ -401,7 +401,7 @@ export default function DistrictAdminBannerPhotosPage() {
 
         {/* ── Active-count badge (year picker removed — top-bar owns year) ── */}
         {!loading && (
-          <div className="flex items-center gap-4 flex-wrap bg-white rounded-2xl border border-slate-200 shadow-sm p-4">
+          <div className="flex items-center gap-4 flex-wrap bg-card rounded-2xl border border-slate-200 shadow-sm p-4">
             {selectedYearId && !loadingBanners && (
               <Badge
                 variant={activeCount >= maxActive ? "destructive" : "secondary"}
@@ -425,7 +425,7 @@ export default function DistrictAdminBannerPhotosPage() {
 
         {/* ── Empty state ────────────────────────────────────────── */}
         {!loading && !loadingBanners && selectedYearId && banners.length === 0 && (
-          <div className="flex flex-col items-center justify-center py-20 text-center bg-white rounded-2xl border border-slate-200 shadow-sm">
+          <div className="flex flex-col items-center justify-center py-20 text-center bg-card rounded-2xl border border-slate-200 shadow-sm">
             <ImageIcon className="h-12 w-12 text-slate-400 mb-4" />
             <h3 className="text-lg font-semibold text-slate-800">No banners yet</h3>
             <p className="text-slate-500 mt-2">
@@ -445,7 +445,7 @@ export default function DistrictAdminBannerPhotosPage() {
                   placeholder="Search banners..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-9 pr-8 border-slate-200 bg-white focus:border-azure focus:ring-azure/20 text-sm"
+                  className="pl-9 pr-8 border-slate-200 bg-card focus:border-azure focus:ring-azure/20 text-sm"
                 />
                 {searchQuery && (
                   <Button
@@ -469,11 +469,11 @@ export default function DistrictAdminBannerPhotosPage() {
               {filteredBanners.map((banner, idx) => {
                 const photoUrl = getPhotoUrl(banner.bannerImagePath);
                 return (
-                  <Card key={banner.id} className="rounded-2xl border border-slate-200 shadow-sm bg-white relative">
+                  <Card key={banner.id} className="rounded-2xl border border-slate-200 shadow-sm bg-card relative">
                     {canManage && !isSearching && (
                       <div
                         {...dragProps(idx)}
-                        className="absolute top-2 left-2 z-10 bg-white rounded p-1 text-slate-500 ring-1 ring-slate-200"
+                        className="absolute top-2 left-2 z-10 bg-card rounded p-1 text-slate-500 ring-1 ring-slate-200"
                         title="Drag to reorder"
                       >
                         <GripVertical className="h-4 w-4 cursor-grab" />
@@ -529,7 +529,7 @@ export default function DistrictAdminBannerPhotosPage() {
             </div>
 
             {/* ── Desktop: table ─────────────────────────────────── */}
-            <div className="hidden sm:block rounded-2xl border border-slate-200 shadow-sm overflow-hidden bg-white">
+            <div className="hidden sm:block rounded-2xl border border-slate-200 shadow-sm overflow-hidden bg-card">
               <Table>
                 <TableHeader>
                   <TableRow
@@ -665,14 +665,14 @@ export default function DistrictAdminBannerPhotosPage() {
                   onChange={(e) => setFormDescription(e.target.value.slice(0, 500))}
                   rows={2}
                   maxLength={500}
-                  className="border-slate-200 bg-white focus:border-azure focus:ring-azure/20"
+                  className="border-slate-200 bg-card focus:border-azure focus:ring-azure/20"
                 />
                 <p className="text-xs text-slate-400 text-right">{formDescription.length}/500</p>
               </div>
               <div className="space-y-2">
                 <Label className="text-slate-600 text-sm">Status</Label>
                 <Select value={formIsActive} onValueChange={setFormIsActive}>
-                  <SelectTrigger className="border-slate-200 bg-white focus:border-azure focus:ring-azure/20"><SelectValue /></SelectTrigger>
+                  <SelectTrigger className="border-slate-200 bg-card focus:border-azure focus:ring-azure/20"><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="1">Active</SelectItem>
                     <SelectItem value="0">Inactive</SelectItem>
@@ -683,7 +683,7 @@ export default function DistrictAdminBannerPhotosPage() {
                 <div className="space-y-2">
                   <Label className="text-slate-600 text-sm">Rotary Year</Label>
                   <Select value={formYearId} onValueChange={setFormYearId}>
-                    <SelectTrigger className="border-slate-200 bg-white focus:border-azure focus:ring-azure/20"><SelectValue placeholder="Select a year" /></SelectTrigger>
+                    <SelectTrigger className="border-slate-200 bg-card focus:border-azure focus:ring-azure/20"><SelectValue placeholder="Select a year" /></SelectTrigger>
                     <SelectContent>
                       {allRotaryYears.map((y) => (
                         <SelectItem key={y.id} value={String(y.id)}>{y.yearLabel}{y.isCurrent ? " (Current)" : ""}</SelectItem>

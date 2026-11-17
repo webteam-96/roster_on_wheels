@@ -6,6 +6,29 @@ unless marked "done"; decide them when the area is worked on.
 
 ## Security and privacy
 
+- **Audit fixes, 2026-11-17** (done; `/security`, `/backend`, `/frontend` audits). Uploaded `.svg` files are served
+  with a sandbox CSP (`Program.cs` static files), so a scripted SVG runs nothing; payment-proof uploads (3 dues
+  controllers) no longer accept `.svg`. Public pay, offline-payment and create-order are rate-limited
+  (`payment-status`); public link, token and status reads use `member-search`. `CountriesController` is marked
+  `[AllowAnonymous]` explicitly. Admin `npm audit fix` (5 high cleared), website `next` 16.4.6. Fire-and-forget work
+  goes through `Services/BackgroundWork.cs`, which logs failures that were silently swallowed before (28 sites).
+  CI runs `row/api.Tests`. Checked and clean: no SQL built from user input; the test passwords in git history match
+  no production account (151 checked).
+- **Move to UTC (user decision 2026-11-17; code ready, production data step not run; DO NOT DEPLOY the code
+  without running the data step in the same window).** ROW's users are outside India (the countries of its UI
+  languages), but production stored India time: the IIS server and the shared MySQL server (75 databases, so its global
+  zone cannot change) run on IST. Code: every connection goes through `Services/RowDb.cs` (441 sites, linked into the
+  workers), which runs each MySQL session in UTC, so NOW(), CURDATE() and column defaults are UTC; `DateTime.Now/Today`
+  became `UtcNow` (532 sites); `ZoneTime.StoredUtc` no longer depends on the server zone, so the API sends times with
+  "Z". Input: the admin sends its browser zone (`X-Time-Zone`), the app its UTC offset (`X-Time-Zone-Offset`), and
+  `UtcDateTimeConverter.Read` stores a zone-less time ("2026-11-20T18:00") as that viewer's wall-clock in UTC
+  (`Services/ViewerZone.cs`); midnight values are dates and never move. Output: strings the API builds use
+  `ZoneTime.Iso` ("Z"), and times printed in emails, receipts, Excel and PDF use `ZoneTime.Print` (the brand zone,
+  labelled "UTC" while the brand zone is UTC). Data: `database/maintenance/utc_migration.py` (dry run by default,
+  `--apply`, password from `ROW_MIGRATION_DB_PASSWORD`) shifts every DATETIME value with a time of day by -5:30, keeps
+  ON UPDATE columns from being stamped, drops and recreates the UPDATE triggers, and refuses a second run. Rehearsed
+  2026-11-17 on a copy of `row_prod_copy`: 560,665 values moved by exactly 5:30, 0 other changes, 16/16 triggers
+  identical, audit_log guard intact. Tests: `RowDbTests`, `ViewerZoneTests`. Closed the same day: the 3 SQL-formatted report times (AG events, awards clear status, goal comments) are formatted in C# in the viewer's zone; dates in forms and query strings go through `ViewerZoneDateTimeBinder` (same rule as JSON); the app sends its IANA zone (`X-Time-Zone`, from the OS through the `row/time_zone` channel in MainActivity.kt / AppDelegate.swift) with the offset as fallback; `database/maintenance/district_time_zones.py` fills empty district zones from where their clubs are (country, and state for US, Canada, Brazil, Australia, Mexico, Indonesia): applied to `row_prod_copy` (481 districts), production dry run 483/483 resolved, production apply waiting for the user's OK.
 - **Year and club guards were never wired** (found 2026-11-12 by `kb/tools/security_guards_e2e.py`). 30 controllers
   from the RIZones pull take `AdminYearGuard guard` but did not assign `_guard = guard;`, so every guarded write
   (attendance, sub groups, payment links, board, documents, dues and more) failed with a 500 for every caller.

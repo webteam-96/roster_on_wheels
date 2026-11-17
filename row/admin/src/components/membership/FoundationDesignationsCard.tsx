@@ -21,7 +21,7 @@ import {
 } from "@/services/api";
 
 export const selectCls =
-  "flex h-11 w-full rounded-xl border border-input bg-white px-3.5 py-2 text-base md:text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/25";
+  "flex h-11 w-full rounded-xl border border-input bg-card px-3.5 py-2 text-base md:text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/25";
 
 export function apiMessage(err: unknown, fallback: string): string {
   return (err as { response?: { data?: { message?: string } } })?.response?.data?.message || fallback;
@@ -87,7 +87,7 @@ export default function FoundationDesignationsCard({ memberId }: { memberId: num
   };
 
   return (
-    <section className="rounded-[20px] border border-slate-200 overflow-hidden mb-4 bg-white">
+    <section className="rounded-[20px] border border-slate-200 overflow-hidden mb-4 bg-card">
       <header className="flex items-center gap-2 px-4 py-2.5 bg-slate-50 border-b border-slate-100">
         <Award className="h-4 w-4 text-slate-500" />
         <h3 className="text-sm font-semibold text-slate-800">Foundation designations</h3>

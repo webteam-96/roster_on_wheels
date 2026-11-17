@@ -47,7 +47,7 @@ public class PublicJoinController : ControllerBase
     [HttpGet("club/{clubId:int}")]
     public async Task<ActionResult> Club(int clubId)
     {
-        await using var conn = new MySqlConnection(_connectionString);
+        await using var conn = RowDb.Connect(_connectionString);
         var name = await conn.ExecuteScalarAsync<string?>(
             "SELECT ClubName FROM club_master WHERE pk_club_id = @C AND isdeleted = 0 AND IsActive = 1", new { C = clubId });
         return name == null ? NotFound(new { message = "Club not found." }) : Ok(new { clubId, clubName = name });
@@ -56,7 +56,7 @@ public class PublicJoinController : ControllerBase
     [HttpGet("district/{districtId:int}")]
     public async Task<ActionResult> District(int districtId)
     {
-        await using var conn = new MySqlConnection(_connectionString);
+        await using var conn = RowDb.Connect(_connectionString);
         var number = await conn.ExecuteScalarAsync<string?>(
             "SELECT DistrictNumber FROM district_master WHERE pk_district_id = @D AND isdeleted = 0 AND IsActive = 1", new { D = districtId });
         if (number == null) return NotFound(new { message = "District not found." });
@@ -81,7 +81,7 @@ public class PublicJoinController : ControllerBase
         catch (ArgumentException ex) { return BadRequest(new { message = ex.Message }); }
         if (email == null) return BadRequest(new { message = "Please give your email so the club can reply." });
 
-        await using var conn = new MySqlConnection(_connectionString);
+        await using var conn = RowDb.Connect(_connectionString);
         await conn.OpenAsync();
         // shortcut: the district website's form files the prospect under the club the visitor picks, because
         // potential_members.fk_club_id is NOT NULL; add a district inbox (nullable club) if districts want unassigned enquiries.
@@ -113,7 +113,7 @@ public class PublicJoinController : ControllerBase
         catch (ArgumentException ex) { return BadRequest(new { message = ex.Message }); }
         if (email == null && phone == null) return BadRequest(new { message = "Please give an email or a phone number." });
 
-        await using (var conn = new MySqlConnection(_connectionString))
+        await using (var conn = RowDb.Connect(_connectionString))
         {
             await conn.OpenAsync();
             if (await OverDailyCapAsync(conn, invite.ClubId)) return StatusCode(429, new { message = "Too many replies today. Please try again tomorrow." });

@@ -135,7 +135,7 @@ using var cts = new CancellationTokenSource();
 Console.CancelKeyPress += (_, e) =>
 {
     e.Cancel = true;
-    Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Cancellation requested — finishing current club then stopping...");
+    Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] Cancellation requested — finishing current club then stopping...");
     cts.Cancel();
 };
 
@@ -196,7 +196,7 @@ try
         if (affected.Count > 0)
         {
             Console.WriteLine("");
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Club flag reconcile touched {affected.Count} club(s) — syncing their members now...");
+            Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] Club flag reconcile touched {affected.Count} club(s) — syncing their members now...");
             var memberWorker = sp.GetRequiredService<ClubMemberSweepWorker>();
             await memberWorker.RunForClubRotaryIdsAsync(affected, cts.Token);
         }
@@ -215,7 +215,7 @@ try
         else
         {
             Console.WriteLine("");
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Checking for clubs that dropped OUT of /clubs (sync -> non-sync)...");
+            Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] Checking for clubs that dropped OUT of /clubs (sync -> non-sync)...");
             try
             {
                 var cascade = sp.GetRequiredService<ClubNonSyncCascadeWorker>();
@@ -227,7 +227,7 @@ try
                 // Conditions 1 + 3 have ALREADY been applied at this point. A /Clubs/search
                 // hiccup on Rotary.org's side must not throw that away or hide the final count.
                 Console.WriteLine("");
-                Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] WARNING — sync->non-sync check could not run: {ex.Message}");
+                Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] WARNING — sync->non-sync check could not run: {ex.Message}");
                 Console.WriteLine("  Conditions 1 + 3 above WERE applied. Nothing was soft-deleted.");
                 Console.WriteLine("  Retry that direction on its own with:");
                 Console.WriteLine("    RotaryOrgSyncWorker.exe --non-sync-cascade           (audit)");
@@ -240,7 +240,7 @@ try
         // cascade-soft-deleted; it never deletes them here. Review the audit email, then apply with:
         //   RotaryOrgSyncWorker.exe --terminate-clubs --apply
         Console.WriteLine("");
-        Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Auditing clubs gone from BOTH /clubs AND /Clubs/search (audit-only, no deletes)...");
+        Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] Auditing clubs gone from BOTH /clubs AND /Clubs/search (audit-only, no deletes)...");
         try
         {
             var terminator = sp.GetRequiredService<ClubTerminator>();
@@ -249,7 +249,7 @@ try
         catch (OperationCanceledException) { throw; }
         catch (Exception ex)
         {
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] WARNING — termination audit could not run: {ex.Message}");
+            Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] WARNING — termination audit could not run: {ex.Message}");
             Console.WriteLine("  (the reconcile steps above still applied; nothing was terminated)");
         }
 
@@ -260,7 +260,7 @@ try
         //    safety threshold (RotaryOrgSync:MaxAutoWebsiteCleanupPerRun) so a mass-event emails
         //    instead of mass-deleting.
         Console.WriteLine("");
-        Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Cleaning orphaned club websites (club inactive/deleted)...");
+        Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] Cleaning orphaned club websites (club inactive/deleted)...");
         try
         {
             var websiteCleanup = sp.GetRequiredService<ClubWebsiteOrphanCleanup>();
@@ -269,7 +269,7 @@ try
         catch (OperationCanceledException) { throw; }
         catch (Exception ex)
         {
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] WARNING — website orphan cleanup could not run: {ex.Message}");
+            Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] WARNING — website orphan cleanup could not run: {ex.Message}");
             Console.WriteLine("  (the reconcile steps above still applied)");
         }
 
@@ -937,7 +937,7 @@ try
             Console.Error.WriteLine("Example: RotaryOrgSyncWorker.exe --probe-club-officers 28046 2024");
             return 1;
         }
-        var fromYear = (args.Length >= 3 && int.TryParse(args[2], out var y)) ? y : DateTime.Today.Year - 1;
+        var fromYear = (args.Length >= 3 && int.TryParse(args[2], out var y)) ? y : DateTime.UtcNow.Date.Year - 1;
         var toYear = fromYear + 1;
         var path = $"clubs/Rotary%20Club/{officerProbeId}/officers?startDate=07/01/{fromYear}&endDate=06/30/{toYear}";
         Console.WriteLine($"\nProbing /{path}\n");
@@ -1109,11 +1109,11 @@ try
     if (mode == "--ping")
     {
         var api = sp.GetRequiredService<IRotaryOrgApiClient>();
-        Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Pinging Rotary.org...");
+        Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] Pinging Rotary.org...");
         var sw = System.Diagnostics.Stopwatch.StartNew();
         var clubs = await api.GetClubsAsync(cts.Token);
         sw.Stop();
-        Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] OK — fetched {clubs.Count} clubs in {sw.ElapsedMilliseconds}ms");
+        Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] OK — fetched {clubs.Count} clubs in {sw.ElapsedMilliseconds}ms");
         if (clubs.Count > 0)
         {
             var c = clubs[0];
@@ -1127,12 +1127,12 @@ try
 }
 catch (OperationCanceledException)
 {
-    Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Cancelled by user.");
+    Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] Cancelled by user.");
     return 130;
 }
 catch (Exception ex)
 {
-    Console.Error.WriteLine($"[{DateTime.Now:HH:mm:ss}] FAILED: {ex.Message}");
+    Console.Error.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] FAILED: {ex.Message}");
     Console.Error.WriteLine(ex.StackTrace);
     return 2;
 }

@@ -56,7 +56,7 @@ function platformChipStyle(platform: string): string {
     case "pinterest":  return "bg-red-50 text-red-700 border-red-200";
     case "threads":    return "bg-zinc-100 text-zinc-800 border-zinc-200";
     case "googleplus": return "bg-orange-50 text-orange-700 border-orange-200";
-    case "website":    return "bg-indigo-50 text-indigo-700 border-indigo-200";
+    case "website":    return "bg-slate-50 text-slate-700 border-slate-200";
     default:           return "bg-slate-50 text-slate-700 border-slate-200";
   }
 }
@@ -253,7 +253,7 @@ export default function SocialMediaLinksV2Page() {
         </div>
 
         {/* Table card */}
-        <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+        <div className="bg-card rounded-2xl border border-slate-200 overflow-hidden">
           <div className="px-5 py-3 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div>
               <h3 className="text-sm font-semibold text-slate-800">Social Media Links</h3>

@@ -26,7 +26,7 @@ public class AuditLogService : IAuditLogService
     {
         try
         {
-            using var conn = new MySqlConnection(_connectionString);
+            using var conn = RowDb.Connect(_connectionString);
             await conn.OpenAsync();
 
             // Resolve member name + primary role for quick display in viewer

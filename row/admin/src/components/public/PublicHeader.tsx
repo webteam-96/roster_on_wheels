@@ -34,7 +34,7 @@ export default function PublicHeader() {
   const MERCHANT = merchantFrom(brand);
 
   return (
-    <header className="sticky top-0 z-50 bg-white border-b shadow-sm" style={{ borderColor: "rgba(30,58,95,0.08)" }}>
+    <header className="sticky top-0 z-50 bg-card border-b shadow-sm" style={{ borderColor: "rgba(30,58,95,0.08)" }}>
       {/* Top contact strip — always visible. Industry standard on Indian
           payment-enabled sites; Cashfree reviewers expect it on the home
           page. Carries help-line numbers, working hours, and support email

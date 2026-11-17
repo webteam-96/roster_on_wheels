@@ -45,7 +45,7 @@ import { stripBase } from "@/lib/basePath";
 function fundChipStyle(name: string): string {
   const n = (name || "").toLowerCase();
   if (n.includes("annual"))    return "bg-blue-50 text-blue-700 border-blue-200";
-  if (n.includes("polio"))     return "bg-violet-50 text-violet-700 border-violet-200";
+  if (n.includes("polio"))     return "bg-slate-50 text-slate-700 border-slate-200";
   if (n.includes("endowment")) return "bg-amber-50 text-amber-700 border-amber-200";
   if (n.includes("other"))     return "bg-slate-50 text-slate-700 border-slate-200";
   return "bg-emerald-50 text-emerald-700 border-emerald-200";
@@ -266,7 +266,7 @@ export function TrfV2View({ clubId: propClubId, embedded = false, yearId: global
       </div>
 
       {/* Table card */}
-      <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+      <div className="bg-card rounded-2xl border border-slate-200 overflow-hidden">
         <div className="px-5 py-3 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
             <h3 className="text-sm font-semibold text-slate-800">Contribution Records</h3>
@@ -279,7 +279,7 @@ export function TrfV2View({ clubId: propClubId, embedded = false, yearId: global
                 value={selectedYearId ?? ""}
                 onChange={(e) => setSelectedYearId(e.target.value ? Number(e.target.value) : null)}
                 disabled={isFrozenYear}
-                className="px-2 h-10 py-0 text-sm border border-slate-200 rounded-[12px] bg-white focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42] disabled:bg-slate-50 disabled:text-slate-500 disabled:cursor-not-allowed"
+                className="px-2 h-10 py-0 text-sm border border-slate-200 rounded-[12px] bg-card focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42] disabled:bg-slate-50 disabled:text-slate-500 disabled:cursor-not-allowed"
               >
                 {years.length === 0 && <option value="">No years</option>}
                 {years.map((y) => (

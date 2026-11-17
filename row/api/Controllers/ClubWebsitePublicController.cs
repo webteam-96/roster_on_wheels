@@ -58,7 +58,7 @@ public class ClubWebsitePublicController : ControllerBase
         //       "rcthanehills.localhost"       → "rcthanehills"  (dev)
         var firstLabel = normalized.Split('.')[0];
 
-        using var conn = new MySqlConnection(_connectionString);
+        using var conn = RowDb.Connect(_connectionString);
         await conn.OpenAsync();
 
         // ClientDomain/Subdomain are stored as full URLs (e.g. "https://www.rcmadras.in/"), so compare
@@ -144,7 +144,7 @@ public class ClubWebsitePublicController : ControllerBase
     [HttpGet("renew-link")]
     public async Task<ActionResult> RenewLink([FromQuery] int? clubId, [FromQuery] string? host)
     {
-        using var conn = new MySqlConnection(_connectionString);
+        using var conn = RowDb.Connect(_connectionString);
         await conn.OpenAsync();
 
         const string selectCols = @"

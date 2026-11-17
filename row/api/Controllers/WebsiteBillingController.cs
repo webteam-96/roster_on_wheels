@@ -34,7 +34,7 @@ public class WebsiteBillingController : ControllerBase
         if (IsSuperAdmin()) return true;
         var memberId = GetUserId();
         if (memberId == 0 || clubId <= 0) return false;
-        using var conn = new MySqlConnection(_connectionString);
+        using var conn = RowDb.Connect(_connectionString);
         await conn.OpenAsync();
         var allowed = await conn.ExecuteScalarAsync<int>(@"
             SELECT COUNT(*) FROM member_roles

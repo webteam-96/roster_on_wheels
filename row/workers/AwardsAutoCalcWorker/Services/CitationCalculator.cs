@@ -1,3 +1,4 @@
+using RotaryApi.Services;
 using Dapper;
 using Microsoft.Extensions.Logging;
 using MySqlConnector;
@@ -38,10 +39,10 @@ public class CitationCalculator
 
     public async Task<RunStats> CalculateAllAutoPointsAsync()
     {
-        var runStart = DateTime.Now;
+        var runStart = DateTime.UtcNow;
         int districtCount = 0, clubCount = 0, entryCount = 0;
 
-        using var conn = new MySqlConnection(_connectionString);
+        using var conn = RowDb.Connect(_connectionString);
         await conn.OpenAsync();
 
         var currentYear = await conn.QueryFirstOrDefaultAsync<dynamic>(
@@ -49,7 +50,7 @@ public class CitationCalculator
         if (currentYear == null)
         {
             _logger.LogWarning("No current rotary year set — skipping run.");
-            return new RunStats(runStart, DateTime.Now, "", 0, 0, 0, true, "No current rotary year");
+            return new RunStats(runStart, DateTime.UtcNow, "", 0, 0, 0, true, "No current rotary year");
         }
 
         int yearId = (int)currentYear.id;
@@ -61,7 +62,7 @@ public class CitationCalculator
         if (projInfo == null)
         {
             _logger.LogWarning("No year-wise projects table for current year {YearLabel} ({YearId}). Skipping.", yearLabel, yearId);
-            return new RunStats(runStart, DateTime.Now, yearLabel, 0, 0, 0, true, $"No projects table for {yearLabel}");
+            return new RunStats(runStart, DateTime.UtcNow, yearLabel, 0, 0, 0, true, $"No projects table for {yearLabel}");
         }
         string projTbl = projInfo.ProjectsTable;
 
@@ -73,7 +74,7 @@ public class CitationCalculator
         if (districtIds.Count == 0)
         {
             _logger.LogInformation("No districts have citation auto questions for year {YearLabel}. Skipping.", yearLabel);
-            return new RunStats(runStart, DateTime.Now, yearLabel, 0, 0, 0, true, "No districts configured");
+            return new RunStats(runStart, DateTime.UtcNow, yearLabel, 0, 0, 0, true, "No districts configured");
         }
 
         // Module IDs identical across districts — fetch once.
@@ -160,7 +161,7 @@ public class CitationCalculator
             }
         }
 
-        return new RunStats(runStart, DateTime.Now, yearLabel, districtCount, clubCount, entryCount, false, null);
+        return new RunStats(runStart, DateTime.UtcNow, yearLabel, districtCount, clubCount, entryCount, false, null);
     }
 
     private async Task<int> GetAutoCount(MySqlConnection conn, string activityName, int clubId, int yearId,

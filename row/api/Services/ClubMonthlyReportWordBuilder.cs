@@ -562,7 +562,7 @@ public static class ClubMonthlyReportWordBuilder
             ? d.ToString("dd MMM yyyy", CultureInfo.InvariantCulture) : ymd;
 
     private static string FormatDateTime(DateTime d) =>
-        d.ToString("ddd, dd MMM yyyy hh:mm:ss tt", CultureInfo.InvariantCulture);
+        ZoneTime.Print(d, "ddd, dd MMM yyyy hh:mm:ss tt");
 
     private static SectionProperties SectionProps() => new(
         new PageSize { Width = 11906, Height = 16838 },

@@ -43,7 +43,7 @@ public class WalletService : IWalletService
         _logger = logger;
     }
 
-    private MySqlConnection NewConn() => new(_conn);
+    private MySqlConnection NewConn() => RowDb.Connect(_conn);
 
     // ── pricing ────────────────────────────────────────────────────────────
     private (int RatePaise, decimal MinAmount) PricingFor(string creditType)
@@ -373,7 +373,7 @@ public class WalletService : IWalletService
         string creditType, int credits, string? transactionId, int userId)
     {
         int months = _config.GetValue("Razorpay:CreditValidityMonths", 12);
-        var newToDate = DateTime.Now.AddMonths(months);
+        var newToDate = DateTime.UtcNow.AddMonths(months);
 
         var currentBalance = await conn.ExecuteScalarAsync<int?>(@"
             SELECT SUM(CreditCount - UsedCount) FROM club_credits
@@ -407,7 +407,7 @@ public class WalletService : IWalletService
             SELECT LAST_INSERT_ID();",
             new { District = fkDistrictId, Club = fkClubId, Type = creditType, Credits = credits,
                   Prev = currentBalance, ToDate = newToDate, Txn = transactionId, User = userId });
-        return (newId, DateTime.Now, newToDate);
+        return (newId, DateTime.UtcNow, newToDate);
     }
 
     public async Task<(string Scope, int ClubId, int DistrictId)?> GetOrderScopeAsync(long topupOrderId)

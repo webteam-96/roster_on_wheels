@@ -16,6 +16,7 @@ import MergeDialog from "./MergeDialog";
 
 import { appLocale } from "@/lib/appFormat";
 import Pagination from "@/components/Pagination";
+import { SkeletonRows } from "@/components/row/AppKit";
 const PAGE_SIZE = 20;
 type FilterType = "all" | "mobile" | "email" | "both";
 
@@ -30,7 +31,7 @@ function TypeBadge({ matchTypes }: { matchTypes: string }) {
         </Badge>
       )}
       {hasEmail && (
-        <Badge variant="outline" className="border-purple-200 bg-purple-50 text-purple-700 gap-1">
+        <Badge variant="outline" className="border-slate-200 bg-slate-50 text-slate-700 gap-1">
           <Mail className="h-3 w-3" /> Email
         </Badge>
       )}
@@ -254,7 +255,7 @@ export default function DuplicatesPage() {
                   </thead>
                   <tbody>
                     {loading ? (
-                      <tr><td colSpan={5} className="py-16 text-center"><Loader2 className="h-5 w-5 animate-spin mx-auto text-muted-foreground" /></td></tr>
+                      <tr><td colSpan={5} className="px-4 py-3"><SkeletonRows /></td></tr>
                     ) : history.length === 0 ? (
                       <tr><td colSpan={5} className="py-16 text-center text-muted-foreground">No merges recorded.</td></tr>
                     ) : (
@@ -310,7 +311,7 @@ export default function DuplicatesPage() {
                 </thead>
                 <tbody>
                   {loading ? (
-                    <tr><td colSpan={6} className="py-16 text-center"><Loader2 className="h-5 w-5 animate-spin mx-auto text-muted-foreground" /></td></tr>
+                    <tr><td colSpan={6} className="px-4 py-3"><SkeletonRows /></td></tr>
                   ) : items.length === 0 ? (
                     <tr><td colSpan={6} className="py-16 text-center text-muted-foreground">No duplicate pairs found.</td></tr>
                   ) : (
@@ -321,7 +322,7 @@ export default function DuplicatesPage() {
                         <td className="py-3 px-4 align-top"><MemberCell rid={p.ridB} name={p.nameB} club={p.clubB} /></td>
                         <td className="py-3 px-4 align-top">
                           {p.sharedMobile && <div className="flex items-center gap-1.5 text-slate-700"><Smartphone className="h-3.5 w-3.5 text-blue-500" />{p.sharedMobile}</div>}
-                          {p.sharedEmail && <div className="flex items-center gap-1.5 text-slate-700 break-all"><Mail className="h-3.5 w-3.5 text-purple-500" />{p.sharedEmail}</div>}
+                          {p.sharedEmail && <div className="flex items-center gap-1.5 text-slate-700 break-all"><Mail className="h-3.5 w-3.5 text-slate-500" />{p.sharedEmail}</div>}
                         </td>
                         <td className="py-3 px-4 align-top">
                           {p.remark ? (

@@ -298,7 +298,7 @@ export default function PublicWalletPayPage() {
     );
   } else if (result) {
     body = (
-      <div className="mx-auto max-w-lg rounded-2xl border border-slate-200/80 bg-white p-8 text-center shadow-sm">
+      <div className="mx-auto max-w-lg rounded-2xl border border-slate-200/80 bg-card p-8 text-center shadow-sm">
         <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-emerald-50 ring-1 ring-emerald-200">
           <Check className="h-7 w-7 text-emerald-600" strokeWidth={2.5} />
         </div>
@@ -350,7 +350,7 @@ export default function PublicWalletPayPage() {
                   autoFocus value={term} onChange={(e) => setTerm(e.target.value)}
                   aria-label={`Search by ${entityWord} name`}
                   placeholder={entityWord === "district" ? "Search by district number…" : "Search by club name…"}
-                  className="w-full rounded-xl border border-slate-300 bg-white py-3 pl-10 pr-3 text-sm outline-none transition focus:border-azure focus:ring-2 focus:ring-azure/20"
+                  className="w-full rounded-xl border border-slate-300 bg-card py-3 pl-10 pr-3 text-sm outline-none transition focus:border-azure focus:ring-2 focus:ring-azure/20"
                 />
               </div>
 
@@ -464,7 +464,7 @@ export default function PublicWalletPayPage() {
                           className={`relative rounded-xl border px-2 pb-3 pt-3.5 text-center transition ${
                             selected
                               ? "border-azure bg-blue-50/70 ring-1 ring-azure"
-                              : "border-slate-200 bg-white hover:border-slate-300"
+                              : "border-slate-200 bg-card hover:border-slate-300"
                           }`}
                         >
                           {amt === POPULAR && (

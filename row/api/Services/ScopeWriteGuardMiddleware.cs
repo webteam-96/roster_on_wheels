@@ -97,7 +97,7 @@ public class ScopeWriteGuardMiddleware
 
     private async Task<bool> HasAnyRoleAsync(int memberId, int[] roles)
     {
-        await using var conn = new MySqlConnection(_connectionString);
+        await using var conn = RowDb.Connect(_connectionString);
         await conn.OpenAsync();
         return await conn.ExecuteScalarAsync<int>(
             "SELECT COUNT(*) FROM member_roles WHERE fk_member_master_profile_id = @M AND fk_role_id IN @R AND IsActive = 1 AND isdeleted = 0",
@@ -111,7 +111,7 @@ public class ScopeWriteGuardMiddleware
     internal static async Task<bool> ReadAllowedAsync(string connectionString, int memberId, bool isClub, int scopeId, bool members = true)
     {
         if (isClub && await ClosedBySubscriptionAsync(connectionString, memberId, scopeId)) return false;
-        await using (var conn = new MySqlConnection(connectionString))
+        await using (var conn = RowDb.Connect(connectionString))
         {
             await conn.OpenAsync();
             var sql = isClub
@@ -139,7 +139,7 @@ public class ScopeWriteGuardMiddleware
     private static async Task<bool> ClosedBySubscriptionAsync(string connectionString, int memberId, int clubId)
     {
         if (!await SubscriptionGateMiddleware.ClubClosedAsync(connectionString, clubId)) return false;
-        await using var conn = new MySqlConnection(connectionString);
+        await using var conn = RowDb.Connect(connectionString);
         return await conn.ExecuteScalarAsync<int>(@"SELECT COUNT(*) FROM member_roles WHERE fk_member_master_profile_id = @M
             AND fk_role_id = 3 AND IsActive = 1 AND isdeleted = 0", new { M = memberId }) == 0;
     }
@@ -150,7 +150,7 @@ public class ScopeWriteGuardMiddleware
     {
         if (isClub && scopeId <= 0) return false; // club 0 is no club: district Admin rows carry fk_club_id = 0
         if (isClub && await ClosedBySubscriptionAsync(connectionString, memberId, scopeId)) return false;
-        await using var conn = new MySqlConnection(connectionString);
+        await using var conn = RowDb.Connect(connectionString);
         await conn.OpenAsync();
         const string active = "mr.fk_member_master_profile_id = @M AND mr.IsActive = 1 AND mr.isdeleted = 0";
         // District-level rows store fk_club_id as NULL or 0 (same rule as ClubAdminAccessHelper).

@@ -26,4 +26,8 @@
     </None>
   </ItemGroup>
 
+  <ItemGroup>
+    <!-- One MySQL connection factory for API and workers: every session runs in UTC. -->
+    <Compile Include="..\..\api\Services\RowDb.cs" Link="Shared\RowDb.cs" />
+  </ItemGroup>
 </Project>

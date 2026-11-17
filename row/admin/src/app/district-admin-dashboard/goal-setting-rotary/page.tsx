@@ -16,7 +16,7 @@ import {
   type GoalRotaryYear,
 } from "@/services/api";
 
-const panel = "rounded-xl border border-slate-200 bg-white p-5";
+const panel = "rounded-xl border border-slate-200 bg-card p-5";
 
 type Row = { item: string; byKind: Record<string, number | null> };
 
@@ -106,7 +106,7 @@ export default function GoalSettingRotaryPage() {
                 aria-label="Rotary year"
                 value={yearId ?? ""}
                 onChange={(e) => setYearId(Number(e.target.value) || null)}
-                className="h-9 rounded-md border border-slate-300 bg-white px-3 text-sm"
+                className="h-9 rounded-md border border-slate-300 bg-card px-3 text-sm"
               >
                 {years.map((y) => <option key={y.id} value={y.id}>{y.yearLabel}</option>)}
               </select>

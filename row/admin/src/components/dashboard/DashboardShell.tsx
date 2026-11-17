@@ -384,7 +384,7 @@ export default function DashboardShell({
         <main className="flex-1 overflow-y-auto px-4 py-6 md:px-8 md:py-8">
           {currentItem?.feature && !isFeatureOn(brandInfo, currentItem.feature) ? (
             <div className="flex min-h-[60vh] items-center justify-center text-center">
-              <div className="max-w-md rounded-2xl border bg-white p-8 shadow-sm">
+              <div className="max-w-md rounded-2xl border bg-card p-8 shadow-sm">
                 <h2 className="text-xl font-bold text-slate-800">{currentItem.label}</h2>
                 <p className="mt-3 text-sm text-slate-600">This section is not available on {brandInfo.productName}.</p>
               </div>

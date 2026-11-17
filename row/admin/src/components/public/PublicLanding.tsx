@@ -153,7 +153,7 @@ const accentClass = (a: (typeof SERVICES)[number]["accent"]) => {
     case "gold":   return { bg: "bg-amber-50", text: "text-amber-700", border: "border-amber-200" };
     case "blue":   return { bg: "bg-blue-50", text: "text-blue-700", border: "border-blue-200" };
     case "green":  return { bg: "bg-emerald-50", text: "text-emerald-700", border: "border-emerald-200" };
-    case "purple": return { bg: "bg-purple-50", text: "text-purple-700", border: "border-purple-200" };
+    case "purple": return { bg: "bg-slate-50", text: "text-slate-700", border: "border-slate-200" };
     case "navy":   return { bg: "bg-slate-100", text: "text-slate-800", border: "border-slate-200" };
   }
 };
@@ -161,7 +161,7 @@ const accentClass = (a: (typeof SERVICES)[number]["accent"]) => {
 export default function PublicLanding() {
   return (
     // Escape the global layout's px-8 py-4 wrapper so hero / footer can go full-bleed.
-    <div className="-mx-8 -my-4 bg-white">
+    <div className="-mx-8 -my-4 bg-card">
       <PublicHeader />
 
       {/* ── HERO ────────────────────────────────────────────────────── */}
@@ -247,7 +247,7 @@ export default function PublicLanding() {
               { icon: HandHeart, title: "What We Do", body: "Provide secure digital tools for member management, event administration, project documentation, and online collection of dues, fees, and contributions in INR." },
               { icon: Building2, title: "Who We Serve", body: "Rotary club Presidents, Secretaries, Treasurers, Directors, Members; District Governors, Assistant Governors, District Admins; Rotary International Directors." },
             ].map((b) => (
-              <div key={b.title} className="bg-white border border-slate-200 rounded-[20px] p-6 shadow-sm">
+              <div key={b.title} className="bg-card border border-slate-200 rounded-[20px] p-6 shadow-sm">
                 <div className="h-11 w-11 rounded-lg flex items-center justify-center mb-4" style={{ background: "rgba(247,168,27,0.12)", color: BRAND_GOLD }}>
                   <b.icon size={20} />
                 </div>
@@ -260,7 +260,7 @@ export default function PublicLanding() {
       </section>
 
       {/* ── SERVICES (CASHFREE REQUIRED) ────────────────────────────── */}
-      <section id="services" aria-labelledby="services-title" className="py-16 bg-white">
+      <section id="services" aria-labelledby="services-title" className="py-16 bg-card">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <span className="text-xs font-semibold uppercase tracking-widest" style={{ color: BRAND_GOLD }}>
@@ -279,7 +279,7 @@ export default function PublicLanding() {
               const a = accentClass(s.accent);
               const Icon = s.icon;
               return (
-                <article key={s.title} className={`bg-white border ${a.border} rounded-xl p-6 hover:shadow-md transition-shadow`}>
+                <article key={s.title} className={`bg-card border ${a.border} rounded-xl p-6 hover:shadow-md transition-shadow`}>
                   <div className={`h-12 w-12 rounded-lg flex items-center justify-center mb-4 ${a.bg} ${a.text}`}>
                     <Icon size={22} />
                   </div>
@@ -309,7 +309,7 @@ export default function PublicLanding() {
               every payment.
             </p>
           </div>
-          <div className="bg-white border border-slate-200 rounded-[20px] overflow-hidden shadow-sm">
+          <div className="bg-card border border-slate-200 rounded-[20px] overflow-hidden shadow-sm">
             <div className="hidden md:grid grid-cols-12 px-6 py-3 bg-slate-50 border-b border-slate-200 text-xs font-semibold uppercase tracking-wider text-slate-500">
               <div className="col-span-4">Service</div>
               <div className="col-span-3">Amount (INR)</div>
@@ -342,7 +342,7 @@ export default function PublicLanding() {
       </section>
 
       {/* ── FEATURES ────────────────────────────────────────────────── */}
-      <section aria-labelledby="features-title" className="py-16 bg-white">
+      <section aria-labelledby="features-title" className="py-16 bg-card">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 id="features-title" className="text-3xl font-bold tracking-tight" style={{ color: BRAND_NAVY }}>
@@ -381,19 +381,19 @@ export default function PublicLanding() {
             Act 2019 and the Digital Personal Data Protection Act 2023.
           </p>
           <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
-            <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full bg-white border border-slate-300 text-slate-700">
+            <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full bg-card border border-slate-300 text-slate-700">
               <Lock size={13} /> SSL / TLS
             </span>
-            <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full bg-white border border-slate-300 text-slate-700">
+            <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full bg-card border border-slate-300 text-slate-700">
               <ShieldCheck size={13} /> PCI-DSS via Cashfree
             </span>
-            <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full bg-white border border-slate-300 text-slate-700">
+            <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full bg-card border border-slate-300 text-slate-700">
               <IndianRupee size={13} /> INR Only
             </span>
-            <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full bg-white border border-slate-300 text-slate-700">
+            <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full bg-card border border-slate-300 text-slate-700">
               <FileCheck size={13} /> IT Act 2000 / IT Rules 2021
             </span>
-            <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full bg-white border border-slate-300 text-slate-700">
+            <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full bg-card border border-slate-300 text-slate-700">
               <CheckCircle2 size={13} /> DPDPA 2023
             </span>
           </div>

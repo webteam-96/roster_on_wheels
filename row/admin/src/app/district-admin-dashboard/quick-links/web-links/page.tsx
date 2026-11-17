@@ -291,7 +291,7 @@ export default function DistrictAdminWebLinksPage() {
         )}
 
         {!loading && weblinks.length === 0 && (
-          <div className="flex flex-col items-center justify-center py-20 text-center rounded-2xl border border-slate-200 bg-white shadow-sm">
+          <div className="flex flex-col items-center justify-center py-20 text-center rounded-2xl border border-slate-200 bg-card shadow-sm">
             <FolderOpen className="h-12 w-12 text-slate-400 mb-4" />
             <h3 className="text-lg font-semibold text-slate-800">No web links here</h3>
             <p className="text-slate-500 mt-2 text-sm">
@@ -314,7 +314,7 @@ export default function DistrictAdminWebLinksPage() {
                 No results found for &quot;{searchQuery}&quot;
               </p>
             ) : (
-              <div className="rounded-2xl border border-slate-200 shadow-sm overflow-hidden bg-white">
+              <div className="rounded-2xl border border-slate-200 shadow-sm overflow-hidden bg-card">
                 <Table>
                   <TableHeader>
                     <TableRow className="hover:opacity-100 border-b-2 border-marigold" style={{ backgroundColor: "#17458f" }}>

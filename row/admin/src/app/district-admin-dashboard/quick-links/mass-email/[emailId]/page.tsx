@@ -200,7 +200,7 @@ export default function DistrictAdminMassEmailDetailPage() {
         </div>
 
         {/* Summary card */}
-        <div className="rounded-2xl border border-slate-200 shadow-sm bg-white overflow-hidden">
+        <div className="rounded-2xl border border-slate-200 shadow-sm bg-card overflow-hidden">
           <div className="px-5 py-3 border-b border-slate-100 flex items-center justify-between gap-3 bg-azure/5">
             <h3 className="text-sm font-semibold text-slate-800 truncate">{detail.subject}</h3>
             {getStatusBadge(detail.status)}
@@ -241,7 +241,7 @@ export default function DistrictAdminMassEmailDetailPage() {
         <CampaignTrackingCard scope="districts" ownerId={districtId} emailId={emailId} />
 
         {/* Recipients table */}
-        <div className="rounded-2xl border border-slate-200 shadow-sm bg-white overflow-hidden">
+        <div className="rounded-2xl border border-slate-200 shadow-sm bg-card overflow-hidden">
           <div className="px-5 py-3 border-b border-slate-100 bg-azure/5">
             <h3 className="text-sm font-semibold text-slate-800">Recipients ({detail.recipients.length})</h3>
           </div>

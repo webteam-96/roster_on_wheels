@@ -336,7 +336,7 @@ export default function DistrictAdminDashboardGroupDetailPage() {
             variant="outline"
             size="icon"
             onClick={goBack}
-            className="border-slate-200 bg-white hover:bg-slate-50 text-slate-700"
+            className="border-slate-200 bg-card hover:bg-slate-50 text-slate-700"
           >
             <ArrowLeft className="h-4 w-4" />
           </Button>
@@ -507,13 +507,13 @@ export default function DistrictAdminDashboardGroupDetailPage() {
                 )}
               </div>
               {subGroups.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-14 text-center rounded-2xl border border-dashed border-slate-300 bg-white">
+                <div className="flex flex-col items-center justify-center py-14 text-center rounded-2xl border border-dashed border-slate-300 bg-card">
                   <Layers className="h-10 w-10 text-slate-400 mb-3" />
                   <h4 className="text-base font-semibold text-slate-800">No sub-groups yet</h4>
                   <p className="text-slate-500 text-sm mt-1">{canManage ? "Click \"Add Sub Group\" to create one." : "No sub-groups in this group."}</p>
                 </div>
               ) : (
-                <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-sm">
+                <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-card shadow-sm">
                   <table className="w-full min-w-[640px] md:min-w-full text-sm">
                     <thead className="bg-[#EDF4FB] text-[13px] text-[#64748B]">
                       <tr>

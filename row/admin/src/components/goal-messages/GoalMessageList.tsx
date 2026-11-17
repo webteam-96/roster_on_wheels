@@ -73,7 +73,7 @@ export default function GoalMessageList({
               <span className={`h-8 w-8 shrink-0 rounded-full flex items-center justify-center text-[11px] font-bold ${m.isMine ? "bg-blue-600 text-white" : "bg-slate-200 text-slate-600"}`}>
                 {initials(m.postedByName)}
               </span>
-              <div className={`min-w-0 max-w-[85%] rounded-2xl border px-3.5 py-2.5 ${m.isMine ? "bg-blue-50 border-blue-200 rounded-tr-sm" : "bg-white border-slate-200 rounded-tl-sm"}`}>
+              <div className={`min-w-0 max-w-[85%] rounded-2xl border px-3.5 py-2.5 ${m.isMine ? "bg-blue-50 border-blue-200 rounded-tr-sm" : "bg-card border-slate-200 rounded-tl-sm"}`}>
                 <div className="flex items-center gap-1.5 flex-wrap mb-1">
                   <span className="text-sm font-semibold text-slate-800">{m.isMine ? "You" : m.postedByName}</span>
                   {!(plainMine && m.isMine) && (

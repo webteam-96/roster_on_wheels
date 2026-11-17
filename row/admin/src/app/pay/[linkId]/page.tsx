@@ -458,7 +458,7 @@ export default function PublicPaymentPage() {
                           <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-muted-foreground" />
                         )}
                         {dropdownOpen && searchResults.length > 0 && (
-                          <div className="absolute z-20 mt-1 w-full bg-white border rounded-md shadow-lg max-h-72 overflow-y-auto">
+                          <div className="absolute z-20 mt-1 w-full bg-card border rounded-md shadow-lg max-h-72 overflow-y-auto">
                             {searchResults.map(m => (
                               <button
                                 type="button"
@@ -482,7 +482,7 @@ export default function PublicPaymentPage() {
                           </div>
                         )}
                         {memberSearchQuery.trim().length >= 2 && !searching && searchResults.length === 0 && dropdownOpen && (
-                          <div className="absolute z-20 mt-1 w-full bg-white border rounded-md shadow-lg p-3 text-sm text-muted-foreground">
+                          <div className="absolute z-20 mt-1 w-full bg-card border rounded-md shadow-lg p-3 text-sm text-muted-foreground">
                             No members found for &quot;{memberSearchQuery}&quot;.
                           </div>
                         )}

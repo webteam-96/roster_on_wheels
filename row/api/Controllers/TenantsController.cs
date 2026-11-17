@@ -47,7 +47,7 @@ public class TenantsController : ControllerBase
     public async Task<IActionResult> GetEditions()
     {
         if (!IsSuperAdmin()) return Forbidden();
-        await using var conn = new MySqlConnection(_connectionString);
+        await using var conn = RowDb.Connect(_connectionString);
         var editions = (await conn.QueryAsync<EditionDto>("SELECT code AS Code, name AS Name FROM edition_catalogue ORDER BY code")).ToList();
         var keys = (await conn.QueryAsync<(string Code, string Key)>("SELECT edition_code, module_key FROM edition_modules")).ToList();
         foreach (var e in editions)
@@ -63,7 +63,7 @@ public class TenantsController : ControllerBase
         if (name.Length is 0 or > 100) return BadRequest(new { message = "Name is required (100 characters at most)." });
         var keys = (dto.ModuleKeys ?? new()).Select(k => k.Trim()).Distinct().ToList();
 
-        await using var conn = new MySqlConnection(_connectionString);
+        await using var conn = RowDb.Connect(_connectionString);
         await conn.OpenAsync();
         if (await conn.ExecuteScalarAsync<int>("SELECT COUNT(*) FROM edition_catalogue WHERE code = @code", new { code }) == 0)
             return NotFound(new { message = "Edition not found." });
@@ -107,7 +107,7 @@ public class TenantsController : ControllerBase
     public async Task<IActionResult> GetTenants()
     {
         if (!IsSuperAdmin()) return Forbidden();
-        await using var conn = new MySqlConnection(_connectionString);
+        await using var conn = RowDb.Connect(_connectionString);
         return Ok(await conn.QueryAsync<TenantSubscriptionDto>(SubscriptionSelect + " ORDER BY d.DistrictNumber"));
     }
 
@@ -115,7 +115,7 @@ public class TenantsController : ControllerBase
     public async Task<IActionResult> GetTenant(int districtId)
     {
         if (!IsSuperAdmin()) return Forbidden();
-        await using var conn = new MySqlConnection(_connectionString);
+        await using var conn = RowDb.Connect(_connectionString);
         if (await conn.ExecuteScalarAsync<int>("SELECT COUNT(*) FROM district_master WHERE pk_district_id = @districtId AND isdeleted = 0", new { districtId }) == 0)
             return NotFound(new { message = "District not found." });
         var sub = await conn.QueryFirstOrDefaultAsync<TenantSubscriptionDto>(SubscriptionSelect + " AND ts.fk_district_id = @districtId", new { districtId });
@@ -135,7 +135,7 @@ public class TenantsController : ControllerBase
         var error = Validate(dto);
         if (error != null) return BadRequest(new { message = error });
 
-        await using var conn = new MySqlConnection(_connectionString);
+        await using var conn = RowDb.Connect(_connectionString);
         await conn.OpenAsync();
         if (await conn.ExecuteScalarAsync<int>("SELECT COUNT(*) FROM district_master WHERE pk_district_id = @districtId AND isdeleted = 0", new { districtId }) == 0)
             return NotFound(new { message = "District not found." });
@@ -180,7 +180,7 @@ public class TenantsController : ControllerBase
     public async Task<IActionResult> ApplyEdition(int districtId)
     {
         if (!IsSuperAdmin()) return Forbidden();
-        await using var conn = new MySqlConnection(_connectionString);
+        await using var conn = RowDb.Connect(_connectionString);
         await conn.OpenAsync();
         var edition = await conn.ExecuteScalarAsync<string?>(
             "SELECT edition_code FROM tenant_subscriptions WHERE fk_district_id = @districtId AND fk_club_id = 0", new { districtId });
@@ -231,7 +231,7 @@ public class TenantsController : ControllerBase
     public async Task<IActionResult> StartTrial(int districtId)
     {
         if (!IsSuperAdmin()) return Forbidden();
-        await using var conn = new MySqlConnection(_connectionString);
+        await using var conn = RowDb.Connect(_connectionString);
         var n = await conn.ExecuteAsync(@"
             UPDATE tenant_subscriptions SET trial_ends = CURDATE() + INTERVAL 60 DAY, modified_by = @by
             WHERE fk_district_id = @districtId AND fk_club_id = 0", new { districtId, by = GetCurrentMemberId() });
@@ -249,7 +249,7 @@ public class TenantsController : ControllerBase
     public async Task<IActionResult> ConvertTrial(int districtId)
     {
         if (!IsSuperAdmin()) return Forbidden();
-        await using var conn = new MySqlConnection(_connectionString);
+        await using var conn = RowDb.Connect(_connectionString);
         var n = await conn.ExecuteAsync(@"
             UPDATE tenant_subscriptions SET trial_ends = NULL, modified_by = @by
             WHERE fk_district_id = @districtId AND fk_club_id = 0 AND trial_ends IS NOT NULL", new { districtId, by = GetCurrentMemberId() });
@@ -263,7 +263,7 @@ public class TenantsController : ControllerBase
     [HttpGet("tenants/{districtId:int}/state")]
     public async Task<IActionResult> GetState(int districtId)
     {
-        await using var conn = new MySqlConnection(_connectionString);
+        await using var conn = RowDb.Connect(_connectionString);
         var state = await conn.ExecuteScalarAsync<string?>(
             "SELECT state FROM tenant_subscriptions WHERE fk_district_id = @districtId AND fk_club_id = 0", new { districtId });
         return Ok(new { districtId, state = state ?? "live" });

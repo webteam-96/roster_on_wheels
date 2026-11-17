@@ -70,7 +70,7 @@ export default function MeetingCompliancePage() {
   return (
     <ProtectedRoute>
       <div className="space-y-4">
-        <div className="rounded-2xl border border-slate-200 bg-white p-5">
+        <div className="rounded-2xl border border-slate-200 bg-card p-5">
           <h1 className="text-lg font-semibold text-slate-800">Meeting compliance</h1>
           <p className="mt-1 text-sm text-slate-500">
             Meetings held by each club against the number required per month. A meeting counts once its attendance is
@@ -122,11 +122,11 @@ export default function MeetingCompliancePage() {
         {!data ? (
           <TableSkeleton rows={8} />
         ) : data.clubs.length === 0 ? (
-          <div className="rounded-2xl border border-slate-200 bg-white p-8 text-center text-sm text-slate-500">
+          <div className="rounded-2xl border border-slate-200 bg-card p-8 text-center text-sm text-slate-500">
             No active clubs in this district.
           </div>
         ) : (
-          <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-white">
+          <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-card">
             <table className="w-full text-sm">
               <thead className="border-b border-slate-200 bg-[#EDF4FB] text-left text-xs font-semibold text-slate-600">
                 <tr>

@@ -79,7 +79,7 @@ export default function SyncProjectsToRotaryOrgCard({ clubId }: { clubId: number
 
   return (
     <>
-      <div className="rounded-xl border border-slate-200 bg-white shadow-sm transition-shadow hover:border-blue-300 hover:shadow-md">
+      <div className="rounded-xl border border-slate-200 bg-card shadow-sm transition-shadow hover:border-blue-300 hover:shadow-md">
         <button
           type="button"
           onClick={() => setOpen(true)}

@@ -31,7 +31,7 @@ public class ClubsController : ControllerBase
     // GetById and Update bypass so the Edit dialog still works.
     private async Task<bool> IsClubDrillReachableAsync(int clubId)
     {
-        using var conn = new MySqlConnection(_connectionString);
+        using var conn = RowDb.Connect(_connectionString);
         await conn.OpenAsync();
         var count = await conn.ExecuteScalarAsync<int>(@"
             SELECT COUNT(*) FROM club_master c

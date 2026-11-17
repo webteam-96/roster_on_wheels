@@ -192,7 +192,7 @@ export function GroupCommitteeView({ embedded = false }: { embedded?: boolean } 
                 variant="outline"
                 size="icon"
                 onClick={goBack}
-                className="border-slate-200 bg-white hover:bg-slate-50 text-slate-700"
+                className="border-slate-200 bg-card hover:bg-slate-50 text-slate-700"
               >
                 <ArrowLeft className="h-4 w-4" />
               </Button>
@@ -214,7 +214,7 @@ export function GroupCommitteeView({ embedded = false }: { embedded?: boolean } 
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
               <Input
-                className="pl-9 pr-8 border-slate-200 bg-white focus:border-azure focus:ring-azure/20"
+                className="pl-9 pr-8 border-slate-200 bg-card focus:border-azure focus:ring-azure/20"
                 placeholder="Search by group name..."
                 value={searchDraft}
                 onChange={(e) => setSearchDraft(e.target.value)}
@@ -263,7 +263,7 @@ export function GroupCommitteeView({ embedded = false }: { embedded?: boolean } 
         {loadingGroups && <div className="flex items-center justify-center py-12"><RotaryLoader size="lg" /></div>}
 
         {!loading && !loadingGroups && selectedYearId && groups.length === 0 && (
-          <div className="flex flex-col items-center justify-center py-20 text-center rounded-2xl border border-slate-200 bg-white shadow-sm">
+          <div className="flex flex-col items-center justify-center py-20 text-center rounded-2xl border border-slate-200 bg-card shadow-sm">
             <UsersRound className="h-12 w-12 text-slate-400 mb-4" />
             <h3 className="text-lg font-semibold text-slate-800">{searchTerm ? "No matches found" : "No groups yet"}</h3>
             <p className="text-slate-600 mt-2">
@@ -274,7 +274,7 @@ export function GroupCommitteeView({ embedded = false }: { embedded?: boolean } 
 
         {!loading && !loadingGroups && groups.length > 0 && (
           <>
-          <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-sm">
+          <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-card shadow-sm">
             <table className="w-full min-w-[640px] md:min-w-full text-sm">
               <thead className="bg-[#EDF4FB] text-[13px] text-[#64748B]">
                 <tr>

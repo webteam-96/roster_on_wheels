@@ -21,7 +21,7 @@ public class ReportsController : ControllerBase
         _yearTables = yearTables;
     }
 
-    private MySqlConnection CreateConnection() => new(_connectionString);
+    private MySqlConnection CreateConnection() => RowDb.Connect(_connectionString);
     private bool IsSuperAdmin() => User.FindFirst("roles")?.Value?.Contains("SuperAdmin") == true;
 
     // Simple district list for the Reports page filter dropdown

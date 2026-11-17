@@ -67,8 +67,8 @@ function FundingChip({ funding }: { funding: string }) {
   let cls = "bg-blue-50 text-blue-700 border-blue-200";
   if (f.includes("self"))                  cls = "bg-emerald-50 text-emerald-700 border-emerald-200";
   else if (f.includes("global"))           cls = "bg-amber-50 text-amber-700 border-amber-200";
-  else if (f.includes("district"))         cls = "bg-indigo-50 text-indigo-700 border-indigo-200";
-  else if (f.includes("sponsor"))          cls = "bg-purple-50 text-purple-700 border-purple-200";
+  else if (f.includes("district"))         cls = "bg-slate-50 text-slate-700 border-slate-200";
+  else if (f.includes("sponsor"))          cls = "bg-slate-50 text-slate-700 border-slate-200";
   return (
     <span className={`inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium border ${cls} whitespace-nowrap`}>
       {funding || "–"}
@@ -140,10 +140,10 @@ function ProjectDetailModal({
       aria-modal="true"
     >
       <div
-        className="bg-white rounded-xl shadow-xl w-full max-w-3xl max-h-[88vh] overflow-y-auto"
+        className="bg-card rounded-xl shadow-xl w-full max-w-3xl max-h-[88vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="px-5 py-4 border-b border-slate-100 flex items-start justify-between gap-3 sticky top-0 bg-white rounded-t-xl z-10">
+        <div className="px-5 py-4 border-b border-slate-100 flex items-start justify-between gap-3 sticky top-0 bg-card rounded-t-xl z-10">
           <div className="min-w-0">
             <h3 className="text-base font-bold text-slate-800 leading-tight">{d?.title || row.title}</h3>
             <p className="text-xs text-slate-500 mt-0.5">
@@ -412,7 +412,7 @@ export default function AgProjectsPage() {
 
       {/* ───────── Two-up charts: Projects by Club + Monthly Trend ───────── */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white rounded-[20px] border border-slate-200 p-5 shadow-sm">
+        <div className="bg-card rounded-[20px] border border-slate-200 p-5 shadow-sm">
           <h3 className="text-sm font-semibold text-slate-800">Projects by Club</h3>
           <p className="text-[11px] text-slate-500 mb-3">Total projects executed per club</p>
           {clubBarData.length === 0 ? (
@@ -435,7 +435,7 @@ export default function AgProjectsPage() {
           )}
         </div>
 
-        <div className="bg-white rounded-[20px] border border-slate-200 p-5 shadow-sm">
+        <div className="bg-card rounded-[20px] border border-slate-200 p-5 shadow-sm">
           <h3 className="text-sm font-semibold text-slate-800">Monthly Projects Trend</h3>
           <p className="text-[11px] text-slate-500 mb-3">Project count by month (RY {yearLabel})</p>
           {monthlyData.length === 0 ? (
@@ -460,7 +460,7 @@ export default function AgProjectsPage() {
       </div>
 
       {/* ───────── All Projects table ───────── */}
-      <div className="bg-white rounded-[20px] border border-slate-200 overflow-hidden shadow-sm">
+      <div className="bg-card rounded-[20px] border border-slate-200 overflow-hidden shadow-sm">
         <div className="px-5 py-4 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
             <h3 className="text-sm font-semibold text-slate-800">All Projects: Detailed View</h3>
@@ -476,7 +476,7 @@ export default function AgProjectsPage() {
             <select
               value={avenue}
               onChange={(e) => setAvenue(e.target.value)}
-              className="border border-slate-200 rounded-[12px] px-3 py-1.5 text-sm bg-white text-slate-700 focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42] focus:border-blue-500"
+              className="border border-slate-200 rounded-[12px] px-3 py-1.5 text-sm bg-card text-slate-700 focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42] focus:border-blue-500"
               aria-label="Filter by Avenue of Service"
             >
               <option value="all">All Avenues of Service</option>

@@ -103,7 +103,7 @@ export default function DailyStatsReportPage() {
         )}
 
         {counts && (
-          <div className="bg-white rounded-[20px] border border-slate-200 overflow-hidden">
+          <div className="bg-card rounded-[20px] border border-slate-200 overflow-hidden">
             <div className="px-4 py-2.5 border-b border-slate-100 text-sm font-medium text-slate-700">{subject || "Counts"}</div>
             <table className="min-w-full text-sm">
               <tbody className="divide-y divide-slate-100">
@@ -119,7 +119,7 @@ export default function DailyStatsReportPage() {
         )}
 
         {breakdowns.map((b, bi) => (
-          <div key={bi} className="bg-white rounded-[20px] border border-slate-200 overflow-hidden">
+          <div key={bi} className="bg-card rounded-[20px] border border-slate-200 overflow-hidden">
             <div className="px-4 py-2.5 border-b border-slate-100 text-sm font-medium text-slate-700">{b.title}: by Avenue</div>
             <div className="overflow-x-auto">
               <table className="w-full min-w-[640px] md:min-w-full text-sm">

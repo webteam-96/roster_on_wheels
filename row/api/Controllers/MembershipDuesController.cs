@@ -231,7 +231,7 @@ public class MembershipDuesController : ControllerBase
 
         if (attachment != null && attachment.Length > 0)
         {
-            var allowedExtensions = new[] { ".pdf", ".jpg", ".jpeg", ".png", ".gif", ".webp", ".bmp", ".svg" };
+            var allowedExtensions = new[] { ".pdf", ".jpg", ".jpeg", ".png", ".gif", ".webp", ".bmp" };
             var extension = System.IO.Path.GetExtension(attachment.FileName).ToLowerInvariant();
             if (!allowedExtensions.Contains(extension))
                 return BadRequest(new { message = "Invalid file type. Only images (JPG, JPEG, PNG, GIF, WEBP, BMP, SVG) or PDF are allowed." });
@@ -304,7 +304,7 @@ public class MembershipDuesController : ControllerBase
 
         if (attachment != null && attachment.Length > 0)
         {
-            var allowedExtensions = new[] { ".pdf", ".jpg", ".jpeg", ".png", ".gif", ".webp", ".bmp", ".svg" };
+            var allowedExtensions = new[] { ".pdf", ".jpg", ".jpeg", ".png", ".gif", ".webp", ".bmp" };
             var extension = System.IO.Path.GetExtension(attachment.FileName).ToLowerInvariant();
             if (!allowedExtensions.Contains(extension))
                 return BadRequest(new { message = "Invalid file type. Only images (JPG, JPEG, PNG, GIF, WEBP, BMP, SVG) or PDF are allowed." });
@@ -509,7 +509,7 @@ public class MembershipDuesController : ControllerBase
     public ActionResult SendReminderEmail(int id, int memberFeeId, [FromBody] SendDuesReminderDto dto)
     {
         if (!IsSuperAdminOrAdmin()) return StatusCode(403, new { message = "Access denied." });
-        _ = Task.Run(async () => { try { await _service.SendReminderEmailAsync(memberFeeId, dto.FeeType, dto.Remark); } catch { } });
+        BackgroundWork.Run("SendReminderEmailAsync", () => _service.SendReminderEmailAsync(memberFeeId, dto.FeeType, dto.Remark));
         return Ok(new { message = "Reminder email is being sent." });
     }
 
@@ -517,7 +517,7 @@ public class MembershipDuesController : ControllerBase
     public ActionResult BulkSendReminderEmail(int id, [FromBody] BulkDuesReminderDto? dto = null)
     {
         if (!IsSuperAdminOrAdmin()) return StatusCode(403, new { message = "Access denied." });
-        _ = Task.Run(async () => { try { await _service.BulkSendReminderEmailAsync(id, dto?.Remark); } catch { } });
+        BackgroundWork.Run("BulkSendReminderEmailAsync", () => _service.BulkSendReminderEmailAsync(id, dto?.Remark));
         return Ok(new { message = "Bulk email reminders are being sent in background." });
     }
 
@@ -579,7 +579,7 @@ public class MembershipDuesController : ControllerBase
             // backgrounds + Settled (after 2.95%) / Payment Mode / Payment Date columns
             // that the user requested. Method name kept for backward-compat — the body
             // builds an XLSX workbook via ClosedXML.
-            var ts = DateTime.Now.ToString("ddMMyyyy_HHmmss");
+            var ts = DateTime.UtcNow.ToString("ddMMyyyy_HHmmss");
             return File(bytes,
                 "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                 $"membership_dues_report_{id}_{ts}.xlsx");

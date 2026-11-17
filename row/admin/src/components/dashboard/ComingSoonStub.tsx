@@ -23,7 +23,7 @@ export default function ComingSoonStub({ moduleName, comingSoonDate }: ComingSoo
           The new version is rolling out one room at a time. This room&apos;s still getting painted.
         </p>
         {hasDate && (
-          <div className="mt-5 inline-flex items-center gap-2 rounded-lg border border-amber-200 bg-white px-3 py-2 text-xs text-slate-700">
+          <div className="mt-5 inline-flex items-center gap-2 rounded-lg border border-amber-200 bg-card px-3 py-2 text-xs text-slate-700">
             <CalendarClock size={14} className="text-amber-600" />
             <span>Targeted launch: <span className="font-semibold">{dateLabel}</span></span>
           </div>

@@ -25,7 +25,7 @@ public class CashfreeKycService : ICashfreeKycService
         _logger = logger;
     }
 
-    private MySqlConnection CreateConnection() => new(_connectionString);
+    private MySqlConnection CreateConnection() => RowDb.Connect(_connectionString);
 
     // ── Get All ──────────────────────────────────────────────────────────
 
@@ -256,7 +256,7 @@ public class CashfreeKycService : ICashfreeKycService
             Pan = dto.Pan,
             Status = status,
             IsActive = true,
-            CreatedDate = DateTime.Now
+            CreatedDate = DateTime.UtcNow
         };
     }
 

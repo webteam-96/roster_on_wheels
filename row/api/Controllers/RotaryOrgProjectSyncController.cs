@@ -59,7 +59,7 @@ public class RotaryOrgProjectSyncController : ControllerBase
         if (!ProjectSyncToken.TryDecrypt(_config, req?.Token, out var payload, out var error) || payload is null)
             return BadRequest(new { message = error ?? "Invalid token." });
 
-        using var conn = new MySqlConnection(_conn);
+        using var conn = RowDb.Connect(_conn);
         await conn.OpenAsync();
 
         // pk_project_id is unique only WITHIN a year table, so resolve the right table by (project, club).
@@ -96,7 +96,7 @@ public class RotaryOrgProjectSyncController : ControllerBase
         if (req is null || req.ProjectId <= 0 || req.ClubId <= 0)
             return BadRequest(new { message = "projectId and clubId are required." });
 
-        using var conn = new MySqlConnection(_conn);
+        using var conn = RowDb.Connect(_conn);
         await conn.OpenAsync();
 
         // pk_project_id is unique only WITHIN a year table - same lookup the confirm endpoint uses.
@@ -126,7 +126,7 @@ public class RotaryOrgProjectSyncController : ControllerBase
     {
         try
         {
-            using var conn = new MySqlConnection(_conn);
+            using var conn = RowDb.Connect(_conn);
             await conn.OpenAsync();
             info ??= await _yearTables.FindByProjectAndClubAsync(conn, projectId, clubId);
             await conn.ExecuteAsync(@"

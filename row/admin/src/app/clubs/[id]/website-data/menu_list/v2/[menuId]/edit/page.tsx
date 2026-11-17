@@ -91,7 +91,7 @@ function getLinkTypeLabel(value: string): string {
 function linkTypeChipStyle(value: string): string {
   switch (value) {
     case "page": return "bg-blue-50 text-blue-700 border-blue-200";
-    case "external": return "bg-violet-50 text-violet-700 border-violet-200";
+    case "external": return "bg-slate-50 text-slate-700 border-slate-200";
     case "document": return "bg-amber-50 text-amber-700 border-amber-200";
     case "html": return "bg-emerald-50 text-emerald-700 border-emerald-200";
     default: return "bg-slate-50 text-slate-700 border-slate-200";
@@ -197,7 +197,7 @@ function SubMenuEditor({
             placeholder="Enter sub-menu name"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42] bg-white"
+            className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42] bg-card"
             autoFocus
           />
         </div>
@@ -206,7 +206,7 @@ function SubMenuEditor({
           <select
             value={linkType}
             onChange={(e) => { setLinkType(e.target.value); setLinkValue(""); }}
-            className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42] bg-white"
+            className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42] bg-card"
           >
             {/* Sub-menus exclude `html` (rich-text) — only top-level menus get that option in v1. */}
             {LINK_TYPES.filter((t) => t.value !== "html").map((t) => (
@@ -218,7 +218,7 @@ function SubMenuEditor({
           <div>
             <FieldLabel dot="bg-[#17458F]" required>Document</FieldLabel>
             {linkValue ? (
-              <div className="flex items-center gap-2 p-2 border border-slate-200 rounded-md bg-white">
+              <div className="flex items-center gap-2 p-2 border border-slate-200 rounded-md bg-card">
                 <FileText className="h-4 w-4 text-slate-500 flex-shrink-0" />
                 <span className="text-sm truncate flex-1 text-slate-700">{linkValue.split("/").pop()}</span>
                 <button
@@ -239,7 +239,7 @@ function SubMenuEditor({
                   onChange={(e) => onUpload(e, setLinkValue)}
                   disabled={uploading}
                 />
-                <div className="flex items-center gap-2 p-3 border-2 border-dashed border-slate-200 rounded-md hover:border-blue-300 transition-colors bg-white">
+                <div className="flex items-center gap-2 p-3 border-2 border-dashed border-slate-200 rounded-md hover:border-blue-300 transition-colors bg-card">
                   <Upload className="h-4 w-4 text-slate-400" />
                   <span className="text-sm text-slate-500">
                     {uploading ? "Uploading…" : "Click to upload document"}
@@ -257,7 +257,7 @@ function SubMenuEditor({
             <select
               value={linkValue}
               onChange={(e) => setLinkValue(e.target.value)}
-              className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42] bg-white"
+              className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42] bg-card"
             >
               <option value="">Select an existing page…</option>
               {pageOptions.map((p) => (
@@ -275,7 +275,7 @@ function SubMenuEditor({
               placeholder="https://example.com/page"
               value={linkValue}
               onChange={(e) => setLinkValue(e.target.value)}
-              className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42] bg-white"
+              className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42] bg-card"
             />
             <p className="text-[11px] text-slate-500 mt-1.5">Must be a full URL starting with <code>http://</code> or <code>https://</code>.</p>
           </div>
@@ -288,7 +288,7 @@ function SubMenuEditor({
               min={1}
               value={sortOrder}
               onChange={(e) => setSortOrder(Number(e.target.value))}
-              className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42] bg-white"
+              className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42] bg-card"
             />
           </div>
           <div>
@@ -296,7 +296,7 @@ function SubMenuEditor({
             <select
               value={isActive}
               onChange={(e) => setIsActive(e.target.value)}
-              className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42] bg-white"
+              className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42] bg-card"
             >
               <option value="1">Active</option>
               <option value="0">Inactive</option>
@@ -308,7 +308,7 @@ function SubMenuEditor({
             type="button"
             onClick={onCancel}
             disabled={saving}
-            className="inline-flex items-center gap-1 text-xs font-medium px-3 py-1.5 rounded-full border border-slate-200 text-slate-700 hover:bg-white disabled:opacity-50"
+            className="inline-flex items-center gap-1 text-xs font-medium px-3 py-1.5 rounded-full border border-slate-200 text-slate-700 hover:bg-card disabled:opacity-50"
           >
             Cancel
           </button>
@@ -626,7 +626,7 @@ export default function MenuListV2EditPage() {
             value={formLinkType}
             onChange={(e) => { setFormLinkType(e.target.value); setFormLinkValue(""); setFormContentHtml(""); }}
             disabled={isDefault}
-            className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42] bg-white mb-4 disabled:bg-slate-50 disabled:text-slate-500"
+            className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42] bg-card mb-4 disabled:bg-slate-50 disabled:text-slate-500"
           >
             {LINK_TYPES.map((t) => (
               <option key={t.value} value={t.value}>{t.label}</option>
@@ -710,7 +710,7 @@ export default function MenuListV2EditPage() {
                 value={formLinkValue}
                 onChange={(e) => setFormLinkValue(e.target.value)}
                 disabled={isDefault}
-                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42] bg-white disabled:bg-slate-50 disabled:text-slate-500"
+                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42] bg-card disabled:bg-slate-50 disabled:text-slate-500"
               >
                 <option value="">Select an existing page…</option>
                 {pageOptions.map((p) => (
@@ -758,7 +758,7 @@ export default function MenuListV2EditPage() {
                 value={formIsActive}
                 onChange={(e) => setFormIsActive(e.target.value)}
                 disabled={isDefault}
-                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42] bg-white disabled:bg-slate-50 disabled:text-slate-500"
+                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42] bg-card disabled:bg-slate-50 disabled:text-slate-500"
               >
                 <option value="1">Active</option>
                 <option value="0">Inactive</option>
@@ -835,7 +835,7 @@ export default function MenuListV2EditPage() {
                       <td className="px-3 py-2 font-medium text-slate-700">
                         {sub.subMenuName}
                         {sub.isSystemManaged && (
-                          <span className="ml-2 inline-flex items-center text-[10px] font-medium px-1.5 py-0.5 rounded-full border bg-purple-50 text-purple-700 border-purple-200">
+                          <span className="ml-2 inline-flex items-center text-[10px] font-medium px-1.5 py-0.5 rounded-full border bg-slate-50 text-slate-700 border-slate-200">
                             System
                           </span>
                         )}

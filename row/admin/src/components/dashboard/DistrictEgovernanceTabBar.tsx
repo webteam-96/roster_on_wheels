@@ -66,7 +66,7 @@ export default function DistrictEgovernanceTabBar() {
   };
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-3">
+    <div className="bg-card rounded-2xl border border-slate-200 shadow-sm p-3">
       <Tabs value={active} onValueChange={(v) => go(v as TabKey)}>
         <div className="flex items-center justify-between gap-3 flex-wrap">
           <TabsList

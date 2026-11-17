@@ -1,3 +1,4 @@
+using RotaryApi.Services;
 using ClosedXML.Excel;
 using Dapper;
 using Microsoft.Extensions.Configuration;
@@ -52,13 +53,13 @@ public class ClubWebsiteOrphanCleanup
             ?? throw new InvalidOperationException("ConnectionStrings:DefaultConnection missing");
     }
 
-    private MySqlConnection CreateConnection() => new(_connectionString);
+    private MySqlConnection CreateConnection() => RowDb.Connect(_connectionString);
 
     /// <summary>Returns the number of orphaned website rows found (audit) or soft-deleted (apply).</summary>
     public async Task<int> RunAsync(bool apply, bool force = false, CancellationToken ct = default)
     {
         if (force) _logger.LogWarning("ClubWebsiteOrphanCleanup running with --force — safety threshold bypassed");
-        Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] === Club Website Orphan Cleanup {(apply ? "APPLY" : "AUDIT")} START ===");
+        Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] === Club Website Orphan Cleanup {(apply ? "APPLY" : "AUDIT")} START ===");
 
         int logId;
         await using var conn = CreateConnection();
@@ -95,7 +96,7 @@ public class ClubWebsiteOrphanCleanup
                   AND (cm.pk_club_id IS NULL OR cm.isdeleted = 1 OR IFNULL(cm.IsActive,1) = 0)
                 ORDER BY d.DistrictNumber, cm.ClubName, cw.Subdomain")).ToList();
 
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Orphaned website rows found: {orphans.Count}");
+            Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] Orphaned website rows found: {orphans.Count}");
             foreach (var o in orphans)
                 Console.WriteLine($"  website#{o.WebsiteId}  {o.Subdomain}  (club#{o.ClubId} {o.ClubName} D{o.DistrictNumber}) — {o.Reason}, Status={o.Status}");
 
@@ -105,7 +106,7 @@ public class ClubWebsiteOrphanCleanup
                     UPDATE rotary_org_sync_log
                     SET FinishedAtUtc = UTC_TIMESTAMP(), Status = 'Completed', ErrorDetail = 'No orphaned websites.'
                     WHERE pk_id = @Id", new { Id = logId });
-                Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Nothing to clean. All active websites have a live club.");
+                Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] Nothing to clean. All active websites have a live club.");
                 return 0;
             }
 
@@ -132,7 +133,7 @@ public class ClubWebsiteOrphanCleanup
                     SET isdeleted = 1, Status = 'Inactive', modified_date = NOW()
                     WHERE pk_id IN @Ids AND COALESCE(isdeleted,0) = 0",
                     new { Ids = ids });
-                Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Soft-deleted {affected} orphaned website row(s) (isdeleted=1, Status='Inactive').");
+                Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] Soft-deleted {affected} orphaned website row(s) (isdeleted=1, Status='Inactive').");
             }
 
             await conn.ExecuteAsync(@"
@@ -159,7 +160,7 @@ public class ClubWebsiteOrphanCleanup
         }
         catch (Exception ex)
         {
-            Console.Error.WriteLine($"[{DateTime.Now:HH:mm:ss}] FAILED: {ex.Message}");
+            Console.Error.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] FAILED: {ex.Message}");
             try
             {
                 await conn.ExecuteAsync(@"
@@ -202,7 +203,7 @@ public class ClubWebsiteOrphanCleanup
             using var ms = new MemoryStream();
             wb.SaveAs(ms);
             var bytes = ms.ToArray();
-            var fileName = $"ClubWebsite_Orphans_{(aborted ? "Aborted" : apply ? "Applied" : "Audit")}_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx";
+            var fileName = $"ClubWebsite_Orphans_{(aborted ? "Aborted" : apply ? "Applied" : "Audit")}_{DateTime.UtcNow:yyyyMMdd_HHmmss}.xlsx";
 
             var triggeredByName = _config["RotaryOrgSync:TriggeredByName"] ?? "Admin";
             string modeText = aborted ? "SAFETY ABORT" : apply ? "APPLIED" : "AUDIT ONLY";
@@ -244,17 +245,17 @@ public class ClubWebsiteOrphanCleanup
 </div>";
 
             var subject = aborted
-                ? $"[ALERT] Club Website Cleanup Aborted — safety threshold — {DateTime.Now:dd MMM yyyy}"
+                ? $"[ALERT] Club Website Cleanup Aborted — safety threshold — {DateTime.UtcNow:dd MMM yyyy}"
                 : apply
-                    ? $"[Daily] Club Website Orphan Cleanup — {orphans.Count} soft-deleted — {DateTime.Now:dd MMM yyyy}"
-                    : $"[Audit] Club Website Orphan Cleanup — {orphans.Count} found — {DateTime.Now:dd MMM yyyy}";
+                    ? $"[Daily] Club Website Orphan Cleanup — {orphans.Count} soft-deleted — {DateTime.UtcNow:dd MMM yyyy}"
+                    : $"[Audit] Club Website Orphan Cleanup — {orphans.Count} found — {DateTime.UtcNow:dd MMM yyyy}";
             await _emailSender.SendReportAsync(subject, body, bytes, fileName);
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Email sent.");
+            Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] Email sent.");
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Club website orphan cleanup email FAILED");
-            Console.Error.WriteLine($"[{DateTime.Now:HH:mm:ss}] Email failed: {ex.Message}");
+            Console.Error.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] Email failed: {ex.Message}");
         }
     }
 

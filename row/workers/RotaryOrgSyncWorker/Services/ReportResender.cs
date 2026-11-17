@@ -1,3 +1,4 @@
+using RotaryApi.Services;
 using ClosedXML.Excel;
 using Dapper;
 using Microsoft.Extensions.Configuration;
@@ -29,7 +30,7 @@ public class ReportResender
 
     public async Task RunAsync(int? logId, CancellationToken ct = default)
     {
-        await using var conn = new MySqlConnection(_connectionString);
+        await using var conn = RowDb.Connect(_connectionString);
         await conn.OpenAsync(ct);
 
         // Pick log row: explicit id or the latest
@@ -127,7 +128,7 @@ public class ReportResender
         using var ms = new MemoryStream();
         workbook.SaveAs(ms);
         var bytes = ms.ToArray();
-        var fileName = $"RotaryOrg_Sync_Report_RESEND_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx";
+        var fileName = $"RotaryOrg_Sync_Report_RESEND_{DateTime.UtcNow:yyyyMMdd_HHmmss}.xlsx";
 
         var triggeredByName = _config["RotaryOrgSync:TriggeredByName"] ?? "Admin";
         var body = $@"<div style='font-family:Arial,sans-serif;'>

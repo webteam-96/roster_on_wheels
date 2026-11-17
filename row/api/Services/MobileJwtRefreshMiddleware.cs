@@ -122,7 +122,7 @@ public class MobileJwtRefreshMiddleware
             var connStr = configuration.GetConnectionString("DefaultConnection");
             if (string.IsNullOrEmpty(connStr)) return false;
 
-            await using var conn = new MySqlConnection(connStr);
+            await using var conn = RowDb.Connect(connStr);
             await conn.OpenAsync();
             var forceAt = await conn.ExecuteScalarAsync<DateTime?>(
                 "SELECT mobile_force_relogin_at FROM member_master_profile WHERE pk_member_master_profile_id = @Id",

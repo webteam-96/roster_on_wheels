@@ -45,7 +45,7 @@ public static class RowPhone
         if (string.IsNullOrWhiteSpace(connectionString)) return null;
         try
         {
-            await using var conn = new MySqlConnection(connectionString);
+            await using var conn = RowDb.Connect(connectionString);
             await conn.OpenAsync();
             var code = await conn.ExecuteScalarAsync<string?>(@"
                 SELECT c.PhoneCode FROM member_master_profile m

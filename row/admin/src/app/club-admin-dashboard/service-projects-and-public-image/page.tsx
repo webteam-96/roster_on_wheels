@@ -71,7 +71,7 @@ function avenueBadgeStyle(key: string): string {
     case "club_service":            return "bg-blue-50 text-blue-700 border-blue-200";
     case "community_service":       return "bg-emerald-50 text-emerald-700 border-emerald-200";
     case "vocational_service":      return "bg-amber-50 text-amber-700 border-amber-200";
-    case "international_service":   return "bg-violet-50 text-violet-700 border-violet-200";
+    case "international_service":   return "bg-slate-50 text-slate-700 border-slate-200";
     case "new_generation_service":  return "bg-pink-50 text-pink-700 border-pink-200";
     case "public_image_initiative": return "bg-orange-50 text-orange-700 border-orange-200";
     default:                        return "bg-slate-50 text-slate-700 border-slate-200";
@@ -81,7 +81,7 @@ function avenueBadgeStyle(key: string): string {
 function projectTypeChipStyle(t: string) {
   const lo = t.toLowerCase();
   if (lo.includes("one"))     return "bg-blue-50 text-blue-700 border-blue-200";
-  if (lo.includes("recur"))   return "bg-purple-50 text-purple-700 border-purple-200";
+  if (lo.includes("recur"))   return "bg-slate-50 text-slate-700 border-slate-200";
   if (lo.includes("annual"))  return "bg-amber-50 text-amber-700 border-amber-200";
   return "bg-slate-50 text-slate-700 border-slate-200";
 }
@@ -305,7 +305,7 @@ function OverviewSection({ overview }: { overview: ServiceProjectsOverviewRespon
         <KpiCard title="Meetings Held"        value={fmtInt(k.meetingsHeld)}        subtitle="Club service"        icon={CalendarDays} color="blue" />
       </div>
 
-      <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+      <div className="bg-card rounded-2xl border border-slate-200 overflow-hidden">
         <div className="px-5 py-3 border-b border-slate-100">
           <h3 className="text-sm font-semibold text-slate-800">All Avenues</h3>
           <p className="text-xs text-slate-500 mt-0.5">Summary by avenue · {overview.selectedYearLabel}</p>
@@ -454,7 +454,7 @@ function ClubServiceSection({
         <KpiCard title="Avg Attendance"  value={`${Math.round(Number(k.avgAttendancePercent ?? 0))}%`} subtitle="Across meetings"                       icon={Users}        color="green" />
       </div>
 
-      <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+      <div className="bg-card rounded-2xl border border-slate-200 overflow-hidden">
         <div className="px-5 py-3 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
             <h3 className="text-sm font-semibold text-slate-800">Club Service</h3>
@@ -597,7 +597,7 @@ function ClubServiceSection({
 
       {isDeleting && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-900/40">
-          <div className="flex items-center gap-3 rounded-lg bg-white px-5 py-4 shadow-xl">
+          <div className="flex items-center gap-3 rounded-lg bg-card px-5 py-4 shadow-xl">
             <RotaryLoader size="sm" />
             <span className="text-sm font-semibold text-slate-700">Deleting…</span>
           </div>
@@ -804,7 +804,7 @@ function NonClubAvenueSection({
         <KpiCard title="Man Hours"     value={fmtInt(k.manHours ?? 0)}                  subtitle="Volunteer time"      icon={Clock4}      color="purple" />
       </div>
 
-      <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+      <div className="bg-card rounded-2xl border border-slate-200 overflow-hidden">
         <div className="px-5 py-3 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
             <h3 className="text-sm font-semibold text-slate-800">{data.avenueName}</h3>
@@ -1134,7 +1134,7 @@ function NonClubAvenueSection({
 
       {isDeleting && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-900/40">
-          <div className="flex items-center gap-3 rounded-lg bg-white px-5 py-4 shadow-xl">
+          <div className="flex items-center gap-3 rounded-lg bg-card px-5 py-4 shadow-xl">
             <RotaryLoader size="sm" />
             <span className="text-sm font-semibold text-slate-700">Deleting…</span>
           </div>
@@ -1147,7 +1147,7 @@ function NonClubAvenueSection({
           check there before confirming. */}
       {resetTarget && (
         <div className="fixed inset-0 z-[70] flex items-center justify-center bg-slate-900/40 p-4">
-          <div className="w-full max-w-md rounded-xl bg-white p-5 shadow-xl">
+          <div className="w-full max-w-md rounded-xl bg-card p-5 shadow-xl">
             <div className="flex items-start gap-3">
               <span className="mt-0.5 inline-flex h-9 w-9 items-center justify-center rounded-full bg-amber-50 text-amber-600">
                 <AlertTriangle size={18} />
@@ -1217,7 +1217,7 @@ function YearSelect({
     <select
       value={yearId ?? data.selectedYearId ?? ""}
       onChange={(e) => onYearChange(e.target.value ? Number(e.target.value) : null)}
-      className="px-2 h-10 py-0 text-xs border border-slate-200 rounded-[12px] bg-white focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+      className="px-2 h-10 py-0 text-xs border border-slate-200 rounded-[12px] bg-card focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
     >
       {data.availableYears.length === 0 && <option value="">No years</option>}
       {data.availableYears.map((y) => (

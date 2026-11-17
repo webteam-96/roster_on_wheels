@@ -38,7 +38,7 @@ public class ClubLeadershipEmailBackgroundService : BackgroundService
 
     private async Task ProcessDueSchedulesAsync(CancellationToken ct)
     {
-        using var conn = new MySqlConnection(_connectionString);
+        using var conn = RowDb.Connect(_connectionString);
         await conn.OpenAsync(ct);
 
         var due = (await conn.QueryAsync<dynamic>(@"

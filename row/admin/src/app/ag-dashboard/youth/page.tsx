@@ -341,7 +341,7 @@ export default function AgYouthPage() {
       </div>
 
       {/* Per-Club New Generation Service Count */}
-      <div className="bg-white rounded-[20px] border border-slate-200 p-6">
+      <div className="bg-card rounded-[20px] border border-slate-200 p-6">
         <h3 className="text-base font-semibold text-slate-800 mb-1">
           Per-Club New Generation Service Count
         </h3>
@@ -364,7 +364,7 @@ export default function AgYouthPage() {
       </div>
 
       {/* Stacked Per-Club Service Breakdown */}
-      <div className="bg-white rounded-[20px] border border-slate-200 p-6">
+      <div className="bg-card rounded-[20px] border border-slate-200 p-6">
         <h3 className="text-base font-semibold text-slate-800 mb-1">
           Per-Club Service Breakdown
         </h3>
@@ -424,7 +424,7 @@ export default function AgYouthPage() {
       </div>
 
       {/* Club-wise Service Activity table */}
-      <div className="bg-white rounded-[20px] border border-slate-200 overflow-hidden">
+      <div className="bg-card rounded-[20px] border border-slate-200 overflow-hidden">
         <div className="px-6 py-4 border-b border-slate-100">
           <h3 className="text-base font-semibold text-slate-800">
             Club-wise Service Activity

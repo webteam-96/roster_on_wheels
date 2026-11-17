@@ -28,7 +28,7 @@ public class WebSsoController : ControllerBase
         _auth = auth;
     }
 
-    private MySqlConnection Conn() => new(_connectionString);
+    private MySqlConnection Conn() => RowDb.Connect(_connectionString);
     private int GetMemberId() => int.TryParse(User.FindFirst("memberId")?.Value, out var id) ? id : 0;
 
     private static async Task EnsureTableAsync(MySqlConnection conn) =>

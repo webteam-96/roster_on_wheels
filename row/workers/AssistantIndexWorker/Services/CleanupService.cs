@@ -1,3 +1,4 @@
+using RotaryApi.Services;
 using Dapper;
 using Microsoft.Extensions.Logging;
 using MySqlConnector;
@@ -41,7 +42,7 @@ public sealed class CleanupService
 
     public async Task RunAsync(bool dryRun)
     {
-        await using var conn = new MySqlConnection(_connString);
+        await using var conn = RowDb.Connect(_connString);
         await conn.OpenAsync();
         foreach (var (label, table, where) in Rules)
         {

@@ -207,12 +207,12 @@ export default function DistrictAdminAddSubGroupPage() {
           </div>
         </div>
 
-        <div className="rounded-2xl border border-slate-200 shadow-sm bg-white p-5 space-y-4">
+        <div className="rounded-2xl border border-slate-200 shadow-sm bg-card p-5 space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label className="text-slate-700 text-sm font-medium">Group Name *</Label>
               <Input
-                className="border-slate-200 bg-white focus:border-azure focus:ring-azure/20"
+                className="border-slate-200 bg-card focus:border-azure focus:ring-azure/20"
                 placeholder="Enter group name"
                 value={groupName}
                 onChange={(e) => setGroupName(e.target.value)}
@@ -221,7 +221,7 @@ export default function DistrictAdminAddSubGroupPage() {
             <div className="space-y-2">
               <Label className="text-slate-700 text-sm font-medium">Rotary Year *</Label>
               <Select value={selectedYearId} onValueChange={setSelectedYearId}>
-                <SelectTrigger className="border-slate-200 bg-white focus:border-azure focus:ring-azure/20">
+                <SelectTrigger className="border-slate-200 bg-card focus:border-azure focus:ring-azure/20">
                   <SelectValue placeholder="Select year" />
                 </SelectTrigger>
                 <SelectContent>
@@ -254,7 +254,7 @@ export default function DistrictAdminAddSubGroupPage() {
                         placeholder="Search..."
                         value={memberSearchQuery}
                         onChange={(e) => setMemberSearchQuery(e.target.value)}
-                        className="pl-8 h-8 text-sm border-slate-200 bg-white focus:border-azure focus:ring-azure/20"
+                        className="pl-8 h-8 text-sm border-slate-200 bg-card focus:border-azure focus:ring-azure/20"
                       />
                       {memberSearchQuery && (
                         <Button variant="ghost" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 h-5 w-5" onClick={() => setMemberSearchQuery("")}>
@@ -320,7 +320,7 @@ export default function DistrictAdminAddSubGroupPage() {
                 <div className="border border-slate-200 rounded-md flex flex-col overflow-hidden">
                   <div className="px-3 py-2 border-b border-slate-200 bg-slate-50 flex items-center justify-between">
                     <span className="text-sm font-semibold text-slate-700">Selected Members</span>
-                    <Badge variant="outline" className="text-xs border-slate-200 bg-white text-slate-700">{selectedMemberIds.size} selected</Badge>
+                    <Badge variant="outline" className="text-xs border-slate-200 bg-card text-slate-700">{selectedMemberIds.size} selected</Badge>
                   </div>
                   <div className="flex-1 overflow-y-auto max-h-[366px]">
                     {selectedMembers.length === 0 ? (

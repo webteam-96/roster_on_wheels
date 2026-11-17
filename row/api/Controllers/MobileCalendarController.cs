@@ -18,7 +18,7 @@ public class MobileCalendarController : ControllerBase
         _connectionString = config.GetConnectionString("DefaultConnection")!;
     }
 
-    private MySqlConnection CreateConnection() => new(_connectionString);
+    private MySqlConnection CreateConnection() => RowDb.Connect(_connectionString);
     private int GetUserId() => int.Parse(User.FindFirst("memberId")?.Value ?? "0");
 
     // ══════════════════════════════════════════════
@@ -62,7 +62,7 @@ public class MobileCalendarController : ControllerBase
         if (me <= 0 || !await ScopeWriteGuardMiddleware.ReadAllowedAsync(_connectionString, me, true, clubId))
             return StatusCode(403, new { message = "You do not have access to this club." });
         if (!await RotaryApi.Services.KillSwitchHelper.IsClubDrillReachableAsync(_connectionString, clubId)) return StatusCode(403, new { message = "This club, its district, or its zone is inactive. Reactivate it first to access this data." });
-        var now = DateTime.Now;
+        var now = DateTime.UtcNow;
         int m = month ?? now.Month;
         int y = year ?? now.Year;
         var monthStart = new DateTime(y, m, 1);
@@ -253,7 +253,7 @@ public class MobileCalendarController : ControllerBase
         if (me <= 0 || !await ScopeWriteGuardMiddleware.ReadAllowedAsync(_connectionString, me, false, districtId))
             return StatusCode(403, new { message = "You do not have access to this district." });
         if (!await RotaryApi.Services.KillSwitchHelper.IsDistrictDrillReachableAsync(_connectionString, districtId)) return StatusCode(403, new { message = "This district or its zone is inactive. Reactivate it first to access this data." });
-        var now = DateTime.Now;
+        var now = DateTime.UtcNow;
         int m = month ?? now.Month;
         int y = year ?? now.Year;
         var monthStart = new DateTime(y, m, 1);

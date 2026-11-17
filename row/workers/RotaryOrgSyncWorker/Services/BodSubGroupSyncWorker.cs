@@ -1,3 +1,4 @@
+using RotaryApi.Services;
 using ClosedXML.Excel;
 using Dapper;
 using Microsoft.Extensions.Configuration;
@@ -37,12 +38,12 @@ public class BodSubGroupSyncWorker
             ?? throw new InvalidOperationException("ConnectionStrings:DefaultConnection missing");
     }
 
-    private MySqlConnection CreateConnection() => new(_connectionString);
+    private MySqlConnection CreateConnection() => RowDb.Connect(_connectionString);
 
     public async Task RunAsync(CancellationToken ct = default)
     {
         var startedAt = DateTime.UtcNow;
-        Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] === BOD Sub-Group Sync START ===");
+        Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] === BOD Sub-Group Sync START ===");
 
         int clubGroupsCreated = 0, clubGroupsUpdated = 0, clubMembersAdded = 0, clubMembersRemoved = 0;
         int districtGroupsCreated = 0, districtGroupsUpdated = 0, districtMembersAdded = 0, districtMembersRemoved = 0;
@@ -59,7 +60,7 @@ public class BodSubGroupSyncWorker
                 FROM board_of_directors b
                 JOIN club_master c ON c.pk_club_id = b.fk_club_id AND c.isdeleted = 0
                 WHERE b.isdeleted = 0")).ToList();
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Club-level combos: {clubCombos.Count}");
+            Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] Club-level combos: {clubCombos.Count}");
 
             // Distinct (district, year, designation)
             var districtCombos = (await conn.QueryAsync<(int districtId, int yearId, int designationId)>(@"
@@ -67,14 +68,14 @@ public class BodSubGroupSyncWorker
                 FROM board_of_directors b
                 JOIN club_master c ON c.pk_club_id = b.fk_club_id AND c.isdeleted = 0
                 WHERE b.isdeleted = 0")).ToList();
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] District-level combos: {districtCombos.Count}");
+            Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] District-level combos: {districtCombos.Count}");
 
             int idx = 0;
             foreach (var (clubId, yearId, designationId) in clubCombos)
             {
                 ct.ThrowIfCancellationRequested();
                 idx++;
-                if (idx % 100 == 0) Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Club combos {idx}/{clubCombos.Count}");
+                if (idx % 100 == 0) Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] Club combos {idx}/{clubCombos.Count}");
                 try
                 {
                     var stat = await SyncOneScopeAsync(conn, scopeClubId: clubId, scopeDistrictId: null, designationId, yearId);
@@ -91,7 +92,7 @@ public class BodSubGroupSyncWorker
             {
                 ct.ThrowIfCancellationRequested();
                 idx++;
-                if (idx % 100 == 0) Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] District combos {idx}/{districtCombos.Count}");
+                if (idx % 100 == 0) Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] District combos {idx}/{districtCombos.Count}");
                 try
                 {
                     var stat = await SyncOneScopeAsync(conn, scopeClubId: null, scopeDistrictId: districtId, designationId, yearId);
@@ -104,7 +105,7 @@ public class BodSubGroupSyncWorker
             }
 
             var elapsed = DateTime.UtcNow - startedAt;
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] === DONE in {elapsed.TotalMinutes:F1} min ===");
+            Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] === DONE in {elapsed.TotalMinutes:F1} min ===");
             Console.WriteLine($"  Club groups created/updated:     {clubGroupsCreated}/{clubGroupsUpdated}");
             Console.WriteLine($"  Club members added/removed:      {clubMembersAdded}/{clubMembersRemoved}");
             Console.WriteLine($"  District groups created/updated: {districtGroupsCreated}/{districtGroupsUpdated}");
@@ -118,7 +119,7 @@ public class BodSubGroupSyncWorker
         catch (Exception ex)
         {
             _logger.LogError(ex, "BOD Sub-Group Sync FAILED");
-            Console.Error.WriteLine($"[{DateTime.Now:HH:mm:ss}] FAILED: {ex.Message}");
+            Console.Error.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] FAILED: {ex.Message}");
             throw;
         }
     }
@@ -138,7 +139,7 @@ public class BodSubGroupSyncWorker
             FROM rotary_year_master WHERE pk_year_id = @Id LIMIT 1",
             new { Id = yearId });
         if (string.IsNullOrEmpty(year.yearLabel)) return (false, 0, 0);
-        var today = DateTime.Today;
+        var today = DateTime.UtcNow.Date;
         var isCurrent = today >= year.startDate.Date && today <= year.endDate.Date;
         var groupName = isCurrent ? designationName : $"{designationName} {year.yearLabel}";
 
@@ -227,7 +228,7 @@ public class BodSubGroupSyncWorker
     {
         try
         {
-            var subject = $"[Daily] ROW {label} Auto-Sync — {DateTime.Now:dd MMM yyyy}";
+            var subject = $"[Daily] ROW {label} Auto-Sync — {DateTime.UtcNow:dd MMM yyyy}";
             var body = $@"<div style='font-family:Arial,sans-serif;'>
 <h2 style='color:#1a365d;'>{System.Net.WebUtility.HtmlEncode(label)} Auto-Sync</h2>
 <p>Nightly auto-sync rebuilt sub-groups from <code>board_of_directors</code>.</p>
@@ -244,12 +245,12 @@ public class BodSubGroupSyncWorker
 <p>Regards,<br/><strong>Team ROW</strong></p>
 </div>";
             await _emailSender.SendReportAsync(subject, body);
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Email sent — {label}");
+            Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] Email sent — {label}");
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "{Label} email FAILED", label);
-            Console.Error.WriteLine($"[{DateTime.Now:HH:mm:ss}] {label} email failed: {ex.Message}");
+            Console.Error.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] {label} email failed: {ex.Message}");
         }
     }
 }

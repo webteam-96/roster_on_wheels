@@ -426,7 +426,7 @@ export function AreaTabs({
               "inline-flex items-center gap-2 rounded-full border px-3.5 py-1.5 text-[13px] font-semibold transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-dark focus-visible:ring-offset-1 " +
               (isActive
                 ? "border-transparent text-white shadow-sm"
-                : "border-navy-950/15 bg-white text-muted hover:border-navy-950/40 hover:text-navy-950")
+                : "border-navy-950/15 bg-card text-muted hover:border-navy-950/40 hover:text-navy-950")
             }
           >
             {t.key !== "" && (

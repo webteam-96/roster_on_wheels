@@ -22,7 +22,7 @@ public class ClubService : IClubService
         _dcAutoGroups = dcAutoGroups;
     }
 
-    private MySqlConnection CreateConnection() => new(_connectionString);
+    private MySqlConnection CreateConnection() => RowDb.Connect(_connectionString);
 
     public async Task<PagedResult<ClubListDto>> GetAllAsync(int page, int pageSize, string? search, int? districtId, string? city, string? meetingDay, int? isActive, int? zoneId = null, bool excludeRotaract = false, bool includeInactive = false)
     {
@@ -814,7 +814,7 @@ public class ClubService : IClubService
         await tx.CommitAsync();
 
         // Send welcome email (fire-and-forget). Includes club + district + zone + CC to club admin / president / secretary.
-        _ = Task.Run(async () => await SendClubMembershipEmailAsync(clubId, dto.MemberId, isRemove: false));
+        BackgroundWork.Run("SendClubMembershipEmailAsync", () => SendClubMembershipEmailAsync(clubId, dto.MemberId, isRemove: false));
 
         return clubMemberId;
     }
@@ -977,7 +977,7 @@ public class ClubService : IClubService
         await tx.CommitAsync();
 
         // Notify the removed member + CC club admin / president / secretary.
-        _ = Task.Run(async () => await SendClubMembershipEmailAsync(clubId, memberId, isRemove: true));
+        BackgroundWork.Run("SendClubMembershipEmailAsync", () => SendClubMembershipEmailAsync(clubId, memberId, isRemove: true));
     }
 
     public async Task<MemberRemovalPreviewDto?> GetMemberRemovalPreviewAsync(int clubId, int memberId)

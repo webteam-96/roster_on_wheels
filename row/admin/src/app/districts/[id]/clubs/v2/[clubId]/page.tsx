@@ -211,7 +211,7 @@ export default function ClubDetailViewV2Page() {
 
   if (!club) return (
     <ProtectedRoute>
-      <div className="text-center py-20 bg-white rounded-2xl border border-slate-200 shadow-sm">
+      <div className="text-center py-20 bg-card rounded-2xl border border-slate-200 shadow-sm">
         <Building2 className="h-12 w-12 text-slate-400 mx-auto mb-4" />
         <p className="text-slate-500">Club not found</p>
       </div>
@@ -222,7 +222,7 @@ export default function ClubDetailViewV2Page() {
     <ProtectedRoute>
       <div className="space-y-4">
         {/* ── Header ─────────────────────────────────────────────────── */}
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-4">
+        <div className="bg-card rounded-2xl border border-slate-200 shadow-sm p-4">
           <div className="flex items-center gap-3">
             <Button
               variant="outline"
@@ -245,7 +245,7 @@ export default function ClubDetailViewV2Page() {
         </div>
 
         {/* ── Club Info Card ─────────────────────────────────────────── */}
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
+        <div className="bg-card rounded-2xl border border-slate-200 shadow-sm p-5">
           <div className="flex flex-col md:flex-row gap-5">
             <div className="flex-shrink-0">
               {club.clubLogoPath ? (
@@ -354,7 +354,7 @@ export default function ClubDetailViewV2Page() {
         </div>
 
         {/* ── Tabs ───────────────────────────────────────────────────── */}
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-3">
+        <div className="bg-card rounded-2xl border border-slate-200 shadow-sm p-3">
           <Tabs value={activeTab} onValueChange={setActiveTab}>
             <TabsList
               className="h-auto flex-wrap gap-1 p-1.5 rounded-full bg-muted"
@@ -382,7 +382,7 @@ export default function ClubDetailViewV2Page() {
             {/* ── Members Tab ─────────────────────────────────────────── */}
             <TabsContent value="members" className="mt-4 space-y-4">
               <div className="flex items-center gap-3 flex-wrap">
-                <div className="flex rounded-md border border-slate-200 bg-white overflow-hidden">
+                <div className="flex rounded-md border border-slate-200 bg-card overflow-hidden">
                   <Button
                     variant="ghost"
                     size="sm"
@@ -410,7 +410,7 @@ export default function ClubDetailViewV2Page() {
                 </div>
                 {memberFilter === "bod" && bodYears.length > 0 && (
                   <Select value={bodYearId} onValueChange={setBodYearId}>
-                    <SelectTrigger className="w-40 border-slate-200 bg-white focus:border-azure focus:ring-azure/20">
+                    <SelectTrigger className="w-40 border-slate-200 bg-card focus:border-azure focus:ring-azure/20">
                       <SelectValue placeholder="Year" />
                     </SelectTrigger>
                     <SelectContent>
@@ -439,7 +439,7 @@ export default function ClubDetailViewV2Page() {
                   {members.map((m) => (
                     <div
                       key={m.id}
-                      className={`rounded-2xl border shadow-sm bg-white cursor-pointer transition-all hover:shadow-md ${
+                      className={`rounded-2xl border shadow-sm bg-card cursor-pointer transition-all hover:shadow-md ${
                         expandedMemberId === m.id ? "border-azure/40 shadow-md" : "border-slate-200"
                       }`}
                       onClick={() => toggleMemberDetail(m.id)}
@@ -575,7 +575,7 @@ export default function ClubDetailViewV2Page() {
                   {bodMembers.map((b: any) => (
                     <div
                       key={b.id}
-                      className="rounded-2xl border border-slate-200 shadow-sm bg-white hover:shadow-md transition-all p-3 flex items-center gap-3"
+                      className="rounded-2xl border border-slate-200 shadow-sm bg-card hover:shadow-md transition-all p-3 flex items-center gap-3"
                     >
                       {b.profilePhotoPath ? (
                         <img
@@ -623,7 +623,7 @@ export default function ClubDetailViewV2Page() {
                         {events.map((ev: any) => (
                           <div
                             key={ev.id}
-                            className="rounded-2xl border border-slate-200 shadow-sm bg-white hover:shadow-md transition-all overflow-hidden"
+                            className="rounded-2xl border border-slate-200 shadow-sm bg-card hover:shadow-md transition-all overflow-hidden"
                           >
                             <div className="flex gap-3">
                               {ev.imagePath && (
@@ -677,7 +677,7 @@ export default function ClubDetailViewV2Page() {
                         {newsletters.map((nl: any) => (
                           <div
                             key={nl.id}
-                            className="rounded-2xl border border-slate-200 shadow-sm bg-white hover:shadow-md transition-all p-4"
+                            className="rounded-2xl border border-slate-200 shadow-sm bg-card hover:shadow-md transition-all p-4"
                           >
                             <div className="flex items-start gap-3">
                               <div className="w-10 h-10 rounded-xl bg-azure/10 flex items-center justify-center flex-shrink-0">
@@ -736,7 +736,7 @@ export default function ClubDetailViewV2Page() {
               <div className="flex items-center gap-4 flex-wrap">
                 {projectYears.length > 0 && (
                   <Select value={projectYearId} onValueChange={setProjectYearId}>
-                    <SelectTrigger className="w-48 border-slate-200 bg-white focus:border-azure focus:ring-azure/20">
+                    <SelectTrigger className="w-48 border-slate-200 bg-card focus:border-azure focus:ring-azure/20">
                       <SelectValue placeholder="Select year" />
                     </SelectTrigger>
                     <SelectContent>
@@ -749,7 +749,7 @@ export default function ClubDetailViewV2Page() {
                   </Select>
                 )}
                 <Select value={projectModuleFilter} onValueChange={setProjectModuleFilter}>
-                  <SelectTrigger className="w-56 border-slate-200 bg-white focus:border-azure focus:ring-azure/20">
+                  <SelectTrigger className="w-56 border-slate-200 bg-card focus:border-azure focus:ring-azure/20">
                     <SelectValue placeholder="Avenue of Service" />
                   </SelectTrigger>
                   <SelectContent>
@@ -780,7 +780,7 @@ export default function ClubDetailViewV2Page() {
                     <div
                       key={p.id}
                       onClick={() => setDetailProjectId(p.id)}
-                      className="rounded-2xl border border-slate-200 shadow-sm bg-white hover:shadow-md hover:border-slate-300 transition-all overflow-hidden cursor-pointer"
+                      className="rounded-2xl border border-slate-200 shadow-sm bg-card hover:shadow-md hover:border-slate-300 transition-all overflow-hidden cursor-pointer"
                     >
                       {p.primaryPhoto && (
                         <img

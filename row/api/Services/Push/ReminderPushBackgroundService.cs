@@ -43,7 +43,7 @@ public class ReminderPushBackgroundService : BackgroundService
     private async Task ProcessAnnouncementRemindersAsync(CancellationToken ct)
     {
         var connStr = _config.GetConnectionString("DefaultConnection")!;
-        using var conn = new MySqlConnection(connStr);
+        using var conn = RowDb.Connect(connStr);
         await conn.OpenAsync(ct);
 
         var due = (await conn.QueryAsync<dynamic>(@"
@@ -88,7 +88,7 @@ public class ReminderPushBackgroundService : BackgroundService
     private async Task ProcessEventRemindersAsync(CancellationToken ct)
     {
         var connStr = _config.GetConnectionString("DefaultConnection")!;
-        using var conn = new MySqlConnection(connStr);
+        using var conn = RowDb.Connect(connStr);
         await conn.OpenAsync(ct);
 
         var due = (await conn.QueryAsync<dynamic>(@"

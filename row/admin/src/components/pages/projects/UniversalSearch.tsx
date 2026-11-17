@@ -46,7 +46,7 @@ export function UniversalSearch({
           onChange={(e) => onQueryChange(e.target.value)}
           placeholder="Search by project name, club, district, state"
           aria-label="Search projects by subject"
-          className="min-h-10 w-full rounded-xl border border-navy-950/15 bg-white pl-10 pr-4 text-[13px] font-semibold text-navy-950 placeholder:font-medium placeholder:text-ink/40 focus:outline-none focus:ring-2 focus:ring-gold-dark"
+          className="min-h-10 w-full rounded-xl border border-navy-950/15 bg-card pl-10 pr-4 text-[13px] font-semibold text-navy-950 placeholder:font-medium placeholder:text-ink/40 focus:outline-none focus:ring-2 focus:ring-gold-dark"
         />
       </label>
 

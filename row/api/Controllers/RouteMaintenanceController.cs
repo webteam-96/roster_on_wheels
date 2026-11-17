@@ -66,7 +66,7 @@ public class RouteMaintenanceController : ControllerBase
 
     private async Task<bool> IsSuperAdminAsync()
     {
-        using var conn = new MySqlConnection(_connectionString);
+        using var conn = RowDb.Connect(_connectionString);
         await conn.OpenAsync();
         var count = await conn.ExecuteScalarAsync<int>(
             @"SELECT COUNT(*) FROM member_roles

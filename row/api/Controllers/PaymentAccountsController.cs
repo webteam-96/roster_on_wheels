@@ -66,7 +66,7 @@ public class PaymentAccountsController : ControllerBase
     [HttpGet("accounts")]
     public async Task<ActionResult> List([FromQuery] string? ownerType, [FromQuery] int ownerId)
     {
-        await using var conn = new MySqlConnection(_conn);
+        await using var conn = RowDb.Connect(_conn);
         if (!await CanManageAsync(conn, ownerType, ownerId)) return Forbid();
         var rows = await conn.QueryAsync<AccountRow>(Select + " WHERE owner_type = @ownerType AND owner_id = @ownerId ORDER BY pk_id DESC",
             new { ownerType, ownerId });
@@ -76,7 +76,7 @@ public class PaymentAccountsController : ControllerBase
     [HttpGet("coverage")]
     public async Task<ActionResult> Coverage([FromQuery] string? ownerType, [FromQuery] int ownerId)
     {
-        await using var conn = new MySqlConnection(_conn);
+        await using var conn = RowDb.Connect(_conn);
         if (!await CanManageAsync(conn, ownerType, ownerId)) return Forbid();
         return Ok(new
         {
@@ -96,7 +96,7 @@ public class PaymentAccountsController : ControllerBase
         if (req.Gateway == null || req.Gateway != _checkout.GatewayCode)
             return BadRequest(new { message = "This payment gateway is not available yet." });
 
-        await using var conn = new MySqlConnection(_conn);
+        await using var conn = RowDb.Connect(_conn);
         if (!await CanManageAsync(conn, req.OwnerType, req.OwnerId)) return Forbid();
         await conn.ExecuteAsync(@"
             INSERT INTO payment_accounts (owner_type, owner_id, gateway, display_name, currency, is_active, created_by, created_date)
@@ -117,7 +117,7 @@ public class PaymentAccountsController : ControllerBase
     [HttpPost("accounts/{id:int}/verify")]
     public async Task<ActionResult> Verify(int id)
     {
-        await using var conn = new MySqlConnection(_conn);
+        await using var conn = RowDb.Connect(_conn);
         var account = await OwnedAsync(conn, id);
         if (account == null) return NotFound();
         if (account.Gateway != _checkout.GatewayCode) return BadRequest(new { message = "This payment gateway is not available yet." });
@@ -128,7 +128,7 @@ public class PaymentAccountsController : ControllerBase
     [HttpPut("accounts/{id:int}/active")]
     public async Task<ActionResult> SetActive(int id, [FromBody] ActiveRequest req)
     {
-        await using var conn = new MySqlConnection(_conn);
+        await using var conn = RowDb.Connect(_conn);
         if (await OwnedAsync(conn, id) == null) return NotFound();
         await conn.ExecuteAsync("UPDATE payment_accounts SET is_active = @Active WHERE pk_id = @id", new { Active = req.IsActive, id });
         return Ok(View(await conn.QuerySingleAsync<AccountRow>(Select + " WHERE pk_id = @id", new { id })));

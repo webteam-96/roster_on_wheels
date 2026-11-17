@@ -169,11 +169,11 @@ export default function GoalOversightMatrix({
   const showRagLegend = shownCats.some((c) => c.metrics.some((mt) => mt.ragBand));
   const zoneName = zones.find((z) => z.id === zoneId)?.zoneName ?? "";
 
-  const selCls = "h-9 rounded-md border border-slate-300 bg-white px-3 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-slate-100 disabled:text-slate-400";
+  const selCls = "h-9 rounded-md border border-slate-300 bg-card px-3 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-slate-100 disabled:text-slate-400";
 
   return (
     <div className="space-y-4">
-      <div className="rounded-[20px] border border-slate-200 bg-white p-4">
+      <div className="rounded-[20px] border border-slate-200 bg-card p-4">
         <div className="text-sm font-semibold text-slate-800">{title}: districts (read-only)</div>
         <p className="text-xs text-slate-500 mt-0.5 mb-3">Pick a zone to see every district&apos;s Membership / Foundation / Youth Service / Public Image progress. Click a district row to see its month-wise collection.</p>
         <div className="flex flex-wrap gap-3">
@@ -260,7 +260,7 @@ export default function GoalOversightMatrix({
       )}
 
       {!loading && !error && matrix && matrix.districts.length > 0 && cats.length > 0 && (
-        <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+        <div className="bg-card rounded-2xl border border-slate-200 overflow-hidden">
           <div className="overflow-x-auto">
             <table className="text-sm border-collapse w-full">
               <thead>
@@ -313,7 +313,7 @@ export default function GoalOversightMatrix({
                     {/* SOLID background, never bg-inherit: the row carries no background of its own, so an
                         inheriting sticky cell is transparent and the value cells scroll UNDER the frozen
                         District column when the grid is dragged sideways (2026-09-16 fix). */}
-                    <td className="sticky left-0 z-10 bg-white group-hover:bg-blue-50 px-4 py-2 font-medium text-blue-700 whitespace-nowrap border-r border-slate-100">
+                    <td className="sticky left-0 z-10 bg-card group-hover:bg-blue-50 px-4 py-2 font-medium text-blue-700 whitespace-nowrap border-r border-slate-100">
                       <span className="inline-flex items-center gap-2">
                         <button
                           type="button"
@@ -457,14 +457,14 @@ export default function GoalOversightMatrix({
           <div className="shrink-0 flex flex-wrap items-end gap-2 border-b border-slate-100 pb-3 pr-8">
             <label className="flex flex-col gap-1 text-[11px] text-slate-500">
               Category
-              <select value={rptCat} onChange={(e) => setRptCat(Number(e.target.value))} className="h-8 rounded-[12px] border border-slate-300 bg-white px-2 text-xs text-slate-700 focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]">
+              <select value={rptCat} onChange={(e) => setRptCat(Number(e.target.value))} className="h-8 rounded-[12px] border border-slate-300 bg-card px-2 text-xs text-slate-700 focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]">
                 <option value={0}>All categories</option>
                 {cats.map((c) => <option key={c.categoryId} value={c.categoryId}>{c.name}</option>)}
               </select>
             </label>
             <label className="flex flex-col gap-1 text-[11px] text-slate-500">
               District
-              <select value={rptDistrict} onChange={(e) => setRptDistrict(Number(e.target.value))} className="h-8 rounded-[12px] border border-slate-300 bg-white px-2 text-xs text-slate-700 focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]">
+              <select value={rptDistrict} onChange={(e) => setRptDistrict(Number(e.target.value))} className="h-8 rounded-[12px] border border-slate-300 bg-card px-2 text-xs text-slate-700 focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]">
                 <option value={0}>All districts</option>
                 {(matrix?.districts || []).map((d) => <option key={d.districtId} value={d.districtId}>{d.districtNumber}</option>)}
               </select>

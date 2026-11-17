@@ -146,7 +146,7 @@ public class DailyStatsReportService : IDailyStatsReportService
 
     public async Task<DailyStatsResult> BuildReportAsync(CancellationToken ct = default)
     {
-        await using var conn = new MySqlConnection(_conn);
+        await using var conn = RowDb.Connect(_conn);
         await conn.OpenAsync(ct);
 
         // Zone-scope params. Everything is scoped to the 5 ROW zones (the zones); exempt
@@ -304,8 +304,8 @@ public class DailyStatsReportService : IDailyStatsReportService
 
         // ── Email body (counts) + return ─────────────────────────────────────
         string html = BuildEmailBody(metrics, summary.Count, yesterdayRows, curRows, curYearLabel);
-        string subject = $"ROW Daily Statistics — {DateTime.Now:dd MMM yyyy}";
-        string fileName = $"ROW_Daily_Stats_{DateTime.Now:ddMMyyyy}.xlsx";
+        string subject = $"ROW Daily Statistics — {DateTime.UtcNow:dd MMM yyyy}";
+        string fileName = $"ROW_Daily_Stats_{DateTime.UtcNow:ddMMyyyy}.xlsx";
 
         AvenueBreakdown ToBreakdown(string title, List<AvenueRow> src) => new()
         {
@@ -515,7 +515,7 @@ public class DailyStatsReportService : IDailyStatsReportService
         // Generated line
         ws.Range(r, 1, r, 7).Merge();
         var gen = ws.Cell(r, 1);
-        gen.Value = $"Generated {DateTime.Now:dd MMM yyyy, hh:mm tt}";
+        gen.Value = $"Generated {DateTime.UtcNow:dd MMM yyyy, hh:mm tt}";
         gen.Style.Font.FontSize = 8;
         gen.Style.Font.Italic = true;
         gen.Style.Font.FontColor = XLColor.FromHtml("#94a3b8");
@@ -745,7 +745,7 @@ public class DailyStatsReportService : IDailyStatsReportService
         return $@"
             {EmailService.EMAIL_HEADER}
                 <p style='font-size:15px;margin:0 0 14px 0'><strong>ROW — Daily Statistics</strong><br/>
-                <span style='font-size:12px;color:#64748B'>{DateTime.Now:dddd, dd MMMM yyyy}</span></p>
+                <span style='font-size:12px;color:#64748B'>{DateTime.UtcNow:dddd, dd MMMM yyyy}</span></p>
                 <table style='border-collapse:collapse;width:100%;max-width:620px'>
                     <thead>
                         <tr style='background:#17458F;color:#FCFDFE'>

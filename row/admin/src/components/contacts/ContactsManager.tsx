@@ -133,7 +133,7 @@ export default function ContactsManager({ scope, ownerId }: { scope: ContactScop
           </div>
 
           {data === null ? <TableSkeleton rows={8} /> : (
-            <div className="overflow-hidden rounded-[20px] border border-slate-200 bg-white">
+            <div className="overflow-hidden rounded-[20px] border border-slate-200 bg-card">
               <div className="overflow-x-auto">
                 <table className="min-w-full text-sm">
                   <thead className="bg-[#EDF4FB] text-[13px] text-[#64748B]">
@@ -187,7 +187,7 @@ export default function ContactsManager({ scope, ownerId }: { scope: ContactScop
           )}
         </div>
 
-        <aside className="h-fit rounded-[20px] border border-slate-200 bg-white p-4">
+        <aside className="h-fit rounded-[20px] border border-slate-200 bg-card p-4">
           <h3 className="text-sm font-semibold text-slate-800">Groups</h3>
           <p className="mt-0.5 text-xs text-slate-500">Pick a group as the recipients of a mass email or an event invite.</p>
           <div className="mt-3 space-y-1">

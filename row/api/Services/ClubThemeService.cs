@@ -14,7 +14,7 @@ public class ClubThemeService : IClubThemeService
         _connectionString = configuration.GetConnectionString("DefaultConnection")!;
     }
 
-    private MySqlConnection CreateConnection() => new(_connectionString);
+    private MySqlConnection CreateConnection() => RowDb.Connect(_connectionString);
 
     public async Task<ClubThemeDto?> GetByClubYearAsync(int clubId, int yearId)
     {

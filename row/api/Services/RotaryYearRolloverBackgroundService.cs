@@ -39,10 +39,10 @@ public class RotaryYearRolloverBackgroundService : BackgroundService
     private async Task ReconcileAsync()
     {
         var connectionString = _configuration.GetConnectionString("DefaultConnection")!;
-        await using var conn = new MySqlConnection(connectionString);
+        await using var conn = RowDb.Connect(connectionString);
         await conn.OpenAsync();
 
-        var today = DateTime.Today;
+        var today = DateTime.UtcNow.Date;
         var currentRotaryStartYear = today.Month >= 7 ? today.Year : today.Year - 1;
         var endYear = currentRotaryStartYear + 1;
         var label = $"{currentRotaryStartYear}-{(endYear % 100):D2}";

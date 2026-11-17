@@ -24,14 +24,14 @@ public partial class DatabaseInitializer
             var databaseName = builder.Database;
             builder.Database = "";
 
-            using (var connection = new MySqlConnection(builder.ConnectionString))
+            using (var connection = RowDb.Connect(builder.ConnectionString))
             {
                 await connection.OpenAsync();
                 await connection.ExecuteAsync($"CREATE DATABASE IF NOT EXISTS `{databaseName}`");
                 _logger.LogInformation("Database '{Database}' ensured.", databaseName);
             }
 
-            using (var connection = new MySqlConnection(_connectionString))
+            using (var connection = RowDb.Connect(_connectionString))
             {
                 await connection.OpenAsync();
 
@@ -5545,7 +5545,7 @@ public partial class DatabaseInitializer
     private static async Task SeedRotaryYearsAsync(MySqlConnection connection)
     {
         // Determine current rotary year start: if today >= Jul 1, starts this calendar year; else last year
-        var today = DateTime.Today;
+        var today = DateTime.UtcNow.Date;
         var currentRotaryStartYear = today.Month >= 7 ? today.Year : today.Year - 1;
 
         for (int startYear = 1980; startYear <= currentRotaryStartYear; startYear++)
@@ -5565,7 +5565,7 @@ public partial class DatabaseInitializer
 
     private static async Task UpdateRotaryYearCurrentFlagAsync(MySqlConnection connection)
     {
-        var today = DateTime.Today;
+        var today = DateTime.UtcNow.Date;
         var currentRotaryStartYear = today.Month >= 7 ? today.Year : today.Year - 1;
         var endYear = currentRotaryStartYear + 1;
         var label = $"{currentRotaryStartYear}-{(endYear % 100):D2}";
@@ -6298,7 +6298,7 @@ public partial class DatabaseInitializer
     // by InitializeAsync); on a brand-new DB the caller's try/catch logs and InitializeAsync creates them.
     public async Task EnsureGoalSettingSchemaAndSeedAsync()
     {
-        using var connection = new MySqlConnection(_connectionString);
+        using var connection = RowDb.Connect(_connectionString);
         await connection.OpenAsync();
         await AddColumnIfNotExists(connection, "goal_fields", "AppliesTo", "VARCHAR(20) NOT NULL DEFAULT 'Both' AFTER ComputeExpression");
         await AddColumnIfNotExists(connection, "goal_fields", "IsHidden", "TINYINT(1) NOT NULL DEFAULT 0 AFTER SortOrder");

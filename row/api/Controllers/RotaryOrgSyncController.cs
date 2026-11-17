@@ -69,7 +69,7 @@ public class RotaryOrgSyncController : ControllerBase
             _logger.LogError(ex, "Rotary.org ping failed");
             return StatusCode(500, new
             {
-                message = "Ping failed — see server logs for details.",
+                message = "Ping failed: see server logs for details.",
             });
         }
     }

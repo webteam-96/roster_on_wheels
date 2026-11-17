@@ -83,7 +83,7 @@ export default function NavigationLoader() {
 
   return (
     <div
-      className="fixed inset-0 z-[9999] flex items-center justify-center bg-white"
+      className="fixed inset-0 z-[9999] flex items-center justify-center bg-card"
       role="status"
       aria-live="polite"
       aria-busy="true"

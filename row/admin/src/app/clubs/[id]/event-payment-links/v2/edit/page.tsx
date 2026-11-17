@@ -89,7 +89,7 @@ function SectionCard({ title, children }: { title: string; children: React.React
 
 function ToggleRow({ label, checked, onChange }: { label: string; checked: boolean; onChange: (v: boolean) => void }) {
   return (
-    <label className="flex items-center justify-between gap-3 px-3 py-2 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 cursor-pointer">
+    <label className="flex items-center justify-between gap-3 px-3 py-2 rounded-lg border border-slate-200 bg-card hover:bg-slate-50 cursor-pointer">
       <span className="text-sm text-slate-700">{label}</span>
       <button
         type="button"
@@ -98,7 +98,7 @@ function ToggleRow({ label, checked, onChange }: { label: string; checked: boole
         aria-pressed={checked}
         role="switch"
       >
-        <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${checked ? "translate-x-5" : "translate-x-1"}`} />
+        <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-card transition-transform ${checked ? "translate-x-5" : "translate-x-1"}`} />
       </button>
     </label>
   );
@@ -453,7 +453,7 @@ export default function EventPaymentLinkV2EditPage() {
 
           {/* Tabs */}
           <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <div className="bg-white rounded-2xl border border-slate-200 p-2">
+            <div className="bg-card rounded-2xl border border-slate-200 p-2">
               <TabsList className="flex flex-wrap h-auto bg-slate-100 p-1 gap-1">
                 <TabsTrigger value="basic" className="gap-1.5 px-3 py-1.5 text-xs">
                   <Info size={13} /> Basic Info
@@ -482,7 +482,7 @@ export default function EventPaymentLinkV2EditPage() {
                     <select
                       value={formType}
                       onChange={(e) => setFormType(e.target.value)}
-                      className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] bg-white focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                      className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] bg-card focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
                     >
                       <option value="1">Standard</option>
                       <option value="2">Dynamic</option>
@@ -493,7 +493,7 @@ export default function EventPaymentLinkV2EditPage() {
                     <select
                       value={amountType}
                       onChange={(e) => setAmountType(e.target.value)}
-                      className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] bg-white focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                      className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] bg-card focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
                     >
                       <option value="1">Fixed</option>
                       <option value="2">Variable</option>
@@ -744,7 +744,7 @@ export default function EventPaymentLinkV2EditPage() {
 
             {/* ── 3. REGISTRATIONS ───────────────────────────────────────── */}
             <TabsContent value="registrations" className="mt-4">
-              <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+              <div className="bg-card rounded-2xl border border-slate-200 overflow-hidden">
                 <div className="px-5 py-3 border-b border-slate-100 flex items-center justify-between">
                   <div>
                     <h3 className="text-sm font-semibold text-slate-800">Registration Types</h3>
@@ -813,7 +813,7 @@ export default function EventPaymentLinkV2EditPage() {
 
             {/* ── 4. VENDOR SPLITS ───────────────────────────────────────── */}
             <TabsContent value="splits" className="mt-4">
-              <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+              <div className="bg-card rounded-2xl border border-slate-200 overflow-hidden">
                 <div className="px-5 py-3 border-b border-slate-100 flex items-center justify-between gap-3">
                   <div>
                     <h3 className="text-sm font-semibold text-slate-800">Vendor Splits</h3>
@@ -876,7 +876,7 @@ export default function EventPaymentLinkV2EditPage() {
 
             {/* ── 5. DESIGNATIONS ────────────────────────────────────────── */}
             <TabsContent value="designations" className="mt-4">
-              <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+              <div className="bg-card rounded-2xl border border-slate-200 overflow-hidden">
                 <div className="px-5 py-3 border-b border-slate-100">
                   <h3 className="text-sm font-semibold text-slate-800">Designations</h3>
                   <p className="text-xs text-slate-500 mt-0.5">

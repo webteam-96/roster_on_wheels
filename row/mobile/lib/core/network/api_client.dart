@@ -4,6 +4,7 @@ import 'dart:developer' as dev;
 import 'dart:io';
 import 'package:cupertino_http/cupertino_http.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/io_client.dart';
 import 'package:http_parser/http_parser.dart' show MediaType;
@@ -92,10 +93,32 @@ class ApiClient {
     }
   }
 
+  // The device's time zone, so a time typed without a zone is stored as the right UTC instant (the API's
+  // ViewerZone): its IANA id from the OS (row/time_zone channel), plus the current offset as a fallback for the API.
+  static const _zoneChannel = MethodChannel('row/time_zone');
+  static String? _ianaZone;
+
+  static Future<Map<String, String>> _zoneHeader() async {
+    if (_ianaZone == null) {
+      try {
+        _ianaZone = await _zoneChannel.invokeMethod<String>('localZone') ?? '';
+      } on PlatformException {
+        _ianaZone = '';
+      } on MissingPluginException {
+        _ianaZone = ''; // tests and platforms without the channel
+      }
+    }
+    return {
+      if (_ianaZone!.isNotEmpty) 'X-Time-Zone': _ianaZone!,
+      'X-Time-Zone-Offset': DateTime.now().timeZoneOffset.inMinutes.toString(),
+    };
+  }
+
   Future<Map<String, String>> _headers({bool requiresAuth = true}) async {
     final headers = <String, String>{
       'Content-Type': 'application/json',
       'Accept': 'application/json',
+      ...await _zoneHeader(),
     };
     if (requiresAuth) {
       final token = await _token;
@@ -386,6 +409,7 @@ class ApiClient {
       if (token != null) {
         request.headers['Authorization'] = 'Bearer $token';
       }
+      request.headers.addAll(await _zoneHeader());
       request.files.add(await http.MultipartFile.fromPath(
         fieldName,
         filePath,
@@ -425,6 +449,7 @@ class ApiClient {
       if (token != null) {
         request.headers['Authorization'] = 'Bearer $token';
       }
+      request.headers.addAll(await _zoneHeader());
       if (fields != null && fields.isNotEmpty) {
         request.fields.addAll(fields);
       }

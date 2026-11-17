@@ -1811,7 +1811,7 @@ function CreateEditMembershipDuesPage() {
                   const mId = member.id || member.pk_member_master_profile_id || idx;
                   const globalIdx = (newMemberPage - 1) * PAGE_SIZE + idx + 1;
                   return (
-                    <TableRow key={mId} className="bg-white">
+                    <TableRow key={mId} className="bg-card">
                       <TableCell className="sticky left-0 z-10 bg-slate-100 w-16 min-w-[64px]">{globalIdx}</TableCell>
                       <TableCell className="font-medium whitespace-nowrap sticky left-[64px] z-10 bg-slate-100 w-48 min-w-[192px]">{member.memberName || member.name || member.MemberName}</TableCell>
                       <TableCell className="sticky left-[256px] z-10 bg-slate-100 w-32 min-w-[128px] border-r border-slate-300">
@@ -1944,8 +1944,8 @@ function CreateEditMembershipDuesPage() {
                     {paged.map((m, idx) => {
                       const isNew = m.isNewMember;
                       const isPending = m.hasPendingApproval;
-                      // Default to bg-white so sticky cells (bg-inherit) cover scrolling content underneath
-                      const rowClass = isPending ? "bg-yellow-100" : isNew ? "bg-green-200" : "bg-white";
+                      // Default to bg-card so sticky cells (bg-inherit) cover scrolling content underneath
+                      const rowClass = isPending ? "bg-yellow-100" : isNew ? "bg-green-200" : "bg-card";
                       const globalIdx = (editMemberPage - 1) * PAGE_SIZE + idx + 1;
                       return (
                         <TableRow key={m.memberFeeId || idx} className={rowClass}>
@@ -2055,7 +2055,7 @@ function CreateEditMembershipDuesPage() {
                           {/* Receipt — email only */}
                           <TableCell>
                             {!isNew && hasAnyPaidFee(m) && (
-                              <button className="text-xs text-purple-600 hover:underline whitespace-nowrap" onClick={() => handleReceipt(m.memberFeeId)}>Send</button>
+                              <button className="text-xs text-slate-600 hover:underline whitespace-nowrap" onClick={() => handleReceipt(m.memberFeeId)}>Send</button>
                             )}
                           </TableCell>
                           {/* Approve/Reject */}

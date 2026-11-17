@@ -16,7 +16,7 @@ public class ModuleService : IModuleService
         _env = env;
     }
 
-    private MySqlConnection CreateConnection() => new(_connectionString);
+    private MySqlConnection CreateConnection() => RowDb.Connect(_connectionString);
 
     // CATEGORIES
     public async Task<List<ModuleCategoryDto>> GetCategoriesAsync()

@@ -161,7 +161,7 @@ public static class ReportExcelWriter
         if (v is DateTime d)
         {
             if (d.Year > 2000)
-                return $"{d.ToString("dd MMM yyyy", System.Globalization.CultureInfo.InvariantCulture)}, {d.ToString("hh:mm tt", System.Globalization.CultureInfo.InvariantCulture).ToLowerInvariant()}";
+                return ZoneTime.Print(d, "dd MMM yyyy, hh:mm tt");
             return d.ToString("yyyy-MM-ddTHH:mm:ss", System.Globalization.CultureInfo.InvariantCulture);
         }
         if (v is IFormattable f) return f.ToString(null, System.Globalization.CultureInfo.InvariantCulture);

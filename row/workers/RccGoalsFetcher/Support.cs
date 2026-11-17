@@ -71,11 +71,11 @@ public static class Log
     public static void Error(string m) => Write("ERROR", m);
     private static void Write(string level, string m)
     {
-        var line = $"{DateTime.Now:yyyy-MM-dd HH:mm:ss} {level} {m}";
+        var line = $"{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss} {level} {m}";
         lock (Gate)
         {
             Console.WriteLine(line);
-            var path = DailyPrefix != null ? $"{DailyPrefix}_{DateTime.Now:yyyy-MM-dd}.log" : FilePath;
+            var path = DailyPrefix != null ? $"{DailyPrefix}_{DateTime.UtcNow:yyyy-MM-dd}.log" : FilePath;
             if (path != null) try { File.AppendAllText(path, line + Environment.NewLine); } catch { }
         }
     }

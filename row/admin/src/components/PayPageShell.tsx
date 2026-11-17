@@ -30,7 +30,7 @@ export default function PayPageShell({ title, wide, children }: { title?: ReactN
 
       {/* Branded navbar (full width): logo left, title center, secure payment right. Light bar so the
           transparent logo sits on its own field. */}
-      <header className="w-full border-b border-[color:var(--row-line)] bg-white text-foreground">
+      <header className="w-full border-b border-[color:var(--row-line)] bg-card text-foreground">
         <div className="flex h-16 sm:h-20 items-center gap-3 sm:gap-4 px-4 sm:px-8">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={withBase("/brand/row-logo.png")} alt="ROW" className="h-10 sm:h-14 object-contain shrink-0" />
@@ -48,7 +48,7 @@ export default function PayPageShell({ title, wide, children }: { title?: ReactN
       </main>
 
       {/* Trust strip */}
-      <div className="w-full border-t border-slate-200 bg-white">
+      <div className="w-full border-t border-slate-200 bg-card">
         <div className="px-4 sm:px-8 py-4 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-xs text-slate-500">
           <span className="inline-flex items-center gap-1.5"><ShieldCheck className="h-4 w-4 text-emerald-600" /> 256-bit SSL encrypted</span>
           <span className="inline-flex items-center gap-1.5"><Lock className="h-4 w-4 text-slate-500" /> Secure checkout</span>

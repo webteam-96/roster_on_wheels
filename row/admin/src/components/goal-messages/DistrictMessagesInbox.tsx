@@ -9,6 +9,7 @@ import { Loader2, Inbox, Search, ChevronLeft } from "@/components/icons";
 import { getDistrictGoalMessageInbox, getDistrictGoalMessages } from "@/services/api";
 import type { GoalDistrictConversationDto, GoalDistrictMessagesDto } from "@/types/goalSetting";
 import GoalMessageList, { Chip, RoleChip } from "./GoalMessageList";
+import { SkeletonRows } from "@/components/row/AppKit";
 
 export default function DistrictMessagesInbox({
   zoneId, yearId, categoryId = 0, districtId = 0,
@@ -48,7 +49,7 @@ export default function DistrictMessagesInbox({
       .finally(() => setLoadingThread(false));
   }
 
-  if (loading) return <div className="flex items-center justify-center gap-2 text-xs text-slate-400 py-10"><Loader2 size={14} className="animate-spin" /> Loading…</div>;
+  if (loading) return <div className="py-4"><SkeletonRows /></div>;
   if (error) return <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">{error}</div>;
 
   const all = rows ?? [];
@@ -115,7 +116,7 @@ export default function DistrictMessagesInbox({
       </div>
       <div className="flex-1 min-h-0 overflow-y-auto p-4 bg-slate-50/40">
         {loadingThread ? (
-          <div className="flex items-center justify-center gap-2 text-xs text-slate-400 py-8"><Loader2 size={14} className="animate-spin" /> Loading…</div>
+          <div className="py-4"><SkeletonRows rows={3} /></div>
         ) : <GoalMessageList messages={thread?.messages ?? []} />}
       </div>
     </div>
@@ -127,7 +128,7 @@ export default function DistrictMessagesInbox({
   );
 
   return (
-    <div className="rounded-[20px] border border-slate-200 bg-white overflow-hidden h-[60vh] min-h-[360px] grid md:grid-cols-[300px_1fr]">
+    <div className="rounded-[20px] border border-slate-200 bg-card overflow-hidden h-[60vh] min-h-[360px] grid md:grid-cols-[300px_1fr]">
       <div className={`${active ? "hidden md:flex" : "flex"} flex-col min-h-0 border-r border-slate-100`}>{list}</div>
       <div className={`${active ? "flex" : "hidden md:flex"} flex-col min-h-0`}>{pane}</div>
     </div>

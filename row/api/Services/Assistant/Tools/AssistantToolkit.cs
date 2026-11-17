@@ -31,7 +31,7 @@ public sealed class AssistantToolContext
 
     public async Task<MySqlConnection> OpenReadOnlyAsync()
     {
-        var conn = new MySqlConnection(Settings.ReadOnlyConnectionString);
+        var conn = RowDb.Connect(Settings.ReadOnlyConnectionString);
         await conn.OpenAsync();
         return conn;
     }
@@ -159,7 +159,7 @@ public sealed class HierarchyLookup(IMemoryCache cache, AssistantSettings settin
         var key = $"assistant:hier:{level}:{value}";
         if (cache.TryGetValue(key, out HierarchyRef? hit) && hit != null) return hit;
 
-        await using var conn = new MySqlConnection(settings.ReadOnlyConnectionString);
+        await using var conn = RowDb.Connect(settings.ReadOnlyConnectionString);
         await conn.OpenAsync();
         HierarchyRef? found = level switch
         {
@@ -208,7 +208,7 @@ public sealed class RotaryYears(IMemoryCache cache, AssistantSettings settings)
         return (await cache.GetOrCreateAsync("assistant:years", async e =>
         {
             e.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(30);
-            await using var conn = new MySqlConnection(settings.ReadOnlyConnectionString);
+            await using var conn = RowDb.Connect(settings.ReadOnlyConnectionString);
             await conn.OpenAsync();
             return (await conn.QueryAsync<RotaryYear>(@"
                 SELECT pk_year_id AS Id, YearLabel AS Label, StartDate AS Start, EndDate AS End,

@@ -18,6 +18,7 @@ public class PublicEventPaymentController : ControllerBase
         _config = config;
     }
 
+    [EnableRateLimiting("member-search")]
     [HttpGet("{linkId}")]
     public async Task<ActionResult> GetPublicLinkDetails(int linkId)
     {
@@ -27,6 +28,7 @@ public class PublicEventPaymentController : ControllerBase
         return Ok(result);
     }
 
+    [EnableRateLimiting("member-search")]
     [HttpGet("{linkId}/districts/{districtId}/clubs")]
     public async Task<ActionResult> GetClubsForDistrict(int linkId, int districtId)
     {
@@ -76,6 +78,7 @@ public class PublicEventPaymentController : ControllerBase
         }
     }
 
+    [EnableRateLimiting("payment-status")]
     [HttpPost("{linkId}/create-order")]
     public async Task<ActionResult> CreatePaymentOrder(int linkId, [FromBody] PublicPaymentSubmitDto dto)
     {

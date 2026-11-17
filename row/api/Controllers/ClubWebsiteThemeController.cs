@@ -46,7 +46,7 @@ public class ClubWebsiteThemeController : ControllerBase
         if (!await RotaryApi.Services.KillSwitchHelper.IsClubDrillReachableAsync(_connectionString, clubId))
             return StatusCode(403, new { message = "This club, its district, or its zone is inactive. Reactivate it first to access this data." });
 
-        using var conn = new MySqlConnection(_connectionString);
+        using var conn = RowDb.Connect(_connectionString);
         await conn.OpenAsync();
 
         var row = await conn.QueryFirstOrDefaultAsync<dynamic>(@"
@@ -88,7 +88,7 @@ public class ClubWebsiteThemeController : ControllerBase
         if (dto.ThemeId <= 0)
             return BadRequest(new { message = "ThemeId is required." });
 
-        using var conn = new MySqlConnection(_connectionString);
+        using var conn = RowDb.Connect(_connectionString);
         await conn.OpenAsync();
 
         // Validate the theme exists + isn't soft-deleted.

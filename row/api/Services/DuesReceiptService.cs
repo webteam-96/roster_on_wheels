@@ -37,7 +37,7 @@ public class DuesReceiptService : IDuesReceiptService
         if (memberId <= 0)
             throw new ReceiptForbiddenException("Not authenticated.");
 
-        using var conn = new MySqlConnection(_connStr);
+        using var conn = RowDb.Connect(_connStr);
         await conn.OpenAsync();
 
         // Fetch the payment WITHOUT filtering on the member, so we can tell
@@ -202,8 +202,8 @@ public class DuesReceiptService : IDuesReceiptService
             ClubName = (string?)p.ClubName,
             Purpose = (string?)p.Purpose,
             Status = "Paid",
-            PaymentDateTime = ((DateTime?)p.PaymentDate)?.ToString("dd-MMM-yyyy hh:mm tt")
-                              ?? DateTime.Now.ToString("dd-MMM-yyyy hh:mm tt"),
+            PaymentDateTime = (p.PaymentDate is DateTime pd ? ZoneTime.Print(pd, "dd-MMM-yyyy hh:mm tt") : null)
+                              ?? DateTime.UtcNow.ToString("dd-MMM-yyyy hh:mm tt"),
             ApproverRemark = (string?)p.ApprovalRemark,
 
             Fees = lines,
@@ -211,7 +211,7 @@ public class DuesReceiptService : IDuesReceiptService
             TotalGatewayCharges = totalGateway,
             GrandTotal = totalAmount + totalGateway,
 
-            GeneratedOn = DateTime.Now.ToString("dd-MMM-yyyy hh:mm tt"),
+            GeneratedOn = DateTime.UtcNow.ToString("dd-MMM-yyyy hh:mm tt"),
         };
     }
 }

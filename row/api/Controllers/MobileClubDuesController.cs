@@ -36,7 +36,7 @@ public class MobileClubDuesController : ControllerBase
     private async Task<bool> CanPayForClubAsync(int memberId, int clubId)
     {
         if (memberId <= 0) return false;
-        await using var conn = new MySqlConnection(_connStr);
+        await using var conn = RowDb.Connect(_connStr);
         var count = await conn.ExecuteScalarAsync<int>(@"
             SELECT COUNT(*)
             FROM board_of_directors bod
@@ -59,7 +59,7 @@ public class MobileClubDuesController : ControllerBase
     {
         var memberId = GetMemberId();
         if (memberId <= 0) return Denied();
-        await using var conn = new MySqlConnection(_connStr);
+        await using var conn = RowDb.Connect(_connStr);
         var rows = await conn.QueryAsync<dynamic>($@"
             SELECT DISTINCT cd.pk_club_dues_id AS DuesId, cd.Purpose, cd.RotaryYear,
                    c.pk_club_id AS ClubId, c.ClubName, d.DistrictNumber
@@ -82,7 +82,7 @@ public class MobileClubDuesController : ControllerBase
     {
         if (!await CanPayForClubAsync(GetMemberId(), clubId)) return Denied();
         // the campaign must be the club's own district's (was: an officer could read any district's campaign)
-        await using var conn = new MySqlConnection(_connStr);
+        await using var conn = RowDb.Connect(_connStr);
         var ownDistrict = await conn.ExecuteScalarAsync<int>(@"
             SELECT COUNT(*) FROM club_dues cd JOIN club_master c ON c.fk_district_id = cd.fk_district_id
             WHERE cd.pk_club_dues_id = @DuesId AND c.pk_club_id = @ClubId AND cd.isdeleted = 0",

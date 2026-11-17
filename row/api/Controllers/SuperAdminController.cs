@@ -42,7 +42,7 @@ public class SuperAdminController : ControllerBase
         _otpEmail = config["SuperAdminApproval:OtpEmail"] ?? "";
     }
 
-    private MySqlConnection CreateConnection() => new(_connectionString);
+    private MySqlConnection CreateConnection() => RowDb.Connect(_connectionString);
     private bool IsSuperAdmin() => User.FindFirst("roles")?.Value?.Contains("SuperAdmin") == true;
     private int CurrentUserId()
     {
@@ -172,7 +172,7 @@ public class SuperAdminController : ControllerBase
                 SELECT COUNT(*) FROM member_roles
                 WHERE fk_role_id = @Role AND IsActive = 1 AND (isdeleted IS NULL OR isdeleted = 0)",
                 new { Role = ROLE_SUPERADMIN });
-            if (saCount <= 1) return BadRequest(new { message = "At least one SuperAdmin must remain — cannot remove the last one." });
+            if (saCount <= 1) return BadRequest(new { message = "At least one SuperAdmin must remain: cannot remove the last one." });
         }
 
         // Generate 6-digit OTP, store in mobile_login_otp with identifier bound to action+memberId

@@ -45,6 +45,7 @@ import {
 } from "@/services/api";
 
 import { appLocale, currencySymbol, todayLocal } from "@/lib/appFormat";
+import { SkeletonRows } from "@/components/row/AppKit";
 const inr = (n: number) => `${currencySymbol()}${Number(n || 0).toLocaleString(appLocale(), { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 const fmtDate = (s?: string | null) => (s ? new Date(s).toLocaleDateString(appLocale(), { day: "2-digit", month: "short", year: "numeric" }) : "–");
 
@@ -396,7 +397,7 @@ export default function PricingRemindersTab() {
 
       {/* Common (pick-a-club) shareable links — open a search, payer picks their club, sees status, pays. */}
       {commonLinks && (
-        <div className="rounded-[20px] border border-slate-200 bg-white p-4">
+        <div className="rounded-[20px] border border-slate-200 bg-card p-4">
           <div className="text-sm font-medium text-slate-700">Shareable links: any club</div>
           <p className="text-[11px] text-slate-400 mt-0.5 mb-3">Each opens a search: the club leader picks their club, sees its status, and pays. Copy &amp; share. These links have no expiry.</p>
           <div className="flex flex-wrap gap-2">
@@ -414,7 +415,7 @@ export default function PricingRemindersTab() {
       )}
 
       {/* One global Route account for ALL club-website Route payments */}
-      <div className="hidden rounded-[20px] border border-slate-200 bg-white p-4">
+      <div className="hidden rounded-[20px] border border-slate-200 bg-card p-4">
         <div className="flex flex-wrap items-end gap-3">
           <div className="space-y-1">
             <Label className="text-xs text-slate-500">Club-website Route account</Label>
@@ -436,7 +437,7 @@ export default function PricingRemindersTab() {
         </div>
         <p className="text-[11px] text-slate-400 mt-2">
           {routeAll
-            ? <><span className="font-medium text-indigo-600">All</span> club-website payments settle to this one linked account (per-club gateway is overridden).</>
+            ? <><span className="font-medium text-slate-600">All</span> club-website payments settle to this one linked account (per-club gateway is overridden).</>
             : <>Only clubs whose gateway is <span className="font-medium">Route</span> settle to this one linked account.</>}
           {routeAccounts.length === 0 && <> No active accounts yet: add one in Settings → Razorpay Route Accounts.</>}
         </p>
@@ -507,7 +508,7 @@ export default function PricingRemindersTab() {
       </div>
 
       {/* Table */}
-      <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white">
+      <div className="overflow-x-auto rounded-xl border border-slate-200 bg-card">
         <table className="w-full text-sm">
           <thead className="bg-slate-50 text-slate-600">
             <tr>
@@ -527,7 +528,7 @@ export default function PricingRemindersTab() {
           </thead>
           <tbody>
             {loading ? (
-              <tr><td colSpan={9} className="px-3 py-10 text-center text-slate-400"><Loader2 className="h-5 w-5 animate-spin inline" /></td></tr>
+              <tr><td colSpan={9} className="px-4 py-3"><SkeletonRows /></td></tr>
             ) : rows.length === 0 ? (
               <tr><td colSpan={9} className="px-3 py-10 text-center text-slate-400">Pick a district, search, or set an “expiring within” filter to list clubs.</td></tr>
             ) : rows.map((r) => (
@@ -550,7 +551,7 @@ export default function PricingRemindersTab() {
                   {inr(r.orderType === "Renewal" ? r.renewalTotalAmount : r.totalAmount)}
                 </td>
                 <td className="hidden px-3 py-2">
-                  <span className={`text-xs ${(routeAll || r.gatewayType === "route") ? "text-indigo-700" : "text-slate-600"}`}>{gatewayLabel(r)}</span>
+                  <span className={`text-xs ${(routeAll || r.gatewayType === "route") ? "text-slate-700" : "text-slate-600"}`}>{gatewayLabel(r)}</span>
                 </td>
                 <td className="px-3 py-2 text-xs text-slate-600">
                   <div>{r.presidentName || "–"} {r.presidentMobile ? `· ${r.presidentMobile}` : ""}</div>
@@ -747,7 +748,7 @@ export default function PricingRemindersTab() {
               </thead>
               <tbody>
                 {balanceLoading ? (
-                  <tr><td colSpan={4} className="px-3 py-10 text-center text-slate-400"><Loader2 className="h-5 w-5 animate-spin inline" /></td></tr>
+                  <tr><td colSpan={4} className="px-4 py-3"><SkeletonRows /></td></tr>
                 ) : balanceRows.length === 0 ? (
                   <tr><td colSpan={4} className="px-3 py-10 text-center text-slate-400">No clubs with a credit balance.</td></tr>
                 ) : balanceRows.map((r) => (

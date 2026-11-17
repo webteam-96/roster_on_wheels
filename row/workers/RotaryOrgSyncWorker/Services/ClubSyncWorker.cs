@@ -1,3 +1,4 @@
+using RotaryApi.Services;
 using ClosedXML.Excel;
 using Dapper;
 using Microsoft.Extensions.Configuration;
@@ -31,13 +32,13 @@ public class ClubSyncWorker
             ?? throw new InvalidOperationException("ConnectionStrings:DefaultConnection missing");
     }
 
-    private MySqlConnection CreateConnection() => new(_connectionString);
+    private MySqlConnection CreateConnection() => RowDb.Connect(_connectionString);
 
     public async Task RunBootstrapAsync(CancellationToken ct = default)
     {
         var startedAt = DateTime.UtcNow;
-        var startedAtLocal = DateTime.Now;  // Match DB NOW() / created_date / LastSyncedFromRotaryOrg (server-local)
-        Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] === Bootstrap START ===");
+        var startedAtLocal = DateTime.UtcNow;  // Match DB NOW() / created_date / LastSyncedFromRotaryOrg (server-local)
+        Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] === Bootstrap START ===");
 
         // Insert log row
         int logId;
@@ -51,16 +52,16 @@ public class ClubSyncWorker
                 SELECT LAST_INSERT_ID();",
                 new { By = triggeredBy });
         }
-        Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Log row created — logId={logId}");
+        Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] Log row created — logId={logId}");
 
         var result = new SyncResult { LogId = logId };
         try
         {
             // Auth + fetch all clubs (one-shot)
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Fetching club list from Rotary.org...");
+            Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] Fetching club list from Rotary.org...");
             var clubs = await _api.GetClubsAsync(ct);
             result.TotalFetched = clubs.Count;
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Fetched {clubs.Count} clubs. Loading local lookups...");
+            Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] Fetched {clubs.Count} clubs. Loading local lookups...");
 
             await using var dbConn = CreateConnection();
             await dbConn.OpenAsync(ct);
@@ -72,14 +73,14 @@ public class ClubSyncWorker
                 // the lowest pk_id — typically the original Indian district when both exist.
                 .GroupBy(x => x.districtNumber, StringComparer.OrdinalIgnoreCase)
                 .ToDictionary(g => g.Key, g => g.Min(x => x.pk_id), StringComparer.OrdinalIgnoreCase);
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Loaded {districts.Count} districts");
+            Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] Loaded {districts.Count} districts");
 
             var existing = (await dbConn.QueryAsync<(int pk_id, string clubRotaryId, string clubName, int fk_district_id, DateTime? charterDate)>(@"
                 SELECT pk_club_id AS pk_id, ClubRotaryId AS clubRotaryId, ClubName AS clubName,
                        fk_district_id, ClubCharterDate AS charterDate
                 FROM club_master WHERE isdeleted = 0 AND ClubRotaryId IS NOT NULL AND ClubRotaryId <> ''"))
                 .ToDictionary(x => x.clubRotaryId, StringComparer.OrdinalIgnoreCase);
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Loaded {existing.Count} existing clubs by ClubRotaryId");
+            Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] Loaded {existing.Count} existing clubs by ClubRotaryId");
 
             int idx = 0;
             var loopStart = DateTime.UtcNow;
@@ -230,7 +231,7 @@ public class ClubSyncWorker
                         var ratePerSec = idx / Math.Max(1, elapsed.TotalSeconds);
                         var remaining = clubs.Count - idx;
                         var etaMin = ratePerSec > 0 ? (remaining / ratePerSec) / 60.0 : 0;
-                        Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] {idx,5}/{clubs.Count} — ins={result.InsertedCount} upd={result.UpdatedCount} skip={result.SkippedDistrictMissing} err={result.ErrorCount}  rate={ratePerSec:F1}/s  ETA {etaMin:F1} min");
+                        Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] {idx,5}/{clubs.Count} — ins={result.InsertedCount} upd={result.UpdatedCount} skip={result.SkippedDistrictMissing} err={result.ErrorCount}  rate={ratePerSec:F1}/s  ETA {etaMin:F1} min");
                     }
 
                     // DB log progress every 100
@@ -263,7 +264,7 @@ public class ClubSyncWorker
             }
 
             // Mark disappeared clubs
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Loop done. Checking for disappeared clubs...");
+            Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] Loop done. Checking for disappeared clubs...");
             var riOrgIds = clubs.Select(c => c.ClubId.ToString()).ToHashSet(StringComparer.OrdinalIgnoreCase);
             foreach (var (existingId, existingInfo) in existing)
             {
@@ -310,7 +311,7 @@ public class ClubSyncWorker
 
             if (dbInserted != result.InsertedCount || dbUpdated != result.UpdatedCount)
             {
-                Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] ⚠ Count mismatch — using DB-verified counts");
+                Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] ⚠ Count mismatch — using DB-verified counts");
                 Console.WriteLine($"      In-memory: ins={result.InsertedCount} upd={result.UpdatedCount}");
                 Console.WriteLine($"      DB-verified: ins={dbInserted} upd={dbUpdated}");
                 _logger.LogWarning("Count mismatch corrected from DB: in-memory ins={Mi}/upd={Mu} → DB ins={Di}/upd={Du}",
@@ -360,7 +361,7 @@ public class ClubSyncWorker
             }
             else
             {
-                Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] ✓ Counts verified against DB (ins={dbInserted} upd={dbUpdated})");
+                Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] ✓ Counts verified against DB (ins={dbInserted} upd={dbUpdated})");
             }
 
             // Finalize log (uses verified counts)
@@ -382,7 +383,7 @@ public class ClubSyncWorker
                 });
 
             var totalElapsed = DateTime.UtcNow - startedAt;
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] === DONE in {totalElapsed.TotalMinutes:F1} min ===");
+            Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] === DONE in {totalElapsed.TotalMinutes:F1} min ===");
             Console.WriteLine($"  Total fetched: {result.TotalFetched}");
             Console.WriteLine($"  Inserted:      {result.InsertedCount}");
             Console.WriteLine($"  Updated:       {result.UpdatedCount}");
@@ -391,13 +392,13 @@ public class ClubSyncWorker
             Console.WriteLine($"  Errors:        {result.ErrorCount}");
 
             // Email report
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Sending email report...");
+            Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] Sending email report...");
             await SendEmailReportAsync(result);
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Email sent.");
+            Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] Email sent.");
         }
         catch (Exception ex)
         {
-            Console.Error.WriteLine($"[{DateTime.Now:HH:mm:ss}] FAILED: {ex.Message}");
+            Console.Error.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] FAILED: {ex.Message}");
             _logger.LogError(ex, "Bootstrap FAILED");
             try
             {
@@ -434,8 +435,8 @@ public class ClubSyncWorker
     {
         var affected = new List<int>();   // ClubRotaryIds flipped to sync or newly inserted
         var startedAt = DateTime.UtcNow;
-        var startedAtLocal = DateTime.Now;
-        Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] === Repair Sync START ===");
+        var startedAtLocal = DateTime.UtcNow;
+        Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] === Repair Sync START ===");
 
         // Insert log row
         int logId;
@@ -449,17 +450,17 @@ public class ClubSyncWorker
                 SELECT LAST_INSERT_ID();",
                 new { By = triggeredBy });
         }
-        Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Log row created — logId={logId}");
+        Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] Log row created — logId={logId}");
 
         var result = new SyncResult { LogId = logId, SyncType = "Repair Sync" };
         try
         {
             // Fetch /clubs
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Fetching /clubs...");
+            Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] Fetching /clubs...");
             var allSyncClubs = await _api.GetClubsAsync(ct);
             result.TotalFetched = allSyncClubs.Count;
             LastClubsTotal = allSyncClubs.Count;   // read by --club-reconcile for its final count check
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] /clubs returned {allSyncClubs.Count} clubs");
+            Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] /clubs returned {allSyncClubs.Count} clubs");
 
             await using var dbConn = CreateConnection();
             await dbConn.OpenAsync(ct);
@@ -492,7 +493,7 @@ public class ClubSyncWorker
                     UPDATE club_master SET ClubType = 'Rotaract Club'
                     WHERE ClubRotaryId IN @Ids AND (ClubType IS NULL OR ClubType <> 'Rotaract Club')",
                     new { Ids = rotaractIds });
-                if (tagged > 0) Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Tagged {tagged} club(s) as Rotaract");
+                if (tagged > 0) Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] Tagged {tagged} club(s) as Rotaract");
             }
 
             // Find:
@@ -513,13 +514,13 @@ public class ClubSyncWorker
                 .Where(c => existing.TryGetValue(c.ClubId.ToString(), out var info) && info.isdeleted == 1)
                 .ToList();
 
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Missing from DB:     {missing.Count} sync clubs");
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Marked as non-sync:  {misMarked.Count} (will flip to sync)");
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Reappeared (deleted): {reappeared.Count} (will REACTIVATE)");
+            Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] Missing from DB:     {missing.Count} sync clubs");
+            Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] Marked as non-sync:  {misMarked.Count} (will flip to sync)");
+            Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] Reappeared (deleted): {reappeared.Count} (will REACTIVATE)");
 
             if (missing.Count == 0 && misMarked.Count == 0 && reappeared.Count == 0)
             {
-                Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Nothing to repair. All sync clubs already in DB and correctly flagged.");
+                Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] Nothing to repair. All sync clubs already in DB and correctly flagged.");
                 await dbConn.ExecuteAsync(@"
                     UPDATE rotary_org_sync_log
                     SET FinishedAtUtc = UTC_TIMESTAMP(), Status = 'Completed', TotalFetched = @Total
@@ -557,7 +558,7 @@ public class ClubSyncWorker
                 }
             }
             if (reactivatedCount > 0)
-                Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Reactivated {reactivatedCount} reappeared club(s)");
+                Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] Reactivated {reactivatedCount} reappeared club(s)");
 
             // Step A — flip mis-marked clubs from non-sync to sync (they exist in DB, just wrongly flagged)
             int flippedCount = 0;
@@ -578,7 +579,7 @@ public class ClubSyncWorker
                     flippedCount++;
                     affected.Add(c.ClubId);   // members must follow the flag — see --club-reconcile
                     if (flippedCount % 25 == 0)
-                        Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Flipped {flippedCount}/{misMarked.Count} clubs to sync");
+                        Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] Flipped {flippedCount}/{misMarked.Count} clubs to sync");
                 }
                 catch (Exception ex)
                 {
@@ -587,7 +588,7 @@ public class ClubSyncWorker
                 }
             }
             result.UpdatedCount = flippedCount;
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Flipped total: {flippedCount} clubs from non-sync to sync");
+            Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] Flipped total: {flippedCount} clubs from non-sync to sync");
 
             int idx = 0;
             foreach (var club in missing)
@@ -606,7 +607,7 @@ public class ClubSyncWorker
                         {
                             result.SkippedDistrictMissing++;
                             result.Skipped.Add(new SkippedClubRow { ClubRotaryId = club.ClubId.ToString(), ClubName = club.ClubName ?? "", RotaryOrgDistrictId = club.DistrictId ?? 0, Reason = "Club has no DistrictId from Rotary.org" });
-                            Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] {idx,3}/{missing.Count} skip — no district number");
+                            Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] {idx,3}/{missing.Count} skip — no district number");
                             continue;
                         }
                         localDistrictId = await dbConn.ExecuteScalarAsync<int>(@"
@@ -615,14 +616,14 @@ public class ClubSyncWorker
                             SELECT LAST_INSERT_ID();",
                             new { DistrictNumber = distNum });
                         districts[distNum] = localDistrictId;
-                        Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] {idx,3}/{missing.Count} + created district D{distNum} (no zone) id={localDistrictId}");
+                        Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] {idx,3}/{missing.Count} + created district D{distNum} (no zone) id={localDistrictId}");
                     }
 
                     var detail = await _api.GetClubDetailAsync(club.ClubType ?? "Rotary Club", club.ClubId, ct);
                     if (detail == null)
                     {
                         result.ErrorCount++;
-                        Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] {idx,3}/{missing.Count} 404 detail for ClubId={club.ClubId}");
+                        Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] {idx,3}/{missing.Count} 404 detail for ClubId={club.ClubId}");
                         continue;
                     }
 
@@ -690,7 +691,7 @@ public class ClubSyncWorker
                         CharterDate = detail.CharterDate,
                         MeetingDay = addr?.MeetingDay ?? "",
                     });
-                    Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] {idx,3}/{missing.Count} inserted: {detail.ClubName} (D{club.DistrictId})");
+                    Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] {idx,3}/{missing.Count} inserted: {detail.ClubName} (D{club.DistrictId})");
 
                     await Task.Delay(100, ct);
                 }
@@ -699,7 +700,7 @@ public class ClubSyncWorker
                 {
                     result.ErrorCount++;
                     _logger.LogError(ex, "Error on ClubId={ClubId}", club.ClubId);
-                    Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] {idx,3}/{missing.Count} ERROR: {ex.Message}");
+                    Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] {idx,3}/{missing.Count} ERROR: {ex.Message}");
                 }
             }
 
@@ -721,7 +722,7 @@ public class ClubSyncWorker
                 });
 
             var totalElapsed = DateTime.UtcNow - startedAt;
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] === Repair DONE in {totalElapsed.TotalMinutes:F1} min ===");
+            Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] === Repair DONE in {totalElapsed.TotalMinutes:F1} min ===");
             Console.WriteLine($"  Total in /clubs:       {result.TotalFetched}");
             Console.WriteLine($"  Missing from DB:       {missing.Count}");
             Console.WriteLine($"  Inserted (new):        {result.InsertedCount}");
@@ -758,7 +759,7 @@ public class ClubSyncWorker
         }
         catch (Exception ex)
         {
-            Console.Error.WriteLine($"[{DateTime.Now:HH:mm:ss}] REPAIR FAILED: {ex.Message}");
+            Console.Error.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] REPAIR FAILED: {ex.Message}");
             try
             {
                 await using var conn = CreateConnection();
@@ -782,8 +783,8 @@ public class ClubSyncWorker
     public async Task RunDeltaAsync(CancellationToken ct = default)
     {
         var startedAt = DateTime.UtcNow;
-        var startedAtLocal = DateTime.Now;
-        Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] === Delta START ===");
+        var startedAtLocal = DateTime.UtcNow;
+        Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] === Delta START ===");
 
         // Determine date range: from last successful sync (or 24h ago if first run)
         DateTime windowStart;
@@ -798,7 +799,7 @@ public class ClubSyncWorker
                 : DateTime.UtcNow.AddDays(-1);
         }
         var windowEnd = DateTime.UtcNow;
-        Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Delta window: {windowStart:yyyy-MM-dd HH:mm} UTC → {windowEnd:yyyy-MM-dd HH:mm} UTC");
+        Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] Delta window: {windowStart:yyyy-MM-dd HH:mm} UTC → {windowEnd:yyyy-MM-dd HH:mm} UTC");
 
         // Insert log row
         int logId;
@@ -812,16 +813,16 @@ public class ClubSyncWorker
                 SELECT LAST_INSERT_ID();",
                 new { By = triggeredBy });
         }
-        Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Log row created — logId={logId}");
+        Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] Log row created — logId={logId}");
 
         var result = new SyncResult { LogId = logId };
         try
         {
             // Fetch only changed clubs in the window
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Fetching club updates from Rotary.org...");
+            Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] Fetching club updates from Rotary.org...");
             var clubs = await _api.GetClubUpdatesAsync(windowStart, windowEnd, ct);
             result.TotalFetched = clubs.Count;
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] {clubs.Count} club(s) changed in window.");
+            Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] {clubs.Count} club(s) changed in window.");
 
             if (clubs.Count == 0)
             {
@@ -833,7 +834,7 @@ public class ClubSyncWorker
                     SET FinishedAtUtc = UTC_TIMESTAMP(), Status = 'Completed', TotalFetched = 0
                     WHERE pk_id = @Id",
                     new { Id = logId });
-                Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] No changes — sending no-op email");
+                Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] No changes — sending no-op email");
                 await SendDeltaEmailReportAsync(result, windowStart, windowEnd);
                 return;
             }
@@ -1010,7 +1011,7 @@ public class ClubSyncWorker
                             clubsNeedingMemberMatch.Add(newRid);
                     }
 
-                    Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] {idx,3}/{clubs.Count} — ins={result.InsertedCount} upd={result.UpdatedCount} skip={result.SkippedDistrictMissing} err={result.ErrorCount}");
+                    Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] {idx,3}/{clubs.Count} — ins={result.InsertedCount} upd={result.UpdatedCount} skip={result.SkippedDistrictMissing} err={result.ErrorCount}");
 
                     await Task.Delay(100, ct);
                 }
@@ -1039,7 +1040,7 @@ public class ClubSyncWorker
 
             if (dbInserted != result.InsertedCount || dbUpdated != result.UpdatedCount)
             {
-                Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] ⚠ Count mismatch — using DB-verified counts");
+                Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] ⚠ Count mismatch — using DB-verified counts");
                 _logger.LogWarning("Delta count mismatch: in-memory ins={Mi}/upd={Mu} → DB ins={Di}/upd={Du}",
                     result.InsertedCount, result.UpdatedCount, dbInserted, dbUpdated);
                 result.InsertedCount = dbInserted;
@@ -1063,7 +1064,7 @@ public class ClubSyncWorker
                 });
 
             var totalElapsed = DateTime.UtcNow - startedAt;
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] === Delta DONE in {totalElapsed.TotalMinutes:F1} min ===");
+            Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] === Delta DONE in {totalElapsed.TotalMinutes:F1} min ===");
             Console.WriteLine($"  Total changed: {result.TotalFetched}");
             Console.WriteLine($"  Inserted:      {result.InsertedCount}");
             Console.WriteLine($"  Updated:       {result.UpdatedCount}");
@@ -1080,7 +1081,7 @@ public class ClubSyncWorker
             if (clubsNeedingMemberMatch.Count > 0)
             {
                 var uniqueMatch = clubsNeedingMemberMatch.Distinct().ToList();
-                Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Auto member-match: {uniqueMatch.Count} newly-synced/new club(s)…");
+                Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] Auto member-match: {uniqueMatch.Count} newly-synced/new club(s)…");
                 try
                 {
                     await _memberSweep.RunForClubRotaryIdsAsync(uniqueMatch, ct);
@@ -1088,13 +1089,13 @@ public class ClubSyncWorker
                 catch (Exception ex2)
                 {
                     _logger.LogError(ex2, "Auto member-match after delta failed for {Count} club(s)", uniqueMatch.Count);
-                    Console.Error.WriteLine($"[{DateTime.Now:HH:mm:ss}] Auto member-match FAILED: {ex2.Message} (club sync itself succeeded)");
+                    Console.Error.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] Auto member-match FAILED: {ex2.Message} (club sync itself succeeded)");
                 }
             }
         }
         catch (Exception ex)
         {
-            Console.Error.WriteLine($"[{DateTime.Now:HH:mm:ss}] DELTA FAILED: {ex.Message}");
+            Console.Error.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] DELTA FAILED: {ex.Message}");
             _logger.LogError(ex, "Delta sync FAILED");
             try
             {
@@ -1136,7 +1137,7 @@ public class ClubSyncWorker
             using var ms = new MemoryStream();
             workbook.SaveAs(ms);
             var bytes = ms.ToArray();
-            var fileName = $"RotaryOrg_Delta_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx";
+            var fileName = $"RotaryOrg_Delta_{DateTime.UtcNow:yyyyMMdd_HHmmss}.xlsx";
 
             string newClubsBlock = "";
             if (r.Inserted.Count > 0)
@@ -1189,12 +1190,12 @@ public class ClubSyncWorker
 <p>Regards,<br/><strong>Team ROW</strong></p>
 </div>";
 
-            await _emailSender.SendReportAsync($"[Daily] ROW Club Sync — {DateTime.Now:dd MMM yyyy}", body, bytes, fileName);
+            await _emailSender.SendReportAsync($"[Daily] ROW Club Sync — {DateTime.UtcNow:dd MMM yyyy}", body, bytes, fileName);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Delta email FAILED");
-            Console.Error.WriteLine($"[{DateTime.Now:HH:mm:ss}] Email failed: {ex.Message}");
+            Console.Error.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] Email failed: {ex.Message}");
         }
     }
 
@@ -1223,7 +1224,7 @@ public class ClubSyncWorker
             using var ms = new MemoryStream();
             workbook.SaveAs(ms);
             var bytes = ms.ToArray();
-            var fileName = $"RotaryOrg_Sync_Report_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx";
+            var fileName = $"RotaryOrg_Sync_Report_{DateTime.UtcNow:yyyyMMdd_HHmmss}.xlsx";
 
             var triggeredByName = _config["RotaryOrgSync:TriggeredByName"] ?? "Admin";
 
@@ -1271,12 +1272,12 @@ public class ClubSyncWorker
             var subjectPrefix = string.Equals(r.SyncType, "Repair Sync", StringComparison.OrdinalIgnoreCase)
                 ? "[Manual] ROW Repair Sync"
                 : "[One-time] ROW Bootstrap";
-            await _emailSender.SendReportAsync($"{subjectPrefix} — {DateTime.Now:dd MMM yyyy}", body, bytes, fileName);
+            await _emailSender.SendReportAsync($"{subjectPrefix} — {DateTime.UtcNow:dd MMM yyyy}", body, bytes, fileName);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Email report FAILED");
-            Console.Error.WriteLine($"[{DateTime.Now:HH:mm:ss}] Email failed: {ex.Message}");
+            Console.Error.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] Email failed: {ex.Message}");
         }
     }
 

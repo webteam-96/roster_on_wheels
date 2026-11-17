@@ -1,3 +1,4 @@
+using RotaryApi.Services;
 using Dapper;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -34,21 +35,21 @@ public class DistrictDiagnoser
     /// </summary>
     public async Task RunAllAsync(CancellationToken ct = default)
     {
-        Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] === Diagnosing ALL districts ===");
+        Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] === Diagnosing ALL districts ===");
 
         // 1. Fetch /clubs once
-        Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Fetching /clubs...");
+        Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] Fetching /clubs...");
         var allSyncClubs = await _api.GetClubsAsync(ct);
-        Console.WriteLine($"[{DateTime.Now:HH:mm:ss}]   /clubs: {allSyncClubs.Count} clubs total");
+        Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}]   /clubs: {allSyncClubs.Count} clubs total");
 
         // 2. Fetch /Clubs/search for 3 countries once
         var allSearchClubs = new List<RotaryOrgClubSearchDto>();
         foreach (var country in TargetCountries)
         {
             ct.ThrowIfCancellationRequested();
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Fetching /Clubs/search for {country}...");
+            Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] Fetching /Clubs/search for {country}...");
             var list = await _api.SearchClubsByCountryAsync(country, ct);
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss}]   {country}: {list.Count} clubs");
+            Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}]   {country}: {list.Count} clubs");
             allSearchClubs.AddRange(list);
         }
 
@@ -77,12 +78,12 @@ public class DistrictDiagnoser
         }
 
         // 4. Get all our local districts + their DB clubs
-        await using var conn = new MySqlConnection(_connectionString);
+        await using var conn = RowDb.Connect(_connectionString);
         await conn.OpenAsync(ct);
         var localDistricts = (await conn.QueryAsync<string>(@"
             SELECT DistrictNumber FROM district_master WHERE isdeleted = 0 ORDER BY DistrictNumber"))
             .ToList();
-        Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Local districts: {localDistricts.Count}");
+        Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] Local districts: {localDistricts.Count}");
 
         var dbClubsByDistrict = (await conn.QueryAsync<(string DistrictNumber, string ClubRotaryId, string ClubName)>(@"
             SELECT d.DistrictNumber AS DistrictNumber,
@@ -146,7 +147,7 @@ public class DistrictDiagnoser
         }
 
         // 7. CSV
-        var fileName = $"diagnose-all-{DateTime.Now:yyyyMMdd-HHmmss}.csv";
+        var fileName = $"diagnose-all-{DateTime.UtcNow:yyyyMMdd-HHmmss}.csv";
         var fullPath = Path.Combine(AppContext.BaseDirectory, fileName);
         using (var writer = new StreamWriter(fullPath))
         {
@@ -163,12 +164,12 @@ public class DistrictDiagnoser
     /// </summary>
     public async Task ExportAllAsync(CancellationToken ct = default)
     {
-        Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] === Exporting ALL clubs (3 countries + sync feed) ===");
+        Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] === Exporting ALL clubs (3 countries + sync feed) ===");
 
         // Fetch /clubs
-        Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Fetching /clubs...");
+        Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] Fetching /clubs...");
         var syncClubs = await _api.GetClubsAsync(ct);
-        Console.WriteLine($"[{DateTime.Now:HH:mm:ss}]   /clubs: {syncClubs.Count} clubs");
+        Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}]   /clubs: {syncClubs.Count} clubs");
 
         // Fetch /Clubs/search for each country
         var searchByCountry = new Dictionary<string, List<RotaryOrgClubSearchDto>>();
@@ -176,11 +177,11 @@ public class DistrictDiagnoser
         foreach (var country in TargetCountries)
         {
             ct.ThrowIfCancellationRequested();
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Fetching /Clubs/search for {country}...");
+            Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] Fetching /Clubs/search for {country}...");
             var list = await _api.SearchClubsByCountryAsync(country, ct);
             searchByCountry[country] = list;
             totalRawSearch += list.Count;
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss}]   {country}: {list.Count} clubs (raw entries — may include duplicates)");
+            Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}]   {country}: {list.Count} clubs (raw entries — may include duplicates)");
         }
 
         // Build unique map: ClubId → (best entry, source country)
@@ -213,7 +214,7 @@ public class DistrictDiagnoser
         Console.WriteLine($"");
 
         // CSV
-        var fileName = $"all-clubs-{DateTime.Now:yyyyMMdd-HHmmss}.csv";
+        var fileName = $"all-clubs-{DateTime.UtcNow:yyyyMMdd-HHmmss}.csv";
         var fullPath = Path.Combine(AppContext.BaseDirectory, fileName);
         using (var writer = new StreamWriter(fullPath))
         {
@@ -270,13 +271,13 @@ public class DistrictDiagnoser
     /// </summary>
     public async Task ExportDistrictAsync(string districtNumber, CancellationToken ct = default)
     {
-        Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] === Exporting D{districtNumber} clubs from /Clubs/search ===");
+        Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] === Exporting D{districtNumber} clubs from /Clubs/search ===");
 
         var allMatching = new List<(string Country, RotaryOrgClubSearchDto Club)>();
         foreach (var country in TargetCountries)
         {
             ct.ThrowIfCancellationRequested();
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Fetching /Clubs/search for {country}...");
+            Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] Fetching /Clubs/search for {country}...");
             var list = await _api.SearchClubsByCountryAsync(country, ct);
             // Match by both string-equality and trimmed/numeric-equivalent comparison so we
             // catch clubs whose District is "3142", " 3142", or "03142" etc.
@@ -289,16 +290,16 @@ public class DistrictDiagnoser
                     matchCount++;
                 }
             }
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss}]   {country}: matched {matchCount} clubs in D{districtNumber}");
+            Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}]   {country}: matched {matchCount} clubs in D{districtNumber}");
         }
 
         // Also fetch /clubs to compare
-        Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Fetching /clubs (sync feed)...");
+        Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] Fetching /clubs (sync feed)...");
         var syncClubs = await _api.GetClubsAsync(ct);
         var syncInDistrict = syncClubs
             .Where(c => c.DistrictId.HasValue && c.DistrictId.Value.ToString() == districtNumber)
             .ToList();
-        Console.WriteLine($"[{DateTime.Now:HH:mm:ss}]   /clubs in D{districtNumber}: {syncInDistrict.Count}");
+        Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}]   /clubs in D{districtNumber}: {syncInDistrict.Count}");
 
         // Build set of ClubIds from search to find which sync clubs are missing from search
         var searchIds = new HashSet<string>(allMatching.Select(x => x.Club.ClubId.ToString()), StringComparer.OrdinalIgnoreCase);
@@ -313,7 +314,7 @@ public class DistrictDiagnoser
         Console.WriteLine($"");
 
         // CSV
-        var fileName = $"district-{districtNumber}-export-{DateTime.Now:yyyyMMdd-HHmmss}.csv";
+        var fileName = $"district-{districtNumber}-export-{DateTime.UtcNow:yyyyMMdd-HHmmss}.csv";
         var fullPath = Path.Combine(AppContext.BaseDirectory, fileName);
         using (var writer = new StreamWriter(fullPath))
         {
@@ -373,15 +374,15 @@ public class DistrictDiagnoser
 
     public async Task RunAsync(string districtNumber, CancellationToken ct = default)
     {
-        Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] === Diagnosing district {districtNumber} ===");
+        Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] === Diagnosing district {districtNumber} ===");
 
         // 1. Fetch /clubs (sync clubs in this district)
-        Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Fetching /clubs...");
+        Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] Fetching /clubs...");
         var allSyncClubs = await _api.GetClubsAsync(ct);
         var syncClubsInDistrict = allSyncClubs
             .Where(c => c.DistrictId.HasValue && c.DistrictId.Value.ToString() == districtNumber)
             .ToList();
-        Console.WriteLine($"[{DateTime.Now:HH:mm:ss}]   /clubs in D{districtNumber}: {syncClubsInDistrict.Count} clubs");
+        Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}]   /clubs in D{districtNumber}: {syncClubsInDistrict.Count} clubs");
 
         // 2. Fetch /Clubs/search for all 3 countries, filter to this district
         var searchInDistrict = new List<RotaryOrgClubSearchDto>();
@@ -392,7 +393,7 @@ public class DistrictDiagnoser
             var inDistrict = list.Where(c => c.District == districtNumber).ToList();
             if (inDistrict.Count > 0)
             {
-                Console.WriteLine($"[{DateTime.Now:HH:mm:ss}]   /Clubs/search ({country}) in D{districtNumber}: {inDistrict.Count} clubs");
+                Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}]   /Clubs/search ({country}) in D{districtNumber}: {inDistrict.Count} clubs");
                 searchInDistrict.AddRange(inDistrict);
             }
         }
@@ -401,7 +402,7 @@ public class DistrictDiagnoser
         var apiIds = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         foreach (var c in syncClubsInDistrict) apiIds.Add(c.ClubId.ToString());
         foreach (var c in searchInDistrict) apiIds.Add(c.ClubId.ToString());
-        Console.WriteLine($"[{DateTime.Now:HH:mm:ss}]   Combined API set: {apiIds.Count} unique ClubIds");
+        Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}]   Combined API set: {apiIds.Count} unique ClubIds");
 
         // Build ClubId → name lookup for display
         var apiNameById = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
@@ -417,7 +418,7 @@ public class DistrictDiagnoser
         }
 
         // 4. Get DB clubs in this district
-        await using var conn = new MySqlConnection(_connectionString);
+        await using var conn = RowDb.Connect(_connectionString);
         await conn.OpenAsync(ct);
         var dbClubs = (await conn.QueryAsync<(string ClubRotaryId, string ClubName, int IsSynced, int AddedByCountrySync)>(@"
             SELECT IFNULL(cm.ClubRotaryId, '') AS ClubRotaryId,
@@ -429,7 +430,7 @@ public class DistrictDiagnoser
             WHERE d.DistrictNumber = @D AND cm.isdeleted = 0
             ORDER BY cm.ClubName",
             new { D = districtNumber })).ToList();
-        Console.WriteLine($"[{DateTime.Now:HH:mm:ss}]   DB clubs in D{districtNumber}: {dbClubs.Count} clubs");
+        Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}]   DB clubs in D{districtNumber}: {dbClubs.Count} clubs");
 
         var dbIds = new HashSet<string>(dbClubs.Select(x => x.ClubRotaryId), StringComparer.OrdinalIgnoreCase);
 
@@ -470,7 +471,7 @@ public class DistrictDiagnoser
         }
 
         // 6. CSV output
-        var fileName = $"district-{districtNumber}-diagnose-{DateTime.Now:yyyyMMdd-HHmmss}.csv";
+        var fileName = $"district-{districtNumber}-diagnose-{DateTime.UtcNow:yyyyMMdd-HHmmss}.csv";
         var fullPath = Path.Combine(AppContext.BaseDirectory, fileName);
         using (var writer = new StreamWriter(fullPath))
         {

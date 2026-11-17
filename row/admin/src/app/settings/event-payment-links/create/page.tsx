@@ -674,7 +674,7 @@ function CreateEditPaymentLinkPage() {
             {selectedYearId && subGroups.length > 0 && (
               <div>
                 <Label>Subgroups</Label>
-                <div className="border rounded-lg p-3 max-h-48 overflow-y-auto grid grid-cols-1 md:grid-cols-2 gap-2 bg-white">
+                <div className="border rounded-lg p-3 max-h-48 overflow-y-auto grid grid-cols-1 md:grid-cols-2 gap-2 bg-card">
                   {subGroups.map(sg => (
                     <div key={sg.id} className="flex flex-wrap items-center gap-2">
                       <Checkbox

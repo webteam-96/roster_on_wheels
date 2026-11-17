@@ -276,7 +276,7 @@ export default function MonthDetailPage() {
                   onClick={() => setView("submitted")}
                   className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-semibold border transition ${view === "submitted" ? "bg-emerald-600 text-white border-emerald-600" : "border-slate-200 text-slate-700 hover:bg-slate-50"}`}
                 >
-                  <span className={`h-3.5 w-3.5 rounded-full ${view === "submitted" ? "bg-white ring-2 ring-emerald-600" : "border border-slate-400"}`} />
+                  <span className={`h-3.5 w-3.5 rounded-full ${view === "submitted" ? "bg-card ring-2 ring-emerald-600" : "border border-slate-400"}`} />
                   Submitted ({filteredSubmitted.length})
                 </button>
                 <button
@@ -284,7 +284,7 @@ export default function MonthDetailPage() {
                   onClick={() => setView("notSubmitted")}
                   className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-semibold border transition ${view === "notSubmitted" ? "bg-rose-600 text-white border-rose-600" : "border-slate-200 text-slate-700 hover:bg-slate-50"}`}
                 >
-                  <span className={`h-3.5 w-3.5 rounded-full ${view === "notSubmitted" ? "bg-white ring-2 ring-rose-600" : "border border-slate-400"}`} />
+                  <span className={`h-3.5 w-3.5 rounded-full ${view === "notSubmitted" ? "bg-card ring-2 ring-rose-600" : "border border-slate-400"}`} />
                   Not Submitted ({filteredNotSubmitted.length})
                 </button>
               </div>

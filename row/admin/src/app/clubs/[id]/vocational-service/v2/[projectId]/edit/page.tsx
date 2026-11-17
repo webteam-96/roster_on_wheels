@@ -518,7 +518,7 @@ export default function VocationalServiceV2EditPage() {
               <select
                 value={selectedAofId}
                 onChange={(e) => setSelectedAofId(e.target.value)}
-                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] bg-white focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] bg-card focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
               >
                 <option value="">Select</option>
                 {areasOfFocus.map((a) => (
@@ -549,7 +549,7 @@ export default function VocationalServiceV2EditPage() {
               <select
                 value={currency}
                 onChange={(e) => setCurrency(e.target.value)}
-                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] bg-white focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] bg-card focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
               >
                 {currencyOptions().map((c) => (
                   <option key={c.code} value={c.code}>{c.label}</option>
@@ -572,7 +572,7 @@ export default function VocationalServiceV2EditPage() {
               <select
                 value={selectedFundingId}
                 onChange={(e) => handleFundingChange(e.target.value)}
-                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] bg-white focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] bg-card focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
               >
                 <option value="">Select</option>
                 {fundingList.map((f) => (
@@ -583,7 +583,7 @@ export default function VocationalServiceV2EditPage() {
 
             {/* Funding-conditional: Global Grant fields */}
             {showGlobalGrantBlock && (
-              <div className="sm:col-span-2 lg:col-span-3 space-y-3 border-l-4 border-amber-500 bg-amber-50/40 rounded-md p-4">
+              <div className="sm:col-span-2 lg:col-span-3 space-y-3 border border-amber-200 bg-amber-50/40 rounded-md p-4">
                 <h4 className="text-sm font-semibold text-amber-700">Global Grant Details</h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
@@ -628,7 +628,7 @@ export default function VocationalServiceV2EditPage() {
 
             {/* Funding-conditional: CSR fields */}
             {showCsrBlock && (
-              <div className="sm:col-span-2 lg:col-span-3 space-y-3 border-l-4 border-amber-500 bg-amber-50/40 rounded-md p-4">
+              <div className="sm:col-span-2 lg:col-span-3 space-y-3 border border-amber-200 bg-amber-50/40 rounded-md p-4">
                 <h4 className="text-sm font-semibold text-amber-700">CSR Details</h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="md:col-span-2">

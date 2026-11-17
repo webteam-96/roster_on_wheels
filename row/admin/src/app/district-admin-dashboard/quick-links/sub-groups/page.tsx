@@ -16,7 +16,7 @@
  *     listing URL) + yearId. Back honours ?returnTo=, else the Quick Links
  *     landing.
  *   - Member list per group is shown via inline expand (no separate route).
- *   - Navy #17458f / gold #F7A81B / slate palette, rounded-2xl bg-white cards.
+ *   - Navy #17458f / gold #F7A81B / slate palette, rounded-2xl bg-card cards.
  */
 
 import { useState, useEffect, useCallback, useMemo } from "react";
@@ -175,7 +175,7 @@ export default function DistrictAdminSubGroupsPage() {
 
         {/* No year selected in the top bar */}
         {!yearId && (
-          <div className="flex flex-col items-center justify-center py-20 text-center rounded-2xl border border-slate-200 bg-white shadow-sm">
+          <div className="flex flex-col items-center justify-center py-20 text-center rounded-2xl border border-slate-200 bg-card shadow-sm">
             <CalendarClock className="h-12 w-12 text-slate-400 mb-4" />
             <h3 className="text-lg font-semibold text-slate-800">Select a year to continue</h3>
             <p className="text-slate-500 mt-2 text-sm">Pick a Rotary year in the top bar to view its sub groups.</p>
@@ -197,7 +197,7 @@ export default function DistrictAdminSubGroupsPage() {
             )}
 
             {!loading && groups.length === 0 && (
-              <div className="flex flex-col items-center justify-center py-20 text-center rounded-2xl border border-slate-200 bg-white shadow-sm">
+              <div className="flex flex-col items-center justify-center py-20 text-center rounded-2xl border border-slate-200 bg-card shadow-sm">
                 <Users className="h-12 w-12 text-slate-400 mb-4" />
                 <h3 className="text-lg font-semibold text-slate-800">No sub groups yet</h3>
                 <p className="text-slate-500 mt-2 text-sm">
@@ -220,7 +220,7 @@ export default function DistrictAdminSubGroupsPage() {
                       const detail = detailCache[group.id];
                       const isLoadingDetail = loadingDetailId === group.id;
                       return (
-                        <div key={group.id} className="rounded-2xl border border-slate-200 shadow-sm bg-white overflow-hidden">
+                        <div key={group.id} className="rounded-2xl border border-slate-200 shadow-sm bg-card overflow-hidden">
                           <div className="p-4">
                             <div className="flex items-start gap-3">
                               <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-azure/10 text-ink">

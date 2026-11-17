@@ -73,7 +73,7 @@ public class MobileNotificationFeedService : IMobileNotificationFeedService
         var wanted = ParseTypes(types);
         if (wanted.Count == 0) return empty;
 
-        using var conn = new MySqlConnection(_connectionString);
+        using var conn = RowDb.Connect(_connectionString);
         await conn.OpenAsync();
 
         // ── 1. Scope ───────────────────────────────────────────────────────────────────────
@@ -111,8 +111,8 @@ public class MobileNotificationFeedService : IMobileNotificationFeedService
         // ── 3. Build the UNION ─────────────────────────────────────────────────────────────
         var p = new DynamicParameters();
         p.Add("MemberId", memberId);
-        p.Add("From", DateTime.Now.AddDays(-days));
-        p.Add("GreetFrom", DateTime.Now.AddDays(-Math.Min(days, GreetingLookbackDays)).Date);
+        p.Add("From", DateTime.UtcNow.AddDays(-days));
+        p.Add("GreetFrom", DateTime.UtcNow.AddDays(-Math.Min(days, GreetingLookbackDays)).Date);
         p.Add("Take", pageSize);
         p.Add("Skip", (page - 1) * pageSize);
         if (clubIds.Count > 0) p.Add("ClubIds", clubIds);
@@ -279,7 +279,7 @@ public class MobileNotificationFeedService : IMobileNotificationFeedService
             "SELECT pk_year_id FROM rotary_year_master WHERE isdeleted = 0 AND IsCurrent = 1 LIMIT 1");
 
         var current = currentYearId.HasValue ? all.FirstOrDefault(t => t.YearId == currentYearId.Value) : null;
-        current ??= all.LastOrDefault(t => StartYear(t.YearLabel) is int y && y <= DateTime.Now.Year);
+        current ??= all.LastOrDefault(t => StartYear(t.YearLabel) is int y && y <= DateTime.UtcNow.Year);
         if (current == null) return new List<YearTableInfo>();
 
         var result = new List<YearTableInfo> { current };

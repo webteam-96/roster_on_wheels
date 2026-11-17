@@ -41,7 +41,7 @@ public class TenantRenewalService
     public async Task<List<string>> RunAsync()
     {
         var done = new List<string>();
-        await using var conn = new MySqlConnection(_cs);
+        await using var conn = RowDb.Connect(_cs);
         await conn.OpenAsync();
         var notices = (await conn.QueryAsync<Due>(@"
             SELECT t.fk_district_id AS DistrictId, d.DistrictNumber, t.term_end AS TermEnd, t.auto_renew = 1 AS AutoRenew,
@@ -75,7 +75,7 @@ public class TenantRenewalService
         foreach (var t in overdue)
         {
             var stage = t.DunningFor == t.TermEnd ? t.Stage : 0; // a renewed term starts over
-            var daysLate = (DateTime.Today - t.TermEnd.Date).Days;
+            var daysLate = (DateTime.UtcNow.Date - t.TermEnd.Date).Days;
             var due = DunningDays.Count(d => daysLate >= d);
             if (due <= stage) continue;
             var sent = await SendAsync(conn, t.DistrictId, L =>

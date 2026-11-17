@@ -36,7 +36,7 @@ public class ClubSyncService : IClubSyncService
         _connectionString = config.GetConnectionString("DefaultConnection")!;
     }
 
-    private MySqlConnection CreateConnection() => new(_connectionString);
+    private MySqlConnection CreateConnection() => RowDb.Connect(_connectionString);
 
     // ─────────────────────────── Public API ───────────────────────────
 
@@ -52,7 +52,7 @@ public class ClubSyncService : IClubSyncService
             new { By = triggeredByMemberId });
 
         // Fire-and-forget — caller gets the ID immediately.
-        _ = Task.Run(async () => await RunBootstrapBackgroundAsync(logId, triggeredByEmail, triggeredByName));
+        BackgroundWork.Run("RunBootstrapBackgroundAsync", () => RunBootstrapBackgroundAsync(logId, triggeredByEmail, triggeredByName));
         return logId;
     }
 
@@ -448,7 +448,7 @@ public class ClubSyncService : IClubSyncService
             using var ms = new MemoryStream();
             workbook.SaveAs(ms);
             var bytes = ms.ToArray();
-            var fileName = $"RotaryOrg_Sync_Report_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx";
+            var fileName = $"RotaryOrg_Sync_Report_{DateTime.UtcNow:yyyyMMdd_HHmmss}.xlsx";
 
             var body = $@"{EmailService.EMAIL_HEADER}
 <h2 style='color:#17458F;margin-top:0;'>Rotary.org Sync Complete</h2>
@@ -467,7 +467,7 @@ public class ClubSyncService : IClubSyncService
 <p>Regards,<br/><strong>Team ROW</strong></p>
 {EmailService.EMAIL_FOOTER}";
 
-            await emailService.SendEmailWithAttachmentAsync(toEmail, $"Rotary.org Sync Report — {DateTime.Now:dd MMM yyyy}", body, bytes, fileName, ccEmails);
+            await emailService.SendEmailWithAttachmentAsync(toEmail, $"Rotary.org Sync Report — {DateTime.UtcNow:dd MMM yyyy}", body, bytes, fileName, ccEmails);
             _logger.LogInformation("🔑 [RI.org sync #{LogId}] report email sent — to={To} cc={CcCount}", r.LogId, LogMask.Email(toEmail), ccEmails.Count);
         }
         catch (Exception ex)

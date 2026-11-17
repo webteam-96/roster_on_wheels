@@ -306,7 +306,7 @@ export default function ClubServicePage() {
                         </div>
                       </TableCell>
                       <TableCell>
-                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-[#CFE2F6] text-purple-700">
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-[#CFE2F6] text-slate-700">
                           {MEETING_TYPE_LABELS[project.meetingType || ""] || project.meetingType || "-"}
                         </span>
                       </TableCell>

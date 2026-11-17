@@ -42,7 +42,7 @@ public class AdminYearGuard
 
     private async Task<MySqlConnection> OpenAsync()
     {
-        var conn = new MySqlConnection(_config.GetConnectionString("DefaultConnection"));
+        var conn = RowDb.Connect(_config.GetConnectionString("DefaultConnection"));
         await conn.OpenAsync();
         return conn;
     }

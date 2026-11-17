@@ -83,7 +83,7 @@ export function Hero() {
             <span key={n} className="flex items-center gap-6">
               {i > 0 && (
                 <span aria-hidden className="text-[10px] text-gold">
-                  ✦
+                  ·
                 </span>
               )}
               <span className="text-[12px] font-semibold uppercase tracking-[0.2em] text-cream/60">

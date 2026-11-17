@@ -202,11 +202,11 @@ export default function AddWebLinkPage() {
         {loading ? (
           <div className="flex items-center justify-center py-20"><ListPageSkeleton /></div>
         ) : (
-          <div className="rounded-2xl border border-slate-200 shadow-sm bg-white p-6 space-y-5">
+          <div className="rounded-2xl border border-slate-200 shadow-sm bg-card p-6 space-y-5">
             <div className="space-y-2">
               <Label className="text-slate-700 text-sm font-medium">Title *</Label>
               <Input
-                className="border-slate-200 bg-white focus:border-azure focus:ring-azure/20"
+                className="border-slate-200 bg-card focus:border-azure focus:ring-azure/20"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="Web link title"
@@ -233,7 +233,7 @@ export default function AddWebLinkPage() {
                 type="file"
                 accept=".jpg,.jpeg,.png,.gif,.webp"
                 onChange={(e) => setLogo(e.target.files?.[0] || null)}
-                className="border-slate-200 bg-white"
+                className="border-slate-200 bg-card"
               />
               <p className="text-xs text-slate-500">Allowed: JPG, JPEG, PNG, GIF, WEBP</p>
             </div>
@@ -252,7 +252,7 @@ export default function AddWebLinkPage() {
                   type="file"
                   accept=".jpg,.jpeg,.png,.gif,.webp"
                   onChange={(e) => setBanner(e.target.files?.[0] || null)}
-                  className="border-slate-200 bg-white"
+                  className="border-slate-200 bg-card"
                 />
                 <p className="text-xs text-slate-500">Allowed: JPG, JPEG, PNG, GIF, WEBP</p>
               </div>
@@ -262,7 +262,7 @@ export default function AddWebLinkPage() {
               <div className="space-y-2">
                 <Label className="text-slate-700 text-sm font-medium">Link Type</Label>
                 <Select value={linkType} onValueChange={setLinkType}>
-                  <SelectTrigger className="border-slate-200 bg-white focus:border-azure focus:ring-azure/20">
+                  <SelectTrigger className="border-slate-200 bg-card focus:border-azure focus:ring-azure/20">
                     <SelectValue placeholder="Select link type" />
                   </SelectTrigger>
                   <SelectContent>
@@ -276,7 +276,7 @@ export default function AddWebLinkPage() {
               <div className="space-y-2">
                 <Label className="text-slate-700 text-sm font-medium">URL</Label>
                 <Input
-                  className="border-slate-200 bg-white focus:border-azure focus:ring-azure/20"
+                  className="border-slate-200 bg-card focus:border-azure focus:ring-azure/20"
                   value={linkUrl}
                   onChange={(e) => setLinkUrl(e.target.value)}
                   placeholder="https://example.com"
@@ -291,7 +291,7 @@ export default function AddWebLinkPage() {
                   type="file"
                   accept=".pdf"
                   onChange={(e) => setPdf(e.target.files?.[0] || null)}
-                  className="border-slate-200 bg-white"
+                  className="border-slate-200 bg-card"
                 />
                 <p className="text-xs text-slate-500">Allowed: PDF only</p>
               </div>
@@ -301,7 +301,7 @@ export default function AddWebLinkPage() {
               <div className="space-y-2">
                 <Label className="text-slate-700 text-sm font-medium">YouTube Video Link</Label>
                 <Input
-                  className="border-slate-200 bg-white focus:border-azure focus:ring-azure/20"
+                  className="border-slate-200 bg-card focus:border-azure focus:ring-azure/20"
                   value={youtubeUrl}
                   onChange={(e) => setYoutubeUrl(e.target.value)}
                   placeholder="https://youtube.com/watch?v=..."
@@ -313,7 +313,7 @@ export default function AddWebLinkPage() {
               <div className="space-y-2">
                 <Label className="text-slate-700 text-sm font-medium">Button Text</Label>
                 <Input
-                  className="border-slate-200 bg-white focus:border-azure focus:ring-azure/20"
+                  className="border-slate-200 bg-card focus:border-azure focus:ring-azure/20"
                   value={buttonText}
                   onChange={(e) => setButtonText(e.target.value)}
                   placeholder="e.g. Read More"
@@ -326,7 +326,7 @@ export default function AddWebLinkPage() {
               <Input
                 type="number"
                 min={0}
-                className="border-slate-200 bg-white focus:border-azure focus:ring-azure/20 max-w-[160px]"
+                className="border-slate-200 bg-card focus:border-azure focus:ring-azure/20 max-w-[160px]"
                 value={sortOrder}
                 onChange={(e) => setSortOrder(Number(e.target.value))}
               />

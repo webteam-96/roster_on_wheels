@@ -28,7 +28,7 @@ public class DistrictWebsitesController : ControllerBase
         _useHttps = string.Equals(config.GetSection("ClubSite")["UseHttps"], "true", StringComparison.OrdinalIgnoreCase);
     }
 
-    private MySqlConnection CreateConnection() => new(_connectionString);
+    private MySqlConnection CreateConnection() => RowDb.Connect(_connectionString);
     private bool IsSuperAdmin() => User.FindFirst("roles")?.Value?.Contains("SuperAdmin") == true;
     private int GetUserId()
     {
@@ -405,7 +405,7 @@ public class DistrictWebsitesController : ControllerBase
             {
                 await LogAction(conn, id, "PleskSubdomainDeleteFailed", ex.Message, userId);
                 return BadRequest(new {
-                    message = $"Plesk delete failed — portal record preserved. Click Delete again to retry, or use 'Force Clean Subdomain' from Plesk Tools. Details are in the server log.",
+                    message = $"Plesk delete failed: portal record preserved. Click Delete again to retry, or use 'Force Clean Subdomain' from Plesk Tools. Details are in the server log.",
                     pleskFailed = true
                 });
             }
@@ -497,7 +497,7 @@ public class DistrictWebsitesController : ControllerBase
         try
         {
             if (!await _plesk.SubdomainExistsAsync(label))
-                return Ok(new { success = true, message = $"Subdomain '{label}.{_pleskParentDomain}' does not exist in Plesk — nothing to delete." });
+                return Ok(new { success = true, message = $"Subdomain '{label}.{_pleskParentDomain}' does not exist in Plesk: nothing to delete." });
             await _plesk.DeleteSubdomainAsync(label);
             return Ok(new { success = true, message = $"Deleted '{label}.{_pleskParentDomain}' from Plesk." });
         }

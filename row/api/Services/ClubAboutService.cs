@@ -16,7 +16,7 @@ public class ClubAboutService : IClubAboutService
         _env = env;
     }
 
-    private MySqlConnection CreateConnection() => new(_connectionString);
+    private MySqlConnection CreateConnection() => RowDb.Connect(_connectionString);
 
     // About is NOT year-wise — one About per club, persisting across years.
     // Inline SQL (instead of sp_club_about_*) avoids the SYSTEM_USER privilege issue

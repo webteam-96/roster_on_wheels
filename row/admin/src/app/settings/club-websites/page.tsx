@@ -753,7 +753,7 @@ export default function ClubWebsitesPage() {
 
         {busyId && (busyId.endsWith("-toggle") || busyId.endsWith("-retry") || busyId.endsWith("-force") || busyId.endsWith("-del")) && (
           <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center">
-            <div className="bg-white rounded-lg shadow-xl p-8 max-w-md flex flex-col items-center gap-4">
+            <div className="bg-card rounded-lg shadow-xl p-8 max-w-md flex flex-col items-center gap-4">
               <Loader2 className="h-10 w-10 text-primary animate-spin" />
               <div className="text-center">
                 <p className="font-semibold text-lg">

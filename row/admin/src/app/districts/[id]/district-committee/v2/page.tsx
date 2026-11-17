@@ -74,7 +74,7 @@ export default function DistrictCommitteeV2Page() {
             variant="outline"
             size="icon"
             onClick={goBack}
-            className="border-slate-200 bg-white hover:bg-slate-50 text-slate-700"
+            className="border-slate-200 bg-card hover:bg-slate-50 text-slate-700"
           >
             <ArrowLeft className="h-4 w-4" />
           </Button>
@@ -93,7 +93,7 @@ export default function DistrictCommitteeV2Page() {
         )}
 
         {error && (
-          <div className="flex flex-col items-center justify-center py-20 text-center rounded-2xl border border-slate-200 bg-white shadow-sm">
+          <div className="flex flex-col items-center justify-center py-20 text-center rounded-2xl border border-slate-200 bg-card shadow-sm">
             <AlertCircle className="h-12 w-12 text-red-600 mb-4" />
             <h3 className="text-lg font-semibold text-slate-800">Error</h3>
             <p className="text-slate-600 mt-2 max-w-md">{error}</p>
@@ -105,7 +105,7 @@ export default function DistrictCommitteeV2Page() {
             {COMMITTEE_MODULES.map((mod) => (
               <div
                 key={mod.key}
-                className={`cursor-pointer rounded-2xl border border-slate-200 shadow-sm bg-white transition-all hover:shadow-md hover:border-azure/30 ${navigatingKey === mod.key ? "opacity-70 pointer-events-none" : ""}`}
+                className={`cursor-pointer rounded-2xl border border-slate-200 shadow-sm bg-card transition-all hover:shadow-md hover:border-azure/30 ${navigatingKey === mod.key ? "opacity-70 pointer-events-none" : ""}`}
                 onClick={() => {
                   setNavigatingKey(mod.key);
                   router.push(`/districts/${districtId}/district-committee/v2/${mod.route}${suffix}`);

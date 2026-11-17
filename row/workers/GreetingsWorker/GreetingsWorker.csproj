@@ -44,4 +44,8 @@
     <!-- S5: the server's translated fixed texts (server_strings, read here; the API translates). -->
     <Compile Include="../../api/Services/Localization/ServerStrings.cs" Link="ServerStrings.cs" />
   </ItemGroup>
+  <ItemGroup>
+    <!-- One MySQL connection factory for API and workers: every session runs in UTC. -->
+    <Compile Include="..\..\api\Services\RowDb.cs" Link="Shared\RowDb.cs" />
+  </ItemGroup>
 </Project>

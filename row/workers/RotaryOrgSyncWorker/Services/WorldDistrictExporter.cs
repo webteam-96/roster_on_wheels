@@ -1,3 +1,4 @@
+using RotaryApi.Services;
 using Dapper;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -77,8 +78,8 @@ public class WorldDistrictExporter
 
     public async Task RunAsync(CancellationToken ct = default)
     {
-        Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] === Listing ALL world districts ===");
-        Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Will probe {AllCountries.Length} countries via /Clubs/search...");
+        Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] === Listing ALL world districts ===");
+        Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] Will probe {AllCountries.Length} countries via /Clubs/search...");
         Console.WriteLine("");
 
         // Aggregate: (Country, District) → ClubCount
@@ -103,7 +104,7 @@ public class WorldDistrictExporter
 
                 if (clubs.Count == 0)
                 {
-                    Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] {country,-30} 0 clubs");
+                    Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] {country,-30} 0 clubs");
                     perCountrySummary.Add((country, 0, 0, "no clubs"));
                     continue;
                 }
@@ -117,12 +118,12 @@ public class WorldDistrictExporter
                     byCountryDistrict[key]++;
                     distinctDistricts.Add(c.District.Trim());
                 }
-                Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] {country,-30} {distinctDistricts.Count,4} districts  {clubs.Count,5} clubs  ({sw.ElapsedMilliseconds}ms)");
+                Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] {country,-30} {distinctDistricts.Count,4} districts  {clubs.Count,5} clubs  ({sw.ElapsedMilliseconds}ms)");
                 perCountrySummary.Add((country, distinctDistricts.Count, clubs.Count, "ok"));
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] {country,-30} FAILED: {ex.Message}");
+                Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] {country,-30} FAILED: {ex.Message}");
                 failedCountries.Add((country, ex.Message));
                 perCountrySummary.Add((country, 0, 0, $"error: {ex.Message}"));
             }
@@ -130,15 +131,15 @@ public class WorldDistrictExporter
 
         var elapsed = DateTime.UtcNow - startTime;
         Console.WriteLine("");
-        Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Probed {totalApiCalls} countries in {elapsed.TotalMinutes:F1} min ({successCalls} succeeded, {failedCountries.Count} failed)");
+        Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] Probed {totalApiCalls} countries in {elapsed.TotalMinutes:F1} min ({successCalls} succeeded, {failedCountries.Count} failed)");
 
         // Load existing district_master to flag InLocalDB
-        await using var conn = new MySqlConnection(_connectionString);
+        await using var conn = RowDb.Connect(_connectionString);
         await conn.OpenAsync(ct);
         var localDistricts = (await conn.QueryAsync<string>(@"
             SELECT DistrictNumber FROM district_master WHERE isdeleted = 0"))
             .ToHashSet(StringComparer.OrdinalIgnoreCase);
-        Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Local district_master: {localDistricts.Count} districts");
+        Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] Local district_master: {localDistricts.Count} districts");
 
         // Build sorted output
         var rows = byCountryDistrict
@@ -176,7 +177,7 @@ public class WorldDistrictExporter
         Console.WriteLine($"{"TOTAL",-30} {totalDistricts,10} {totalClubs,6} {totalInDb,6} {totalMissing,8}");
 
         // CSV
-        var fileName = $"world-districts-{DateTime.Now:yyyyMMdd-HHmmss}.csv";
+        var fileName = $"world-districts-{DateTime.UtcNow:yyyyMMdd-HHmmss}.csv";
         var fullPath = Path.Combine(AppContext.BaseDirectory, fileName);
         using (var writer = new StreamWriter(fullPath))
         {

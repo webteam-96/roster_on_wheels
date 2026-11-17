@@ -40,7 +40,7 @@ public class TargetProposalsController : ControllerBase
     {
         if (!await ScopeWriteGuardMiddleware.AllowedAsync(_cs, Me, false, districtId))
             return StatusCode(403, new { message = "Only the district's managers see its target proposals." });
-        await using var c = new MySqlConnection(_cs);
+        await using var c = RowDb.Connect(_cs);
         var y = await YearAsync(c, yearId);
         return Ok(await c.QueryAsync<ProposalDto>(Select + @"
             WHERE p.fk_district_id = @districtId AND p.fk_year_id = @y ORDER BY c.ClubName, p.metric", new { districtId, y }));
@@ -53,7 +53,7 @@ public class TargetProposalsController : ControllerBase
             return StatusCode(403, new { message = "Only the district's managers propose targets." });
         if (!TargetProposals.Metrics.Contains(dto.Metric)) return BadRequest(new { message = "Unknown target." });
         if (dto.Value is < 0 or > 99_999_999) return BadRequest(new { message = "The target is out of range." });
-        await using var c = new MySqlConnection(_cs);
+        await using var c = RowDb.Connect(_cs);
         await c.OpenAsync();
         if (await c.ExecuteScalarAsync<int>("SELECT COUNT(*) FROM club_master WHERE pk_club_id = @ClubId AND fk_district_id = @districtId AND isdeleted = 0",
                 new { dto.ClubId, districtId }) == 0)
@@ -76,7 +76,7 @@ public class TargetProposalsController : ControllerBase
     {
         if (!await ScopeWriteGuardMiddleware.ReadAllowedAsync(_cs, Me, true, clubId, members: false))
             return StatusCode(403, new { message = "Only the club's and district's managers see its target proposals." });
-        await using var c = new MySqlConnection(_cs);
+        await using var c = RowDb.Connect(_cs);
         var y = await YearAsync(c, yearId);
         return Ok(await c.QueryAsync<ProposalDto>(Select + " WHERE p.fk_club_id = @clubId AND p.fk_year_id = @y ORDER BY p.metric", new { clubId, y }));
     }
@@ -94,7 +94,7 @@ public class TargetProposalsController : ControllerBase
     {
         if (!await ScopeWriteGuardMiddleware.AllowedAsync(_cs, Me, true, clubId))
             return StatusCode(403, new { message = "Only the club's managers answer its target proposals." });
-        await using var c = new MySqlConnection(_cs);
+        await using var c = RowDb.Connect(_cs);
         var n = await c.ExecuteAsync(@"
             UPDATE district_target_proposals SET status = @status, counter_value = @counter, club_note = NULLIF(@note, ''),
                 responded_by = @Me, responded_at = NOW()

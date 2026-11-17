@@ -1,3 +1,4 @@
+using RotaryApi.Services;
 using ClosedXML.Excel;
 using Dapper;
 using Microsoft.Extensions.Configuration;
@@ -45,12 +46,12 @@ public class MemberSyncWorker
             ?? throw new InvalidOperationException("ConnectionStrings:DefaultConnection missing");
     }
 
-    private MySqlConnection CreateConnection() => new(_connectionString);
+    private MySqlConnection CreateConnection() => RowDb.Connect(_connectionString);
 
     public async Task RunAsync(CancellationToken ct = default)
     {
         var startedAt = DateTime.UtcNow;
-        Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] === Member Sync START (Option A — profile updates only) ===");
+        Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] === Member Sync START (Option A — profile updates only) ===");
 
         // Determine date window: last successful sync − 2hr safety overlap → now
         DateTime windowStart;
@@ -63,7 +64,7 @@ public class MemberSyncWorker
             windowStart = lastSync.HasValue ? lastSync.Value.AddHours(-2) : DateTime.UtcNow.AddDays(-1);
         }
         var windowEnd = DateTime.UtcNow;
-        Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Window: {windowStart:yyyy-MM-dd HH:mm} UTC → {windowEnd:yyyy-MM-dd HH:mm} UTC");
+        Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] Window: {windowStart:yyyy-MM-dd HH:mm} UTC → {windowEnd:yyyy-MM-dd HH:mm} UTC");
 
         // Insert log row
         int logId;
@@ -87,12 +88,12 @@ public class MemberSyncWorker
         try
         {
             // Step 1: fetch change notifications
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Fetching /individuals/updates...");
+            Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] Fetching /individuals/updates...");
             var notifications = await _api.GetMemberUpdateNotificationsAsync(windowStart, windowEnd, ct);
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] {notifications.Count} change notification(s)");
+            Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] {notifications.Count} change notification(s)");
 
             var uniqueMemberIds = notifications.Select(n => n.MemberId).Where(id => id > 0).Distinct().ToList();
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] {uniqueMemberIds.Count} unique members to process");
+            Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] {uniqueMemberIds.Count} unique members to process");
 
             if (uniqueMemberIds.Count == 0)
             {
@@ -103,7 +104,7 @@ public class MemberSyncWorker
                     SET FinishedAtUtc = UTC_TIMESTAMP(), Status = 'Completed', TotalFetched = 0
                     WHERE pk_id = @Id",
                     new { Id = logId });
-                Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] No member changes — sending no-op email");
+                Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] No member changes — sending no-op email");
                 await SendEmailAsync(logId, 0, 0, 0, 0, 0, windowStart, windowEnd,
                     new List<MemberChangeRow>(), updated, new List<MemberChangeRow>(),
                     skippedNotInDb, skippedNoAccess);
@@ -118,7 +119,7 @@ public class MemberSyncWorker
                 FROM member_master_profile
                 WHERE isdeleted = 0 AND RotaryId IS NOT NULL AND RotaryId <> ''"))
                 .ToDictionary(x => x.rotaryId, x => x.pk_id, StringComparer.OrdinalIgnoreCase);
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Local members with RotaryId: {localMembersByRotaryId.Count}");
+            Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] Local members with RotaryId: {localMembersByRotaryId.Count}");
 
             // Step 3: for each unique MemberId — fetch detail ONLY if they exist in our DB
             foreach (var mid in uniqueMemberIds)
@@ -138,7 +139,7 @@ public class MemberSyncWorker
                     var detail = await _api.GetMemberDetailAsync(mid, ct);
                     detailFetched++;
                     if (detailFetched % 25 == 0)
-                        Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Detail fetched {detailFetched}");
+                        Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] Detail fetched {detailFetched}");
 
                     if (detail == null)
                     {
@@ -185,7 +186,7 @@ public class MemberSyncWorker
                 });
 
             var totalElapsed = DateTime.UtcNow - startedAt;
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] === Member Sync DONE in {totalElapsed.TotalMinutes:F1} min ===");
+            Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] === Member Sync DONE in {totalElapsed.TotalMinutes:F1} min ===");
             Console.WriteLine($"  Notifications:           {notifications.Count}");
             Console.WriteLine($"  Unique members:          {uniqueMemberIds.Count}");
             Console.WriteLine($"  Updated (profile):       {updated.Count}");
@@ -205,7 +206,7 @@ public class MemberSyncWorker
         }
         catch (Exception ex)
         {
-            Console.Error.WriteLine($"[{DateTime.Now:HH:mm:ss}] MEMBER SYNC FAILED: {ex.Message}");
+            Console.Error.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] MEMBER SYNC FAILED: {ex.Message}");
             try
             {
                 await using var conn = CreateConnection();
@@ -293,7 +294,7 @@ public class MemberSyncWorker
 
     private static int ComputeIsYouth(DateTime dob)
     {
-        var today = DateTime.Today;
+        var today = DateTime.UtcNow.Date;
         int age = today.Year - dob.Year;
         if (dob.Date > today.AddYears(-age)) age--;
         return (age >= 18 && age <= 40) ? 1 : 0;
@@ -340,7 +341,7 @@ public class MemberSyncWorker
             using var ms = new MemoryStream();
             workbook.SaveAs(ms);
             var bytes = ms.ToArray();
-            var fileName = $"RotaryOrg_MemberSync_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx";
+            var fileName = $"RotaryOrg_MemberSync_{DateTime.UtcNow:yyyyMMdd_HHmmss}.xlsx";
 
             var triggeredByName = _config["RotaryOrgSync:TriggeredByName"] ?? "Admin";
 
@@ -366,8 +367,8 @@ public class MemberSyncWorker
 <p>Regards,<br/><strong>Team ROW</strong></p>
 </div>";
 
-            await _emailSender.SendReportAsync($"[Daily] ROW Member Profile Refresh — {DateTime.Now:dd MMM yyyy}", body, bytes, fileName);
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Email sent.");
+            await _emailSender.SendReportAsync($"[Daily] ROW Member Profile Refresh — {DateTime.UtcNow:dd MMM yyyy}", body, bytes, fileName);
+            Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] Email sent.");
         }
         catch (Exception ex)
         {

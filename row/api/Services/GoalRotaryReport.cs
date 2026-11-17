@@ -88,7 +88,7 @@ public partial class GoalSettingService
         }
         var filter = oversight ? await OversightCategoryFilterAsync(conn, memberId) : await DaCategoryFilterAsync(conn, memberId);
         var wb = await RenderRotaryWorkbookAsync(conn, entities, resolvedYearId,
-            $"Rotary Year {yearLabel}   ·   Generated {DateTime.Now:dd MMM yyyy, hh:mm tt}", isEditable, filter, dropYouthPct: oversight);
+            $"Rotary Year {yearLabel}   ·   Generated {DateTime.UtcNow:dd MMM yyyy, hh:mm tt}", isEditable, filter, dropYouthPct: oversight);
         return wb == null ? null : SaveAndDispose(wb);
     }
 
@@ -107,7 +107,7 @@ public partial class GoalSettingService
         if (row == null) return null;
         string title = $"{(string?)row.name ?? $"Club {id}"} · District {(string?)row.num ?? ""}";
         var wb = await RenderRotaryWorkbookAsync(conn, new() { (title, "Club", id, 0) }, resolvedYearId,
-            $"Rotary Year {yearLabel}   ·   Generated {DateTime.Now:dd MMM yyyy, hh:mm tt}", isEditable, await DaCategoryFilterAsync(conn, memberId));
+            $"Rotary Year {yearLabel}   ·   Generated {DateTime.UtcNow:dd MMM yyyy, hh:mm tt}", isEditable, await DaCategoryFilterAsync(conn, memberId));
         return wb == null ? null : SaveAndDispose(wb);
     }
 
@@ -146,7 +146,7 @@ public partial class GoalSettingService
             new { D = districtId })).ToList();
         if (clubs.Count == 0) return null;
         var wb = await RenderRotaryWorkbookAsync(conn, clubs.Select(c => (c.Name, "Club", c.Id, 0)).ToList(), resolvedYearId,
-            $"District {num}   ·   Rotary Year {yearLabel}   ·   Generated {DateTime.Now:dd MMM yyyy, hh:mm tt}", isEditable, filter,
+            $"District {num}   ·   Rotary Year {yearLabel}   ·   Generated {DateTime.UtcNow:dd MMM yyyy, hh:mm tt}", isEditable, filter,
             multiTitle: $"Club Goal Setting — District {num} (all clubs)");
         return wb == null ? null : SaveAndDispose(wb);
     }

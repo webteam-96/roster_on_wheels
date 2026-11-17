@@ -26,7 +26,7 @@ public class RazorpaySettlementService : IRazorpaySettlementService
         _logger = logger;
     }
 
-    private MySqlConnection NewConn() => new(_conn);
+    private MySqlConnection NewConn() => RowDb.Connect(_conn);
 
     public async Task<int> SyncMonthAsync(int year, int month, string? impersonateAccountId = null)
     {
@@ -97,7 +97,7 @@ public class RazorpaySettlementService : IRazorpaySettlementService
                 string? utr = item.TryGetProperty("settlement_utr", out var u) && u.ValueKind != JsonValueKind.Null ? u.GetString() : null;
                 decimal creditPaise = item.TryGetProperty("credit", out var c) && c.ValueKind == JsonValueKind.Number ? c.GetDecimal() : 0m;
                 DateTime? settledAt = item.TryGetProperty("settled_at", out var sa) && sa.ValueKind == JsonValueKind.Number && sa.GetInt64() > 0
-                    ? DateTimeOffset.FromUnixTimeSeconds(sa.GetInt64()).UtcDateTime.ToLocalTime()
+                    ? DateTimeOffset.FromUnixTimeSeconds(sa.GetInt64()).UtcDateTime
                     : null;
 
                 await conn.ExecuteAsync(@"
@@ -131,7 +131,7 @@ public class RazorpaySettlementService : IRazorpaySettlementService
     public async Task SyncRecentAsync(int monthsBack = 3)
     {
         var months = new List<(int Year, int Month)>();
-        var cursor = DateTime.Today;
+        var cursor = DateTime.UtcNow.Date;
         for (int i = 0; i < Math.Max(1, monthsBack); i++)
         {
             months.Add((cursor.Year, cursor.Month));

@@ -188,7 +188,7 @@ public static class OcvReportWordBuilder
             HdrRow("Zone", Dash(data.ZoneName), "District Number", Dash(data.DistrictNumber));
             HdrRow("Club Name", Dash(data.ClubName), "Club ID", Dash(data.ClubRotaryId));
             HdrRow("President", Dash(data.PresidentName), "Assistant Governor", Dash(data.AssistantGovernorName));
-            HdrRow("Rotary Year", Dash(data.YearLabel), "Report Generated", DateTime.Now.ToString("dd MMM yyyy HH:mm", CultureInfo.InvariantCulture));
+            HdrRow("Rotary Year", Dash(data.YearLabel), "Report Generated", DateTime.UtcNow.ToString("dd MMM yyyy HH:mm", CultureInfo.InvariantCulture));
             FourColTable(body, header);
             Spacer(body);
 
@@ -257,7 +257,7 @@ public static class OcvReportWordBuilder
 
             // ── Detailed Live Documents content, one section per module ──
             SectionHeading(body, "Live Documents — Detailed");
-            body.Append(MutedText($"Current data as on {DateTime.Now:dd MMM yyyy}. These modules are not uploaded files — the content below is read live from the club's records."));
+            body.Append(MutedText($"Current data as on {DateTime.UtcNow:dd MMM yyyy}. These modules are not uploaded files — the content below is read live from the club's records."));
 
             // Project avenues first — every project of the year rendered in full (fields + images).
             foreach (var pm in data.ProjectModules)
@@ -341,7 +341,7 @@ public static class OcvReportWordBuilder
             HdrRow("Zone", Dash(data.ZoneName), "District Number", Dash(data.DistrictNumber));
             HdrRow("Club Name", Dash(data.ClubName), "Club ID", Dash(data.ClubRotaryId));
             HdrRow("President", Dash(data.PresidentName), "Assistant Governor", Dash(data.AssistantGovernorName));
-            HdrRow("Rotary Year", Dash(data.YearLabel), "Report Generated", DateTime.Now.ToString("dd MMM yyyy HH:mm", CultureInfo.InvariantCulture));
+            HdrRow("Rotary Year", Dash(data.YearLabel), "Report Generated", DateTime.UtcNow.ToString("dd MMM yyyy HH:mm", CultureInfo.InvariantCulture));
             FourColTable(body, header);
             Spacer(body);
 

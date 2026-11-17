@@ -35,7 +35,7 @@ public class RecipientInfoController : ControllerBase
             return StatusCode(403, new { message = "You do not manage this club." });
         if (!await KillSwitchHelper.IsClubDrillReachableAsync(_connectionString, clubId))
             return StatusCode(403, new { message = "This club, its district, or its zone is inactive. Reactivate it first to access this data." });
-        await using var conn = new MySqlConnection(_connectionString);
+        await using var conn = RowDb.Connect(_connectionString);
         await conn.OpenAsync();
         var emails = await conn.ExecuteScalarAsync<int>(@"
             SELECT COUNT(DISTINCT m.pk_member_master_profile_id)
@@ -54,7 +54,7 @@ public class RecipientInfoController : ControllerBase
             return StatusCode(403, new { message = "You do not manage this district." });
         if (!await KillSwitchHelper.IsDistrictDrillReachableAsync(_connectionString, districtId))
             return StatusCode(403, new { message = "This district or its zone is inactive. Reactivate it first to access this data." });
-        await using var conn = new MySqlConnection(_connectionString);
+        await using var conn = RowDb.Connect(_connectionString);
         await conn.OpenAsync();
         var emails = await conn.ExecuteScalarAsync<int>(@"
             SELECT COUNT(DISTINCT m.pk_member_master_profile_id)

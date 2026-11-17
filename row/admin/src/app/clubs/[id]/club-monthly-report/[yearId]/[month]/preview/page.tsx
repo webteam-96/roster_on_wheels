@@ -401,7 +401,7 @@ function MonthlyReportPreviewPage() {
                                 {project.projectType && (
                                   <Badge className={project.projectType === "one_time"
                                     ? "bg-blue-100 text-blue-800 border-blue-300 text-xs"
-                                    : "bg-[#CFE2F6] text-purple-800 border-purple-300 text-xs"}>
+                                    : "bg-[#CFE2F6] text-slate-800 border-slate-300 text-xs"}>
                                     {project.projectType === "one_time" ? "One Time" : "Ongoing"}
                                   </Badge>
                                 )}

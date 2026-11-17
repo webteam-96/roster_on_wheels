@@ -1,3 +1,4 @@
+using RotaryApi.Services;
 using Dapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -36,7 +37,7 @@ public class MobileLoginCheckController : ControllerBase
 
         var trimmed = mobile.Trim();
 
-        using var conn = new MySqlConnection(_connectionString);
+        using var conn = RowDb.Connect(_connectionString);
         await conn.OpenAsync();
 
         // Look up member by mobile. CountryId is optional — if omitted we match on mobile
@@ -195,7 +196,7 @@ public class MobileLoginCheckController : ControllerBase
 
     private async Task<bool> IsSuperAdminAsync()
     {
-        using var conn = new MySqlConnection(_connectionString);
+        using var conn = RowDb.Connect(_connectionString);
         await conn.OpenAsync();
         var count = await conn.ExecuteScalarAsync<int>(
             @"SELECT COUNT(*) FROM member_roles

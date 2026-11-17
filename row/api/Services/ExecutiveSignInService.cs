@@ -65,7 +65,7 @@ public sealed class ExecutiveSignInService
     {
         email = (email ?? "").Trim();
         if (email.Length == 0) throw new ArgumentException("Enter your email.");
-        await using var conn = new MySqlConnection(_conn);
+        await using var conn = RowDb.Connect(_conn);
         await conn.OpenAsync();
         var member = await conn.QueryFirstOrDefaultAsync<(int Id, string Name)>(
             "SELECT pk_member_master_profile_id, MemberName FROM member_master_profile WHERE EmailId = @email AND isdeleted = 0 LIMIT 1",
@@ -112,7 +112,7 @@ public sealed class ExecutiveSignInService
     {
         email = (email ?? "").Trim();
         code = (code ?? "").Trim();
-        await using var conn = new MySqlConnection(_conn);
+        await using var conn = RowDb.Connect(_conn);
         await conn.OpenAsync();
         var memberId = await conn.ExecuteScalarAsync<int>(
             "SELECT pk_member_master_profile_id FROM member_master_profile WHERE EmailId = @email AND isdeleted = 0 LIMIT 1", new { email });

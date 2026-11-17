@@ -24,6 +24,12 @@ class MainActivity : FlutterFragmentActivity() {
                     else -> result.notImplemented()
                 }
             }
+        // The device's IANA time zone ("Europe/Paris"), sent with API requests (X-Time-Zone).
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "row/time_zone")
+            .setMethodCallHandler { call, result ->
+                if (call.method == "localZone") result.success(java.util.TimeZone.getDefault().id)
+                else result.notImplemented()
+            }
     }
 
     /**

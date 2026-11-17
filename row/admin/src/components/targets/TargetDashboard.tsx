@@ -17,7 +17,7 @@ import { ClubTargetCard, MetricGrid, StatusChip, TargetsNote, errorText } from "
 
 // Meetings are part of the attendance figure in the table; the drill-in shows them on their own.
 const COLUMNS = METRICS.filter((m) => m.key !== "meetings");
-const panel = "rounded-xl border border-slate-200 bg-white p-5";
+const panel = "rounded-xl border border-slate-200 bg-card p-5";
 
 export default function TargetDashboard({ districtId, yearId, clubPageHref }: {
   districtId: number | null;

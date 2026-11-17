@@ -10,6 +10,7 @@ import { ArrowLeft, Building2, Users, Download, Loader2, Copy } from "@/componen
 import { getRotaryOrgSyncSummary, downloadClubSyncReport, getDuplicateCount, getClubSyncDistricts } from "@/services/api";
 
 import { appLocale } from "@/lib/appFormat";
+import { SkeletonRows } from "@/components/row/AppKit";
 export default function RotaryOrgPage() {
   const { isSuperAdmin } = useAuth();
   const [summary, setSummary] = useState<{
@@ -113,7 +114,7 @@ export default function RotaryOrgPage() {
               <select
                 value={selectedSyncDistrict}
                 onChange={(e) => setSelectedSyncDistrict(e.target.value)}
-                className="w-full mt-1 h-9 rounded-md border border-slate-200 bg-white px-2 text-sm"
+                className="w-full mt-1 h-9 rounded-md border border-slate-200 bg-card px-2 text-sm"
                 aria-label="District for the club sync report"
               >
                 <option value="all">All Districts</option>
@@ -193,7 +194,7 @@ export default function RotaryOrgPage() {
                 </thead>
                 <tbody>
                   {loadingSummary ? (
-                    <tr><td colSpan={3} className="py-6 text-center"><Loader2 className="h-4 w-4 animate-spin mx-auto" /></td></tr>
+                    <tr><td colSpan={3} className="px-4 py-3"><SkeletonRows /></td></tr>
                   ) : (summary?.countryBreakdown ?? []).map((row) => (
                     <tr key={row.country} className="border-b">
                       <td className="py-2 pr-4 font-medium">{row.country}</td>

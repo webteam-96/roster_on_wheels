@@ -88,7 +88,7 @@ public class MeetingsController : ControllerBase
     {
         if (string.IsNullOrWhiteSpace(month))
         {
-            value = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1).AddMonths(-1);
+            value = new DateTime(DateTime.UtcNow.Year, DateTime.UtcNow.Month, 1).AddMonths(-1);
             return true;
         }
         return DateTime.TryParseExact(month + "-01", "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out value);

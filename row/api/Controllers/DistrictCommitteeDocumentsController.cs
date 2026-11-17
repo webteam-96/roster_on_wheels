@@ -58,7 +58,7 @@ public class DistrictCommitteeDocumentsController : ControllerBase
     [HttpGet("api/districts/{districtId:int}/committee/documents")]
     public async Task<IActionResult> List(int districtId, [FromQuery] int? groupId, [FromQuery] int? subGroupId)
     {
-        await using var conn = new MySqlConnection(_connectionString);
+        await using var conn = RowDb.Connect(_connectionString);
         var target = await ResolveAsync(conn, districtId, groupId, subGroupId);
         if (target is null) return NotFound(new { message = "Committee not found." });
         var rows = await conn.QueryAsync(@"
@@ -85,7 +85,7 @@ public class DistrictCommitteeDocumentsController : ControllerBase
         if (form.File.Length > 20 * 1024 * 1024)
             return BadRequest(new { message = "File size must be less than 20 MB." });
 
-        await using var conn = new MySqlConnection(_connectionString);
+        await using var conn = RowDb.Connect(_connectionString);
         var target = await ResolveAsync(conn, districtId, form.GroupId, form.SubGroupId);
         if (target is null) return NotFound(new { message = "Committee not found." });
 
@@ -106,7 +106,7 @@ public class DistrictCommitteeDocumentsController : ControllerBase
     [HttpDelete("api/districts/{districtId:int}/committee/documents/{id:int}")]
     public async Task<IActionResult> Remove(int districtId, int id)
     {
-        await using var conn = new MySqlConnection(_connectionString);
+        await using var conn = RowDb.Connect(_connectionString);
         var n = await conn.ExecuteAsync(@"
             UPDATE district_committee_documents SET isdeleted = 1, deleted_by = @U, deleted_date = NOW()
             WHERE id = @Id AND fk_district_id = @D AND isdeleted = 0",

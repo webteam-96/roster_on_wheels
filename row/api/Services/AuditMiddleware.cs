@@ -171,7 +171,7 @@ public class AuditMiddleware
             var entityId = ExtractEntityId(path);
 
             var connStr = _config.GetConnectionString("DefaultConnection");
-            using var conn = new MySqlConnection(connStr);
+            using var conn = RowDb.Connect(connStr);
             await conn.OpenAsync();
             await conn.ExecuteAsync(@"
                 INSERT INTO audit_log (fk_member_master_profile_id, member_name, role_name, action, entity_type,

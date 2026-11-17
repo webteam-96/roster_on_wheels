@@ -24,7 +24,7 @@ public class ClubMonthlyReportService : IClubMonthlyReportService
         _citationRecalc = citationRecalc;
     }
 
-    private MySqlConnection CreateConnection() => new(_connectionString);
+    private MySqlConnection CreateConnection() => RowDb.Connect(_connectionString);
 
     public async Task<List<ReportYearDto>> GetYearsAsync(int clubId)
     {
@@ -70,7 +70,7 @@ public class ClubMonthlyReportService : IClubMonthlyReportService
         var result = new List<MonthlyReportListDto>();
         var current = new DateTime(startDate.Year, startDate.Month, 1);
         var end = isCurrent
-            ? new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1)
+            ? new DateTime(DateTime.UtcNow.Year, DateTime.UtcNow.Month, 1)
             : new DateTime(endDate.Year, endDate.Month, 1);
 
         while (current <= end)

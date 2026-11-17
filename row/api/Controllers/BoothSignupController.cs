@@ -59,7 +59,7 @@ public class BoothSignupController : ControllerBase
     {
         var open = await FeatureGate.IsOnAsync("planning_mode", _cs);
         if (!open) return Ok(new { open, districts = Array.Empty<object>(), editions = Array.Empty<object>() });
-        await using var c = new MySqlConnection(_cs);
+        await using var c = RowDb.Connect(_cs);
         var districts = await c.QueryAsync("SELECT pk_district_id AS id, DistrictNumber AS number FROM district_master WHERE isdeleted = 0 ORDER BY DistrictNumber");
         var editions = await c.QueryAsync("SELECT code, name FROM edition_catalogue WHERE code <> 'club_basic' ORDER BY name");
         return Ok(new { open, districts, editions });
@@ -76,7 +76,7 @@ public class BoothSignupController : ControllerBase
         if (name.Length is 0 or > 150) return BadRequest(new { message = "Give your name (150 characters at most)." });
         if (email.Length > 200 || !System.Net.Mail.MailAddress.TryCreate(email, out _)) return BadRequest(new { message = "Give a valid email address." });
         if (dto.MemberBand?.Length > 20) return BadRequest(new { message = "Member band is 20 characters at most." });
-        await using var c = new MySqlConnection(_cs);
+        await using var c = RowDb.Connect(_cs);
         if (await c.ExecuteScalarAsync<int>("SELECT COUNT(*) FROM district_master WHERE pk_district_id = @DistrictId AND isdeleted = 0", new { dto.DistrictId }) == 0
             || await c.ExecuteScalarAsync<int>("SELECT COUNT(*) FROM edition_catalogue WHERE code = @EditionCode", new { dto.EditionCode }) == 0)
             return BadRequest(new { message = "Pick your district and a plan." });
@@ -98,7 +98,7 @@ public class BoothSignupController : ControllerBase
     public async Task<IActionResult> List()
     {
         if (!IsSuperAdmin) return StatusCode(403, new { message = "Super Admin only." });
-        await using var c = new MySqlConnection(_cs);
+        await using var c = RowDb.Connect(_cs);
         return Ok(await c.QueryAsync<SignupRow>(@"
             SELECT s.pk_signup_id AS Id, s.fk_district_id AS DistrictId, d.DistrictNumber, s.edition_code AS EditionCode,
                    s.member_band AS MemberBand, s.contact_name AS ContactName, s.contact_email AS ContactEmail, s.status AS Status,
@@ -114,7 +114,7 @@ public class BoothSignupController : ControllerBase
     {
         if (!IsSuperAdmin) return StatusCode(403, new { message = "Super Admin only." });
         if (!await FeatureGate.IsOnAsync("planning_mode", _cs)) return Conflict(new { message = "Turn planning mode on first (Settings > Features)." });
-        await using var c = new MySqlConnection(_cs);
+        await using var c = RowDb.Connect(_cs);
         await c.OpenAsync();
         var s = await c.QueryFirstOrDefaultAsync<(int DistrictId, string Edition, string? Band, string Email, string Status)?>(@"
             SELECT fk_district_id, edition_code, member_band, contact_email, status FROM booth_signups WHERE pk_signup_id = @id", new { id });
@@ -162,7 +162,7 @@ public class BoothSignupController : ControllerBase
     public async Task<IActionResult> Reject(int id)
     {
         if (!IsSuperAdmin) return StatusCode(403, new { message = "Super Admin only." });
-        await using var c = new MySqlConnection(_cs);
+        await using var c = RowDb.Connect(_cs);
         var n = await c.ExecuteAsync(@"UPDATE booth_signups SET status = 'rejected', decided_by = @Me, decided_at = NOW()
             WHERE pk_signup_id = @id AND status = 'awaiting_payment'", new { id, Me });
         return n == 0 ? Conflict(new { message = "Only a sign-up waiting for payment can be rejected." }) : Ok(new { id, status = "rejected" });

@@ -16,7 +16,7 @@ public class ClubMenuService : IClubMenuService
         _env = env;
     }
 
-    private MySqlConnection CreateConnection() => new(_connectionString);
+    private MySqlConnection CreateConnection() => RowDb.Connect(_connectionString);
 
     // ===== Menu =====
 

@@ -28,7 +28,7 @@ public class DistrictsController : ControllerBase
     // only the Edit/Update endpoint bypasses this check so SA can flip IsActive back).
     private async Task<bool> IsDistrictDrillReachableAsync(int districtId)
     {
-        using var conn = new MySqlConnection(_connectionString);
+        using var conn = RowDb.Connect(_connectionString);
         await conn.OpenAsync();
         var count = await conn.ExecuteScalarAsync<int>(@"
             SELECT COUNT(*) FROM district_master d

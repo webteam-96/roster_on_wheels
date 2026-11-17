@@ -280,7 +280,7 @@ export default function DistrictAdminAboutPage() {
             <button
               type="button"
               onClick={goBack}
-              className="mt-0.5 inline-flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 hover:text-slate-800"
+              className="mt-0.5 inline-flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 bg-card text-slate-600 hover:bg-slate-50 hover:text-slate-800"
               aria-label="Back"
             >
               <ArrowLeft className="h-4 w-4" />
@@ -324,7 +324,7 @@ export default function DistrictAdminAboutPage() {
 
         {/* Empty state — no record yet */}
         {!loading && !about && (
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+          <div className="bg-card rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
             <div className="px-5 py-3 border-b border-slate-100 flex items-center gap-2 bg-azure/5">
               <div className="w-9 h-9 rounded-lg bg-azure/10 text-ink flex items-center justify-center">
                 <Sparkles size={18} />
@@ -363,7 +363,7 @@ export default function DistrictAdminAboutPage() {
         {!loading && about && (
           <>
             {/* Preview card */}
-            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+            <div className="bg-card rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
               <div className="px-5 py-3 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-azure/5">
                 <div className="flex flex-wrap items-center gap-2">
                   <div className="w-9 h-9 rounded-lg bg-azure/10 text-ink flex items-center justify-center">
@@ -466,7 +466,7 @@ export default function DistrictAdminAboutPage() {
                 <select
                   value={formIsActive}
                   onChange={(e) => setFormIsActive(e.target.value)}
-                  className="w-40 px-3 py-1.5 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:border-azure focus:ring-2 focus:ring-azure/20"
+                  className="w-40 px-3 py-1.5 text-sm border border-slate-200 rounded-lg bg-card focus:outline-none focus:border-azure focus:ring-2 focus:ring-azure/20"
                 >
                   <option value="1">Active</option>
                   <option value="0">Inactive</option>
@@ -529,7 +529,7 @@ function KpiTile({
     slate:   { bg: "bg-slate-100",    fg: "text-slate-600" },
   }[color];
   return (
-    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 flex items-center gap-3">
+    <div className="bg-card rounded-2xl border border-slate-200 shadow-sm p-4 flex items-center gap-3">
       <div className={`w-10 h-10 rounded-lg ${palette.bg} ${palette.fg} flex items-center justify-center flex-shrink-0`}>
         <Icon size={18} />
       </div>

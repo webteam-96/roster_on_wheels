@@ -27,7 +27,7 @@ public class InvitePromptService
         _logger = logger;
     }
 
-    private MySqlConnection Open() => new(_connectionString);
+    private MySqlConnection Open() => RowDb.Connect(_connectionString);
 
     // Dates are the club's local dates (its district's time zone, N12).
     public async Task<List<InvitePromptDto>> ListAsync(int clubId)

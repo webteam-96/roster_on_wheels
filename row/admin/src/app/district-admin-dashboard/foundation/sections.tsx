@@ -142,7 +142,7 @@ export function DistrictProjectsSection({
         <ViewOnlyBadge editableYears={editableYears} className="mb-4" />
       )}
 
-      <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+      <div className="bg-card rounded-2xl border border-slate-200 overflow-hidden">
         {/* Card header */}
         <div className="px-5 py-3 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div className="flex items-center gap-2 text-slate-500">
@@ -360,7 +360,7 @@ export function DistrictEventsSection({
 
   return (
     <div className="space-y-4">
-      <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+      <div className="bg-card rounded-2xl border border-slate-200 overflow-hidden">
         <div className="px-5 py-3 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div className="flex items-center gap-2 text-slate-500">
             <Calendar size={16} />

@@ -242,7 +242,7 @@ public class MobileClubAdminMembershipDuesController : ControllerBase
     public ActionResult SendReceipt(int paymentId)
     {
         if (!IsSuperAdminOrAdmin()) return StatusCode(403, new { message = "Access denied." });
-        _ = Task.Run(async () => { try { await _service.SendReceiptEmailAsync(paymentId); } catch { } });
+        BackgroundWork.Run("SendReceiptEmailAsync", () => _service.SendReceiptEmailAsync(paymentId));
         return Ok(new { message = "Receipt email is being sent." });
     }
 
@@ -250,7 +250,7 @@ public class MobileClubAdminMembershipDuesController : ControllerBase
     public ActionResult SendReminderEmail(int id, int memberFeeId, [FromBody] SendDuesReminderDto dto)
     {
         if (!IsSuperAdminOrAdmin()) return StatusCode(403, new { message = "Access denied." });
-        _ = Task.Run(async () => { try { await _service.SendReminderEmailAsync(memberFeeId, dto.FeeType, dto.Remark); } catch { } });
+        BackgroundWork.Run("SendReminderEmailAsync", () => _service.SendReminderEmailAsync(memberFeeId, dto.FeeType, dto.Remark));
         return Ok(new { message = "Reminder email is being sent." });
     }
 
@@ -259,7 +259,7 @@ public class MobileClubAdminMembershipDuesController : ControllerBase
     public ActionResult BulkSendReminderEmail(int id, [FromBody] BulkDuesReminderDto? dto = null)
     {
         if (!IsSuperAdminOrAdmin()) return StatusCode(403, new { message = "Access denied." });
-        _ = Task.Run(async () => { try { await _service.BulkSendReminderEmailAsync(id, dto?.Remark); } catch { } });
+        BackgroundWork.Run("BulkSendReminderEmailAsync", () => _service.BulkSendReminderEmailAsync(id, dto?.Remark));
         return Ok(new { message = "Bulk email reminders are being sent in background." });
     }
 
@@ -268,7 +268,7 @@ public class MobileClubAdminMembershipDuesController : ControllerBase
     private static string? ValidateAttachment(IFormFile? attachment)
     {
         if (attachment == null || attachment.Length == 0) return null;
-        var allowedExtensions = new[] { ".pdf", ".jpg", ".jpeg", ".png", ".gif", ".webp", ".bmp", ".svg" };
+        var allowedExtensions = new[] { ".pdf", ".jpg", ".jpeg", ".png", ".gif", ".webp", ".bmp" };
         var extension = System.IO.Path.GetExtension(attachment.FileName).ToLowerInvariant();
         if (!allowedExtensions.Contains(extension))
             return "Invalid file type. Only images (JPG, JPEG, PNG, GIF, WEBP, BMP, SVG) or PDF are allowed.";

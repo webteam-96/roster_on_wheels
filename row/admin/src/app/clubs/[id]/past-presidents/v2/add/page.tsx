@@ -282,7 +282,7 @@ export default function PastPresidentsV2AddPage() {
           <FieldLabel dot="bg-[#17458F]">Select a Club Member or add a Non-Member</FieldLabel>
           {selectedMemberId ? (
             <div className="flex items-center gap-3 p-3 border rounded-lg bg-blue-50/60 border-blue-100">
-              <div className="relative h-10 w-10 flex-shrink-0 overflow-hidden rounded-full bg-white border border-slate-200">
+              <div className="relative h-10 w-10 flex-shrink-0 overflow-hidden rounded-full bg-card border border-slate-200">
                 {selectedMemberPhoto ? (
                   <Image
                     src={getPhotoUrl(selectedMemberPhoto)}
@@ -304,7 +304,7 @@ export default function PastPresidentsV2AddPage() {
               <button
                 type="button"
                 onClick={clearSelectedMember}
-                className="text-xs font-medium px-2.5 py-1 rounded-full border border-slate-200 text-slate-600 hover:bg-white"
+                className="text-xs font-medium px-2.5 py-1 rounded-full border border-slate-200 text-slate-600 hover:bg-card"
               >
                 Change
               </button>
@@ -312,7 +312,7 @@ export default function PastPresidentsV2AddPage() {
           ) : nonMemberName ? (
             <>
               <div className="flex items-center gap-3 p-3 border rounded-lg bg-slate-100 border-slate-200">
-                <div className="relative h-10 w-10 flex-shrink-0 overflow-hidden rounded-full bg-white border border-slate-200">
+                <div className="relative h-10 w-10 flex-shrink-0 overflow-hidden rounded-full bg-card border border-slate-200">
                   {photoPreview ? (
                     <Image src={photoPreview} alt={nonMemberName} fill className="object-cover" unoptimized />
                   ) : (
@@ -336,7 +336,7 @@ export default function PastPresidentsV2AddPage() {
                 <button
                   type="button"
                   onClick={clearSelectedMember}
-                  className="text-xs font-medium px-2.5 py-1 rounded-full border border-slate-200 text-slate-600 hover:bg-white"
+                  className="text-xs font-medium px-2.5 py-1 rounded-full border border-slate-200 text-slate-600 hover:bg-card"
                 >
                   Change
                 </button>
@@ -346,7 +346,7 @@ export default function PastPresidentsV2AddPage() {
               <div className="mt-3">
                 <FieldLabel dot="bg-slate-400" required={false} hint="(optional)">Profile Photo</FieldLabel>
                 <div className="flex items-center gap-3">
-                  <div className="relative h-16 w-16 flex-shrink-0 overflow-hidden rounded-full bg-white border border-slate-200">
+                  <div className="relative h-16 w-16 flex-shrink-0 overflow-hidden rounded-full bg-card border border-slate-200">
                     {photoPreview ? (
                       <Image src={photoPreview} alt="Profile preview" fill className="object-cover" unoptimized />
                     ) : (
@@ -397,7 +397,7 @@ export default function PastPresidentsV2AddPage() {
                 </div>
               )}
               {showResults && (memberResults.length > 0 || memberSearch.trim()) && !searchLoading && (
-                <div className="absolute z-20 mt-1 w-full max-h-72 overflow-y-auto rounded-lg border border-slate-200 bg-white shadow-lg">
+                <div className="absolute z-20 mt-1 w-full max-h-72 overflow-y-auto rounded-lg border border-slate-200 bg-card shadow-lg">
                   {memberResults.map((m) => {
                     const photoUrl = getPhotoUrl(m.profilePhotoPath);
                     return (
@@ -430,7 +430,7 @@ export default function PastPresidentsV2AddPage() {
                       onClick={() => handleSelectNonMember(memberSearch)}
                       className="flex items-center gap-3 w-full px-3 py-2 border-t border-slate-100 bg-slate-50 hover:bg-slate-100 text-left transition-colors"
                     >
-                      <div className="relative h-8 w-8 flex-shrink-0 overflow-hidden rounded-full bg-white border border-slate-200 flex items-center justify-center">
+                      <div className="relative h-8 w-8 flex-shrink-0 overflow-hidden rounded-full bg-card border border-slate-200 flex items-center justify-center">
                         <UserPlus className="h-4 w-4 text-slate-500" />
                       </div>
                       <span className="text-sm text-slate-700 flex-1">
@@ -456,7 +456,7 @@ export default function PastPresidentsV2AddPage() {
           <select
             value={selectedYearId}
             onChange={(e) => setSelectedYearId(e.target.value)}
-            className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] bg-white focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+            className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] bg-card focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
           >
             <option value="">Select a year…</option>
             {yearOptions.map((y) => (

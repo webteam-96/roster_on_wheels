@@ -37,12 +37,12 @@ public class CitationRecalcTrigger : ICitationRecalcTrigger
     }
 
     private MySqlConnection CreateConnection()
-        => new(_configuration.GetConnectionString("DefaultConnection")!);
+        => RowDb.Connect(_configuration.GetConnectionString("DefaultConnection")!);
 
     public void TriggerForClub(int clubId)
     {
         if (clubId <= 0 || !Brand.Feature("modules.citation")) return;   // ROW: zonal programmes off by flag
-        _ = Task.Run(async () => await RecalcClubAsync(clubId));
+        BackgroundWork.Run("RecalcClubAsync", () => RecalcClubAsync(clubId));
     }
 
     public void TriggerForDistrictAllClubs(int districtId)

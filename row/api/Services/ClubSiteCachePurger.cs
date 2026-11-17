@@ -66,7 +66,7 @@ public class ClubSiteCachePurger : IClubSiteCachePurger
         {
             try
             {
-                using var conn = new MySqlConnection(_connectionString);
+                using var conn = RowDb.Connect(_connectionString);
                 await conn.OpenAsync();
                 var hosts = (await conn.QueryAsync<(string? subdomain, string? clientDomain)>(@"
                     SELECT Subdomain AS subdomain, ClientDomain AS clientDomain
@@ -99,7 +99,7 @@ public class ClubSiteCachePurger : IClubSiteCachePurger
     public void PurgeHost(string host)
     {
         if (string.IsNullOrWhiteSpace(_secret) || string.IsNullOrWhiteSpace(host)) return;
-        _ = Task.Run(async () => await PurgeOneHostAsync(host));
+        BackgroundWork.Run("PurgeOneHostAsync", () => PurgeOneHostAsync(host));
     }
 
     public void PurgeAll()

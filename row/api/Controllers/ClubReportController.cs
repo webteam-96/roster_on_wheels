@@ -33,7 +33,7 @@ public class ClubReportController : ControllerBase
         _mediaBaseForLinks = !string.IsNullOrWhiteSpace(_mediaRedirectBase) ? _mediaRedirectBase! : (config["Api:BaseUrl"] ?? "");
     }
 
-    private MySqlConnection CreateConnection() => new(_connectionString);
+    private MySqlConnection CreateConnection() => RowDb.Connect(_connectionString);
 
     // The currency a club's project-cost totals are expressed in (its district DefaultCurrency,
     // or a country-based guess). Per-project rows keep their own currency.
@@ -530,7 +530,7 @@ public class ClubReportController : ControllerBase
         // regardless of which rotary year was selected. Now uses the actual
         // start/end years derived from rotary_year_master.YearLabel
         // (e.g. "2025-26" → Jul-Dec carry 2025, Jan-Jun carry 2026).
-        int rotaryStartYear = DateTime.Now.Year, rotaryEndYear = DateTime.Now.Year + 1;
+        int rotaryStartYear = DateTime.UtcNow.Year, rotaryEndYear = DateTime.UtcNow.Year + 1;
         if (year != null)
         {
             string yLbl = ((string?)year.yearLabel) ?? "";
@@ -708,7 +708,7 @@ public class ClubReportController : ControllerBase
         }
 
         var bytes = ClubReportWordBuilder.BuildAvenueRawData(clubName, yearLabel, membership, sections);
-        var stamp = DateTime.Now.ToString("dd-MM-yyyy HH-mm-ss");
+        var stamp = DateTime.UtcNow.ToString("dd-MM-yyyy HH-mm-ss");
         var safeClub = string.Concat(clubName.Split(Path.GetInvalidFileNameChars())).Replace(' ', '_');
         var fileName = $"{safeClub}_Avenue_of_Service_Raw_Data_{stamp}.docx";
         return File(bytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", fileName);
@@ -757,7 +757,7 @@ public class ClubReportController : ControllerBase
             MembersPresent: Convert.ToInt32(r.membersPresent))).ToList();
 
         var bytes = ClubReportWordBuilder.BuildAnnualClubServiceRawData(clubName, yearLabel, membership, meetings);
-        var stamp = DateTime.Now.ToString("dd-MM-yyyy HH-mm-ss");
+        var stamp = DateTime.UtcNow.ToString("dd-MM-yyyy HH-mm-ss");
         var safeClub = string.Concat(clubName.Split(Path.GetInvalidFileNameChars())).Replace(' ', '_');
         var fileName = $"{safeClub}_Annual_Club_Service_Raw_Data_{stamp}.docx";
         return File(bytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", fileName);
@@ -815,7 +815,7 @@ public class ClubReportController : ControllerBase
                 await CmrMediaLoader.LoadAsync(_env, _mediaRedirectBase, ph);
 
         var bytes = ClubMonthlyReportWordBuilder.BuildAnnualReport(clubName, yearLabel, mem, items, _mediaBaseForLinks);
-        var stamp = DateTime.Now.ToString("dd-MM-yyyy HH-mm-ss");
+        var stamp = DateTime.UtcNow.ToString("dd-MM-yyyy HH-mm-ss");
         var safeClub = string.Concat(clubName.Split(Path.GetInvalidFileNameChars())).Replace(' ', '_');
         var fileName = $"{safeClub}_Annual_Report_{stamp}.docx";
         return File(bytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", fileName);

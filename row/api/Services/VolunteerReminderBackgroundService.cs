@@ -58,7 +58,7 @@ public class VolunteerReminderBackgroundService : BackgroundService
 
     private async Task RemindAsync(CancellationToken ct)
     {
-        await using var c = new MySqlConnection(_cs);
+        await using var c = RowDb.Connect(_cs);
         await c.OpenAsync(ct);
         var slots = new List<Due>();
         var duties = new List<Due>();

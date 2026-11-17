@@ -30,7 +30,7 @@ public class PublicProjectStatsController : ControllerBase
         _rules = rules;
     }
 
-    private MySqlConnection CreateConn() => new(_connStr);
+    private MySqlConnection CreateConn() => RowDb.Connect(_connStr);
 
     // Per-currency cost buckets computed in a single scan; summed into one total in C#
     // (in the brand's default currency). Selected in place of SUM(u.ProjectCost).

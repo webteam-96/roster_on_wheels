@@ -60,7 +60,7 @@ export default function InvitePage() {
 
   return (
     <div className="flex min-h-screen flex-col bg-slate-50">
-      <header className="border-b border-slate-200 bg-white">
+      <header className="border-b border-slate-200 bg-card">
         <div className="mx-auto flex h-16 max-w-xl items-center px-4">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={withBase("/brand/row-logo.png")} alt="ROW" className="h-10 object-contain" />
@@ -69,21 +69,21 @@ export default function InvitePage() {
 
       <main className="mx-auto w-full max-w-xl flex-1 px-4 py-10">
         {invite === undefined ? (
-          <div className="space-y-3 rounded-[20px] border border-slate-200 bg-white p-6">
+          <div className="space-y-3 rounded-[20px] border border-slate-200 bg-card p-6">
             <Skeleton className="h-6 w-2/3" /><Skeleton className="h-4 w-1/2" /><Skeleton className="h-40 w-full" />
           </div>
         ) : invite === null ? (
-          <div className="rounded-[20px] border border-slate-200 bg-white p-6 text-center">
+          <div className="rounded-[20px] border border-slate-200 bg-card p-6 text-center">
             <h1 className="text-lg font-semibold text-slate-800">This invitation is not available</h1>
             <p className="mt-2 text-sm text-slate-500">The link may be mistyped, or the member is no longer in the club.</p>
           </div>
         ) : done ? (
-          <div className="rounded-[20px] border border-slate-200 bg-white p-6 text-center">
+          <div className="rounded-[20px] border border-slate-200 bg-card p-6 text-center">
             <h1 className="text-lg font-semibold text-slate-800">Thank you</h1>
             <p className="mt-2 text-sm text-slate-600">{invite.clubName} will be in touch with you soon.</p>
           </div>
         ) : (
-          <div className="rounded-[20px] border border-slate-200 bg-white p-6">
+          <div className="rounded-[20px] border border-slate-200 bg-card p-6">
             <p className="text-sm text-slate-500">{invite.inviterName} invites you to a meeting of</p>
             <h1 className="mt-1 text-xl font-semibold text-slate-800">{invite.clubName}</h1>
             <div className="mt-4 space-y-2 text-sm text-slate-700">
@@ -128,7 +128,7 @@ export default function InvitePage() {
         )}
       </main>
 
-      <footer className="border-t border-slate-200 bg-white">
+      <footer className="border-t border-slate-200 bg-card">
         <nav className="mx-auto flex max-w-xl justify-center gap-6 px-4 py-4 text-xs text-slate-500">
           <a href={withBase("/terms-and-conditions")} className="hover:text-slate-800">Terms of Service</a>
           <a href={withBase("/privacy-policy")} className="hover:text-slate-800">Privacy Policy</a>

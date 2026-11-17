@@ -79,7 +79,7 @@ function SectionCard({
   icon: Icon, title, children,
 }: { icon: React.ElementType; title: string; children: React.ReactNode }) {
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white overflow-hidden print:shadow-none print:rounded-none">
+    <div className="rounded-2xl border border-slate-200 bg-card overflow-hidden print:shadow-none print:rounded-none">
       <div className="flex items-center gap-2 px-4 py-2.5 bg-slate-50 border-b border-slate-100">
         <Icon className="h-4 w-4 text-slate-500" />
         <h3 className="text-sm font-semibold text-slate-800">{title}</h3>
@@ -372,7 +372,7 @@ function ClubMonthlyReportV2PreviewInner() {
                                   className={`inline-flex items-center text-[10px] font-medium px-1.5 py-0.5 rounded-full border ${
                                     project.projectType === "one_time"
                                       ? "bg-blue-50 text-blue-700 border-blue-200"
-                                      : "bg-violet-50 text-violet-700 border-violet-200"
+                                      : "bg-slate-50 text-slate-700 border-slate-200"
                                   }`}
                                 >
                                   {project.projectType === "one_time" ? "One Time" : "Ongoing"}
@@ -442,7 +442,7 @@ function ClubMonthlyReportV2PreviewInner() {
       </div>
 
       {/* Sticky bottom action bar */}
-      <div className="sticky bottom-0 -mx-2 sm:-mx-0 bg-white border-t border-slate-200 px-4 py-3 flex flex-wrap items-center justify-between gap-2 print:hidden">
+      <div className="sticky bottom-0 -mx-2 sm:-mx-0 bg-card border-t border-slate-200 px-4 py-3 flex flex-wrap items-center justify-between gap-2 print:hidden">
         <button
           type="button"
           onClick={handlePrevious}

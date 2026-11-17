@@ -14,7 +14,7 @@ public class ClubSocialLinkService : IClubSocialLinkService
         _connectionString = configuration.GetConnectionString("DefaultConnection")!;
     }
 
-    private MySqlConnection CreateConnection() => new(_connectionString);
+    private MySqlConnection CreateConnection() => RowDb.Connect(_connectionString);
 
     // Social media links are NOT year-wise — one set of links per club, persisting across years.
     // Inline SQL (instead of the sp_club_social_link_* procedures) avoids the SYSTEM_USER

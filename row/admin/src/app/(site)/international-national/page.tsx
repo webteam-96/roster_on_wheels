@@ -117,7 +117,7 @@ export default function InternationalNationalPage() {
               <div className="flex items-start justify-between gap-4">
                 <span
                   aria-hidden
-                  className="flex h-12 w-12 items-center justify-center rounded-full bg-white text-[13px] font-semibold text-navy-900"
+                  className="flex h-12 w-12 items-center justify-center rounded-full bg-card text-[13px] font-semibold text-navy-900"
                 >
                   {FLAGSHIP.monogram}
                 </span>
@@ -142,7 +142,7 @@ export default function InternationalNationalPage() {
                 target="_blank"
                 rel="noopener noreferrer"
                 data-animate="up"
-                className="group flex flex-col rounded-[24px] bg-white p-6 shadow-soft ring-1 ring-navy-950/[0.08] transition-shadow duration-300 hover:shadow-lift focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-dark lg:col-span-4 lg:p-7"
+                className="group flex flex-col rounded-[24px] bg-card p-6 shadow-soft ring-1 ring-navy-950/[0.08] transition-shadow duration-300 hover:shadow-lift focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-dark lg:col-span-4 lg:p-7"
               >
                 <div className="flex items-start justify-between gap-4">
                   <span

@@ -20,7 +20,7 @@ public class PublicWebsiteDirectoryController : ControllerBase
     public PublicWebsiteDirectoryController(IConfiguration config)
         => _connStr = config.GetConnectionString("DefaultConnection")!;
 
-    private MySqlConnection CreateConn() => new(_connStr);
+    private MySqlConnection CreateConn() => RowDb.Connect(_connStr);
 
     private static async Task<string> ClubParentAsync(MySqlConnection conn)
     {

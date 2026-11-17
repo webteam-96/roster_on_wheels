@@ -37,7 +37,7 @@ public class WebsiteBillingService : IWebsiteBillingService
         _logger = logger;
     }
 
-    private MySqlConnection NewConn() => new(_conn);
+    private MySqlConnection NewConn() => RowDb.Connect(_conn);
 
     // ── config / pricing ─────────────────────────────────────────────────────
     // New/Renewal/GST system-wide defaults come from WebsiteDefaultPricing (system_settings,
@@ -140,7 +140,7 @@ public class WebsiteBillingService : IWebsiteBillingService
 
     private static DateTime NewEndFrom(DateTime? currentEnd, int months)
     {
-        var basis = (currentEnd.HasValue && currentEnd.Value > DateTime.Today) ? currentEnd.Value : DateTime.Today;
+        var basis = (currentEnd.HasValue && currentEnd.Value > DateTime.UtcNow.Date) ? currentEnd.Value : DateTime.UtcNow.Date;
         return basis.AddMonths(months);
     }
 
@@ -201,7 +201,7 @@ public class WebsiteBillingService : IWebsiteBillingService
         else
         {
             dto.OrderType = "New";
-            dto.NewEndDate = DateTime.SpecifyKind(DateTime.Today.AddMonths(months), DateTimeKind.Unspecified);
+            dto.NewEndDate = DateTime.SpecifyKind(DateTime.UtcNow.Date.AddMonths(months), DateTimeKind.Unspecified);
         }
 
         // An active paid site with > renewal window days left can't be purchased/renewed yet.
@@ -598,7 +598,7 @@ public class WebsiteBillingService : IWebsiteBillingService
                     var newEnd = NewEndFrom(curEnd, months);
                     // This renewal's coverage starts the day after the prior period ended (continuous
                     // coverage), or today if there was no prior end date.
-                    orderStartDate = curEnd?.AddDays(1) ?? DateTime.Today;
+                    orderStartDate = curEnd?.AddDays(1) ?? DateTime.UtcNow.Date;
                     orderEndDate = newEnd;
                     await conn.ExecuteAsync(@"
                         UPDATE club_websites
@@ -660,8 +660,8 @@ public class WebsiteBillingService : IWebsiteBillingService
                 {
                     try
                     {
-                        var newEnd = DateTime.Today.AddMonths(months);
-                        orderStartDate = DateTime.Today;
+                        var newEnd = DateTime.UtcNow.Date.AddMonths(months);
+                        orderStartDate = DateTime.UtcNow.Date;
                         orderEndDate = newEnd;
                         websiteId = await conn.ExecuteScalarAsync<int>(@"
                             INSERT INTO club_websites
@@ -785,8 +785,8 @@ public class WebsiteBillingService : IWebsiteBillingService
                 "SELECT ClubName FROM club_master WHERE pk_club_id = @C", new { C = clubId }) ?? "";
             var w = await conn.QueryFirstOrDefaultAsync<dynamic>(
                 "SELECT ClientDomain, StartDate, EndDate FROM club_websites WHERE pk_id = @Id", new { Id = websiteId });
-            var start = w?.StartDate == null ? DateTime.Today : (DateTime)w.StartDate;
-            var end = w?.EndDate == null ? DateTime.Today.AddMonths(ValidityMonths()) : (DateTime)w.EndDate;
+            var start = w?.StartDate == null ? DateTime.UtcNow.Date : (DateTime)w.StartDate;
+            var end = w?.EndDate == null ? DateTime.UtcNow.Date.AddMonths(ValidityMonths()) : (DateTime)w.EndDate;
 
             await _email.SendClubWebsiteActivationEmailAsync(
                 email!, (string?)buyer?.MemberName ?? "", clubName, "Club Admin",

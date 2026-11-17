@@ -35,7 +35,7 @@ public sealed class SubscriptionBillingService
         _logger = logger;
     }
 
-    private MySqlConnection Conn() => new(_conn);
+    private MySqlConnection Conn() => RowDb.Connect(_conn);
 
     public sealed record Price(string Kind, decimal Amount, string Currency);
 

@@ -35,7 +35,7 @@ public class DistrictRotaryRefreshJobRunner : IDistrictRotaryRefreshJobRunner
         _connectionString = config.GetConnectionString("DefaultConnection")!;
     }
 
-    private MySqlConnection CreateConnection() => new(_connectionString);
+    private MySqlConnection CreateConnection() => RowDb.Connect(_connectionString);
 
     public async Task<DistrictRotaryRefreshJobStatusDto> StartAsync(int districtId, int? startedByMemberId)
     {
@@ -61,7 +61,7 @@ public class DistrictRotaryRefreshJobRunner : IDistrictRotaryRefreshJobRunner
             // Deliberately not awaited — the whole point is that this outlives the HTTP request.
             // Runs in its own DI scope since the request's scope is disposed once the response
             // is sent (so anything scoped, like the Rotary.org HttpClient, must be re-resolved).
-            _ = Task.Run(() => RunJobAsync((int)jobId, districtId));
+            BackgroundWork.Run("RunJobAsync", () => RunJobAsync((int)jobId, districtId));
 
             return new DistrictRotaryRefreshJobStatusDto
             {

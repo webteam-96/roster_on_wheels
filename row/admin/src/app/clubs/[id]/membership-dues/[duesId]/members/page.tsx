@@ -778,7 +778,7 @@ export default function ClubMembershipDuesMembersPage() {
                         {/* Receipt — same as SuperAdmin */}
                         <TableCell>
                           {!isNew && hasAnyPaidFee(m) && (
-                            <button className="text-xs text-purple-600 hover:underline whitespace-nowrap" onClick={() => handleReceipt(m.memberFeeId)}>Send</button>
+                            <button className="text-xs text-slate-600 hover:underline whitespace-nowrap" onClick={() => handleReceipt(m.memberFeeId)}>Send</button>
                           )}
                         </TableCell>
 

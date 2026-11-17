@@ -34,7 +34,7 @@ public partial class SpeakerService
 
     public async Task<List<SpeakerDto>> ListAsync(int clubId, DateTime? from, DateTime? to)
     {
-        await using var c = new MySqlConnection(_cs);
+        await using var c = RowDb.Connect(_cs);
         // shortcut: 500 speakers per request, the bulletin and the page ask for a date range.
         return (await c.QueryAsync<SpeakerDto>(SpeakerSelect + @"
             WHERE fk_club_id = @clubId AND (@from IS NULL OR meeting_date >= @from) AND (@to IS NULL OR meeting_date <= @to)
@@ -58,7 +58,7 @@ public partial class SpeakerService
     public async Task<SpeakerDto?> SaveAsync(int clubId, int? id, SaveSpeakerDto dto, int memberId)
     {
         var d = Normalize(dto);
-        await using var c = new MySqlConnection(_cs);
+        await using var c = RowDb.Connect(_cs);
         var row = new { clubId, id, MeetingDate = d.MeetingDate.Date, d.Name, d.Topic, d.Bio, d.Email, d.Phone, d.ShowOnWebsite, memberId };
         if (id == null)
             id = await c.ExecuteScalarAsync<int>(@"
@@ -75,7 +75,7 @@ public partial class SpeakerService
 
     public async Task<bool> DeleteAsync(int clubId, int id)
     {
-        await using var c = new MySqlConnection(_cs);
+        await using var c = RowDb.Connect(_cs);
         var photo = await c.QueryFirstOrDefaultAsync<(int Id, string? Path)?>(
             "SELECT pk_speaker_id, photo_path FROM club_speakers WHERE pk_speaker_id = @id AND fk_club_id = @clubId", new { id, clubId });
         if (photo == null) return false;
@@ -92,7 +92,7 @@ public partial class SpeakerService
         var check = ImageQualityValidator.Validate(file, false, PhotoTypes);
         if (!check.Ok) throw new InvalidOperationException(check.Error);
         if (check.Width == 0) throw new InvalidOperationException("The file is not a readable JPEG, PNG or WebP image.");
-        await using var c = new MySqlConnection(_cs);
+        await using var c = RowDb.Connect(_cs);
         var old = await c.QueryFirstOrDefaultAsync<(int Id, string? Path)?>(
             "SELECT pk_speaker_id, photo_path FROM club_speakers WHERE pk_speaker_id = @id AND fk_club_id = @clubId", new { id, clubId });
         if (old == null) return null;
@@ -119,7 +119,7 @@ public partial class SpeakerService
     /// not active.</summary>
     public async Task<List<PublicSpeakerDto>?> ListPublicAsync(int clubId, int limit)
     {
-        await using var c = new MySqlConnection(_cs);
+        await using var c = RowDb.Connect(_cs);
         if (await c.ExecuteScalarAsync<int>(
                 "SELECT COUNT(*) FROM club_master WHERE pk_club_id = @clubId AND IsActive = 1 AND IFNULL(isdeleted, 0) = 0", new { clubId }) == 0)
             return null;
@@ -140,7 +140,7 @@ public partial class SpeakerService
 
     public async Task<List<MeetingDutyDto>> ListDutiesAsync(int clubId, DateTime? from, DateTime? to)
     {
-        await using var c = new MySqlConnection(_cs);
+        await using var c = RowDb.Connect(_cs);
         return (await c.QueryAsync<MeetingDutyDto>(DutySelect + @"
             WHERE d.fk_club_id = @clubId AND (@from IS NULL OR d.meeting_date >= @from) AND (@to IS NULL OR d.meeting_date <= @to)
             ORDER BY d.meeting_date, d.duty, d.pk_duty_id LIMIT 500", new { clubId, from = from?.Date, to = to?.Date })).ToList();
@@ -151,7 +151,7 @@ public partial class SpeakerService
         if (dto.MeetingDate == default) throw new InvalidOperationException("Pick the meeting date.");
         var duty = VolunteerService.Clean(dto.Duty, 100, "The duty") ?? throw new InvalidOperationException("Name the duty.");
         var note = VolunteerService.Clean(dto.Note, 300, "The note");
-        await using var c = new MySqlConnection(_cs);
+        await using var c = RowDb.Connect(_cs);
         if (await c.ExecuteScalarAsync<int>(@"
                 SELECT COUNT(*) FROM club_members WHERE fk_member_master_profile_id = @MemberId AND fk_club_id = @clubId
                   AND IsActive = 1 AND IFNULL(isdeleted, 0) = 0", new { dto.MemberId, clubId }) == 0)
@@ -165,14 +165,14 @@ public partial class SpeakerService
 
     public async Task<bool> DeleteDutyAsync(int clubId, int id)
     {
-        await using var c = new MySqlConnection(_cs);
+        await using var c = RowDb.Connect(_cs);
         return await c.ExecuteAsync("DELETE FROM meeting_duties WHERE pk_duty_id = @id AND fk_club_id = @clubId", new { id, clubId }) > 0;
     }
 
     /// <summary>The app: the member's own coming duties.</summary>
     public async Task<List<MeetingDutyDto>> MyDutiesAsync(int memberId)
     {
-        await using var c = new MySqlConnection(_cs);
+        await using var c = RowDb.Connect(_cs);
         return (await c.QueryAsync<MeetingDutyDto>(DutySelect + @"
             WHERE d.fk_member_id = @memberId AND d.meeting_date >= CURDATE()
             ORDER BY d.meeting_date, d.pk_duty_id LIMIT 100", new { memberId })).ToList();

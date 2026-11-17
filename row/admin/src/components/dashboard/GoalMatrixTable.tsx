@@ -10,7 +10,7 @@ export default function GoalMatrixTable({ matrix }: { matrix: GoalOverviewMatrix
     return <p className="text-sm text-amber-600">No districts in <span className="font-medium">{matrix.zoneName}</span> for this category.</p>;
   }
   return (
-    <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+    <div className="bg-card rounded-2xl border border-slate-200 overflow-hidden">
       <div className="px-4 py-3 border-b border-slate-100">
         <p className="text-sm font-semibold text-slate-800">{matrix.zoneName} · {matrix.categoryName} · {matrix.yearLabel}</p>
         <p className="text-xs text-slate-400">{matrix.districts.length} district(s) · {matrix.rows.length} metric(s)</p>
@@ -29,7 +29,7 @@ export default function GoalMatrixTable({ matrix }: { matrix: GoalOverviewMatrix
           </thead>
           <tbody>
             {matrix.rows.map((row) => (
-              <tr key={`${row.groupName}::${row.metricKey}`} className="odd:bg-white even:bg-slate-50/50">
+              <tr key={`${row.groupName}::${row.metricKey}`} className="odd:bg-card even:bg-slate-50/50">
                 <th className="sticky left-0 z-10 bg-inherit text-left px-3 py-2 font-medium align-top border-b border-r">
                   <div>{row.label}</div>
                   {row.groupName && row.groupName !== row.label && (

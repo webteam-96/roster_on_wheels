@@ -20,7 +20,7 @@ public class CitationAutoPointsBackgroundService : BackgroundService
         _configuration = configuration;
     }
 
-    private MySqlConnection CreateConnection() => new(_connectionString);
+    private MySqlConnection CreateConnection() => RowDb.Connect(_connectionString);
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
@@ -64,7 +64,7 @@ public class CitationAutoPointsBackgroundService : BackgroundService
 
     public async Task CalculateAllAutoPointsAsync()
     {
-        var runStart = DateTime.Now;
+        var runStart = DateTime.UtcNow;
         int districtCount = 0;
         int clubCount = 0;
         int entryCount = 0;
@@ -186,7 +186,7 @@ public class CitationAutoPointsBackgroundService : BackgroundService
         }
 
         // Send completion email to RotaryOrgSync:ReportRecipients
-        await SendCompletionEmailAsync(runStart, DateTime.Now, districtCount, clubCount, entryCount, yearLabel);
+        await SendCompletionEmailAsync(runStart, DateTime.UtcNow, districtCount, clubCount, entryCount, yearLabel);
     }
 
     private async Task SendCompletionEmailAsync(DateTime startTs, DateTime endTs, int districtCount, int clubCount, int entryCount, string yearLabel)
@@ -197,7 +197,7 @@ public class CitationAutoPointsBackgroundService : BackgroundService
             if (recipients.Length == 0) return;
 
             var duration = endTs - startTs;
-            var subject = $"ROW - Auto Calculate District awards Points - {endTs:dd-MMM-yyyy hh:mm tt}";
+            var subject = $"ROW - Auto Calculate District awards Points - {ZoneTime.Print(endTs, "dd-MMM-yyyy hh:mm tt")}";
 
             var body = $@"
 <div style='font-family:Figtree, Arial,Helvetica,sans-serif;font-size:14px;color:#1B2C42;line-height:1.6'>
@@ -206,9 +206,9 @@ public class CitationAutoPointsBackgroundService : BackgroundService
 
   <table style='border-collapse:collapse;width:100%;max-width:520px;border:1px solid #D5DEE8'>
     <tr><td style='padding:8px 12px;border:1px solid #D5DEE8;background:#F7F9FC;width:200px'>Run started</td>
-        <td style='padding:8px 12px;border:1px solid #D5DEE8'>{startTs:dd-MMM-yyyy hh:mm:ss tt}</td></tr>
+        <td style='padding:8px 12px;border:1px solid #D5DEE8'>{ZoneTime.Print(startTs, "dd-MMM-yyyy hh:mm:ss tt")}</td></tr>
     <tr><td style='padding:8px 12px;border:1px solid #D5DEE8;background:#F7F9FC'>Run completed</td>
-        <td style='padding:8px 12px;border:1px solid #D5DEE8'>{endTs:dd-MMM-yyyy hh:mm:ss tt}</td></tr>
+        <td style='padding:8px 12px;border:1px solid #D5DEE8'>{ZoneTime.Print(endTs, "dd-MMM-yyyy hh:mm:ss tt")}</td></tr>
     <tr><td style='padding:8px 12px;border:1px solid #D5DEE8;background:#F7F9FC'>Duration</td>
         <td style='padding:8px 12px;border:1px solid #D5DEE8'>{(int)duration.TotalMinutes} min {duration.Seconds} sec</td></tr>
     <tr><td style='padding:8px 12px;border:1px solid #D5DEE8;background:#F7F9FC'>Rotary year</td>

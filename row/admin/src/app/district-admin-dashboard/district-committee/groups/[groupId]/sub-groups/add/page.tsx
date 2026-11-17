@@ -238,7 +238,7 @@ export default function DistrictAdminDashboardSubGroupAddPage() {
       <div className="space-y-6">
         <DistrictMembershipTabBar />
         <div className="flex items-center gap-3">
-          <Button variant="outline" size="icon" onClick={goBack} className="border-slate-200 bg-white hover:bg-slate-50 text-slate-700">
+          <Button variant="outline" size="icon" onClick={goBack} className="border-slate-200 bg-card hover:bg-slate-50 text-slate-700">
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div>
@@ -256,7 +256,7 @@ export default function DistrictAdminDashboardSubGroupAddPage() {
                 <div className="space-y-2 max-w-md">
                   <Label className="text-slate-500 text-xs font-semibold uppercase tracking-wide">Sub-Group Name *</Label>
                   <Input value={subGroupName} onChange={(e) => setSubGroupName(e.target.value)} placeholder="Enter sub-group name"
-                    className="border-slate-200 bg-white focus:border-azure focus:ring-azure/20" />
+                    className="border-slate-200 bg-card focus:border-azure focus:ring-azure/20" />
                 </div>
               </CardContent>
             </Card>
@@ -272,7 +272,7 @@ export default function DistrictAdminDashboardSubGroupAddPage() {
               </div>
 
               {staged.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-14 text-center rounded-2xl border border-dashed border-slate-300 bg-white">
+                <div className="flex flex-col items-center justify-center py-14 text-center rounded-2xl border border-dashed border-slate-300 bg-card">
                   <Users className="h-10 w-10 text-slate-400 mb-3" />
                   <p className="text-slate-700 font-medium">At least one member is required</p>
                   <p className="text-slate-500 text-sm mt-1">Click &quot;Add Member&quot; to add the first member of this sub-group.</p>

@@ -31,7 +31,7 @@ public sealed class OwnedByAttribute : ActionFilterAttribute
             return;
         }
         var cs = context.HttpContext.RequestServices.GetRequiredService<IConfiguration>().GetConnectionString("DefaultConnection");
-        await using var conn = new MySqlConnection(cs);
+        await using var conn = RowDb.Connect(cs);
         var found = await conn.ExecuteScalarAsync<int?>(_sql, new { Id = id, Scope = scope });
         if (found is not > 0)
         {

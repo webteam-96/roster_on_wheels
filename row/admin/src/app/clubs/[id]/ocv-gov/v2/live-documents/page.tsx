@@ -286,7 +286,7 @@ export default function LiveDocumentsV2Page() {
               <select
                 value={selectedYearId ?? ""}
                 onChange={(e) => setSelectedYearId(e.target.value ? Number(e.target.value) : null)}
-                className="px-2 h-10 py-0 text-sm border border-slate-200 rounded-[12px] bg-white focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42] min-w-[10rem]"
+                className="px-2 h-10 py-0 text-sm border border-slate-200 rounded-[12px] bg-card focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42] min-w-[10rem]"
               >
                 {years.map((y) => (
                   <option key={y.id} value={y.id}>
@@ -334,7 +334,7 @@ export default function LiveDocumentsV2Page() {
 
         {/* Search */}
         {!loading && (
-          <div className="bg-white rounded-2xl border border-slate-200 px-4 py-3 flex items-center gap-3">
+          <div className="bg-card rounded-2xl border border-slate-200 px-4 py-3 flex items-center gap-3">
             <div className="relative flex-1 max-w-md">
               <Search size={14} className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-400" />
               <input
@@ -342,7 +342,7 @@ export default function LiveDocumentsV2Page() {
                 placeholder="Search modules…"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="w-full pl-7 pr-3 h-10 py-0 text-sm border border-slate-200 rounded-[12px] bg-white focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                className="w-full pl-7 pr-3 h-10 py-0 text-sm border border-slate-200 rounded-[12px] bg-card focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
               />
             </div>
             <span className="text-xs text-slate-500 whitespace-nowrap">
@@ -356,7 +356,7 @@ export default function LiveDocumentsV2Page() {
         ) : (
           <>
             {/* OCV/GOV Section */}
-            <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+            <div className="bg-card rounded-2xl border border-slate-200 overflow-hidden">
               <div className="px-5 py-3 border-b border-slate-100 flex items-center gap-2">
                 <FolderOpen size={16} className="text-blue-600" />
                 <h2 className="text-sm font-semibold text-slate-800">OCV / GOV Documents</h2>
@@ -397,9 +397,9 @@ export default function LiveDocumentsV2Page() {
             </div>
 
             {/* Club Modules Section */}
-            <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+            <div className="bg-card rounded-2xl border border-slate-200 overflow-hidden">
               <div className="px-5 py-3 border-b border-slate-100 flex items-center gap-2">
-                <Users size={16} className="text-violet-600" />
+                <Users size={16} className="text-slate-600" />
                 <h2 className="text-sm font-semibold text-slate-800">Club Modules</h2>
                 <span className="ml-auto text-xs text-slate-500">{clubModules.length} listed</span>
               </div>

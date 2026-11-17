@@ -237,7 +237,7 @@ public class ClubAdminDashboardController : ControllerBase
         if (!IsAuthorisedRole()) return Forbid();
         try
         {
-            using var conn = new MySqlConnection(ConnectionString);
+            using var conn = RowDb.Connect(ConnectionString);
             await conn.OpenAsync();
 
             // Resolve which club to query — same precedence as the dashboard methods.

@@ -30,7 +30,7 @@ public class ProjectService : IProjectService
         _citationRecalc = citationRecalc;
     }
 
-    private MySqlConnection CreateConnection() => new(_connectionString);
+    private MySqlConnection CreateConnection() => RowDb.Connect(_connectionString);
 
     // ── Funding-conditional helpers ───────────────────────────────
     private static string ClassifyFunding(string? fundingName)
@@ -678,7 +678,7 @@ public class ProjectService : IProjectService
 
         var toYearId = await RotaryYearHelper.EnsureRotaryYearAsync(conn, dto.ProjectDate.Value);
         if (toYearId == fromYearId)
-            throw new InvalidOperationException("Project date is in the same rotary year — use the normal update, not move.");
+            throw new InvalidOperationException("Project date is in the same rotary year: use the normal update, not move.");
 
         var tgtInfo = await _yearTables.ResolveByYearIdAsync(conn, toYearId)
             ?? throw new InvalidOperationException($"Could not resolve target year tables for yearId {toYearId}.");

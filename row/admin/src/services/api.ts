@@ -1,4 +1,4 @@
-import axios from "axios";
+import axios, { type InternalAxiosRequestConfig } from "axios";
 import { toast } from "@/hooks/use-toast";
 import { validateImagePhoto } from "@/utils/validateImagePhoto";
 import { fileTimestamp } from "@/lib/dateUtils";
@@ -106,6 +106,18 @@ const publicApi = axios.create({
   timeout: 30000,
   headers: { "Content-Type": "application/json" },
 });
+
+// Every request names the browser's time zone, so a time typed without one ("2026-11-20T18:00") is stored as the
+// right UTC instant (the API's ViewerZone).
+function addTimeZone(config: InternalAxiosRequestConfig): InternalAxiosRequestConfig {
+  if (typeof window !== "undefined") {
+    const zone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    if (zone) config.headers["X-Time-Zone"] = zone;
+  }
+  return config;
+}
+api.interceptors.request.use(addTimeZone);
+publicApi.interceptors.request.use(addTimeZone);
 
 // ─── Network-down notification (web) ─────────────────────────────────────────
 // A request that gets NO HTTP response (server unreachable, DNS failure, poor

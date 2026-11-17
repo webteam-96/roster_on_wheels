@@ -39,7 +39,7 @@ public class EscalationController : ControllerBase
 
     private async Task<bool> DistrictExistsAsync(int districtId)
     {
-        await using var conn = new MySqlConnection(_cs);
+        await using var conn = RowDb.Connect(_cs);
         return await conn.ExecuteScalarAsync<int>(
             "SELECT COUNT(*) FROM district_master WHERE pk_district_id = @D AND isdeleted = 0", new { D = districtId }) > 0;
     }
@@ -97,7 +97,7 @@ public class EscalationController : ControllerBase
         if (!await ManagesAsync(districtId)) return Forbidden();
         rule = string.IsNullOrWhiteSpace(rule) ? null : rule.Trim().ToLowerInvariant();
         if (rule != null && !EscalationService.RuleKeys.Contains(rule)) return BadRequest(new { message = "Rule must be target or meetings." });
-        await using var conn = new MySqlConnection(_cs);
+        await using var conn = RowDb.Connect(_cs);
         // shortcut: newest 500 rows, no paging; page it when a district's log outgrows that.
         var rows = await conn.QueryAsync<AlertRow>($@"
             SELECT a.pk_alert_id AS Id, a.fk_club_id AS ClubId, c.ClubName, a.rule_key AS Rule, a.period AS Period, a.level AS Level,

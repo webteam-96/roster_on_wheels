@@ -101,7 +101,7 @@ public partial class VolunteerService
 
     public async Task<List<VolunteerSheetListItemDto>> ListAsync(int clubId)
     {
-        await using var c = new MySqlConnection(_cs);
+        await using var c = RowDb.Connect(_cs);
         // shortcut: the 500 newest sheets, add paging if a club runs more.
         return (await c.QueryAsync<VolunteerSheetListItemDto>($@"
             SELECT sh.pk_sheet_id AS Id, sh.title AS Title, sh.status AS Status, sh.is_public AS IsPublic,
@@ -120,7 +120,7 @@ public partial class VolunteerService
     /// <summary>The club's events and the chosen year's projects a sheet can be linked to.</summary>
     public async Task<VolunteerTargetsDto> GetTargetsAsync(int clubId, int? yearId)
     {
-        await using var c = new MySqlConnection(_cs);
+        await using var c = RowDb.Connect(_cs);
         await c.OpenAsync();
         var result = new VolunteerTargetsDto
         {
@@ -141,7 +141,7 @@ public partial class VolunteerService
 
     public async Task<VolunteerSheetDto?> GetSheetAsync(int clubId, int id)
     {
-        await using var c = new MySqlConnection(_cs);
+        await using var c = RowDb.Connect(_cs);
         await c.OpenAsync();
         var s = await c.QueryFirstOrDefaultAsync<VolunteerSheetDto>($@"
             SELECT sh.pk_sheet_id AS Id, sh.fk_club_id AS ClubId, sh.title AS Title, sh.description AS Description,
@@ -259,7 +259,7 @@ public partial class VolunteerService
     public async Task<int> CreateSheetAsync(int clubId, SaveVolunteerSheetDto dto, int memberId)
     {
         var d = Normalize(dto);
-        await using var c = new MySqlConnection(_cs);
+        await using var c = RowDb.Connect(_cs);
         await c.OpenAsync();
         await CheckTargetsAsync(c, clubId, d, (await ProjectTablesAsync(c))(d.YearId));
         await ToStoredTimesAsync(c, clubId, d);
@@ -277,7 +277,7 @@ public partial class VolunteerService
     public async Task<VolunteerSheetDto?> UpdateSheetAsync(int clubId, int id, SaveVolunteerSheetDto dto, int memberId)
     {
         var d = Normalize(dto);
-        await using (var c = new MySqlConnection(_cs))
+        await using (var c = RowDb.Connect(_cs))
         {
             await c.OpenAsync();
             var tableOf = await ProjectTablesAsync(c);
@@ -306,7 +306,7 @@ public partial class VolunteerService
     /// <summary>Deletes the sheet with its slots and sign-ups; its hours leave the project's total.</summary>
     public async Task<bool> DeleteSheetAsync(int clubId, int id)
     {
-        await using var c = new MySqlConnection(_cs);
+        await using var c = RowDb.Connect(_cs);
         await c.OpenAsync();
         var tableOf = await ProjectTablesAsync(c);
         await using var tx = await c.BeginTransactionAsync();
@@ -324,7 +324,7 @@ public partial class VolunteerService
         var entries = dto.Entries ?? new();
         if (entries.GroupBy(e => e.SignupId).Any(g => g.Count() > 1)) throw new InvalidOperationException("A sign-up is listed twice.");
         if (entries.Any(e => e.Hours is < 0 or > MaxHours)) throw new InvalidOperationException($"Hours are from 0 to {MaxHours}.");
-        await using (var c = new MySqlConnection(_cs))
+        await using (var c = RowDb.Connect(_cs))
         {
             await c.OpenAsync();
             var tableOf = await ProjectTablesAsync(c);
@@ -347,7 +347,7 @@ public partial class VolunteerService
     /// <summary>Removes a sign-up (spam, a no-show); its place frees up and its hours leave the totals.</summary>
     public async Task<VolunteerSheetDto?> RemoveSignupAsync(int clubId, int id, int signupId)
     {
-        await using (var c = new MySqlConnection(_cs))
+        await using (var c = RowDb.Connect(_cs))
         {
             await c.OpenAsync();
             var tableOf = await ProjectTablesAsync(c);
@@ -400,7 +400,7 @@ public partial class VolunteerService
     /// <summary>The club of an open sheet's slot, or null.</summary>
     public async Task<int?> OpenSlotClubAsync(int slotId)
     {
-        await using var c = new MySqlConnection(_cs);
+        await using var c = RowDb.Connect(_cs);
         return await c.ExecuteScalarAsync<int?>(@"
             SELECT sh.fk_club_id FROM volunteer_slots sl JOIN volunteer_sheets sh ON sh.pk_sheet_id = sl.fk_sheet_id
             WHERE sl.pk_slot_id = @slotId AND sh.status = 'open'", new { slotId });
@@ -408,7 +408,7 @@ public partial class VolunteerService
 
     public async Task<bool> IsActiveMemberAsync(int memberId, int clubId)
     {
-        await using var c = new MySqlConnection(_cs);
+        await using var c = RowDb.Connect(_cs);
         return await c.ExecuteScalarAsync<int>(@"
             SELECT COUNT(*) FROM club_members cm JOIN club_master cl ON cl.pk_club_id = cm.fk_club_id
             WHERE cm.fk_member_master_profile_id = @memberId AND cm.fk_club_id = @clubId AND cm.IsActive = 1
@@ -417,7 +417,7 @@ public partial class VolunteerService
 
     public async Task MemberSignupAsync(int memberId, int slotId)
     {
-        await using var c = new MySqlConnection(_cs);
+        await using var c = RowDb.Connect(_cs);
         await c.OpenAsync();
         await SignupAsync(c, slotId, memberId, null, null);
     }
@@ -425,7 +425,7 @@ public partial class VolunteerService
     /// <summary>A member takes back their own place, before the slot starts and before hours are recorded.</summary>
     public async Task<bool> MemberCancelAsync(int memberId, int slotId)
     {
-        await using var c = new MySqlConnection(_cs);
+        await using var c = RowDb.Connect(_cs);
         await c.OpenAsync();
         await using var tx = await c.BeginTransactionAsync();
         // the slot row first: the same lock order as a sign-up
@@ -460,7 +460,7 @@ public partial class VolunteerService
     /// closed to new sign-ups, marked when the member took them.</summary>
     public async Task<List<MemberVolunteerSheetDto>> ListForMemberAsync(int memberId)
     {
-        await using var c = new MySqlConnection(_cs);
+        await using var c = RowDb.Connect(_cs);
         var rows = await c.QueryAsync<MemberSlotRow>(@"
             SELECT sh.pk_sheet_id AS SheetId, sh.fk_club_id AS ClubId, cl.ClubName, sh.title AS Title, sh.description AS Description,
                    sl.pk_slot_id AS Id, sl.task AS Task, sl.starts_at AS StartsAt, sl.ends_at AS EndsAt,
@@ -486,7 +486,7 @@ public partial class VolunteerService
     public async Task<PublicVolunteerSheetDto?> GetPublicSheetAsync(string token)
     {
         if (!TokenShape().IsMatch(token)) return null;
-        await using var c = new MySqlConnection(_cs);
+        await using var c = RowDb.Connect(_cs);
         await c.OpenAsync();
         var sheet = await c.QueryFirstOrDefaultAsync<(int Id, string Title, string? Description, string ClubName, string? EventTitle)?>(@"
             SELECT sh.pk_sheet_id, sh.title, sh.description, cl.ClubName, e.Title
@@ -530,7 +530,7 @@ public partial class VolunteerService
         var name = Clean(dto.Name, 150, "Your name");
         if (name == null || name.Length < 2) throw new InvalidOperationException("Please enter your name.");
         var email = CleanEmail(dto.Email);
-        await using var c = new MySqlConnection(_cs);
+        await using var c = RowDb.Connect(_cs);
         await c.OpenAsync();
         if (await c.ExecuteScalarAsync<int>(@"
                 SELECT COUNT(*) FROM volunteer_slots sl JOIN volunteer_sheets sh ON sh.pk_sheet_id = sl.fk_sheet_id

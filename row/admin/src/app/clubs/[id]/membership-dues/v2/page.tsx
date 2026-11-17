@@ -214,7 +214,7 @@ export default function ClubMembershipDuesV2Page() {
 
           {/* Empty state (no dues at all) */}
           {!loading && items.length === 0 && (
-            <div className="bg-white rounded-2xl border border-slate-200 p-10 flex flex-col items-center justify-center space-y-5">
+            <div className="bg-card rounded-2xl border border-slate-200 p-10 flex flex-col items-center justify-center space-y-5">
               <div className="text-center max-w-lg space-y-3">
                 <h3 className="text-xl font-bold text-slate-800">
                   Collect 100% of Your Club Dues Without a Single Follow-up Call
@@ -236,7 +236,7 @@ export default function ClubMembershipDuesV2Page() {
 
           {/* Table card */}
           {(loading || items.length > 0) && (
-            <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+            <div className="bg-card rounded-2xl border border-slate-200 overflow-hidden">
               <div className="px-5 py-3 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                 <div>
                   <h3 className="text-sm font-semibold text-slate-800">Dues Records</h3>
@@ -248,7 +248,7 @@ export default function ClubMembershipDuesV2Page() {
                   <select
                     value={yearFilter}
                     onChange={(e) => setYearFilter(e.target.value)}
-                    className="px-2 h-10 py-0 text-sm border border-slate-200 rounded-[12px] bg-white focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                    className="px-2 h-10 py-0 text-sm border border-slate-200 rounded-[12px] bg-card focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
                   >
                     <option value="">All Years</option>
                     {availableYears.map((y) => (

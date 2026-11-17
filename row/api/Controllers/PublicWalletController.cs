@@ -121,7 +121,7 @@ public class PublicWalletController : ControllerBase
 
         if (t.EntityId > 0)
         {
-            using var conn = new MySqlConnection(_connectionString);
+            using var conn = RowDb.Connect(_connectionString);
             await conn.OpenAsync();
             var entity = await ResolveEntityAsync(conn, t.Scope, t.EntityId);
             if (entity == null) return BadRequest(new { message = "This club/district is not available right now." });
@@ -141,7 +141,7 @@ public class PublicWalletController : ControllerBase
         var term = (q ?? "").Trim();
         if (term.Length < 2) return Ok(Array.Empty<PublicWalletSearchResultDto>());
 
-        using var conn = new MySqlConnection(_connectionString);
+        using var conn = RowDb.Connect(_connectionString);
         await conn.OpenAsync();
         var like = $"%{term}%";
         List<PublicWalletSearchResultDto> results;
@@ -171,7 +171,7 @@ public class PublicWalletController : ControllerBase
     {
         if (!TryToken(token, out var t, out var error))
             return BadRequest(new { message = error ?? "Invalid link." });
-        using var conn = new MySqlConnection(_connectionString);
+        using var conn = RowDb.Connect(_connectionString);
         await conn.OpenAsync();
         var entity = await ResolveEntityAsync(conn, t.Scope, entityId);
         if (entity == null) return BadRequest(new { message = "This club/district is not available right now." });
@@ -193,7 +193,7 @@ public class PublicWalletController : ControllerBase
             return BadRequest(new { message = "This link is not for a website purchase." });
 
         int clubId = t.EntityId > 0 ? t.EntityId : req.EntityId;
-        using var conn = new MySqlConnection(_connectionString);
+        using var conn = RowDb.Connect(_connectionString);
         await conn.OpenAsync();
         if (await ResolveEntityAsync(conn, "club", clubId) == null)
             return BadRequest(new { message = "Please select a valid club." });
@@ -225,7 +225,7 @@ public class PublicWalletController : ControllerBase
 
         // Specific link forces its baked entity; common link takes the payer's picked entity.
         int entityId = t.EntityId > 0 ? t.EntityId : req.EntityId;
-        using (var conn = new MySqlConnection(_connectionString))
+        using (var conn = RowDb.Connect(_connectionString))
         {
             await conn.OpenAsync();
             if (await ResolveEntityAsync(conn, t.Scope, entityId) == null)

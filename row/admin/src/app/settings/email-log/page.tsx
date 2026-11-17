@@ -40,12 +40,12 @@ function typeBadge(type: string | null) {
   if (!type) return <span className="text-slate-400">, </span>;
   const palette: Record<string, string> = {
     "OTP":                        "bg-blue-100   text-blue-700   border-blue-200",
-    "Mass Email":                 "bg-[#CFE2F6] text-violet-700 border-violet-200",
+    "Mass Email":                 "bg-[#CFE2F6] text-slate-700 border-slate-200",
     "Citation":                   "bg-[#FFC65C] text-orange-700 border-orange-200",
     "Monthly Report":             "bg-[#CFE2F6]   text-teal-700   border-teal-200",
-    "Newsletter":                 "bg-[#CFE2F6] text-fuchsia-700 border-fuchsia-200",
+    "Newsletter":                 "bg-[#CFE2F6] text-slate-700 border-slate-200",
     "KYC":                        "bg-rose-100   text-rose-700   border-rose-200",
-    "Club Website":               "bg-[#CFE2F6] text-indigo-700 border-indigo-200",
+    "Club Website":               "bg-[#CFE2F6] text-slate-700 border-slate-200",
     "Password Reset":             "bg-amber-100  text-amber-700  border-amber-200",
     "Password Changed":           "bg-amber-100  text-amber-700  border-amber-200",
     "SuperAdmin":                 "bg-red-100    text-red-700    border-red-200",
@@ -53,7 +53,7 @@ function typeBadge(type: string | null) {
     "Login Credentials":          "bg-emerald-100 text-emerald-700 border-emerald-200",
     "Welcome":                    "bg-green-100  text-green-700  border-green-200",
     "Role / Membership Removed":  "bg-slate-200  text-slate-700  border-slate-300",
-    "Club Leadership":            "bg-[#CFE2F6] text-purple-700 border-purple-200",
+    "Club Leadership":            "bg-[#CFE2F6] text-slate-700 border-slate-200",
     "Reminder":                   "bg-yellow-100 text-yellow-700 border-yellow-200",
     "Attachment":                 "bg-stone-100  text-stone-700  border-stone-200",
     "Other":                      "bg-slate-100  text-slate-600  border-slate-200",
@@ -285,7 +285,7 @@ export default function EmailLogPage() {
                   <iframe
                     sandbox=""
                     srcDoc={detail.bodyHtml ?? "<em>No body</em>"}
-                    className="w-full h-[60vh] bg-white"
+                    className="w-full h-[60vh] bg-card"
                     title="Email body"
                   />
                 </div>

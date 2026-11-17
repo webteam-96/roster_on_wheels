@@ -114,7 +114,7 @@ public class I18nController : ControllerBase
     public async Task<IActionResult> Get(string locale)
     {
         if (!Locale.IsMatch(locale)) return BadRequest(new { message = "Invalid locale." });
-        await using var conn = new MySqlConnection(_connectionString);
+        await using var conn = RowDb.Connect(_connectionString);
         var rows = (await conn.QueryAsync<OverrideDto>(@"
             SELECT namespace AS Namespace, msg_key AS `Key`, text AS Text, reviewed AS Reviewed
             FROM i18n_strings WHERE locale = @locale ORDER BY namespace, msg_key", new { locale })).ToList();
@@ -138,7 +138,7 @@ public class I18nController : ControllerBase
         // An empty override would blank the text; remove the override instead so English shows.
         if (text.Length is 0 or > 4000) return BadRequest(new { message = "Text is required (4000 characters at most)." });
 
-        await using var conn = new MySqlConnection(_connectionString);
+        await using var conn = RowDb.Connect(_connectionString);
         await conn.ExecuteAsync(@"
             INSERT INTO i18n_strings (namespace, msg_key, locale, text, reviewed, updated_by)
             VALUES (@ns, @key, @locale, @text, @reviewed, @by)
@@ -155,7 +155,7 @@ public class I18nController : ControllerBase
         if (!IsSuperAdmin()) return StatusCode(403, new { message = "Only SuperAdmin can edit translations." });
         var error = ValidatePath(locale, ns, key);
         if (error != null) return BadRequest(new { message = error });
-        await using var conn = new MySqlConnection(_connectionString);
+        await using var conn = RowDb.Connect(_connectionString);
         var removed = await conn.ExecuteAsync(
             "DELETE FROM i18n_strings WHERE locale = @locale AND namespace = @ns AND msg_key = @key", new { locale, ns, key });
         if (removed == 0) return NotFound(new { message = "No override for this key." });

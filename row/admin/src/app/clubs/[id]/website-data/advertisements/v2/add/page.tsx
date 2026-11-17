@@ -362,7 +362,7 @@ export default function AdvertisementsV2AddPage() {
               <select
                 value={isActive}
                 onChange={(e) => setIsActive(e.target.value)}
-                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] bg-white focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] bg-card focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
               >
                 <option value="1">Active</option>
                 <option value="0">Inactive</option>
@@ -378,7 +378,7 @@ export default function AdvertisementsV2AddPage() {
               <select
                 value={yearId}
                 onChange={(e) => setYearId(e.target.value)}
-                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] bg-white focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] bg-card focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
               >
                 <option value="">Select a year</option>
                 {allYears.map((y) => (

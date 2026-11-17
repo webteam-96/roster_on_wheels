@@ -168,7 +168,7 @@ export default function GoalTargetSplitPanel({
         <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/40 p-2 sm:p-4 overflow-y-auto">
           <div className="bg-slate-50 rounded-2xl shadow-xl w-full max-w-[1200px] my-2 sm:my-6">
             {/* ── header ── */}
-            <div className="flex items-center gap-2 sm:gap-3 px-3 sm:px-6 py-3 sm:py-4 bg-white rounded-t-2xl border-b border-slate-200">
+            <div className="flex items-center gap-2 sm:gap-3 px-3 sm:px-6 py-3 sm:py-4 bg-card rounded-t-2xl border-b border-slate-200">
               {open === "quarter" ? <CalendarRange size={18} className="text-blue-600" /> : <CalendarDays size={18} className="text-blue-600" />}
               <div>
                 <h3 className="text-sm sm:text-base font-bold text-ink">
@@ -198,7 +198,7 @@ export default function GoalTargetSplitPanel({
                 const base = baseOf(f);
                 const st = stateOf(f.fieldId, base);
                 return (
-                  <div key={f.fieldId} className="bg-white rounded-[20px] border border-slate-200 overflow-hidden">
+                  <div key={f.fieldId} className="bg-card rounded-[20px] border border-slate-200 overflow-hidden">
                     <div className="px-3 sm:px-5 py-2.5 sm:py-3 border-b-2 border-amber-300 flex flex-wrap items-center gap-x-3 gap-y-1.5">
                       <h4 className="text-sm font-bold text-ink">{f.groupName || f.fieldLabel}</h4>
                       <span className="text-xs text-slate-500">{f.fieldLabel}</span>
@@ -238,7 +238,7 @@ export default function GoalTargetSplitPanel({
                           {/* Baseline — the same "as on July 1st" figure the yearly screen shows. */}
                           {f.baseline != null && (
                             <tr className="border-t border-slate-100">
-                              <td className="px-3 sm:px-5 py-2.5 text-slate-600 sticky left-0 bg-white border-r border-slate-100 whitespace-nowrap">As on July 1st</td>
+                              <td className="px-3 sm:px-5 py-2.5 text-slate-600 sticky left-0 bg-card border-r border-slate-100 whitespace-nowrap">As on July 1st</td>
                               <td className="px-2 sm:px-3 py-2.5 text-right tabular-nums text-slate-500" colSpan={slots.length}>
                                 {f.baseline}
                               </td>
@@ -247,7 +247,7 @@ export default function GoalTargetSplitPanel({
 
                           {/* Target — the only editable row. */}
                           <tr className="border-t border-slate-100">
-                            <td className="px-3 sm:px-5 py-2 text-slate-700 font-medium sticky left-0 bg-white border-r border-slate-100">Target</td>
+                            <td className="px-3 sm:px-5 py-2 text-slate-700 font-medium sticky left-0 bg-card border-r border-slate-100">Target</td>
                             {slots.map((s) => (
                               <td key={s} className="px-2 py-1.5 text-right">
                                 <input
@@ -265,7 +265,7 @@ export default function GoalTargetSplitPanel({
                           </tr>
 
                           <tr className="border-t border-slate-100">
-                            <td className="px-3 sm:px-5 py-2.5 text-slate-600 sticky left-0 bg-white border-r border-slate-100">Achieved</td>
+                            <td className="px-3 sm:px-5 py-2.5 text-slate-600 sticky left-0 bg-card border-r border-slate-100">Achieved</td>
                             {slots.map((s) => {
                               const a = achievedAt(f.fieldId, s);
                               return <td key={s} className="px-2 sm:px-3 py-2.5 text-right tabular-nums text-slate-700">{a ?? "–"}</td>;
@@ -273,7 +273,7 @@ export default function GoalTargetSplitPanel({
                           </tr>
 
                           <tr className="border-t border-slate-100">
-                            <td className="px-3 sm:px-5 py-2.5 text-slate-600 sticky left-0 bg-white border-r border-slate-100 whitespace-nowrap">Percentage Achieved</td>
+                            <td className="px-3 sm:px-5 py-2.5 text-slate-600 sticky left-0 bg-card border-r border-slate-100 whitespace-nowrap">Percentage Achieved</td>
                             {slots.map((s) => {
                               const a = achievedAt(f.fieldId, s);
                               const t = draft[f.fieldId]?.[s] ?? null;
@@ -297,7 +297,7 @@ export default function GoalTargetSplitPanel({
             </div>
 
             {/* ── footer ── */}
-            <div className="px-3 sm:px-6 py-3 sm:py-4 bg-white rounded-b-2xl border-t border-slate-200 flex flex-wrap items-center gap-2 sm:gap-3">
+            <div className="px-3 sm:px-6 py-3 sm:py-4 bg-card rounded-b-2xl border-t border-slate-200 flex flex-wrap items-center gap-2 sm:gap-3">
               {canEdit && (
                 <>
                   <button

@@ -35,7 +35,7 @@ function Section({ icon: Icon, title, children, number }: {
   number: number;
 }) {
   return (
-    <div className="relative bg-white rounded-[20px] border shadow-sm overflow-hidden">
+    <div className="relative bg-card rounded-[20px] border shadow-sm overflow-hidden">
       <div className="flex items-center gap-3 px-5 py-3.5 bg-primary/5 border-b">
         <div className="flex items-center justify-center h-8 w-8 rounded-full bg-primary text-primary-foreground text-sm font-bold shrink-0">
           {number}

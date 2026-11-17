@@ -1,3 +1,4 @@
+using RotaryApi.Services;
 using ClosedXML.Excel;
 using Dapper;
 using Microsoft.Extensions.Configuration;
@@ -63,14 +64,14 @@ public class ClubTerminator
             ?? throw new InvalidOperationException("ConnectionStrings:DefaultConnection missing");
     }
 
-    private MySqlConnection CreateConnection() => new(_connectionString);
+    private MySqlConnection CreateConnection() => RowDb.Connect(_connectionString);
 
     public async Task RunAsync(bool apply, bool force = false, CancellationToken ct = default)
     {
         // 'force' bypasses the safety threshold (for one-time manual cleanups when many clubs really did terminate)
         if (force) _logger.LogWarning("ClubTerminator running with --force — safety threshold bypassed");
         var startedAt = DateTime.UtcNow;
-        Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] === Club Termination {(apply ? "APPLY" : "AUDIT")} START ===");
+        Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] === Club Termination {(apply ? "APPLY" : "AUDIT")} START ===");
 
         // Insert log row
         int logId;
@@ -88,10 +89,10 @@ public class ClubTerminator
         try
         {
             // 1. Fetch /clubs (authoritative)
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Fetching /clubs...");
+            Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] Fetching /clubs...");
             var syncClubs = await _api.GetClubsAsync(ct);
             var syncIds = new HashSet<string>(syncClubs.Select(x => x.ClubId.ToString()), StringComparer.OrdinalIgnoreCase);
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss}]   /clubs: {syncClubs.Count}");
+            Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}]   /clubs: {syncClubs.Count}");
 
             // 2. Fetch /Clubs/search — DYNAMIC country list. No hardcoding, so new countries are
             // covered automatically. CRITICAL for correctness: we must search every country we
@@ -122,22 +123,22 @@ public class ClubTerminator
                 foreach (var c in dbCountries) countrySet.Add(c);
             }
             var countries = countrySet.OrderBy(s => s, StringComparer.OrdinalIgnoreCase).ToList();
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Countries to search ({countries.Count}): {string.Join(", ", countries)}");
+            Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] Countries to search ({countries.Count}): {string.Join(", ", countries)}");
 
             var searchIds = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             foreach (var country in countries)
             {
                 ct.ThrowIfCancellationRequested();
-                Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Fetching /Clubs/search for {country}...");
+                Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] Fetching /Clubs/search for {country}...");
                 var list = await _api.SearchClubsByCountryAsync(country, ct);
                 foreach (var c in list) searchIds.Add(c.ClubId.ToString());
-                Console.WriteLine($"[{DateTime.Now:HH:mm:ss}]   {country}: {list.Count} (raw)");
+                Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}]   {country}: {list.Count} (raw)");
             }
 
             // 3. Build authoritative set
             var allRiOrgIds = new HashSet<string>(syncIds, StringComparer.OrdinalIgnoreCase);
             foreach (var id in searchIds) allRiOrgIds.Add(id);
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Combined authoritative IDs: {allRiOrgIds.Count}");
+            Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] Combined authoritative IDs: {allRiOrgIds.Count}");
 
             // 4. Find termination candidates: sync clubs in DB whose ClubRotaryId is NOT in allRiOrgIds
             await using var dbConn = CreateConnection();
@@ -172,7 +173,7 @@ public class ClubTerminator
 
             if (toTerminate.Count == 0)
             {
-                Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] No clubs to terminate. All sync clubs still on Rotary.org.");
+                Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] No clubs to terminate. All sync clubs still on Rotary.org.");
                 await dbConn.ExecuteAsync(@"
                     UPDATE rotary_org_sync_log
                     SET FinishedAtUtc = UTC_TIMESTAMP(), Status = 'Completed', TotalFetched = @Total
@@ -239,7 +240,7 @@ public class ClubTerminator
                 if (apply)
                 {
                     await ApplyCascadeAsync(dbConn, c.pk_id, ct);
-                    Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Soft-deleted club {c.clubName} (RID {c.clubRotaryId}) and cascade ({detail.TotalRowsAffected} rows)");
+                    Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] Soft-deleted club {c.clubName} (RID {c.clubRotaryId}) and cascade ({detail.TotalRowsAffected} rows)");
                 }
             }
 
@@ -281,7 +282,7 @@ public class ClubTerminator
         }
         catch (Exception ex)
         {
-            Console.Error.WriteLine($"[{DateTime.Now:HH:mm:ss}] FAILED: {ex.Message}");
+            Console.Error.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] FAILED: {ex.Message}");
             try
             {
                 await using var conn = CreateConnection();
@@ -484,7 +485,7 @@ public class ClubTerminator
             using var ms = new MemoryStream();
             workbook.SaveAs(ms);
             var bytes = ms.ToArray();
-            var fileName = $"RotaryOrg_Terminate_{(apply ? "Applied" : "Audit")}_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx";
+            var fileName = $"RotaryOrg_Terminate_{(apply ? "Applied" : "Audit")}_{DateTime.UtcNow:yyyyMMdd_HHmmss}.xlsx";
 
             var triggeredByName = _config["RotaryOrgSync:TriggeredByName"] ?? "Admin";
             var modeColor = apply ? "#dc2626" : "#1a365d";
@@ -549,15 +550,15 @@ public class ClubTerminator
 
             // Daily auto-terminate runs APPLY mode at 04:00; manual audit-only run is interactive.
             var subject = string.Equals(modeText, "APPLIED", StringComparison.OrdinalIgnoreCase)
-                ? $"[Daily] ROW Auto-Terminate Clubs — {DateTime.Now:dd MMM yyyy}"
-                : $"[Manual] ROW Termination Audit — {DateTime.Now:dd MMM yyyy}";
+                ? $"[Daily] ROW Auto-Terminate Clubs — {DateTime.UtcNow:dd MMM yyyy}"
+                : $"[Manual] ROW Termination Audit — {DateTime.UtcNow:dd MMM yyyy}";
             await _emailSender.SendReportAsync(subject, body, bytes, fileName);
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Email sent.");
+            Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] Email sent.");
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Termination email FAILED");
-            Console.Error.WriteLine($"[{DateTime.Now:HH:mm:ss}] Email failed: {ex.Message}");
+            Console.Error.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] Email failed: {ex.Message}");
         }
     }
 
@@ -597,7 +598,7 @@ public class ClubTerminator
             using var ms = new MemoryStream();
             workbook.SaveAs(ms);
             var bytes = ms.ToArray();
-            var fileName = $"RotaryOrg_Terminate_ABORTED_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx";
+            var fileName = $"RotaryOrg_Terminate_ABORTED_{DateTime.UtcNow:yyyyMMdd_HHmmss}.xlsx";
 
             var triggeredByName = _config["RotaryOrgSync:TriggeredByName"] ?? "Admin";
             var body = $@"<div style='font-family:Arial,sans-serif;'>

@@ -37,7 +37,7 @@ public sealed class DistrictPart
 
     public void Save(string dir)
     {
-        SavedAt = DateTime.Now;
+        SavedAt = DateTime.UtcNow;
         var path = FileOf(dir, District);
         var tmp = path + ".tmp";   // written whole, then swapped in - a crash never leaves half a file
         File.WriteAllText(tmp, JsonSerializer.Serialize(this));
@@ -50,7 +50,7 @@ public sealed class DistrictPart
     {
         var path = FileOf(dir, district);
         if (!File.Exists(path)) return null;
-        if (File.GetLastWriteTime(path) < DateTime.Now.AddHours(-maxAgeHours))
+        if (File.GetLastWriteTime(path) < DateTime.UtcNow.AddHours(-maxAgeHours))
         {
             Log.Info($"  District {district}: checkpoint is older than {maxAgeHours} h - fetching again.");
             return null;

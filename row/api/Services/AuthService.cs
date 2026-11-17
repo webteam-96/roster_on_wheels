@@ -28,7 +28,7 @@ public class AuthService : IAuthService
         _logger = logger;
     }
 
-    private MySqlConnection CreateConnection() => new(_connectionString);
+    private MySqlConnection CreateConnection() => RowDb.Connect(_connectionString);
 
     public async Task<LoginResponseDto> LoginAsync(LoginRequestDto request, string? ipAddress = null, string? userAgent = null)
     {
@@ -340,7 +340,7 @@ public class AuthService : IAuthService
 
         // Generate token
         var token = Convert.ToBase64String(RandomNumberGenerator.GetBytes(64));
-        var expiry = DateTime.Now.AddMinutes(480);
+        var expiry = DateTime.UtcNow.AddMinutes(480);
 
         // Insert into password_reset_tokens
         await connection.ExecuteAsync(

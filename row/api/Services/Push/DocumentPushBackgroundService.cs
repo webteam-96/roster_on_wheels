@@ -35,7 +35,7 @@ public class DocumentPushBackgroundService : BackgroundService
     private async Task ProcessDueDocsAsync(CancellationToken ct)
     {
         var connStr = _config.GetConnectionString("DefaultConnection")!;
-        using var conn = new MySqlConnection(connStr);
+        using var conn = RowDb.Connect(connStr);
         await conn.OpenAsync(ct);
 
         var due = (await conn.QueryAsync<dynamic>(@"
@@ -139,7 +139,7 @@ public class DocumentPushBackgroundService : BackgroundService
                     Status = r.Success ? "Sent" : "Failed",
                     MsgId = r.FirebaseMessageId,
                     Err = string.IsNullOrEmpty(r.ErrorMessage) ? null : (r.ErrorMessage.Length > 1000 ? r.ErrorMessage[..1000] : r.ErrorMessage),
-                    Sent = r.Success ? DateTime.Now : (DateTime?)null,
+                    Sent = r.Success ? DateTime.UtcNow : (DateTime?)null,
                 });
             if (r.IsTokenInvalid)
                 await conn.ExecuteAsync("UPDATE member_master_profile SET LastDeviceToken = NULL WHERE LastDeviceToken = @T", new { T = r.Token });

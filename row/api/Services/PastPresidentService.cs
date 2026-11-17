@@ -15,7 +15,7 @@ public class PastPresidentService : IPastPresidentService
         _connectionString = configuration.GetConnectionString("DefaultConnection")!;
     }
 
-    private MySqlConnection CreateConnection() => new(_connectionString);
+    private MySqlConnection CreateConnection() => RowDb.Connect(_connectionString);
 
     // Shared SELECT projection: returns one row per past_presidents entry, resolving member vs non-member
     // display fields. LEFT JOINs on member_master_profile so non-member rows (fk_member_master_profile_id
@@ -308,7 +308,7 @@ public class PastPresidentService : IPastPresidentService
         var baseName = System.Text.RegularExpressions.Regex.Replace(Path.GetFileNameWithoutExtension(file.FileName), @"[^A-Za-z0-9\-]+", "_").Trim('_');
         if (string.IsNullOrEmpty(baseName)) baseName = "file";
         var extension = Path.GetExtension(file.FileName);
-        var timestamp = DateTime.Now.ToString("ddMMyyyyhhmmsstt");
+        var timestamp = DateTime.UtcNow.ToString("ddMMyyyyhhmmsstt");
         var fileName = $"pp_{baseName}_{Guid.NewGuid().ToString("N")[..8]}{timestamp}{extension}";
         var fullPath = Path.Combine(uploadsPath, fileName);
 

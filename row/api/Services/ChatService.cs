@@ -98,7 +98,7 @@ public class ChatService : IChatService
 
     public async Task<IReadOnlyList<ChatConversationDto>> ListAsync(int me)
     {
-        await using var conn = new MySqlConnection(_cs);
+        await using var conn = RowDb.Connect(_cs);
         return await ListQueryAsync(conn, me, null);
     }
 
@@ -116,7 +116,7 @@ public class ChatService : IChatService
         if (group && (others.Count == 0 || others.Count >= MaxGroup))
             return ChatResult.Fail(400, $"A group has 2 to {MaxGroup} members.");
 
-        await using var conn = new MySqlConnection(_cs);
+        await using var conn = RowDb.Connect(_cs);
         await conn.OpenAsync();
         if (!await AllActiveAsync(conn, new[] { me }, dto.Scope, dto.OwnerId))
             return ChatResult.Fail(403, "You are not a member of this club or district.");
@@ -154,7 +154,7 @@ public class ChatService : IChatService
 
     public async Task<ChatResult> MembersAsync(int me, int conversationId)
     {
-        await using var conn = new MySqlConnection(_cs);
+        await using var conn = RowDb.Connect(_cs);
         await conn.OpenAsync();
         if (await ConvAsync(conn, conversationId, me) == null) return NotFound;
         return ChatResult.Ok((await conn.QueryAsync<ChatMemberDto>($@"
@@ -169,7 +169,7 @@ public class ChatService : IChatService
 
     public async Task<ChatResult> AddMembersAsync(int me, int conversationId, List<int>? memberIds)
     {
-        await using var conn = new MySqlConnection(_cs);
+        await using var conn = RowDb.Connect(_cs);
         await conn.OpenAsync();
         var conv = await ConvAsync(conn, conversationId, me);
         if (conv == null) return NotFound;
@@ -188,7 +188,7 @@ public class ChatService : IChatService
 
     public async Task<ChatResult> RemoveMemberAsync(int me, int conversationId, int memberId)
     {
-        await using var conn = new MySqlConnection(_cs);
+        await using var conn = RowDb.Connect(_cs);
         await conn.OpenAsync();
         var conv = await ConvAsync(conn, conversationId, me);
         if (conv == null) return NotFound;
@@ -206,7 +206,7 @@ public class ChatService : IChatService
 
     public async Task<ChatResult> MessagesAsync(int me, int conversationId, long? before, long? after, int limit)
     {
-        await using var conn = new MySqlConnection(_cs);
+        await using var conn = RowDb.Connect(_cs);
         await conn.OpenAsync();
         if (await ConvAsync(conn, conversationId, me) == null) return NotFound;
         limit = Math.Clamp(limit, 1, 100);
@@ -225,7 +225,7 @@ public class ChatService : IChatService
         if (string.IsNullOrEmpty(body) || body.Length > MaxBody) return ChatResult.Fail(400, $"Write a message of 1 to {MaxBody} characters.");
         if (key is { Length: > 64 }) return ChatResult.Fail(400, "clientKey has up to 64 characters.");
 
-        await using var conn = new MySqlConnection(_cs);
+        await using var conn = RowDb.Connect(_cs);
         await conn.OpenAsync();
         var conv = await ConvAsync(conn, conversationId, me);
         if (conv == null) return NotFound;
@@ -253,7 +253,7 @@ public class ChatService : IChatService
 
     public async Task<ChatResult> ReadAsync(int me, int conversationId, long messageId)
     {
-        await using var conn = new MySqlConnection(_cs);
+        await using var conn = RowDb.Connect(_cs);
         await conn.OpenAsync();
         if (await ConvAsync(conn, conversationId, me) == null) return NotFound;
         // Forward only, and never past the chat's last message.
@@ -271,7 +271,7 @@ public class ChatService : IChatService
     {
         reason = string.IsNullOrWhiteSpace(reason) ? null : reason.Trim();
         if (reason is { Length: > 500 }) return ChatResult.Fail(400, "Keep the reason to 500 characters.");
-        await using var conn = new MySqlConnection(_cs);
+        await using var conn = RowDb.Connect(_cs);
         await conn.OpenAsync();
         var (conversationId, senderId) = await conn.QueryFirstOrDefaultAsync<(int, int)>(
             "SELECT conversation_id, sender_id FROM chat_messages WHERE pk_message_id = @messageId", new { messageId });
@@ -291,7 +291,7 @@ public class ChatService : IChatService
 
     public async Task<IReadOnlyList<ChatReportDto>> ReportsAsync(string scope, int ownerId, bool resolved)
     {
-        await using var conn = new MySqlConnection(_cs);
+        await using var conn = RowDb.Connect(_cs);
         return (await conn.QueryAsync<ChatReportDto>($@"
             SELECT r.pk_report_id AS Id, r.reason AS Reason, r.created_at AS ReportedAt, r.reporter_id AS ReporterId, rm.MemberName AS ReporterName,
                    x.pk_message_id AS MessageId, x.body AS MessageBody, x.created_at AS MessageAt, x.hidden_at IS NOT NULL AS Hidden,
@@ -312,7 +312,7 @@ public class ChatService : IChatService
 
     public async Task<ChatResult> HideAsync(int me, string scope, int ownerId, long messageId, bool hidden)
     {
-        await using var conn = new MySqlConnection(_cs);
+        await using var conn = RowDb.Connect(_cs);
         await conn.OpenAsync();
         var conversationId = await conn.ExecuteScalarAsync<int?>(@"
             SELECT c.pk_conversation_id FROM chat_messages x JOIN chat_conversations c ON c.pk_conversation_id = x.conversation_id
@@ -329,7 +329,7 @@ public class ChatService : IChatService
 
     public async Task<ChatResult> MuteAsync(int me, string scope, int ownerId, int conversationId, int memberId, bool muted)
     {
-        await using var conn = new MySqlConnection(_cs);
+        await using var conn = RowDb.Connect(_cs);
         await conn.OpenAsync();
         if (await conn.ExecuteScalarAsync<int>(@"
                 SELECT COUNT(*) FROM chat_members p JOIN chat_conversations c ON c.pk_conversation_id = p.conversation_id
@@ -346,7 +346,7 @@ public class ChatService : IChatService
     {
         note = string.IsNullOrWhiteSpace(note) ? null : note.Trim();
         if (note is { Length: > 500 }) return ChatResult.Fail(400, "Keep the note to 500 characters.");
-        await using var conn = new MySqlConnection(_cs);
+        await using var conn = RowDb.Connect(_cs);
         await conn.OpenAsync();
         var messageId = await conn.ExecuteScalarAsync<long?>(@"
             SELECT r.message_id FROM chat_reports r

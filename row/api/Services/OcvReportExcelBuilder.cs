@@ -40,7 +40,7 @@ public static class OcvReportExcelBuilder
         // ── Header block — matches the standard reports (exportToCSV etc.):
         // a navy TITLE (text only, no fill) + grey italic subtitle lines, then the bordered
         // data table with a navy header row. No coloured label/value blocks.
-        var generatedAt = DateTime.Now.ToString("dd MMM yyyy, hh:mm tt", CultureInfo.InvariantCulture);
+        var generatedAt = DateTime.UtcNow.ToString("dd MMM yyyy, hh:mm tt", CultureInfo.InvariantCulture);
         sb.Append($"<tr><td colspan='5' style='color:#1F4E79;font-weight:bold;font-size:16pt;'>{Enc("Governor's Official Visit Report — " + (header.ClubName ?? ""))}</td></tr>");
         sb.Append("<tr><td colspan='5' style='color:#555555;font-style:italic;'>ROW Admin Portal</td></tr>");
         sb.Append($"<tr><td colspan='5' style='color:#555555;font-style:italic;'>Rotary Year: {Enc(header.YearLabel)}</td></tr>");

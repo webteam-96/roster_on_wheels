@@ -64,7 +64,7 @@ public partial class GoalSettingService : IGoalSettingService
         throw new UnauthorizedAccessException($"You do not have admin rights for {label}.");
     }
 
-    private MySqlConnection CreateConnection() => new(_cs);
+    private MySqlConnection CreateConnection() => RowDb.Connect(_cs);
 
     public async Task<List<GoalCategoryDto>> GetCategoriesAsync()
     {
@@ -1198,7 +1198,7 @@ public partial class GoalSettingService : IGoalSettingService
     // (past years → all 12; current year → up to the current month; future months not yet collectable).
     private static List<GoalMonthPeriodDto> BuildRotaryMonths(DateTime start)
     {
-        var todayFirst = new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1);
+        var todayFirst = new DateTime(DateTime.UtcNow.Date.Year, DateTime.UtcNow.Date.Month, 1);
         var list = new List<GoalMonthPeriodDto>(12);
         for (int i = 0; i < 12; i++)
         {
@@ -1323,7 +1323,7 @@ public partial class GoalSettingService : IGoalSettingService
         // Exclude the CURRENT calendar month's auto-snapshot (SnapshotCurrentMonthAsync writes the live
         // cumulative into the in-progress month on every save) — the "as on" date must reflect the latest
         // COMPLETED / uploaded month, not the running month. Only applies while inside this rotary year.
-        var today = DateTime.Today;
+        var today = DateTime.UtcNow.Date;
         if (yr.e != null && today >= start && today <= (DateTime)yr.e)
             monthsWithData = monthsWithData.Where(m => m != today.Month).ToList();
         if (monthsWithData.Count == 0) return null;
@@ -2141,7 +2141,7 @@ public partial class GoalSettingService : IGoalSettingService
         // freeze at their saved value; only SuperAdmin may correct an earlier month.
         if (restrictToCurrentMonth)
         {
-            var today = DateTime.Today;
+            var today = DateTime.UtcNow.Date;
             var current = months.FirstOrDefault(m => m.Month == today.Month && m.CalendarYear == today.Year);
             if (current == null || current.Month != month)
                 throw new InvalidOperationException("You can only edit the current month.");
@@ -2177,7 +2177,7 @@ public partial class GoalSettingService : IGoalSettingService
         var yr = await conn.QueryFirstOrDefaultAsync<dynamic>(
             "SELECT StartDate AS s, EndDate AS e FROM rotary_year_master WHERE pk_year_id = @Y AND isdeleted = 0", new { Y = yearId });
         if (yr == null || yr.s == null || yr.e == null) return;
-        var today = DateTime.Today;
+        var today = DateTime.UtcNow.Date;
         if (today < (DateTime)yr.s || today > (DateTime)yr.e) return;   // not the current Rotary year → no snapshot
         int month = today.Month;
 
@@ -2533,7 +2533,7 @@ public partial class GoalSettingService : IGoalSettingService
         var num = await conn.ExecuteScalarAsync<string>(
             "SELECT DistrictNumber FROM district_master WHERE pk_district_id = @Id", new { Id = districtId }) ?? "";
         var wb = await RenderEntityWorkbookAsync(conn, "District", 0, districtId, resolvedYearId,
-            $"District {num}", $"Rotary Year {yearLabel}   ·   Generated {DateTime.Now:dd MMM yyyy, hh:mm tt}", isEditable);
+            $"District {num}", $"Rotary Year {yearLabel}   ·   Generated {DateTime.UtcNow:dd MMM yyyy, hh:mm tt}", isEditable);
         return wb == null ? null : SaveAndDispose(wb);
     }
 
@@ -2554,7 +2554,7 @@ public partial class GoalSettingService : IGoalSettingService
         var num = await conn.ExecuteScalarAsync<string>(
             "SELECT DistrictNumber FROM district_master WHERE pk_district_id = @Id", new { Id = districtId }) ?? "";
         var wb = await RenderEntityWorkbookAsync(conn, "District", 0, districtId, resolvedYearId,
-            $"District {num}", $"Rotary Year {yearLabel}   ·   Generated {DateTime.Now:dd MMM yyyy, hh:mm tt}", isEditable,
+            $"District {num}", $"Rotary Year {yearLabel}   ·   Generated {DateTime.UtcNow:dd MMM yyyy, hh:mm tt}", isEditable,
             dropYouthPct: true);
         return wb == null ? null : SaveAndDispose(wb);
     }
@@ -2574,7 +2574,7 @@ public partial class GoalSettingService : IGoalSettingService
         string clubName = (row.name as string) ?? $"Club {clubId}";
         string dnum = (row.num as string) ?? "";
         var wb = await RenderEntityWorkbookAsync(conn, "Club", clubId, 0, resolvedYearId,
-            clubName, $"District {dnum}   ·   Rotary Year {yearLabel}   ·   Generated {DateTime.Now:dd MMM yyyy, hh:mm tt}", isEditable);
+            clubName, $"District {dnum}   ·   Rotary Year {yearLabel}   ·   Generated {DateTime.UtcNow:dd MMM yyyy, hh:mm tt}", isEditable);
         return wb == null ? null : SaveAndDispose(wb);
     }
 
@@ -3383,7 +3383,7 @@ public partial class GoalSettingService : IGoalSettingService
             new { D = districtId })).ToList();
         if (clubs.Count == 0) return null;
 
-        var subtitle = $"District {num}   ·   Rotary Year {yearLabel}   ·   Generated {DateTime.Now:dd MMM yyyy, hh:mm tt}";
+        var subtitle = $"District {num}   ·   Rotary Year {yearLabel}   ·   Generated {DateTime.UtcNow:dd MMM yyyy, hh:mm tt}";
         // Pre-compute every club's per-category metrics once (skip clubs with no goals). HORIZONTAL layout:
         // one row per club, all the details spread across columns to the right of the club name.
         // Parallel pre-compute (bounded) — the per-club metric build is the slow part; each task uses its
@@ -3465,7 +3465,7 @@ public partial class GoalSettingService : IGoalSettingService
             var num = await conn.ExecuteScalarAsync<string>(
                 "SELECT DistrictNumber FROM district_master WHERE pk_district_id = @Id", new { Id = districtId }) ?? "";
             var wb = await RenderEntityWorkbookAsync(conn, "District", 0, districtId, resolvedYearId,
-                $"District {num}", $"Rotary Year {yearLabel}   ·   Generated {DateTime.Now:dd MMM yyyy, hh:mm tt}", isEditable);
+                $"District {num}", $"Rotary Year {yearLabel}   ·   Generated {DateTime.UtcNow:dd MMM yyyy, hh:mm tt}", isEditable);
             result.DistrictWorkbook = wb == null ? null : SaveAndDispose(wb);
             result.ClubsWorkbook = await BuildAllClubsMonthlyExcelCoreAsync(conn, districtId, resolvedYearId, excludeRotaract: true);   // DG email
         }
@@ -3781,7 +3781,7 @@ public partial class GoalSettingService : IGoalSettingService
         string scopeLabel = districtId is > 0 ? $"District {districts[0].Number}"
             : zoneId is > 0 ? $"Zone (districts) — {districts.Count} district(s)"
             : $"All districts — {districts.Count} district(s)";
-        var subtitle = $"{scopeLabel}   ·   Rotary Year {yearLabel}   ·   Generated {DateTime.Now:dd MMM yyyy, hh:mm tt}";
+        var subtitle = $"{scopeLabel}   ·   Rotary Year {yearLabel}   ·   Generated {DateTime.UtcNow:dd MMM yyyy, hh:mm tt}";
         return BuildHorizontalGoalWorkbook("District", "Goal Setting — District Report", subtitle, rowData, months0,
             await FoundationAsOnAsync(conn, resolvedYearId, "District"));
     }
@@ -4627,7 +4627,7 @@ public partial class GoalSettingService : IGoalSettingService
         var rows = await conn.QueryAsync<dynamic>(@"
             SELECT c.pk_id AS id, c.CommentText AS commentText, c.PostedByMemberId AS postedByMemberId,
                    m.MemberName AS postedByName, c.PostedByTier AS postedByTier,
-                   DATE_FORMAT(c.created_date, '%Y-%m-%d %H:%i') AS createdDate
+                   c.created_date AS createdDate
             FROM goal_comments c
             LEFT JOIN member_master_profile m ON m.pk_member_master_profile_id = c.PostedByMemberId
             WHERE c.fk_district_id = @DistrictId AND c.fk_category_id = @CategoryId
@@ -4650,7 +4650,7 @@ public partial class GoalSettingService : IGoalSettingService
                 PostedByTier = postedByTier,
                 PostedByRoleLabel = TierLabel(postedByTier, clubThread),
                 IsMine = postedBy == memberId,
-                CreatedDate = r.createdDate as string,
+                CreatedDate = r.createdDate is DateTime cdt ? ZoneTime.Print(cdt, "yyyy-MM-dd HH:mm", ViewerZone.Current) : null,
             });
         }
         return list;
@@ -4678,7 +4678,7 @@ public partial class GoalSettingService : IGoalSettingService
         {
             Id = id, CommentText = trimmed, PostedByMemberId = memberId, PostedByName = memberName,
             PostedByTier = tier.Value, PostedByRoleLabel = TierLabel(tier.Value, clubId > 0),
-            IsMine = true, CreatedDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm"),
+            IsMine = true, CreatedDate = ZoneTime.Print(DateTime.UtcNow, "yyyy-MM-dd HH:mm", ViewerZone.Current),
         };
     }
 
@@ -4804,7 +4804,7 @@ public partial class GoalSettingService : IGoalSettingService
     {
         Id = r.Id, CommentText = r.Text, PostedByMemberId = r.PostedBy, PostedByName = r.FromName,
         PostedByTier = DistrictSideTier, PostedByRoleLabel = r.FromRole, IsMine = r.PostedBy == viewer,
-        CreatedDate = r.Created.ToString("yyyy-MM-dd HH:mm"), DistrictId = r.DistrictId, DistrictNumber = r.DistrictNumber,
+        CreatedDate = ZoneTime.Print(r.Created, "yyyy-MM-dd HH:mm"), DistrictId = r.DistrictId, DistrictNumber = r.DistrictNumber,
         CategoryName = r.CategoryName,
     };
 
@@ -4864,7 +4864,7 @@ public partial class GoalSettingService : IGoalSettingService
         {
             Id = id, CommentText = trimmed, PostedByMemberId = memberId, PostedByName = await MemberNameAsync(conn, memberId),
             PostedByTier = DistrictSideTier, PostedByRoleLabel = role, IsMine = true,
-            CreatedDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm"), DistrictId = districtId,
+            CreatedDate = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm"), DistrictId = districtId,
             DistrictNumber = await conn.ExecuteScalarAsync<string?>("SELECT DistrictNumber FROM district_master WHERE pk_district_id=@D", new { D = districtId }),
         };
     }
@@ -4888,7 +4888,7 @@ public partial class GoalSettingService : IGoalSettingService
                 CategoryName = last.CategoryName, MessageCount = g.Count(),
                 UnreadCount = g.Count(r => r.PostedBy != memberId && (seen == null || r.Created > seen.Value)),
                 LastFrom = last.FromName, LastFromRole = last.FromRole, LastPreview = last.Text,
-                LastDate = last.Created.ToString("yyyy-MM-dd HH:mm"),
+                LastDate = ZoneTime.Print(last.Created, "yyyy-MM-dd HH:mm"),
             });
         }
         return result.OrderByDescending(x => x.LastDate).ToList();
@@ -4937,7 +4937,7 @@ public partial class GoalSettingService : IGoalSettingService
         ws.Column(5).Width = 28; ws.Column(6).Width = 70; ws.Column(7).Width = 22;
         int r = 1;
         RenderTitleBand(ws, 7, "Goal Messages Report",
-            $"{zoneName}   ·   Rotary Year {yearLabel}   ·   Generated {DateTime.Now:dd MMM yyyy, hh:mm tt}", ref r);
+            $"{zoneName}   ·   Rotary Year {yearLabel}   ·   Generated {DateTime.UtcNow:dd MMM yyyy, hh:mm tt}", ref r);
         string[] hs = { "Sr No", "Category", "District", "Role", "From", "Message", "Date & Time" };
         for (int c = 0; c < hs.Length; c++) { var cell = ws.Cell(r, c + 1); cell.Value = hs[c]; StyleHeaderCell(cell); }
         r++;
@@ -4945,7 +4945,7 @@ public partial class GoalSettingService : IGoalSettingService
         var all = (await DistrictSideReportRowsAsync(conn, memberId, yearId, zoneId, categoryId, districtId))
             .Select(d => (Sort: d.CategorySort, Cat: d.CategoryName, Did: d.DistrictId, Dnum: d.DistrictNumber,
                 Role: d.FromRole ?? "District Admin", From: d.FromName, Msg: d.Text,
-                Dt: d.Created.ToString("dd MMM yyyy, hh:mm tt"), Raw: d.Created)).ToList();
+                Dt: ZoneTime.Print(d.Created, "dd MMM yyyy, hh:mm tt"), Raw: d.Created)).ToList();
         int sr = 1;
         foreach (var row in all.OrderBy(x => x.Sort).ThenBy(x => x.Raw))
         {

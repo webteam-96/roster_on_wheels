@@ -16,7 +16,7 @@ public class ClubAdvertisementService : IClubAdvertisementService
         _env = env;
     }
 
-    private MySqlConnection CreateConnection() => new(_connectionString);
+    private MySqlConnection CreateConnection() => RowDb.Connect(_connectionString);
 
     public async Task<List<ClubAdvertisementDto>> GetByClubAsync(int clubId, int yearId)
     {

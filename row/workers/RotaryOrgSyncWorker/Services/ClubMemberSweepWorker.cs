@@ -1,3 +1,4 @@
+using RotaryApi.Services;
 using ClosedXML.Excel;
 using Dapper;
 using Microsoft.Extensions.Configuration;
@@ -38,7 +39,7 @@ public class ClubMemberSweepWorker
             ?? throw new InvalidOperationException("ConnectionStrings:DefaultConnection missing");
     }
 
-    private MySqlConnection CreateConnection() => new(_connectionString);
+    private MySqlConnection CreateConnection() => RowDb.Connect(_connectionString);
 
     // Daily-delta mode flags. When set, RunAsync restricts club iteration to these RotaryIds and
     // applies an admission-date cutoff for ADDs (skip historical members not joined recently).
@@ -220,8 +221,8 @@ public class ClubMemberSweepWorker
         _admissionDateFilter = windowStart.Date;
         _isDailyDelta = true;
 
-        Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] === Member Daily Delta START ===");
-        Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Window: {windowStart:yyyy-MM-dd HH:mm}Z → {windowEnd:yyyy-MM-dd HH:mm}Z");
+        Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] === Member Daily Delta START ===");
+        Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] Window: {windowStart:yyyy-MM-dd HH:mm}Z → {windowEnd:yyyy-MM-dd HH:mm}Z");
 
         try
         {
@@ -249,18 +250,18 @@ public class ClubMemberSweepWorker
                 var matchedIds = matched.Select(m => m.clubRotaryId).ToHashSet(StringComparer.OrdinalIgnoreCase);
                 var missing = rotaryIdStrings.Where(id => !matchedIds.Contains(id)).ToList();
                 if (missing.Count > 0)
-                    Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] --club-id: {missing.Count} ClubRotaryId(s) NOT found in club_master → skipping: {string.Join(", ", missing)}");
+                    Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] --club-id: {missing.Count} ClubRotaryId(s) NOT found in club_master → skipping: {string.Join(", ", missing)}");
                 if (matched.Count == 0)
                 {
-                    Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] --club-id: no ClubRotaryId matched. Nothing to sync.");
+                    Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] --club-id: no ClubRotaryId matched. Nothing to sync.");
                     return;
                 }
 
-                Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] --club-id: matched {matched.Count} club(s) in club_master:");
+                Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] --club-id: matched {matched.Count} club(s) in club_master:");
                 foreach (var m in matched)
-                    Console.WriteLine($"[{DateTime.Now:HH:mm:ss}]   • {m.clubRotaryId} — {m.clubName}");
+                    Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}]   • {m.clubRotaryId} — {m.clubName}");
 
-                Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Bypassing /clubs/updates gate; running daily-delta logic on just these {matched.Count} club(s).");
+                Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] Bypassing /clubs/updates gate; running daily-delta logic on just these {matched.Count} club(s).");
                 _restrictedClubRotaryIds = matchedIds;
                 await RunAsync(specificClubId: null, ct: ct);
                 return;
@@ -270,11 +271,11 @@ public class ClubMemberSweepWorker
             _restrictedClubRotaryIds = new HashSet<string>(
                 changed.Select(c => c.ClubId.ToString()),
                 StringComparer.OrdinalIgnoreCase);
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] /clubs/updates returned {changed.Count} changed club(s)");
+            Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] /clubs/updates returned {changed.Count} changed club(s)");
 
             if (_restrictedClubRotaryIds.Count == 0)
             {
-                Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] No clubs changed in window — nothing to sync");
+                Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] No clubs changed in window — nothing to sync");
                 return;
             }
 
@@ -303,7 +304,7 @@ public class ClubMemberSweepWorker
         IReadOnlyCollection<string>? districtNumbers = null, CancellationToken ct = default)
     {
         bool filterDistricts = districtNumbers is { Count: > 0 };
-        Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] === Member Count Reconcile START (mismatch-only){(filterDistricts ? $" — districts: {string.Join(", ", districtNumbers!)}" : "")} ===");
+        Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] === Member Count Reconcile START (mismatch-only){(filterDistricts ? $" — districts: {string.Join(", ", districtNumbers!)}" : "")} ===");
 
         // 1) Cheap Rotary.org counts for every club — one /clubs call. Count = active + honorary,
         //    plus the honorary count on its own (see step 3).
@@ -311,7 +312,7 @@ public class ClubMemberSweepWorker
         var orgCountByRid = new Dictionary<string, (int Total, int Honorary)>(StringComparer.OrdinalIgnoreCase);
         foreach (var c in orgClubs)
             orgCountByRid[c.ClubId.ToString()] = ((c.MemberCount ?? 0) + (c.HonoraryMemberCount ?? 0), c.HonoraryMemberCount ?? 0);
-        Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] /clubs: {orgClubs.Count} clubs (member counts loaded)");
+        Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] /clubs: {orgClubs.Count} clubs (member counts loaded)");
 
         // 2) ROW SYNC clubs + their current member count (total + honorary). Optionally scoped to
         //    specific districts (the club-page "Sync all mismatched — this district" button passes one DistrictNumber).
@@ -345,12 +346,12 @@ public class ClubMemberSweepWorker
             if (r.localCount != org.Total) { mismatched.Add(r.clubRotaryId); totalMismatch++; }
             else if (r.localHonorary != org.Honorary) { mismatched.Add(r.clubRotaryId); honoraryOnlyMismatch++; }
         }
-        Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Sync clubs: {rizClubs.Count}   checked vs /clubs: {checkedCount}   not in /clubs (skipped): {notInClubs}");
-        Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] MISMATCHED clubs to sweep: {mismatched.Count} (total count: {totalMismatch}, honorary count only: {honoraryOnlyMismatch})");
+        Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] Sync clubs: {rizClubs.Count}   checked vs /clubs: {checkedCount}   not in /clubs (skipped): {notInClubs}");
+        Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] MISMATCHED clubs to sweep: {mismatched.Count} (total count: {totalMismatch}, honorary count only: {honoraryOnlyMismatch})");
 
         if (mismatched.Count == 0)
         {
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Nothing to reconcile — all sync clubs match the /clubs count.");
+            Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] Nothing to reconcile — all sync clubs match the /clubs count.");
             return;
         }
 
@@ -386,12 +387,12 @@ public class ClubMemberSweepWorker
         CancellationToken ct = default)
     {
         var startedAt = DateTime.UtcNow;
-        Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] === Joining-Date-Only Sync START ===");
+        Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] === Joining-Date-Only Sync START ===");
         if (clubRotaryIds is { Count: > 0 })
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] (Filtered to ClubRotaryId(s): {string.Join(", ", clubRotaryIds)})");
+            Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] (Filtered to ClubRotaryId(s): {string.Join(", ", clubRotaryIds)})");
         if (districtNumbers is { Count: > 0 })
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] (Filtered to districts: {string.Join(", ", districtNumbers)})");
-        Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Honorary members: {(includeHonorary ? "included" : "skipped")} · concurrency={concurrency}");
+            Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] (Filtered to districts: {string.Join(", ", districtNumbers)})");
+        Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] Honorary members: {(includeHonorary ? "included" : "skipped")} · concurrency={concurrency}");
 
         // Load the same synced-club set the sweep uses, optionally filtered.
         List<(int pk_id, string clubRotaryId, string clubName)> clubs;
@@ -414,8 +415,8 @@ public class ClubMemberSweepWorker
             clubs = (await dbConn.QueryAsync<(int, string, string)>(
                 clubsSql, new { ClubRotaryIds = clubRotaryIdStrings, Districts = districtNumbers })).ToList();
         }
-        Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Clubs to process: {clubs.Count}");
-        if (clubs.Count == 0) { Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Nothing to do."); return; }
+        Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] Clubs to process: {clubs.Count}");
+        if (clubs.Count == 0) { Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] Nothing to do."); return; }
 
         int clubsDone = 0, clubsErr = 0, totalUpdated = 0, totalMatched = 0;
         using var gate = new SemaphoreSlim(Math.Max(1, concurrency));
@@ -458,7 +459,7 @@ public class ClubMemberSweepWorker
                 catch (Exception ex)
                 {
                     Interlocked.Increment(ref clubsErr);
-                    Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] {club.clubName,-40} API ERROR: {ex.Message}");
+                    Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] {club.clubName,-40} API ERROR: {ex.Message}");
                     return;
                 }
 
@@ -492,7 +493,7 @@ public class ClubMemberSweepWorker
                 Interlocked.Add(ref totalUpdated, clubUpdated);
                 Interlocked.Add(ref totalMatched, clubMatched);
                 var done = Interlocked.Increment(ref clubsDone);
-                Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] [{done}/{clubs.Count}] {club.clubName,-40} matched={clubMatched} updated={clubUpdated}");
+                Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] [{done}/{clubs.Count}] {club.clubName,-40} matched={clubMatched} updated={clubUpdated}");
             }
             catch (OperationCanceledException) { throw; }
             catch (Exception ex)
@@ -506,8 +507,8 @@ public class ClubMemberSweepWorker
         await Task.WhenAll(tasks);
 
         var elapsed = DateTime.UtcNow - startedAt;
-        Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] === Joining-Date-Only Sync DONE ===");
-        Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Clubs: {clubsDone} ok, {clubsErr} errored · Members matched: {totalMatched} · JoinedDate updated: {totalUpdated} · Elapsed: {elapsed:hh\\:mm\\:ss}");
+        Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] === Joining-Date-Only Sync DONE ===");
+        Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] Clubs: {clubsDone} ok, {clubsErr} errored · Members matched: {totalMatched} · JoinedDate updated: {totalUpdated} · Elapsed: {elapsed:hh\\:mm\\:ss}");
     }
 
     /// <summary>
@@ -528,10 +529,10 @@ public class ClubMemberSweepWorker
         var startedAt = DateTime.UtcNow;
         bool filterClubs = clubRotaryIds is { Count: > 0 };
         bool filterDistricts = districtNumbers is { Count: > 0 };
-        Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] === Date-of-Birth-Only Sync START ===");
-        if (filterClubs) Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] (Filtered to ClubRotaryId(s): {string.Join(", ", clubRotaryIds!)})");
-        if (filterDistricts) Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] (Filtered to districts: {string.Join(", ", districtNumbers!)})");
-        Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] concurrency={concurrency}");
+        Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] === Date-of-Birth-Only Sync START ===");
+        if (filterClubs) Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] (Filtered to ClubRotaryId(s): {string.Join(", ", clubRotaryIds!)})");
+        if (filterDistricts) Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] (Filtered to districts: {string.Join(", ", districtNumbers!)})");
+        Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] concurrency={concurrency}");
 
         // DISTINCT members to refresh. A member in several clubs is fetched once. With a club/district
         // filter we join through synced clubs; otherwise every member that has a RotaryId.
@@ -557,8 +558,8 @@ public class ClubMemberSweepWorker
             members = (await dbConn.QueryAsync<(int, string?, DateTime?)>(
                 sql, new { ClubRotaryIds = clubRotaryIdStrings, Districts = districtNumbers })).ToList();
         }
-        Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Members to check: {members.Count}");
-        if (members.Count == 0) { Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Nothing to do."); return; }
+        Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] Members to check: {members.Count}");
+        if (members.Count == 0) { Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] Nothing to do."); return; }
 
         int done = 0, updated = 0, matched = 0, noDob = 0, apiErr = 0, badId = 0;
         using var gate = new SemaphoreSlim(Math.Max(1, concurrency));
@@ -599,15 +600,15 @@ public class ClubMemberSweepWorker
             finally
             {
                 var d = Interlocked.Increment(ref done);
-                if (d % 250 == 0) Console.WriteLine($"[{DateTime.Now:HH:mm:ss}]   {d}/{members.Count} checked · updated={updated}");
+                if (d % 250 == 0) Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}]   {d}/{members.Count} checked · updated={updated}");
                 gate.Release();
             }
         });
         await Task.WhenAll(tasks);
 
         var elapsed = DateTime.UtcNow - startedAt;
-        Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] === Date-of-Birth-Only Sync DONE ===");
-        Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Members: {members.Count} · with DOB: {matched} · BirthDate updated: {updated} · no/invalid DOB: {noDob} · API errors: {apiErr} · bad RotaryId: {badId} · Elapsed: {elapsed:hh\\:mm\\:ss}");
+        Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] === Date-of-Birth-Only Sync DONE ===");
+        Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] Members: {members.Count} · with DOB: {matched} · BirthDate updated: {updated} · no/invalid DOB: {noDob} · API errors: {apiErr} · bad RotaryId: {badId} · Elapsed: {elapsed:hh\\:mm\\:ss}");
     }
 
     // Parse Rotary.org's DOB string with the FIXED US format — never culture-dependent. Rotary.org
@@ -633,7 +634,7 @@ public class ClubMemberSweepWorker
     /// </summary>
     public async Task RunMemberRefreshAsync(IReadOnlyList<long> rotaryIds, CancellationToken ct = default)
     {
-        Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] === Single-Member Refresh (DOB + JoinedDate) — {rotaryIds.Count} member(s) ===");
+        Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] === Single-Member Refresh (DOB + JoinedDate) — {rotaryIds.Count} member(s) ===");
         await using var conn = CreateConnection();
         await conn.OpenAsync(ct);
 
@@ -642,7 +643,7 @@ public class ClubMemberSweepWorker
             ct.ThrowIfCancellationRequested();
             var ridStr = rid.ToString();
             Console.WriteLine("");
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] ── RotaryId {ridStr} ──");
+            Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] ── RotaryId {ridStr} ──");
 
             var member = await conn.QueryFirstOrDefaultAsync<(int pk, string? name, DateTime? birthDate)>(@"
                 SELECT pk_member_master_profile_id AS pk, MemberName AS name, BirthDate AS birthDate
@@ -710,7 +711,7 @@ public class ClubMemberSweepWorker
             }
         }
         Console.WriteLine("");
-        Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] === Single-Member Refresh DONE ===");
+        Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] === Single-Member Refresh DONE ===");
     }
 
     // Last 10 digits of a phone string (digits only). "" if fewer than 10 digits.
@@ -738,7 +739,7 @@ public class ClubMemberSweepWorker
     {
         var startedAt = DateTime.UtcNow;
         bool filterDistricts = districtNumbers is { Count: > 0 };
-        Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] === No-RotaryId Dedup ({(apply ? "APPLY" : "AUDIT — dry run, no writes")}){(filterDistricts ? $" · districts: {string.Join(",", districtNumbers!)}" : "")} ===");
+        Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] === No-RotaryId Dedup ({(apply ? "APPLY" : "AUDIT — dry run, no writes")}){(filterDistricts ? $" · districts: {string.Join(",", districtNumbers!)}" : "")} ===");
 
         List<NoRidRow> rows;
         await using (var conn = CreateConnection())
@@ -810,7 +811,7 @@ public class ClubMemberSweepWorker
                     didMove = n > 0; if (didMove) moved++;
                 }
                 // Soft-delete the no-RID duplicate from THIS club (full cascade; profile untouched).
-                await TerminateFromClubAsync(w, r.clubId, r.noridPk, DateTime.Today,
+                await TerminateFromClubAsync(w, r.clubId, r.noridPk, DateTime.UtcNow.Date,
                     $"No Rotary ID — duplicate of RID {r.ridRotaryId}", ct);
                 deleted++;
                 await w.ExecuteAsync(@"INSERT INTO dedup_norid_log
@@ -825,7 +826,7 @@ public class ClubMemberSweepWorker
         }
 
         var elapsed = DateTime.UtcNow - startedAt;
-        Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] === No-RotaryId Dedup {(apply ? "APPLIED" : "AUDIT")} — {elapsed:hh\\:mm\\:ss} ===");
+        Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] === No-RotaryId Dedup {(apply ? "APPLIED" : "AUDIT")} — {elapsed:hh\\:mm\\:ss} ===");
         Console.WriteLine($"  No-RID members (with twin): {a + b + cCnt + dCnt}   |   NO twin (left for review): {skipNoTwin}");
         Console.WriteLine($"  A delete-no-mobile: {a}   B already-on-RID: {b}   C copy->secondary: {cCnt}   D conflict(delete anyway): {dCnt}");
         if (apply) Console.WriteLine($"  APPLIED → duplicates soft-deleted: {deleted}   mobiles salvaged: {moved}   errors: {errors}   (see dedup_norid_log)");
@@ -871,16 +872,16 @@ public class ClubMemberSweepWorker
         var matchedIds = matched.Select(m => m.clubRotaryId).ToHashSet(StringComparer.OrdinalIgnoreCase);
         var missing = rotaryIdStrings.Where(id => !matchedIds.Contains(id)).ToList();
         if (missing.Count > 0)
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] --club-id: {missing.Count} ClubRotaryId(s) NOT found in club_master → skipping: {string.Join(", ", missing)}");
+            Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] --club-id: {missing.Count} ClubRotaryId(s) NOT found in club_master → skipping: {string.Join(", ", missing)}");
         if (matched.Count == 0)
         {
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] --club-id: no ClubRotaryId matched. Nothing to sync.");
+            Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] --club-id: no ClubRotaryId matched. Nothing to sync.");
             return;
         }
 
-        Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] --club-id: matched {matched.Count} club(s) in club_master:");
+        Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] --club-id: matched {matched.Count} club(s) in club_master:");
         foreach (var m in matched)
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss}]   • {m.clubRotaryId} — {m.clubName}");
+            Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}]   • {m.clubRotaryId} — {m.clubName}");
 
         try
         {
@@ -904,18 +905,18 @@ public class ClubMemberSweepWorker
         if (!File.Exists(xlsxPath))
             throw new FileNotFoundException($"Failed-list file not found: {xlsxPath}");
 
-        Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] === Failed-List Re-Sync START ===");
-        Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Reading {xlsxPath}");
+        Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] === Failed-List Re-Sync START ===");
+        Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] Reading {xlsxPath}");
 
         var pairs = ReadFailedListFromExcel(xlsxPath);
         if (pairs.Count == 0)
         {
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] No (RotaryId, ClubRotaryId) pairs found — exiting.");
+            Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] No (RotaryId, ClubRotaryId) pairs found — exiting.");
             return;
         }
 
         var clubCount = pairs.Select(p => p.ClubRotaryId).Distinct(StringComparer.OrdinalIgnoreCase).Count();
-        Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Parsed {pairs.Count} member rows across {clubCount} club(s).");
+        Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] Parsed {pairs.Count} member rows across {clubCount} club(s).");
 
         // Resolve any ROW pk_club_id entries (when source Excel used 'ClubId' column from
         // a previous sweep's Errors sheet, which carries the ROW internal PK, not the
@@ -935,7 +936,7 @@ public class ClubMemberSweepWorker
                 new { Ids = pkSet.Select(int.Parse) });
             foreach (var r in resolved)
                 pkToRotaryId[r.pk_id.ToString()] = r.clubRotaryId;
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Resolved {pkToRotaryId.Count}/{pkSet.Count} ROW pk_club_id values to ClubRotaryId.");
+            Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] Resolved {pkToRotaryId.Count}/{pkSet.Count} ROW pk_club_id values to ClubRotaryId.");
         }
 
         // Normalize: replace any pk values with their ClubRotaryId equivalent, drop unresolved
@@ -947,7 +948,7 @@ public class ClubMemberSweepWorker
             .ToList();
 
         if (resolvedPairs.Count < pairs.Count)
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Dropped {pairs.Count - resolvedPairs.Count} row(s) with unresolved club references.");
+            Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] Dropped {pairs.Count - resolvedPairs.Count} row(s) with unresolved club references.");
 
         _restrictedClubMemberPairs = resolvedPairs
             .GroupBy(p => p.ClubRotaryId, StringComparer.OrdinalIgnoreCase)
@@ -1042,11 +1043,11 @@ public class ClubMemberSweepWorker
         var startedAt = DateTime.UtcNow;
         _conflictRows.Clear();  // reset per-run "Inserted=Yes" conflict rows for the emailed Excel
         var modeLabel = _isMismatchReconcile ? "Member Count Reconcile (mismatch)" : (_isDailyDelta ? "Member Daily Delta" : "Club Member Sweep");
-        Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] === {modeLabel} START ===");
+        Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] === {modeLabel} START ===");
         if (specificClubId.HasValue)
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] (Test mode — only club id {specificClubId.Value})");
+            Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] (Test mode — only club id {specificClubId.Value})");
         if (districtNumbers != null && districtNumbers.Count > 0)
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] (Filtered to districts: {string.Join(", ", districtNumbers)})");
+            Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] (Filtered to districts: {string.Join(", ", districtNumbers)})");
 
         int logId;
         await using (var conn = CreateConnection())
@@ -1059,7 +1060,7 @@ public class ClubMemberSweepWorker
                 SELECT LAST_INSERT_ID();",
                 new { By = triggeredBy });
         }
-        Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Log row created — logId={logId}");
+        Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] Log row created — logId={logId}");
 
         var added = new List<MemberChangeRow>();
         var updated = new List<MemberChangeRow>();
@@ -1096,9 +1097,9 @@ public class ClubMemberSweepWorker
             {
                 var before = clubs.Count;
                 clubs = clubs.Where(c => _restrictedClubRotaryIds.Contains(c.clubRotaryId)).ToList();
-                Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Daily-delta filter: {clubs.Count}/{before} synced clubs are in changed list");
+                Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] Daily-delta filter: {clubs.Count}/{before} synced clubs are in changed list");
             }
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Clubs to process: {clubs.Count}");
+            Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] Clubs to process: {clubs.Count}");
 
             int clubIdx = 0;
             foreach (var club in clubs)
@@ -1158,7 +1159,7 @@ public class ClubMemberSweepWorker
                     totalErrors++;
                     errors.Add(new MemberErrorRow { ClubId = club.pk_id, ClubName = club.clubName, MemberRotaryId = "", Reason = $"API: {ex.Message}" });
                     perClub.Add((club.pk_id, club.clubRotaryId, club.clubName, 0, 0, 0, 0, 1, $"api error: {ex.Message}"));
-                    Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] [{clubIdx}/{clubs.Count}] {club.clubName,-40} API ERROR: {ex.Message}");
+                    Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] [{clubIdx}/{clubs.Count}] {club.clubName,-40} API ERROR: {ex.Message}");
                     continue;
                 }
 
@@ -1203,7 +1204,7 @@ public class ClubMemberSweepWorker
                 // (that's a targeted retry, not a full reconciliation).
                 if (_isFailedListMode)
                 {
-                    Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] [{clubIdx}/{clubs.Count}] {club.clubName,-40} skip-terminate (failed-list mode)");
+                    Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] [{clubIdx}/{clubs.Count}] {club.clubName,-40} skip-terminate (failed-list mode)");
                 }
                 else
                 {
@@ -1342,13 +1343,13 @@ public class ClubMemberSweepWorker
                     }
                 }
 
-                Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] [{clubIdx}/{clubs.Count}] {club.clubName,-40} api={apiMembers.Count,4} (act={activeCount} hon={honoraryCount}) +{clubAdded,3} ~{clubUpdated,3} -{clubTerminated,3} err={clubErrors}");
+                Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] [{clubIdx}/{clubs.Count}] {club.clubName,-40} api={apiMembers.Count,4} (act={activeCount} hon={honoraryCount}) +{clubAdded,3} ~{clubUpdated,3} -{clubTerminated,3} err={clubErrors}");
                 perClub.Add((club.pk_id, club.clubRotaryId, club.clubName, apiMembers.Count, clubAdded, clubUpdated, clubTerminated, clubErrors, status));
             }
 
             var elapsed = DateTime.UtcNow - startedAt;
             Console.WriteLine("");
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] === Club Member Sweep DONE in {elapsed.TotalMinutes:F1} min ===");
+            Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] === Club Member Sweep DONE in {elapsed.TotalMinutes:F1} min ===");
             Console.WriteLine($"  Clubs processed:       {clubs.Count}");
             Console.WriteLine($"  Members added:         {totalAdded}");
             Console.WriteLine($"  Members updated:       {totalUpdated}");
@@ -1367,7 +1368,7 @@ public class ClubMemberSweepWorker
         }
         catch (Exception ex)
         {
-            Console.Error.WriteLine($"[{DateTime.Now:HH:mm:ss}] CLUB MEMBER SWEEP FAILED: {ex.Message}");
+            Console.Error.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] CLUB MEMBER SWEEP FAILED: {ex.Message}");
             _logger.LogError(ex, "Club member sweep FAILED");
             try
             {
@@ -1405,7 +1406,7 @@ public class ClubMemberSweepWorker
         var dobN = ParseRotaryDob(dobRaw);   // fixed MM/dd/yyyy parse — never culture-dependent
         if (dobN == null) return null;
         var dob = dobN.Value;
-        var today = DateTime.Today;
+        var today = DateTime.UtcNow.Date;
         var age = today.Year - dob.Year;
         if (dob.Date > today.AddYears(-age)) age--;
         if (age >= 18 && age <= 40) return 1;
@@ -2196,7 +2197,7 @@ public class ClubMemberSweepWorker
     {
         if (string.IsNullOrWhiteSpace(birthYear)) return null;
         if (!int.TryParse(birthYear.Trim(), out var year)) return null;
-        var age = DateTime.Today.Year - year;
+        var age = DateTime.UtcNow.Date.Year - year;
         if (age >= 18 && age <= 40) return 1;
         return 0;
     }
@@ -2328,7 +2329,7 @@ public class ClubMemberSweepWorker
             // Use the actual TerminationDate + TerminationReason from Rotary.org's
             // /members/terminated endpoint when available. Falls back to today + generic message
             // when the member is missing from /members but Rotary.org provided no terminated row.
-            var termDate = actualTerminationDate?.Date ?? DateTime.Today;
+            var termDate = actualTerminationDate?.Date ?? DateTime.UtcNow.Date;
             var termReason = string.IsNullOrWhiteSpace(actualTerminationReason)
                 ? "Removed from Rotary.org active list"
                 : actualTerminationReason!.Trim();
@@ -2485,7 +2486,7 @@ public class ClubMemberSweepWorker
             using var ms = new MemoryStream();
             workbook.SaveAs(ms);
             var bytes = ms.ToArray();
-            var fileName = $"RotaryOrg_ClubMemberSweep_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx";
+            var fileName = $"RotaryOrg_ClubMemberSweep_{DateTime.UtcNow:yyyyMMdd_HHmmss}.xlsx";
 
             var triggeredByName = _config["RotaryOrgSync:TriggeredByName"] ?? "Admin";
 
@@ -2517,13 +2518,13 @@ public class ClubMemberSweepWorker
             var subjectKind = _isFailedListMode ? "Member Failed-List Retry"
                 : _isMismatchReconcile ? "Mismatch Member Sync"
                 : (_isDailyDelta ? "Member Delta" : "Member Full Sweep");
-            await _emailSender.SendReportAsync($"{subjectPrefix} ROW {subjectKind} — {DateTime.Now:dd MMM yyyy}", body, bytes, fileName);
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Email sent.");
+            await _emailSender.SendReportAsync($"{subjectPrefix} ROW {subjectKind} — {DateTime.UtcNow:dd MMM yyyy}", body, bytes, fileName);
+            Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] Email sent.");
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Sweep email FAILED");
-            Console.Error.WriteLine($"[{DateTime.Now:HH:mm:ss}] Email failed: {ex.Message}");
+            Console.Error.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] Email failed: {ex.Message}");
         }
     }
 

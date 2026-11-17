@@ -27,7 +27,7 @@ public class ClubAnalyticsController : ControllerBase
         _yearTables = yearTables;
     }
 
-    private MySqlConnection Conn() => new(_cs);
+    private MySqlConnection Conn() => RowDb.Connect(_cs);
     private bool IsAuthorised()
     {
         var roles = User.FindFirst("roles")?.Value ?? "";
@@ -143,7 +143,7 @@ public class ClubAnalyticsController : ControllerBase
                 ? BuildClubReportExcel(rows[0], yearLabel, ocvDues)
                 : BuildExcel(rows);
         return File(bytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-            $"club-analytics-{DateTime.Now:yyyyMMdd-HHmm}.xlsx");
+            $"club-analytics-{DateTime.UtcNow:yyyyMMdd-HHmm}.xlsx");
     }
 
     // Print-friendly single-club report — vertical label/value layout grouped into sections, styled and
@@ -189,7 +189,7 @@ public class ClubAnalyticsController : ControllerBase
 
         ws.Range(r, 1, r, 2).Merge();
         var gen = ws.Cell(r, 1);
-        gen.Value = T("Generated {0}", DateTime.Now.ToString("dd MMM yyyy, hh:mm tt"));
+        gen.Value = T("Generated {0}", DateTime.UtcNow.ToString("dd MMM yyyy, hh:mm tt"));
         gen.Style.Font.FontSize = 8;
         gen.Style.Font.Italic = true;
         gen.Style.Font.FontColor = XLColor.FromHtml("#94a3b8");

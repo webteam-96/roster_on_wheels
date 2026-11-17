@@ -1,3 +1,4 @@
+using RotaryApi.Services;
 using ClosedXML.Excel;
 using Dapper;
 using MySqlConnector;
@@ -21,7 +22,7 @@ public static class ExcelValidate
         var want = districts.ToHashSet(StringComparer.OrdinalIgnoreCase);
         var values = DbWriter.BuildRows(sheets, yearLabel).Where(v => want.Count == 0 || want.Contains(v.District)).ToList();
 
-        await using var db = new MySqlConnection(s.ConnectionString);
+        await using var db = RowDb.Connect(s.ConnectionString);
         await db.OpenAsync();
         var res = await DbWriter.ResolveAsync(db, values);
         var dIds = res.DistrictIds.Where(d => want.Count == 0 || want.Contains(d.Key)).Select(d => d.Value).ToList();

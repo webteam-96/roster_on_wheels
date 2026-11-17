@@ -98,7 +98,7 @@ export default function GoalOversightPage() {
               <select
                 value={yearId ?? ""}
                 onChange={(e) => setYearId(e.target.value ? Number(e.target.value) : null)}
-                className="h-9 rounded-[12px] border border-slate-300 bg-white px-3 text-sm text-slate-700 focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                className="h-9 rounded-[12px] border border-slate-300 bg-card px-3 text-sm text-slate-700 focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
               >
                 {years.map((y) => <option key={y.id} value={y.id}>{y.yearLabel}{y.isCurrent ? " (current)" : ""}</option>)}
               </select>

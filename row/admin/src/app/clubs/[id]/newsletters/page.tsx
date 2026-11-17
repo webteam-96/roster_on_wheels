@@ -65,7 +65,7 @@ function StatusBadge({ status }: { status: string }) {
 function TypeBadge({ type }: { type: string }) {
   const isLink = type === "link";
   return (
-    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${isLink ? "bg-blue-100 text-blue-700" : "bg-[#CFE2F6] text-purple-700"}`}>
+    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${isLink ? "bg-blue-100 text-blue-700" : "bg-[#CFE2F6] text-slate-700"}`}>
       {isLink ? "Link" : "File"}
     </span>
   );

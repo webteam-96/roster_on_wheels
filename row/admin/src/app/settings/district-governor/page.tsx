@@ -526,7 +526,7 @@ export default function DistrictGovernorPage() {
                     />
                     {searching && <div className="absolute right-3 top-2.5"><RotaryLoader size="sm" /></div>}
                     {memberResults.length > 0 && (
-                      <div className="absolute z-50 w-full mt-1 bg-white border rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                      <div className="absolute z-50 w-full mt-1 bg-card border rounded-lg shadow-lg max-h-60 overflow-y-auto">
                         {memberResults.map((m: any) => (
                           <button
                             key={m.memberId}

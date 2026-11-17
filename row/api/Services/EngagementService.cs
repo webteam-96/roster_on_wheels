@@ -116,7 +116,7 @@ public class EngagementService
     public async Task<(int Milestones, int Highlights)> RunAsync(int? districtId, CancellationToken ct = default, int fromLocalHour = 0)
     {
         if (!await IsOnAsync(_connectionString)) return (0, 0);
-        await using var conn = new MySqlConnection(_connectionString);
+        await using var conn = RowDb.Connect(_connectionString);
         await conn.OpenAsync(ct);
 
         var highlights = await CapturePhfAsync(conn, null, districtId);

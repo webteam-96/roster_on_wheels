@@ -25,7 +25,7 @@ public class PushLogCleanupBackgroundService : BackgroundService
     {
         while (!stoppingToken.IsCancellationRequested)
         {
-            var now = DateTime.Now;
+            var now = DateTime.UtcNow;
             var next = now.Date.Add(ScheduledTimeOfDay);
             if (next <= now) next = next.AddDays(1);
             var delay = next - now;
@@ -43,10 +43,10 @@ public class PushLogCleanupBackgroundService : BackgroundService
         try
         {
             var connStr = _config.GetConnectionString("DefaultConnection")!;
-            using var conn = new MySqlConnection(connStr);
+            using var conn = RowDb.Connect(connStr);
             await conn.OpenAsync(ct);
 
-            var cutoff = DateTime.Now.Subtract(RetentionDays);
+            var cutoff = DateTime.UtcNow.Subtract(RetentionDays);
             int total = 0;
             foreach (var table in new[] {
                 "announcement_push_log",

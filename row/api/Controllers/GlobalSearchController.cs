@@ -50,7 +50,7 @@ public class GlobalSearchController : ControllerBase
 
         var like = $"%{term}%";
 
-        using var conn = new MySqlConnection(_connectionString);
+        using var conn = RowDb.Connect(_connectionString);
         await conn.OpenAsync();
 
         // Zones — match by ZoneName. Includes district / club / member rollups for the row.
@@ -183,7 +183,7 @@ public class GlobalSearchController : ControllerBase
         if (!await IsSuperAdminAsync())
             return StatusCode(403, new { message = "SuperAdmin access required." });
 
-        using var conn = new MySqlConnection(_connectionString);
+        using var conn = RowDb.Connect(_connectionString);
         await conn.OpenAsync();
         var rows = (await conn.QueryAsync<dynamic>(@"
             SELECT d.pk_district_id AS id, d.DistrictNumber AS districtNumber, d.Country AS country
@@ -196,7 +196,7 @@ public class GlobalSearchController : ControllerBase
 
     private async Task<bool> IsSuperAdminAsync()
     {
-        using var conn = new MySqlConnection(_connectionString);
+        using var conn = RowDb.Connect(_connectionString);
         await conn.OpenAsync();
         var count = await conn.ExecuteScalarAsync<int>(
             @"SELECT COUNT(*) FROM member_roles

@@ -29,7 +29,7 @@ public class DistrictDirectoryController : ControllerBase
         _connectionString = config.GetConnectionString("DefaultConnection")!;
     }
 
-    private MySqlConnection CreateConnection() => new(_connectionString);
+    private MySqlConnection CreateConnection() => RowDb.Connect(_connectionString);
 
     // m.* also carries the member's device and app sign-in trail (push token, IMEI): never directory data.
     private static readonly string[] DeviceColumns =

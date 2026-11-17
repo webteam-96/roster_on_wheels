@@ -239,7 +239,7 @@ export default function DistrictProjectEditPage() {
 
           {/* Funding-conditional: Global Grant fields */}
           {showGlobalGrantBlock && (
-            <div className="space-y-3 border-l-4 border-primary bg-primary/5 rounded-md p-4">
+            <div className="space-y-3 border border-primary/30 bg-primary/5 rounded-md p-4">
               <h4 className="text-sm font-semibold text-primary">Global Grant Details</h4>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2"><Label>Global Grant Number <span className="text-destructive">*</span></Label><Input inputMode="numeric" pattern="[0-9]*" value={globalGrantNumber} onChange={e => setGlobalGrantNumber(onlyDigits(e.target.value))} placeholder="e.g., 2434521" /></div>
@@ -254,7 +254,7 @@ export default function DistrictProjectEditPage() {
 
           {/* Funding-conditional: CSR fields */}
           {showCsrBlock && (
-            <div className="space-y-3 border-l-4 border-primary bg-primary/5 rounded-md p-4">
+            <div className="space-y-3 border border-primary/30 bg-primary/5 rounded-md p-4">
               <h4 className="text-sm font-semibold text-primary">CSR Details</h4>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2 md:col-span-2"><Label>Name of the CSR Company <span className="text-destructive">*</span></Label><Input value={csrCompanyName} onChange={e => setCsrCompanyName(e.target.value)} placeholder="e.g., ABC Industries Ltd" /></div>

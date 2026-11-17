@@ -59,7 +59,7 @@ public class CmrSubmissionMailer : ICmrSubmissionMailer
 
         try
         {
-            await using var conn = new MySqlConnection(_conn);
+            await using var conn = RowDb.Connect(_conn);
             await conn.OpenAsync();
 
             var rpt = await conn.QueryFirstOrDefaultAsync<(int YearId, int Month)?>(

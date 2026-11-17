@@ -88,6 +88,8 @@ builder.Services.AddRateLimiter(o =>
 builder.Services.AddControllers(o =>
     {
         o.Conventions.Add(new RotaryApi.Services.PublicCorsControllerConvention());
+        // Dates in forms and query strings follow the same zone rule as JSON bodies (ViewerZone).
+        o.ModelBinderProviders.Insert(0, new RotaryApi.Services.ViewerZoneDateTimeBinderProvider());
         // Every uploaded photo is re-saved at 2560 px / JPEG 88 before the action sees it (D: disk space).
         o.Filters.Add<RotaryApi.Services.PhotoUploadOptimizeFilter>();
     })
@@ -477,7 +479,10 @@ builder.Services.AddDataProtection()
     .SetApplicationName("RotaryApi")
     .PersistKeysToFileSystem(new DirectoryInfo(Path.Combine(builder.Environment.ContentRootPath, "App_Data", "dp-keys")));
 
+builder.Services.AddHttpContextAccessor();
 var app = builder.Build();
+RotaryApi.Services.BackgroundWork.Logger = app.Logger;
+RotaryApi.Services.ViewerZone.Accessor = app.Services.GetRequiredService<IHttpContextAccessor>();
 app.UseForwardedHeaders(); // first, so the rate limiter, audit log and HTTPS checks see the real client
 // Hosted as the IIS application "/api" inside the site (test go-live, row/deploy/iis/README.md): IIS moves "/api" into
 // PathBase, but every route starts with "api/", so put it back. Media folders (uploads, Documents, ...) are served
@@ -908,6 +913,9 @@ app.UseStaticFiles(new Microsoft.AspNetCore.Builder.StaticFileOptions
             ctx.Context.Response.Headers["Access-Control-Allow-Origin"] = origin;
             ctx.Context.Response.Headers["Vary"] = "Origin";
         }
+        // An uploaded SVG can carry script; sandbox it so opening it on this origin runs nothing.
+        if (ctx.File.Name.EndsWith(".svg", StringComparison.OrdinalIgnoreCase))
+            ctx.Context.Response.Headers["Content-Security-Policy"] = "default-src 'none'; img-src 'self' data:; style-src 'unsafe-inline'; sandbox";
     }
 });
 app.MapControllers();

@@ -98,7 +98,7 @@ export default function CurrencySettingsPage() {
         {loading ? (
           <RotaryLoader />
         ) : (
-          <div className="overflow-x-auto border rounded-lg bg-white">
+          <div className="overflow-x-auto border rounded-lg bg-card">
             <table className="w-full min-w-[640px] md:min-w-full text-sm">
               <thead className="bg-[#EDF4FB] text-[13px] text-[#64748B]">
                 <tr>
@@ -120,7 +120,7 @@ export default function CurrencySettingsPage() {
                         value={d.defaultCurrency || defaultCurrency()}
                         onChange={(e) => handleChange(d, e.target.value)}
                         disabled={savingId === d.id}
-                        className="w-full px-2.5 py-1.5 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-primary/50 disabled:opacity-60"
+                        className="w-full px-2.5 py-1.5 text-sm border border-slate-200 rounded-lg bg-card focus:outline-none focus:ring-2 focus:ring-primary/50 disabled:opacity-60"
                       >
                         {currencyOptions().map((c) => (
                           <option key={c.code} value={c.code}>{c.label}</option>

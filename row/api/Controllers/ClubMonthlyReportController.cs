@@ -174,7 +174,7 @@ public class ClubMonthlyReportController : ControllerBase
         // Runs in the background (own DI scope) so the submit returns immediately and survives the
         // user leaving the page. Best-effort — the mailer swallows + logs any failure.
         var userId = GetUserId();
-        _ = Task.Run(async () =>
+        BackgroundWork.Run("CMR submission emails", async () =>
         {
             using var scope = _scopeFactory.CreateScope();
             var mailer = scope.ServiceProvider.GetRequiredService<ICmrSubmissionMailer>();

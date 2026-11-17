@@ -44,7 +44,7 @@ public class AnnouncementPushBackgroundService : BackgroundService
     private async Task ProcessDueAnnouncementsAsync(CancellationToken ct)
     {
         var connStr = _config.GetConnectionString("DefaultConnection")!;
-        using var conn = new MySqlConnection(connStr);
+        using var conn = RowDb.Connect(connStr);
         await conn.OpenAsync(ct);
 
         // Club-level (fk_district_id NULL) and District-level both handled; RI-scope skipped.

@@ -553,7 +553,7 @@ export default function DistrictAwardsModule({ districtId }: { districtId: numbe
       </div>
 
       {/* ── Tabs panel ────────────────────────────────────────────────── */}
-      <div className="bg-white rounded-2xl border border-slate-200">
+      <div className="bg-card rounded-2xl border border-slate-200">
         <div className="px-5 py-3 border-b border-slate-100 flex items-start justify-between gap-3 flex-wrap">
           <div>
             <h3 className="text-sm font-semibold text-slate-800">District Awards Configuration</h3>
@@ -625,12 +625,12 @@ export default function DistrictAwardsModule({ districtId }: { districtId: numbe
                 </div>
               )}
               {categories.length === 0 ? (
-                <div className="rounded-xl border border-slate-200 bg-white flex flex-col items-center py-12">
+                <div className="rounded-xl border border-slate-200 bg-card flex flex-col items-center py-12">
                   <FolderOpen className="h-10 w-10 text-slate-300 mb-3" />
                   <p className="text-sm text-slate-500">No categories. Add one to get started.</p>
                 </div>
               ) : (
-                <ul className="rounded-[20px] border border-slate-200 bg-white divide-y divide-slate-100 overflow-hidden">
+                <ul className="rounded-[20px] border border-slate-200 bg-card divide-y divide-slate-100 overflow-hidden">
                   {categories.map((c: any) => (
                     <li key={c.id} className="px-5 py-3 flex items-center justify-between hover:bg-blue-50/40 transition">
                       <div className="flex items-center gap-3">
@@ -657,7 +657,7 @@ export default function DistrictAwardsModule({ districtId }: { districtId: numbe
 
           {/* Description Tab */}
           <TabsContent value="description" className="p-5 pt-4">
-            <div className="rounded-[20px] border border-slate-200 bg-white p-5 space-y-4">
+            <div className="rounded-[20px] border border-slate-200 bg-card p-5 space-y-4">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
                   <Label className="text-sm font-semibold text-slate-800">Description</Label>
@@ -711,14 +711,14 @@ export default function DistrictAwardsModule({ districtId }: { districtId: numbe
                 </div>
               )}
               {autoQuestions.length === 0 ? (
-                <div className="rounded-xl border border-slate-200 bg-white flex flex-col items-center py-12">
+                <div className="rounded-xl border border-slate-200 bg-card flex flex-col items-center py-12">
                   <Sparkles className="h-10 w-10 text-slate-300 mb-3" />
                   <p className="text-sm text-slate-500">No auto questions.</p>
                 </div>
               ) : (
                 <div className="space-y-3">
                   {autoQuestions.map((q: any) => (
-                    <div key={q.id} className="rounded-[20px] border border-slate-200 bg-white p-4 hover:shadow-sm transition">
+                    <div key={q.id} className="rounded-[20px] border border-slate-200 bg-card p-4 hover:shadow-sm transition">
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-2 flex-wrap">
@@ -778,14 +778,14 @@ export default function DistrictAwardsModule({ districtId }: { districtId: numbe
                 </div>
               )}
               {manualCriteria.length === 0 ? (
-                <div className="rounded-xl border border-slate-200 bg-white flex flex-col items-center py-12">
+                <div className="rounded-xl border border-slate-200 bg-card flex flex-col items-center py-12">
                   <ListChecks className="h-10 w-10 text-slate-300 mb-3" />
                   <p className="text-sm text-slate-500">No manual criteria.</p>
                 </div>
               ) : (
                 <div className="space-y-3">
                   {manualCriteria.map((mc: any) => (
-                    <div key={mc.id} className="rounded-[20px] border border-slate-200 bg-white p-4 hover:shadow-sm transition">
+                    <div key={mc.id} className="rounded-[20px] border border-slate-200 bg-card p-4 hover:shadow-sm transition">
                       <div className="flex items-start justify-between gap-3">
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 flex-wrap">
@@ -843,7 +843,7 @@ export default function DistrictAwardsModule({ districtId }: { districtId: numbe
               {clubPointsLoading ? (
                 <div className="flex justify-center py-10"><RotaryLoader size="lg" /></div>
               ) : (
-                <div className="rounded-[20px] border border-slate-200 bg-white overflow-hidden">
+                <div className="rounded-[20px] border border-slate-200 bg-card overflow-hidden">
                   <Table>
                     <TableHeader>
                       <TableRow className="bg-slate-50 hover:bg-slate-50 border-b border-slate-200">

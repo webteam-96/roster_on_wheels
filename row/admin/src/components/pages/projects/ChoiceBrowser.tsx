@@ -99,7 +99,7 @@ export function ChoiceBrowser({
               "inline-flex min-h-9 items-center gap-2 rounded-full px-3.5 py-1.5 text-[13px] font-semibold transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-dark focus-visible:ring-offset-2 focus-visible:ring-offset-porcelain " +
               (i.active
                 ? "bg-navy-950 text-cream ring-1 ring-navy-950"
-                : "bg-white text-navy-950 ring-1 ring-navy-950/[0.12] hover:ring-gold-dark")
+                : "bg-card text-navy-950 ring-1 ring-navy-950/[0.12] hover:ring-gold-dark")
             }
           >
             <span className="max-w-[16rem] truncate">{i.label}</span>

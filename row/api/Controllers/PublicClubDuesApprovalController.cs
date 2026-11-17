@@ -34,7 +34,7 @@ public class PublicClubDuesApprovalController : ControllerBase
         if (!ClubDuesApprovalToken.TryVerify(token, secret, out var payload, out var error))
             return Unauthorized(new { message = error });
 
-        await using var conn = new MySqlConnection(_connStr);
+        await using var conn = RowDb.Connect(_connStr);
         // camelCase aliases: this row is returned as a Dapper `dynamic` (DapperRow), whose keys are
         // serialized VERBATIM (the JSON camelCase policy only applies to typed objects), so the SQL
         // aliases must already be camelCase to match the approval page (info.amount, info.clubName…).

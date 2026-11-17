@@ -41,7 +41,7 @@ public class GrowthService
 
     public async Task<ClubGrowthDto?> GetClubAsync(int clubId, int? yearId)
     {
-        await using var conn = new MySqlConnection(_connectionString);
+        await using var conn = RowDb.Connect(_connectionString);
         await conn.OpenAsync();
         var y = await YearAsync(conn, yearId);
         if (y == null) return null;
@@ -69,7 +69,7 @@ public class GrowthService
     public async Task SetTargetAsync(int clubId, SetGrowthTargetDto dto, int by)
     {
         if (dto.Target is < 0 or > 1000) throw new ArgumentException("Target must be between 0 and 1000 new members.");
-        await using var conn = new MySqlConnection(_connectionString);
+        await using var conn = RowDb.Connect(_connectionString);
         await conn.OpenAsync();
         if (await YearAsync(conn, dto.YearId) is not { } y || y.Id != dto.YearId) throw new ArgumentException("Rotary year not found.");
         await conn.ExecuteAsync(@"
@@ -81,7 +81,7 @@ public class GrowthService
 
     public async Task<DistrictGrowthDto?> GetDistrictAsync(int districtId, int? yearId)
     {
-        await using var conn = new MySqlConnection(_connectionString);
+        await using var conn = RowDb.Connect(_connectionString);
         await conn.OpenAsync();
         var y = await YearAsync(conn, yearId);
         if (y == null) return null;

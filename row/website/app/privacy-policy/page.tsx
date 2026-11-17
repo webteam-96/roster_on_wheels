@@ -1,122 +1,212 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import Legal from "@/components/Legal";
-import { EMAIL } from "@/lib/site";
+import { EMAIL, LEGAL_NAME } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "Privacy Policy | Roster On Wheels",
-  description: "What Roster On Wheels (ROW) does with your information, how payments are kept secure, and how to contact us.",
+  description: "How Roster On Wheels collects, uses and protects personal data.",
 };
 
-const mail = <a href={`mailto:${EMAIL}`}>{EMAIL}</a>;
-
-// Kaizen Infotech's Privacy Policy, adapted for ROW: the name, the website and app in place of a store
+// The RIZones policy text with the Roster On Wheels name (user, 2026-11-17); same text as the admin portal's page.
 export default function Page() {
   return (
     <Legal title="Privacy Policy">
-      <h2>Section 1: What do we do with your information?</h2>
-      <p>
-        When you subscribe to or pay through Roster On Wheels (ROW), as part of that process, we collect the personal
-        information you give us such as your name, address, phone number and email address. When you use our website or
-        app, we also automatically receive your device’s internet protocol (IP) address to provide us with information that
-        helps us learn about your browser and operating system.
-      </p>
-      <p>Email marketing (if applicable): with your permission, we may send you emails about ROW, new features and other updates.</p>
+      <p><em>Last updated: 5 June 2026</em></p>
+      <p>{`This Privacy Policy explains how ${LEGAL_NAME} ("we") collects, uses, discloses, retains, and protects personal data when you use the Roster On Wheels administration portal ("Platform"). We comply with the Information Technology Act 2000, the Information Technology (Reasonable Security Practices) Rules 2011, the Digital Personal Data Protection Act 2023 ("DPDPA"), and any other applicable Indian data-protection legislation.`}</p>
+      <section>
+        <h2>1. Who We Are</h2>
+        <p>
+          The <strong>Data Fiduciary</strong> under the DPDPA, 2023 for the
+          purposes of this Platform is {LEGAL_NAME}. Our contact
+          details are listed in the <Link href="/contact-us">Contact Us</Link> page
+          and our Grievance Officer is identified there as well.
+        </p>
+      </section>
 
-      <h2>Section 2: Consent</h2>
-      <p>
-        When you provide us with personal information to complete a transaction, verify your credit card, pay club dues,
-        or register for an event, we imply that you consent to our collecting it and using it for that specific reason
-        only. If we ask for your personal information for a secondary reason, like marketing, we will either ask you
-        directly for your expressed consent or provide you with an opportunity to say no.
-      </p>
-      <p>
-        <strong>How can you withdraw your consent?</strong> If after you opt in, you change your mind, you may withdraw your
-        consent for us to contact you, for the continued collection, use or disclosure of your information, at any time, by
-        emailing us at {mail}.
-      </p>
+      <section>
+        <h2>2. Personal Data We Collect</h2>
+        <h3>2.1 You provide directly</h3>
+        <ul>
+          <li>Name, mobile number, email address, date of birth, gender;</li>
+          <li>Postal address, city, state, PIN;</li>
+          <li>Rotary identifiers: club name, club ID, district number, Rotary ID, designation, member type;</li>
+          <li>Photographs of you (for the member directory and project documentation);</li>
+          <li>Family-member details where you choose to add them.</li>
+        </ul>
+        <h3>2.2 Auto-collected from your interaction</h3>
+        <ul>
+          <li>Sign-in events (date, time, source IP, device user-agent);</li>
+          <li>Audit log of administrative actions performed under your account;</li>
+          <li>Cookies and similar technologies: strictly necessary cookies for session management.</li>
+        </ul>
+        <h3>2.3 Payment data</h3>
+        <p>
+          Payments are processed by <strong>Cashfree Payments India Pvt. Ltd.</strong>{" "}
+          We do <strong>not</strong> store your full card number, CVV, UPI PIN, or
+          net-banking password. We retain only the masked transaction
+          metadata returned by Cashfree (order reference, payment method type,
+          last 4 digits, amount, status) for reconciliation and receipt
+          generation.
+        </p>
+      </section>
 
-      <h2>Section 3: Disclosure</h2>
-      <p>
-        We may disclose your personal information if we are required by law to do so or if you violate our{" "}
-        <Link href="/terms-of-service">Terms of Service</Link>.
-      </p>
+      <section>
+        <h2>3. Lawful Basis &amp; Purpose</h2>
+        <p>We process personal data only for one or more of the following purposes:</p>
+        <ul>
+          <li><strong>Account creation and authentication</strong> (consent / contract);</li>
+          <li><strong>Service delivery</strong>: managing membership, projects, events, communications (contract);</li>
+          <li><strong>Payment processing</strong>: collecting dues, registration fees, contributions (contract);</li>
+          <li><strong>Statutory and Rotary International reporting</strong>: semi-annual reports, club annual returns (legal obligation);</li>
+          <li><strong>Security &amp; fraud prevention</strong>: audit logs, abuse detection (legitimate interest);</li>
+          <li><strong>Service improvement and support</strong>: aggregated analytics, troubleshooting (legitimate interest);</li>
+          <li><strong>Communications</strong> from your club / district / RI about programmes, events, and reminders (consent / legitimate interest).</li>
+        </ul>
+      </section>
 
-      <h2>Section 4: Payment</h2>
-      <p>
-        We use payment gateway platforms for processing payments. We do not store your card data on our servers. The data
-        is encrypted through the Payment Card Industry Data Security Standard (PCI-DSS) when processing payment. Your
-        purchase transaction data is only used as long as necessary to complete your purchase transaction. After that is
-        complete, your purchase transaction information is not saved.
-      </p>
-      <p>
-        Our payment gateway adheres to the standards set by PCI-DSS as managed by the PCI Security Standards Council, which
-        is a joint effort of brands like Visa, MasterCard, American Express and Discover. PCI-DSS requirements help ensure
-        the secure handling of credit card information by ROW and its service providers. For more insight, you may also
-        want to read the terms and conditions of the payment gateway you pay through.
-      </p>
+      <section>
+        <h2>4. Sharing &amp; Disclosure</h2>
+        <p>We share personal data only with:</p>
+        <ul>
+          <li>
+            <strong>Your Rotary club and district officials</strong>: who require the data for legitimate Rotary administrative functions;
+          </li>
+          <li>
+            <strong>Rotary International</strong> and its regional bodies: for statutory member-status reporting;
+          </li>
+          <li>
+            <strong>Cashfree Payments India Pvt. Ltd.</strong>: payment gateway; subject to Cashfree&apos;s own privacy policy;
+          </li>
+          <li>
+            <strong>Email service providers</strong>: strictly to deliver transactional and Rotary-related communications;
+          </li>
+          <li>
+            <strong>Cloud hosting providers and managed-service partners</strong>: bound by confidentiality and security obligations under written contract;
+          </li>
+          <li>
+            <strong>Law-enforcement and regulatory authorities</strong>. Only when legally required.
+          </li>
+        </ul>
+        <p>
+          We do <strong>not</strong> sell personal data to advertisers or
+          unrelated third parties.
+        </p>
+      </section>
 
-      <h2>Section 5: Third-party services</h2>
-      <p>
-        In general, the third-party providers used by ROW will only collect, use and disclose your information to the extent
-        necessary to allow them to perform the services they provide to us.
-      </p>
-      <p>
-        However, certain third-party service providers, such as payment gateways and other payment transaction processors,
-        have their own privacy policies in respect to the information we are required to provide to them for your
-        purchase-related transactions. For these providers, we recommend that you read their privacy policies so you can
-        understand the manner in which your personal information will be handled by these providers.
-      </p>
-      <p>
-        In particular, remember that certain providers may be located in or have facilities that are located in a
-        different jurisdiction than either you or us. So if you elect to proceed with a transaction that involves the
-        services of a third-party service provider, then your information may become subject to the laws of the
-        jurisdiction(s) in which that service provider or its facilities are located.
-      </p>
-      <p>
-        Once you leave our website or app, or are redirected to a third-party website or application, you are no longer
-        governed by this Privacy Policy or our Terms of Service.
-      </p>
+      <section>
+        <h2>5. International Transfers</h2>
+        <p>
+          Personal data is hosted on servers in <strong>India</strong>. To the
+          extent that any sub-processor (e.g., email service) processes data
+          outside India, that processor is bound by data-protection
+          obligations consistent with the DPDPA 2023.
+        </p>
+      </section>
 
-      <h2>Links</h2>
-      <p>
-        When you click on links on our website or app, they may direct you away from our site. We are not responsible for
-        the privacy practices of other sites and encourage you to read their privacy statements.
-      </p>
+      <section>
+        <h2>6. Retention</h2>
+        <ul>
+          <li>
+            <strong>Active accounts:</strong> for as long as the account is active and for one (1) year after the last login.
+          </li>
+          <li>
+            <strong>Financial / transaction records:</strong> retained for{" "}
+            <strong>eight (8) years</strong> after the financial year of the transaction,
+            in keeping with the Income-Tax Act and statutory audit requirements.
+          </li>
+          <li>
+            <strong>Audit logs:</strong> retained for three (3) years.
+          </li>
+          <li>
+            <strong>Member directory data archived for Rotary historical record:</strong>{" "}
+            retained indefinitely in an archived (non-active) state for institutional memory.
+          </li>
+        </ul>
+      </section>
 
-      <h2>Section 6: Security</h2>
-      <p>
-        To protect your personal information, we take reasonable precautions and follow industry best practices to make
-        sure it is not inappropriately lost, misused, accessed, disclosed, altered or destroyed.
-      </p>
+      <section>
+        <h2>7. Your Rights (DPDPA 2023)</h2>
+        <p>Subject to applicable law, you have the right to:</p>
+        <ul>
+          <li><strong>Access</strong> the personal data we hold about you;</li>
+          <li><strong>Correct</strong> or update inaccurate or incomplete data;</li>
+          <li><strong>Erase</strong> your data (subject to legal retention obligations);</li>
+          <li><strong>Withdraw consent</strong> where processing is based on consent;</li>
+          <li><strong>Grievance redressal</strong> through our Grievance Officer;</li>
+          <li><strong>Nominate</strong> another individual to exercise your rights in the event of your incapacity or death.</li>
+        </ul>
+        <p>
+          To exercise any right, write to{" "}
+          <a href={`mailto:${EMAIL}`}>{EMAIL}</a> from your
+          registered email address. We will respond within <strong>thirty
+          (30) days</strong>.
+        </p>
+      </section>
 
-      <h2>Section 7: Cookies</h2>
-      <p>We use cookies to maintain the session of your user. It is not used to personally identify you on other websites.</p>
+      <section>
+        <h2>8. Security</h2>
+        <p>
+          We implement reasonable security practices and procedures appropriate
+          to the sensitivity of the data, including:
+        </p>
+        <ul>
+          <li>HTTPS/TLS for all data in transit;</li>
+          <li>Encryption of credentials at rest;</li>
+          <li>Role-based access controls and the principle of least privilege;</li>
+          <li>Audit logging of administrative actions;</li>
+          <li>Regular backups and disaster-recovery procedures;</li>
+          <li>Annual review of security controls.</li>
+        </ul>
+        <p>
+          Despite these measures, no electronic transmission or storage is
+          one-hundred-percent secure. You are responsible for protecting the
+          confidentiality of your sign-in credentials.
+        </p>
+      </section>
 
-      <h2>Section 8: Age of consent</h2>
-      <p>
-        By using this site, you represent that you are at least the age of majority in your state or province of
-        residence, or that you are the age of majority in your state or province of residence and you have given us your
-        consent to allow any of your minor dependents to use this site.
-      </p>
+      <section>
+        <h2>9. Children&apos;s Data</h2>
+        <p>
+          The Platform is not intended for individuals under the age of
+          eighteen (18). We do not knowingly collect personal data from
+          children. Personal data of family members (including children)
+          added by a Rotarian for the purpose of family records is treated as
+          information of the Rotarian household and is processed under the
+          consent of the registering Rotarian.
+        </p>
+      </section>
 
-      <h2>Section 9: Changes to this privacy policy</h2>
-      <p>
-        We reserve the right to modify this privacy policy at any time, so please review it frequently. Changes and
-        clarifications will take effect immediately upon their posting on the website. If we make material changes to this
-        policy, we will notify you here that it has been updated, so that you are aware of what information we collect, how
-        we use it, and under what circumstances, if any, we use and/or disclose it.
-      </p>
-      <p>
-        If ROW is acquired or merged with another company, your information may be transferred to the new owners so that we
-        may continue to provide our services to you.
-      </p>
+      <section>
+        <h2>10. Cookies</h2>
+        <p>
+          We use only <strong>strictly necessary</strong> cookies and similar
+          technologies (e.g., JSON Web Tokens stored in browser storage) for
+          sign-in session continuity and security. We do not use third-party
+          advertising or tracking cookies.
+        </p>
+      </section>
 
-      <h2>Questions and contact information</h2>
-      <p>
-        If you would like to access, correct, amend or delete any personal information we have about you, register a
-        complaint, or simply want more information, contact us at {mail}.
-      </p>
-    </Legal>
+      <section>
+        <h2>11. Changes to this Policy</h2>
+        <p>
+          We may update this Privacy Policy from time to time. Material
+          changes will be communicated through the Platform or by email to
+          registered users at least seven (7) days before they take effect.
+          The &quot;Last updated&quot; date at the top reflects the most
+          recent revision.
+        </p>
+      </section>
+
+      <section>
+        <h2>12. Grievances</h2>
+        <p>
+          For any grievance regarding the processing of your personal data,
+          please write to our Grievance Officer at{" "}
+          <a href={`mailto:${EMAIL}`}>{EMAIL}</a>.
+          See the <Link href="/contact-us">Contact Us</Link> page for full details.
+        </p>
+      </section>
+        </Legal>
   );
 }

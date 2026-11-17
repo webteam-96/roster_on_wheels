@@ -72,7 +72,7 @@ const MEETING_TYPE_LABELS: Record<string, string> = {
 
 const MEETING_TYPE_COLORS: Record<string, string> = {
   regular:    "bg-blue-50    text-blue-700    border-blue-200",
-  fellowship: "bg-violet-50  text-violet-700  border-violet-200",
+  fellowship: "bg-slate-50  text-slate-700  border-slate-200",
   bod:        "bg-amber-50   text-amber-700   border-amber-200",
   assembly:   "bg-emerald-50 text-emerald-700 border-emerald-200",
   trust:      "bg-rose-50    text-rose-700    border-rose-200",
@@ -514,7 +514,7 @@ function ClubMonthlyReportV2WizardInner() {
       </div>
 
       {/* Step indicator */}
-      <div className="bg-white rounded-2xl border border-slate-200 p-4">
+      <div className="bg-card rounded-2xl border border-slate-200 p-4">
         <div className="flex items-center justify-between gap-2">
           {STEPS.map((step, index) => {
             const StepIcon = step.icon;
@@ -749,7 +749,7 @@ function ClubMonthlyReportV2WizardInner() {
               <select
                 value={addProjectType}
                 onChange={(e) => setAddProjectType(e.target.value)}
-                className="px-2 py-1 text-xs border border-slate-200 rounded-[12px] bg-white focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                className="px-2 py-1 text-xs border border-slate-200 rounded-[12px] bg-card focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
               >
                 <option value="">Select service type…</option>
                 {Object.entries(PROJECT_LABELS).map(([key, label]) => (
@@ -841,7 +841,7 @@ function ClubMonthlyReportV2WizardInner() {
                                             className={`inline-flex items-center text-[10px] font-medium px-1.5 py-0.5 rounded-full border ${
                                               project.projectType === "one_time"
                                                 ? "bg-blue-50 text-blue-700 border-blue-200"
-                                                : "bg-violet-50 text-violet-700 border-violet-200"
+                                                : "bg-slate-50 text-slate-700 border-slate-200"
                                             }`}
                                           >
                                             {project.projectType === "one_time" ? "One Time" : "Ongoing"}
@@ -932,7 +932,7 @@ function ClubMonthlyReportV2WizardInner() {
                 min={0}
                 value={memberCountLastMonth}
                 onChange={(e) => setMemberCountLastMonth(parseInt(e.target.value) || 0)}
-                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] bg-white focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] bg-card focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
               />
             </div>
             <div>
@@ -944,7 +944,7 @@ function ClubMonthlyReportV2WizardInner() {
                 min={0}
                 value={membersDeleted}
                 onChange={(e) => setMembersDeleted(parseInt(e.target.value) || 0)}
-                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] bg-white focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] bg-card focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
               />
             </div>
             <div>
@@ -956,7 +956,7 @@ function ClubMonthlyReportV2WizardInner() {
                 min={0}
                 value={membersAdded}
                 onChange={(e) => setMembersAdded(parseInt(e.target.value) || 0)}
-                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] bg-white focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] bg-card focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
               />
             </div>
             <div className="rounded-xl border border-blue-100 bg-blue-50 px-4 py-3 flex items-center justify-between">
@@ -975,7 +975,7 @@ function ClubMonthlyReportV2WizardInner() {
                 value={additionalRemarks}
                 onChange={(e) => setAdditionalRemarks(e.target.value)}
                 placeholder="Please input details of participation /hosting of events or projects above club level with Date, short description, Participated Rotarians etc."
-                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] bg-white focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] bg-card focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
               />
               <p className="text-[10px] text-slate-500 mt-1 text-right tabular-nums">
                 {additionalRemarks.length}/1000 characters
@@ -986,7 +986,7 @@ function ClubMonthlyReportV2WizardInner() {
       )}
 
       {/* Sticky bottom action bar */}
-      <div className="sticky bottom-0 -mx-2 sm:-mx-0 bg-white border-t border-slate-200 px-4 py-3 flex flex-wrap items-center justify-between gap-2">
+      <div className="sticky bottom-0 -mx-2 sm:-mx-0 bg-card border-t border-slate-200 px-4 py-3 flex flex-wrap items-center justify-between gap-2">
         {currentStep > 0 ? (
           <LoadingButton
             type="button"

@@ -114,7 +114,7 @@ export default function ScopePicker({
           role="listbox"
           className={cn(
             "absolute right-0 mt-1 z-50 min-w-[240px] max-w-[320px]",
-            "bg-white border border-slate-200 rounded-md shadow-lg",
+            "bg-card border border-slate-200 rounded-md shadow-lg",
             "py-1 max-h-72 overflow-y-auto",
           )}
         >

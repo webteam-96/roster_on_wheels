@@ -170,7 +170,7 @@ public class DistrictModulesController : ControllerBase
         return null;
     }
 
-    private MySqlConnection CreateConnection() => new(_connectionString);
+    private MySqlConnection CreateConnection() => RowDb.Connect(_connectionString);
 
     private int GetUserId() => int.Parse(User.FindFirst("memberId")?.Value ?? "0");
 
@@ -1167,7 +1167,7 @@ public class DistrictModulesController : ControllerBase
                         !string.IsNullOrWhiteSpace(districtNumber) ? $"District {districtNumber}" : null,
                         null);
                 }
-                catch { /* fire-and-forget — failure already surfaces via EmailService's internal logger */ }
+                catch (Exception bgEx) { BackgroundWork.Logger?.LogError(bgEx, "Background work failed: {Work}", "District admin removal email"); }
             });
         }
 
@@ -1968,7 +1968,7 @@ public class DistrictModulesController : ControllerBase
         var src = await _yearTables.ResolveByYearIdAsync(conn, yearId)
             ?? throw new InvalidOperationException($"No year-wise table for yearId {yearId}.");
         var toYearId = await RotaryApi.Services.RotaryYearHelper.EnsureRotaryYearAsync(conn, parsed);
-        if (toYearId == yearId) return BadRequest(new { message = "Project date is in the same year — use normal update, not move." });
+        if (toYearId == yearId) return BadRequest(new { message = "Project date is in the same year: use normal update, not move." });
         var tgt = await _yearTables.ResolveByYearIdAsync(conn, toYearId)
             ?? throw new InvalidOperationException($"No year-wise table for yearId {toYearId}.");
 
@@ -2037,7 +2037,7 @@ public class DistrictModulesController : ControllerBase
         var src = await _yearTables.ResolveByYearIdAsync(conn, yearId)
             ?? throw new InvalidOperationException($"No year-wise table for yearId {yearId}.");
         var toYearId = await RotaryApi.Services.RotaryYearHelper.EnsureRotaryYearAsync(conn, parsed);
-        if (toYearId == yearId) return BadRequest(new { message = "Event date is in the same year — use normal update, not move." });
+        if (toYearId == yearId) return BadRequest(new { message = "Event date is in the same year: use normal update, not move." });
         var tgt = await _yearTables.ResolveByYearIdAsync(conn, toYearId)
             ?? throw new InvalidOperationException($"No year-wise table for yearId {toYearId}.");
 
@@ -3307,7 +3307,7 @@ public class DistrictModulesController : ControllerBase
         var result = new List<object>();
         var current = new DateTime(startDate.Year, startDate.Month, 1);
         var end = isCurrent
-            ? new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1)
+            ? new DateTime(DateTime.UtcNow.Year, DateTime.UtcNow.Month, 1)
             : new DateTime(endDate.Year, endDate.Month, 1);
 
         while (current <= end)
@@ -3455,7 +3455,7 @@ public class DistrictModulesController : ControllerBase
         {
             try
             {
-                using var conn = new MySqlConnection(connStr);
+                using var conn = RowDb.Connect(connStr);
                 await conn.OpenAsync();
 
                 var year = await conn.QueryFirstOrDefaultAsync<dynamic>(
@@ -3556,7 +3556,7 @@ public class DistrictModulesController : ControllerBase
                 if (emailSent > 0)
                     await creditService.DeductDistrictWithHistoryAsync(districtId, "Email", emailSent, "MonthlyReportReminder", yearId, $"Monthly report reminder for {monthNameWithYear}", userId);
             }
-            catch (Exception ex) { Console.WriteLine($"Reminder error: {ex.Message}"); }
+            catch (Exception ex) { BackgroundWork.Logger?.LogError(ex, "Monthly report reminder emails failed"); }
         });
 
         return Ok(new { message = "Reminders are being sent in background. Refresh to check status." });
@@ -3821,7 +3821,7 @@ public class DistrictModulesController : ControllerBase
                                 $"Removed clubs: {string.Join(", ", removedClubNames)} (District {districtNumber}). You remain AG for the other clubs assigned to you.",
                                 null);
                         }
-                        catch { /* fire-and-forget */ }
+                        catch (Exception bgEx) { BackgroundWork.Logger?.LogError(bgEx, "Background work failed: {Work}", "AG coverage removal email"); }
                     });
                 }
             }

@@ -195,7 +195,7 @@ export default function ClubAdminPaymentLinksPage() {
       </div>
 
       {/* Payment links table */}
-      <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
+      <div className="bg-card rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
         <div className="px-5 py-3 border-b border-slate-100 flex items-center justify-between">
           <div>
             <h3 className="text-sm font-semibold text-slate-800">Online Event &amp; Payment Links</h3>

@@ -258,7 +258,7 @@ export default function DistrictAdminDashboardSubGroupDetailPage() {
             variant="outline"
             size="icon"
             onClick={goBack}
-            className="border-slate-200 bg-white hover:bg-slate-50 text-slate-700"
+            className="border-slate-200 bg-card hover:bg-slate-50 text-slate-700"
           >
             <ArrowLeft className="h-4 w-4" />
           </Button>

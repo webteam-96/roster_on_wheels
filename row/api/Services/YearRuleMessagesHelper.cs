@@ -119,7 +119,7 @@ public class YearRuleMessagesHelper
         var dto = new MessagesDto();
         try
         {
-            await using var conn = new MySqlConnection(_connectionString);
+            await using var conn = RowDb.Connect(_connectionString);
             await conn.OpenAsync();
 
             var rows = await conn.QueryAsync<(string MessageKey, string Template)>(@"
@@ -158,7 +158,7 @@ public class YearRuleMessagesHelper
         var result = new Dictionary<string, StoredMessage>();
         try
         {
-            await using var conn = new MySqlConnection(_connectionString);
+            await using var conn = RowDb.Connect(_connectionString);
             await conn.OpenAsync();
 
             var rows = await conn.QueryAsync<StoredMessage>(@"
@@ -210,7 +210,7 @@ public class YearRuleMessagesHelper
             return;
         }
 
-        await using var conn = new MySqlConnection(_connectionString);
+        await using var conn = RowDb.Connect(_connectionString);
         await conn.OpenAsync();
         await conn.ExecuteAsync(@"
             INSERT INTO year_rule_messages (MessageKey, Template, created_by, created_date, isdeleted)
@@ -234,7 +234,7 @@ public class YearRuleMessagesHelper
         if (!AllKeys.Contains(messageKey))
             throw new ArgumentException($"Unknown message key \"{messageKey}\".", nameof(messageKey));
 
-        await using var conn = new MySqlConnection(_connectionString);
+        await using var conn = RowDb.Connect(_connectionString);
         await conn.OpenAsync();
         await conn.ExecuteAsync(@"
             UPDATE year_rule_messages

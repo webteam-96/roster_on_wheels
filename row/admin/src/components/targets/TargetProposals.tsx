@@ -24,7 +24,7 @@ export const PROPOSAL_METRICS: { key: ProposalMetric; label: string }[] = [
 ];
 const label = (m: ProposalMetric) => PROPOSAL_METRICS.find((x) => x.key === m)?.label ?? m;
 const STATUS_TEXT: Record<TargetProposal["status"], string> = { proposed: "Waiting for the club", accepted: "Accepted", countered: "Countered" };
-const panel = "rounded-xl border border-slate-200 bg-white p-5";
+const panel = "rounded-xl border border-slate-200 bg-card p-5";
 const SELECT = "flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm";
 
 function Status({ p }: { p: TargetProposal }) {

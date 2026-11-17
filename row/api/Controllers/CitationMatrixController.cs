@@ -1,3 +1,4 @@
+using RotaryApi.Services;
 using Dapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -25,7 +26,7 @@ public class CitationMatrixController : ControllerBase
         _connectionString = config.GetConnectionString("DefaultConnection")!;
     }
 
-    private MySqlConnection CreateConnection() => new(_connectionString);
+    private MySqlConnection CreateConnection() => RowDb.Connect(_connectionString);
 
     [HttpGet]
     public async Task<ActionResult> GetMatrix([FromQuery] int districtId, [FromQuery] int? yearId = null, [FromQuery] int? clubId = null)

@@ -128,7 +128,7 @@ public class GrantService
     /// of applications in each state: the dashboard by status and year.</summary>
     public async Task<List<GrantCycleDto>> ListCyclesAsync(int districtId)
     {
-        await using var c = new MySqlConnection(_cs);
+        await using var c = RowDb.Connect(_cs);
         var cycles = (await c.QueryAsync<GrantCycleDto>(CycleSelect + " WHERE gc.fk_district_id = @districtId ORDER BY y.StartDate DESC", new { districtId })).ToList();
         if (cycles.Count == 0) return cycles;
         var ids = cycles.Select(x => x.Id).ToList();
@@ -165,7 +165,7 @@ public class GrantService
         if (dto.OpensOn > dto.ClosesOn) throw new InvalidOperationException("Applications must close after they open.");
         var rules = Clean(dto.Rules, 4000, "The qualification rules");
 
-        await using var c = new MySqlConnection(_cs);
+        await using var c = RowDb.Connect(_cs);
         await c.OpenAsync();
         if (!await DistrictOnRowAsync(c, districtId)) throw new InvalidOperationException(NotOnRow);
 
@@ -230,7 +230,7 @@ public class GrantService
     {
         var cycle = (await ListCyclesAsync(districtId)).FirstOrDefault(x => x.Id == cycleId);
         if (cycle == null) return null;
-        await using var c = new MySqlConnection(_cs);
+        await using var c = RowDb.Connect(_cs);
         var rows = (await c.QueryAsync<GrantCashFlowRowDto>(@"
             SELECT p.paid_on AS PaidOn, cm.ClubName, a.title AS Title, p.amount AS Amount, p.method AS Method, p.reference AS Reference
             FROM grant_payments p
@@ -251,7 +251,7 @@ public class GrantService
     /// <summary>Every submitted application of a cycle as CSV (archived ones included).</summary>
     public async Task<string?> ExportCsvAsync(int districtId, int cycleId)
     {
-        await using var c = new MySqlConnection(_cs);
+        await using var c = RowDb.Connect(_cs);
         if (await c.ExecuteScalarAsync<int>("SELECT COUNT(*) FROM grant_cycles WHERE pk_cycle_id = @cycleId AND fk_district_id = @districtId",
                 new { cycleId, districtId }) == 0) return null;
         var rows = await ListAsync(c, DistrictSide, districtId, cycleId, null, null);
@@ -289,7 +289,7 @@ public class GrantService
 
     public async Task<List<GrantApplicationListItemDto>> ListDistrictApplicationsAsync(int districtId, int? cycleId, string? status, bool? archived)
     {
-        await using var c = new MySqlConnection(_cs);
+        await using var c = RowDb.Connect(_cs);
         return await ListAsync(c, DistrictSide, districtId, cycleId, status, archived);
     }
 
@@ -309,7 +309,7 @@ public class GrantService
     /// <summary>The club's own view: light mode, or its district's published cycles and the club's applications.</summary>
     public async Task<GrantClubOverviewDto?> GetClubOverviewAsync(int clubId)
     {
-        await using var c = new MySqlConnection(_cs);
+        await using var c = RowDb.Connect(_cs);
         var districtId = await ClubDistrictAsync(c, clubId);
         if (districtId == null) return null;
         if (!await DistrictOnRowAsync(c, districtId.Value)) return new GrantClubOverviewDto { LightMode = true };
@@ -323,7 +323,7 @@ public class GrantService
 
     public async Task<GrantApplicationDto?> GetApplicationAsync(string side, int scopeId, int id)
     {
-        await using var c = new MySqlConnection(_cs);
+        await using var c = RowDb.Connect(_cs);
         var a = await c.QueryFirstOrDefaultAsync<GrantApplicationDto>($@"
             SELECT a.pk_application_id AS Id, a.fk_cycle_id AS CycleId, y.YearLabel, a.fk_club_id AS ClubId, c.ClubName,
                    a.title AS Title, a.status AS Status, a.amount_requested AS AmountRequested, a.amount_approved AS AmountApproved,
@@ -438,7 +438,7 @@ public class GrantService
     public async Task<int> CreateApplicationAsync(int clubId, SaveGrantApplicationDto dto, int memberId, HttpContext http)
     {
         Normalize(dto);
-        await using var c = new MySqlConnection(_cs);
+        await using var c = RowDb.Connect(_cs);
         await c.OpenAsync();
         var districtId = await ClubDistrictAsync(c, clubId) ?? throw new InvalidOperationException("Club not found.");
         if (!await DistrictOnRowAsync(c, districtId))
@@ -468,7 +468,7 @@ public class GrantService
     public async Task<bool> UpdateApplicationAsync(int clubId, int id, SaveGrantApplicationDto dto, int memberId, HttpContext http)
     {
         Normalize(dto);
-        await using var c = new MySqlConnection(_cs);
+        await using var c = RowDb.Connect(_cs);
         await c.OpenAsync();
         await using var tx = await c.BeginTransactionAsync(IsolationLevel.ReadCommitted);
         var app = await LockAsync(c, tx, ClubSide, clubId, id);
@@ -544,8 +544,8 @@ public class GrantService
         if (first)
         {
             if (app.CycleStatus != "open") throw new InvalidOperationException("This grant cycle is not open for applications.");
-            if (app.OpensOn > DateTime.Today) throw new InvalidOperationException($"Applications open on {app.OpensOn:yyyy-MM-dd}.");
-            if (app.ClosesOn < DateTime.Today) throw new InvalidOperationException($"Applications closed on {app.ClosesOn:yyyy-MM-dd}.");
+            if (app.OpensOn > DateTime.UtcNow.Date) throw new InvalidOperationException($"Applications open on {app.OpensOn:yyyy-MM-dd}.");
+            if (app.ClosesOn < DateTime.UtcNow.Date) throw new InvalidOperationException($"Applications closed on {app.ClosesOn:yyyy-MM-dd}.");
         }
         if (string.IsNullOrWhiteSpace(app.Description)) throw new InvalidOperationException("Describe the project before submitting.");
         if (app.AmountRequested <= 0) throw new InvalidOperationException("Enter the amount requested.");
@@ -572,7 +572,7 @@ public class GrantService
         if (t.CommentRequired && comment == null)
             throw new InvalidOperationException(t.To == "rejected" ? "Give the reason for the rejection." : "Add a comment explaining what is needed.");
 
-        await using var c = new MySqlConnection(_cs);
+        await using var c = RowDb.Connect(_cs);
         await c.OpenAsync();
         await using var tx = await c.BeginTransactionAsync(IsolationLevel.ReadCommitted);
         var app = await LockAsync(c, tx, side, scopeId, id);
@@ -634,7 +634,7 @@ public class GrantService
     public async Task<GrantApplicationDto?> CommentAsync(string side, int scopeId, int id, string? text, int memberId, HttpContext http)
     {
         var comment = Clean(text, 4000, "The comment") ?? throw new InvalidOperationException("Write a comment.");
-        await using var c = new MySqlConnection(_cs);
+        await using var c = RowDb.Connect(_cs);
         await c.OpenAsync();
         await using var tx = await c.BeginTransactionAsync(IsolationLevel.ReadCommitted);
         var app = await LockAsync(c, tx, side, scopeId, id);
@@ -652,13 +652,13 @@ public class GrantService
         var amount = decimal.Round(dto.Amount, 2);
         if (amount <= 0 || amount > MaxAmount) throw new InvalidOperationException("Enter the amount paid.");
         if (dto.PaidOn is not { } paidOn) throw new InvalidOperationException("Enter the payment date.");
-        if (paidOn.Date > DateTime.Today.AddDays(1)) throw new InvalidOperationException("The payment date cannot be in the future.");
+        if (paidOn.Date > DateTime.UtcNow.Date.AddDays(1)) throw new InvalidOperationException("The payment date cannot be in the future.");
         var method = (dto.Method ?? "").Trim().ToLowerInvariant();
         if (!PaymentMethods.Contains(method)) throw new InvalidOperationException("Choose how the grant was paid.");
         var reference = Clean(dto.Reference, 100, "The reference");
         var note = Clean(dto.Note, 500, "The note");
 
-        await using var c = new MySqlConnection(_cs);
+        await using var c = RowDb.Connect(_cs);
         await c.OpenAsync();
         await using var tx = await c.BeginTransactionAsync(IsolationLevel.ReadCommitted);
         var app = await LockAsync(c, tx, DistrictSide, districtId, id);
@@ -737,7 +737,7 @@ public class GrantService
         var name = Path.GetFileName(file.FileName);
         if (name.Length > 255) name = name[..(255 - ext.Length)] + ext;
 
-        await using var c = new MySqlConnection(_cs);
+        await using var c = RowDb.Connect(_cs);
         await c.OpenAsync();
         await using var tx = await c.BeginTransactionAsync(IsolationLevel.ReadCommitted);
         var app = await LockAsync(c, tx, ClubSide, clubId, id);
@@ -759,7 +759,7 @@ public class GrantService
                 SELECT LAST_INSERT_ID();", new { id, kind, name, stored, size = (int)file.Length, memberId }, tx);
             await tx.CommitAsync();
             await _audit.LogAsync(memberId, "UPLOAD", "grant_application", id, app.Title, new { attachmentId = attId, kind }, http);
-            return new GrantAttachmentDto { Id = attId, Kind = kind, OriginalName = name, SizeBytes = (int)file.Length, CreatedDate = DateTime.Now };
+            return new GrantAttachmentDto { Id = attId, Kind = kind, OriginalName = name, SizeBytes = (int)file.Length, CreatedDate = DateTime.UtcNow };
         }
         catch
         {
@@ -770,7 +770,7 @@ public class GrantService
 
     public async Task<bool> DeleteAttachmentAsync(int clubId, int id, int attachmentId, int memberId, HttpContext http)
     {
-        await using var c = new MySqlConnection(_cs);
+        await using var c = RowDb.Connect(_cs);
         await c.OpenAsync();
         await using var tx = await c.BeginTransactionAsync(IsolationLevel.ReadCommitted);
         var app = await LockAsync(c, tx, ClubSide, clubId, id);
@@ -790,7 +790,7 @@ public class GrantService
     /// <summary>The stored file of an attachment the caller's side may see, or null.</summary>
     public async Task<(string Path, string Name, string ContentType)?> GetAttachmentFileAsync(string side, int scopeId, int id, int attachmentId)
     {
-        await using var c = new MySqlConnection(_cs);
+        await using var c = RowDb.Connect(_cs);
         var row = await c.QueryFirstOrDefaultAsync<(string Name, string Stored)?>($@"
             SELECT t.original_name, t.stored_name FROM grant_attachments t
             JOIN grant_applications a ON a.pk_application_id = t.fk_application_id
@@ -818,7 +818,7 @@ public class GrantService
 
     public async Task<List<GrantLightProjectDto>> GetLightProjectsAsync(int clubId, int yearId)
     {
-        await using var c = new MySqlConnection(_cs);
+        await using var c = RowDb.Connect(_cs);
         await c.OpenAsync();
         await RequireLightModeAsync(c, clubId);
         var table = await ProjectsTableAsync(c, yearId);
@@ -837,7 +837,7 @@ public class GrantService
     {
         var amount = dto.GrantAmount is { } a ? decimal.Round(a, 2) : (decimal?)null;
         if (amount is < 0 or > MaxAmount) throw new InvalidOperationException("The grant amount is out of range.");
-        await using var c = new MySqlConnection(_cs);
+        await using var c = RowDb.Connect(_cs);
         await c.OpenAsync();
         await RequireLightModeAsync(c, clubId);
         var table = await ProjectsTableAsync(c, yearId);

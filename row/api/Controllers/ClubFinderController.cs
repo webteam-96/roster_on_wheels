@@ -20,7 +20,7 @@ public class ClubFinderController : ControllerBase
         _yearTables = yearTables;
     }
 
-    private MySqlConnection CreateConnection() => new(_connectionString);
+    private MySqlConnection CreateConnection() => RowDb.Connect(_connectionString);
 
     // ── Search clubs (filter mode) ──
     [HttpGet]

@@ -185,7 +185,7 @@ public class DistrictPerformanceReportService : IDistrictPerformanceReportServic
     // ══════════════════════════════════════════════════════════════════════════════════════════════
     public async Task<List<PerformanceReportDistrictOption>> GetDistrictsAsync()
     {
-        await using var conn = new MySqlConnection(_conn);
+        await using var conn = RowDb.Connect(_conn);
         await conn.OpenAsync();
         return await LoadReportDistrictsAsync(conn);
     }
@@ -217,7 +217,7 @@ public class DistrictPerformanceReportService : IDistrictPerformanceReportServic
         };
         try
         {
-            await using var conn = new MySqlConnection(_conn);
+            await using var conn = RowDb.Connect(_conn);
             await conn.OpenAsync();
             dto.RecentRuns = (await conn.QueryAsync<PerformanceReportLogRow>(@"
                 SELECT l.pk_id AS Id, d.DistrictNumber AS DistrictNumber, l.RunType AS RunType, l.ToEmail AS ToEmail,
@@ -383,7 +383,7 @@ public class DistrictPerformanceReportService : IDistrictPerformanceReportServic
 
     public async Task<DistrictPerformanceReportResult> BuildReportAsync(int districtId, bool includeAttachment, CancellationToken ct = default)
     {
-        await using var conn = new MySqlConnection(_conn);
+        await using var conn = RowDb.Connect(_conn);
         await conn.OpenAsync(ct);
 
         var district = await conn.QueryFirstOrDefaultAsync<DistrictRow>($@"
@@ -1041,7 +1041,7 @@ public class DistrictPerformanceReportService : IDistrictPerformanceReportServic
             GovernorEmail = string.IsNullOrWhiteSpace(dg.Email) ? null : dg.Email.Trim(),
             GovernorMobile = dg.Mobile,
             Subject = $"District Performance Report — District {district.DistrictNumber} — {today:dd MMM yyyy}",
-            FileName = $"District_{SafeFile(district.DistrictNumber)}_Performance_Report_{DateTime.Now:ddMMyyyy_HHmm}.xlsx",
+            FileName = $"District_{SafeFile(district.DistrictNumber)}_Performance_Report_{DateTime.UtcNow:ddMMyyyy_HHmm}.xlsx",
             Sections = sections,
             ReportKicker = "District Performance Report",
             ReportTitle = $"District {district.DistrictNumber}",
@@ -1100,7 +1100,7 @@ public class DistrictPerformanceReportService : IDistrictPerformanceReportServic
         if (!_enabled) return;
         List<PerformanceReportDistrictOption> all;
         Dictionary<int, TimeZoneInfo> zones;
-        await using (var conn = new MySqlConnection(_conn))
+        await using (var conn = RowDb.Connect(_conn))
         {
             await conn.OpenAsync(ct);
             all = await LoadReportDistrictsAsync(conn);
@@ -1197,7 +1197,7 @@ public class DistrictPerformanceReportService : IDistrictPerformanceReportServic
     {
         try
         {
-            await using var conn = new MySqlConnection(_conn);
+            await using var conn = RowDb.Connect(_conn);
             await conn.OpenAsync();
             var n = await conn.ExecuteScalarAsync<long>(@"
                 SELECT COUNT(*) FROM district_performance_report_log
@@ -1217,7 +1217,7 @@ public class DistrictPerformanceReportService : IDistrictPerformanceReportServic
     {
         try
         {
-            await using var conn = new MySqlConnection(_conn);
+            await using var conn = RowDb.Connect(_conn);
             await conn.OpenAsync();
             await conn.ExecuteAsync(@"
                 INSERT INTO district_performance_report_log
@@ -1465,7 +1465,7 @@ public class DistrictPerformanceReportService : IDistrictPerformanceReportServic
                 {E(r.AttachmentNote)}
               </td></tr>
             </table>
-            <p style='font-size:12px;color:#2A3F5C;font-style:italic;margin:10px 0 0 0'>All figures are as on {DateTime.Today:dd MMM yyyy} and are sourced from the ROW portal.</p>");
+            <p style='font-size:12px;color:#2A3F5C;font-style:italic;margin:10px 0 0 0'>All figures are as on {DateTime.UtcNow.Date:dd MMM yyyy} and are sourced from the ROW portal.</p>");
         sb.Append(EmailService.EMAIL_FOOTER);
         return sb.ToString();
     }
@@ -1967,7 +1967,7 @@ public class DistrictPerformanceReportService : IDistrictPerformanceReportServic
         if (!string.IsNullOrWhiteSpace(r.GovernorName))
             Band($"District Governor: {r.GovernorName}{(r.GovernorEmail != null ? "  ·  " + r.GovernorEmail : "")}{(!string.IsNullOrWhiteSpace(r.GovernorMobile) ? "  ·  " + r.GovernorMobile : "")}",
                 10, XLColor.FromHtml("#475569"), XLColor.FromHtml("#eef2f7"), false, 18);
-        Band($"Generated {DateTime.Now:dd MMM yyyy, hh:mm tt}", 8, XLColor.FromHtml("#94a3b8"), XLColor.White, false, 14, italic: true);
+        Band($"Generated {DateTime.UtcNow:dd MMM yyyy, hh:mm tt}", 8, XLColor.FromHtml("#94a3b8"), XLColor.White, false, 14, italic: true);
         row++;
 
         // At a glance — the same six headline tiles as the email, as label · value · detail rows.

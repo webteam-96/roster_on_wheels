@@ -30,7 +30,7 @@ public class SubscriptionsController : ControllerBase
     [HttpGet("club/{clubId:int}")]
     public async Task<IActionResult> GetClub(int clubId)
     {
-        await using var conn = new MySqlConnection(_connectionString);
+        await using var conn = RowDb.Connect(_connectionString);
         var access = await SubscriptionAccess.GetClubAccessAsync(conn, clubId);
         if (access == null) return NotFound(new { message = "Club not found." });
         var clubName = await conn.ExecuteScalarAsync<string?>("SELECT ClubName FROM club_master WHERE pk_club_id = @clubId", new { clubId });
@@ -53,7 +53,7 @@ public class SubscriptionsController : ControllerBase
     [HttpGet("district/{districtId:int}")]
     public async Task<IActionResult> GetDistrict(int districtId)
     {
-        await using var conn = new MySqlConnection(_connectionString);
+        await using var conn = RowDb.Connect(_connectionString);
         var (state, termEnd) = await SubscriptionAccess.GetDistrictStateAsync(conn, districtId);
         var districtNumber = await conn.ExecuteScalarAsync<string?>(
             "SELECT DistrictNumber FROM district_master WHERE pk_district_id = @districtId AND isdeleted = 0", new { districtId });
@@ -128,7 +128,7 @@ public class SubscriptionsController : ControllerBase
     [HttpGet("club/{clubId:int}/executives")]
     public async Task<IActionResult> Executives(int clubId, [FromQuery] bool refresh = false)
     {
-        await using var conn = new MySqlConnection(_connectionString);
+        await using var conn = RowDb.Connect(_connectionString);
         await conn.OpenAsync();
         if (!IsSuperAdmin() && !await ScopeWriteGuardMiddleware.ReadAllowedAsync(_connectionString, MemberId(), true, clubId))
             return StatusCode(403, new { message = "You do not have access to this club." });

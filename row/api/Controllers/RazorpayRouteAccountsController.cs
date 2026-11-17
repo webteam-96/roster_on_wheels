@@ -36,7 +36,7 @@ public class RazorpayRouteAccountsController : ControllerBase
         _logger = logger;
     }
 
-    private MySqlConnection CreateConnection() => new(_connectionString);
+    private MySqlConnection CreateConnection() => RowDb.Connect(_connectionString);
     private bool IsSuperAdmin() => User.FindFirst("roles")?.Value?.Contains("SuperAdmin") == true;
     private int GetUserId()
     {

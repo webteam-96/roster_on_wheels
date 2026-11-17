@@ -241,7 +241,7 @@ export default function AgMembershipPage() {
       </div>
 
       {/* ── CLUB-BY-CLUB COMPARISON BAR ───────────────────────────────────── */}
-      <div className="bg-white rounded-[20px] border border-slate-200 p-5">
+      <div className="bg-card rounded-[20px] border border-slate-200 p-5">
         <div className="flex items-center justify-between mb-1">
           <h3 className="text-sm font-bold text-slate-700 inline-flex items-center gap-2">
             <BarChart3 size={14} className="text-azure" />
@@ -273,7 +273,7 @@ export default function AgMembershipPage() {
 
       {/* ── CLUB ACTIVITY AT A GLANCE  +  MEMBERS DISTRIBUTION ────────────── */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 bg-white rounded-[20px] border border-slate-200 p-5">
+        <div className="lg:col-span-2 bg-card rounded-[20px] border border-slate-200 p-5">
           <div className="flex items-center justify-between mb-1">
             <h3 className="text-sm font-bold text-slate-700 inline-flex items-center gap-2">
               <Activity size={14} className="text-emerald-600" />
@@ -302,7 +302,7 @@ export default function AgMembershipPage() {
           )}
         </div>
 
-        <div className="bg-white rounded-[20px] border border-slate-200 p-5 flex flex-col">
+        <div className="bg-card rounded-[20px] border border-slate-200 p-5 flex flex-col">
           <div className="flex items-center justify-between mb-2">
             <h3 className="text-sm font-bold text-slate-700 inline-flex items-center gap-2">
               <PieIcon size={14} className="text-azure" />
@@ -359,7 +359,7 @@ export default function AgMembershipPage() {
       </div>
 
       {/* ── CLUB-WISE DETAIL TABLE ────────────────────────────────────────── */}
-      <div className="bg-white rounded-[20px] border border-slate-200 overflow-hidden">
+      <div className="bg-card rounded-[20px] border border-slate-200 overflow-hidden">
         <div className="px-5 py-3 border-b border-slate-100 flex items-center justify-between flex-wrap gap-2">
           <h3 className="text-sm font-bold text-slate-700">Club-wise Detail</h3>
           <span className="text-xs text-slate-400">Click headers to sort · {sorted.length} club{sorted.length === 1 ? "" : "s"}</span>
@@ -386,7 +386,7 @@ export default function AgMembershipPage() {
                 const gcs = row.goalsCitations;
                 const gcsKnown = typeof gcs === "number";
                 return (
-                  <tr key={row.clubId} className={`border-b border-slate-50 hover:bg-blue-50/40 transition-colors ${i % 2 === 0 ? "bg-white" : "bg-slate-50/40"}`}>
+                  <tr key={row.clubId} className={`border-b border-slate-50 hover:bg-blue-50/40 transition-colors ${i % 2 === 0 ? "bg-card" : "bg-slate-50/40"}`}>
                     <td className="px-3 py-2.5 font-medium text-slate-800 max-w-[260px]">
                       <span className="block truncate" title={row.clubName}>{row.clubName}</span>
                     </td>
@@ -447,7 +447,7 @@ export default function AgMembershipPage() {
               <button
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
                 disabled={page === 1}
-                className="inline-flex items-center gap-1 px-2 py-1 rounded border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed"
+                className="inline-flex items-center gap-1 px-2 py-1 rounded border border-slate-200 bg-card hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 <ChevronLeft size={12} /> Prev
               </button>
@@ -455,7 +455,7 @@ export default function AgMembershipPage() {
               <button
                 onClick={() => setPage((p) => Math.min(pageCount, p + 1))}
                 disabled={page === pageCount}
-                className="inline-flex items-center gap-1 px-2 py-1 rounded border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed"
+                className="inline-flex items-center gap-1 px-2 py-1 rounded border border-slate-200 bg-card hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 Next <ChevronRight size={12} />
               </button>
@@ -479,7 +479,7 @@ export default function AgMembershipPage() {
               return (
                 <div
                   key={c.clubId}
-                  className="bg-white rounded-[20px] border border-slate-200 p-4 flex flex-col gap-2 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden"
+                  className="bg-card rounded-[20px] border border-slate-200 p-4 flex flex-col gap-2 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden"
                 >
                   <span className="absolute top-0 left-0 right-0 h-1" style={{ background: color }} />
                   <div className="flex items-start justify-between gap-2 mt-1">

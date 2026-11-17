@@ -40,7 +40,7 @@ public class FoundationGoalsService : IFoundationGoalsService
             ?? throw new InvalidOperationException("DefaultConnection missing");
     }
 
-    private MySqlConnection CreateConnection() => new(_cs);
+    private MySqlConnection CreateConnection() => RowDb.Connect(_cs);
 
     // Editable when the rotary year hasn't ended yet — current and future
     // years can be edited or deleted; past years are read-only.

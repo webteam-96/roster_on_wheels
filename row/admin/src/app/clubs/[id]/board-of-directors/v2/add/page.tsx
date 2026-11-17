@@ -256,7 +256,7 @@ export default function BoardOfDirectorsV2AddPage() {
             <button
               type="button"
               onClick={() => setPersonType("member")}
-              className={`px-3 py-1.5 text-xs font-semibold rounded-md transition-colors ${personType === "member" ? "bg-white text-blue-700 shadow-sm" : "text-slate-500 hover:text-slate-700"}`}
+              className={`px-3 py-1.5 text-xs font-semibold rounded-md transition-colors ${personType === "member" ? "bg-card text-blue-700 shadow-sm" : "text-slate-500 hover:text-slate-700"}`}
             >
               Existing member
             </button>
@@ -267,7 +267,7 @@ export default function BoardOfDirectorsV2AddPage() {
               title={!pastYearSelected ? "Select a past Rotary year below to add a non-member" : undefined}
               className={`px-3 py-1.5 text-xs font-semibold rounded-md transition-colors ${
                 personType === "nonmember"
-                  ? "bg-white text-blue-700 shadow-sm"
+                  ? "bg-card text-blue-700 shadow-sm"
                   : pastYearSelected
                     ? "text-slate-500 hover:text-slate-700"
                     : "text-slate-300 cursor-not-allowed"
@@ -360,7 +360,7 @@ export default function BoardOfDirectorsV2AddPage() {
                 </div>
               )}
               {showResults && memberResults.length > 0 && (
-                <div className="absolute z-50 mt-1 w-full max-h-48 overflow-y-auto rounded-md border border-slate-200 bg-white shadow-md">
+                <div className="absolute z-50 mt-1 w-full max-h-48 overflow-y-auto rounded-md border border-slate-200 bg-card shadow-md">
                   {memberResults.map((m) => {
                     const photoUrl = getPhotoUrl(m.profilePhotoPath);
                     return (
@@ -386,7 +386,7 @@ export default function BoardOfDirectorsV2AddPage() {
                 </div>
               )}
               {showResults && memberResults.length === 0 && memberSearch.trim() && !searchLoading && (
-                <div className="absolute z-50 mt-1 w-full rounded-md border border-slate-200 bg-white p-3 text-sm text-slate-500 shadow-md">
+                <div className="absolute z-50 mt-1 w-full rounded-md border border-slate-200 bg-card p-3 text-sm text-slate-500 shadow-md">
                   No members found
                 </div>
               )}
@@ -402,7 +402,7 @@ export default function BoardOfDirectorsV2AddPage() {
           <select
             value={selectedDesignationId}
             onChange={(e) => setSelectedDesignationId(e.target.value)}
-            className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42] bg-white"
+            className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42] bg-card"
           >
             <option value="">Select a designation</option>
             {designations.map((d) => (
@@ -430,7 +430,7 @@ export default function BoardOfDirectorsV2AddPage() {
           <select
             value={selectedYearId}
             onChange={(e) => setSelectedYearId(e.target.value)}
-            className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42] bg-white"
+            className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42] bg-card"
           >
             <option value="">Select a year</option>
             {allYears.map((y) => (

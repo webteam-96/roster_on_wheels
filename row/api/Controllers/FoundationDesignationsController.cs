@@ -94,7 +94,7 @@ public class FoundationDesignationsController : ControllerBase
     [HttpGet("api/members/{memberId:int}/foundation-designations")]
     public async Task<IActionResult> List(int memberId)
     {
-        await using var conn = new MySqlConnection(_connectionString);
+        await using var conn = RowDb.Connect(_connectionString);
         if (CallerId() != memberId && !await CanManageAsync(conn, memberId)) return Denied();
         var rows = await conn.QueryAsync<Row>(@"
             SELECT pk_member_designation_id AS Id, designation_type AS Type, level AS Level,
@@ -110,7 +110,7 @@ public class FoundationDesignationsController : ControllerBase
     [HttpPost("api/members/{memberId:int}/foundation-designations")]
     public async Task<IActionResult> Add(int memberId, [FromBody] AddRequest req)
     {
-        await using var conn = new MySqlConnection(_connectionString);
+        await using var conn = RowDb.Connect(_connectionString);
         if (!await CanManageAsync(conn, memberId)) return Denied();
 
         var type = (req.Type ?? "").Trim().ToUpperInvariant();
@@ -152,7 +152,7 @@ public class FoundationDesignationsController : ControllerBase
     [HttpDelete("api/members/{memberId:int}/foundation-designations/{id:int}")]
     public async Task<IActionResult> Remove(int memberId, int id)
     {
-        await using var conn = new MySqlConnection(_connectionString);
+        await using var conn = RowDb.Connect(_connectionString);
         if (!await CanManageAsync(conn, memberId)) return Denied();
         var n = await conn.ExecuteAsync(@"
             UPDATE member_foundation_designations SET isdeleted = 1, deleted_by = @U, deleted_date = NOW()
@@ -179,7 +179,7 @@ public class FoundationDesignationsController : ControllerBase
         if (!Levels.ContainsKey(t))
             return BadRequest(new { message = "Type must be PHF, MAJOR_DONOR or BEQUEST_SOCIETY." });
 
-        await using var conn = new MySqlConnection(_connectionString);
+        await using var conn = RowDb.Connect(_connectionString);
         // shortcut: no paging, at most 5,000 rows; page it when a district outgrows that.
         var rows = await conn.QueryAsync<Row>($@"
             SELECT Id, MemberId, MemberName, ClubName, Type, Level, AwardedDate FROM (

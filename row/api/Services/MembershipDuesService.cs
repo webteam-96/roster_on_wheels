@@ -45,7 +45,7 @@ public class MembershipDuesService : IMembershipDuesService
         _logger = logger;
     }
 
-    private MySqlConnection GetConnection() => new(_connStr);
+    private MySqlConnection GetConnection() => RowDb.Connect(_connStr);
 
     // Dues campaign row (alias) belongs to a live club and a live district: an inactive club /
     // district / zone hides its dues listings, member lists, reports and reminder recipients.
@@ -1056,14 +1056,14 @@ public class MembershipDuesService : IMembershipDuesService
                 TransType = dto.TransactionType ?? "", TransId = dto.TransactionId ?? "",
                 GivenTo = dto.GivenTo ?? "", BankName = dto.BankName ?? "", ChequeNo = dto.ChequeNumber ?? "",
                 Attach = attachPath ?? "", Remark = dto.Remark ?? "",
-                PayDate = dto.PaymentDate ?? DateTime.Now,
+                PayDate = dto.PaymentDate ?? DateTime.UtcNow,
                 UserId = userId
             });
 
         // Send receipt email if requested (fire-and-forget)
         if (dto.SendReceiptEmail)
         {
-            _ = Task.Run(async () => { try { await SendReceiptEmailAsync(paymentId); } catch { } });
+            BackgroundWork.Run("SendReceiptEmailAsync", () => SendReceiptEmailAsync(paymentId));
         }
 
         return paymentId;
@@ -1090,7 +1090,7 @@ public class MembershipDuesService : IMembershipDuesService
         if (existing == null) throw new KeyNotFoundException("Payment not found.");
 
         if (Convert.ToInt32(existing.IsOnline) == 1)
-            throw new ArgumentException("Cannot update — this is an online (payment-gateway) payment.");
+            throw new ArgumentException("Cannot update: this is an online (payment-gateway) payment.");
 
         // Compute the amount based on the (possibly updated) fee type, mirroring
         // the same lookup the original record path uses.
@@ -1141,7 +1141,7 @@ public class MembershipDuesService : IMembershipDuesService
                 ChequeNo  = dto.ChequeNumber ?? "",
                 Attach    = attachPath ?? "",
                 Remark    = dto.Remark ?? "",
-                PayDate   = dto.PaymentDate ?? DateTime.Now,
+                PayDate   = dto.PaymentDate ?? DateTime.UtcNow,
                 UserId    = userId
             });
 
@@ -1215,7 +1215,7 @@ public class MembershipDuesService : IMembershipDuesService
         if (existing == null) throw new KeyNotFoundException("Payment not found.");
 
         if (Convert.ToInt32(existing.IsOnline) == 1)
-            throw new ArgumentException("Cannot remove — this is an online (payment-gateway) payment.");
+            throw new ArgumentException("Cannot remove: this is an online (payment-gateway) payment.");
 
         await conn.ExecuteAsync(@"
             UPDATE membership_dues_payments
@@ -1271,7 +1271,7 @@ public class MembershipDuesService : IMembershipDuesService
                 TransType = dto.TransactionType ?? "", TransId = dto.TransactionId ?? "",
                 GivenTo = dto.GivenTo ?? "", BankName = dto.BankName ?? "", ChequeNo = dto.ChequeNumber ?? "",
                 Attach = attachPath ?? "", Remark = dto.Remark ?? "",
-                PayDate = dto.PaymentDate ?? DateTime.Now
+                PayDate = dto.PaymentDate ?? DateTime.UtcNow
             });
 
         // Send notification email synchronously (NOT Task.Run) — IIS/iisnode can recycle
@@ -1703,7 +1703,7 @@ public class MembershipDuesService : IMembershipDuesService
                   ORDER BY PaymentDate DESC, pk_id DESC LIMIT 1",
                 new { FeeId = memberFeeId });
             if (!paidPaymentId.HasValue)
-                throw new KeyNotFoundException("No paid payment found for this member — receipt cannot be sent.");
+                throw new KeyNotFoundException("No paid payment found for this member: receipt cannot be sent.");
 
             await SendReceiptEmailAsync(paidPaymentId.Value);
         }
@@ -1725,7 +1725,7 @@ public class MembershipDuesService : IMembershipDuesService
         var isActualPayment = await conn.ExecuteScalarAsync<int>(
             "SELECT COUNT(*) FROM membership_dues_payments WHERE pk_id=@Id AND isdeleted=0", new { Id = paymentId });
         if (isActualPayment == 0)
-            throw new KeyNotFoundException($"Payment row {paymentId} not found — receipt cannot be sent.");
+            throw new KeyNotFoundException($"Payment row {paymentId} not found: receipt cannot be sent.");
 
         // Note: no duplicate check — manual resend is allowed
 
@@ -1965,7 +1965,7 @@ public class MembershipDuesService : IMembershipDuesService
         AddRow("Club Name", (string?)payment.ClubName);
         AddRow("Purpose", (string?)payment.Purpose);
         AddRow("Status", "Paid");
-        AddRow("Date and Time", ((DateTime?)payment.PaymentDate)?.ToString("dd-MMM-yyyy hh:mm tt") ?? DateTime.Now.ToString("dd-MMM-yyyy hh:mm tt"));
+        AddRow("Date and Time", ((DateTime?)payment.PaymentDate)?.ToString("dd-MMM-yyyy hh:mm tt") ?? DateTime.UtcNow.ToString("dd-MMM-yyyy hh:mm tt"));
         AddRow("Approver's Remark", (string?)payment.ApprovalRemark);
 
         var subject = (string?)payment.EmailSubject ?? "Club Dues - Payment Received";
@@ -2292,7 +2292,7 @@ public class MembershipDuesService : IMembershipDuesService
 
         var purpose = ((string?)dues.Purpose ?? "ClubDues").Trim();
         var safePurpose = System.Text.RegularExpressions.Regex.Replace(purpose, @"[^a-zA-Z0-9 _-]", "").Replace(" ", "_");
-        var sheetTitle = $"Dues_{safePurpose}_{DateTime.Now:ddMMyyyyHHmmss}";
+        var sheetTitle = $"Dues_{safePurpose}_{DateTime.UtcNow:ddMMyyyyHHmmss}";
 
         // Explicit casts below: passing the dynamic `dues` row into a helper makes that CALL
         // dynamically dispatched too, which otherwise "infects" the assigned variable's static
@@ -2444,7 +2444,7 @@ public class MembershipDuesService : IMembershipDuesService
                 IsPending = isPending,
                 IsRejected = isRejected,
                 RejectionReason = isRejected ? (string?)latestPayment!.RejectionReason : null,
-                PaymentDate = isPaid && latestPayment != null ? ((DateTime?)latestPayment!.PaymentDate)?.ToString("dd-MMM-yyyy hh:mm tt") : null,
+                PaymentDate = isPaid && latestPayment != null ? (latestPayment!.PaymentDate is DateTime lpd ? ZoneTime.Print(lpd, "dd-MMM-yyyy hh:mm tt") : null) : null,
                 PaymentMode = isPaid && latestPayment != null ? (string?)latestPayment!.PaymentMode : null,
                 // Previous submission details for resubmit
                 PrevTransactionType = (isRejected || isPending) && latestPayment != null ? (string?)latestPayment!.OfflineTransactionType : null,
@@ -2462,7 +2462,7 @@ public class MembershipDuesService : IMembershipDuesService
         // member (or admin via offline entry) can now pay ANY enabled fee
         // type at ANY time. The only remaining filter is the cross-
         // incompatibility rule applied below.
-        var now = DateTime.Now;
+        var now = DateTime.UtcNow;
 
         // Check what's paid. IsPaid is TINYINT(1) — older rows may have NULL. The (bool) cast
         // on a NULL dynamic throws InvalidCastException, which surfaces as 500 in the UI as
@@ -2648,7 +2648,7 @@ public class MembershipDuesService : IMembershipDuesService
             new { FeeId = (int)fee.FeeId, dto.FeeType });
 
         // Generate unique order_id
-        var orderId = $"DUES{duesId}_{DateTime.Now:ddMMyyyyHHmmssffffff}";
+        var orderId = $"DUES{duesId}_{DateTime.UtcNow:ddMMyyyyHHmmssffffff}";
         var customerId = $"CUST_{Guid.NewGuid():N}"[..20];
 
         // Insert payment record
@@ -2851,10 +2851,7 @@ public class MembershipDuesService : IMembershipDuesService
         if (marked > 0)
         {
             // Send receipt email (fire-and-forget)
-            _ = Task.Run(async () =>
-            {
-                try { await SendReceiptEmailAsync(paymentId); } catch { /* non-critical */ }
-            });
+            BackgroundWork.Run("SendReceiptEmailAsync", () => SendReceiptEmailAsync(paymentId));
 
             // Append to Google Sheet (fire-and-forget)
             _ = Task.Run(async () =>
@@ -2864,13 +2861,9 @@ public class MembershipDuesService : IMembershipDuesService
             });
 
             // Auto-refresh settlement (fire-and-forget)
-            _ = Task.Run(async () =>
-            {
-                try { await RefreshSettlementsAsync(duesId); }
-                catch { /* non-critical */ }
-            });
+            BackgroundWork.Run("RefreshSettlementsAsync", () => RefreshSettlementsAsync(duesId));
         }
-        return Paid(DateTime.Now);
+        return Paid(DateTime.UtcNow);
     }
 
     public async Task HandleWebhookAsync(string payload, string? signature, string? timestamp)
@@ -3255,7 +3248,7 @@ public class MembershipDuesService : IMembershipDuesService
 
         // Title strip with club/district/year context so an emailed file is self-describing
         ws.Cell(1, 1).Value = $"Club Dues Report \u2014 {purpose}";
-        ws.Cell(2, 1).Value = $"Club: {clubName}    District: {districtNumber}    Rotary Year: {rotaryYear}    Generated: {DateTime.Now:dd-MM-yyyy HH:mm}";
+        ws.Cell(2, 1).Value = $"Club: {clubName}    District: {districtNumber}    Rotary Year: {rotaryYear}    Generated: {DateTime.UtcNow:dd-MM-yyyy HH:mm}";
 
         // 5 columns per enabled fee type (Paid + Balance removed per user 2026-06-24):
         //   {Fee} Amount, Settled, Payment Mode, Payment Date, Status
@@ -3490,7 +3483,7 @@ public class MembershipDuesService : IMembershipDuesService
             baseAmount,
             settled.HasValue ? (object)settled.Value : "",
             paymentMode ?? "",
-            paymentDate.HasValue ? paymentDate.Value.ToString("dd-MM-yyyy HH:mm") : "",
+            paymentDate.HasValue ? ZoneTime.Print(paymentDate.Value, "dd-MM-yyyy HH:mm") : "",
             isPaid ? "Paid" : "Unpaid"
         };
     }
@@ -3630,7 +3623,7 @@ public class MembershipDuesService : IMembershipDuesService
         var semi1End = new DateTime(startYear, 12, 31);
         var semi2Start = new DateTime(startYear + 1, 1, 1);
         var semi2End = new DateTime(startYear + 1, 6, 30);
-        var now = DateTime.Now;
+        var now = DateTime.UtcNow;
 
         return feeType switch
         {
@@ -3848,7 +3841,7 @@ public class MembershipDuesService : IMembershipDuesService
         // rule DeleteOfflinePaymentAsync enforces. Reverting would only hide a
         // real, settled transaction.
         if (paidRows.Any(r => Convert.ToInt32(r.IsOnline) == 1))
-            throw new ArgumentException("Cannot revert — this fee was paid through the payment gateway. Only offline-recorded payments can be reverted.");
+            throw new ArgumentException("Cannot revert: this fee was paid through the payment gateway. Only offline-recorded payments can be reverted.");
 
         var paymentIds = paidRows.Select(r => (int)r.PaymentId).ToList();
         var feeTypes = paidRows.Select(r => (int)r.FeeType).Distinct().OrderBy(t => t).ToList();
@@ -3904,7 +3897,7 @@ public class MembershipDuesService : IMembershipDuesService
     {
         var dir = Path.Combine(env.WebRootPath, "Documents", $"{folderPrefix}{folderId}");
         Directory.CreateDirectory(dir);
-        var uniqueName = $"{Guid.NewGuid():N}_{DateTime.Now:ddMMyyyyHHmmss}{Path.GetExtension(file.FileName)}";
+        var uniqueName = $"{Guid.NewGuid():N}_{DateTime.UtcNow:ddMMyyyyHHmmss}{Path.GetExtension(file.FileName)}";
         var filePath = Path.Combine(dir, uniqueName);
         using var stream = new FileStream(filePath, FileMode.Create);
         await file.CopyToAsync(stream);

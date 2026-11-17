@@ -46,7 +46,7 @@ public class CommsService
         public bool IsClub => ClubId > 0;
     }
 
-    private MySqlConnection Conn() => new(_cs);
+    private MySqlConnection Conn() => RowDb.Connect(_cs);
 
     public async Task<bool> IsOnAsync() => (await FeatureGate.OnAsync(_cs)).Contains(FeatureKey);
 

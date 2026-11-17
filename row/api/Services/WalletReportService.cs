@@ -19,7 +19,7 @@ public class WalletReportService : IWalletReportService
         _conn = config.GetConnectionString("DefaultConnection")!;
     }
 
-    private MySqlConnection NewConn() => new(_conn);
+    private MySqlConnection NewConn() => RowDb.Connect(_conn);
 
     // Derived-table board-contact lookup correlated by (club, year) — unlike
     // WalletLinksController.BoardContactSql (which is hardcoded to IsCurrent=1 for a live-balance

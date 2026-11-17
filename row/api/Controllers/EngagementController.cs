@@ -122,7 +122,7 @@ public class EngagementController : ControllerBase
 
     private async Task<IActionResult> Highlights(bool isClub, int scopeId, int days)
     {
-        await using var conn = new MySqlConnection(_connectionString);
+        await using var conn = RowDb.Connect(_connectionString);
         var rows = await conn.QueryAsync<Row>(SelectRows + $@"
               AND e.{(isClub ? "fk_club_id" : "fk_district_id")} = @Scope AND e.created_date >= NOW() - INTERVAL @Days DAY
             ORDER BY e.created_date DESC, e.pk_engagement_event_id DESC LIMIT 200",
@@ -147,7 +147,7 @@ public class EngagementController : ControllerBase
         if (status != null && !Statuses.Contains(status))
             return BadRequest(new { message = "Status must be pending, approved or rejected." });
 
-        await using var conn = new MySqlConnection(_connectionString);
+        await using var conn = RowDb.Connect(_connectionString);
         // shortcut: newest 500 only, no paging; page it when a district's queue outgrows that.
         var rows = await conn.QueryAsync<Row>(SelectRows + $@"
               AND e.{(isClub ? "fk_club_id" : "fk_district_id")} = @Scope AND (@Status IS NULL OR e.card_status = @Status)
@@ -160,7 +160,7 @@ public class EngagementController : ControllerBase
     [HttpGet("api/engagement/spotlight-cards/{id:int}/image")]
     public async Task<IActionResult> CardImage(int id, [FromQuery] bool download = false)
     {
-        await using var conn = new MySqlConnection(_connectionString);
+        await using var conn = RowDb.Connect(_connectionString);
         var r = await LoadAsync(conn, id);
         if (r == null) return NotFound(new { message = "Spotlight card not found." });
         if (!await ManagesEventAsync(r)) return StatusCode(403, new { message = "You do not manage this club." });
@@ -200,7 +200,7 @@ public class EngagementController : ControllerBase
     // A decision can be changed later (approve after a reject, or the other way round).
     private async Task<IActionResult> Decide(int id, string status)
     {
-        await using var conn = new MySqlConnection(_connectionString);
+        await using var conn = RowDb.Connect(_connectionString);
         var r = await LoadAsync(conn, id);
         if (r == null) return NotFound(new { message = "Spotlight card not found." });
         if (!await ManagesEventAsync(r)) return StatusCode(403, new { message = "You do not manage this club." });
@@ -217,7 +217,7 @@ public class EngagementController : ControllerBase
     public async Task<IActionResult> GetSettings(int districtId)
     {
         if (!await ManagesAsync(false, districtId)) return StatusCode(403, new { message = "You do not manage this district." });
-        await using var conn = new MySqlConnection(_connectionString);
+        await using var conn = RowDb.Connect(_connectionString);
         var row = await conn.QueryFirstOrDefaultAsync<SettingsRow>(@"
             SELECT milestone_years AS Years, governor_message AS Message FROM engagement_district_settings
             WHERE fk_district_id = @D", new { D = districtId });
@@ -241,7 +241,7 @@ public class EngagementController : ControllerBase
         if (message?.Length > GovernorMessageMax)
             return BadRequest(new { message = $"The Governor message can be at most {GovernorMessageMax} characters." });
 
-        await using var conn = new MySqlConnection(_connectionString);
+        await using var conn = RowDb.Connect(_connectionString);
         if (await conn.ExecuteScalarAsync<int>(
                 "SELECT COUNT(*) FROM district_master WHERE pk_district_id = @D AND isdeleted = 0", new { D = districtId }) == 0)
             return NotFound(new { message = "District not found." });

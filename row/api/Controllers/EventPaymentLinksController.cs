@@ -49,7 +49,7 @@ public class EventPaymentLinksController : ControllerBase
 
     private async Task<bool> CanReadLinkAsync(int linkId)
     {
-        await using var conn = new MySqlConnection(_connectionString);
+        await using var conn = RowDb.Connect(_connectionString);
         var owner = await conn.QueryFirstOrDefaultAsync<(int? ClubId, int? DistrictId)>(
             "SELECT fk_club_id, fk_district_master_id FROM event_payment_links WHERE pk_id = @Id", new { Id = linkId });
         return await ManagesAsync(owner.ClubId, owner.DistrictId);
@@ -58,7 +58,7 @@ public class EventPaymentLinksController : ControllerBase
     // Writes on one member payment: the caller must manage the payment's link (club or district).
     private async Task<bool> CanManageMemberPaymentAsync(int memberPaymentId)
     {
-        await using var conn = new MySqlConnection(_connectionString);
+        await using var conn = RowDb.Connect(_connectionString);
         var linkId = await conn.ExecuteScalarAsync<int?>("SELECT fk_payment_link_id FROM event_payment_members WHERE pk_id = @Id", new { Id = memberPaymentId });
         return linkId is > 0 && await CanReadLinkAsync(linkId.Value);
     }

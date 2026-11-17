@@ -20,7 +20,7 @@ public class LiveDocumentsExportController : ControllerBase
         _yearTables = yearTables;
     }
 
-    private MySqlConnection CreateConnection() => new(_connectionString);
+    private MySqlConnection CreateConnection() => RowDb.Connect(_connectionString);
 
     [HttpGet("export")]
     public async Task<ActionResult> Export(int clubId, [FromQuery] int yearId, [FromQuery] string module)

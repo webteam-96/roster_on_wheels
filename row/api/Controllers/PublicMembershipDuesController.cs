@@ -18,6 +18,7 @@ public class PublicMembershipDuesController : ControllerBase
         _config = config;
     }
 
+    [EnableRateLimiting("member-search")]
     [HttpGet("{id}")]
     public async Task<ActionResult> GetPublicDues(int id)
     {
@@ -45,6 +46,7 @@ public class PublicMembershipDuesController : ControllerBase
     // HMAC signature checks out AND the duesId in the token matches the
     // route, return the member's dues status so the page can skip OTP and
     // jump straight to the member-specific paid/unpaid view.
+    [EnableRateLimiting("member-search")]
     [HttpGet("{id}/verify-mobile-token")]
     public async Task<ActionResult> VerifyMobileToken(int id, [FromQuery] int memberId, [FromQuery] string token)
     {
@@ -62,6 +64,7 @@ public class PublicMembershipDuesController : ControllerBase
     }
 
     // Holds the member's contact details and fees, so it needs the token verify-otp issued for this dues and member.
+    [EnableRateLimiting("member-search")]
     [HttpGet("{id}/member/{memberProfileId}/status")]
     public async Task<ActionResult> GetMemberDuesStatus(int id, int memberProfileId, [FromQuery] string? token)
     {
@@ -116,6 +119,7 @@ public class PublicMembershipDuesController : ControllerBase
         return true;
     }
 
+    [EnableRateLimiting("payment-status")]
     [HttpPost("{id}/pay")]
     public async Task<ActionResult> CreatePaymentOrder(int id, [FromBody] PublicDuesPaymentSubmitDto dto)
     {
@@ -133,6 +137,7 @@ public class PublicMembershipDuesController : ControllerBase
         }
     }
 
+    [EnableRateLimiting("payment-status")]
     [HttpPost("{id}/offline-payment")]
     public async Task<ActionResult> SubmitOfflinePayment(int id, [FromForm] RecordOfflineDuesPaymentDto dto, IFormFile? attachment)
     {
@@ -140,7 +145,7 @@ public class PublicMembershipDuesController : ControllerBase
         dto.FkMemberProfileId = payer;
         if (attachment != null && attachment.Length > 0)
         {
-            var allowedExtensions = new[] { ".pdf", ".jpg", ".jpeg", ".png", ".gif", ".webp", ".bmp", ".svg" };
+            var allowedExtensions = new[] { ".pdf", ".jpg", ".jpeg", ".png", ".gif", ".webp", ".bmp" };
             var extension = System.IO.Path.GetExtension(attachment.FileName).ToLowerInvariant();
             if (!allowedExtensions.Contains(extension))
                 return BadRequest(new { message = "Invalid file type. Only images (JPG, JPEG, PNG, GIF, WEBP, BMP, SVG) or PDF are allowed." });

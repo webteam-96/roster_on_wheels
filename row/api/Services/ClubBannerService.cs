@@ -16,7 +16,7 @@ public class ClubBannerService : IClubBannerService
         _env = env;
     }
 
-    private MySqlConnection CreateConnection() => new(_connectionString);
+    private MySqlConnection CreateConnection() => RowDb.Connect(_connectionString);
 
     // Inline SQL (mirrors sp_club_banner_get_by_club) so we can return the new document_path + link_url
     // columns without editing the privilege-locked SP. NULL-safe isdeleted filter for migrated rows.

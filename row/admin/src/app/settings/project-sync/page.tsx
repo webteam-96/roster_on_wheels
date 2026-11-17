@@ -160,7 +160,7 @@ export default function ProjectSyncPage() {
                   />
                 </div>
                 {showSuggestions && suggestions.length > 0 && (
-                  <div className="absolute z-20 mt-1 w-full max-h-72 overflow-auto rounded-md border bg-white shadow-lg">
+                  <div className="absolute z-20 mt-1 w-full max-h-72 overflow-auto rounded-md border bg-card shadow-lg">
                     {suggestions.map((s) => (
                       <button
                         key={s.clubId}

@@ -311,5 +311,5 @@ public static class ClubMonthlyReportPdfBuilder
             ? d.ToString("dd MMM yyyy", CultureInfo.InvariantCulture) : ymd;
 
     private static string FmtDateTime(DateTime d) =>
-        d.ToString("ddd, dd MMM yyyy hh:mm:ss tt", CultureInfo.InvariantCulture);
+        ZoneTime.Print(d, "ddd, dd MMM yyyy hh:mm:ss tt");
 }

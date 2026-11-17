@@ -282,7 +282,7 @@ export default function DistrictAdminDashboardAdvertisementsPage() {
               variant="outline"
               size="icon"
               onClick={goBack}
-              className="border-slate-200 bg-white hover:bg-slate-50 text-slate-700"
+              className="border-slate-200 bg-card hover:bg-slate-50 text-slate-700"
             >
               <ArrowLeft className="h-4 w-4" />
             </Button>
@@ -313,7 +313,7 @@ export default function DistrictAdminDashboardAdvertisementsPage() {
             {/* Year Select removed — top-bar ?yearId= drives filter now. */}
             <div className="hidden">
               <Select value={selectedYearId} onValueChange={setSelectedYearId}>
-                <SelectTrigger className="border-slate-200 bg-white focus:border-azure focus:ring-azure/20">
+                <SelectTrigger className="border-slate-200 bg-card focus:border-azure focus:ring-azure/20">
                   <SelectValue placeholder="Select year" />
                 </SelectTrigger>
                 <SelectContent>
@@ -330,7 +330,7 @@ export default function DistrictAdminDashboardAdvertisementsPage() {
                 variant={activeCount >= maxActive ? "destructive" : "secondary"}
                 className={activeCount >= maxActive
                   ? "bg-red-100 text-red-700 border border-red-200"
-                  : "bg-white text-ink border border-slate-200"}
+                  : "bg-card text-ink border border-slate-200"}
               >
                 {activeCount}/{maxActive} Active
               </Badge>
@@ -343,7 +343,7 @@ export default function DistrictAdminDashboardAdvertisementsPage() {
         )}
 
         {!loading && !loadingAds && selectedYearId && advertisements.length === 0 && (
-          <div className="flex flex-col items-center justify-center py-20 text-center rounded-2xl border border-slate-200 bg-white shadow-sm">
+          <div className="flex flex-col items-center justify-center py-20 text-center rounded-2xl border border-slate-200 bg-card shadow-sm">
             <ImageIcon className="h-12 w-12 text-slate-400 mb-4" />
             <h3 className="text-lg font-semibold text-slate-800">No advertisements yet</h3>
             <p className="text-slate-600 mt-2">
@@ -364,11 +364,11 @@ export default function DistrictAdminDashboardAdvertisementsPage() {
               {filteredAdvertisements.map((ad, idx) => {
                 const photoUrl = getPhotoUrl(ad.advertisementImagePath);
                 return (
-                  <Card key={ad.id} className="border-slate-200 rounded-2xl shadow-sm bg-white relative">
+                  <Card key={ad.id} className="border-slate-200 rounded-2xl shadow-sm bg-card relative">
                     {canManage && !isSearching && (
                       <div
                         {...dragProps(idx)}
-                        className="absolute top-2 left-2 z-10 bg-white rounded p-1 text-slate-500 border border-slate-200"
+                        className="absolute top-2 left-2 z-10 bg-card rounded p-1 text-slate-500 border border-slate-200"
                         title="Drag to reorder"
                       >
                         <GripVertical className="h-4 w-4 cursor-grab" />
@@ -438,7 +438,7 @@ export default function DistrictAdminDashboardAdvertisementsPage() {
             </div>
 
             {/* ── Desktop: table ───────────────────────────────── */}
-            <div className="hidden sm:block rounded-2xl border border-slate-200 shadow-sm overflow-hidden bg-white">
+            <div className="hidden sm:block rounded-2xl border border-slate-200 shadow-sm overflow-hidden bg-card">
               <Table>
                 <TableHeader>
                   <TableRow
@@ -574,7 +574,7 @@ export default function DistrictAdminDashboardAdvertisementsPage() {
                     <Button
                       type="button"
                       variant="outline"
-                      className="w-full h-24 border-dashed border-slate-300 bg-white hover:bg-slate-50 text-slate-700"
+                      className="w-full h-24 border-dashed border-slate-300 bg-card hover:bg-slate-50 text-slate-700"
                       onClick={() => fileInputRef.current?.click()}
                     >
                       <div className="flex flex-col items-center gap-1">
@@ -608,7 +608,7 @@ export default function DistrictAdminDashboardAdvertisementsPage() {
                   onChange={(e) => setFormDescription(e.target.value.slice(0, 500))}
                   rows={2}
                   maxLength={500}
-                  className="border-slate-200 bg-white focus:border-azure focus:ring-azure/20"
+                  className="border-slate-200 bg-card focus:border-azure focus:ring-azure/20"
                 />
                 <p className="text-xs text-slate-500 text-right">{formDescription.length}/500</p>
               </div>
@@ -616,7 +616,7 @@ export default function DistrictAdminDashboardAdvertisementsPage() {
               <div className="space-y-2">
                 <Label className="text-slate-500 text-xs font-semibold uppercase tracking-wide">Status</Label>
                 <Select value={formIsActive} onValueChange={setFormIsActive}>
-                  <SelectTrigger className="border-slate-200 bg-white focus:border-azure focus:ring-azure/20">
+                  <SelectTrigger className="border-slate-200 bg-card focus:border-azure focus:ring-azure/20">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -630,7 +630,7 @@ export default function DistrictAdminDashboardAdvertisementsPage() {
                 <div className="space-y-2">
                   <Label className="text-slate-500 text-xs font-semibold uppercase tracking-wide">Rotary Year</Label>
                   <Select value={formYearId} onValueChange={setFormYearId}>
-                    <SelectTrigger className="border-slate-200 bg-white focus:border-azure focus:ring-azure/20">
+                    <SelectTrigger className="border-slate-200 bg-card focus:border-azure focus:ring-azure/20">
                       <SelectValue placeholder="Select a year" />
                     </SelectTrigger>
                     <SelectContent>

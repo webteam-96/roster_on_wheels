@@ -50,7 +50,7 @@ export function WebDirectories() {
               key={d.href}
               href={d.href}
               data-animate="up"
-              className="group flex flex-col rounded-2xl bg-white p-7 shadow-soft ring-1 ring-navy-950/[0.08] transition-shadow duration-300 hover:shadow-lift focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-dark sm:p-9"
+              className="group flex flex-col rounded-2xl bg-card p-7 shadow-soft ring-1 ring-navy-950/[0.08] transition-shadow duration-300 hover:shadow-lift focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-dark sm:p-9"
             >
               <span
                 className="flex h-12 w-12 items-center justify-center rounded-xl bg-gold/15 ring-1 ring-gold/30"

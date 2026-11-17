@@ -100,7 +100,7 @@ public static class SubscriptionAccess
     public static async Task<bool> LinkOpenAsync(IConfiguration config, string table, string keyColumn, int id)
     {
         if (!Enforce) return true;
-        await using var conn = new MySqlConnection(config.GetConnectionString("DefaultConnection"));
+        await using var conn = RowDb.Connect(config.GetConnectionString("DefaultConnection"));
         var clubId = await conn.ExecuteScalarAsync<int?>($"SELECT fk_club_id FROM `{table}` WHERE `{keyColumn}` = @id", new { id });
         return await OwnerWorksAsync(conn, clubId, null);
     }

@@ -24,7 +24,7 @@ public class DistrictWebsitePublicDataController : ControllerBase
         _connectionString = config.GetConnectionString("DefaultConnection")!;
     }
 
-    private MySqlConnection CreateConn() => new(_connectionString);
+    private MySqlConnection CreateConn() => RowDb.Connect(_connectionString);
 
     // True only if the district has a live website row AND its district + zone are active.
     internal static async Task<bool> IsDistrictServiceableAsync(MySqlConnection conn, int districtId)

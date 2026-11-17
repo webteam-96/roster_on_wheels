@@ -28,7 +28,7 @@ public class DistrictReportController : ControllerBase
         _fx = fx;
     }
 
-    private MySqlConnection CreateConnection() => new(_connectionString);
+    private MySqlConnection CreateConnection() => RowDb.Connect(_connectionString);
 
     // user 2026-10-08: Rotaract clubs (ClubType = 'Rotaract Club') appear in these district reports
     // only for SuperAdmin. Every report narrows to clubIds first, so filtering there covers it all.
@@ -163,7 +163,7 @@ public class DistrictReportController : ControllerBase
         // (Meeting / TRF / Projects / Cost / Beneficiaries / Man Hours / Rotarians /
         // Rotaractors), but for EVERY club in the district. The frontend filters
         // to All Clubs or one club and appends a totals row.
-        int yrStartYear = yrStart?.Year ?? DateTime.Today.Year;
+        int yrStartYear = yrStart?.Year ?? DateTime.UtcNow.Date.Year;
         int yrEndYear = yrEnd?.Year ?? (yrStartYear + 1);
         var clubMonthlyProjectDetails = (await conn.QueryAsync<dynamic>($@"
             SELECT r.fk_club_id AS clubId, c.ClubName AS clubName,

@@ -95,7 +95,7 @@ function Rules({ districtId }: { districtId: number }) {
   };
 
   return (
-    <section className="overflow-hidden rounded-[20px] border border-slate-200 bg-white">
+    <section className="overflow-hidden rounded-[20px] border border-slate-200 bg-card">
       <header className="border-b border-slate-100 bg-slate-50 px-4 py-2.5">
         <h2 className="text-sm font-semibold text-slate-800">Rules</h2>
       </header>
@@ -195,7 +195,7 @@ function AlertLog({ districtId }: { districtId: number }) {
       {rows === null ? (
         !error && <TableSkeleton rows={5} />
       ) : (
-        <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white">
+        <div className="overflow-x-auto rounded-xl border border-slate-200 bg-card">
           <Table>
             <TableHeader>
               <TableRow>

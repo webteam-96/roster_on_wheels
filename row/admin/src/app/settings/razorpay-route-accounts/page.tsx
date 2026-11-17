@@ -38,6 +38,7 @@ import {
   type RazorpayRouteAccount,
   type RouteAccountOnboardingPayload,
 } from "@/services/api";
+import { SkeletonRows } from "@/components/row/AppKit";
 
 // Razorpay v2 linked-account business types. The PAN below must match the chosen type
 // (e.g. a company PAN for private/public limited, an individual PAN for proprietorship/individual).
@@ -256,7 +257,7 @@ export default function RazorpayRouteAccountsPage() {
           </div>
         </div>
 
-        <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white">
+        <div className="overflow-x-auto rounded-xl border border-slate-200 bg-card">
           <table className="w-full text-sm">
             <thead className="bg-[#EDF4FB] text-slate-600">
               <tr>
@@ -270,7 +271,7 @@ export default function RazorpayRouteAccountsPage() {
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan={6} className="px-4 py-10 text-center text-slate-400"><Loader2 className="h-5 w-5 animate-spin inline" /></td></tr>
+                <tr><td colSpan={6} className="px-4 py-3"><SkeletonRows /></td></tr>
               ) : rows.length === 0 ? (
                 <tr><td colSpan={6} className="px-4 py-10 text-center text-slate-400">No Route accounts yet. Add one to route payments.</td></tr>
               ) : rows.map((r) => (

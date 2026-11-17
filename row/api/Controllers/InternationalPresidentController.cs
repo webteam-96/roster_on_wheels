@@ -1,3 +1,4 @@
+using RotaryApi.Services;
 using Dapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -20,7 +21,7 @@ public class InternationalPresidentController : ControllerBase
         _env = env;
     }
 
-    private MySqlConnection CreateConnection() => new(_connectionString);
+    private MySqlConnection CreateConnection() => RowDb.Connect(_connectionString);
     private bool IsSuperAdmin() => User.FindFirst("roles")?.Value?.Contains("SuperAdmin") == true;
     private int GetUserId()
     {
@@ -182,7 +183,7 @@ public class InternationalPresidentController : ControllerBase
         var uploadsPath = Path.Combine(_env.WebRootPath, "Documents", "WebsiteData", "International_President");
         Directory.CreateDirectory(uploadsPath);
 
-        var now = DateTime.Now;
+        var now = DateTime.UtcNow;
         var stamp = now.ToString("ddMMyyyyhhmmssfffffff", System.Globalization.CultureInfo.InvariantCulture)
                   + now.ToString("tt", System.Globalization.CultureInfo.InvariantCulture);
         var fileName = $"PRESIDENT{stamp}{extension}";

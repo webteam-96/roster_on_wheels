@@ -17,7 +17,7 @@ public class PotentialMemberService : IPotentialMemberService
         _members = members;
     }
 
-    private MySqlConnection CreateConnection() => new(_connectionString);
+    private MySqlConnection CreateConnection() => RowDb.Connect(_connectionString);
 
     private const string Select = @"
         SELECT pm.pk_potential_member_id AS Id, pm.fk_club_id AS ClubId, pm.name AS Name, pm.email AS Email,
@@ -141,7 +141,7 @@ public class PotentialMemberService : IPotentialMemberService
                 EmailId = string.IsNullOrWhiteSpace(p.Email) ? null : p.Email,
                 PrimaryMobileNumber = string.IsNullOrWhiteSpace(p.MobileNumber) ? null : p.MobileNumber,
                 ClubId = clubId,
-                JoinedDate = DateTime.Today,
+                JoinedDate = DateTime.UtcNow.Date,
             });
             await connection.ExecuteAsync(@"
                 UPDATE potential_members SET stage = 'inducted', fk_converted_member_id = @MemberId, converted_date = NOW(), modified_by = @By

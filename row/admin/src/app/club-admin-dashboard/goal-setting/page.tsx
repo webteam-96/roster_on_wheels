@@ -66,7 +66,7 @@ export default function ClubAdminGoalSettingPage() {
   // the screen just shows the placeholder until CLUB_GOAL_SETTING_COMING_SOON is turned off.
   if (CLUB_GOAL_SETTING_COMING_SOON) {
     return (
-      <div className="bg-white rounded-2xl border border-slate-200">
+      <div className="bg-card rounded-2xl border border-slate-200">
         <ClubGoalComingSoon />
       </div>
     );

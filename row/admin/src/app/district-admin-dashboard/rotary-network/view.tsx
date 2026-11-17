@@ -320,7 +320,7 @@ export function DistrictRotaryNetworkView({ embedded = false }: { embedded?: boo
         </div>
       )}
 
-      <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+      <div className="bg-card rounded-2xl border border-slate-200 overflow-hidden">
         <div className="px-5 py-3 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
             <h3 className="text-sm font-semibold text-slate-800">Rotary Network</h3>
@@ -395,7 +395,7 @@ export function DistrictRotaryNetworkView({ embedded = false }: { embedded?: boo
                 </button>
               )}
               {clubDropdownOpen && !clubId && clubOptions.length > 0 && (
-                <div className="absolute z-10 mt-1 w-full sm:w-64 max-h-56 overflow-y-auto rounded-lg border border-slate-200 bg-white shadow-lg">
+                <div className="absolute z-10 mt-1 w-full sm:w-64 max-h-56 overflow-y-auto rounded-lg border border-slate-200 bg-card shadow-lg">
                   {clubOptions.slice(0, 50).map((c) => (
                     <button
                       key={c.clubId}

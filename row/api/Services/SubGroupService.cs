@@ -13,7 +13,7 @@ public class SubGroupService : ISubGroupService
         _connectionString = configuration.GetConnectionString("DefaultConnection")!;
     }
 
-    private MySqlConnection CreateConnection() => new(_connectionString);
+    private MySqlConnection CreateConnection() => RowDb.Connect(_connectionString);
 
     public async Task<IEnumerable<SubGroupListDto>> GetSubGroupsAsync(int clubId, int yearId, int? districtId = null)
     {

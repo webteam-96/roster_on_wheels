@@ -52,7 +52,7 @@ export default function DistrictAdminGoalClubDetailPage() {
 
   return (
     <div className="space-y-4">
-      <div className="bg-white rounded-2xl border border-slate-200 p-4 flex items-center gap-3">
+      <div className="bg-card rounded-2xl border border-slate-200 p-4 flex items-center gap-3">
         <button
           onClick={goBack}
           className="inline-flex items-center justify-center h-9 w-9 rounded-full border border-slate-200 text-slate-700 hover:bg-slate-100"

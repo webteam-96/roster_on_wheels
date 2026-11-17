@@ -227,7 +227,7 @@ export function ClubMonthlyReportV2View({ clubId: propClubId, embedded = false, 
           <select
             value={selectedYearId ?? ""}
             onChange={(e) => setSelectedYearId(e.target.value ? Number(e.target.value) : null)}
-            className="px-3 h-10 py-0 text-sm border border-slate-200 rounded-[12px] bg-white focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+            className="px-3 h-10 py-0 text-sm border border-slate-200 rounded-[12px] bg-card focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
           >
             {years.map((y) => (
               <option key={y.id} value={y.id}>
@@ -272,7 +272,7 @@ export function ClubMonthlyReportV2View({ clubId: propClubId, embedded = false, 
 
       {/* Submission progress bar */}
       {counts.total > 0 && (
-        <div className="bg-white rounded-2xl border border-slate-200 p-5">
+        <div className="bg-card rounded-2xl border border-slate-200 p-5">
           <div className="flex items-baseline justify-between mb-2">
             <h3 className="text-sm font-semibold text-slate-800">Submission Progress</h3>
             <span className="text-xs text-slate-500 tabular-nums">
@@ -298,7 +298,7 @@ export function ClubMonthlyReportV2View({ clubId: propClubId, embedded = false, 
       />
 
       {/* Month table */}
-      <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+      <div className="bg-card rounded-2xl border border-slate-200 overflow-hidden">
         <div className="px-5 py-3 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
             <h3 className="text-sm font-semibold text-slate-800">Monthly Reports</h3>

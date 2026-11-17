@@ -35,7 +35,7 @@ public static class ProjectDateValidator
         if (!date.HasValue) return null;
 
         var value = date.Value.Date;
-        if (value > DateTime.Today) return FutureMessage;
+        if (value > DateTime.UtcNow.Date) return FutureMessage;
         if (value.Year < MinYear) return OutOfRangeMessage;
         return null;
     }

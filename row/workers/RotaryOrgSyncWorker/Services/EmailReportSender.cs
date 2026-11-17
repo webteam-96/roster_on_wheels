@@ -1,3 +1,4 @@
+using RotaryApi.Services;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
@@ -145,7 +146,7 @@ public class EmailReportSender
         if (string.IsNullOrWhiteSpace(cs)) return null;
         try
         {
-            var conn = new MySqlConnection(cs);
+            var conn = RowDb.Connect(cs);
             conn.Open();
             return conn;
         }

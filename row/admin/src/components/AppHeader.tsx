@@ -128,7 +128,7 @@ export default function AppHeader() {
           <span>{helpline}</span>
         </div>
       )}
-      <header className="sticky top-0 z-50 w-full border-b border-[color:var(--row-line)] bg-white text-foreground shadow-sm">
+      <header className="sticky top-0 z-50 w-full border-b border-[color:var(--row-line)] bg-card text-foreground shadow-sm">
         <div className="flex h-20 items-center justify-between px-8">
           <Link href={homeLink} className="flex items-center">
             <BrandLogo className="h-16" />

@@ -290,7 +290,7 @@ export default function OcvReportV2Page() {
         </div>
 
         {/* Filters strip */}
-        <div className="bg-white rounded-2xl border border-slate-200 p-4">
+        <div className="bg-card rounded-2xl border border-slate-200 p-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
             {/* Year */}
             <div className="space-y-1">
@@ -300,7 +300,7 @@ export default function OcvReportV2Page() {
                 <select
                   value={selectedYearId ?? ""}
                   onChange={(e) => setSelectedYearId(e.target.value ? Number(e.target.value) : null)}
-                  className="w-full pl-7 pr-3 h-10 py-0 text-sm border border-slate-200 rounded-[12px] bg-white focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                  className="w-full pl-7 pr-3 h-10 py-0 text-sm border border-slate-200 rounded-[12px] bg-card focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
                 >
                   {years.length === 0 && <option value="">No years</option>}
                   {years.map((y) => (
@@ -316,7 +316,7 @@ export default function OcvReportV2Page() {
               <select
                 value={categoryFilter}
                 onChange={(e) => setCategoryFilter(e.target.value)}
-                className="w-full px-2 h-10 py-0 text-sm border border-slate-200 rounded-[12px] bg-white focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                className="w-full px-2 h-10 py-0 text-sm border border-slate-200 rounded-[12px] bg-card focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
               >
                 <option value="all">All Modules</option>
                 {categories.map((c) => (
@@ -331,7 +331,7 @@ export default function OcvReportV2Page() {
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
-                className="w-full px-2 h-10 py-0 text-sm border border-slate-200 rounded-[12px] bg-white focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                className="w-full px-2 h-10 py-0 text-sm border border-slate-200 rounded-[12px] bg-card focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
               >
                 <option value="all">All</option>
                 <option value="yes">Uploaded</option>
@@ -409,7 +409,7 @@ export default function OcvReportV2Page() {
 
         {/* Empty */}
         {!isLoading && filteredItems.length === 0 && (
-          <div className="bg-white rounded-2xl border border-slate-200 p-10 text-center">
+          <div className="bg-card rounded-2xl border border-slate-200 p-10 text-center">
             <Calendar size={28} className="mx-auto text-slate-300 mb-2" />
             <p className="text-sm font-semibold text-slate-700">No report data</p>
             <p className="text-xs text-slate-400 mt-1">No documents found for the selected filters.</p>
@@ -422,7 +422,7 @@ export default function OcvReportV2Page() {
           return grouped.map((group) => {
             const groupUploaded = group.items.filter((i) => i.isUploaded).length;
             return (
-              <div key={group.categoryName} className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+              <div key={group.categoryName} className="bg-card rounded-2xl border border-slate-200 overflow-hidden">
                 <div className="px-5 py-3 border-b border-slate-100 flex items-center justify-between">
                   <h3 className="text-sm font-semibold text-slate-800">{group.categoryName}</h3>
                   <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200 tabular-nums">
@@ -476,7 +476,7 @@ export default function OcvReportV2Page() {
                                     type="button"
                                     onClick={() => handleDownload(it)}
                                     title="Download"
-                                    className="inline-flex items-center justify-center w-7 h-7 rounded text-slate-500 hover:text-violet-700 hover:bg-violet-50"
+                                    className="inline-flex items-center justify-center w-7 h-7 rounded text-slate-500 hover:text-slate-700 hover:bg-slate-50"
                                   >
                                     <Download size={13} />
                                   </button>

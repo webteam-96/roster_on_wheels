@@ -1,3 +1,4 @@
+using RotaryApi.Services;
 using System.Diagnostics;
 using Dapper;
 using Microsoft.Extensions.Logging;
@@ -122,7 +123,7 @@ public sealed class Indexer
 
     private async Task<Dictionary<string, StateRow>> LoadStateAsync(string source)
     {
-        await using var conn = new MySqlConnection(_connString);
+        await using var conn = RowDb.Connect(_connString);
         await conn.OpenAsync();
         var rows = await conn.QueryAsync<StateRow>(@"
             SELECT item_key AS ItemKey, point_id AS PointId, content_hash AS ContentHash
@@ -132,7 +133,7 @@ public sealed class Indexer
 
     private async Task SaveStateAsync(IReadOnlyList<IndexItem> items)
     {
-        await using var conn = new MySqlConnection(_connString);
+        await using var conn = RowDb.Connect(_connString);
         await conn.OpenAsync();
         await using var tx = await conn.BeginTransactionAsync();
         await conn.ExecuteAsync(@"
@@ -146,7 +147,7 @@ public sealed class Indexer
 
     private async Task DeleteStateAsync(string source, IReadOnlyList<string> itemKeys)
     {
-        await using var conn = new MySqlConnection(_connString);
+        await using var conn = RowDb.Connect(_connString);
         await conn.OpenAsync();
         foreach (var chunk in itemKeys.Chunk(500))
             await conn.ExecuteAsync("DELETE FROM assistant_index_items WHERE source = @source AND item_key IN @keys",

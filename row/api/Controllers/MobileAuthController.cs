@@ -14,7 +14,8 @@ public class MobileAuthController : ControllerBase
     private readonly ILogger<MobileAuthController> _logger;
     private readonly IConfiguration _config;
 
-    private readonly IAuthService _authService;
+    private readonly IAuthService _authService;
+
 
     private readonly YearRuleMessagesHelper _yearRuleMessages;
 
@@ -108,7 +109,7 @@ public class MobileAuthController : ControllerBase
         {
             try
             {
-                await using var conn = new MySqlConnection(_config.GetConnectionString("DefaultConnection"));
+                await using var conn = RowDb.Connect(_config.GetConnectionString("DefaultConnection"));
                 await conn.OpenAsync();
                 if (!await NonSyncLoginGuardHelper.IsLoginAllowedAsync(conn, memberId))
                 {

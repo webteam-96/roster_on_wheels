@@ -281,7 +281,7 @@ export default function ClubAdminMembershipDuesPage() {
           icon={AlertCircle}
           color="red"
         />
-        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+        <div className="rounded-2xl border border-slate-200 bg-card p-4 shadow-sm">
           <div className="mb-2 flex items-start gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-50 text-blue-700 ring-1 ring-blue-100">
               <TrendingUp size={18} />
@@ -303,7 +303,7 @@ export default function ClubAdminMembershipDuesPage() {
       </div>
 
       {/* Dues records table — new-design styling: slate-50 header, light rows */}
-      <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+      <div className="overflow-hidden rounded-2xl border border-slate-200 bg-card shadow-sm">
         <div className="overflow-x-auto">
           <table className="w-full min-w-[640px] md:min-w-full text-sm">
             <thead className="bg-[#EDF4FB] text-[13px] text-[#64748B]">

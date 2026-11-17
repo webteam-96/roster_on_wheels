@@ -15,12 +15,12 @@ const BRAND_GOLD = "#F7A81B";
 
 export default function TutorialPage() {
   return (
-    <div className="min-h-screen flex flex-col bg-white">
+    <div className="min-h-screen flex flex-col bg-card">
       <main className="flex-1 relative overflow-hidden flex items-center">
 
         <section className="relative w-full max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 lg:py-20">
           {/* Hero card */}
-          <div className="relative bg-white border rounded-3xl overflow-hidden"
+          <div className="relative bg-card border rounded-3xl overflow-hidden"
                style={{ borderColor: "rgba(30,58,95,0.10)" }}>
             {/* Top accent strip */}
             <div className="h-1.5 w-full" style={{ background: BRAND_GOLD }} />

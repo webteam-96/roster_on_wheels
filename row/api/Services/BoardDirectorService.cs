@@ -21,10 +21,10 @@ public class BoardDirectorService : IBoardDirectorService
     // Fire-and-forget sub-group sync — never blocks BOD save if it fails.
     private void FireBodSubGroupHook(int clubId, int designationId, int yearId)
     {
-        _ = Task.Run(async () => { try { await _bodSubGroups.OnBodChangedAsync(clubId, designationId, yearId); } catch { } });
+        BackgroundWork.Run("OnBodChangedAsync", () => _bodSubGroups.OnBodChangedAsync(clubId, designationId, yearId));
     }
 
-    private MySqlConnection CreateConnection() => new(_connectionString);
+    private MySqlConnection CreateConnection() => RowDb.Connect(_connectionString);
 
     // Columns shared by the list + by-id reads. LEFT JOIN member so non-member rows surface;
     // the WHERE guard `(fk IS NULL OR member exists)` keeps orphan rows (member hard-deleted)

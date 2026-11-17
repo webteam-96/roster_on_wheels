@@ -203,7 +203,7 @@ export default function GroupCommitteeV2Page() {
               variant="outline"
               size="icon"
               onClick={goBack}
-              className="border-slate-200 bg-white hover:bg-slate-50 text-slate-700"
+              className="border-slate-200 bg-card hover:bg-slate-50 text-slate-700"
             >
               <ArrowLeft className="h-4 w-4" />
             </Button>
@@ -230,7 +230,7 @@ export default function GroupCommitteeV2Page() {
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center bg-slate-50 p-4 rounded-2xl border border-slate-200">
             <div className="w-full sm:w-48">
               <Select value={selectedYearId} onValueChange={setSelectedYearId}>
-                <SelectTrigger className="border-slate-200 bg-white focus:border-azure focus:ring-azure/20">
+                <SelectTrigger className="border-slate-200 bg-card focus:border-azure focus:ring-azure/20">
                   <SelectValue placeholder="Select year" />
                 </SelectTrigger>
                 <SelectContent>
@@ -243,7 +243,7 @@ export default function GroupCommitteeV2Page() {
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
               <Input
-                className="pl-9 pr-8 border-slate-200 bg-white focus:border-azure focus:ring-azure/20"
+                className="pl-9 pr-8 border-slate-200 bg-card focus:border-azure focus:ring-azure/20"
                 placeholder="Search by group name..."
                 value={searchDraft}
                 onChange={(e) => setSearchDraft(e.target.value)}
@@ -281,7 +281,7 @@ export default function GroupCommitteeV2Page() {
         {loadingGroups && <div className="flex items-center justify-center py-12"><ListPageSkeleton /></div>}
 
         {!loading && !loadingGroups && selectedYearId && groups.length === 0 && (
-          <div className="flex flex-col items-center justify-center py-20 text-center rounded-2xl border border-slate-200 bg-white shadow-sm">
+          <div className="flex flex-col items-center justify-center py-20 text-center rounded-2xl border border-slate-200 bg-card shadow-sm">
             <UsersRound className="h-12 w-12 text-slate-400 mb-4" />
             <h3 className="text-lg font-semibold text-slate-800">{searchTerm ? "No matches found" : "No groups yet"}</h3>
             <p className="text-slate-600 mt-2">
@@ -296,7 +296,7 @@ export default function GroupCommitteeV2Page() {
             {groups.map((g: any, idx: number) => (
               <div
                 key={g.id}
-                className={`cursor-pointer rounded-2xl border border-slate-200 shadow-sm bg-white transition-all hover:shadow-md hover:border-azure/30 ${navigatingId === g.id ? "opacity-70 pointer-events-none" : ""}`}
+                className={`cursor-pointer rounded-2xl border border-slate-200 shadow-sm bg-card transition-all hover:shadow-md hover:border-azure/30 ${navigatingId === g.id ? "opacity-70 pointer-events-none" : ""}`}
                 onClick={() => {
                   setNavigatingId(g.id);
                   router.push(`/districts/${districtId}/district-committee/groups/${g.id}`);
@@ -379,13 +379,13 @@ export default function GroupCommitteeV2Page() {
                   value={formGroupName}
                   onChange={(e) => setFormGroupName(e.target.value)}
                   placeholder="Enter group name"
-                  className="border-slate-200 bg-white focus:border-azure focus:ring-azure/20"
+                  className="border-slate-200 bg-card focus:border-azure focus:ring-azure/20"
                 />
               </div>
               <div className="space-y-2">
                 <Label className="text-slate-500 text-xs font-semibold uppercase tracking-wide">Rotary Year *</Label>
                 <Select value={formYearId} onValueChange={setFormYearId}>
-                  <SelectTrigger className="border-slate-200 bg-white focus:border-azure focus:ring-azure/20">
+                  <SelectTrigger className="border-slate-200 bg-card focus:border-azure focus:ring-azure/20">
                     <SelectValue placeholder="Select year" />
                   </SelectTrigger>
                   <SelectContent>

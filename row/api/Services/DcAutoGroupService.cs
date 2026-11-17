@@ -178,7 +178,7 @@ public class DcAutoGroupService : IDcAutoGroupService
 
     public async Task<(int groupsCreated, int membersAdded)> BackfillAsync()
     {
-        await using var conn = new MySqlConnection(_connectionString);
+        await using var conn = RowDb.Connect(_connectionString);
         await conn.OpenAsync();
 
         // All distinct (club, member, designation, year) BOD rows for CP/CS
@@ -238,7 +238,7 @@ public class DcAutoGroupService : IDcAutoGroupService
 
     public async Task<(int groupsMigrated, int membersMoved)> MigrateSingularToPluralAsync()
     {
-        await using var conn = new MySqlConnection(_connectionString);
+        await using var conn = RowDb.Connect(_connectionString);
         await conn.OpenAsync();
 
         // Migration queries run against multi-row updates on
@@ -360,7 +360,7 @@ public class DcAutoGroupService : IDcAutoGroupService
 
     public async Task<int> CollapseAutoGroupsToOnePerClubAsync()
     {
-        await using var conn = new MySqlConnection(_connectionString);
+        await using var conn = RowDb.Connect(_connectionString);
         await conn.OpenAsync();
         const int TimeoutSec = 300;
 
@@ -587,7 +587,7 @@ public class DcAutoGroupService : IDcAutoGroupService
             "SELECT IFNULL(YearLabel, '') AS yearLabel, StartDate AS startDate, EndDate AS endDate FROM rotary_year_master WHERE pk_year_id = @Id LIMIT 1",
             new { Id = yearId }, tx);
         if (string.IsNullOrEmpty(row.yearLabel)) return ("", false);
-        var today = DateTime.Today;
+        var today = DateTime.UtcNow.Date;
         var isCurrent = today >= row.startDate.Date && today <= row.endDate.Date;
         return (row.yearLabel, isCurrent);
     }
@@ -600,7 +600,7 @@ public class DcAutoGroupService : IDcAutoGroupService
             FROM rotary_year_master
             WHERE @Today BETWEEN StartDate AND EndDate
             LIMIT 1",
-            new { Today = DateTime.Today }, tx);
+            new { Today = DateTime.UtcNow.Date }, tx);
         if (currentYear.pk_year_id == 0) return;
 
         var districts = (await conn.QueryAsync<int>(

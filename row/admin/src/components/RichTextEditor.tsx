@@ -381,7 +381,7 @@ export default function RichTextEditor({ value, onChange, placeholder, height = 
   }, [getQuill]);
 
   return (
-    <div ref={containerRef} className="min-h-[300px] bg-white rounded-md relative">
+    <div ref={containerRef} className="min-h-[300px] bg-card rounded-md relative">
       <ReactQuill
         theme="snow"
         value={value}

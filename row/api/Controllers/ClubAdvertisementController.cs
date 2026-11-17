@@ -38,7 +38,7 @@ public class ClubAdvertisementController : ControllerBase
     public async Task<ActionResult> GetAvailableYears(int clubId)
     {
         if (!await RotaryApi.Services.KillSwitchHelper.IsClubDrillReachableAsync(_connectionString, clubId)) return StatusCode(403, new { message = "This club, its district, or its zone is inactive. Reactivate it first to access this data." });
-        using var conn = new MySqlConnection(_connectionString);
+        using var conn = RowDb.Connect(_connectionString);
         await conn.OpenAsync();
         var years = await conn.QueryAsync<dynamic>(@"
             SELECT DISTINCT ry.pk_year_id AS id, ry.YearLabel AS yearLabel, ry.IsCurrent AS isCurrent
@@ -159,7 +159,7 @@ public class ClubAdvertisementController : ControllerBase
         if (dto.OrderedIds == null || dto.OrderedIds.Count == 0)
             return BadRequest(new { message = "OrderedIds is required." });
 
-        using var conn = new MySqlConnection(_connectionString);
+        using var conn = RowDb.Connect(_connectionString);
         await conn.OpenAsync();
         for (int i = 0; i < dto.OrderedIds.Count; i++)
             await conn.ExecuteAsync(

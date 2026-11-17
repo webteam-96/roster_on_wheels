@@ -52,7 +52,7 @@ public class CelebrationService
     public async Task<int> RunAsync(int? districtId, CancellationToken ct = default)
     {
         if (!await FeatureGate.IsOnAsync(FeatureKey, _cs)) return 0;
-        await using var conn = new MySqlConnection(_cs);
+        await using var conn = RowDb.Connect(_cs);
         await conn.OpenAsync(ct);
         var districts = await conn.QueryAsync<int>(@"
             SELECT d.pk_district_id FROM district_master d

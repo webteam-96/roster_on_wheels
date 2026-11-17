@@ -31,7 +31,7 @@ public class GoalSettingRotaryController : ControllerBase
     [HttpGet("rag-bands")]
     public async Task<ActionResult> RagBands([FromQuery] int districtId)
     {
-        await using var conn = new MySqlConnection(_connectionString);
+        await using var conn = RowDb.Connect(_connectionString);
         await conn.OpenAsync();
         if (!await ClubAdminAccessHelper.IsSuperAdminAsync(conn, GetMemberId())) return Forbid();
         if (districtId <= 0) return BadRequest(new { message = "districtId is required." });
@@ -70,7 +70,7 @@ public class GoalSettingRotaryController : ControllerBase
     [HttpGet("rotary-org-values")]
     public async Task<ActionResult> RotaryOrgValues([FromQuery] int yearId, [FromQuery] int? districtId, [FromQuery] int? clubId)
     {
-        await using var conn = new MySqlConnection(_connectionString);
+        await using var conn = RowDb.Connect(_connectionString);
         await conn.OpenAsync();
         if (yearId <= 0 || ((districtId ?? 0) <= 0 && (clubId ?? 0) <= 0))
             return BadRequest(new { message = "yearId and districtId or clubId are required." });
@@ -125,7 +125,7 @@ public class GoalSettingRotaryController : ControllerBase
         var yearId = req.YearId ?? 0;
         if (yearId <= 0)
         {
-            await using var conn = new MySqlConnection(_connectionString);
+            await using var conn = RowDb.Connect(_connectionString);
             yearId = await conn.ExecuteScalarAsync<int?>("SELECT pk_year_id FROM rotary_year_master WHERE IsCurrent = 1 AND isdeleted = 0 LIMIT 1") ?? 0;
         }
         if (yearId <= 0) return BadRequest(new { message = "No current rotary year." });
@@ -134,7 +134,7 @@ public class GoalSettingRotaryController : ControllerBase
         if (req.CategoryId > 0) categoryIds = new List<int> { req.CategoryId };
         else
         {
-            await using var conn = new MySqlConnection(_connectionString);
+            await using var conn = RowDb.Connect(_connectionString);
             categoryIds = (await conn.QueryAsync<int>("SELECT pk_category_id FROM goal_categories WHERE isdeleted = 0 ORDER BY SortOrder")).ToList();
         }
 
@@ -160,7 +160,7 @@ public class GoalSettingRotaryController : ControllerBase
         {
             var bytes = await _goals.BuildRotaryDistrictReportAsync(GetMemberId(), ids, yearId, oversight);
             if (bytes == null) return NotFound(new { message = "No data." });
-            return File(bytes, XlsxMime, $"District_Goal_Setting_{DateTime.Now:yyyyMMdd-HHmm}.xlsx");
+            return File(bytes, XlsxMime, $"District_Goal_Setting_{DateTime.UtcNow:yyyyMMdd-HHmm}.xlsx");
         }
         catch (UnauthorizedAccessException ex) { return StatusCode(403, new { message = ex.Message }); }
     }
@@ -173,7 +173,7 @@ public class GoalSettingRotaryController : ControllerBase
         {
             var bytes = await _goals.BuildRotaryAllClubsReportAsync(GetMemberId(), districtId, yearId, oversight);
             if (bytes == null) return NotFound(new { message = "No data." });
-            return File(bytes, XlsxMime, $"Club_Goal_Setting_All_{DateTime.Now:yyyyMMdd-HHmm}.xlsx");
+            return File(bytes, XlsxMime, $"Club_Goal_Setting_All_{DateTime.UtcNow:yyyyMMdd-HHmm}.xlsx");
         }
         catch (UnauthorizedAccessException ex) { return StatusCode(403, new { message = ex.Message }); }
     }
@@ -185,7 +185,7 @@ public class GoalSettingRotaryController : ControllerBase
         {
             var bytes = await _goals.BuildRotaryClubReportAsync(GetMemberId(), clubId, yearId);
             if (bytes == null) return NotFound(new { message = "No data." });
-            return File(bytes, XlsxMime, $"Club_Goal_Setting_{DateTime.Now:yyyyMMdd-HHmm}.xlsx");
+            return File(bytes, XlsxMime, $"Club_Goal_Setting_{DateTime.UtcNow:yyyyMMdd-HHmm}.xlsx");
         }
         catch (UnauthorizedAccessException ex) { return StatusCode(403, new { message = ex.Message }); }
     }
@@ -209,7 +209,7 @@ public class GoalSettingRotaryController : ControllerBase
     [HttpGet("source-dates")]
     public async Task<ActionResult> SourceDates([FromQuery] int yearId, [FromQuery] int? districtId, [FromQuery] int? clubId)
     {
-        await using var conn = new MySqlConnection(_connectionString);
+        await using var conn = RowDb.Connect(_connectionString);
         await conn.OpenAsync();
         if (!await ClubAdminAccessHelper.IsSuperAdminAsync(conn, GetMemberId())) return Forbid();
         if (yearId <= 0) return BadRequest(new { message = "yearId is required." });
@@ -293,7 +293,7 @@ public class GoalSettingRotaryController : ControllerBase
     [HttpGet("rag-clubs")]
     public async Task<ActionResult> RagClubs([FromQuery] int yearId, [FromQuery] int districtId)
     {
-        await using var conn = new MySqlConnection(_connectionString);
+        await using var conn = RowDb.Connect(_connectionString);
         await conn.OpenAsync();
         if (!await ClubAdminAccessHelper.IsSuperAdminAsync(conn, GetMemberId())) return Forbid();
         if (yearId <= 0 || districtId <= 0) return BadRequest(new { message = "yearId and districtId are required." });
@@ -312,7 +312,7 @@ public class GoalSettingRotaryController : ControllerBase
     [HttpGet("years")]
     public async Task<ActionResult> Years()
     {
-        await using var conn = new MySqlConnection(_connectionString);
+        await using var conn = RowDb.Connect(_connectionString);
         await conn.OpenAsync();
         var rows = await conn.QueryAsync(@"
             SELECT y.pk_year_id AS id, y.YearLabel AS yearLabel, (y.IsCurrent = 1) AS isCurrent

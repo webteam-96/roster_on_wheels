@@ -155,7 +155,7 @@ function SectionShell({
   // to click away after making a selection — which felt broken.
   const [filterOpen, setFilterOpen] = useState(false);
   return (
-    <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden flex flex-col">
+    <div className="bg-card rounded-2xl border border-slate-200 overflow-hidden flex flex-col">
       <div className="px-4 py-3 border-b border-slate-100 flex items-center gap-2 flex-wrap">
         <Icon size={16} className={iconClass} />
         <h3 className="text-sm font-semibold text-slate-800 truncate">{title}</h3>
@@ -629,7 +629,7 @@ export function AnnouncementsSection({ clubId }: { clubId: number }) {
     <>
       <SectionShell
         icon={Megaphone}
-        iconClass="text-purple-600"
+        iconClass="text-slate-600"
         title="Announcements"
         count={total}
         status={status}
@@ -675,7 +675,7 @@ export function AnnouncementsSection({ clubId }: { clubId: number }) {
                       className="w-10 h-10 rounded-md object-cover flex-shrink-0 border border-slate-200"
                     />
                   ) : (
-                    <div className="w-10 h-10 rounded-md bg-purple-50 text-purple-600 flex items-center justify-center flex-shrink-0 border border-purple-100">
+                    <div className="w-10 h-10 rounded-md bg-slate-50 text-slate-600 flex items-center justify-center flex-shrink-0 border border-slate-100">
                       <Megaphone size={14} />
                     </div>
                   )}

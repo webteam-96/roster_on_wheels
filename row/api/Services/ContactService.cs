@@ -29,7 +29,7 @@ public class ContactService
         _massEmail = massEmail;
     }
 
-    private MySqlConnection Open() => new(_connectionString);
+    private MySqlConnection Open() => RowDb.Connect(_connectionString);
 
     private const string OwnerWhere = "fk_club_id = @ClubId AND fk_district_id = @DistrictId";
 

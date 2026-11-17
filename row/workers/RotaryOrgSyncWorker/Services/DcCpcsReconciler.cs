@@ -1,3 +1,4 @@
+using RotaryApi.Services;
 using ClosedXML.Excel;
 using Dapper;
 using Microsoft.Extensions.Configuration;
@@ -47,13 +48,13 @@ public class DcCpcsReconciler
             ?? throw new InvalidOperationException("ConnectionStrings:DefaultConnection missing");
     }
 
-    private MySqlConnection CreateConnection() => new(_connectionString);
+    private MySqlConnection CreateConnection() => RowDb.Connect(_connectionString);
 
     /// <summary>Returns (rows to remove / removed, people to add / added).</summary>
     public async Task<(int removed, int added)> RunAsync(bool apply, bool force = false, CancellationToken ct = default)
     {
         const int TimeoutSec = 300;
-        Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] === DC CP/CS Reconcile {(apply ? "APPLY" : "AUDIT")} START ===");
+        Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] === DC CP/CS Reconcile {(apply ? "APPLY" : "AUDIT")} START ===");
 
         await using var conn = CreateConnection();
         await conn.OpenAsync(ct);
@@ -148,15 +149,15 @@ public class DcCpcsReconciler
                 .ToList();
 
             var removeDetails = await LoadRemoveDetailsAsync(conn, toRemove, TimeoutSec);
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] CP/CS groups: {groups.Count}, active rows: {rows.Count}, BOD holders: {holders.Count}");
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Rows to remove: {toRemove.Count}   People to add: {toAdd.Count}");
+            Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] CP/CS groups: {groups.Count}, active rows: {rows.Count}, BOD holders: {holders.Count}");
+            Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] Rows to remove: {toRemove.Count}   People to add: {toAdd.Count}");
             foreach (var x in removeDetails.GroupBy(d => d.Reason).OrderByDescending(x => x.Count()))
                 Console.WriteLine($"    remove — {x.Key}: {x.Count()}");
 
             if (toRemove.Count == 0 && toAdd.Count == 0)
             {
                 await FinishLogAsync(conn, logId, "Completed", 0, 0, "DC CP/CS already matches BOD.");
-                Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Nothing to do — DC CP/CS groups match BOD.");
+                Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] Nothing to do — DC CP/CS groups match BOD.");
                 return (0, 0);
             }
 
@@ -198,7 +199,7 @@ public class DcCpcsReconciler
                         _logger.LogError(ex, "DC CP/CS reconcile: add failed for club {C} member {M} year {Y}", h.ClubId, h.MemberId, h.YearId);
                     }
                 }
-                Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Soft-deleted {removed} row(s), added {added} row(s).");
+                Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] Soft-deleted {removed} row(s), added {added} row(s).");
             }
 
             await FinishLogAsync(conn, logId, "Completed", apply ? added : 0, apply ? removed : 0,
@@ -210,7 +211,7 @@ public class DcCpcsReconciler
         }
         catch (Exception ex)
         {
-            Console.Error.WriteLine($"[{DateTime.Now:HH:mm:ss}] DC CP/CS reconcile FAILED: {ex.Message}");
+            Console.Error.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] DC CP/CS reconcile FAILED: {ex.Message}");
             try { await FinishLogAsync(conn, logId, "Failed", 0, 0, ex.Message); } catch { }
             throw;
         }
@@ -339,7 +340,7 @@ public class DcCpcsReconciler
 
             using var ms = new MemoryStream();
             wb.SaveAs(ms);
-            var fileName = $"DC_CPCS_Reconcile_{modeText}_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx";
+            var fileName = $"DC_CPCS_Reconcile_{modeText}_{DateTime.UtcNow:yyyyMMdd_HHmmss}.xlsx";
 
             var triggeredByName = System.Net.WebUtility.HtmlEncode(_config["RotaryOrgSync:TriggeredByName"] ?? "Admin");
             var note = modeText switch
@@ -364,15 +365,15 @@ public class DcCpcsReconciler
 <p>Regards,<br/><strong>Team ROW</strong></p>
 </div>";
             var subject = modeText == "ABORTED"
-                ? $"[ALERT] DC CP/CS Reconcile Aborted — safety threshold — {DateTime.Now:dd MMM yyyy}"
-                : $"[{(modeText == "APPLIED" ? "Daily" : "Audit")}] DC CP/CS Reconcile — {removes.Count} removed, {adds.Count} added — {DateTime.Now:dd MMM yyyy}";
+                ? $"[ALERT] DC CP/CS Reconcile Aborted — safety threshold — {DateTime.UtcNow:dd MMM yyyy}"
+                : $"[{(modeText == "APPLIED" ? "Daily" : "Audit")}] DC CP/CS Reconcile — {removes.Count} removed, {adds.Count} added — {DateTime.UtcNow:dd MMM yyyy}";
             await _emailSender.SendReportAsync(subject, body, ms.ToArray(), fileName);
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Email sent.");
+            Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] Email sent.");
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "DC CP/CS reconcile email FAILED");
-            Console.Error.WriteLine($"[{DateTime.Now:HH:mm:ss}] Email failed: {ex.Message}");
+            Console.Error.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] Email failed: {ex.Message}");
         }
     }
 

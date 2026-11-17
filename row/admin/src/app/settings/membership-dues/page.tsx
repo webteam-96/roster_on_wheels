@@ -331,7 +331,7 @@ export default function MembershipDuesPage() {
                         className="inline-flex items-center justify-center"
                         title="View Settlement Report"
                       >
-                        <BarChart3 className="h-5 w-5 text-purple-500 hover:text-purple-700 cursor-pointer" />
+                        <BarChart3 className="h-5 w-5 text-slate-500 hover:text-slate-700 cursor-pointer" />
                       </button>
                     </TableCell>
 

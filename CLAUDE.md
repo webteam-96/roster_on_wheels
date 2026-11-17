@@ -7,6 +7,11 @@ details are in `row/.env` (gitignored). Local dev uses a copy of it, `row_prod_c
 
 **Resuming work? Read `row/HANDOFF.md` first:** what was done last, the next task, and how to run things locally.
 
+**Playbook state files map to this repo's own files** (do not create root `PLAN.md` / `PROGRESS.md` / `DECISIONS.md`):
+PROGRESS = `row/HANDOFF.md` + `row/STATUS.md` + `row/TRACKER.md`; DECISIONS = `row/ROW-CHANGES.md`; PLAN = `docs/plans/` and
+`docs/superpowers/plans/`; backlog = `row/PENDING-WORK.md`. `GLOSSARY.md` and `docs/adr/` are created lazily (`docs/agents/domain.md`).
+Run mode default: SOLO (user: no multi-agent). Baseline checks = `.github/workflows/ci.yml` plus `dotnet test row/api.Tests`.
+
 Then read `kb/README.md`: it maps the codebases (ROW api / workers / admin / club-website / mobile, all under
 `row/`, plus the RIZones reference API + Flutter app), the generated ROW-vs-RIZones diffs, the document index and the
 testing record. **Stack (finalized 2026-10-15): Next.js frontend + ASP.NET Core (.NET) backend.** The earlier NestJS

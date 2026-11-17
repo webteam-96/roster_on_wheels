@@ -359,7 +359,7 @@ export default function SettingsPage() {
                 type="button"
                 onClick={() => { setNavigatingHref(card.href); router.push(card.href); }}
                 disabled={navigatingHref === card.href}
-                className={`flex flex-col items-center justify-center gap-1.5 rounded-lg border border-slate-200 bg-white p-2.5 text-center shadow-sm transition hover:border-primary/40 hover:shadow-md ${navigatingHref === card.href ? "opacity-70 pointer-events-none" : ""}`}
+                className={`flex flex-col items-center justify-center gap-1.5 rounded-lg border border-slate-200 bg-card p-2.5 text-center shadow-sm transition hover:border-primary/40 hover:shadow-md ${navigatingHref === card.href ? "opacity-70 pointer-events-none" : ""}`}
               >
                 <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-primary">
                   {navigatingHref === card.href ? <RotaryLoader size="sm" /> : <card.icon className="h-4 w-4" />}
@@ -387,7 +387,7 @@ export default function SettingsPage() {
         </div>
 
         {filtered.length === 0 && (
-          <div className="flex flex-col items-center justify-center py-16 text-center rounded-2xl border border-slate-200 bg-white">
+          <div className="flex flex-col items-center justify-center py-16 text-center rounded-2xl border border-slate-200 bg-card">
             <Search className="h-10 w-10 text-slate-400 mb-3" />
             <h3 className="text-base font-semibold text-slate-800">No settings match “{query}”</h3>
             <p className="text-slate-500 text-sm mt-1">Try a different word.</p>
@@ -403,7 +403,7 @@ export default function SettingsPage() {
               offset: n * perCol,
             }));
             return columns.map((col, colIdx) => (
-              <div key={colIdx} className="overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-sm">
+              <div key={colIdx} className="overflow-x-auto rounded-2xl border border-slate-200 bg-card shadow-sm">
                 <table className="w-full min-w-[640px] md:min-w-full text-sm">
                   <thead className="bg-[#EDF4FB] text-[13px] text-[#64748B]">
                     <tr>

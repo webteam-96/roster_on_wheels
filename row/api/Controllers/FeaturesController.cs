@@ -46,7 +46,7 @@ public class FeaturesController : ControllerBase
         if (f == null) return NotFound(new { message = "Unknown feature." });
         if (f.Kind != FeatureGate.Kind.Flagged) return BadRequest(new { message = "This module is skipped for ROW and cannot be turned on." });
 
-        await using (var conn = new MySqlConnection(_connectionString))
+        await using (var conn = RowDb.Connect(_connectionString))
             await conn.ExecuteAsync(@"INSERT INTO platform_features (feature_key, enabled, modified_by) VALUES (@Key, @On, @By)
                 ON DUPLICATE KEY UPDATE enabled = @On, modified_by = @By",
                 new { Key = key, On = dto.Enabled, By = GetCurrentMemberId() });

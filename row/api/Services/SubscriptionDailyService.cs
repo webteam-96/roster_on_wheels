@@ -35,7 +35,7 @@ public sealed class SubscriptionDailyService
     public async Task<List<string>> RunAsync(CancellationToken ct = default)
     {
         var done = new List<string>();
-        await using var conn = new MySqlConnection(_cs);
+        await using var conn = RowDb.Connect(_cs);
         await conn.OpenAsync(ct);
         done.Add($"reminders sent: {await SendRemindersAsync(conn)}");
         var (clubs, invited, ended) = await SyncOfficersAsync(conn, ct);

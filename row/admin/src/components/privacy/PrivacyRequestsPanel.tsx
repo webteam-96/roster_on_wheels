@@ -154,7 +154,7 @@ function NewRequestDialog({
                 </div>
                 {searching && <p className="text-xs text-slate-500">{t("searching")}</p>}
                 {hits && !searching && (
-                  <ul className="max-h-56 overflow-y-auto rounded-md border bg-white">
+                  <ul className="max-h-56 overflow-y-auto rounded-md border bg-card">
                     {hits.length === 0 && <li className="px-3 py-2 text-sm text-slate-500">{t("noResults")}</li>}
                     {hits.map((h) => (
                       <li key={h.memberId}>
@@ -287,9 +287,9 @@ export default function PrivacyRequestsPanel({ districtId }: { districtId: numbe
           <Loader2 className="h-4 w-4 animate-spin" /> {t("loading")}
         </div>
       ) : rows.length === 0 ? (
-        !error && <div className="rounded-[20px] border border-dashed bg-white p-8 text-center text-sm text-slate-600">{t("empty")}</div>
+        !error && <div className="rounded-[20px] border border-dashed bg-card p-8 text-center text-sm text-slate-600">{t("empty")}</div>
       ) : (
-        <div className="overflow-x-auto rounded-xl border bg-white">
+        <div className="overflow-x-auto rounded-xl border bg-card">
           <Table className="min-w-[720px]">
             <TableHeader>
               <TableRow>

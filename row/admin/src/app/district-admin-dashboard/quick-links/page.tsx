@@ -84,7 +84,7 @@ export default function QuickLinksPage() {
                 router.push(`/district-admin-dashboard/quick-links/${mod.key}${suffix}`);
               }}
               disabled={busy}
-              className={`group text-left rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition-all hover:shadow-md ${mod.ring} ${busy ? "opacity-60 pointer-events-none" : ""}`}
+              className={`group text-left rounded-2xl border border-slate-200 bg-card p-5 shadow-sm transition-all hover:shadow-md ${mod.ring} ${busy ? "opacity-60 pointer-events-none" : ""}`}
             >
               <div className="flex items-start gap-4">
                 <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl ${mod.accent}`}>

@@ -22,7 +22,7 @@ public class NewsletterService : INewsletterService
         _citationRecalc = citationRecalc;
     }
 
-    private MySqlConnection CreateConnection() => new(_connectionString);
+    private MySqlConnection CreateConnection() => RowDb.Connect(_connectionString);
 
     public async Task<(List<NewsletterListDto> Items, int TotalCount)> GetAllAsync(int clubId, int yearId, string status, string search, int page, int pageSize, int? districtId = null)
     {
@@ -239,7 +239,7 @@ public class NewsletterService : INewsletterService
         bool priorEmail = prior != null && Convert.ToBoolean(prior.IsSendEmail);
         bool emailAlreadySent = prior != null && prior.EmailSentDate != null;
         bool emailNewlyOn = dto.IsSendEmail && !priorEmail && !emailAlreadySent;
-        bool emailResend = dto.IsSendEmail && emailAlreadySent && dto.PublishDateTime > DateTime.Now;
+        bool emailResend = dto.IsSendEmail && emailAlreadySent && dto.PublishDateTime > DateTime.UtcNow;
         if ((emailNewlyOn || emailResend) && refundEntityIdForCheck > 0)
         {
             int emailCount = await CountRecipientsAsync(connection, clubIdForCheck, districtIdForCheck);
@@ -337,7 +337,7 @@ public class NewsletterService : INewsletterService
         var originalName = System.Text.RegularExpressions.Regex.Replace(rawName, @"[^A-Za-z0-9\-]+", "_").Trim('_');
         if (string.IsNullOrEmpty(originalName)) originalName = "file";
         var extension = Path.GetExtension(file.FileName);
-        var now = DateTime.Now;
+        var now = DateTime.UtcNow;
         var timestamp = now.ToString("ddMMyyyyhhmmsstt");
         var fileName = $"{originalName}_{Guid.NewGuid().ToString("N").Substring(0, 8)}{timestamp}{extension}";
         var filePath = Path.Combine(uploadsPath, fileName);

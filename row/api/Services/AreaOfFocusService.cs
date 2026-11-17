@@ -16,7 +16,7 @@ public class AreaOfFocusService : IAreaOfFocusService
         _env = env;
     }
 
-    private MySqlConnection CreateConnection() => new(_connectionString);
+    private MySqlConnection CreateConnection() => RowDb.Connect(_connectionString);
 
     public async Task<List<AreaOfFocusDto>> GetAllAsync(int? moduleId = null)
     {

@@ -89,7 +89,7 @@ import RotaryLoader from "@/components/RotaryLoader";
 import ErrorAlert from "@/components/ErrorAlert";
 import LoadingLink from "@/components/v2/LoadingLink";
 import ProtectedRoute from "@/components/ProtectedRoute";
-import { ListPageSkeleton } from "@/components/row/AppKit";
+import { ListPageSkeleton, SkeletonRows } from "@/components/row/AppKit";
 
 /* ------------------------------------------------------------------ types */
 
@@ -403,7 +403,7 @@ function DistrictAdminEGovClubDetailInner() {
                   e.target.value ? Number(e.target.value) : null,
                 )
               }
-              className="px-3 h-10 py-0 text-sm border border-slate-200 rounded-[12px] bg-white focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+              className="px-3 h-10 py-0 text-sm border border-slate-200 rounded-[12px] bg-card focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
             >
               {years.map((y) => (
                 <option key={y.id} value={y.id}>
@@ -455,7 +455,7 @@ function DistrictAdminEGovClubDetailInner() {
             </div>
 
             {/* Per-Month detail */}
-            <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+            <div className="bg-card rounded-2xl border border-slate-200 overflow-hidden">
               <div className="px-5 py-3 border-b border-slate-100 flex items-center justify-between gap-3 flex-wrap">
                 <div>
                   <h3 className="text-sm font-semibold text-slate-800">
@@ -635,7 +635,7 @@ function ExpandedDetail({
         {item.isCreated && (
           <LoadingLink
             href={cmrHref}
-            className="inline-flex items-center gap-1.5 text-xs font-semibold px-4 h-10 rounded-full border border-slate-200 text-blue-700 bg-white hover:bg-blue-50"
+            className="inline-flex items-center gap-1.5 text-xs font-semibold px-4 h-10 rounded-full border border-slate-200 text-blue-700 bg-card hover:bg-blue-50"
           >
             <ExternalLink size={12} /> View CMR
           </LoadingLink>
@@ -682,7 +682,7 @@ function ExpandedDetail({
           <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-500 mb-1 flex items-center gap-1">
             <FileText size={11} /> Remarks
           </p>
-          <p className="text-slate-700 whitespace-pre-wrap break-words bg-white rounded-md border border-slate-200 px-3 py-2">
+          <p className="text-slate-700 whitespace-pre-wrap break-words bg-card rounded-md border border-slate-200 px-3 py-2">
             {d.additionalRemarks}
           </p>
         </div>
@@ -691,7 +691,7 @@ function ExpandedDetail({
       <div className="flex items-center justify-end">
         <LoadingLink
           href={cmrHref}
-          className="inline-flex items-center gap-1.5 text-xs font-semibold px-4 h-10 rounded-full border border-slate-200 text-blue-700 bg-white hover:bg-blue-50"
+          className="inline-flex items-center gap-1.5 text-xs font-semibold px-4 h-10 rounded-full border border-slate-200 text-blue-700 bg-card hover:bg-blue-50"
         >
           <ExternalLink size={12} /> View CMR
         </LoadingLink>
@@ -710,7 +710,7 @@ function Field({
   icon: typeof Calendar;
 }) {
   return (
-    <div className="bg-white rounded-md border border-slate-200 px-3 py-2">
+    <div className="bg-card rounded-md border border-slate-200 px-3 py-2">
       <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-500 flex items-center gap-1">
         <Icon size={11} /> {label}
       </p>
@@ -807,7 +807,7 @@ function CitationPanel({
   yearLabel: string;
 }) {
   return (
-    <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+    <div className="bg-card rounded-2xl border border-slate-200 overflow-hidden">
       <div className="px-5 py-3 border-b border-slate-100 flex items-center justify-between gap-3 flex-wrap">
         <div>
           <h3 className="text-sm font-semibold text-slate-800 flex items-center gap-2">
@@ -827,9 +827,7 @@ function CitationPanel({
       </div>
 
       {loading ? (
-        <div className="px-5 py-8 flex items-center justify-center">
-          <Loader2 size={16} className="animate-spin text-slate-400" />
-        </div>
+        <div className="px-5 py-4"><SkeletonRows rows={3} /></div>
       ) : !citation || citation.totalPoints === 0 ? (
         <div className="px-5 py-8 text-center text-xs text-slate-500">
           No citation data available for this club yet.

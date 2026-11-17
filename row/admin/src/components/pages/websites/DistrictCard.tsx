@@ -38,7 +38,7 @@ export function DistrictCard({
     >
       {/* Header: logo well + district number & zone */}
       <div className="flex items-start gap-4">
-        <div className="flex h-[72px] w-[72px] flex-shrink-0 items-center justify-center rounded-xl bg-white p-2.5 ring-1 ring-navy-950/10">
+        <div className="flex h-[72px] w-[72px] flex-shrink-0 items-center justify-center rounded-xl bg-card p-2.5 ring-1 ring-navy-950/10">
           {districtLogo ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img

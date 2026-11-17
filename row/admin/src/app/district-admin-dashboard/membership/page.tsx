@@ -322,7 +322,7 @@ export default function DistrictAdminMembershipPage() {
           module tabs jumps straight to its /v2 page (which already carries
           the new navy/gold/slate design and full add/edit/delete UX). The
           Directory tab keeps rendering inline below.                     */}
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-3">
+      <div className="bg-card rounded-2xl border border-slate-200 shadow-sm p-3">
         <Tabs
           value={activeTab}
           onValueChange={(v) => {
@@ -401,7 +401,7 @@ export default function DistrictAdminMembershipPage() {
                   value={dirSearch}
                   onChange={(e) => setDirSearch(e.target.value)}
                   onKeyDown={handleDirKeyDown}
-                  className="pl-9 border-slate-200 bg-white focus:border-azure focus:ring-azure/20 text-sm"
+                  className="pl-9 border-slate-200 bg-card focus:border-azure focus:ring-azure/20 text-sm"
                 />
               </div>
               <div className="flex flex-wrap items-center gap-2">
@@ -442,7 +442,7 @@ export default function DistrictAdminMembershipPage() {
                     gold underline, slate row hovers. Mirrors the look of the
                     other dashboard listings (Overview leaderboard, Foundation
                     project tables). */}
-                <div className="rounded-2xl border border-slate-200 shadow-sm overflow-hidden bg-white">
+                <div className="rounded-2xl border border-slate-200 shadow-sm overflow-hidden bg-card">
                   <Table>
                     <TableHeader>
                       <TableRow

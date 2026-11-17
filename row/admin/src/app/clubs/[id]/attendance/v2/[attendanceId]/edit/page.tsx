@@ -338,7 +338,7 @@ export default function AttendanceV2EditPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             <CountTile onClick={() => setMembersDialogOpen(true)}   icon={Users}     label="Members"               count={selectedMemberIds.length} accent="text-blue-600" />
             <CountTile onClick={() => setAnnsDialogOpen(true)}      icon={UserPlus}  label="Anns"                  count={anns.length}              accent="text-green-600" />
-            <CountTile onClick={() => setAnnetsDialogOpen(true)}    icon={UserPlus}  label="Annets"                count={annets.length}            accent="text-purple-600" />
+            <CountTile onClick={() => setAnnetsDialogOpen(true)}    icon={UserPlus}  label="Annets"                count={annets.length}            accent="text-slate-600" />
             <CountTile onClick={() => setVisitorsDialogOpen(true)}  icon={UserCheck} label="Visitors"              count={visitors.length}          accent="text-amber-600" />
             <CountTile onClick={() => setRotariansDialogOpen(true)} icon={Globe}     label="Rotarians (Other Club)" count={rotarians.length}        accent="text-teal-600" />
             <CountTile onClick={() => setDelegatesDialogOpen(true)} icon={Award}     label="District Delegates"    count={delegates.length}         accent="text-rose-600" />

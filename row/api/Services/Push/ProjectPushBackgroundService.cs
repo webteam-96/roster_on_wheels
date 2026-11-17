@@ -37,7 +37,7 @@ public class ProjectPushBackgroundService : BackgroundService
     private async Task ProcessDueProjectsAsync(CancellationToken ct)
     {
         var connStr = _config.GetConnectionString("DefaultConnection")!;
-        using var conn = new MySqlConnection(connStr);
+        using var conn = RowDb.Connect(connStr);
         await conn.OpenAsync(ct);
 
         using var scope = _scopeFactory.CreateScope();

@@ -13,7 +13,7 @@ public class GreetingService : IGreetingService
         _connectionString = configuration.GetConnectionString("DefaultConnection")!;
     }
 
-    private MySqlConnection CreateConnection() => new(_connectionString);
+    private MySqlConnection CreateConnection() => RowDb.Connect(_connectionString);
 
     private const string CurrentYearIdSql = "(SELECT pk_year_id FROM rotary_year_master WHERE IsCurrent = 1 LIMIT 1)";
 

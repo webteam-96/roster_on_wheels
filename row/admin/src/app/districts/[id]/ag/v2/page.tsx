@@ -316,7 +316,7 @@ export default function AGV2Page() {
     <ProtectedRoute>
       <div className="space-y-6">
         {/* ── Header card ────────────────────────────────────────────── */}
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
+        <div className="bg-card rounded-2xl border border-slate-200 shadow-sm p-5">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-3">
               <Button
@@ -340,7 +340,7 @@ export default function AGV2Page() {
                 <div className="flex flex-wrap items-center gap-2">
                   <Calendar className="h-4 w-4 text-slate-500 shrink-0" />
                   <Select value={selectedYearId} onValueChange={setSelectedYearId}>
-                    <SelectTrigger className="w-[180px] border-slate-200 bg-white focus:border-azure focus:ring-azure/20 text-sm">
+                    <SelectTrigger className="w-[180px] border-slate-200 bg-card focus:border-azure focus:ring-azure/20 text-sm">
                       <SelectValue placeholder="Select year" />
                     </SelectTrigger>
                     <SelectContent>
@@ -370,7 +370,7 @@ export default function AGV2Page() {
         )}
 
         {!loading && !loadingList && agList.length === 0 && (
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm">
+          <div className="bg-card rounded-2xl border border-slate-200 shadow-sm">
             <div className="flex flex-col items-center justify-center py-20 text-center">
               <UserCog className="h-12 w-12 text-slate-400 mb-4" />
               <h3 className="text-lg font-semibold text-slate-800">No assistant governors</h3>
@@ -384,7 +384,7 @@ export default function AGV2Page() {
             {agList.map((ag) => (
               <div
                 key={ag.memberId}
-                className="bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-md hover:border-slate-300 transition-all"
+                className="bg-card rounded-2xl border border-slate-200 shadow-sm hover:shadow-md hover:border-slate-300 transition-all"
               >
                 <div className="p-5">
                   <div className="flex items-start justify-between gap-3">
@@ -464,7 +464,7 @@ export default function AGV2Page() {
               <div className="space-y-2">
                 <Label className="text-slate-600 text-sm">Rotary Year *</Label>
                 <Select value={formYearId} onValueChange={handleFormYearChange}>
-                  <SelectTrigger className="border-slate-200 bg-white focus:border-azure focus:ring-azure/20">
+                  <SelectTrigger className="border-slate-200 bg-card focus:border-azure focus:ring-azure/20">
                     <SelectValue placeholder="Select year" />
                   </SelectTrigger>
                   <SelectContent>
@@ -483,7 +483,7 @@ export default function AGV2Page() {
                   <div className="relative">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                     <Input
-                      className="pl-9 border-slate-200 bg-white focus:border-azure focus:ring-azure/20"
+                      className="pl-9 border-slate-200 bg-card focus:border-azure focus:ring-azure/20"
                       placeholder="Search by name, mobile, email..."
                       value={memberSearch}
                       onChange={(e) => handleMemberSearch(e.target.value)}
@@ -491,7 +491,7 @@ export default function AGV2Page() {
                     />
                   </div>
                   {showSearchResults && searchResults.length > 0 && (
-                    <div className="absolute z-50 w-full mt-1 bg-white border border-slate-200 rounded-md shadow-lg max-h-48 overflow-y-auto">
+                    <div className="absolute z-50 w-full mt-1 bg-card border border-slate-200 rounded-md shadow-lg max-h-48 overflow-y-auto">
                       {searchResults.map((r: any) => (
                         <div
                           key={r.memberId}
@@ -562,7 +562,7 @@ export default function AGV2Page() {
                   <div className="relative">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                     <Input
-                      className="pl-9 border-slate-200 bg-white focus:border-azure focus:ring-azure/20"
+                      className="pl-9 border-slate-200 bg-card focus:border-azure focus:ring-azure/20"
                       placeholder="Search clubs..."
                       value={clubSearchQuery}
                       onChange={(e) => setClubSearchQuery(e.target.value)}
@@ -570,7 +570,7 @@ export default function AGV2Page() {
                   </div>
                   {loadingClubs && <div className="flex justify-center py-4"><RotaryLoader size="sm" /></div>}
                   {!loadingClubs && (
-                    <div className="border border-slate-200 rounded-md max-h-60 overflow-y-auto bg-white">
+                    <div className="border border-slate-200 rounded-md max-h-60 overflow-y-auto bg-card">
                       {filteredClubs.length === 0 ? (
                         <p className="p-3 text-sm text-slate-500 text-center">No available clubs.</p>
                       ) : (

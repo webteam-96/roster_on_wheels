@@ -32,7 +32,7 @@ public class EventPaymentLinkService : IEventPaymentLinkService
         _logger = logger;
     }
 
-    private MySqlConnection GetConnection() => new(_connStr);
+    private MySqlConnection GetConnection() => RowDb.Connect(_connStr);
 
     // ═══════════════════════════════════════════════════════════════
     //  MASTERS
@@ -1350,7 +1350,7 @@ public class EventPaymentLinkService : IEventPaymentLinkService
             throw new InvalidOperationException("You have already paid for this event.");
 
         // Generate unique order_id
-        var orderId = $"EVT{linkId}_{DateTime.Now:ddMMyyyyHHmmssffffff}";
+        var orderId = $"EVT{linkId}_{DateTime.UtcNow:ddMMyyyyHHmmssffffff}";
         var customerId = $"CUST_{Guid.NewGuid():N}"[..20];
 
         // Save/update member details
@@ -1520,7 +1520,7 @@ public class EventPaymentLinkService : IEventPaymentLinkService
             try { await AppendPaymentToSheetAsync(linkId, memberPaymentId); }
             catch (Exception ex) { _logger.LogError(ex, "Failed to append to Google Sheet for payment {Id}", memberPaymentId); }
         });
-        _ = Task.Run(async () => { try { await RefreshEventSettlementsAsync(linkId); } catch { } });
+        BackgroundWork.Run("RefreshEventSettlementsAsync", () => RefreshEventSettlementsAsync(linkId));
     }
 
     public async Task<VerifyPaymentResponseDto> VerifyPaymentAsync(int linkId, string orderId, int memberPaymentId)
@@ -1585,12 +1585,9 @@ public class EventPaymentLinkService : IEventPaymentLinkService
             });
 
             // Auto-refresh settlement (fire-and-forget)
-            _ = Task.Run(async () =>
-            {
-                try { await RefreshEventSettlementsAsync(linkId); } catch { }
-            });
+            BackgroundWork.Run("RefreshEventSettlementsAsync", () => RefreshEventSettlementsAsync(linkId));
         }
-        return Paid(DateTime.Now);
+        return Paid(DateTime.UtcNow);
     }
 
     public async Task HandleWebhookAsync(string payload, string? signature, string? timestamp)
@@ -1638,10 +1635,7 @@ public class EventPaymentLinkService : IEventPaymentLinkService
                         catch (Exception ex) { _logger.LogError(ex, "Webhook: Failed to append to Google Sheet for payment {Id}", mpId); }
                     });
                     // Auto-refresh settlement (fire-and-forget)
-                    _ = Task.Run(async () =>
-                    {
-                        try { await RefreshEventSettlementsAsync(mpLinkId); } catch { }
-                    });
+                    BackgroundWork.Run("RefreshEventSettlementsAsync", () => RefreshEventSettlementsAsync(mpLinkId));
                 }
             }
         }
@@ -1670,7 +1664,7 @@ public class EventPaymentLinkService : IEventPaymentLinkService
 
         var purpose = ((string?)link.Title ?? "Event").Trim();
         var safePurpose = System.Text.RegularExpressions.Regex.Replace(purpose, @"[^a-zA-Z0-9 _-]", "").Replace(" ", "_");
-        var sheetTitle = $"Event_{safePurpose}_{DateTime.Now:ddMMyyyyHHmmss}";
+        var sheetTitle = $"Event_{safePurpose}_{DateTime.UtcNow:ddMMyyyyHHmmss}";
 
         // Build dynamic headers
         var headers = BuildSheetHeaders(link);
@@ -1770,7 +1764,7 @@ public class EventPaymentLinkService : IEventPaymentLinkService
     {
         var dir = Path.Combine(env.WebRootPath, "Documents", $"{folderPrefix}{folderId}");
         Directory.CreateDirectory(dir);
-        var uniqueName = $"{Guid.NewGuid():N}_{DateTime.Now:ddMMyyyyHHmmss}{Path.GetExtension(file.FileName)}";
+        var uniqueName = $"{Guid.NewGuid():N}_{DateTime.UtcNow:ddMMyyyyHHmmss}{Path.GetExtension(file.FileName)}";
         var filePath = Path.Combine(dir, uniqueName);
         using var stream = new FileStream(filePath, FileMode.Create);
         await file.CopyToAsync(stream);
@@ -1788,7 +1782,7 @@ public class EventPaymentLinkService : IEventPaymentLinkService
         AddRow("Club Name", (string?)member.ClubName);
         AddRow("Purpose of the payment", (string?)member.LinkTitle);
         AddRow("Amount received", Brand.Money(Convert.ToDecimal((object?)member.Amount)));
-        AddRow("Date and time", ((DateTime?)member.PaymentDate)?.ToString("dd-MM-yyyy HH:mm") ?? DateTime.Now.ToString("dd-MM-yyyy HH:mm"));
+        AddRow("Date and time", ((DateTime?)member.PaymentDate)?.ToString("dd-MM-yyyy HH:mm") ?? DateTime.UtcNow.ToString("dd-MM-yyyy HH:mm"));
         AddRow("Method of payment", Convert.ToBoolean(member.IsOnline) ? "Online" : ((string?)member.OfflineTransactionType ?? "Offline"));
         AddRow("Transaction ID", (string?)member.TransactionId);
         AddRow("Registration Type", (string?)member.RegistrationName);
@@ -1954,7 +1948,7 @@ public class EventPaymentLinkService : IEventPaymentLinkService
 
         row.Add((string?)m.RegistrationName ?? "");
         row.Add(m.Amount?.ToString() ?? "0");
-        row.Add(((DateTime?)m.PaymentDate)?.ToString("dd-MM-yyyy HH:mm") ?? "");
+        row.Add((m.PaymentDate is DateTime mpd ? ZoneTime.Print(mpd, "dd-MM-yyyy HH:mm") : null) ?? "");
         row.Add((string?)m.PaidSource ?? "");
 
         if (IsOn(link.IsTshirtSize)) row.Add((string?)m.TshirtSize ?? "");

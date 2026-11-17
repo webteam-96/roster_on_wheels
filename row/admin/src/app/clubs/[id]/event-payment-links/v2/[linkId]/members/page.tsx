@@ -295,7 +295,7 @@ export default function EventMembersV2Page() {
           </div>
 
           {/* Tabs + table */}
-          <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+          <div className="bg-card rounded-2xl border border-slate-200 overflow-hidden">
             <Tabs value={activeTab} onValueChange={setActiveTab}>
               <div className="px-5 py-3 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                 <TabsList className="bg-slate-100 p-1 h-auto">

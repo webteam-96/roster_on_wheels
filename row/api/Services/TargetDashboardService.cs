@@ -30,7 +30,7 @@ public class TargetDashboardService
     /// for the year (district_ag) or a club admin of. Null when the year does not exist.</summary>
     public async Task<TargetDashboardDto?> GetDistrictAsync(int districtId, int memberId, int? yearId)
     {
-        await using var conn = new MySqlConnection(_connectionString);
+        await using var conn = RowDb.Connect(_connectionString);
         await conn.OpenAsync();
         if (await GrowthService.YearAsync(conn, yearId) is not { } y) return null;
         var whole = memberId > 0 && await ScopeWriteGuardMiddleware.AllowedAsync(_connectionString, memberId, false, districtId);
@@ -53,7 +53,7 @@ public class TargetDashboardService
     /// celebration passes (no viewer, so no access check). Null when no year is current.</summary>
     internal async Task<TargetDashboardDto?> GetDistrictForJobAsync(int districtId)
     {
-        await using var conn = new MySqlConnection(_connectionString);
+        await using var conn = RowDb.Connect(_connectionString);
         await conn.OpenAsync();
         if (await GrowthService.YearAsync(conn, null) is not { } y) return null;
         var clubIds = (await conn.QueryAsync<int>(
@@ -66,7 +66,7 @@ public class TargetDashboardService
     /// year does not exist.</summary>
     public async Task<TargetDashboardDto?> GetClubAsync(int clubId, int memberId, int? yearId)
     {
-        await using var conn = new MySqlConnection(_connectionString);
+        await using var conn = RowDb.Connect(_connectionString);
         await conn.OpenAsync();
         var districtId = await conn.ExecuteScalarAsync<int?>(
             "SELECT fk_district_id FROM club_master WHERE pk_club_id = @C AND isdeleted = 0", new { C = clubId });

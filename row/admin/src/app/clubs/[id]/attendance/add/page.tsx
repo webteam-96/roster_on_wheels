@@ -287,11 +287,11 @@ export default function AttendanceAddPage() {
             {/* Annets Card */}
             <div
               onClick={() => setAnnetsDialogOpen(true)}
-              className="flex items-center gap-3 p-4 border rounded-lg hover:border-purple-300 hover:bg-purple-50/50 dark:hover:bg-purple-950/20 cursor-pointer transition-colors"
+              className="flex items-center gap-3 p-4 border rounded-lg hover:border-slate-300 hover:bg-slate-50/50 dark:hover:bg-slate-950/20 cursor-pointer transition-colors"
             >
-              <UserPlus className="h-5 w-5 text-purple-600" />
+              <UserPlus className="h-5 w-5 text-slate-600" />
               <span className="font-medium text-sm flex-1">Annets</span>
-              <span className="inline-flex items-center justify-center h-6 min-w-[1.5rem] px-1.5 rounded-full bg-[#CFE2F6] text-purple-700 text-xs font-bold">
+              <span className="inline-flex items-center justify-center h-6 min-w-[1.5rem] px-1.5 rounded-full bg-[#CFE2F6] text-slate-700 text-xs font-bold">
                 {annets.length}
               </span>
             </div>

@@ -159,7 +159,7 @@ function MonthlyChart({
   // plot one <Line> per club via dataKey.
   const flat = data.map((p) => ({ month: p.month, ...p.byClub }));
   return (
-    <div className="bg-white rounded-2xl border border-slate-200 p-5">
+    <div className="bg-card rounded-2xl border border-slate-200 p-5">
       <div className="flex items-center justify-between mb-3">
         <div>
           <h3 className="text-base font-semibold text-slate-800">{title}</h3>
@@ -327,7 +327,7 @@ export default function AgExcellencePage() {
           <h2 className="text-base font-semibold text-slate-800">District Awards Scores</h2>
         </div>
 
-        <div className="bg-white rounded-2xl border border-slate-200 p-5">
+        <div className="bg-card rounded-2xl border border-slate-200 p-5">
           <h3 className="text-base font-semibold text-slate-800 mb-1">District Awards Scores by Club</h3>
           <p className="text-xs text-slate-400 mb-4">Stacked bar: each colour is a scoring category</p>
           {citationBarData.length === 0 ? (
@@ -358,7 +358,7 @@ export default function AgExcellencePage() {
           )}
         </div>
 
-        <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden mt-4">
+        <div className="bg-card rounded-2xl border border-slate-200 overflow-hidden mt-4">
           <div className="px-5 py-3 border-b border-slate-100">
             <h3 className="text-sm font-semibold text-slate-800">Category Breakdown</h3>
           </div>
@@ -418,7 +418,7 @@ export default function AgExcellencePage() {
         </p>
 
         {data.goals.length === 0 ? (
-          <div className="bg-white rounded-2xl border border-slate-200 p-6 text-center text-xs text-slate-400">
+          <div className="bg-card rounded-2xl border border-slate-200 p-6 text-center text-xs text-slate-400">
             No goal data yet.
           </div>
         ) : (
@@ -437,7 +437,7 @@ export default function AgExcellencePage() {
               return (
                 <div
                   key={club.clubId}
-                  className="bg-white rounded-2xl border border-slate-200 p-5 flex flex-col gap-4"
+                  className="bg-card rounded-2xl border border-slate-200 p-5 flex flex-col gap-4"
                 >
                   <div>
                     <div
@@ -477,7 +477,7 @@ export default function AgExcellencePage() {
           <h2 className="text-base font-semibold text-slate-800">Club Excellence Award Status</h2>
         </div>
 
-        <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+        <div className="bg-card rounded-2xl border border-slate-200 overflow-hidden">
           {awardStatusIsPending || awardStatusList.length === 0 ? (
             // The whole table degrades to a single explanatory placeholder
             // when `awardStatusIsPending` flag is set (or no rows arrived).

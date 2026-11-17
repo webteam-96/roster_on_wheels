@@ -17,7 +17,7 @@ public class CreditManagementService : ICreditManagementService
         _logger = logger;
     }
 
-    private MySqlConnection CreateConnection() => new(_connectionString);
+    private MySqlConnection CreateConnection() => RowDb.Connect(_connectionString);
 
     // One row per offline entry (Add / count Edit) for Settings › Wallet's combined list. A failure
     // here is logged and swallowed — the credits themselves are already saved and must stay saved.
@@ -248,7 +248,7 @@ public class CreditManagementService : ICreditManagementService
                                 {txnHtml}
                                 {payDateHtml}
                             </table>
-                            <p style='color:#64748B;font-size:13px;'>Credited on: {DateTime.Now:dd-MMM-yyyy hh:mm tt}</p>
+                            <p style='color:#64748B;font-size:13px;'>Credited on: {DateTime.UtcNow:dd-MMM-yyyy hh:mm tt}</p>
                         {EmailService.EMAIL_FOOTER}";
 
                     await _emailService.SendGenericEmailAsync((string)adminInfo.EmailId, subject, body);
@@ -271,7 +271,7 @@ public class CreditManagementService : ICreditManagementService
             new { Id = id });
         if (row == null) throw new InvalidOperationException("Credit entry not found.");
         if (Convert.ToBoolean(row.isdeleted)) throw new InvalidOperationException("Credit entry already deleted.");
-        if (!Convert.ToBoolean(row.IsActive) || DateTime.Now > (DateTime)row.ToDate)
+        if (!Convert.ToBoolean(row.IsActive) || DateTime.UtcNow > (DateTime)row.ToDate)
             throw new InvalidOperationException("Cannot edit an expired or inactive credit pack.");
         if (dto.CreditCount < (int)row.UsedCount)
             throw new InvalidOperationException($"New count ({dto.CreditCount}) cannot be less than already used credits ({(int)row.UsedCount}).");
@@ -314,10 +314,10 @@ public class CreditManagementService : ICreditManagementService
             new { Id = id });
         if (row == null) throw new InvalidOperationException("Credit entry not found.");
         if (Convert.ToBoolean(row.isdeleted)) throw new InvalidOperationException("Credit entry already deleted.");
-        if (!Convert.ToBoolean(row.IsActive) || DateTime.Now > (DateTime)row.ToDate)
+        if (!Convert.ToBoolean(row.IsActive) || DateTime.UtcNow > (DateTime)row.ToDate)
             throw new InvalidOperationException("Cannot delete an expired or inactive credit pack.");
         if ((int)row.UsedCount > 0)
-            throw new InvalidOperationException($"Cannot delete — {(int)row.UsedCount} credit(s) already used from this pack.");
+            throw new InvalidOperationException($"Cannot delete: {(int)row.UsedCount} credit(s) already used from this pack.");
 
         await connection.ExecuteAsync(
             "UPDATE club_credits SET isdeleted = 1, modified_by = @UserId, modified_date = NOW() WHERE pk_credit_id = @Id",
@@ -548,7 +548,7 @@ public class CreditManagementService : ICreditManagementService
     {
         using var connection = CreateConnection();
         await connection.OpenAsync();
-        var today = DateTime.Today;
+        var today = DateTime.UtcNow.Date;
         var rows = (await connection.QueryAsync<dynamic>(@"
             SELECT CreditType, COALESCE(SUM(CreditCount),0) AS total, COALESCE(SUM(UsedCount),0) AS used
             FROM club_credits

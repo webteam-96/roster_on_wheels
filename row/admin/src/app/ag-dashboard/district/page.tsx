@@ -54,7 +54,7 @@ function LeaderCard({
 }) {
   if (clubs.length === 0) {
     return (
-      <div className="border border-slate-200 rounded-[20px] bg-white p-4">
+      <div className="border border-slate-200 rounded-[20px] bg-card p-4">
         <div className="flex items-center gap-2 mb-2">
           <Icon size={16} className="text-slate-500" />
           <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide">{title}</span>
@@ -67,7 +67,7 @@ function LeaderCard({
   const leader = sorted[0];
 
   return (
-    <div className="border border-slate-200 rounded-[20px] bg-white shadow-sm overflow-hidden flex flex-col">
+    <div className="border border-slate-200 rounded-[20px] bg-card shadow-sm overflow-hidden flex flex-col">
       <div className="pt-4 px-5 pb-2 flex items-center gap-2">
         <Icon size={18} className="text-slate-500" />
         <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide">{title}</span>
@@ -243,7 +243,7 @@ export default function AgDistrictPage() {
       {/* HEAD-TO-HEAD COMPARISON — sortable table; National Rank = Pending */}
       <section>
         <h2 className="text-xs font-semibold text-gray-500 mb-3 uppercase tracking-widest">Head-to-Head Comparison</h2>
-        <div className="border border-gray-200 shadow-sm rounded-[20px] bg-white overflow-hidden">
+        <div className="border border-gray-200 shadow-sm rounded-[20px] bg-card overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full border-collapse text-left">
               <thead className="bg-[#EDF4FB] text-[13px] text-[#64748B]">
@@ -264,7 +264,7 @@ export default function AgDistrictPage() {
               </thead>
               <tbody>
                 {sortedClubs.map((c, idx) => (
-                  <tr key={c.clubId} className={idx % 2 === 0 ? "bg-white" : "bg-gray-50"}>
+                  <tr key={c.clubId} className={idx % 2 === 0 ? "bg-card" : "bg-gray-50"}>
                     <td className="px-3 py-3">
                       <div className="flex flex-wrap items-center gap-2">
                         <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: CLUB_PALETTE[idx % CLUB_PALETTE.length] }} />
@@ -319,7 +319,7 @@ export default function AgDistrictPage() {
               color: CLUB_PALETTE[i % CLUB_PALETTE.length],
             }));
             return (
-              <div key={ki} className="border border-gray-200 shadow-sm rounded-[20px] bg-white p-5">
+              <div key={ki} className="border border-gray-200 shadow-sm rounded-[20px] bg-card p-5">
                 <h3 className="text-sm font-semibold text-gray-600 mb-3">{titles[key]}</h3>
                 <ResponsiveContainer width="100%" height={240}>
                   <BarChart data={chartData} margin={{ top: 8, right: 16, left: 8, bottom: 40 }}>
@@ -355,7 +355,7 @@ export default function AgDistrictPage() {
           <p className="text-xs text-gray-400 mb-3">
             All metrics normalised 0-100 so clubs can be compared across dimensions. Outer edge = leader in that axis.
           </p>
-          <div className="border border-gray-200 shadow-sm rounded-[20px] bg-white p-4">
+          <div className="border border-gray-200 shadow-sm rounded-[20px] bg-card p-4">
             <ResponsiveContainer width="100%" height={420}>
               <RadarChart data={radarPoints} margin={{ top: 16, right: 40, bottom: 16, left: 40 }}>
                 <PolarGrid stroke="#d5dee8" />

@@ -9,6 +9,7 @@ import { isAnnualOnlyCategory } from "@/lib/goalCategories";
 import { Loader2 } from "@/components/icons";
 import { getGoalCategories, getDistrictMonthlyGoalsScoped, type GoalMonthlyForm } from "@/services/api";
 import { monthlyFieldLabel } from "@/lib/goalCategories";
+import { SkeletonRows } from "@/components/row/AppKit";
 
 const fmt = (v: number | null | undefined) =>
   v === null || v === undefined ? "–" : String(Math.round(v));   // whole numbers only (user 2026-09-29)
@@ -76,7 +77,7 @@ export default function DistrictMonthWiseReport(
     return () => { cancelled = true; };
   }, [districtId, yearId, categoryId]);
 
-  if (loading) return <div className="flex items-center gap-2 text-sm text-slate-400 p-4"><Loader2 size={14} className="animate-spin" /> Loading month-wise…</div>;
+  if (loading) return <div className="p-4"><SkeletonRows /></div>;
 
   return (
     <div className="space-y-6 p-1">
@@ -117,7 +118,7 @@ export default function DistrictMonthWiseReport(
                       if (f.monthlyTracked === false) {
                         return (
                           <tr key={f.fieldId} className="border-b border-slate-100 hover:bg-slate-50">
-                            <td className="px-2 py-1.5 font-medium text-slate-800 sticky left-0 z-10 bg-white">{monthlyFieldLabel(f)}</td>
+                            <td className="px-2 py-1.5 font-medium text-slate-800 sticky left-0 z-10 bg-card">{monthlyFieldLabel(f)}</td>
                             <td className="px-2 py-1.5 text-right text-slate-500">, </td>
                             <td className="px-2 py-1.5 text-right text-slate-700 whitespace-pre-line">{f.displayText ?? fmt(f.annualTarget)}</td>
                             {months.map((mo) => <td key={mo.month} colSpan={2} className="px-2 py-1.5 border-l border-slate-100" />)}
@@ -139,7 +140,7 @@ export default function DistrictMonthWiseReport(
                       const tgts = runningTargets(f, months);
                       return (
                         <tr key={f.fieldId} className="border-b border-slate-100 hover:bg-slate-50">
-                          <td className="px-2 py-1.5 font-medium text-slate-800 sticky left-0 z-10 bg-white">{monthlyFieldLabel(f)}</td>
+                          <td className="px-2 py-1.5 font-medium text-slate-800 sticky left-0 z-10 bg-card">{monthlyFieldLabel(f)}</td>
                           <td className="px-2 py-1.5 text-right text-slate-500">{fmt(f.baseline)}</td>
                           <td className="px-2 py-1.5 text-right text-slate-700">{fmt(f.annualTarget)}</td>
                           {cells.map((v, j) => [

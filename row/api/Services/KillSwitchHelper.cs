@@ -22,7 +22,7 @@ public static class KillSwitchHelper
 {
     public static async Task<bool> IsDistrictDrillReachableAsync(string connectionString, int districtId)
     {
-        using var conn = new MySqlConnection(connectionString);
+        using var conn = RowDb.Connect(connectionString);
         await conn.OpenAsync();
         var count = await conn.ExecuteScalarAsync<int>(@"
             SELECT COUNT(*) FROM district_master d
@@ -36,7 +36,7 @@ public static class KillSwitchHelper
 
     public static async Task<bool> IsClubDrillReachableAsync(string connectionString, int clubId)
     {
-        using var conn = new MySqlConnection(connectionString);
+        using var conn = RowDb.Connect(connectionString);
         await conn.OpenAsync();
         var count = await conn.ExecuteScalarAsync<int>(@"
             SELECT COUNT(*) FROM club_master c

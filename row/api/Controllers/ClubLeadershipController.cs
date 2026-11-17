@@ -27,10 +27,10 @@ public class ClubLeadershipController : ControllerBase
 
     private void FireBodSubGroupHook(int clubId, int designationId, int yearId)
     {
-        _ = Task.Run(async () => { try { await _bodSubGroups.OnBodChangedAsync(clubId, designationId, yearId); } catch { } });
+        BackgroundWork.Run("OnBodChangedAsync", () => _bodSubGroups.OnBodChangedAsync(clubId, designationId, yearId));
     }
 
-    private MySqlConnection CreateConnection() => new(_connectionString);
+    private MySqlConnection CreateConnection() => RowDb.Connect(_connectionString);
 
     private bool IsSuperAdmin() => User.FindFirst("roles")?.Value?.Contains("SuperAdmin") == true;
 
@@ -279,7 +279,7 @@ public class ClubLeadershipController : ControllerBase
         if (!IsSuperAdmin()) return Forbid();
         if (req.DistrictId <= 0 || req.YearId <= 0)
             return BadRequest(new { message = "districtId and yearId are required." });
-        if (req.ScheduleDateTime <= DateTime.Now.AddMinutes(-1))
+        if (req.ScheduleDateTime <= DateTime.UtcNow.AddMinutes(-1))
             return BadRequest(new { message = "Schedule date/time must be in the future." });
 
         using var conn = CreateConnection();
@@ -438,7 +438,7 @@ public class ClubLeadershipController : ControllerBase
             new { Id = id });
         if (status == null) return NotFound(new { message = "Schedule not found." });
         if (!string.Equals(status, "Pending", StringComparison.OrdinalIgnoreCase))
-            return BadRequest(new { message = $"Cannot delete — schedule status is '{status}'. Only Pending schedules can be deleted." });
+            return BadRequest(new { message = $"Cannot delete: schedule status is '{status}'. Only Pending schedules can be deleted." });
 
         await conn.ExecuteAsync(
             "UPDATE club_leadership_email_schedule SET isdeleted = 1 WHERE pk_id = @Id",

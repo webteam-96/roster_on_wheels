@@ -274,7 +274,7 @@ export function Websites() {
             </div>
           ) : (
             <div className="mx-auto flex max-w-xl flex-col items-center rounded-2xl bg-porcelain px-6 py-16 text-center ring-1 ring-navy-950/[0.08]">
-              <span className="flex h-14 w-14 items-center justify-center rounded-full bg-white ring-1 ring-navy-950/10">
+              <span className="flex h-14 w-14 items-center justify-center rounded-full bg-card ring-1 ring-navy-950/10">
                 <SearchX className="h-6 w-6 text-gold-deep" />
               </span>
               <p className="mt-5 font-display text-xl font-[450] tracking-tight text-navy-950">

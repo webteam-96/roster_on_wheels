@@ -51,7 +51,7 @@ public class GrantNotificationEmailBackgroundService : BackgroundService
 
     private async Task SendPendingAsync(CancellationToken ct)
     {
-        await using var c = new MySqlConnection(_cs);
+        await using var c = RowDb.Connect(_cs);
         await c.OpenAsync(ct);
         var rows = (await c.QueryAsync<Pending>(@"
             SELECT n.pk_notification_id AS Id, n.fk_application_id AS ApplicationId, n.side AS Side, n.title AS Title, n.body AS Body,

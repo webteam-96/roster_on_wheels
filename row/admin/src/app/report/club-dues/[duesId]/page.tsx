@@ -205,7 +205,7 @@ export default function ClubDuesReportPage() {
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       {/* Logo on a light bar: the transparent mark, never a white plate on blue. */}
-      <div className="border-b border-[color:var(--row-line)] bg-white">
+      <div className="border-b border-[color:var(--row-line)] bg-card">
         <div className="max-w-7xl mx-auto px-4 py-3">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={withBase("/brand/row-logo.png")} alt="Roster On Wheels" className="h-12 object-contain" />
@@ -244,7 +244,7 @@ export default function ClubDuesReportPage() {
 
       {/* Table */}
       <div className="max-w-7xl mx-auto px-4 pb-8">
-        <div className="bg-white rounded-lg shadow overflow-x-auto">
+        <div className="bg-card rounded-lg shadow overflow-x-auto">
           <table className="w-full min-w-[640px] md:min-w-full text-sm">
             <thead className="bg-[#EDF4FB] text-[13px] text-[#64748B]">
               <tr className="bg-azure text-white">

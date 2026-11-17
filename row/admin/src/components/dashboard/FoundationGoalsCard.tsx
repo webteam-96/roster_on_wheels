@@ -159,7 +159,7 @@ export default function FoundationGoalsCard() {
 
   if (loading) {
     return (
-      <div className="bg-white rounded-2xl border border-slate-200 p-6 flex items-center justify-center text-slate-500">
+      <div className="bg-card rounded-2xl border border-slate-200 p-6 flex items-center justify-center text-slate-500">
         <Loader2 className="animate-spin mr-2" size={16} /> Loading Foundation Goals…
       </div>
     );
@@ -171,7 +171,7 @@ export default function FoundationGoalsCard() {
 
   return (
     <div className="space-y-4">
-      <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+      <div className="bg-card rounded-2xl border border-slate-200 overflow-hidden">
         <div className="px-5 py-3 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-blue-50">
           <div className="flex flex-wrap items-center gap-2">
             <div className="w-9 h-9 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center">
@@ -186,7 +186,7 @@ export default function FoundationGoalsCard() {
             <select
               value={selectedYearId ?? ""}
               onChange={(e) => setSelectedYearId(e.target.value ? Number(e.target.value) : null)}
-              className="px-2 py-1.5 text-sm border border-slate-200 rounded-[12px] bg-white focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+              className="px-2 py-1.5 text-sm border border-slate-200 rounded-[12px] bg-card focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
             >
               {data.years.length === 0 && <option value="">No years</option>}
               {data.years.map((y) => (
@@ -327,13 +327,13 @@ function GoalField({
 }) {
   const ring = {
     blue:    "focus:ring-blue-500",
-    purple:  "focus:ring-purple-500",
+    purple:  "focus:ring-slate-500",
     amber:   "focus:ring-amber-500",
     emerald: "focus:ring-emerald-500",
   }[color];
   const dot = {
     blue:    "bg-blue-500",
-    purple:  "bg-purple-500",
+    purple:  "bg-slate-500",
     amber:   "bg-amber-500",
     emerald: "bg-emerald-500",
   }[color];
@@ -375,7 +375,7 @@ function PastGoalsList({
   onSelect: (yearId: number) => void;
 }) {
   return (
-    <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+    <div className="bg-card rounded-2xl border border-slate-200 overflow-hidden">
       <div className="px-5 py-3 border-b border-slate-100">
         <h3 className="text-sm font-semibold text-slate-800">Past Year Goals (Read Only)</h3>
         <p className="text-xs text-slate-500">Historical foundation collection targets</p>

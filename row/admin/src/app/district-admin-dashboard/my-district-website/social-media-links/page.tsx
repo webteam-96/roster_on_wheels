@@ -18,8 +18,8 @@
  *       Navy  #17458f  (headings, primary buttons, table header)
  *       Gold  #F7A81B  (underline accent on table header)
  *       Slate 200/500/800 (borders / muted text / body)
- *       rounded-2xl border border-slate-200 shadow-sm bg-white cards
- *       inputs border-slate-200 bg-white focus:border-azure
+ *       rounded-2xl border border-slate-200 shadow-sm bg-card cards
+ *       inputs border-slate-200 bg-card focus:border-azure
  *              focus:ring-azure/20
  *
  * All state hooks, dialogs, dropdowns, service calls, validations, table
@@ -340,7 +340,7 @@ export default function DistrictAdminSocialLinksPage() {
         )}
 
         {!loading && !loadingLinks && links.length === 0 && (
-          <div className="flex flex-col items-center justify-center py-20 text-center rounded-2xl border border-slate-200 bg-white shadow-sm">
+          <div className="flex flex-col items-center justify-center py-20 text-center rounded-2xl border border-slate-200 bg-card shadow-sm">
             <Share2 className="h-12 w-12 text-slate-400 mb-4" />
             <h3 className="text-lg font-semibold text-slate-800">No social media links yet</h3>
             <p className="text-slate-500 mt-2 text-sm">
@@ -369,7 +369,7 @@ export default function DistrictAdminSocialLinksPage() {
                   {filteredLinks.map((link, idx) => (
                     <div
                       key={link.id}
-                      className="rounded-2xl border border-slate-200 shadow-sm bg-white"
+                      className="rounded-2xl border border-slate-200 shadow-sm bg-card"
                     >
                       <div className="p-4">
                         <div className="flex items-center gap-3">
@@ -438,7 +438,7 @@ export default function DistrictAdminSocialLinksPage() {
                 </div>
 
                 {/* ── Desktop table ────────────────────────────────────── */}
-                <div className="hidden sm:block rounded-2xl border border-slate-200 shadow-sm overflow-hidden bg-white">
+                <div className="hidden sm:block rounded-2xl border border-slate-200 shadow-sm overflow-hidden bg-card">
                   <Table>
                     <TableHeader>
                       <TableRow
@@ -563,7 +563,7 @@ export default function DistrictAdminSocialLinksPage() {
               <div className="space-y-2">
                 <Label className="text-slate-700 text-sm font-medium">Social Media Platform *</Label>
                 <Select value={formPlatform} onValueChange={setFormPlatform}>
-                  <SelectTrigger className="border-slate-200 bg-white focus:border-azure focus:ring-azure/20">
+                  <SelectTrigger className="border-slate-200 bg-card focus:border-azure focus:ring-azure/20">
                     <SelectValue placeholder="Select a platform" />
                   </SelectTrigger>
                   <SelectContent>
@@ -576,7 +576,7 @@ export default function DistrictAdminSocialLinksPage() {
               <div className="space-y-2">
                 <Label className="text-slate-700 text-sm font-medium">Link URL *</Label>
                 <Input
-                  className="border-slate-200 bg-white focus:border-azure focus:ring-azure/20"
+                  className="border-slate-200 bg-card focus:border-azure focus:ring-azure/20"
                   placeholder="https://..."
                   value={formLinkUrl}
                   onChange={(e) => setFormLinkUrl(e.target.value)}
@@ -585,7 +585,7 @@ export default function DistrictAdminSocialLinksPage() {
               <div className="space-y-2">
                 <Label className="text-slate-700 text-sm font-medium">Status</Label>
                 <Select value={formIsActive} onValueChange={setFormIsActive}>
-                  <SelectTrigger className="border-slate-200 bg-white focus:border-azure focus:ring-azure/20">
+                  <SelectTrigger className="border-slate-200 bg-card focus:border-azure focus:ring-azure/20">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>

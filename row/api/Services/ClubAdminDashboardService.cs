@@ -25,7 +25,7 @@ public class ClubAdminDashboardService : IClubAdminDashboardService
         _fx = fx;
     }
 
-    private MySqlConnection CreateConnection() => new(_connectionString);
+    private MySqlConnection CreateConnection() => RowDb.Connect(_connectionString);
 
     // The currency a club's project-cost totals should be shown in: its district's DefaultCurrency
     // (SuperAdmin-set) or a country-based guess. Mirrors frontend resolveDefaultCurrency (currency.ts).
@@ -132,7 +132,7 @@ public class ClubAdminDashboardService : IClubAdminDashboardService
         string? wsStatus = websiteRow?.status as string;
         bool websiteActive = websiteRow != null
             && string.Equals(wsStatus, "Active", StringComparison.OrdinalIgnoreCase)
-            && (expiry == null || expiry >= DateTime.Today);
+            && (expiry == null || expiry >= DateTime.UtcNow.Date);
 
         // Available Email credit balance for the hero chip.
         // Mirrors the query in CreditManagementService.cs:105 — only active,
@@ -861,7 +861,7 @@ public class ClubAdminDashboardService : IClubAdminDashboardService
             ORDER BY DAY(m.AnniversaryDate), m.MemberName",
             new { ClubId = clubId })).ToList();
 
-        int today = DateTime.Now.Day;
+        int today = DateTime.UtcNow.Day;
         var greetingsTodayCount = birthdays.Count(b => b.Day == today) + anniversaries.Count(a => a.Day == today);
 
         ClubAdminCommunicationItem Mk(dynamic r, string kind)
@@ -935,7 +935,7 @@ public class ClubAdminDashboardService : IClubAdminDashboardService
         if (!isActive && rawStatus.Length > 0) status = rawStatus.ToLowerInvariant();
         else if (!isActive) status = "inactive";
         else if (expiry == null) status = "trial";
-        else if (expiry < DateTime.Today) status = isPaid ? "expired" : "trial_expired";
+        else if (expiry < DateTime.UtcNow.Date) status = isPaid ? "expired" : "trial_expired";
         else status = isPaid ? "active" : "trial";
 
         // Menu is not year-wise (see feedback_social_links_not_yearwise memory — same reasoning).

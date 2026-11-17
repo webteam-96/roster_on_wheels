@@ -26,7 +26,7 @@ public class TrainingAppointmentService : ITrainingAppointmentService
         _logger = logger;
     }
 
-    private MySqlConnection NewConn() => new(_conn);
+    private MySqlConnection NewConn() => RowDb.Connect(_conn);
 
     // ── config ───────────────────────────────────────────────────────────────
     private int SlotMinutes() => _config.GetValue("Training:SlotMinutes", 30);

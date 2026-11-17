@@ -30,7 +30,7 @@ public class PublicDuesApprovalController : ControllerBase
         _signingSecret = config["JwtSettings:Secret"]!;
     }
 
-    private MySqlConnection CreateConnection() => new(_connectionString);
+    private MySqlConnection CreateConnection() => RowDb.Connect(_connectionString);
 
     public class ActionRequest
     {

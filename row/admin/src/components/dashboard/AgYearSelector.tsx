@@ -123,7 +123,7 @@ export default function AgYearSelector() {
         className={`inline-flex items-center gap-2 h-9 px-3 rounded-md border border-slate-200 text-sm font-medium transition-colors ${
           locked
             ? "bg-slate-50 text-slate-500 cursor-default"
-            : "bg-white hover:bg-slate-50 text-slate-700"
+            : "bg-card hover:bg-slate-50 text-slate-700"
         }`}
         title={locked ? `Rotary Year ${labelText}` : "Rotary Year"}
       >
@@ -134,7 +134,7 @@ export default function AgYearSelector() {
         )}
       </button>
       {open && !locked && (
-        <div className="absolute right-0 top-full mt-1 z-50 min-w-[160px] bg-white border border-slate-200 rounded-md shadow-lg py-1 max-h-72 overflow-y-auto">
+        <div className="absolute right-0 top-full mt-1 z-50 min-w-[160px] bg-card border border-slate-200 rounded-md shadow-lg py-1 max-h-72 overflow-y-auto">
           {options.map((o) => (
             <button
               key={o.id}

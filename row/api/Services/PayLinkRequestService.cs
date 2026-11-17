@@ -22,7 +22,7 @@ public sealed class PayLinkRequestService
 
     public async Task RequestAsync(string kind, int id, string email)
     {
-        await using var conn = new MySqlConnection(_config.GetConnectionString("DefaultConnection"));
+        await using var conn = RowDb.Connect(_config.GetConnectionString("DefaultConnection"));
         var secret = _config["JwtSettings:Secret"] ?? "";
         string? title, path;
         int? clubId = null, districtId = null;

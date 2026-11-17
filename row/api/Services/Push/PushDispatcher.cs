@@ -115,7 +115,7 @@ public static class PushDispatcher
             p.Add("Status", r.Success ? "Sent" : "Failed");
             p.Add("MsgId", r.FirebaseMessageId);
             p.Add("Err", string.IsNullOrEmpty(r.ErrorMessage) ? null : (r.ErrorMessage.Length > 1000 ? r.ErrorMessage[..1000] : r.ErrorMessage));
-            p.Add("Sent", r.Success ? DateTime.Now : (DateTime?)null);
+            p.Add("Sent", r.Success ? DateTime.UtcNow : (DateTime?)null);
             await conn.ExecuteAsync(insertSql, p);
 
             if (r.IsTokenInvalid)

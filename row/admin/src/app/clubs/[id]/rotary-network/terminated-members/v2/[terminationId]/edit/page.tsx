@@ -223,7 +223,7 @@ export default function TerminatedMembersV2EditPage() {
         <SectionCard number={1} icon={UserMinus} title="Member" dot="bg-[#17458F]">
           <FieldLabel dot="bg-[#17458F]" required={false}>Member (locked)</FieldLabel>
           <div className="flex items-center gap-3 p-3 border rounded-lg bg-slate-50 border-slate-200">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white border border-slate-200 text-slate-400">
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-card border border-slate-200 text-slate-400">
               <User className="h-5 w-5" />
             </div>
             <div className="flex-1 min-w-0">
@@ -251,7 +251,7 @@ export default function TerminatedMembersV2EditPage() {
                   setTerminationReason(e.target.value);
                   setReasonIsCustom(e.target.value === "Other");
                 }}
-                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] bg-white focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] bg-card focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
               >
                 <option value="">Select a reason…</option>
                 {TERMINATION_REASONS.map((r) => (

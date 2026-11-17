@@ -35,7 +35,7 @@ public class MeetingsService
     /// <summary>The feed token of a club (clubId) or of a member (memberId), or null when none was issued.</summary>
     public async Task<string?> GetFeedTokenAsync(int? clubId, int? memberId)
     {
-        await using var conn = new MySqlConnection(_cs);
+        await using var conn = RowDb.Connect(_cs);
         return await conn.ExecuteScalarAsync<string?>(
             $"SELECT token FROM meeting_calendar_feeds WHERE {(clubId != null ? "fk_club_id" : "fk_member_id")} = @Id",
             new { Id = clubId ?? memberId });
@@ -47,7 +47,7 @@ public class MeetingsService
     public async Task<string> ResetFeedTokenAsync(int? clubId, int? memberId, int createdBy)
     {
         var token = Convert.ToHexString(RandomNumberGenerator.GetBytes(32));
-        await using var conn = new MySqlConnection(_cs);
+        await using var conn = RowDb.Connect(_cs);
         await conn.ExecuteAsync(
             $@"INSERT INTO meeting_calendar_feeds (token, {(clubId != null ? "fk_club_id" : "fk_member_id")}, created_by)
                VALUES (@Token, @Id, @By)
@@ -71,7 +71,7 @@ public class MeetingsService
     /// <summary>The iCal text for a feed token, or null for an unknown token or an inactive club.</summary>
     public async Task<string?> BuildIcsAsync(string token)
     {
-        await using var conn = new MySqlConnection(_cs);
+        await using var conn = RowDb.Connect(_cs);
         var feed = await conn.QueryFirstOrDefaultAsync<(int? ClubId, int? MemberId)>(
             "SELECT fk_club_id, fk_member_id FROM meeting_calendar_feeds WHERE token = @Token", new { Token = token });
         if (feed.ClubId == null && feed.MemberId == null) return null;
@@ -189,8 +189,8 @@ public class MeetingsService
     {
         var from = new DateTime(month.Year, month.Month, 1);
         var to = from.AddMonths(1);
-        var now = DateTime.Now;
-        await using var conn = new MySqlConnection(_cs);
+        var now = DateTime.UtcNow;
+        await using var conn = RowDb.Connect(_cs);
         districtId ??= await conn.ExecuteScalarAsync<int?>(
             "SELECT fk_district_id FROM club_master WHERE pk_club_id = @ClubId AND IFNULL(isdeleted, 0) = 0", new { ClubId = clubId });
         if (districtId == null) return null;
@@ -237,7 +237,7 @@ public class MeetingsService
     /// False when the club is not in this district.</summary>
     public async Task<bool> SetRuleAsync(int districtId, int? clubId, int? perMonth, int by)
     {
-        await using var conn = new MySqlConnection(_cs);
+        await using var conn = RowDb.Connect(_cs);
         if (clubId == null)
         {
             await conn.ExecuteAsync(@"
@@ -357,7 +357,7 @@ public class MeetingReminderBackgroundService : BackgroundService
         if (!features.Contains(MeetingsService.FeatureKey)) return 0;
         // N5 on: members who unsubscribed from email or whose address bounced are left out; text in the member's language.
         var comms = features.Contains(CommsService.FeatureKey);
-        await using var conn = new MySqlConnection(_cs);
+        await using var conn = RowDb.Connect(_cs);
         await conn.OpenAsync(stop);
         // N12: stored UTC times are compared with UTC now (one group); wall-clock times with the local time of each
         // district zone.

@@ -76,7 +76,7 @@ public class EscalationService
     /// <summary>The district's rules; defaults (both rules off) when it has none.</summary>
     public async Task<Rules> GetRulesAsync(int districtId)
     {
-        await using var conn = new MySqlConnection(_cs);
+        await using var conn = RowDb.Connect(_cs);
         return await conn.QueryFirstOrDefaultAsync<Rules>(@"
             SELECT target_status AS TargetStatus, meeting_shortfall AS MeetingShortfall, ag_delay_days AS AgDelayDays,
                    dg_delay_days AS DgDelayDays
@@ -85,7 +85,7 @@ public class EscalationService
 
     public async Task SaveRulesAsync(int districtId, Rules r, int by)
     {
-        await using var conn = new MySqlConnection(_cs);
+        await using var conn = RowDb.Connect(_cs);
         await conn.ExecuteAsync(@"
             INSERT INTO escalation_rules (fk_district_id, target_status, meeting_shortfall, ag_delay_days, dg_delay_days, modified_by)
             VALUES (@D, @TargetStatus, @MeetingShortfall, @AgDelayDays, @DgDelayDays, @By)
@@ -126,7 +126,7 @@ public class EscalationService
     {
         var on = await FeatureGate.OnAsync(_cs);
         if (!on.Contains(FeatureKey)) return 0;
-        await using var conn = new MySqlConnection(_cs);
+        await using var conn = RowDb.Connect(_cs);
         await conn.OpenAsync(ct);
         var districts = await conn.QueryAsync<DistrictRules>(@"
             SELECT r.fk_district_id AS DistrictId, r.target_status AS TargetStatus, r.meeting_shortfall AS MeetingShortfall,
@@ -153,7 +153,7 @@ public class EscalationService
     private async Task<int> RunDistrictAsync(MySqlConnection conn, DistrictRules r, bool targetRule, bool meetingRule, bool comms)
     {
         if (!targetRule && !meetingRule) return 0;
-        var now = DateTime.Now;
+        var now = DateTime.UtcNow;
         var thisMonth = Period(now);
         var lastMonth = Period(now.AddMonths(-1));
         var open = (await conn.QueryAsync<OpenCase>($@"

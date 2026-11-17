@@ -1,3 +1,4 @@
+using RotaryApi.Services;
 using Dapper;
 using Microsoft.Extensions.Logging;
 using MySqlConnector;
@@ -50,7 +51,7 @@ public sealed class SourceReader
 
     public async Task<List<IndexItem>> ReadProjectsAsync()
     {
-        await using var conn = new MySqlConnection(_connString);
+        await using var conn = RowDb.Connect(_connString);
         await conn.OpenAsync();
         var hierarchy = await LoadHierarchyAsync(conn);
         var tables = await _years.GetAllExistingYearTablesAsync(conn);
@@ -185,7 +186,7 @@ public sealed class SourceReader
 
     public async Task<List<IndexItem>> ReadCommsAsync()
     {
-        await using var conn = new MySqlConnection(_connString);
+        await using var conn = RowDb.Connect(_connString);
         await conn.OpenAsync();
         var hierarchy = await LoadHierarchyAsync(conn);
 

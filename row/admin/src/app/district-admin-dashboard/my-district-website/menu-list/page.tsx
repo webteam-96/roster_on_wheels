@@ -12,7 +12,7 @@
  *   - Back / Cancel navigate via goBack() honouring ?returnTo=; falls back
  *     to /district-admin-dashboard/my-district-website. yearId is preserved.
  *   - Palette shifted to the V2 DA dashboard tokens (navy #17458f, gold
- *     #F7A81B underline, slate typography, rounded-2xl bg-white cards,
+ *     #F7A81B underline, slate typography, rounded-2xl bg-card cards,
  *     slate-tuned inputs).
  *
  * Everything else is preserved verbatim from V1: parent/child menu tree with
@@ -556,7 +556,7 @@ export default function DistrictAdminMenuListPage() {
       <div className="space-y-2">
         <Label className="text-slate-600 text-sm">Link Value *</Label>
         <Input
-          className="border-slate-200 bg-white focus:border-azure focus:ring-azure/20"
+          className="border-slate-200 bg-card focus:border-azure focus:ring-azure/20"
           placeholder={formLinkType === "external" ? "https://..." : "Enter page name (e.g., About Us)"}
           value={formLinkValue}
           onChange={(e) => setFormLinkValue(e.target.value)}
@@ -683,7 +683,7 @@ export default function DistrictAdminMenuListPage() {
 
       <div className="space-y-6">
         {/* ── Header card ────────────────────────────────────────────── */}
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
+        <div className="bg-card rounded-2xl border border-slate-200 shadow-sm p-5">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-3">
               <Button
@@ -732,7 +732,7 @@ export default function DistrictAdminMenuListPage() {
                   ? "border-red-200 bg-red-50 text-red-700 font-medium"
                   : menus.length >= 8
                     ? "border-amber-200 bg-amber-50 text-amber-700 font-medium"
-                    : "border-slate-200 bg-white text-slate-700 font-medium"
+                    : "border-slate-200 bg-card text-slate-700 font-medium"
               }
             >
               {menus.length}/9 Menus
@@ -743,7 +743,7 @@ export default function DistrictAdminMenuListPage() {
 
         {/* Empty state */}
         {!loading && menus.length === 0 && (
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm">
+          <div className="bg-card rounded-2xl border border-slate-200 shadow-sm">
             <div className="flex flex-col items-center justify-center py-20 text-center">
               <List className="h-12 w-12 text-slate-400 mb-4" />
               <h3 className="text-lg font-semibold text-slate-800">No menus yet</h3>
@@ -763,7 +763,7 @@ export default function DistrictAdminMenuListPage() {
               placeholder="Search menus..."
             />
             {filteredMenus.length === 0 && searchQuery.trim() !== "" ? (
-              <div className="bg-white rounded-2xl border border-slate-200 shadow-sm">
+              <div className="bg-card rounded-2xl border border-slate-200 shadow-sm">
                 <p className="text-slate-500 text-sm py-8 text-center">
                   No results found for &quot;{searchQuery}&quot;
                 </p>
@@ -780,7 +780,7 @@ export default function DistrictAdminMenuListPage() {
                 const dragHandlers = canManage && !isSearching ? menuDragProps(realIndex) : {};
                 return (
                   <div key={menu.id}>
-                    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm" {...dragHandlers}>
+                    <div className="bg-card rounded-2xl border border-slate-200 shadow-sm" {...dragHandlers}>
                       <div className="p-4">
                         <div className="flex items-center gap-3">
                           <button onClick={() => toggleExpand(menu.id)} className="flex-shrink-0 text-slate-500 hover:text-ink">
@@ -794,7 +794,7 @@ export default function DistrictAdminMenuListPage() {
                                 {menu.isActive ? "Active" : "Inactive"}
                               </Badge>
                               {menu.subMenuCount > 0 && (
-                                <Badge variant="outline" className="text-xs border-slate-200 bg-white text-slate-700">
+                                <Badge variant="outline" className="text-xs border-slate-200 bg-card text-slate-700">
                                   {menu.subMenuCount} sub
                                 </Badge>
                               )}
@@ -862,7 +862,7 @@ export default function DistrictAdminMenuListPage() {
             </div>
 
             {/* Desktop table view */}
-            <div className="hidden sm:block bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+            <div className="hidden sm:block bg-card rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
               <Table>
                 <TableHeader>
                   <TableRow className="bg-azure hover:bg-azure">
@@ -903,7 +903,7 @@ export default function DistrictAdminMenuListPage() {
                           </TableCell>
                           <TableCell>
                             {menu.subMenuCount > 0 && (
-                              <Badge variant="outline" className="border-slate-200 bg-white text-slate-700">
+                              <Badge variant="outline" className="border-slate-200 bg-card text-slate-700">
                                 {menu.subMenuCount}
                               </Badge>
                             )}
@@ -1005,7 +1005,7 @@ export default function DistrictAdminMenuListPage() {
                   {dialogMode === "menu" ? "Menu Name" : "Sub-Menu Name"} *
                 </Label>
                 <Input
-                  className="border-slate-200 bg-white focus:border-azure focus:ring-azure/20"
+                  className="border-slate-200 bg-card focus:border-azure focus:ring-azure/20"
                   placeholder={dialogMode === "menu" ? "Enter menu name" : "Enter sub-menu name"}
                   value={formName}
                   onChange={(e) => setFormName(e.target.value)}
@@ -1016,7 +1016,7 @@ export default function DistrictAdminMenuListPage() {
               <div className="space-y-2">
                 <Label className="text-slate-600 text-sm">Link Type *</Label>
                 <Select value={formLinkType} onValueChange={(val) => { setFormLinkType(val); setFormLinkValue(""); }}>
-                  <SelectTrigger className="border-slate-200 bg-white focus:border-azure focus:ring-azure/20">
+                  <SelectTrigger className="border-slate-200 bg-card focus:border-azure focus:ring-azure/20">
                     <SelectValue placeholder="Select link type" />
                   </SelectTrigger>
                   <SelectContent>
@@ -1036,7 +1036,7 @@ export default function DistrictAdminMenuListPage() {
               <div className="space-y-2">
                 <Label className="text-slate-600 text-sm">Sort Order</Label>
                 <Input
-                  className="border-slate-200 bg-white focus:border-azure focus:ring-azure/20"
+                  className="border-slate-200 bg-card focus:border-azure focus:ring-azure/20"
                   type="number"
                   min={1}
                   value={formSortOrder}
@@ -1048,7 +1048,7 @@ export default function DistrictAdminMenuListPage() {
               <div className="space-y-2">
                 <Label className="text-slate-600 text-sm">Status</Label>
                 <Select value={formIsActive} onValueChange={setFormIsActive}>
-                  <SelectTrigger className="border-slate-200 bg-white focus:border-azure focus:ring-azure/20">
+                  <SelectTrigger className="border-slate-200 bg-card focus:border-azure focus:ring-azure/20">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>

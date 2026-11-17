@@ -8,6 +8,7 @@ import { Loader2, MessagesSquare, Send } from "@/components/icons";
 import { getGoalCategories, getDistrictGoalMessages, postDistrictGoalMessage } from "@/services/api";
 import type { GoalDistrictMessagesDto } from "@/types/goalSetting";
 import GoalMessageList from "./GoalMessageList";
+import { SkeletonRows } from "@/components/row/AppKit";
 
 export default function DistrictGoalMessages({
   districtId, yearId, initialCategoryId, lockCategory = false,
@@ -67,7 +68,7 @@ export default function DistrictGoalMessages({
   const catName = cats.find((c) => c.id === catId)?.name ?? "";
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+    <div className="bg-card rounded-2xl border border-slate-200 overflow-hidden">
       <div className="px-5 py-3 border-b border-slate-100 bg-blue-50">
         <div className="flex flex-wrap items-center gap-2">
           <MessagesSquare size={16} className="text-blue-600" />
@@ -82,7 +83,7 @@ export default function DistrictGoalMessages({
       <div className={`px-5 pt-3 flex flex-wrap gap-2 ${lockCategory ? "hidden" : ""}`}>
         {cats.map((c) => (
           <button key={c.id} onClick={() => setCatId(c.id)}
-            className={`text-xs font-semibold px-3 py-1.5 rounded-lg border ${c.id === catId ? "bg-blue-600 text-white border-blue-600" : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"}`}>
+            className={`text-xs font-semibold px-3 py-1.5 rounded-lg border ${c.id === catId ? "bg-blue-600 text-white border-blue-600" : "bg-card text-slate-600 border-slate-200 hover:bg-slate-50"}`}>
             {c.name}
           </button>
         ))}
@@ -90,7 +91,7 @@ export default function DistrictGoalMessages({
 
       <div ref={scrollRef} className="mx-5 my-3 rounded-xl border border-slate-100 bg-slate-50/50 p-4 max-h-[420px] min-h-[140px] overflow-y-auto">
         {loading ? (
-          <div className="flex items-center justify-center gap-2 text-xs text-slate-400 py-8"><Loader2 size={14} className="animate-spin" /> Loading…</div>
+          <div className="py-4"><SkeletonRows rows={3} /></div>
         ) : (
           <GoalMessageList messages={data?.messages ?? []} emptyText={`No ${catName} messages sent yet.`} plainMine />
         )}

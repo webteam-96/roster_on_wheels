@@ -49,7 +49,7 @@ public class EmailService : IEmailService
     {
         try
         {
-            await using var conn = new MySqlConnection(_configuration.GetConnectionString("DefaultConnection"));
+            await using var conn = RowDb.Connect(_configuration.GetConnectionString("DefaultConnection"));
             return await MessageCulture.ForEmailAsync(conn, email);
         }
         catch (MySqlException ex)

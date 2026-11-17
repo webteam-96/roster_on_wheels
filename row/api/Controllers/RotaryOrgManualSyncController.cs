@@ -37,7 +37,7 @@ public class RotaryOrgManualSyncController : ControllerBase
         _cacheRefresh = cacheRefresh;
     }
 
-    private MySqlConnection CreateConnection() => new(_connectionString);
+    private MySqlConnection CreateConnection() => RowDb.Connect(_connectionString);
 
     // Free `mobile` from any SOFT-DELETED profile (other than excludeId) that still owns it, so a
     // reused number doesn't trip UNIQUE(PrimaryMobileNumber) on INSERT / re-activation. Moves that
@@ -192,7 +192,7 @@ public class RotaryOrgManualSyncController : ControllerBase
         {
             var (upserted, _, skippedEmpty) = await _cacheRefresh.RefreshAsync();
             if (skippedEmpty)
-                return Ok(new { message = "Rotary.org returned no clubs — cache left unchanged (nothing deleted). Please try again shortly.", lastFetchedUtc = (DateTime?)null });
+                return Ok(new { message = "Rotary.org returned no clubs: cache left unchanged (nothing deleted). Please try again shortly.", lastFetchedUtc = (DateTime?)null });
 
             var nowUtc = DateTime.UtcNow;
             return Ok(new
@@ -525,11 +525,11 @@ public class RotaryOrgManualSyncController : ControllerBase
             // but is still a STALE row in rotary_org_clubs_cache. Give a clear message + hint to refresh.
             if (ex.Message.Contains("Records do not exist", StringComparison.OrdinalIgnoreCase)
                 || ex.Message.Contains(": 400", StringComparison.OrdinalIgnoreCase))
-                return NotFound(new { message = $"Club {req.RotaryClubId} is no longer on Rotary.org (likely terminated) — it's a stale cache entry. Click \"Refresh from Rotary.org\" to remove it from the list." });
+                return NotFound(new { message = $"Club {req.RotaryClubId} is no longer on Rotary.org (likely terminated): it's a stale cache entry. Click \"Refresh from Rotary.org\" to remove it from the list." });
             _logger.LogWarning(ex, "Rotary.org call failed"); return StatusCode(502, new { message = "Rotary.org API error." });
         }
         if (detail == null)
-            return NotFound(new { message = $"Club {req.RotaryClubId} is no longer on Rotary.org — refresh the cache to remove it." });
+            return NotFound(new { message = $"Club {req.RotaryClubId} is no longer on Rotary.org: refresh the cache to remove it." });
 
         // ONLY "Meeting Location" per user 2026-07-10. No fallback — a club with no
         // Meeting Location address is inserted with a blank MeetingAddress/Day.
@@ -759,8 +759,8 @@ public class RotaryOrgManualSyncController : ControllerBase
         if (ind?.YouthFlag == true) isYouth = 1;
         else if (dob.HasValue)
         {
-            var age = DateTime.Today.Year - dob.Value.Year;
-            if (dob.Value.Date > DateTime.Today.AddYears(-age)) age--;
+            var age = DateTime.UtcNow.Date.Year - dob.Value.Year;
+            if (dob.Value.Date > DateTime.UtcNow.Date.AddYears(-age)) age--;
             isYouth = (age >= 18 && age <= 40) ? 1 : 0;
         }
 
@@ -829,7 +829,7 @@ public class RotaryOrgManualSyncController : ControllerBase
             ORDER BY pk_club_member_id DESC LIMIT 1",
             new { C = clubId, M = memberId });
 
-        var joined = api.AdmissionDate ?? DateTime.Today;
+        var joined = api.AdmissionDate ?? DateTime.UtcNow.Date;
         if (existingCm.pk_id == 0)
         {
             await conn.ExecuteAsync(@"
@@ -851,7 +851,7 @@ public class RotaryOrgManualSyncController : ControllerBase
         {
             // Active club_members row — refresh honorary status; backfill Joining Date
             // (AdmissionDate) when it's currently blank. COALESCE(JoinedDate, @J) keeps an
-            // existing date (never overwrites with the DateTime.Today fallback).
+            // existing date (never overwrites with the DateTime.UtcNow.Date fallback).
             await conn.ExecuteAsync(@"
                 UPDATE club_members SET IsHonoraryMember = @IsHon,
                     JoinedDate = COALESCE(JoinedDate, @J),
@@ -891,7 +891,7 @@ public class RotaryOrgManualSyncController : ControllerBase
         if (string.IsNullOrEmpty(club.ClubName))
             return NotFound(new { message = "Club not found" });
         if (string.IsNullOrEmpty(club.ClubRotaryId) || !int.TryParse(club.ClubRotaryId, out var rotaryClubId))
-            return BadRequest(new { message = "This club has no Rotary.org ID — cannot sync." });
+            return BadRequest(new { message = "This club has no Rotary.org ID: cannot sync." });
 
         // Pull India side with both Residential and Business addresses.
         var indiaMembers = (await conn.QueryAsync<dynamic>(@"

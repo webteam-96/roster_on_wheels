@@ -22,7 +22,7 @@ public class MobileMembershipDuesController : ControllerBase
         _connectionString = config.GetConnectionString("DefaultConnection")!;
     }
 
-    private MySqlConnection CreateConnection() => new(_connectionString);
+    private MySqlConnection CreateConnection() => RowDb.Connect(_connectionString);
     // TryParse (not Parse) so a malformed/absent memberId claim yields 0 — which
     // every caller treats as "not authenticated" — instead of throwing a 500.
     // Matches the convention in MobileClubDuesController.GetMemberId().

@@ -61,7 +61,7 @@ public class DistrictAdminDashboardService : IDistrictAdminDashboardService
         throw new UnauthorizedAccessException($"You do not have admin rights for {label}.");
     }
 
-    private MySqlConnection CreateConnection() => new(_connectionString);
+    private MySqlConnection CreateConnection() => RowDb.Connect(_connectionString);
 
     // Resolves which district this dashboard request is scoped to.
     //
@@ -2073,7 +2073,7 @@ public class DistrictAdminDashboardService : IDistrictAdminDashboardService
     private async Task<List<DistrictAdminGreetingItem>> GetGreetingsAsync(
         MySqlConnection conn, int districtId)
     {
-        var today = DateTime.Today;
+        var today = DateTime.UtcNow.Date;
         var thisWeekEnd = today.AddDays(7);
         var nextWeekEnd = today.AddDays(14);
 

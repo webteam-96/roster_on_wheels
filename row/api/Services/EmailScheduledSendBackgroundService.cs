@@ -77,7 +77,7 @@ public class EmailScheduledSendBackgroundService : BackgroundService
         return false;
     }
 
-    private MySqlConnection NewConn() => new(_connectionString);
+    private MySqlConnection NewConn() => RowDb.Connect(_connectionString);
 
     // ══════════════════════════════════════════════════════════════
     // Announcements
@@ -142,7 +142,7 @@ public class EmailScheduledSendBackgroundService : BackgroundService
             _logger.LogInformation("Email UpcomingEvent {Id} scope={Scope} recipients={Count}", id, scope, recipients.Count);
             var imgUrl = BuildAbsoluteUrl(BuildMediaPath("Event", Nz(rec.ClubId), Nz(rec.DistrictId), (string?)rec.ImagePath));
             var link = !string.IsNullOrWhiteSpace((string?)rec.RegistrationLink) ? (string)rec.RegistrationLink : "";
-            var eventDate = rec.EventDate != null ? ((DateTime)rec.EventDate).ToString("dd MMM yyyy, hh:mm tt") : "-";
+            var eventDate = rec.EventDate != null ? ZoneTime.Print((DateTime)rec.EventDate, "dd MMM yyyy, hh:mm tt") : "-";
             var subject = $"Upcoming Event from {sourceName}: {(string)rec.Title}";
             string html =BuildEventHtml(sourceName, (string)rec.Title, eventDate, (string?)rec.Description,
                 (string?)rec.EventVenue, link, imgUrl);
@@ -301,7 +301,7 @@ public class EmailScheduledSendBackgroundService : BackgroundService
             var recipients = await ResolveRecipientsAsync(conn, scope, (int)rec.ClubId, (int?)rec.DistrictId);
             var imgUrl = BuildAbsoluteUrl(BuildMediaPath("Event", Nz(rec.ClubId), Nz(rec.DistrictId), (string?)rec.ImagePath));
             var link = !string.IsNullOrWhiteSpace((string?)rec.RegistrationLink) ? (string)rec.RegistrationLink : "";
-            var eventDate = rec.EventDate != null ? ((DateTime)rec.EventDate).ToString("dd MMM yyyy, hh:mm tt") : "-";
+            var eventDate = rec.EventDate != null ? ZoneTime.Print((DateTime)rec.EventDate, "dd MMM yyyy, hh:mm tt") : "-";
             var subject = $"Reminder — Upcoming Event from {sourceName}: {(string)rec.Title}";
             string html =BuildEventHtml(sourceName, (string)rec.Title, eventDate, (string?)rec.Description,
                 (string?)rec.EventVenue, link, imgUrl, isReminder: true);

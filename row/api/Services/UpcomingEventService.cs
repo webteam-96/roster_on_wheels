@@ -20,7 +20,7 @@ public class UpcomingEventService : IUpcomingEventService
         _logger = logger;
     }
 
-    private MySqlConnection CreateConnection() => new(_connectionString);
+    private MySqlConnection CreateConnection() => RowDb.Connect(_connectionString);
 
     public async Task<(List<UpcomingEventListDto> Items, int TotalCount)> GetAllAsync(int clubId, string status, string search, int page, int pageSize, int? districtId = null)
     {
@@ -241,7 +241,7 @@ public class UpcomingEventService : IUpcomingEventService
         var existingExpiry = await connection.ExecuteScalarAsync<DateTime?>(
             @"SELECT ExpiryDate FROM upcoming_events WHERE pk_upcoming_event_id = @Id AND isdeleted = 0",
             new { Id = id });
-        if (existingExpiry.HasValue && existingExpiry.Value < DateTime.Now)
+        if (existingExpiry.HasValue && existingExpiry.Value < DateTime.UtcNow)
             throw new InvalidOperationException("Cannot edit an expired item. Once an item's expiry date has passed, it can no longer be modified.");
 
         // Pre-check Email credits if email is newly turned ON and not yet sent
@@ -258,7 +258,7 @@ public class UpcomingEventService : IUpcomingEventService
         bool priorEmail = prior != null && Convert.ToBoolean(prior.IsSendEmail);
         bool emailAlreadySent = prior != null && prior.EmailSentDate != null;
         bool emailNewlyOn = dto.IsSendEmail && !priorEmail && !emailAlreadySent;
-        bool emailResend = dto.IsSendEmail && emailAlreadySent && dto.PublishDate > DateTime.Now;
+        bool emailResend = dto.IsSendEmail && emailAlreadySent && dto.PublishDate > DateTime.UtcNow;
         if ((emailNewlyOn || emailResend) && refundEntityIdForCheck > 0)
         {
             int emailCount = await CountRecipientsAsync(connection, clubIdForCheck, districtIdForCheck);
@@ -337,7 +337,7 @@ public class UpcomingEventService : IUpcomingEventService
         var originalName = System.Text.RegularExpressions.Regex.Replace(Path.GetFileNameWithoutExtension(file.FileName), @"[^A-Za-z0-9\-]+", "_").Trim('_');
         if (string.IsNullOrEmpty(originalName)) originalName = "file";
         var extension = Path.GetExtension(file.FileName);
-        var now = DateTime.Now;
+        var now = DateTime.UtcNow;
         var timestamp = now.ToString("ddMMyyyyhhmmsstt");
         var fileName = $"{originalName}_{Guid.NewGuid().ToString("N").Substring(0, 8)}{timestamp}{extension}";
         var filePath = Path.Combine(uploadsPath, fileName);

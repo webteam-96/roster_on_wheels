@@ -18,7 +18,7 @@ public class FindRotarianController : ControllerBase
         _connectionString = config.GetConnectionString("DefaultConnection")!;
     }
 
-    private MySqlConnection CreateConnection() => new(_connectionString);
+    private MySqlConnection CreateConnection() => RowDb.Connect(_connectionString);
 
     // ── Search members ──
     // All filters are AND-combined. `keyword` is OR across classification/profession/keywords/intro/business/rotary id.

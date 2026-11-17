@@ -1,3 +1,4 @@
+using RotaryApi.Services;
 using Dapper;
 using Microsoft.Extensions.Configuration;
 using MySqlConnector;
@@ -38,7 +39,7 @@ if (Arg("--districts") is { } dArg) s.DistrictNumbers = dArg.Split(',', StringSp
 // Uses the DG's login from the database, not Rcc:Email / Rcc:Password. Also runs as a Windows Service.
 if (args.Contains("--worker")) return await SyncWorker.RunHostAsync(s);
 
-var runAt = DateTime.Now;
+var runAt = DateTime.UtcNow;
 Directory.CreateDirectory(s.OutputFolder);
 Directory.CreateDirectory(Path.Combine(s.OutputFolder, "logs"));
 Log.FilePath = Path.Combine(s.OutputFolder, "logs", $"RccGoalsFetcher_{runAt:yyyy-MM-dd_HHmm}.log");
@@ -65,7 +66,7 @@ try
     if (districts.Count == 0)
     {
         if (string.IsNullOrWhiteSpace(s.ConnectionString)) throw new InvalidOperationException("No ConnectionStrings:DefaultConnection and no Scope:DistrictNumbers.");
-        await using var db = new MySqlConnection(s.ConnectionString);
+        await using var db = RowDb.Connect(s.ConnectionString);
         var rows = await db.QueryAsync<(string District, string Zone)>(@"
             SELECT d.DistrictNumber, z.ZoneName
             FROM district_master d

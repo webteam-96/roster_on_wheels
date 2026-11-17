@@ -242,7 +242,7 @@ public class RotaryOrgApiClient : IRotaryOrgApiClient
                     $"Rotary.org GET /Clubs/search ({country}) failed after {attempt} attempt(s): {(int)resp.StatusCode}. Body: {Truncate(body, 200)}");
 
             var wait = backoffSeconds[Math.Min(attempt - 1, backoffSeconds.Length - 1)];
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] /Clubs/search ({country}) transient {(int)resp.StatusCode} from Rotary.org — retrying in {wait}s (attempt {attempt}/{maxAttempts})...");
+            Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] /Clubs/search ({country}) transient {(int)resp.StatusCode} from Rotary.org — retrying in {wait}s (attempt {attempt}/{maxAttempts})...");
             _logger.LogWarning("[RI.org] /Clubs/search {Country} transient {Code} attempt {Attempt}/{Max} — retry in {Wait}s. Body: {Body}",
                 country, (int)resp.StatusCode, attempt, maxAttempts, wait, Truncate(body, 120));
             await Task.Delay(TimeSpan.FromSeconds(wait), ct);
@@ -274,7 +274,7 @@ public class RotaryOrgApiClient : IRotaryOrgApiClient
         var dropped = list.Count - kept.Count;
         if (dropped > 0)
         {
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss}]   {source}: {dropped} club(s) skipped (not synced by ROW: {_scope.Describe}) — {kept.Count} kept");
+            Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}]   {source}: {dropped} club(s) skipped (not synced by ROW: {_scope.Describe}) — {kept.Count} kept");
             _logger.LogInformation("[RI.org] {Source}: {Dropped} club(s) skipped by ROW country scope, {Kept} kept", source, dropped, kept.Count);
         }
         return kept;

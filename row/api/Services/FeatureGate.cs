@@ -145,7 +145,7 @@ public static class FeatureGate
     public static async Task<HashSet<string>> OnAsync(string connectionString)
     {
         if (_on != null && DateTime.UtcNow - _onRead < TimeSpan.FromSeconds(30)) return _on;
-        await using var conn = new MySqlConnection(connectionString);
+        await using var conn = RowDb.Connect(connectionString);
         _on = (await conn.QueryAsync<string>("SELECT feature_key FROM platform_features WHERE enabled = 1")).ToHashSet();
         _onRead = DateTime.UtcNow;
         return _on;

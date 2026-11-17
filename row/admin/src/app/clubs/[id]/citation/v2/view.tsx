@@ -414,7 +414,7 @@ export function ClubCitationV2View({ clubId: propClubId, embedded = false, readO
 
         {/* ── Description (optional, HTML from API) ───────────────────── */}
         {citationData?.descriptionHtml && (
-          <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+          <div className="bg-card rounded-2xl border border-slate-200 overflow-hidden">
             <div className="px-5 py-3 border-b border-slate-100 flex items-center gap-2">
               <FileText size={14} className="text-slate-500" />
               <h3 className="text-sm font-semibold text-slate-800">About these awards</h3>
@@ -427,7 +427,7 @@ export function ClubCitationV2View({ clubId: propClubId, embedded = false, readO
         )}
 
         {/* ── Tab strip ───────────────────────────────────────────────── */}
-        <div className="bg-white rounded-2xl border border-slate-200 p-1.5 inline-flex w-full sm:w-auto">
+        <div className="bg-card rounded-2xl border border-slate-200 p-1.5 inline-flex w-full sm:w-auto">
           <button
             type="button"
             onClick={() => setActiveTab("auto")}
@@ -511,7 +511,7 @@ function AutoPointsPanel({
 
   return (
     <div className="space-y-4">
-      <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+      <div className="bg-card rounded-2xl border border-slate-200 overflow-hidden">
         <div className="px-5 py-3 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
             <h3 className="text-sm font-semibold text-slate-800">Auto-calculated Points</h3>
@@ -616,7 +616,7 @@ function ManualPointsPanel({
 
   if (categories.length === 0) {
     return (
-      <div className="bg-white rounded-2xl border border-slate-200">
+      <div className="bg-card rounded-2xl border border-slate-200">
         <div className="flex flex-col items-center py-14 text-slate-400">
           <Calculator size={32} className="mb-3 opacity-60" />
           <p className="text-xs">No manual questions configured for this year.</p>
@@ -628,7 +628,7 @@ function ManualPointsPanel({
   return (
     <div className="space-y-4">
       {categories.map((mc) => (
-        <div key={mc.criteriaId} className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+        <div key={mc.criteriaId} className="bg-card rounded-2xl border border-slate-200 overflow-hidden">
           <div className="px-5 py-3 border-b border-slate-100 bg-blue-50 flex items-center gap-2">
             <div className="w-7 h-7 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center">
               <Award size={14} />
@@ -731,7 +731,7 @@ function ManualRow({
               className={`px-3 py-1 text-xs font-medium rounded-md transition ${
                 answer.value === "yes"
                   ? "bg-emerald-600 text-white shadow-sm"
-                  : "text-slate-600 hover:bg-white"
+                  : "text-slate-600 hover:bg-card"
               } disabled:opacity-60 disabled:cursor-not-allowed`}
             >
               Yes
@@ -744,8 +744,8 @@ function ManualRow({
                 answer.value === "no" || answer.value === ""
                   ? answer.value === "no"
                     ? "bg-rose-500 text-white shadow-sm"
-                    : "text-slate-600 hover:bg-white"
-                  : "text-slate-600 hover:bg-white"
+                    : "text-slate-600 hover:bg-card"
+                  : "text-slate-600 hover:bg-card"
               } disabled:opacity-60 disabled:cursor-not-allowed`}
             >
               No

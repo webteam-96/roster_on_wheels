@@ -202,13 +202,13 @@ export default function DistrictAdminMassEmailListPage() {
         </div>
 
         {/* Filters */}
-        <div className="rounded-2xl border border-slate-200 shadow-sm bg-white p-4">
+        <div className="rounded-2xl border border-slate-200 shadow-sm bg-card p-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Select
               value={statusFilter || "all"}
               onValueChange={(v) => { setStatusFilter(v === "all" ? "" : v); setPage(1); }}
             >
-              <SelectTrigger className="border-slate-200 bg-white focus:border-azure focus:ring-azure/20">
+              <SelectTrigger className="border-slate-200 bg-card focus:border-azure focus:ring-azure/20">
                 <SelectValue placeholder="All Statuses" />
               </SelectTrigger>
               <SelectContent>
@@ -227,7 +227,7 @@ export default function DistrictAdminMassEmailListPage() {
         {loading ? (
           <div className="flex items-center justify-center py-20"><ListPageSkeleton /></div>
         ) : (
-          <div className="rounded-2xl border border-slate-200 shadow-sm overflow-hidden bg-white">
+          <div className="rounded-2xl border border-slate-200 shadow-sm overflow-hidden bg-card">
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>

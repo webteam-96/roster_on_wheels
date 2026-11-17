@@ -52,7 +52,7 @@ function attendancePercentChip(pct: number): string {
 function deriveEventType(item: AttendanceListItem): { label: string; cls: string } {
   const { membersCount, visitorsCount, rotariansCount, delegatesCount } = item;
   if (delegatesCount > 0) return { label: "District",     cls: "bg-rose-50 text-rose-700 border-rose-200" };
-  if (rotariansCount > 0) return { label: "Inter-Club",   cls: "bg-violet-50 text-violet-700 border-violet-200" };
+  if (rotariansCount > 0) return { label: "Inter-Club",   cls: "bg-slate-50 text-slate-700 border-slate-200" };
   if (visitorsCount  > 0) return { label: "Open Event",   cls: "bg-amber-50 text-amber-700 border-amber-200" };
   if (membersCount   > 0) return { label: "Members",      cls: "bg-blue-50 text-blue-700 border-blue-200" };
   return                        { label: "Event",         cls: "bg-slate-50 text-slate-700 border-slate-200" };
@@ -346,7 +346,7 @@ export function AttendanceV2View({ clubId: propClubId, embedded = false }: { clu
             E-Gov dashboard, and were noisy on a page that's primarily a list. */}
 
         {/* Table card */}
-        <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+        <div className="bg-card rounded-2xl border border-slate-200 overflow-hidden">
           <div className="px-5 py-3 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div>
               <h3 className="text-sm font-semibold text-slate-800">Attendance Records</h3>

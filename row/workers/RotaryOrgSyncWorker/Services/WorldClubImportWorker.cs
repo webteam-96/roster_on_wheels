@@ -1,3 +1,4 @@
+using RotaryApi.Services;
 using ClosedXML.Excel;
 using Dapper;
 using Microsoft.Extensions.Configuration;
@@ -100,7 +101,7 @@ public class WorldClubImportWorker
             ?? throw new InvalidOperationException("ConnectionStrings:DefaultConnection missing");
     }
 
-    private MySqlConnection CreateConnection() => new(_connectionString);
+    private MySqlConnection CreateConnection() => RowDb.Connect(_connectionString);
 
     private sealed class CountryStat
     {
@@ -134,8 +135,8 @@ public class WorldClubImportWorker
     public async Task RunAsync(bool dryRun, CancellationToken ct = default)
     {
         var startedAt = DateTime.UtcNow;
-        Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] === World Clubs Import {(dryRun ? "DRY RUN" : "APPLY")} START ===");
-        if (dryRun) Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] *** DRY RUN — no DB writes ***");
+        Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] === World Clubs Import {(dryRun ? "DRY RUN" : "APPLY")} START ===");
+        if (dryRun) Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] *** DRY RUN — no DB writes ***");
 
         int logId = 0;
         if (!dryRun)
@@ -148,7 +149,7 @@ public class WorldClubImportWorker
                 VALUES ('WorldClubs', UTC_TIMESTAMP(), 'Running', @By);
                 SELECT LAST_INSERT_ID();",
                 new { By = triggeredBy });
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Log row created — logId={logId}");
+            Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] Log row created — logId={logId}");
         }
 
         var stats = new Dictionary<string, CountryStat>(StringComparer.OrdinalIgnoreCase);
@@ -172,7 +173,7 @@ public class WorldClubImportWorker
                 new { Name = OtherZonesName });
             if (otherZoneId == null)
                 throw new InvalidOperationException($"Zone '{OtherZonesName}' not found in zone_master — aborting (no zone is created by this mode).");
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] '{OtherZonesName}' zone id = {otherZoneId}");
+            Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] '{OtherZonesName}' zone id = {otherZoneId}");
 
             // Districts keyed by DistrictNumber ONLY (never country-wise). Active rows win; a number
             // that exists only as a soft-deleted row is NOT re-created (would duplicate the number)
@@ -187,7 +188,7 @@ public class WorldClubImportWorker
             var deletedOnlyDistricts = new HashSet<string>(
                 districtRows.Where(d => d.isdeleted != 0 && !activeDistricts.ContainsKey(d.districtNumber)).Select(d => d.districtNumber),
                 StringComparer.OrdinalIgnoreCase);
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Loaded {activeDistricts.Count} district numbers");
+            Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] Loaded {activeDistricts.Count} district numbers");
 
             // Every ClubRotaryId we hold — INCLUDING soft-deleted — so a club removed on purpose
             // is never re-inserted and no existing row is ever touched.
@@ -195,7 +196,7 @@ public class WorldClubImportWorker
                 SELECT TRIM(ClubRotaryId) FROM club_master
                 WHERE ClubRotaryId IS NOT NULL AND TRIM(ClubRotaryId) <> ''"))
                 .ToHashSet(StringComparer.OrdinalIgnoreCase);
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Loaded {existingClubIds.Count} existing ClubRotaryIds (incl. deleted)");
+            Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] Loaded {existingClubIds.Count} existing ClubRotaryIds (incl. deleted)");
 
             // 1. Fetch every country. One failed country is logged and skipped — never aborts the run.
             var countries = AllCountries.Where(c => !_scope.IsSkipped(c))
@@ -220,7 +221,7 @@ public class WorldClubImportWorker
                     st.Status = "API error";
                     failedCountries.Add((country, ex.Message));
                     _logger.LogError(ex, "World clubs: search failed for {Country}", country);
-                    Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] [{idx}/{countries.Count}] {country,-32} API ERROR: {ex.Message}");
+                    Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] [{idx}/{countries.Count}] {country,-32} API ERROR: {ex.Message}");
                     continue;
                 }
 
@@ -245,9 +246,9 @@ public class WorldClubImportWorker
                         unique[key] = (c, prev.SearchCountry);
                     }
                 }
-                Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] [{idx}/{countries.Count}] {country,-32} {list.Count,6} rows");
+                Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] [{idx}/{countries.Count}] {country,-32} {list.Count,6} rows");
             }
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Unique clubs from Rotary.org: {unique.Count}");
+            Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] Unique clubs from Rotary.org: {unique.Count}");
 
             // 2. Insert clubs not in DB.
             foreach (var (rotaryId, (c, searchCountry)) in unique)
@@ -298,7 +299,7 @@ public class WorldClubImportWorker
                         activeDistricts[districtNumber] = districtPk;
                         newDistricts.Add((districtNumber, clubCountry));
                         createdDistrict = true;
-                        Console.WriteLine($"[{DateTime.Now:HH:mm:ss}]   {(dryRun ? "[DRY RUN] would create" : "+ created")} district D{districtNumber} ({clubCountry}) under '{OtherZonesName}'");
+                        Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}]   {(dryRun ? "[DRY RUN] would create" : "+ created")} district D{districtNumber} ({clubCountry}) under '{OtherZonesName}'");
                     }
 
                     var (lat, lng) = ValidLatLng(c.Latitude, c.Longitude);
@@ -375,7 +376,7 @@ public class WorldClubImportWorker
 
             var elapsed = DateTime.UtcNow - startedAt;
             Console.WriteLine("");
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] === World Clubs Import {(dryRun ? "DRY RUN" : "APPLY")} DONE in {elapsed.TotalMinutes:F1} min ===");
+            Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] === World Clubs Import {(dryRun ? "DRY RUN" : "APPLY")} DONE in {elapsed.TotalMinutes:F1} min ===");
             Console.WriteLine($"  Countries searched:          {countries.Count} (skipped: {_scope.Describe})");
             Console.WriteLine($"  Countries failed (API):      {failedCountries.Count}");
             Console.WriteLine($"  Countries with 0 clubs:      {zeroCountries.Count}");
@@ -400,7 +401,7 @@ public class WorldClubImportWorker
         }
         catch (Exception ex)
         {
-            Console.Error.WriteLine($"[{DateTime.Now:HH:mm:ss}] WORLD CLUBS IMPORT FAILED: {ex.Message}");
+            Console.Error.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] WORLD CLUBS IMPORT FAILED: {ex.Message}");
             _logger.LogError(ex, "World clubs import FAILED");
             if (!dryRun)
             {
@@ -506,7 +507,7 @@ public class WorldClubImportWorker
 
             using var ms = new MemoryStream();
             wb.SaveAs(ms);
-            var fileName = $"RotaryOrg_WorldClubs{(dryRun ? "_DryRun" : "")}_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx";
+            var fileName = $"RotaryOrg_WorldClubs{(dryRun ? "_DryRun" : "")}_{DateTime.UtcNow:yyyyMMdd_HHmmss}.xlsx";
 
             var triggeredByName = _config["RotaryOrgSync:TriggeredByName"] ?? "Admin";
             string Row(string label, object value, string color = "#0f172a") =>
@@ -535,14 +536,14 @@ Full breakdown is in the attached Excel.</p>
 </div>";
 
             await _emailSender.SendReportAsync(
-                $"{(dryRun ? "[DRY RUN] " : "")}ROW World Clubs Import — {DateTime.Now:dd MMM yyyy}",
+                $"{(dryRun ? "[DRY RUN] " : "")}ROW World Clubs Import — {DateTime.UtcNow:dd MMM yyyy}",
                 body, ms.ToArray(), fileName);
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Email sent.");
+            Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] Email sent.");
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "World clubs email FAILED");
-            Console.Error.WriteLine($"[{DateTime.Now:HH:mm:ss}] Email failed: {ex.Message}");
+            Console.Error.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] Email failed: {ex.Message}");
         }
     }
 

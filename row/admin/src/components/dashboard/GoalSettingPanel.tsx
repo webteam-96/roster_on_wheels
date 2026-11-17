@@ -335,7 +335,7 @@ export default function GoalSettingPanel({
 
   if (loadingCategories) {
     return (
-      <div className="bg-white rounded-2xl border border-slate-200 p-6 flex items-center justify-center text-slate-500">
+      <div className="bg-card rounded-2xl border border-slate-200 p-6 flex items-center justify-center text-slate-500">
         <Loader2 className="animate-spin mr-2" size={16} /> Loading Goal Setting…
       </div>
     );
@@ -348,7 +348,7 @@ export default function GoalSettingPanel({
   const isClubFoundation = !!form && form.fields.some((f) => f.fieldKey === "club_af_goal_amount");
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+    <div className="bg-card rounded-2xl border border-slate-200 overflow-hidden">
       {/* A save is confirmed by an alert the user has to dismiss, not a small green line beside the
           button that is easy to miss (user 2026-09-29). The quarterly / month-wise popups do the
           same, and they close themselves as well. */}
@@ -378,7 +378,7 @@ export default function GoalSettingPanel({
             className={`px-4 py-1.5 text-sm font-semibold rounded-lg transition ${
               activeCategoryId === c.id
                 ? "bg-blue-600 text-white shadow-sm"
-                : "bg-white border border-slate-200 text-slate-600 hover:bg-slate-50"
+                : "bg-card border border-slate-200 text-slate-600 hover:bg-slate-50"
             }`}
           >
             {c.name}
@@ -409,7 +409,7 @@ export default function GoalSettingPanel({
             />
           ) : (
             groups.map(([groupName, fields]) => (
-              <div key={groupName} className="bg-white rounded-[20px] border border-slate-200 shadow-sm px-4 sm:px-5 py-4">
+              <div key={groupName} className="bg-card rounded-[20px] border border-slate-200 shadow-sm px-4 sm:px-5 py-4">
                 <h4 className="text-base font-bold text-blue-700 pb-2 mb-1 border-b-2 border-amber-400 flex flex-wrap items-center gap-x-2 gap-y-0.5">
                   {groupName}
                   {groupName === "Summary" && <SummaryInfo fields={fields} />}
@@ -595,7 +595,7 @@ function SummaryInfo({ fields }: { fields: GoalFieldWithValueDto[] }) {
         <Info size={15} />
       </button>
       {open && (
-        <div className="absolute left-5 top-0 z-20 w-72 rounded-lg border border-slate-200 bg-white p-3 text-xs text-slate-600 shadow-lg">
+        <div className="absolute left-5 top-0 z-20 w-72 rounded-lg border border-slate-200 bg-card p-3 text-xs text-slate-600 shadow-lg">
           <div className="font-semibold text-slate-700 mb-1.5">How the Summary is calculated</div>
           <div className="space-y-1.5">
             {has("total_new_clubs") && (

@@ -316,7 +316,7 @@ export default function PastPresidentsV2EditPage() {
             <>
               <FieldLabel dot="bg-[#17458F]" required={false}>Club Member</FieldLabel>
               <div className="flex items-center gap-3 p-3 border rounded-lg bg-blue-50/60 border-blue-100">
-                <div className="relative h-10 w-10 flex-shrink-0 overflow-hidden rounded-full bg-white border border-slate-200">
+                <div className="relative h-10 w-10 flex-shrink-0 overflow-hidden rounded-full bg-card border border-slate-200">
                   {selectedMemberPhoto ? (
                     <Image
                       src={getPhotoUrl(selectedMemberPhoto)}
@@ -352,7 +352,7 @@ export default function PastPresidentsV2EditPage() {
                 <>
                   <FieldLabel dot="bg-[#17458F]">Converting to Member</FieldLabel>
                   <div className="flex items-center gap-3 p-3 border rounded-lg bg-blue-50/60 border-blue-100">
-                    <div className="relative h-10 w-10 flex-shrink-0 overflow-hidden rounded-full bg-white border border-slate-200">
+                    <div className="relative h-10 w-10 flex-shrink-0 overflow-hidden rounded-full bg-card border border-slate-200">
                       {selectedMemberPhoto ? (
                         <Image
                           src={getPhotoUrl(selectedMemberPhoto)}
@@ -374,7 +374,7 @@ export default function PastPresidentsV2EditPage() {
                     <button
                       type="button"
                       onClick={revertToNonMember}
-                      className="text-xs font-medium px-2.5 py-1 rounded-full border border-slate-200 text-slate-600 hover:bg-white"
+                      className="text-xs font-medium px-2.5 py-1 rounded-full border border-slate-200 text-slate-600 hover:bg-card"
                     >
                       Cancel
                     </button>
@@ -387,7 +387,7 @@ export default function PastPresidentsV2EditPage() {
                 <>
                   <FieldLabel dot="bg-[#17458F]">Non-Member Name</FieldLabel>
                   <div className="flex items-center gap-3 p-3 border rounded-lg bg-slate-100 border-slate-200">
-                    <div className="relative h-10 w-10 flex-shrink-0 overflow-hidden rounded-full bg-white border border-slate-200">
+                    <div className="relative h-10 w-10 flex-shrink-0 overflow-hidden rounded-full bg-card border border-slate-200">
                       <div className="flex h-full w-full items-center justify-center text-slate-400">
                         <UserPlus className="h-5 w-5" />
                       </div>
@@ -411,7 +411,7 @@ export default function PastPresidentsV2EditPage() {
                       const shownPhoto = photoPreview || (!removePhoto ? getPhotoUrl(existingPhotoUrl) : "");
                       return (
                         <div className="flex items-center gap-3">
-                          <div className="relative h-16 w-16 flex-shrink-0 overflow-hidden rounded-full bg-white border border-slate-200">
+                          <div className="relative h-16 w-16 flex-shrink-0 overflow-hidden rounded-full bg-card border border-slate-200">
                             {shownPhoto ? (
                               <Image src={shownPhoto} alt={nonMemberName} fill className="object-cover" unoptimized />
                             ) : (
@@ -466,7 +466,7 @@ export default function PastPresidentsV2EditPage() {
                         </div>
                       )}
                       {showResults && memberResults.length > 0 && (
-                        <div className="absolute z-20 mt-1 w-full max-h-56 overflow-y-auto rounded-lg border border-slate-200 bg-white shadow-lg">
+                        <div className="absolute z-20 mt-1 w-full max-h-56 overflow-y-auto rounded-lg border border-slate-200 bg-card shadow-lg">
                           {memberResults.map((m) => {
                             const photoUrl = getPhotoUrl(m.profilePhotoPath);
                             return (
@@ -495,7 +495,7 @@ export default function PastPresidentsV2EditPage() {
                         </div>
                       )}
                       {showResults && memberResults.length === 0 && memberSearch.trim() && !searchLoading && (
-                        <div className="absolute z-20 mt-1 w-full rounded-lg border border-slate-200 bg-white p-3 text-sm text-slate-500 shadow-lg">
+                        <div className="absolute z-20 mt-1 w-full rounded-lg border border-slate-200 bg-card p-3 text-sm text-slate-500 shadow-lg">
                           No members found
                         </div>
                       )}
@@ -516,7 +516,7 @@ export default function PastPresidentsV2EditPage() {
           <select
             value={selectedYearId}
             onChange={(e) => setSelectedYearId(e.target.value)}
-            className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] bg-white focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+            className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] bg-card focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
           >
             <option value="">Select a year…</option>
             {yearOptions.map((y) => (

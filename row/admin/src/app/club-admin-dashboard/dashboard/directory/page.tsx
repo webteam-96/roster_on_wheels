@@ -105,7 +105,7 @@ function MemberRow({
             <span className="text-[10px] uppercase tracking-wide font-semibold text-amber-700 bg-amber-100 border border-amber-200 rounded px-1.5 py-0.5">admin</span>
           )}
           {row.isDistrictAdmin && (
-            <span className="text-[10px] uppercase tracking-wide font-semibold text-indigo-700 bg-[#CFE2F6] border border-indigo-200 rounded px-1.5 py-0.5">district admin</span>
+            <span className="text-[10px] uppercase tracking-wide font-semibold text-slate-700 bg-[#CFE2F6] border border-slate-200 rounded px-1.5 py-0.5">district admin</span>
           )}
         </div>
         {row.designation && (
@@ -423,7 +423,7 @@ export default function DashboardDirectoryPage() {
         <KpiCard title="Total Members" value={fmtInt(data.totalMembers)}    subtitle="Excludes honorary"          icon={Users}       color="blue"   />
       </div>
 
-      <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+      <div className="bg-card rounded-2xl border border-slate-200 overflow-hidden">
         <div className="px-5 py-3 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
             <h3 className="text-sm font-semibold text-slate-800">Member Directory</h3>
@@ -447,7 +447,7 @@ export default function DashboardDirectoryPage() {
               <select
                 value={pageSize}
                 onChange={(e) => handlePageSizeChange(parseInt(e.target.value, 10))}
-                className="h-10 py-0 pl-2 pr-6 text-sm border border-slate-200 rounded-[12px] bg-white text-slate-700 focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                className="h-10 py-0 pl-2 pr-6 text-sm border border-slate-200 rounded-[12px] bg-card text-slate-700 focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
               >
                 {PAGE_SIZE_OPTIONS.map((n) => (
                   <option key={n} value={n}>{n}</option>
@@ -611,7 +611,7 @@ function MemberDetailModal({
       aria-labelledby="member-detail-title"
     >
       <div
-        className="bg-white rounded-2xl border border-slate-200 shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto"
+        className="bg-card rounded-2xl border border-slate-200 shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
@@ -641,7 +641,7 @@ function MemberDetailModal({
                     as a data field in the Membership section below. SuperAdmin
                     can toggle it from there. */}
                 {row.isClubAdmin && (
-                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-[#CFE2F6] text-purple-700 border border-purple-200">
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-[#CFE2F6] text-slate-700 border border-slate-200">
                     <ShieldCheck size={10} /> Club Admin
                   </span>
                 )}
@@ -793,7 +793,7 @@ function MemberDetailModal({
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-1.5 text-sm font-medium rounded-full border border-slate-200 bg-white text-slate-700 hover:bg-slate-100 transition-colors"
+            className="px-4 py-1.5 text-sm font-medium rounded-full border border-slate-200 bg-card text-slate-700 hover:bg-slate-100 transition-colors"
           >
             Close
           </button>

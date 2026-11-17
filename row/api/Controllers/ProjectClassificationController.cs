@@ -1,3 +1,4 @@
+using RotaryApi.Services;
 using System.Text;
 using System.Text.Json;
 using Dapper;
@@ -36,7 +37,7 @@ public class ProjectClassificationController : ControllerBase
         var term = (q ?? "").Trim();
         if (term.Length < 1) return Ok(new List<ClassificationSearchResultDto>());
 
-        using var conn = new MySqlConnection(_conn);
+        using var conn = RowDb.Connect(_conn);
         await conn.OpenAsync();
 
         // Relevance rank on the area name: 0 = starts with the term, 1 = term appears as a whole word,
@@ -73,7 +74,7 @@ public class ProjectClassificationController : ControllerBase
         if (title.Length == 0 && desc.Length == 0)
             return BadRequest(new { message = "Enter a title or description first." });
 
-        using var conn = new MySqlConnection(_conn);
+        using var conn = RowDb.Connect(_conn);
         await conn.OpenAsync();
 
         // Load the CURRENT module's areas of focus. Scoping to the current module keeps the prompt small

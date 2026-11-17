@@ -321,7 +321,7 @@ export default function DistrictAdminMassEmailComposePage() {
         </div>
 
         {/* Recipients */}
-        <div className="rounded-2xl border border-slate-200 shadow-sm bg-white overflow-hidden">
+        <div className="rounded-2xl border border-slate-200 shadow-sm bg-card overflow-hidden">
           <div className="px-5 py-3 border-b border-slate-100 bg-azure/5">
             <h3 className="text-sm font-semibold text-slate-800">Select Recipients</h3>
           </div>
@@ -365,7 +365,7 @@ export default function DistrictAdminMassEmailComposePage() {
                 <select
                   value={selectedYearId}
                   onChange={(e) => { setSelectedYearId(e.target.value); setSelectedSubgroupIds(new Set()); }}
-                  className="h-10 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm w-full md:w-64 focus:outline-none focus:border-azure focus:ring-2 focus:ring-azure/20"
+                  className="h-10 rounded-lg border border-slate-200 bg-card px-3 py-2 text-sm w-full md:w-64 focus:outline-none focus:border-azure focus:ring-2 focus:ring-azure/20"
                 >
                   {rotaryYears.map((y) => <option key={y.id} value={String(y.id)}>{y.yearLabel}</option>)}
                 </select>
@@ -421,7 +421,7 @@ export default function DistrictAdminMassEmailComposePage() {
         </div>
 
         {/* Email Details */}
-        <div className="rounded-2xl border border-slate-200 shadow-sm bg-white overflow-hidden">
+        <div className="rounded-2xl border border-slate-200 shadow-sm bg-card overflow-hidden">
           <div className="px-5 py-3 border-b border-slate-100 bg-azure/5">
             <h3 className="text-sm font-semibold text-slate-800">Email Details</h3>
           </div>
@@ -429,7 +429,7 @@ export default function DistrictAdminMassEmailComposePage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label className="text-slate-700 text-sm font-medium">From Name *</Label>
-                <Input className="border-slate-200 bg-white focus:border-azure focus:ring-azure/20" value={fromName} onChange={(e) => setFromName(e.target.value)} placeholder="e.g. Rotary District..." />
+                <Input className="border-slate-200 bg-card focus:border-azure focus:ring-azure/20" value={fromName} onChange={(e) => setFromName(e.target.value)} placeholder="e.g. Rotary District..." />
               </div>
               <div className="space-y-2">
                 <Label className="text-slate-700 text-sm font-medium">Sender Email</Label>
@@ -439,16 +439,16 @@ export default function DistrictAdminMassEmailComposePage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label className="text-slate-700 text-sm font-medium">Reply Name</Label>
-                <Input className="border-slate-200 bg-white focus:border-azure focus:ring-azure/20" value={replyName} onChange={(e) => setReplyName(e.target.value)} placeholder="Optional" />
+                <Input className="border-slate-200 bg-card focus:border-azure focus:ring-azure/20" value={replyName} onChange={(e) => setReplyName(e.target.value)} placeholder="Optional" />
               </div>
               <div className="space-y-2">
                 <Label className="text-slate-700 text-sm font-medium">Reply Email</Label>
-                <Input className="border-slate-200 bg-white focus:border-azure focus:ring-azure/20" value={replyEmail} onChange={(e) => setReplyEmail(e.target.value)} placeholder="Optional" type="email" />
+                <Input className="border-slate-200 bg-card focus:border-azure focus:ring-azure/20" value={replyEmail} onChange={(e) => setReplyEmail(e.target.value)} placeholder="Optional" type="email" />
               </div>
             </div>
             <div className="space-y-2">
               <Label className="text-slate-700 text-sm font-medium">Subject *</Label>
-              <Input className="border-slate-200 bg-white focus:border-azure focus:ring-azure/20" value={subject} onChange={(e) => setSubject(e.target.value)} placeholder="Email subject" />
+              <Input className="border-slate-200 bg-card focus:border-azure focus:ring-azure/20" value={subject} onChange={(e) => setSubject(e.target.value)} placeholder="Email subject" />
             </div>
             <div className="space-y-2">
               <Label className="text-slate-700 text-sm font-medium">Email Body *</Label>

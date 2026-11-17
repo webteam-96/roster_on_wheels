@@ -103,16 +103,16 @@ static async Task SendCitationEmailAsync(IServiceProvider sp, string[] recipient
     if (recipients.Length == 0) return;
     var email = sp.GetRequiredService<BrevoEmailSender>();
     var duration = s.RunCompletedAt - s.RunStartedAt;
-    var subject = $"ROW - Auto Calculate District awards Points - {s.RunCompletedAt:dd-MMM-yyyy hh:mm tt}";
+    var subject = $"ROW - Auto Calculate District awards Points - {s.RunCompletedAt:dd-MMM-yyyy hh:mm tt} UTC";
     var body = $@"
 <div style='font-family:Arial,Helvetica,sans-serif;font-size:14px;color:#1f2937;line-height:1.6'>
   <h2 style='color:#1e3a8a;margin:0 0 12px 0'>Auto Calculate District Awards Points</h2>
   <p style='margin:0 0 16px 0;color:#475569'>The standalone worker (AwardsAutoCalcWorker --district-citation) has completed.</p>
   <table style='border-collapse:collapse;width:100%;max-width:520px;border:1px solid #e2e8f0'>
     <tr><td style='padding:8px 12px;border:1px solid #e2e8f0;background:#f8fafc;width:200px'>Run started</td>
-        <td style='padding:8px 12px;border:1px solid #e2e8f0'>{s.RunStartedAt:dd-MMM-yyyy hh:mm:ss tt}</td></tr>
+        <td style='padding:8px 12px;border:1px solid #e2e8f0'>{s.RunStartedAt:dd-MMM-yyyy hh:mm:ss tt} UTC</td></tr>
     <tr><td style='padding:8px 12px;border:1px solid #e2e8f0;background:#f8fafc'>Run completed</td>
-        <td style='padding:8px 12px;border:1px solid #e2e8f0'>{s.RunCompletedAt:dd-MMM-yyyy hh:mm:ss tt}</td></tr>
+        <td style='padding:8px 12px;border:1px solid #e2e8f0'>{s.RunCompletedAt:dd-MMM-yyyy hh:mm:ss tt} UTC</td></tr>
     <tr><td style='padding:8px 12px;border:1px solid #e2e8f0;background:#f8fafc'>Duration</td>
         <td style='padding:8px 12px;border:1px solid #e2e8f0'>{(int)duration.TotalMinutes} min {duration.Seconds} sec</td></tr>
     <tr><td style='padding:8px 12px;border:1px solid #e2e8f0;background:#f8fafc'>Rotary year</td>

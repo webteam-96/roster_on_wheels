@@ -1,3 +1,4 @@
+using RotaryApi.Services;
 using ClosedXML.Excel;
 using Dapper;
 using Microsoft.Extensions.Configuration;
@@ -46,16 +47,16 @@ public class CountrySyncWorker
             ?? throw new InvalidOperationException("ConnectionStrings:DefaultConnection missing");
     }
 
-    private MySqlConnection CreateConnection() => new(_connectionString);
+    private MySqlConnection CreateConnection() => RowDb.Connect(_connectionString);
 
     // dryRun    → fetch real data and print what WOULD change, but make NO DB writes and send NO email.
     // onlyClubId → restrict the insert decisions to a single ClubRotaryId (used with --dry-run to test one club).
     public async Task RunAsync(CancellationToken ct = default, bool dryRun = false, string? onlyClubId = null)
     {
         var startedAt = DateTime.UtcNow;
-        Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] === Country Sync START ===");
-        if (dryRun) Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] *** DRY RUN — no DB writes, no email ***");
-        if (onlyClubId != null) Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] *** Restricted to ClubRotaryId {onlyClubId} ***");
+        Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] === Country Sync START ===");
+        if (dryRun) Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] *** DRY RUN — no DB writes, no email ***");
+        if (onlyClubId != null) Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] *** Restricted to ClubRotaryId {onlyClubId} ***");
 
         // Insert log row (skipped on dry-run — no DB writes).
         int logId = 0;
@@ -69,7 +70,7 @@ public class CountrySyncWorker
                 VALUES ('CountrySync', UTC_TIMESTAMP(), 'Running', @By);
                 SELECT LAST_INSERT_ID();",
                 new { By = triggeredBy });
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Log row created — logId={logId}");
+            Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] Log row created — logId={logId}");
         }
 
         var added = new List<ClubChangeRow>();
@@ -82,10 +83,10 @@ public class CountrySyncWorker
         {
             // 1a. Fetch /clubs (authoritative sync list — high-priority source of truth).
             //     A club appearing here MUST be kept regardless of country search results.
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Fetching authoritative /clubs list...");
+            Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] Fetching authoritative /clubs list...");
             var syncClubs = await _api.GetClubsAsync(ct);
             var syncClubIds = new HashSet<string>(syncClubs.Select(x => x.ClubId.ToString()), StringComparer.OrdinalIgnoreCase);
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss}]   /clubs: {syncClubs.Count} authoritative sync clubs");
+            Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}]   /clubs: {syncClubs.Count} authoritative sync clubs");
 
             // 1b. Fetch /Clubs/search for each country (supplementary — finds non-sync clubs).
             //     DYNAMIC country list = every ClubCountry in /clubs  ∪  every distinct Country of
@@ -113,15 +114,15 @@ public class CountrySyncWorker
                 foreach (var c in dbCountries) countrySet.Add(c);
             }
             var searchCountries = countrySet.OrderBy(s => s, StringComparer.OrdinalIgnoreCase).ToList();
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Countries to search ({searchCountries.Count}): {string.Join(", ", searchCountries)}");
+            Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] Countries to search ({searchCountries.Count}): {string.Join(", ", searchCountries)}");
 
             var allFromRiOrg = new Dictionary<string, RotaryOrgClubSearchDto>(StringComparer.OrdinalIgnoreCase);
             foreach (var country in searchCountries)
             {
                 ct.ThrowIfCancellationRequested();
-                Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Fetching clubs for {country}...");
+                Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] Fetching clubs for {country}...");
                 var list = await _api.SearchClubsByCountryAsync(country, ct);
-                Console.WriteLine($"[{DateTime.Now:HH:mm:ss}]   {country}: {list.Count} clubs");
+                Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}]   {country}: {list.Count} clubs");
                 foreach (var c in list)
                 {
                     var key = c.ClubId.ToString();
@@ -129,14 +130,14 @@ public class CountrySyncWorker
                 }
                 totalFetched += list.Count;
             }
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Total unique clubs from /Clubs/search: {allFromRiOrg.Count}");
+            Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] Total unique clubs from /Clubs/search: {allFromRiOrg.Count}");
 
             // 1c. Combined authoritative set: a club is "still on Rotary.org" if it's in EITHER endpoint.
             //     This prevents accidentally deleting sync clubs that don't appear in country search
             //     (e.g., 214057 — present in /clubs but missing from search due to API filtering edge case).
             var allRiOrgIds = new HashSet<string>(syncClubIds, StringComparer.OrdinalIgnoreCase);
             foreach (var k in allFromRiOrg.Keys) allRiOrgIds.Add(k);
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Combined authoritative set: {allRiOrgIds.Count} club IDs");
+            Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] Combined authoritative set: {allRiOrgIds.Count} club IDs");
 
             await using var dbConn = CreateConnection();
             await dbConn.OpenAsync(ct);
@@ -150,7 +151,7 @@ public class CountrySyncWorker
                 .GroupBy(x => x.districtNumber, StringComparer.OrdinalIgnoreCase)
                 .ToDictionary(g => g.Key, g => g.Min(x => x.pk_id), StringComparer.OrdinalIgnoreCase);
             var districtPkSet = new HashSet<int>(districts.Values);
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Loaded {districts.Count} local districts");
+            Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] Loaded {districts.Count} local districts");
 
             var existingByRotaryId = (await dbConn.QueryAsync<(int pk_id, string clubRotaryId, string clubName, int fk_district_id, int rowAsVendor, int isSynced)>(@"
                 SELECT pk_club_id AS pk_id, ClubRotaryId AS clubRotaryId, ClubName AS clubName,
@@ -159,7 +160,7 @@ public class CountrySyncWorker
                 FROM club_master
                 WHERE isdeleted = 0 AND ClubRotaryId IS NOT NULL AND ClubRotaryId <> ''"))
                 .ToDictionary(x => x.clubRotaryId, StringComparer.OrdinalIgnoreCase);
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Loaded {existingByRotaryId.Count} existing clubs by ClubRotaryId");
+            Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] Loaded {existingByRotaryId.Count} existing clubs by ClubRotaryId");
 
             // 3. INSERT new non-sync clubs
             int insertedCount = 0;
@@ -187,7 +188,7 @@ public class CountrySyncWorker
                         }
                         if (dryRun)
                         {
-                            Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] [DRY RUN] would create district D{c.District} + insert club {rotaryId} ({c.ClubName})");
+                            Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] [DRY RUN] would create district D{c.District} + insert club {rotaryId} ({c.ClubName})");
                             insertedCount++;
                             added.Add(new ClubChangeRow { ClubRotaryId = rotaryId, ClubName = c.ClubName ?? "", DistrictNumber = c.District ?? "" });
                             continue;
@@ -198,7 +199,7 @@ public class CountrySyncWorker
                             SELECT LAST_INSERT_ID();",
                             new { DistrictNumber = c.District, Country = Truncate(c.Address?.Country ?? c.Location?.Country, 50) });
                         districts[c.District] = localDistrictPk;
-                        Console.WriteLine($"[{DateTime.Now:HH:mm:ss}]   + created district D{c.District} (no zone) id={localDistrictPk}");
+                        Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}]   + created district D{c.District} (no zone) id={localDistrictPk}");
                     }
 
                     var meetingFromTime = ParseTimeFromHHMM(c.Address?.MeetingTime);
@@ -214,7 +215,7 @@ public class CountrySyncWorker
 
                     if (dryRun)
                     {
-                        Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] [DRY RUN] would insert club {rotaryId} ({clubName}) into district D{c.District}");
+                        Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] [DRY RUN] would insert club {rotaryId} ({clubName}) into district D{c.District}");
                         insertedCount++;
                         added.Add(new ClubChangeRow { ClubRotaryId = rotaryId, ClubName = c.ClubName ?? "", DistrictNumber = c.District ?? "" });
                         continue;
@@ -274,7 +275,7 @@ public class CountrySyncWorker
                     _logger.LogError(ex, "Error inserting non-sync club {ClubId}", c.ClubId);
                 }
             }
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Inserted {insertedCount} new non-sync clubs");
+            Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] Inserted {insertedCount} new non-sync clubs");
 
             // 4. NO soft-delete here. Terminations are owned exclusively by ClubTerminator
             //    (--terminate-clubs, and the audit in --club-reconcile): audit-first, safety
@@ -285,7 +286,7 @@ public class CountrySyncWorker
             //    sync clubs — which broke the count for a genuinely-terminated sync club. ClubTerminator
             //    is the single, audited authority now.)
             int removedCount = 0;
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Soft-delete skipped — terminations owned by ClubTerminator (audit-first). Country sync is insert-only.");
+            Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] Soft-delete skipped — terminations owned by ClubTerminator (audit-first). Country sync is insert-only.");
 
             // 5. District-wise counts (after sync) — only Rotary.org-tracked clubs (ROW_as_vendor_selected = 1)
             var districtCounts = (await dbConn.QueryAsync<(string districtNumber, int clubCount)>(@"
@@ -317,7 +318,7 @@ public class CountrySyncWorker
                     });
 
             var totalElapsed = DateTime.UtcNow - startedAt;
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] === Country Sync DONE in {totalElapsed.TotalMinutes:F1} min ===");
+            Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] === Country Sync DONE in {totalElapsed.TotalMinutes:F1} min ===");
             Console.WriteLine($"  Total rows fetched (raw, w/ dups): {totalFetched}");
             Console.WriteLine($"  Unique clubs (deduped):            {allFromRiOrg.Count}");
             Console.WriteLine($"  Authoritative (clubs ∪ search):    {allRiOrgIds.Count}");
@@ -328,14 +329,14 @@ public class CountrySyncWorker
             Console.WriteLine($"  Districts with clubs: {districtCounts.Count}");
 
             if (dryRun)
-                Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] [DRY RUN] complete — no rows written, no email sent. Would-insert: {insertedCount}.");
+                Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] [DRY RUN] complete — no rows written, no email sent. Would-insert: {insertedCount}.");
             else
                 await SendEmailReportAsync(logId, totalFetched, allFromRiOrg.Count, allRiOrgIds.Count, insertedCount, removedCount,
                     skippedDistrictMissing.Count, errorCount, added, removed, skippedDistrictMissing, districtCounts);
         }
         catch (Exception ex)
         {
-            Console.Error.WriteLine($"[{DateTime.Now:HH:mm:ss}] COUNTRY SYNC FAILED: {ex.Message}");
+            Console.Error.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] COUNTRY SYNC FAILED: {ex.Message}");
             _logger.LogError(ex, "Country sync FAILED");
             if (!dryRun && logId > 0)
             {
@@ -402,7 +403,7 @@ public class CountrySyncWorker
             using var ms = new MemoryStream();
             workbook.SaveAs(ms);
             var bytes = ms.ToArray();
-            var fileName = $"RotaryOrg_CountrySync_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx";
+            var fileName = $"RotaryOrg_CountrySync_{DateTime.UtcNow:yyyyMMdd_HHmmss}.xlsx";
 
             // HTML body
             var triggeredByName = _config["RotaryOrgSync:TriggeredByName"] ?? "Admin";
@@ -471,13 +472,13 @@ public class CountrySyncWorker
 <p>Regards,<br/><strong>Team ROW</strong></p>
 </div>";
 
-            await _emailSender.SendReportAsync($"[Weekly Sun] ROW Country Sync — {DateTime.Now:dd MMM yyyy}", body, bytes, fileName);
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Email sent.");
+            await _emailSender.SendReportAsync($"[Weekly Sun] ROW Country Sync — {DateTime.UtcNow:dd MMM yyyy}", body, bytes, fileName);
+            Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] Email sent.");
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Country sync email FAILED");
-            Console.Error.WriteLine($"[{DateTime.Now:HH:mm:ss}] Email failed: {ex.Message}");
+            Console.Error.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] Email failed: {ex.Message}");
         }
     }
 

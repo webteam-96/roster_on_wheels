@@ -22,7 +22,7 @@ const DISTRICTS = [
 
 /* Multi-line sibling of .input-modern — same ring/focus voice. */
 const AREA =
-  "w-full resize-y rounded-xl bg-white px-4 py-3 text-[14px] leading-relaxed text-ink ring-1 ring-navy-950/15 transition-shadow duration-200 placeholder:text-ink/40 focus:outline-none focus:ring-2 focus:ring-gold-dark";
+  "w-full resize-y rounded-xl bg-card px-4 py-3 text-[14px] leading-relaxed text-ink ring-1 ring-navy-950/15 transition-shadow duration-200 placeholder:text-ink/40 focus:outline-none focus:ring-2 focus:ring-gold-dark";
 
 function Label({
   children,

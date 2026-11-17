@@ -29,7 +29,7 @@ public class PublicProjectController : ControllerBase
     [HttpGet("api/public/projects/{id}")]
     public async Task<ActionResult> GetProject(int id, [FromQuery] int? yearId = null)
     {
-        using var conn = new MySqlConnection(_connectionString);
+        using var conn = RowDb.Connect(_connectionString);
         await conn.OpenAsync();
 
         YearTableInfo? info = null;

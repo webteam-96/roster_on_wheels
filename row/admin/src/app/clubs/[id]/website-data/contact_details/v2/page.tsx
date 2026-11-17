@@ -352,7 +352,7 @@ export default function ContactDetailsV2Page() {
         </div>
 
         {/* Form / record card */}
-        <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+        <div className="bg-card rounded-2xl border border-slate-200 overflow-hidden">
           {/* Header bar */}
           <div className="px-5 py-3 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-blue-50">
             <div className="flex flex-wrap items-center gap-2">
@@ -369,7 +369,7 @@ export default function ContactDetailsV2Page() {
                 <select
                   value={selectedYearId}
                   onChange={(e) => setSelectedYearId(e.target.value)}
-                  className="px-2 h-10 py-0 text-sm border border-slate-200 rounded-[12px] bg-white focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                  className="px-2 h-10 py-0 text-sm border border-slate-200 rounded-[12px] bg-card focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
                 >
                   {dataYears.map((y) => (
                     <option key={y.id} value={String(y.id)}>
@@ -435,7 +435,7 @@ export default function ContactDetailsV2Page() {
                   value={formIsActive}
                   onChange={(e) => setFormIsActive(e.target.value)}
                   disabled={!canManage || saving}
-                  className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42] bg-white disabled:bg-slate-50 disabled:cursor-not-allowed"
+                  className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42] bg-card disabled:bg-slate-50 disabled:cursor-not-allowed"
                 >
                   <option value="1">Active</option>
                   <option value="0">Inactive</option>
@@ -450,7 +450,7 @@ export default function ContactDetailsV2Page() {
                     value={formYearId}
                     onChange={(e) => setFormYearId(e.target.value)}
                     disabled={!canManage || saving}
-                    className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42] bg-white disabled:bg-slate-50 disabled:cursor-not-allowed"
+                    className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42] bg-card disabled:bg-slate-50 disabled:cursor-not-allowed"
                   >
                     <option value="">Select a year</option>
                     {allYears.map((y) => (

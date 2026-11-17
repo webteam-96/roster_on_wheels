@@ -44,7 +44,7 @@ public class ClubMenuController : ControllerBase
     public async Task<ActionResult<object>> HasWebsite(int clubId)
     {
         if (!await RotaryApi.Services.KillSwitchHelper.IsClubDrillReachableAsync(_connectionString, clubId)) return StatusCode(403, new { message = "This club, its district, or its zone is inactive. Reactivate it first to access this data." });
-        using var conn = new MySqlConnection(_connectionString);
+        using var conn = RowDb.Connect(_connectionString);
         await conn.OpenAsync();
         var count = await conn.ExecuteScalarAsync<int>(
             "SELECT COUNT(*) FROM club_websites WHERE fk_club_id = @ClubId AND isdeleted = 0",
@@ -147,7 +147,7 @@ public class ClubMenuController : ControllerBase
                 return BadRequest(new { message = "Only 9 menus can be active at once. Deactivate one first." });
         }
 
-        using var conn = new MySqlConnection(_connectionString);
+        using var conn = RowDb.Connect(_connectionString);
         await conn.OpenAsync();
         var rows = await conn.ExecuteAsync(@"
             UPDATE club_website_menu SET is_active = @IsActive, modified_by = @UserId, modified_date = NOW()

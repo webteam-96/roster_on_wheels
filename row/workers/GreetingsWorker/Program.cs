@@ -183,8 +183,8 @@ static async Task SendSummaryAsync(IServiceProvider sp, string[] recipients, Gre
   <h2 style='color:#1e3a8a;margin:0 0 12px 0'>Daily Birthday &amp; Anniversary Greetings</h2>
   <p style='margin:0 0 16px 0;color:#475569'>The GreetingsWorker --send run has completed.</p>
   <table style='border-collapse:collapse;width:100%;max-width:560px;border:1px solid #e2e8f0'>
-    {Row("Run started", $"{s.RunStartedAt:dd-MMM-yyyy hh:mm:ss tt}")}
-    {Row("Run completed", $"{s.RunCompletedAt:dd-MMM-yyyy hh:mm:ss tt}")}
+    {Row("Run started", $"{s.RunStartedAt:dd-MMM-yyyy hh:mm:ss tt} UTC")}
+    {Row("Run completed", $"{s.RunCompletedAt:dd-MMM-yyyy hh:mm:ss tt} UTC")}
     {Row("Duration", $"{(int)dur.TotalMinutes} min {dur.Seconds} sec")}
     {Row("Clubs processed", s.ClubsProcessed)}
     {Row("Districts processed", s.DistrictsProcessed)}

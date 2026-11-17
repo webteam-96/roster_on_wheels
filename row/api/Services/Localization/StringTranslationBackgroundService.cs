@@ -41,7 +41,7 @@ public sealed class StringTranslationBackgroundService : BackgroundService
 
     private async Task RunOnceAsync(CancellationToken ct)
     {
-        await using var conn = new MySqlConnection(_cs);
+        await using var conn = RowDb.Connect(_cs);
         foreach (var english in ServerStrings.TakePending(1000)) await ServerStrings.RegisterAsync(conn, english);
 
         var languages = await LanguagesInUseAsync(conn);

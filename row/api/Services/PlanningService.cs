@@ -71,7 +71,7 @@ public class PlanningService
     /// <summary>A district's planning state (by district, or by one of its clubs); null for an unknown club.</summary>
     public async Task<PlanningStateDto?> StateAsync(int? districtId, int? clubId)
     {
-        await using var conn = new MySqlConnection(_cs);
+        await using var conn = RowDb.Connect(_cs);
         var d = districtId ?? await conn.ExecuteScalarAsync<int?>(
             "SELECT fk_district_id FROM club_master WHERE pk_club_id = @clubId AND isdeleted = 0", new { clubId });
         return d is int id ? await StateAsync(conn, id) : null;
@@ -95,7 +95,7 @@ public class PlanningService
     /// page and the app).</summary>
     public async Task<List<PlanningRoleDto>> MyRolesAsync(int memberId)
     {
-        await using var conn = new MySqlConnection(_cs);
+        await using var conn = RowDb.Connect(_cs);
         return (await conn.QueryAsync<PlanningRoleDto>(RoleSelect + LiveTenantJoin + @"
             WHERE pr.fk_member_id = @memberId AND pr.live = 1 AND pr.status IN ('invited', 'active')
             ORDER BY pr.fk_club_id, pr.role_code", new { memberId })).ToList();
@@ -105,7 +105,7 @@ public class PlanningService
     /// who runs it (SuperAdmin or the active DGE: appointments, invitations, revocations, cut-over).</summary>
     public async Task<(bool SuperAdmin, bool Dge, bool CanView)> AccessAsync(int memberId, int districtId)
     {
-        await using var conn = new MySqlConnection(_cs);
+        await using var conn = RowDb.Connect(_cs);
         await conn.OpenAsync();
         var sa = await ClubAdminAccessHelper.IsSuperAdminAsync(conn, memberId);
         var role = await conn.ExecuteScalarAsync<string?>(@"
@@ -118,7 +118,7 @@ public class PlanningService
 
     public async Task<PlanningOverviewDto> OverviewAsync(int districtId, bool canManage)
     {
-        await using var conn = new MySqlConnection(_cs);
+        await using var conn = RowDb.Connect(_cs);
         await conn.OpenAsync();
         var o = new PlanningOverviewDto { State = await StateAsync(conn, districtId), CanManage = canManage };
         if (o.State.State != "planning" || o.State.PlanningYearId is not int p) return o;
@@ -187,7 +187,7 @@ public class PlanningService
     /// the DGE and picks up new RI elects; other elect roles stay.</summary>
     public async Task<object> StartAsync(int districtId, int? dgeMemberId, int by, HttpContext ctx)
     {
-        await using var conn = new MySqlConnection(_cs);
+        await using var conn = RowDb.Connect(_cs);
         await conn.OpenAsync();
         var tenant = await conn.QueryFirstOrDefaultAsync<(string State, int? PlanningYear, DateTime? CutoverDone)?>(
             "SELECT state, planning_year_id, cutover_done_at FROM tenant_subscriptions WHERE fk_district_id = @districtId AND fk_club_id = 0",
@@ -257,7 +257,7 @@ public class PlanningService
     {
         role = (role ?? "").Trim().ToUpperInvariant();
         if (role is not ("DS" or "DT")) throw new ArgumentException("Role must be DS (district secretary) or DT (district treasurer).");
-        await using var conn = new MySqlConnection(_cs);
+        await using var conn = RowDb.Connect(_cs);
         await conn.OpenAsync();
         var p = await PlanningYearAsync(conn, districtId);
         if (!await IsDistrictMemberAsync(conn, memberId, districtId))
@@ -289,7 +289,7 @@ public class PlanningService
     {
         role = (role ?? "").Trim().ToUpperInvariant();
         if (role is not ("PE" or "SE")) throw new ArgumentException("Role must be PE (president-elect) or SE (secretary-elect).");
-        await using var conn = new MySqlConnection(_cs);
+        await using var conn = RowDb.Connect(_cs);
         await conn.OpenAsync();
         var p = await PlanningYearAsync(conn, districtId);
         var clubName = await conn.ExecuteScalarAsync<string?>(
@@ -338,7 +338,7 @@ public class PlanningService
     public async Task<object> AcceptAsync(string token, HttpContext ctx)
     {
         if (string.IsNullOrWhiteSpace(token) || token.Length > 100) throw new KeyNotFoundException("This invitation link is not valid.");
-        await using var conn = new MySqlConnection(_cs);
+        await using var conn = RowDb.Connect(_cs);
         await conn.OpenAsync();
         var r = await conn.QueryFirstOrDefaultAsync<InviteRow>(@"
             SELECT pr.pk_planning_role_id AS Id, pr.status AS Status, pr.token_expires AS Expires, pr.fk_member_id AS MemberId,
@@ -362,7 +362,7 @@ public class PlanningService
     /// <summary>Revokes a live elect role. Only a SuperAdmin replaces the DGE (by starting planning again).</summary>
     public async Task RevokeAsync(int districtId, int roleId, int by, bool superAdmin, HttpContext ctx)
     {
-        await using var conn = new MySqlConnection(_cs);
+        await using var conn = RowDb.Connect(_cs);
         var row = await conn.QueryFirstOrDefaultAsync<(string Role, string Status)?>(
             "SELECT role_code, status FROM planning_roles WHERE pk_planning_role_id = @roleId AND fk_district_id = @districtId AND live = 1",
             new { roleId, districtId });
@@ -383,7 +383,7 @@ public class PlanningService
     /// primary vendor for every club that authorised ROW, one reconciliation. by = 0 for the scheduled run.</summary>
     public async Task<object> CutOverAsync(int districtId, int by, HttpContext? ctx)
     {
-        await using var conn = new MySqlConnection(_cs);
+        await using var conn = RowDb.Connect(_cs);
         await conn.OpenAsync();
         var tenant = await conn.QueryFirstOrDefaultAsync<(string State, int? PlanningYear)?>(
             "SELECT state, planning_year_id FROM tenant_subscriptions WHERE fk_district_id = @districtId AND fk_club_id = 0", new { districtId });
@@ -457,7 +457,7 @@ public class PlanningService
     /// <summary>Planning districts whose scheduled cut-over time has passed (the job runs them).</summary>
     public async Task<List<int>> DueCutoversAsync()
     {
-        await using var conn = new MySqlConnection(_cs);
+        await using var conn = RowDb.Connect(_cs);
         return (await conn.QueryAsync<int>(@"
             SELECT fk_district_id FROM tenant_subscriptions
             WHERE fk_club_id = 0 AND state = 'planning' AND cutover_at IS NOT NULL AND cutover_at <= UTC_TIMESTAMP()")).ToList();

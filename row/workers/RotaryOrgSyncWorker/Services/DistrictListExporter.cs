@@ -1,3 +1,4 @@
+using RotaryApi.Services;
 using Dapper;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -30,22 +31,22 @@ public class DistrictListExporter
 
     public async Task RunAsync(CancellationToken ct = default)
     {
-        Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] === Listing all districts from API ===");
+        Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] === Listing all districts from API ===");
 
         // Fetch from /clubs (sync clubs — has DistrictId int)
-        Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Fetching /clubs...");
+        Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] Fetching /clubs...");
         var syncClubs = await _api.GetClubsAsync(ct);
-        Console.WriteLine($"[{DateTime.Now:HH:mm:ss}]   /clubs: {syncClubs.Count} clubs");
+        Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}]   /clubs: {syncClubs.Count} clubs");
 
         // Fetch /Clubs/search for each country (has District string + Country)
         var searchResults = new Dictionary<string, List<RotaryOrgClubSearchDto>>();
         foreach (var country in TargetCountries)
         {
             ct.ThrowIfCancellationRequested();
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Fetching /Clubs/search for {country}...");
+            Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] Fetching /Clubs/search for {country}...");
             var list = await _api.SearchClubsByCountryAsync(country, ct);
             searchResults[country] = list;
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss}]   {country}: {list.Count} clubs");
+            Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}]   {country}: {list.Count} clubs");
         }
 
         // Build district aggregate: District# → (Country, ClubCount, Source)
@@ -85,12 +86,12 @@ public class DistrictListExporter
         }
 
         // Load our local district_master
-        await using var conn = new MySqlConnection(_connectionString);
+        await using var conn = RowDb.Connect(_connectionString);
         await conn.OpenAsync(ct);
         var localDistrictNumbers = (await conn.QueryAsync<string>(@"
             SELECT DistrictNumber FROM district_master WHERE isdeleted = 0"))
             .ToHashSet(StringComparer.OrdinalIgnoreCase);
-        Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Local district_master: {localDistrictNumbers.Count} districts");
+        Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] Local district_master: {localDistrictNumbers.Count} districts");
 
         // Mark each as in-DB or not
         foreach (var info in districts.Values)
@@ -116,7 +117,7 @@ public class DistrictListExporter
         Console.WriteLine($"");
 
         // Write CSV
-        var fileName = $"district-list-{DateTime.Now:yyyyMMdd-HHmmss}.csv";
+        var fileName = $"district-list-{DateTime.UtcNow:yyyyMMdd-HHmmss}.csv";
         var fullPath = Path.Combine(AppContext.BaseDirectory, fileName);
         using (var writer = new StreamWriter(fullPath))
         {

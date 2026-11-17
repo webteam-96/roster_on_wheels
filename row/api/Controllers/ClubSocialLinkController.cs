@@ -84,7 +84,7 @@ public class ClubSocialLinkController : ControllerBase
         if (dto.OrderedIds == null || dto.OrderedIds.Count == 0)
             return BadRequest(new { message = "OrderedIds is required." });
 
-        using var conn = new MySqlConnection(_connectionString);
+        using var conn = RowDb.Connect(_connectionString);
         await conn.OpenAsync();
         for (int i = 0; i < dto.OrderedIds.Count; i++)
             await conn.ExecuteAsync(

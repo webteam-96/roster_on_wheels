@@ -104,7 +104,7 @@ public sealed class PaymentCheckoutService
     public string? GatewayCode => _gateway?.Code;
     public bool IsSimulated => _gateway?.Code == SimulatedPaymentGateway.GatewayCode;
 
-    private MySqlConnection Conn() => new(_conn);
+    private MySqlConnection Conn() => RowDb.Connect(_conn);
 
     /// <summary>Absolute URL for a path inside the admin app; anything that is not a plain local path falls to null.</summary>
     public string? LocalUrl(string? path)

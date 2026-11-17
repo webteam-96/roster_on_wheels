@@ -1,3 +1,4 @@
+using RotaryApi.Services;
 using System.Security.Cryptography;
 using System.Text;
 using Dapper;
@@ -39,7 +40,7 @@ public class ClubWebsiteVisitsController : ControllerBase
         if (club <= 0) return BadRequest(new { error = "club is required" });
         if (string.IsNullOrEmpty(_secret)) return StatusCode(503, new { error = "visit counter is not configured" });
 
-        using var conn = new MySqlConnection(_cs);
+        using var conn = RowDb.Connect(_cs);
         await conn.OpenAsync();
         // Only clubs with a website count, so the table cannot be filled with made-up club ids.
         var hasSite = await conn.ExecuteScalarAsync<int>(

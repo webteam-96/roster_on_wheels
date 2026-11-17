@@ -157,7 +157,7 @@ export default function GoalOverviewMatrix({
                   </thead>
                   <tbody>
                     {matrix.rows.map((row) => (
-                      <tr key={`${row.groupName}::${row.metricKey}`} className="odd:bg-white even:bg-slate-50/50">
+                      <tr key={`${row.groupName}::${row.metricKey}`} className="odd:bg-card even:bg-slate-50/50">
                         <th className="sticky left-0 z-10 bg-inherit text-left px-3 py-2 font-medium align-top border-b border-r">
                           <div>{row.label}</div>
                           {row.groupName && row.groupName !== row.label && (

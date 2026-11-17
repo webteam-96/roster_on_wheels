@@ -36,7 +36,7 @@ public class AgDashboardService : IAgDashboardService
         _fx = fx;
     }
 
-    private MySqlConnection CreateConnection() => new(_connectionString);
+    private MySqlConnection CreateConnection() => RowDb.Connect(_connectionString);
 
     // The district default currency for a set of clubs (an AG's clubs are all in one district).
     // Cost totals convert into this; per-project rows keep their own currency.

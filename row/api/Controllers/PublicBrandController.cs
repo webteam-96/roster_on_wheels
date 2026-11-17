@@ -41,7 +41,7 @@ public class HealthController : ControllerBase
         var dbOk = false;
         try
         {
-            await using var conn = new MySqlConnection(_connectionString);
+            await using var conn = RowDb.Connect(_connectionString);
             dbOk = await conn.ExecuteScalarAsync<int>("SELECT 1") == 1;
         }
         catch { dbOk = false; }

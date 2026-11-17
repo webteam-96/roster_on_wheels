@@ -97,10 +97,10 @@ const CARDS: OcvCard[] = [
     title: "Trust Documents",
     description: "Trust deeds, registrations and compliance.",
     icon: ShieldCheck,
-    accent: "text-violet-600",
-    bg: "bg-violet-50",
-    ring: "hover:ring-violet-200",
-    gradient: "from-violet-50/60 to-white",
+    accent: "text-slate-600",
+    bg: "bg-slate-50",
+    ring: "hover:ring-slate-200",
+    gradient: "from-slate-50/60 to-white",
   },
   {
     key: "grants",
@@ -137,10 +137,10 @@ const CARDS: OcvCard[] = [
     title: "Live Documents",
     description: "Module-wise Excel snapshots, downloadable.",
     icon: Radio,
-    accent: "text-fuchsia-600",
-    bg: "bg-fuchsia-50",
-    ring: "hover:ring-fuchsia-200",
-    gradient: "from-fuchsia-50/60 to-white",
+    accent: "text-slate-600",
+    bg: "bg-slate-50",
+    ring: "hover:ring-slate-200",
+    gradient: "from-slate-50/60 to-white",
   },
   {
     key: "newsletters",
@@ -283,7 +283,7 @@ export function OcvGovV2View({ clubId: propClubId, embedded = false, yearId: glo
               <select
                 value={selectedYearId ?? ""}
                 onChange={(e) => setSelectedYearId(e.target.value ? Number(e.target.value) : null)}
-                className="px-2 h-10 py-0 text-sm border border-slate-200 rounded-[12px] bg-white focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42] min-w-[10rem]"
+                className="px-2 h-10 py-0 text-sm border border-slate-200 rounded-[12px] bg-card focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42] min-w-[10rem]"
               >
                 {years.map((y) => (
                   <option key={y.id} value={y.id}>
@@ -328,7 +328,7 @@ export function OcvGovV2View({ clubId: propClubId, embedded = false, yearId: glo
             </div>
 
             {/* 8-card grid */}
-            <div className="bg-white rounded-2xl border border-slate-200 p-5">
+            <div className="bg-card rounded-2xl border border-slate-200 p-5">
               <div className="flex items-center justify-between mb-4">
                 <div>
                   <h2 className="text-base font-semibold text-slate-800">Categories</h2>

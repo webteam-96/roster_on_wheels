@@ -77,7 +77,7 @@ function ClubTableDA({
   };
 
   return (
-    <div className="rounded-2xl border border-slate-200 shadow-sm overflow-hidden bg-white">
+    <div className="rounded-2xl border border-slate-200 shadow-sm overflow-hidden bg-card">
       <Table>
         <TableHeader>
           <TableRow
@@ -383,7 +383,7 @@ export default function DistrictAdminClubsPage() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               onKeyDown={handleKeyDown}
-              className="pl-9 border-slate-200 bg-white focus:border-azure focus:ring-azure/20 text-sm"
+              className="pl-9 border-slate-200 bg-card focus:border-azure focus:ring-azure/20 text-sm"
             />
           </div>
           <div className="flex flex-wrap items-center gap-2">
@@ -404,7 +404,7 @@ export default function DistrictAdminClubsPage() {
             {meetingsOn && (
               <Link
                 href="/district-admin-dashboard/meeting-compliance"
-                className="inline-flex items-center rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50"
+                className="inline-flex items-center rounded-full border border-slate-200 bg-card px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50"
               >
                 Meeting rule
               </Link>
@@ -422,7 +422,7 @@ export default function DistrictAdminClubsPage() {
         )}
 
         {error && (
-          <div className="flex flex-col items-center justify-center py-20 text-center bg-white rounded-2xl border border-slate-200 shadow-sm">
+          <div className="flex flex-col items-center justify-center py-20 text-center bg-card rounded-2xl border border-slate-200 shadow-sm">
             <AlertCircle className="h-12 w-12 text-red-500 mb-4" />
             <h3 className="text-lg font-semibold text-slate-800">Error</h3>
             <p className="text-slate-500 mt-2 max-w-md">{error}</p>
@@ -437,7 +437,7 @@ export default function DistrictAdminClubsPage() {
         )}
 
         {!loading && !error && data && data.items.length === 0 && (
-          <div className="flex flex-col items-center justify-center py-20 text-center bg-white rounded-2xl border border-slate-200 shadow-sm">
+          <div className="flex flex-col items-center justify-center py-20 text-center bg-card rounded-2xl border border-slate-200 shadow-sm">
             <Building2 className="h-12 w-12 text-slate-400 mb-4" />
             <h3 className="text-lg font-semibold text-slate-800">No clubs found</h3>
             <p className="text-slate-500 mt-2">No clubs in this district yet.</p>

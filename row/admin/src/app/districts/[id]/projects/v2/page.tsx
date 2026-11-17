@@ -195,7 +195,7 @@ export default function DistrictProjectsV2Page() {
           </div>
 
           {/* Table card */}
-          <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+          <div className="bg-card rounded-2xl border border-slate-200 overflow-hidden">
             <div className="px-5 py-3 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
               <div className="flex items-center gap-2 text-slate-500">
                 <FolderKanban size={16} />
@@ -208,7 +208,7 @@ export default function DistrictProjectsV2Page() {
                 <select
                   value={yearId}
                   onChange={(e) => { setYearId(e.target.value); setPage(1); }}
-                  className="px-2 h-10 py-0 text-sm border border-slate-200 rounded-[12px] bg-white focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                  className="px-2 h-10 py-0 text-sm border border-slate-200 rounded-[12px] bg-card focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
                 >
                   {years.map((y) => (
                     <option key={y.id} value={String(y.id)}>

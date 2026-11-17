@@ -92,7 +92,7 @@ export default function LoginLogsPage() {
         </div>
 
         {/* Filters */}
-        <div className="bg-white rounded-[20px] border shadow-sm p-4 space-y-3">
+        <div className="bg-card rounded-[20px] border shadow-sm p-4 space-y-3">
           <p className="text-xs text-muted-foreground">
             Apply at least one filter and click Search. Records are not loaded automatically.
           </p>
@@ -159,7 +159,7 @@ export default function LoginLogsPage() {
         </div>
 
         {/* Table */}
-        <div className="bg-white rounded-xl border shadow-sm">
+        <div className="bg-card rounded-xl border shadow-sm">
           {loading ? (
             <div className="flex items-center justify-center py-16">
               <ListPageSkeleton />

@@ -218,7 +218,7 @@ export default function ChangeThemeV2Page() {
 
         {/* Theme gallery */}
         {!loading && hasWebsite && (
-          <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+          <div className="bg-card rounded-2xl border border-slate-200 overflow-hidden">
             <div className="px-5 py-3 border-b border-slate-100 flex items-center gap-2 bg-blue-50">
               <div className="w-9 h-9 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center">
                 <Sparkles size={18} />
@@ -252,7 +252,7 @@ export default function ChangeThemeV2Page() {
                       }
                     }}
                     className={[
-                      "group rounded-xl overflow-hidden border-2 transition-all bg-white",
+                      "group rounded-xl overflow-hidden border-2 transition-all bg-card",
                       isActive
                         ? "border-blue-500 ring-2 ring-blue-100 shadow-sm"
                         : clickable

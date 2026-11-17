@@ -14,7 +14,7 @@ public class ZoneService : IZoneService
         _connectionString = configuration.GetConnectionString("DefaultConnection")!;
     }
 
-    private MySqlConnection CreateConnection() => new(_connectionString);
+    private MySqlConnection CreateConnection() => RowDb.Connect(_connectionString);
 
     public async Task<PagedResult<ZoneListDto>> GetAllAsync(int page, int pageSize, string? search, int? isActive, bool includeInactive = false)
     {

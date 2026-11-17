@@ -1006,7 +1006,7 @@ function CreateClubDuesInner() {
         <div className="flex items-center gap-3">
           {existing && (
             /* eslint-disable-next-line @next/next/no-img-element */
-            <img src={clubDuesAssetUrl(existing)} alt="" className="h-12 w-12 rounded border object-contain bg-white" />
+            <img src={clubDuesAssetUrl(existing)} alt="" className="h-12 w-12 rounded border object-contain bg-card" />
           )}
           <Label className="inline-flex items-center gap-2 cursor-pointer rounded-full border px-3 py-2 text-sm hover:bg-accent">
             <Upload className="h-4 w-4" />{existing ? "Replace" : "Upload"}

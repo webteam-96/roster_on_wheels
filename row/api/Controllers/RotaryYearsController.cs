@@ -47,7 +47,7 @@ public class RotaryYearsController : ControllerBase
     {
         if (!IsSuperAdmin()) return Forbid();
 
-        using var conn = new MySqlConnection(_connectionString);
+        using var conn = RowDb.Connect(_connectionString);
         await conn.OpenAsync();
 
         // Find the latest year by StartDate (handles soft-deleted gaps).

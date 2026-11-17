@@ -20,7 +20,7 @@ public class DistrictGovernorController : ControllerBase
         _env = env;
     }
 
-    private MySqlConnection CreateConnection() => new(_connectionString);
+    private MySqlConnection CreateConnection() => RowDb.Connect(_connectionString);
     private int GetUserId() => int.Parse(User.FindFirst("memberId")?.Value ?? "0");
     private bool IsSuperAdmin() => User.FindFirst("roles")?.Value?.Contains("SuperAdmin") == true;
 
@@ -295,7 +295,7 @@ public class DistrictGovernorController : ControllerBase
         Directory.CreateDirectory(folder);
 
         var ext = Path.GetExtension(file.FileName).ToLowerInvariant();
-        var fileName = $"DG{DateTime.Now:ddMMyyyyHHmmssfff}{ext}";
+        var fileName = $"DG{DateTime.UtcNow:ddMMyyyyHHmmssfff}{ext}";
         await using (var stream = new FileStream(Path.Combine(folder, fileName), FileMode.Create))
             await file.CopyToAsync(stream);
 

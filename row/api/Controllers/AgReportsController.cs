@@ -24,7 +24,7 @@ public class AgReportsController : ControllerBase
         _yearTables = yearTables;
     }
 
-    private MySqlConnection CreateConnection() => new(_connectionString);
+    private MySqlConnection CreateConnection() => RowDb.Connect(_connectionString);
     private bool IsAG() => User.FindFirst("roles")?.Value?.Contains("AG") == true;
     private int GetUserId()
     {
@@ -295,7 +295,7 @@ public class AgReportsController : ControllerBase
             var sql = @"
                 SELECT e.Title AS title, e.Description AS description,
                        e.EventDate AS eventDate,
-                       DATE_FORMAT(e.EventDate, '%H:%i') AS eventTime,
+                       '' AS eventTime,
                        e.EventVenue AS location,
                        c.ClubName AS clubName, d.DistrictNumber AS districtNumber,
                        y.YearLabel AS yearLabel
@@ -309,6 +309,10 @@ public class AgReportsController : ControllerBase
             if (yearId.HasValue) { sql += " AND y.pk_year_id = @YearId"; p.Add("YearId", yearId.Value); }
             sql += " ORDER BY e.EventDate DESC";
             var rows = await conn.QueryAsync<dynamic>(sql, p);
+            foreach (IDictionary<string, object?> r in rows)   // the event's time of day, in the viewer's zone
+                r["eventTime"] = r["eventDate"] is DateTime ed
+                    ? (ed.TimeOfDay == TimeSpan.Zero ? "00:00" : ZoneTime.Print(ed, "HH:mm", ViewerZone.Current))
+                    : null;
             return Ok(rows);
         }
     }

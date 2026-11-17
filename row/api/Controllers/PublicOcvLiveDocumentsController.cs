@@ -81,7 +81,7 @@ public class PublicOcvLiveDocumentsController : ControllerBase
         presidentName = data.PresidentName,
         assistantGovernorName = data.AssistantGovernorName,
         yearLabel = data.YearLabel,
-        generatedAt = DateTime.Now.ToString("dd MMM yyyy HH:mm"),
+        generatedAt = DateTime.UtcNow.ToString("dd MMM yyyy HH:mm"),
         moduleKey,
         moduleLabel,
     };

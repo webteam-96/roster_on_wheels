@@ -71,7 +71,7 @@ function ReportBody({ highlights, sections, scopeNote, tilesPerRow = 3 }: { high
                     <div className="text-sm font-semibold text-slate-800 mb-2">{group || "At a glance"}</div>
                     <div className={`grid gap-3 grid-cols-2 ${tilesPerRow === 4 ? "md:grid-cols-4" : "md:grid-cols-3"}`}>
                       {highlights.filter((h) => (h.group ?? "") === group).map((h, hi) => (
-                        <div key={hi} className={`bg-white rounded-xl border border-slate-200 p-3 ${h.newRow ? "md:col-start-1" : ""}`}>
+                        <div key={hi} className={`bg-card rounded-xl border border-slate-200 p-3 ${h.newRow ? "md:col-start-1" : ""}`}>
                           <div className="text-[10px] uppercase tracking-wide text-slate-500 whitespace-nowrap">{h.label}</div>
                           <div className="text-2xl font-bold tabular-nums" style={{ color: h.percent != null ? ragColor(h.percent) : "#17458f" }}>{h.value}</div>
                           {h.sub && <div className="text-xs text-slate-500">{h.sub}</div>}
@@ -101,7 +101,7 @@ function ReportBody({ highlights, sections, scopeNote, tilesPerRow = 3 }: { high
               {partSections.map((s, si) => {
                 const wide = !!s.tableRows && s.tableRows.length > 0 && (s.tableHeaders?.length ?? 0) > 3;
                 return (
-                  <div key={si} className={`bg-white rounded-xl border border-slate-200 overflow-hidden ${wide ? "md:col-span-2" : ""}`}>
+                  <div key={si} className={`bg-card rounded-xl border border-slate-200 overflow-hidden ${wide ? "md:col-span-2" : ""}`}>
                     <div className="px-4 py-2.5 bg-azure text-white text-sm font-medium">{s.title}</div>
                     {s.intro && <div className="px-4 py-2 text-xs italic text-slate-700 border-b border-slate-100">{s.intro}</div>}
                     {s.items.length > 0 && (
@@ -353,7 +353,7 @@ export default function DistrictPerformanceReportPage() {
 
         {report && (
           <div className="space-y-4">
-            <div className="bg-white rounded-[20px] border border-slate-200 p-4">
+            <div className="bg-card rounded-[20px] border border-slate-200 p-4">
               <div className="text-base font-semibold text-slate-800">District {report.districtNumber}</div>
               <div className="text-xs text-slate-500">{report.zoneName} · Rotary Year {report.yearLabel} · {report.periodLabel}</div>
               {report.governorEmail ? (
@@ -379,7 +379,7 @@ export default function DistrictPerformanceReportPage() {
           </div>
 
         {settings && sendRows.length > 0 && (
-          <div className="bg-white rounded-[20px] border border-slate-200 overflow-hidden">
+          <div className="bg-card rounded-[20px] border border-slate-200 overflow-hidden">
             <div className="px-4 py-2.5 border-b border-slate-100 flex flex-wrap items-center gap-2">
               <span className="text-sm font-medium text-slate-700">
                 Sends to District Governors

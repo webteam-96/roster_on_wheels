@@ -49,7 +49,7 @@ public class WalletLinksController : ControllerBase
     public async Task<ActionResult> GetDistricts([FromQuery] string? search)
     {
         if (!IsSuperAdmin()) return Forbid();
-        using var conn = new MySqlConnection(_conn);
+        using var conn = RowDb.Connect(_conn);
         await conn.OpenAsync();
 
         var p = new DynamicParameters();
@@ -87,7 +87,7 @@ public class WalletLinksController : ControllerBase
     public async Task<ActionResult> GetClubBalances()
     {
         if (!IsSuperAdmin()) return Forbid();
-        using var conn = new MySqlConnection(_conn);
+        using var conn = RowDb.Connect(_conn);
         await conn.OpenAsync();
 
         var sql = $@"

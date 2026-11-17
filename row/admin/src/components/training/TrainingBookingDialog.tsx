@@ -127,7 +127,7 @@ export default function TrainingBookingDialog({ open, onOpenChange, clubId, mode
                         ? "bg-azure text-white border-azure"
                         : closed
                         ? "bg-slate-50 border-slate-200 text-slate-400 cursor-not-allowed line-through decoration-slate-300"
-                        : "bg-white border-slate-200 hover:border-azure/40"
+                        : "bg-card border-slate-200 hover:border-azure/40"
                     }`}
                   >
                     {d.dayLabel}
@@ -158,7 +158,7 @@ export default function TrainingBookingDialog({ open, onOpenChange, clubId, mode
                         ? "bg-azure text-white border-azure"
                         : !sl.isOpen
                         ? "bg-slate-50 border-slate-200 text-slate-400 cursor-not-allowed"
-                        : "bg-white border-slate-200 hover:border-azure/40"
+                        : "bg-card border-slate-200 hover:border-azure/40"
                     }`}
                   >
                     <span className={sl.isOpen ? "" : "line-through decoration-slate-300"}>{to12h(sl.time)}</span>

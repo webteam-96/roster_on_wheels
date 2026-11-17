@@ -184,7 +184,7 @@ public class MobileClubAdminPastPresidentsController : ControllerBase
     public async Task<ActionResult> GetPastYears()
     {
         if (!IsSuperAdminOrAdmin()) return StatusCode(403, new { message = "Access denied." });
-        using var conn = new MySqlConnection(_connectionString);
+        using var conn = RowDb.Connect(_connectionString);
         await conn.OpenAsync();
         var rows = await conn.QueryAsync(@"
             SELECT pk_year_id AS Id, YearLabel, StartDate, EndDate

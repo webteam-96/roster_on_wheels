@@ -74,7 +74,7 @@ public sealed class LocalizationService
 
     public static string Hash(string text) => Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(text))).ToLowerInvariant();
     private static string CacheKey(string target, string text) => $"{target}\0{text}";
-    private MySqlConnection Conn() => new(_cs);
+    private MySqlConnection Conn() => RowDb.Connect(_cs);
 
     /// <summary>True when nothing in the text needs a language: numbers, or only an email or link.</summary>
     public bool WorthTranslating(string text)

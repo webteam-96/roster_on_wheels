@@ -11,14 +11,11 @@ namespace RotaryApi.Services;
 /// </summary>
 public static class ZoneTime
 {
-    private static readonly bool ServerIsUtc =
-        TimeZoneInfo.Local.BaseUtcOffset == TimeSpan.Zero && !TimeZoneInfo.Local.SupportsDaylightSavingTime;
-
     /// <summary>
-    /// True when stored date-times are UTC: the server clock (DateTime.Now, MySQL NOW()) is UTC and time.emitOffset is
-    /// on. Then the API writes them with "Z" (UtcDateTimeConverter); otherwise they are wall-clock values.
+    /// True when stored date-times are UTC and go out with "Z" (UtcDateTimeConverter). Since 2026-11-17 the code writes
+    /// UTC whatever the server zone: DateTime.UtcNow in C#, and every MySQL session runs in UTC (RowDb), so NOW() is UTC.
     /// </summary>
-    public static bool StoredUtc => ServerIsUtc && Brand.Feature("time.emitOffset");
+    public static bool StoredUtc => Brand.Feature("time.emitOffset");
 
     /// <summary>The zone for an IANA id; the brand's zone for none, an unknown id, or with time.districtZone off.</summary>
     public static TimeZoneInfo Find(string? id) =>
@@ -92,4 +89,24 @@ public static class ZoneTime
 
     /// <summary>SQL condition: the district (alias; NULL when a club has none) is in the zone group @Tz.</summary>
     public static string Filter(string districtAlias) => $"IFNULL({districtAlias}.Timezone, '') = @Tz";
+
+    /// <summary>
+    /// A stored time as an ISO string for a browser: "…Z" for an instant, no zone for a date (midnight), the same rule
+    /// as UtcDateTimeConverter. Use it wherever the API builds a date-time string itself.
+    /// </summary>
+    public static string Iso(DateTime stored) =>
+        stored.TimeOfDay == TimeSpan.Zero || !StoredUtc
+            ? stored.ToString("yyyy-MM-dd'T'HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture)
+            : DateTime.SpecifyKind(stored, DateTimeKind.Utc).ToString("yyyy-MM-dd'T'HH:mm:ss'Z'", System.Globalization.CultureInfo.InvariantCulture);
+
+    /// <summary>
+    /// A stored time printed for people (emails, receipts, Excel, PDF) in the given zone, or the brand zone. When the
+    /// zone is UTC the text says so, so a reader in another zone is never shown a bare UTC time as if it were theirs.
+    /// </summary>
+    public static string Print(DateTime stored, string format, TimeZoneInfo? zone = null)
+    {
+        zone ??= Brand.TimeZone;
+        var text = StoredToLocal(zone, stored).ToString(format, System.Globalization.CultureInfo.InvariantCulture);
+        return zone.BaseUtcOffset == TimeSpan.Zero && !zone.SupportsDaylightSavingTime ? text + " UTC" : text;
+    }
 }

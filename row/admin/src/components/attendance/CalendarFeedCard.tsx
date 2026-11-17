@@ -50,7 +50,7 @@ export default function CalendarFeedCard({ clubId, canManage }: { clubId: number
   };
 
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white px-5 py-4">
+    <div className="rounded-2xl border border-slate-200 bg-card px-5 py-4">
       <h3 className="text-sm font-semibold text-slate-800">Calendar feed</h3>
       <p className="mt-0.5 text-xs text-slate-500">
         A private link to the club&apos;s meetings and their join links, for Google, Outlook or Apple Calendar. Share it

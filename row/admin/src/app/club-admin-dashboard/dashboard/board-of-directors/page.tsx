@@ -26,10 +26,10 @@ function designationChipStyle(name: string): string {
   if (n.includes("secretary")) return "bg-emerald-50 text-emerald-700 border-emerald-200";
   if (n.includes("treasurer")) return "bg-amber-50 text-amber-700 border-amber-200";
   if (n.includes("sergeant")) return "bg-rose-50 text-rose-700 border-rose-200";
-  if (n.includes("foundation")) return "bg-purple-50 text-purple-700 border-purple-200";
+  if (n.includes("foundation")) return "bg-slate-50 text-slate-700 border-slate-200";
   if (n.includes("community") || n.includes("club service")) return "bg-teal-50 text-teal-700 border-teal-200";
   if (n.includes("public image")) return "bg-orange-50 text-orange-700 border-orange-200";
-  if (n.includes("membership")) return "bg-violet-50 text-violet-700 border-violet-200";
+  if (n.includes("membership")) return "bg-slate-50 text-slate-700 border-slate-200";
   if (n.includes("youth") || n.includes("new generation")) return "bg-pink-50 text-pink-700 border-pink-200";
   return "bg-slate-50 text-slate-700 border-slate-200";
 }
@@ -149,7 +149,7 @@ export default function DashboardBodPage() {
         <KpiCard title="Board Members" value={fmtInt(data.boardMembers)} subtitle={`RY ${data.selectedYearLabel || "–"}`} icon={Users} color="blue" />
       </div>
 
-      <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+      <div className="bg-card rounded-2xl border border-slate-200 overflow-hidden">
         <div className="px-5 py-3 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
             <h3 className="text-sm font-semibold text-slate-800">Board of Directors</h3>

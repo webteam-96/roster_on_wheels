@@ -43,7 +43,7 @@ public static class TrialLock
     public static async Task<bool> IsLockedCachedAsync(string connectionString, int memberId)
     {
         if (Cache.TryGetValue(memberId, out var hit) && hit.Until > DateTime.UtcNow) return hit.Locked;
-        await using var conn = new MySqlConnection(connectionString);
+        await using var conn = RowDb.Connect(connectionString);
         var locked = await IsLockedAsync(conn, memberId);
         Cache[memberId] = (locked, DateTime.UtcNow.AddMinutes(2));
         return locked;

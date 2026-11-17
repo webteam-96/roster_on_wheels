@@ -102,7 +102,7 @@ export function AboutBento() {
                     {n}
                   </span>
                   <span aria-hidden className="text-gold">
-                    ✦
+                    ·
                   </span>
                 </span>
               ))}

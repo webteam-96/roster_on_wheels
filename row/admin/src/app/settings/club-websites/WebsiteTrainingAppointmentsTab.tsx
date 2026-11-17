@@ -39,7 +39,7 @@ export default function WebsiteTrainingAppointmentsTab() {
         </button>
       </div>
 
-      <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white">
+      <div className="overflow-x-auto rounded-xl border border-slate-200 bg-card">
         <table className="w-full text-sm">
           <thead className="bg-slate-50 text-slate-600">
             <tr>

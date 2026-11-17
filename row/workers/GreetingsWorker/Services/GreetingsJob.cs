@@ -1,3 +1,4 @@
+using RotaryApi.Services;
 using System.Globalization;
 using Dapper;
 using Microsoft.Extensions.Logging;
@@ -111,8 +112,8 @@ public class GreetingsJob
         _utcNow = utcNow ?? DateTime.UtcNow;
         _dateOverride = overrideDate?.Date;
         _scheduled = !dryRun && overrideDate == null && string.IsNullOrWhiteSpace(clubNameFilter) && string.IsNullOrWhiteSpace(districtNumberFilter);
-        var stats = new RunStats { RunStartedAt = DateTime.Now };
-        await using var conn = new MySqlConnection(_conn);
+        var stats = new RunStats { RunStartedAt = DateTime.UtcNow };
+        await using var conn = RowDb.Connect(_conn);
         await conn.OpenAsync();
         await ServerStrings.LoadAsync(conn); // S5: push wording in the source's language
         if (!dryRun) await EnsureLogTableAsync(conn);   // dry-run is strictly read-only — no schema change
@@ -139,7 +140,7 @@ public class GreetingsJob
         if (clubScoped || !scoped) await ProcessClubsAsync(conn, stats, clubNameFilter);
         if (districtScoped || !scoped) await ProcessDistrictsAsync(conn, stats, districtNumberFilter);
 
-        stats.RunCompletedAt = DateTime.Now;
+        stats.RunCompletedAt = DateTime.UtcNow;
         return stats;
     }
 
@@ -618,7 +619,7 @@ public class GreetingsJob
     // running recently. Never writes anything.
     public async Task DiagnoseAsync(string? clubName, string? districtNumber, string? memberName)
     {
-        await using var conn = new MySqlConnection(_conn);
+        await using var conn = RowDb.Connect(_conn);
         await conn.OpenAsync();
 
         Console.WriteLine();
@@ -688,7 +689,7 @@ public class GreetingsJob
         // early return). So a missing digest notification is EXPECTED, not a bug, whenever
         // this section comes back with nothing on both sides.
         // shortcut: the server's date, not the district's zone (N12); use DueAsync's local date if operators need it.
-        var todayNow = DateTime.Now;
+        var todayNow = DateTime.UtcNow;
         if (clubId.HasValue)
         {
             var bdays = (await conn.QueryAsync<dynamic>(ClubMembersByDateSql("BirthDate", false),
@@ -734,7 +735,7 @@ public class GreetingsJob
             Console.WriteLine();
             Console.WriteLine($"--- Member(s) matching '{memberName}' ---");
             if (rows.Count == 0) { Console.WriteLine("  NOT FOUND."); }
-            var today = DateTime.Now;
+            var today = DateTime.UtcNow;
             foreach (var m in rows)
             {
                 members.Add(((int)m.MemberId, (string)m.MemberName));

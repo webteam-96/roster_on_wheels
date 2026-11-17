@@ -15,7 +15,7 @@ public class AttendanceService : IAttendanceService
         _citationRecalc = citationRecalc;
     }
 
-    private MySqlConnection CreateConnection() => new(_connectionString);
+    private MySqlConnection CreateConnection() => RowDb.Connect(_connectionString);
 
     // Auto-creates the Rotary year row if missing — see RotaryYearHelper for details.
     private static Task<int> GetRotaryYearIdAsync(MySqlConnection connection, DateTime eventDate)

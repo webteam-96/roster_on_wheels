@@ -168,7 +168,7 @@ export default function AgTrfPage() {
         <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-white/10 blur-2xl pointer-events-none" />
         <div className="absolute -bottom-12 left-1/3 w-48 h-48 rounded-full bg-amber-300/10 blur-3xl pointer-events-none" />
         <div className="relative flex items-center gap-5 flex-wrap">
-          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white ring-1 ring-white/20">
+          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-card ring-1 ring-white/20">
             <Heart size={26} className="text-white" />
           </div>
           <div className="flex-1 min-w-[180px]">
@@ -192,7 +192,7 @@ export default function AgTrfPage() {
 
       {/* ── Stacked bar chart + Top Giving Clubs leaderboard ─────────── */}
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-        <div className="xl:col-span-2 bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
+        <div className="xl:col-span-2 bg-card rounded-2xl border border-slate-200 p-5 shadow-sm">
           <div className="flex items-center justify-between mb-4">
             <div>
               <h3 className="text-base font-semibold text-slate-800">TRF Giving Breakdown by Club</h3>
@@ -237,7 +237,7 @@ export default function AgTrfPage() {
           )}
         </div>
 
-        <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
+        <div className="bg-card rounded-2xl border border-slate-200 p-5 shadow-sm">
           <div className="flex items-center justify-between mb-4">
             <div className="flex flex-wrap items-center gap-2">
               <Trophy size={16} className="text-amber-500" />
@@ -270,7 +270,7 @@ export default function AgTrfPage() {
       </div>
 
       {/* ── MY CLUBS TRF SUMMARY · Per-club contribution bars ────────── */}
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+      <div className="bg-card rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
         <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
           <div className="flex flex-wrap items-center gap-2">
             <PieChart size={18} className="text-blue-700" />
@@ -348,7 +348,7 @@ export default function AgTrfPage() {
       </div>
 
       {/* ── Detailed TRF Giving Table ────────────────────────────────── */}
-      <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
+      <div className="bg-card rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
         <div className="px-5 py-3 border-b border-slate-100 flex items-center justify-between">
           <h3 className="text-base font-semibold text-slate-800">Detailed TRF Giving Table</h3>
           <span className="text-xs text-slate-400">Click column headers to sort</span>

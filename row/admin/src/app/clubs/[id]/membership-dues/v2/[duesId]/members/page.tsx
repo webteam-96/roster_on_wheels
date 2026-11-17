@@ -785,7 +785,7 @@ export default function ClubMembershipDuesV2MembersPage() {
           </div>
 
           {/* Toolbar */}
-          <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+          <div className="bg-card rounded-2xl border border-slate-200 overflow-hidden">
             <div className="px-5 py-3 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
               <div>
                 <h3 className="text-sm font-semibold text-slate-800">Member Payments</h3>
@@ -798,7 +798,7 @@ export default function ClubMembershipDuesV2MembersPage() {
                 <select
                   value={filter}
                   onChange={(e) => setFilter(e.target.value)}
-                  className="px-2 h-10 py-0 text-sm border border-slate-200 rounded-[12px] bg-white focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                  className="px-2 h-10 py-0 text-sm border border-slate-200 rounded-[12px] bg-card focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
                 >
                   <option value="">All Members</option>
                   <option value="paid">Paid</option>
@@ -971,7 +971,7 @@ export default function ClubMembershipDuesV2MembersPage() {
                                 <button
                                   type="button"
                                   disabled={receiptSendingId !== null}
-                                  className="text-xs font-medium text-purple-600 hover:text-purple-800 hover:underline whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
+                                  className="text-xs font-medium text-slate-600 hover:text-slate-800 hover:underline whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
                                   onClick={() => {
                                     if (window.confirm(`Send receipt to ${m.memberName || "this member"}?`)) {
                                       handleReceipt(m.memberFeeId);

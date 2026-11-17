@@ -72,7 +72,7 @@ const CATEGORY_VISUAL: Record<
 > = {
   static_documents:     { icon: FileText,    accent: "text-blue-600",    bg: "bg-blue-50",    tint: "bg-blue-50/60" },
   financial_documents:  { icon: Banknote,    accent: "text-emerald-600", bg: "bg-emerald-50", tint: "bg-emerald-50/60" },
-  trust_documents:      { icon: ShieldCheck, accent: "text-violet-600",  bg: "bg-violet-50",  tint: "bg-violet-50/60" },
+  trust_documents:      { icon: ShieldCheck, accent: "text-slate-600",  bg: "bg-slate-50",  tint: "bg-slate-50/60" },
   grants:               { icon: Gift,        accent: "text-amber-600",   bg: "bg-amber-50",   tint: "bg-amber-50/60" },
   additional_documents: { icon: FilePlus2,   accent: "text-teal-600",    bg: "bg-teal-50",    tint: "bg-teal-50/60" },
   dues:                 { icon: IndianRupee, accent: "text-rose-600",    bg: "bg-rose-50",    tint: "bg-rose-50/60" },
@@ -429,7 +429,7 @@ export function OcvCategoryV2View({
 
         {/* Upload card — only for a year this member may file into. */}
         {!loading && category && canManage && (
-          <div className={`bg-white rounded-2xl border border-slate-200 overflow-hidden`}>
+          <div className={`bg-card rounded-2xl border border-slate-200 overflow-hidden`}>
             <div className={`px-5 py-3 border-b border-slate-100 ${visual.tint}`}>
               <h2 className="text-sm font-semibold text-slate-800">Upload a document</h2>
               <p className="text-xs text-slate-500 mt-0.5">
@@ -444,7 +444,7 @@ export function OcvCategoryV2View({
                   <select
                     value={typeId}
                     onChange={(e) => setTypeId(e.target.value)}
-                    className="w-full px-2 h-10 py-0 text-sm border border-slate-200 rounded-[12px] bg-white focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                    className="w-full px-2 h-10 py-0 text-sm border border-slate-200 rounded-[12px] bg-card focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
                   >
                     <option value="">Select type…</option>
                     {docTypes.filter((t) => t.isActive).map((t) => (
@@ -462,7 +462,7 @@ export function OcvCategoryV2View({
                       placeholder="Enter document name"
                       value={customName}
                       onChange={(e) => setCustomName(e.target.value)}
-                      className="w-full px-2 h-10 py-0 text-sm border border-slate-200 rounded-[12px] bg-white focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                      className="w-full px-2 h-10 py-0 text-sm border border-slate-200 rounded-[12px] bg-card focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
                     />
                   </div>
                 )}
@@ -489,14 +489,14 @@ export function OcvCategoryV2View({
                       placeholder="0.00"
                       value={amount}
                       onChange={(e) => setAmount(e.target.value)}
-                      className="w-full px-2 h-10 py-0 text-sm border border-slate-200 rounded-[12px] bg-white focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                      className="w-full px-2 h-10 py-0 text-sm border border-slate-200 rounded-[12px] bg-card focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
                     />
                   </div>
                 )}
                 {isDues && (
                   <div className="space-y-1.5">
                     <label className="text-xs font-medium text-slate-600">Paid On</label>
-                    <DateField value={paidOn} onChange={setPaidOn} className="w-full px-2 h-10 py-0 text-sm border border-slate-200 rounded-[12px] bg-white focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]" />
+                    <DateField value={paidOn} onChange={setPaidOn} className="w-full px-2 h-10 py-0 text-sm border border-slate-200 rounded-[12px] bg-card focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]" />
                   </div>
                 )}
 
@@ -529,7 +529,7 @@ export function OcvCategoryV2View({
 
         {/* Documents table */}
         {!loading && category && (
-          <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+          <div className="bg-card rounded-2xl border border-slate-200 overflow-hidden">
             <div className="px-5 py-3 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
               <div>
                 <h2 className="text-sm font-semibold text-slate-800">Documents</h2>
@@ -544,7 +544,7 @@ export function OcvCategoryV2View({
                   placeholder="Filter documents…"
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  className="w-full pl-7 pr-3 h-10 py-0 text-sm border border-slate-200 rounded-[12px] bg-white focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                  className="w-full pl-7 pr-3 h-10 py-0 text-sm border border-slate-200 rounded-[12px] bg-card focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
                 />
               </div>
             </div>
@@ -611,7 +611,7 @@ export function OcvCategoryV2View({
                               type="button"
                               onClick={() => handleDownload(doc)}
                               title="Download"
-                              className="inline-flex items-center justify-center w-7 h-7 rounded text-slate-500 hover:text-violet-700 hover:bg-violet-50"
+                              className="inline-flex items-center justify-center w-7 h-7 rounded text-slate-500 hover:text-slate-700 hover:bg-slate-50"
                             >
                               <Download size={13} />
                             </button>
@@ -660,7 +660,7 @@ export function OcvCategoryV2View({
                 <select
                   value={editTypeId}
                   onChange={(e) => setEditTypeId(e.target.value)}
-                  className="w-full px-2 h-10 py-0 text-sm border border-slate-200 rounded-[12px] bg-white focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                  className="w-full px-2 h-10 py-0 text-sm border border-slate-200 rounded-[12px] bg-card focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
                 >
                   <option value="">Select type…</option>
                   {docTypes.filter((t) => t.isActive).map((t) => (
@@ -677,7 +677,7 @@ export function OcvCategoryV2View({
                     placeholder="Enter document name"
                     value={editCustomName}
                     onChange={(e) => setEditCustomName(e.target.value)}
-                    className="w-full px-2 h-10 py-0 text-sm border border-slate-200 rounded-[12px] bg-white focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                    className="w-full px-2 h-10 py-0 text-sm border border-slate-200 rounded-[12px] bg-card focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
                   />
                 </div>
               )}
@@ -706,12 +706,12 @@ export function OcvCategoryV2View({
                       placeholder="0.00"
                       value={editAmount}
                       onChange={(e) => setEditAmount(e.target.value)}
-                      className="w-full px-2 h-10 py-0 text-sm border border-slate-200 rounded-[12px] bg-white focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                      className="w-full px-2 h-10 py-0 text-sm border border-slate-200 rounded-[12px] bg-card focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
                     />
                   </div>
                   <div className="space-y-1.5">
                     <label className="text-xs font-medium text-slate-600">Paid On</label>
-                    <DateField value={editPaidOn} onChange={setEditPaidOn} className="w-full px-2 h-10 py-0 text-sm border border-slate-200 rounded-[12px] bg-white focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]" />
+                    <DateField value={editPaidOn} onChange={setEditPaidOn} className="w-full px-2 h-10 py-0 text-sm border border-slate-200 rounded-[12px] bg-card focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]" />
                   </div>
                 </>
               )}

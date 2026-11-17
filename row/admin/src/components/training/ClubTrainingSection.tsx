@@ -29,7 +29,7 @@ export default function ClubTrainingSection({ clubId, active }: { clubId: number
   const upcoming = appts[0]; // service returns upcoming sessions ascending
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-200 p-5">
+    <div className="bg-card rounded-2xl border border-slate-200 p-5">
       <div className="flex items-start justify-between gap-4 flex-wrap">
         <div className="flex items-start gap-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-azure/10 text-azure"><Calendar size={20} /></div>
@@ -59,7 +59,7 @@ export default function ClubTrainingSection({ clubId, active }: { clubId: number
           </div>
           <button
             onClick={() => { setRescheduleId(upcoming.id); setOpen(true); }}
-            className="px-3 py-1.5 rounded-lg border border-slate-300 text-sm text-slate-700 hover:bg-white"
+            className="px-3 py-1.5 rounded-lg border border-slate-300 text-sm text-slate-700 hover:bg-card"
           >
             Reschedule
           </button>

@@ -28,7 +28,7 @@ public class ClubMemberHonoraryController : ControllerBase
         _connectionString = config.GetConnectionString("DefaultConnection")!;
     }
 
-    private MySqlConnection CreateConnection() => new(_connectionString);
+    private MySqlConnection CreateConnection() => RowDb.Connect(_connectionString);
 
     // The JWT stores roles as a comma-separated string under the "roles" claim
     // (set by AuthService when the token is issued). User.IsInRole("SuperAdmin")

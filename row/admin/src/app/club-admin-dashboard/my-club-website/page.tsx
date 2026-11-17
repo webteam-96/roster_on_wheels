@@ -103,10 +103,10 @@ const MGMT_CARDS: MgmtCard[] = [
     description: "Sponsor and promo blocks displayed on the site.",
     href: (id, qs) => `/clubs/${id}/website-data/advertisements/v2${qs}`,
     icon: Megaphone,
-    accent: "text-purple-600",
-    bg: "bg-purple-50",
-    ring: "hover:ring-purple-200",
-    gradient: "bg-purple-50/60",
+    accent: "text-slate-600",
+    bg: "bg-slate-50",
+    ring: "hover:ring-slate-200",
+    gradient: "bg-slate-50/60",
   },
   {
     title: "Social Media Links",
@@ -143,10 +143,10 @@ const MGMT_CARDS: MgmtCard[] = [
     description: "Pick a colour palette and visual style.",
     href: (id, qs) => `/clubs/${id}/website-data/theme/v2${qs}`,
     icon: Palette,
-    accent: "text-fuchsia-600",
-    bg: "bg-fuchsia-50",
-    ring: "hover:ring-fuchsia-200",
-    gradient: "bg-fuchsia-50/60",
+    accent: "text-slate-600",
+    bg: "bg-slate-50",
+    ring: "hover:ring-slate-200",
+    gradient: "bg-slate-50/60",
   },
   {
     title: "Contact Details",
@@ -351,7 +351,7 @@ export default function ClubAdminMyClubWebsitePage() {
 
       {/* Not-configured CTA — replaces KPI/media tiles entirely */}
       {!website.configured ? (
-        <div className="rounded-2xl border border-slate-200 bg-white p-10 text-center">
+        <div className="rounded-2xl border border-slate-200 bg-card p-10 text-center">
           <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100">
             <Globe size={28} className="text-slate-400" />
           </div>
@@ -439,9 +439,9 @@ export default function ClubAdminMyClubWebsitePage() {
               percent={adPct}
               icon={Megaphone}
               barClass="bg-[#A9C6EA]"
-              tintFrom="bg-purple-50"
-              accent="text-purple-600"
-              bg="bg-purple-50"
+              tintFrom="bg-slate-50"
+              accent="text-slate-600"
+              bg="bg-slate-50"
               addLabel="+ Add Ad"
               addHref={`/clubs/${clubId}/website-data/advertisements/v2${RETURN_TO_QS}`}
             />
@@ -453,7 +453,7 @@ export default function ClubAdminMyClubWebsitePage() {
       <ClubTrainingSection clubId={clubId} active={(website.status === "active" || website.status === "trial") && website.configured} />
 
       {/* ─────────────────── Website Management grid ─────────────────── */}
-      <div className="bg-white rounded-2xl border border-slate-200 p-5">
+      <div className="bg-card rounded-2xl border border-slate-200 p-5">
         <div className="flex items-center justify-between mb-4">
           <div>
             <h2 className="text-base font-semibold text-slate-800">Website Management</h2>

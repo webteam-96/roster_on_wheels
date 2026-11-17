@@ -1,3 +1,4 @@
+using RotaryApi.Services;
 using Dapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -25,7 +26,7 @@ public class MobileMemberProfileOptionsController : ControllerBase
     [HttpGet]
     public async Task<ActionResult> Get()
     {
-        await using var c = new MySqlConnection(_cs);
+        await using var c = RowDb.Connect(_cs);
         await c.OpenAsync();
         var sizes = await c.QueryAsync<(int Id, string SizeName)>(@"
             SELECT pk_id, SizeName FROM event_tshirt_sizes

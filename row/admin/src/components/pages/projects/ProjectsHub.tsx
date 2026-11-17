@@ -109,7 +109,7 @@ function BrowseLink({
         "inline-flex min-h-10 w-full items-center justify-center gap-2.5 rounded-xl px-4 py-2 text-[14px] font-semibold tracking-[-0.005em] transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-dark focus-visible:ring-offset-2 focus-visible:ring-offset-paper sm:w-auto sm:justify-start " +
         (active
           ? "bg-navy-950 text-cream shadow-soft"
-          : "bg-white text-navy-950 ring-1 ring-navy-950/[0.12] hover:ring-gold-dark")
+          : "bg-card text-navy-950 ring-1 ring-navy-950/[0.12] hover:ring-gold-dark")
       }
     >
       {dot && (
@@ -575,7 +575,7 @@ function SampleHub({
               <Select value={yearSel} onValueChange={pickYear}>
                 <SelectTrigger
                   aria-label="Filter by Rotary year"
-                  className="min-h-10 w-full gap-2 rounded-xl border-navy-950/15 bg-white px-4 text-[13px] font-semibold text-navy-950 shadow-none focus:ring-2 focus:ring-gold-dark sm:w-auto"
+                  className="min-h-10 w-full gap-2 rounded-xl border-navy-950/15 bg-card px-4 text-[13px] font-semibold text-navy-950 shadow-none focus:ring-2 focus:ring-gold-dark sm:w-auto"
                 >
                   <SelectValue />
                 </SelectTrigger>
@@ -1379,7 +1379,7 @@ function LiveHub({ overview, initialArea }: { overview: Overview; initialArea?: 
               >
                 <SelectTrigger
                   aria-label="Filter by Rotary year"
-                  className="min-h-10 w-full gap-2 rounded-xl border-navy-950/15 bg-white px-4 text-[13px] font-semibold text-navy-950 shadow-none focus:ring-2 focus:ring-gold-dark sm:w-auto"
+                  className="min-h-10 w-full gap-2 rounded-xl border-navy-950/15 bg-card px-4 text-[13px] font-semibold text-navy-950 shadow-none focus:ring-2 focus:ring-gold-dark sm:w-auto"
                 >
                   <SelectValue />
                 </SelectTrigger>
@@ -1571,7 +1571,7 @@ function LiveHub({ overview, initialArea }: { overview: Overview; initialArea?: 
             {Array.from({ length: 9 }, (_, i) => (
               <div
                 key={i}
-                className="overflow-hidden rounded-2xl border-l-[3px] border-navy-950/10 bg-white shadow-soft ring-1 ring-navy-950/[0.08]"
+                className="overflow-hidden rounded-2xl border-l-[3px] border-navy-950/10 bg-card shadow-soft ring-1 ring-navy-950/[0.08]"
                 aria-hidden
               >
                 <div className="aspect-[16/9] animate-pulse bg-paper-200" />

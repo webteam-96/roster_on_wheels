@@ -44,7 +44,7 @@ public class RotaryOrgProjectSyncLogController : ControllerBase
         }
         p.Add("starts", (q ?? "").Trim() + "%");
 
-        using var conn = new MySqlConnection(_conn);
+        using var conn = RowDb.Connect(_conn);
         var rows = await conn.QueryAsync(@$"
             SELECT c.pk_club_id AS clubId, c.ClubName AS clubName, c.fk_district_id AS districtId,
                    d.DistrictNumber AS districtNumber
@@ -63,7 +63,7 @@ public class RotaryOrgProjectSyncLogController : ControllerBase
     public async Task<ActionResult> GetClubProjects(int clubId)
     {
         if (!IsSuperAdmin()) return Forbid();
-        using var conn = new MySqlConnection(_conn);
+        using var conn = RowDb.Connect(_conn);
         await conn.OpenAsync();
 
         var logRows = (await conn.QueryAsync<LogAgg>(@"
@@ -142,7 +142,7 @@ public class RotaryOrgProjectSyncLogController : ControllerBase
     public async Task<ActionResult> GetProjectHistory(int clubId, int projectId, [FromQuery] int? yearId)
     {
         if (!IsSuperAdmin()) return Forbid();
-        using var conn = new MySqlConnection(_conn);
+        using var conn = RowDb.Connect(_conn);
         var rows = await conn.QueryAsync(@"
             SELECT l.pk_id AS id, l.action, l.created_date AS createdDate, l.fk_member_id AS memberId,
                    m.MemberName AS memberName, l.client_ip AS clientIp

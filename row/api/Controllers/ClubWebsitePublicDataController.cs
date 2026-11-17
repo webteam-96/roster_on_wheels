@@ -41,7 +41,7 @@ public class ClubWebsitePublicDataController : ControllerBase
 
     // ── Helpers ────────────────────────────────────────────────────────────
 
-    private MySqlConnection CreateConn() => new(_connectionString);
+    private MySqlConnection CreateConn() => RowDb.Connect(_connectionString);
 
     // Returns true only if the club has a (paid or trial) website AND
     // its club/district/zone are all active+not-deleted. Used as a single
@@ -538,7 +538,7 @@ public class ClubWebsitePublicDataController : ControllerBase
         await conn.OpenAsync();
         if (!await IsClubServiceableAsync(conn, clubId)) return NotFound();
 
-        var target = DateTime.TryParse(date, out var d) ? d.Date : DateTime.Today;
+        var target = DateTime.TryParse(date, out var d) ? d.Date : DateTime.UtcNow.Date;
 
         // This route is anonymous: who has a birthday or anniversary is for signed-in members of the club, not the public.
         var viewer = MemberPrivacyHelper.GetViewerMemberId(User);
@@ -613,7 +613,7 @@ public class ClubWebsitePublicDataController : ControllerBase
             Title            = (string?)e.title ?? "",
             Description      = (string?)e.description,
             ImagePath        = (string?)e.imagePath,
-            EventDate        = ((DateTime)e.eventDate).ToString("yyyy-MM-ddTHH:mm:ss"),
+            EventDate        = ZoneTime.Iso((DateTime)e.eventDate),
             Venue            = (string?)e.venue,
             RegistrationLink = (string?)e.registrationLink,
         }).ToList();
@@ -1046,8 +1046,8 @@ public class ClubWebsitePublicDataController : ControllerBase
             RotariansInvolved    = (int?)row.rotariansInvolved,
             RotaractorsInvolved  = (int?)row.rotaractorsInvolved,
             RccInvolved          = (int?)row.rccInvolved,
-            CreatedDate          = row.createdDate is DateTime cd ? cd.ToString("yyyy-MM-ddTHH:mm:ss") : null,
-            ModifiedDate         = row.modifiedDate is DateTime md ? md.ToString("yyyy-MM-ddTHH:mm:ss") : null,
+            CreatedDate          = row.createdDate is DateTime cd ? ZoneTime.Iso(cd) : null,
+            ModifiedDate         = row.modifiedDate is DateTime md ? ZoneTime.Iso(md) : null,
             Photos               = photos,
             PhotoDetails         = photoDetails,
             Children                  = children,
@@ -1195,8 +1195,8 @@ public class ClubWebsitePublicDataController : ControllerBase
             ProjectDate      = r.ProjectDate is DateTime pd ? pd.ToString("yyyy-MM-dd") : null,
             AreaOfFocus      = (string?)r.AreaOfFocus,
             PrimaryPhotoPath = (string?)r.PrimaryPhotoPath,
-            CreatedDate      = r.CreatedDate is DateTime cd ? cd.ToString("yyyy-MM-ddTHH:mm:ss") : null,
-            ModifiedDate     = r.ModifiedDate is DateTime md ? md.ToString("yyyy-MM-ddTHH:mm:ss") : null,
+            CreatedDate      = r.CreatedDate is DateTime cd ? ZoneTime.Iso(cd) : null,
+            ModifiedDate     = r.ModifiedDate is DateTime md ? ZoneTime.Iso(md) : null,
         }).ToList();
     }
 

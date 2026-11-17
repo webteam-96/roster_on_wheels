@@ -20,7 +20,7 @@ public class GlobalMemberSearchController : ControllerBase
         _clubService = clubService;
     }
 
-    private MySqlConnection CreateConnection() => new(_connectionString);
+    private MySqlConnection CreateConnection() => RowDb.Connect(_connectionString);
 
     // A member_roles row whose zone / district / club scope is not hidden (0 / NULL = unscoped).
     private static string RoleScopeLive(string a) =>

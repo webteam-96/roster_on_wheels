@@ -37,7 +37,7 @@ public class MobileAuthService : IMobileAuthService
         _connectionString = configuration.GetConnectionString("DefaultConnection")!;
     }
 
-    private MySqlConnection CreateConnection() => new(_connectionString);
+    private MySqlConnection CreateConnection() => RowDb.Connect(_connectionString);
 
     // ══════════════════════════════════════════════════════════════
     // Password login (email + password, every member; ROW 2026-10-19)

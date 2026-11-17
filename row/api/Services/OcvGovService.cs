@@ -16,7 +16,7 @@ public class OcvGovService : IOcvGovService
         _yearTables = yearTables;
     }
 
-    private MySqlConnection CreateConnection() => new(_connectionString);
+    private MySqlConnection CreateConnection() => RowDb.Connect(_connectionString);
 
     // ── Categories ──────────────────────────────────────────────────────
 
@@ -193,7 +193,7 @@ public class OcvGovService : IOcvGovService
             FileSize = fileSize,
             Amount = dto.Amount,
             PaidOn = dto.PaidOn,
-            CreatedDate = DateTime.Now
+            CreatedDate = DateTime.UtcNow
         };
     }
 
@@ -272,7 +272,7 @@ public class OcvGovService : IOcvGovService
             FileSize = fileSize,
             Amount = dto.Amount,
             PaidOn = dto.PaidOn,
-            CreatedDate = DateTime.Now
+            CreatedDate = DateTime.UtcNow
         };
     }
 
@@ -780,7 +780,7 @@ public class OcvGovService : IOcvGovService
         null => "",
         DateTime d => d.TimeOfDay == TimeSpan.Zero
             ? d.ToString("dd MMM yyyy", CultureInfo.InvariantCulture)
-            : d.ToString("dd MMM yyyy HH:mm", CultureInfo.InvariantCulture),
+            : ZoneTime.Print(d, "dd MMM yyyy HH:mm"),
         bool b => b ? "Yes" : "No",
         decimal m => m.ToString("N2", CultureInfo.InvariantCulture),
         double db => db.ToString("N2", CultureInfo.InvariantCulture),
@@ -801,7 +801,7 @@ public class OcvGovService : IOcvGovService
         var originalBaseName = System.Text.RegularExpressions.Regex.Replace(Path.GetFileNameWithoutExtension(file.FileName), @"[^A-Za-z0-9\-]+", "_").Trim('_');
         if (string.IsNullOrEmpty(originalBaseName)) originalBaseName = "file";
         var extension = Path.GetExtension(file.FileName);
-        var now = DateTime.Now;
+        var now = DateTime.UtcNow;
         var timestamp = now.ToString("ddMMyyyyhhmmsstt");
         var fileName = $"{originalBaseName}_{Guid.NewGuid().ToString("N")[..8]}{timestamp}{extension}";
         var fullPath = Path.Combine(uploadsPath, fileName);

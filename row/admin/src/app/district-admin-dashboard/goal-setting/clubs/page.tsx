@@ -162,7 +162,7 @@ export default function DistrictAdminGoalClubsPage() {
     return (
       <ProtectedRoute>
         <div className="space-y-4">
-          <div className="bg-white rounded-2xl border border-slate-200 p-4 flex items-center gap-3">
+          <div className="bg-card rounded-2xl border border-slate-200 p-4 flex items-center gap-3">
             <button
               onClick={() => router.push(`/district-admin-dashboard/goal-setting${globalYearId ? `?yearId=${globalYearId}` : ""}`)}
               className="inline-flex items-center justify-center h-9 w-9 rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-100"
@@ -175,7 +175,7 @@ export default function DistrictAdminGoalClubsPage() {
               <p className="text-xs text-slate-500">Back to District Goal Setting</p>
             </div>
           </div>
-          <div className="bg-white rounded-2xl border border-slate-200">
+          <div className="bg-card rounded-2xl border border-slate-200">
             <ClubGoalComingSoon />
           </div>
         </div>
@@ -186,7 +186,7 @@ export default function DistrictAdminGoalClubsPage() {
   return (
     <ProtectedRoute>
       <div className="space-y-4">
-        <div className="bg-white rounded-2xl border border-slate-200 p-4 flex items-center gap-3">
+        <div className="bg-card rounded-2xl border border-slate-200 p-4 flex items-center gap-3">
           <button
             onClick={() => router.push("/district-admin-dashboard/goal-setting")}
             className="inline-flex items-center justify-center h-9 w-9 rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-100"
@@ -223,7 +223,7 @@ export default function DistrictAdminGoalClubsPage() {
                   className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition ${
                     activeCategoryId === c.id
                       ? "bg-azure text-white"
-                      : "bg-white border border-slate-200 text-slate-600 hover:bg-slate-100"
+                      : "bg-card border border-slate-200 text-slate-600 hover:bg-slate-100"
                   }`}
                 >
                   {c.name}
@@ -232,7 +232,7 @@ export default function DistrictAdminGoalClubsPage() {
             </div>
           )}
           {/* View toggle: goal (target/achieved) matrix vs month-wise (clubs × months) matrix. */}
-          <div className="inline-flex rounded-lg border border-slate-200 bg-white p-0.5">
+          <div className="inline-flex rounded-lg border border-slate-200 bg-card p-0.5">
             <button
               onClick={() => setView("goals")}
               className={`inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold rounded-md transition ${view === "goals" ? "bg-azure text-white" : "text-slate-600 hover:bg-slate-100"}`}
@@ -258,7 +258,7 @@ export default function DistrictAdminGoalClubsPage() {
             <select
               value={metricKey ?? ""}
               onChange={(e) => setMetricKey(e.target.value || null)}
-              className="h-9 rounded-[12px] border border-slate-300 bg-white px-3 text-sm focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+              className="h-9 rounded-[12px] border border-slate-300 bg-card px-3 text-sm focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
             >
               {monthly.fields.map((f) => (
                 <option key={f.fieldKey} value={f.fieldKey}>{metricLabel(f, monthly?.fields || [])}</option>
@@ -279,7 +279,7 @@ export default function DistrictAdminGoalClubsPage() {
                   value={clubQuery}
                   onChange={(e) => setClubQuery(e.target.value)}
                   placeholder="Filter clubs by name…"
-                  className="w-full h-9 pl-8 pr-3 rounded-[12px] border border-slate-300 bg-white text-sm focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                  className="w-full h-9 pl-8 pr-3 rounded-[12px] border border-slate-300 bg-card text-sm focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
                 />
               </div>
               <span className="text-xs text-slate-500">{shown} of {total} club{total === 1 ? "" : "s"}</span>
@@ -293,21 +293,21 @@ export default function DistrictAdminGoalClubsPage() {
         )}
 
         {!loading && error && (
-          <div className="flex flex-col items-center justify-center py-16 text-center bg-white rounded-2xl border border-slate-200">
+          <div className="flex flex-col items-center justify-center py-16 text-center bg-card rounded-2xl border border-slate-200">
             <AlertCircle className="h-10 w-10 text-red-500 mb-3" />
             <p className="text-slate-500">{error}</p>
           </div>
         )}
 
         {!loading && !error && (view === "goals" ? matrix?.clubs.length === 0 : monthly?.clubs.length === 0) && (
-          <div className="flex flex-col items-center justify-center py-16 text-center bg-white rounded-2xl border border-slate-200">
+          <div className="flex flex-col items-center justify-center py-16 text-center bg-card rounded-2xl border border-slate-200">
             <Building2 className="h-10 w-10 text-slate-400 mb-3" />
             <p className="text-slate-500">No clubs found in this district.</p>
           </div>
         )}
 
         {view === "goals" && !loading && !error && matrix && matrix.clubs.length > 0 && (
-          <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+          <div className="bg-card rounded-2xl border border-slate-200 overflow-hidden">
             {isMembership && (
               <div className="px-4 py-2 border-b border-slate-100 flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-slate-500">
                 <span className="font-semibold text-slate-600">RAG (active members):</span>
@@ -351,7 +351,7 @@ export default function DistrictAdminGoalClubsPage() {
                     const rag = RAG_STYLE[row.rag] || RAG_STYLE.None;
                     return (
                       <tr key={row.clubId} className="border-b border-slate-100 last:border-0 hover:bg-slate-50">
-                        <td className="sticky left-0 z-10 bg-white px-4 py-2 font-medium text-slate-800 whitespace-nowrap border-r border-slate-100">
+                        <td className="sticky left-0 z-10 bg-card px-4 py-2 font-medium text-slate-800 whitespace-nowrap border-r border-slate-100">
                           {row.clubName}
                         </td>
                         {isMembership && (
@@ -376,7 +376,7 @@ export default function DistrictAdminGoalClubsPage() {
 
         {/* ── Month-wise matrix: clubs = rows, months = columns for the selected metric ── */}
         {view === "monthly" && !loading && !error && monthly && monthly.clubs.length > 0 && selectedMetric && (
-          <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+          <div className="bg-card rounded-2xl border border-slate-200 overflow-hidden">
             <div className="px-4 py-2 border-b border-slate-100 text-[11px] text-slate-500">
               <span className="font-semibold text-slate-600">{selectedMetric.groupName ? `${selectedMetric.groupName}: ${selectedMetric.fieldLabel}` : selectedMetric.fieldLabel}</span> collected per month{monthly.yearLabel ? ` · RY ${monthly.yearLabel}` : ""}: future months of the current year show &ldquo;, &rdquo;.
             </div>
@@ -405,7 +405,7 @@ export default function DistrictAdminGoalClubsPage() {
                     const byMonth = row.values[selectedMetric.fieldKey] || {};
                     return (
                       <tr key={row.clubId} className="border-b border-slate-100 last:border-0 hover:bg-slate-50">
-                        <td className="sticky left-0 z-10 bg-white px-4 py-2 font-medium text-slate-800 whitespace-nowrap border-r border-slate-100">
+                        <td className="sticky left-0 z-10 bg-card px-4 py-2 font-medium text-slate-800 whitespace-nowrap border-r border-slate-100">
                           {row.clubName}
                         </td>
                         {monthly.months.map((m) => (
@@ -426,7 +426,7 @@ export default function DistrictAdminGoalClubsPage() {
         )}
 
         {view === "monthly" && !loading && !error && monthly && monthly.fields.length === 0 && monthly.clubs.length > 0 && (
-          <div className="bg-white rounded-2xl border border-slate-200 py-10 text-center text-sm text-slate-400">
+          <div className="bg-card rounded-2xl border border-slate-200 py-10 text-center text-sm text-slate-400">
             This category has no month-wise metrics.
           </div>
         )}

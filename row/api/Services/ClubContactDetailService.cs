@@ -14,7 +14,7 @@ public class ClubContactDetailService : IClubContactDetailService
         _connectionString = configuration.GetConnectionString("DefaultConnection")!;
     }
 
-    private MySqlConnection CreateConnection() => new(_connectionString);
+    private MySqlConnection CreateConnection() => RowDb.Connect(_connectionString);
 
     public async Task<List<ClubContactDetailDto>> GetByClubAsync(int clubId, int yearId)
     {

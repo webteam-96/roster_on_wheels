@@ -24,7 +24,7 @@ public class MemberService : IMemberService
         _citationRecalc = citationRecalc;
     }
 
-    private MySqlConnection CreateConnection() => new(_connectionString);
+    private MySqlConnection CreateConnection() => RowDb.Connect(_connectionString);
 
     // Project rule: birthday + anniversary store year=1900 (placeholder) in the
     // DB. The frontend never asks the user for a year; all incoming DateTimes
@@ -593,7 +593,7 @@ public class MemberService : IMemberService
                         ORDER BY pk_club_member_id DESC LIMIT 1",
                         new { ClubId = dto.ClubId.Value, MemberId = softDeletedId.Value }, reactivateTx);
 
-                    var joinedDate = dto.JoinedDate ?? DateTime.Today;
+                    var joinedDate = dto.JoinedDate ?? DateTime.UtcNow.Date;
                     if (existingCm.pk_id == 0)
                     {
                         await connection.ExecuteAsync(@"
@@ -747,7 +747,7 @@ public class MemberService : IMemberService
             {
                 await connection.ExecuteAsync(
                     "sp_club_add_member",
-                    new { p_ClubId = dto.ClubId.Value, p_MemberId = memberId, p_JoinedDate = dto.JoinedDate ?? DateTime.Today, p_CreatedBy = 0 },
+                    new { p_ClubId = dto.ClubId.Value, p_MemberId = memberId, p_JoinedDate = dto.JoinedDate ?? DateTime.UtcNow.Date, p_CreatedBy = 0 },
                     transaction, commandType: CommandType.StoredProcedure);
 
                 // Stamp the per-club honorary flag on the just-created club_members row.

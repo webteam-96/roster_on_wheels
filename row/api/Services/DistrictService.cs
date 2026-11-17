@@ -16,7 +16,7 @@ public class DistrictService : IDistrictService
         _env = env;
     }
 
-    private MySqlConnection CreateConnection() => new(_connectionString);
+    private MySqlConnection CreateConnection() => RowDb.Connect(_connectionString);
 
     // Blank = the brand's zone (NULL). The controller has refused anything that is not an IANA id.
     private static string? NormalizeZone(string? zone) => string.IsNullOrWhiteSpace(zone) ? null : zone.Trim();

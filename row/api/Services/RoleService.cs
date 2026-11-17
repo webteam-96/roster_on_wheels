@@ -20,7 +20,7 @@ public class RoleService : IRoleService
         _logger = logger;
     }
 
-    private MySqlConnection CreateConnection() => new(_connectionString);
+    private MySqlConnection CreateConnection() => RowDb.Connect(_connectionString);
 
     public async Task AssignDefaultMemberRoleAsync(int memberId, MySqlConnection connection, MySqlTransaction transaction)
     {
@@ -184,7 +184,7 @@ public class RoleService : IRoleService
         }
 
         // Fire removal email (fire-and-forget). CC club admin / president / secretary of the same club.
-        _ = Task.Run(async () => await SendClubRoleRemovedEmailAsync(request.MemberId, request.ClubId.Value, "Club Admin"));
+        BackgroundWork.Run("SendClubRoleRemovedEmailAsync", () => SendClubRoleRemovedEmailAsync(request.MemberId, request.ClubId.Value, "Club Admin"));
 
         return new { message = "Admin role removed successfully." };
     }

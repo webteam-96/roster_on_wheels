@@ -1,3 +1,4 @@
+using RotaryApi.Services;
 using System.Text.Json;
 using Dapper;
 using Microsoft.AspNetCore.Authorization;
@@ -39,7 +40,7 @@ public class MemberDuplicateController : ControllerBase
         _logger = logger;
     }
 
-    private MySqlConnection CreateConnection() => new(_connectionString);
+    private MySqlConnection CreateConnection() => RowDb.Connect(_connectionString);
     private bool IsSuperAdmin() => User.FindFirst("roles")?.Value?.Contains("SuperAdmin") == true;
     private int GetUserId() => int.TryParse(User.FindFirst("memberId")?.Value, out var id) ? id : 0;
 
@@ -833,12 +834,12 @@ public class MemberDuplicateController : ControllerBase
               WHERE kept_member_id = @K AND deleted_member_id = @D
               ORDER BY pk_id DESC LIMIT 1", new { K = req.KeptId, D = req.DeletedId });
         if (string.IsNullOrWhiteSpace(snapJson))
-            return NotFound(new { message = "No merge backup found for this pair — nothing to revert." });
+            return NotFound(new { message = "No merge backup found for this pair: nothing to revert." });
 
         using var doc = JsonDocument.Parse(snapJson);
         var root = doc.RootElement;
         if (!root.TryGetProperty("delete", out var delProf) || !root.TryGetProperty("keep", out var keepProf))
-            return StatusCode(500, new { message = "Merge backup is malformed — cannot revert automatically." });
+            return StatusCode(500, new { message = "Merge backup is malformed: cannot revert automatically." });
 
         await using var tx = await conn.BeginTransactionAsync();
         try

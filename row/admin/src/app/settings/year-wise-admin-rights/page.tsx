@@ -463,7 +463,7 @@ export default function YearWiseAdminRightsSettingsPage() {
                 <div className="grid gap-1.5 sm:grid-cols-2">
                   {messageSettings.tokens.map((t) => (
                     <div key={t.token} className="text-xs text-slate-600">
-                      <code className="rounded bg-white px-1 py-0.5 font-mono text-[11px] text-amber-700 border border-slate-200">
+                      <code className="rounded bg-card px-1 py-0.5 font-mono text-[11px] text-amber-700 border border-slate-200">
                         {t.token}
                       </code>{" "}
                       {t.describes}

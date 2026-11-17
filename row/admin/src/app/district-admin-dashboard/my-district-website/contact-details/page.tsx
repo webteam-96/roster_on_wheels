@@ -13,8 +13,8 @@
  *   navy #17458f (headings + primary buttons)
  *   gold #F7A81B (underline accents)
  *   slate 800/600/500 for text
- *   rounded-2xl border border-slate-200 shadow-sm bg-white for cards
- *   inputs border-slate-200 bg-white focus:border-azure
+ *   rounded-2xl border border-slate-200 shadow-sm bg-card for cards
+ *   inputs border-slate-200 bg-card focus:border-azure
  *
  * Every V1 behaviour is preserved: fetch available years + rotary years,
  * year picker, single-contact per-year card, add/edit dialog, activate /
@@ -227,7 +227,7 @@ export default function DistrictAdminContactDetailsPage() {
             <button
               type="button"
               onClick={goBack}
-              className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 hover:text-slate-800"
+              className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 bg-card text-slate-600 hover:bg-slate-50 hover:text-slate-800"
               aria-label="Back"
             >
               <ArrowLeft className="h-4 w-4" />
@@ -266,9 +266,9 @@ export default function DistrictAdminContactDetailsPage() {
         )}
 
         {!loading && !loadingContact && selectedYearId && !contact && (
-          <div className="flex flex-col items-center justify-center py-20 text-center bg-white rounded-2xl border border-slate-200 shadow-sm">
-            <div className="h-14 w-14 rounded-full bg-violet-50 flex items-center justify-center mb-4">
-              <Phone className="h-7 w-7 text-violet-700" />
+          <div className="flex flex-col items-center justify-center py-20 text-center bg-card rounded-2xl border border-slate-200 shadow-sm">
+            <div className="h-14 w-14 rounded-full bg-slate-50 flex items-center justify-center mb-4">
+              <Phone className="h-7 w-7 text-slate-700" />
             </div>
             <h3 className="text-lg font-semibold text-slate-800">No contact details yet</h3>
             <p className="text-slate-500 mt-2 max-w-md">
@@ -278,7 +278,7 @@ export default function DistrictAdminContactDetailsPage() {
         )}
 
         {!loading && !loadingContact && contact && (
-          <div className="max-w-lg rounded-2xl border border-slate-200 shadow-sm bg-white overflow-hidden">
+          <div className="max-w-lg rounded-2xl border border-slate-200 shadow-sm bg-card overflow-hidden">
             {/* Gold accent strip */}
             <div className="h-1 bg-marigold" />
             <div className="p-6 space-y-5">
@@ -367,7 +367,7 @@ export default function DistrictAdminContactDetailsPage() {
                   placeholder="email@example.com"
                   value={formEmail}
                   onChange={e => setFormEmail(e.target.value)}
-                  className="border-slate-200 bg-white focus:border-azure focus:ring-azure/20"
+                  className="border-slate-200 bg-card focus:border-azure focus:ring-azure/20"
                 />
               </div>
               <div className="space-y-2">
@@ -376,13 +376,13 @@ export default function DistrictAdminContactDetailsPage() {
                   placeholder="+1 555 123 4567"
                   value={formPhone}
                   onChange={e => setFormPhone(e.target.value)}
-                  className="border-slate-200 bg-white focus:border-azure focus:ring-azure/20"
+                  className="border-slate-200 bg-card focus:border-azure focus:ring-azure/20"
                 />
               </div>
               <div className="space-y-2">
                 <Label>Status</Label>
                 <Select value={formIsActive} onValueChange={setFormIsActive}>
-                  <SelectTrigger className="border-slate-200 bg-white focus:border-azure focus:ring-azure/20">
+                  <SelectTrigger className="border-slate-200 bg-card focus:border-azure focus:ring-azure/20">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>

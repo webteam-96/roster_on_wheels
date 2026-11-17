@@ -63,7 +63,7 @@ public class ClubWebsiteReminderBackgroundService : BackgroundService
 
     private async Task RunDailyAsync(CancellationToken ct)
     {
-        using var conn = new MySqlConnection(_connectionString);
+        using var conn = RowDb.Connect(_connectionString);
         await conn.OpenAsync(ct);
 
         // 1. Auto-expire any Active site past its EndDate (independent of email logic).

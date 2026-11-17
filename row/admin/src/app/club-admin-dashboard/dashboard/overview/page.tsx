@@ -147,7 +147,7 @@ export default function ClubAdminDashboardOverviewPage() {
       <GrowthCard clubId={data.club.clubId} yearId={yearId} canManage={canManage} />
 
       <div className="grid grid-cols-1 xl:grid-cols-4 gap-4 items-stretch">
-        <div className="rounded-[20px] border border-slate-200 bg-white p-5">
+        <div className="rounded-[20px] border border-slate-200 bg-card p-5">
           <h3 className="text-sm font-semibold text-slate-800 mb-1">Membership</h3>
           <p className="text-xs text-slate-500 mb-3">RY {data.club.yearLabel} snapshot</p>
           <p className="text-3xl font-extrabold text-slate-900 tabular-nums">{data.totalMembers} <span className="text-xs text-slate-400 font-normal">total members</span></p>
@@ -170,7 +170,7 @@ export default function ClubAdminDashboardOverviewPage() {
           </div>
         </div>
 
-        <div className="rounded-[20px] border border-slate-200 bg-white p-5">
+        <div className="rounded-[20px] border border-slate-200 bg-card p-5">
           <h3 className="text-sm font-semibold text-slate-800 mb-1">TRF Breakdown</h3>
           <p className="text-xs text-slate-500 mb-3">By fund type · RY {data.club.yearLabel}</p>
           {[
@@ -197,7 +197,7 @@ export default function ClubAdminDashboardOverviewPage() {
           ))}
         </div>
 
-        <div className="rounded-[20px] border border-slate-200 bg-white p-5">
+        <div className="rounded-[20px] border border-slate-200 bg-card p-5">
           <h3 className="text-sm font-semibold text-slate-800 mb-1">Service Projects & Avenues</h3>
           <p className="text-xs text-slate-500 mb-3">By module this RY</p>
           {data.avenues.length === 0 ? (
@@ -223,7 +223,7 @@ export default function ClubAdminDashboardOverviewPage() {
           </div>
         </div>
 
-        <div className="rounded-[20px] border border-slate-200 bg-white p-5">
+        <div className="rounded-[20px] border border-slate-200 bg-card p-5">
           <h3 className="text-sm font-semibold text-slate-800 mb-1">District Awards</h3>
           <p className="text-xs text-slate-500 mb-3">Points by category</p>
           {data.citationChecklist.length === 0 ? (
@@ -248,7 +248,7 @@ export default function ClubAdminDashboardOverviewPage() {
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
-        <div className="xl:col-span-2 rounded-[20px] border border-slate-200 bg-white p-5">
+        <div className="xl:col-span-2 rounded-[20px] border border-slate-200 bg-card p-5">
           <h3 className="text-sm font-semibold text-slate-800 mb-1">Membership: Monthly Growth</h3>
           <p className="text-xs text-slate-500 mb-3">New joiners by month · RY {data.club.yearLabel}</p>
           {data.memberGrowth.length === 0 ? (
@@ -279,7 +279,7 @@ export default function ClubAdminDashboardOverviewPage() {
           )}
         </div>
 
-        <div className="rounded-[20px] border border-slate-200 bg-white p-5">
+        <div className="rounded-[20px] border border-slate-200 bg-card p-5">
           <h3 className="text-sm font-semibold text-slate-800 mb-1">Upcoming Events</h3>
           <p className="text-xs text-slate-500 mb-3">Next 8</p>
           {data.upcomingEvents.length === 0 ? (

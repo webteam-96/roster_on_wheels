@@ -78,7 +78,7 @@ const MEETING_TYPE_LABELS: Record<string, string> = {
 
 const MEETING_TYPE_COLORS: Record<string, string> = {
   regular: "bg-blue-100 text-blue-800",
-  fellowship: "bg-[#CFE2F6] text-purple-800",
+  fellowship: "bg-[#CFE2F6] text-slate-800",
   bod: "bg-[#FFC65C] text-orange-800",
   assembly: "bg-green-100 text-green-800",
   trust: "bg-red-100 text-red-800",
@@ -823,7 +823,7 @@ export default function ClubMonthlyReportWizardPage() {
                                               {project.projectType && (
                                                 <Badge className={project.projectType === "one_time"
                                                   ? "bg-blue-100 text-blue-800 border-blue-300 text-xs"
-                                                  : "bg-[#CFE2F6] text-purple-800 border-purple-300 text-xs"}>
+                                                  : "bg-[#CFE2F6] text-slate-800 border-slate-300 text-xs"}>
                                                   {project.projectType === "one_time" ? "One Time" : "Ongoing"}
                                                 </Badge>
                                               )}

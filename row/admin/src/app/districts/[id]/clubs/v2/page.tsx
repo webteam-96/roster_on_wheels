@@ -78,7 +78,7 @@ function ClubCardV2({
 
   return (
     <div
-      className={`relative overflow-hidden rounded-2xl border border-slate-200 shadow-sm bg-white transition-all duration-200 ${
+      className={`relative overflow-hidden rounded-2xl border border-slate-200 shadow-sm bg-card transition-all duration-200 ${
         club.isActive ? "cursor-pointer hover:shadow-md hover:-translate-y-0.5" : "opacity-70 cursor-not-allowed"
       } ${navigating ? "opacity-60 pointer-events-none" : ""}`}
       onClick={handleClick}
@@ -210,7 +210,7 @@ function ClubTableV2({
   };
 
   return (
-    <div className="rounded-2xl border border-slate-200 shadow-sm overflow-hidden bg-white">
+    <div className="rounded-2xl border border-slate-200 shadow-sm overflow-hidden bg-card">
       <Table>
         <TableHeader>
           <TableRow
@@ -413,7 +413,7 @@ export default function DistrictClubsV2Page() {
     <ProtectedRoute>
       <div className="space-y-4">
         {/* ── Header ─────────────────────────────────────────────────── */}
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-4">
+        <div className="bg-card rounded-2xl border border-slate-200 shadow-sm p-4">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-3">
               <Button
@@ -454,7 +454,7 @@ export default function DistrictClubsV2Page() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               onKeyDown={handleKeyDown}
-              className="pl-9 border-slate-200 bg-white focus:border-azure focus:ring-azure/20 text-sm"
+              className="pl-9 border-slate-200 bg-card focus:border-azure focus:ring-azure/20 text-sm"
             />
           </div>
           <div className="flex flex-wrap items-center gap-2">
@@ -465,7 +465,7 @@ export default function DistrictClubsV2Page() {
             >
               <Search className="mr-2 h-4 w-4" />Search
             </Button>
-            <div className="flex items-center rounded-md border border-slate-200 bg-white ml-auto overflow-hidden">
+            <div className="flex items-center rounded-md border border-slate-200 bg-card ml-auto overflow-hidden">
               <Button
                 variant="ghost"
                 size="icon"
@@ -503,7 +503,7 @@ export default function DistrictClubsV2Page() {
               placeholder="Filter clubs..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-9 pr-8 border-slate-200 bg-white focus:border-azure focus:ring-azure/20 text-sm"
+              className="pl-9 pr-8 border-slate-200 bg-card focus:border-azure focus:ring-azure/20 text-sm"
             />
             {searchQuery && (
               <Button
@@ -525,7 +525,7 @@ export default function DistrictClubsV2Page() {
         )}
 
         {error && (
-          <div className="flex flex-col items-center justify-center py-20 text-center bg-white rounded-2xl border border-slate-200 shadow-sm">
+          <div className="flex flex-col items-center justify-center py-20 text-center bg-card rounded-2xl border border-slate-200 shadow-sm">
             <AlertCircle className="h-12 w-12 text-red-500 mb-4" />
             <h3 className="text-lg font-semibold text-slate-800">Error</h3>
             <p className="text-slate-500 mt-2 max-w-md">{error}</p>
@@ -540,7 +540,7 @@ export default function DistrictClubsV2Page() {
         )}
 
         {!loading && !error && data && data.items.length === 0 && (
-          <div className="flex flex-col items-center justify-center py-20 text-center bg-white rounded-2xl border border-slate-200 shadow-sm">
+          <div className="flex flex-col items-center justify-center py-20 text-center bg-card rounded-2xl border border-slate-200 shadow-sm">
             <Building2 className="h-12 w-12 text-slate-400 mb-4" />
             <h3 className="text-lg font-semibold text-slate-800">No clubs found</h3>
             <p className="text-slate-500 mt-2">No clubs in this district yet.</p>
@@ -558,7 +558,7 @@ export default function DistrictClubsV2Page() {
           return (
             <>
               {filteredItems.length === 0 && searchQuery ? (
-                <div className="flex flex-col items-center justify-center py-20 text-center bg-white rounded-2xl border border-slate-200 shadow-sm">
+                <div className="flex flex-col items-center justify-center py-20 text-center bg-card rounded-2xl border border-slate-200 shadow-sm">
                   <Building2 className="h-12 w-12 text-slate-400 mb-4" />
                   <h3 className="text-lg font-semibold text-slate-800">No results found</h3>
                   <p className="text-slate-500 mt-2">No clubs match your filter. Try a different term.</p>

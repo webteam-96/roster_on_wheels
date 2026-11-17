@@ -16,7 +16,7 @@ public class DocumentService : IDocumentService
         _env = env;
     }
 
-    private MySqlConnection CreateConnection() => new(_connectionString);
+    private MySqlConnection CreateConnection() => RowDb.Connect(_connectionString);
 
     public async Task<(List<DocumentListDto> Items, int TotalCount)> GetAllAsync(int clubId, string status, string search, int page, int pageSize, int? districtId = null)
     {
@@ -146,7 +146,7 @@ public class DocumentService : IDocumentService
         var existingExpiry = await connection.ExecuteScalarAsync<DateTime?>(
             @"SELECT ExpiryDateTime FROM club_documents WHERE pk_document_id = @Id AND isdeleted = 0",
             new { Id = id });
-        if (existingExpiry.HasValue && existingExpiry.Value < DateTime.Now)
+        if (existingExpiry.HasValue && existingExpiry.Value < DateTime.UtcNow)
             throw new InvalidOperationException("Cannot edit an expired item. Once an item's expiry date has passed, it can no longer be modified.");
 
         await connection.ExecuteAsync(
@@ -186,7 +186,7 @@ public class DocumentService : IDocumentService
         var originalBaseName = System.Text.RegularExpressions.Regex.Replace(Path.GetFileNameWithoutExtension(file.FileName), @"[^A-Za-z0-9\-]+", "_").Trim('_');
         if (string.IsNullOrEmpty(originalBaseName)) originalBaseName = "file";
         var extension = Path.GetExtension(file.FileName);
-        var now = DateTime.Now;
+        var now = DateTime.UtcNow;
         var timestamp = now.ToString("ddMMyyyyhhmmsstt");
         var fileName = $"{originalBaseName}_{Guid.NewGuid().ToString("N").Substring(0, 8)}{timestamp}{extension}";
         var filePath = Path.Combine(uploadsPath, fileName);

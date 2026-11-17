@@ -481,7 +481,7 @@ export default function DistrictFoundationGoalV2EditPage() {
             <select
               value={selectedYearId || ""}
               onChange={(e) => setSelectedYearId(Number(e.target.value))}
-              className="w-full rounded-[12px] border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+              className="w-full rounded-[12px] border border-slate-200 bg-card px-3 py-2 text-sm text-slate-700 focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
             >
               <option value="" disabled>Select rotary year…</option>
               {allYears.map((y) => (
@@ -561,7 +561,7 @@ export default function DistrictFoundationGoalV2EditPage() {
                                 setFundForm((p) => ({ ...p, [row.key]: e.target.value }))
                               }
                               placeholder="0"
-                              className="w-full rounded-[12px] border border-slate-200 bg-white pl-6 pr-3 py-2 text-sm text-slate-700 focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                              className="w-full rounded-[12px] border border-slate-200 bg-card pl-6 pr-3 py-2 text-sm text-slate-700 focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
                             />
                           </div>
                         </div>
@@ -649,7 +649,7 @@ export default function DistrictFoundationGoalV2EditPage() {
                                   setTargetForm((p) => ({ ...p, [a.key]: e.target.value }))
                                 }
                                 placeholder="0"
-                                className="w-full rounded-[12px] border border-slate-200 bg-white px-2 py-1.5 text-sm text-slate-700 text-right tabular-nums focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42] disabled:bg-slate-50 disabled:text-slate-400"
+                                className="w-full rounded-[12px] border border-slate-200 bg-card px-2 py-1.5 text-sm text-slate-700 text-right tabular-nums focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42] disabled:bg-slate-50 disabled:text-slate-400"
                               />
                             </td>
                             <td className="px-3 py-2 text-right tabular-nums text-slate-700">

@@ -161,7 +161,6 @@ export default function PublicClubWebsitePayPage() {
   if (loadingInfo) return (
     <PayPageShell wide>
       <div className="py-24 text-center">
-        <div className="mx-auto h-8 w-8 animate-spin rounded-full border-2 border-slate-200 border-t-azure" />
         <SkeletonRows />
       </div>
     </PayPageShell>
@@ -180,7 +179,7 @@ export default function PublicClubWebsitePayPage() {
   // Active site with plenty of time left — nothing to pay for yet.
   if (info && info.canPurchase === false) return (
     <PayPageShell wide>
-      <div className="mx-auto max-w-lg rounded-2xl border border-slate-200/80 bg-white p-8 text-center shadow-sm">
+      <div className="mx-auto max-w-lg rounded-2xl border border-slate-200/80 bg-card p-8 text-center shadow-sm">
         <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-emerald-50 ring-1 ring-emerald-200">
           <Check className="h-7 w-7 text-emerald-600" strokeWidth={2.5} />
         </div>
@@ -209,7 +208,7 @@ export default function PublicClubWebsitePayPage() {
   // Step 4 is terminal — show it on its own, like the wallet page's receipt.
   if (step === "done" && result) return (
     <PayPageShell wide>
-      <div className="mx-auto max-w-lg rounded-2xl border border-slate-200/80 bg-white p-8 text-center shadow-sm">
+      <div className="mx-auto max-w-lg rounded-2xl border border-slate-200/80 bg-card p-8 text-center shadow-sm">
         <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-emerald-50 ring-1 ring-emerald-200">
           <Check className="h-7 w-7 text-emerald-600" strokeWidth={2.5} />
         </div>

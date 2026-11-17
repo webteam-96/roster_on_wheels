@@ -1,3 +1,4 @@
+using RotaryApi.Services;
 using System.Net;
 using Dapper;
 using Microsoft.Extensions.DependencyInjection;
@@ -91,7 +92,7 @@ CREATE TABLE IF NOT EXISTS rotary_org_sync_requests (
 
     private async Task<MySqlConnection> OpenAsync()
     {
-        var db = new MySqlConnection(s.ConnectionString);
+        var db = RowDb.Connect(s.ConnectionString);
         await db.OpenAsync();
         return db;
     }
@@ -160,7 +161,7 @@ CREATE TABLE IF NOT EXISTS rotary_org_sync_requests (
 
     private async Task ProcessAsync(Req req)
     {
-        var started = DateTime.Now;
+        var started = DateTime.UtcNow;
         var num = req.DistrictNumber.Trim();
         Log.Info($"Request {req.pk_id}: district {num}, {req.TriggerType}, {(req.fk_login_id != null ? $"saved login {req.fk_login_id}" : "one-time login")}.");
         string? password = null;
@@ -273,12 +274,12 @@ CREATE TABLE IF NOT EXISTS rotary_org_sync_requests (
                 await FinishAsync(req, "FAILED", "Failed", $"District {num} does not match this request's district in RIZones.");
                 return;
             }
-            var source = $"RCC sync {DateTime.Now:yyyy-MM-dd}";
+            var source = $"RCC sync {DateTime.UtcNow:yyyy-MM-dd}";
             var (written, kept) = await DbWriter.WriteAsync(db, resolved.Rows, source);
             Log.Info($"Request {req.pk_id}: district {num}: {res.Clubs.Count} clubs, {resolved.Rows.Count} values -> {written} rows written, " +
                      $"{kept} existing targets left unchanged, {resolved.UnknownClubs.Count} clubs not in RIZones skipped" +
                      (resolved.UnknownClubs.Count > 0 ? $" ({string.Join(", ", resolved.UnknownClubs.Take(20))})" : "") +
-                     $", {res.Errors.Count} Rotary.org errors, {(DateTime.Now - started).TotalMinutes:0.0} min.");
+                     $", {res.Errors.Count} Rotary.org errors, {(DateTime.UtcNow - started).TotalMinutes:0.0} min.");
 
             var note = res.Errors.Count > 0 ? $"Done with {res.Errors.Count} Rotary.org error(s); first: {res.Errors[0]}" : null;
             await db.ExecuteAsync(@"UPDATE rotary_org_sync_requests SET Status = 'DONE', Stage = 'Done', FinishedAt = NOW(), RowsWritten = @written,
@@ -386,7 +387,7 @@ CREATE TABLE IF NOT EXISTS rotary_org_sync_requests (
 
     private async Task MaybeNightlyAsync()
     {
-        var now = DateTime.Now;
+        var now = DateTime.UtcNow;
         if (now.Hour < s.NightlyHour || now.Hour >= s.NightlyHour + 3) return;
         var today = now.ToString("yyyy-MM-dd");
         try { if (File.Exists(NightlyFile) && File.ReadAllText(NightlyFile).Trim() == today) return; } catch { }
@@ -429,7 +430,7 @@ CREATE TABLE IF NOT EXISTS rotary_org_sync_requests (
 
     private async Task MaybeWeeklyReportAsync()
     {
-        var now = DateTime.Now;
+        var now = DateTime.UtcNow;
         var today = now.ToString("yyyy-MM-dd");
         if (now.DayOfWeek != s.WeeklyDay || s.WeeklyReportTo.Count == 0) return;
         try { if (!File.Exists(NightlyFile) || File.ReadAllText(NightlyFile).Trim() != today) return; } catch { return; }

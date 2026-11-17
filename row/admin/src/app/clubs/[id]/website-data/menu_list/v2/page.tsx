@@ -51,7 +51,7 @@ function getLinkTypeLabel(value: string): string {
 function linkTypeChipStyle(value: string): string {
   switch (value) {
     case "page": return "bg-blue-50 text-blue-700 border-blue-200";
-    case "external": return "bg-violet-50 text-violet-700 border-violet-200";
+    case "external": return "bg-slate-50 text-slate-700 border-slate-200";
     case "document": return "bg-amber-50 text-amber-700 border-amber-200";
     case "html": return "bg-emerald-50 text-emerald-700 border-emerald-200";
     default: return "bg-slate-50 text-slate-700 border-slate-200";
@@ -368,7 +368,7 @@ export default function MenuListV2Page() {
         </div>
 
         {/* Table card */}
-        <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+        <div className="bg-card rounded-2xl border border-slate-200 overflow-hidden">
           <div className="px-5 py-3 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div>
               <h3 className="text-sm font-semibold text-slate-800">Navigation Menus</h3>
@@ -696,7 +696,7 @@ function Row(props: RowProps) {
               {canManage && (
                 <Link
                   href={addSubHref}
-                  className="inline-flex items-center gap-1 text-xs font-medium px-2 py-1 rounded border border-slate-200 text-slate-700 hover:bg-white"
+                  className="inline-flex items-center gap-1 text-xs font-medium px-2 py-1 rounded border border-slate-200 text-slate-700 hover:bg-card"
                 >
                   <PlusCircle size={12} /> Add Sub-Menu
                 </Link>
@@ -713,13 +713,13 @@ function Row(props: RowProps) {
               {canManage && (
                 <Link
                   href={addSubHref}
-                  className="inline-flex items-center gap-1 text-xs font-medium px-2 py-1 rounded border border-slate-200 text-slate-700 hover:bg-white"
+                  className="inline-flex items-center gap-1 text-xs font-medium px-2 py-1 rounded border border-slate-200 text-slate-700 hover:bg-card"
                 >
                   <PlusCircle size={12} /> Add Sub-Menu
                 </Link>
               )}
             </div>
-            <div className="overflow-hidden rounded-lg border border-slate-200 bg-white">
+            <div className="overflow-hidden rounded-lg border border-slate-200 bg-card">
               <table className="min-w-full text-xs">
                 <tbody className="divide-y divide-slate-100">
                   {subs.filter(s => (s.subMenuName ?? "").trim() !== "").map((sub, si) => (
@@ -728,7 +728,7 @@ function Row(props: RowProps) {
                       <td className="px-3 py-2 font-medium text-slate-700">
                         <span className="text-slate-300 mr-1">└</span>{sub.subMenuName}
                         {sub.isSystemManaged && (
-                          <span className="ml-2 inline-flex items-center text-[10px] font-medium px-1.5 py-0.5 rounded-full border bg-purple-50 text-purple-700 border-purple-200">
+                          <span className="ml-2 inline-flex items-center text-[10px] font-medium px-1.5 py-0.5 rounded-full border bg-slate-50 text-slate-700 border-slate-200">
                             System
                           </span>
                         )}

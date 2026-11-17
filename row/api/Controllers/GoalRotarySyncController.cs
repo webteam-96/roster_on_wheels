@@ -44,7 +44,7 @@ public class GoalRotarySyncController : ControllerBase
 
     private async Task<MySqlConnection> OpenAsync()
     {
-        var c = new MySqlConnection(_cs);
+        var c = RowDb.Connect(_cs);
         await c.OpenAsync();
         if (!_tablesReady)
         {

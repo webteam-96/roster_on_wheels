@@ -63,7 +63,7 @@ public class OnboardingKitController : ControllerBase
     {
         if (!await ScopeWriteGuardMiddleware.AllowedAsync(_cs, Me, false, districtId))
             return StatusCode(403, new { message = "Only the district's managers open onboarding kits." });
-        await using var c = new MySqlConnection(_cs);
+        await using var c = RowDb.Connect(_cs);
         if (await ClubAsync(c, districtId, clubId) is not { } k) return NotFound(new { message = "Club not found in this district." });
         var html = "<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><title>ROW onboarding kit</title>" +
                    "<style>body{font-family:system-ui,sans-serif;max-width:40rem;margin:2rem auto;padding:0 1rem;line-height:1.5;color:#1b2430;background:#fbfaf7}</style>" +
@@ -77,7 +77,7 @@ public class OnboardingKitController : ControllerBase
     {
         if (!await ScopeWriteGuardMiddleware.AllowedAsync(_cs, Me, false, districtId))
             return StatusCode(403, new { message = "Only the district's managers send onboarding nudges." });
-        await using var c = new MySqlConnection(_cs);
+        await using var c = RowDb.Connect(_cs);
         if (await ClubAsync(c, districtId, clubId) is not { } k) return NotFound(new { message = "Club not found in this district." });
         var to = (await c.QueryAsync<string>(@"
             SELECT DISTINCT m.EmailId FROM board_of_directors bd

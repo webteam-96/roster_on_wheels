@@ -43,8 +43,9 @@ export const SOCIAL = [
 ] as const;
 
 export const KAIZEN_HREF = "https://www.kaizeninfotech.com/";
+export const LEGAL_NAME = "Kaizen Infotech Solutions Pvt. Ltd";
 
-// Policy pages (adapted from Kaizen Infotech's own policies), linked in the footer
+// Policy pages (the RIZones policy text with the ROW name, user 2026-11-17), linked in the footer
 export const LEGAL = [
   { href: "/privacy-policy", label: "Privacy Policy" },
   { href: "/terms-of-service", label: "Terms of Service" },

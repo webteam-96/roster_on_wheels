@@ -62,7 +62,7 @@ public class PublicProjectShareController : ControllerBase
     // Title on the card / in the text — untouched in the JSON `title` field.
     private const int TitleMaxChars = 110;
 
-    private MySqlConnection CreateConn() => new(_connStr);
+    private MySqlConnection CreateConn() => RowDb.Connect(_connStr);
 
     // ── The share payload ───────────────────────────────────────────────────
     [HttpGet("api/public/projects/{id:int}/share")]

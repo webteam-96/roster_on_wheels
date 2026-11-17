@@ -20,7 +20,7 @@ public class ClubRotaryOrgCredentialService : IClubRotaryOrgCredentialService
         _protector = dpProvider.CreateProtector("RotaryApi.ClubRotaryOrgCredentials.v1");
     }
 
-    private MySqlConnection CreateConnection() => new(_connectionString);
+    private MySqlConnection CreateConnection() => RowDb.Connect(_connectionString);
 
     public async Task<ClubRotaryOrgCredentialDto> GetAsync(int clubId, int memberId)
     {

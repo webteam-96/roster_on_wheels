@@ -306,7 +306,7 @@ export default function DistrictMembershipGoalV2EditPage() {
             <select
               value={selectedYearId || ""}
               onChange={(e) => setSelectedYearId(Number(e.target.value))}
-              className="w-full rounded-[12px] border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+              className="w-full rounded-[12px] border border-slate-200 bg-card px-3 py-2 text-sm text-slate-700 focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
             >
               <option value="" disabled>Select rotary year…</option>
               {allYears.map((y) => (
@@ -348,7 +348,7 @@ export default function DistrictMembershipGoalV2EditPage() {
                   value={targetTotal}
                   onChange={(e) => setTargetTotal(e.target.value)}
                   placeholder="e.g. 1200"
-                  className="w-full rounded-[12px] border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                  className="w-full rounded-[12px] border border-slate-200 bg-card px-3 py-2 text-sm text-slate-700 focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
                 />
               </div>
               <div>
@@ -365,7 +365,7 @@ export default function DistrictMembershipGoalV2EditPage() {
                   value={targetNewMembers}
                   onChange={(e) => setTargetNewMembers(e.target.value)}
                   placeholder="e.g. 150"
-                  className="w-full rounded-[12px] border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                  className="w-full rounded-[12px] border border-slate-200 bg-card px-3 py-2 text-sm text-slate-700 focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
                 />
               </div>
               <div className="sm:col-span-2">
@@ -383,7 +383,7 @@ export default function DistrictMembershipGoalV2EditPage() {
                   value={targetRetentionPercent}
                   onChange={(e) => setTargetRetentionPercent(e.target.value)}
                   placeholder="e.g. 92.5"
-                  className="w-full sm:max-w-[200px] rounded-[12px] border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                  className="w-full sm:max-w-[200px] rounded-[12px] border border-slate-200 bg-card px-3 py-2 text-sm text-slate-700 focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
                 />
               </div>
             </div>

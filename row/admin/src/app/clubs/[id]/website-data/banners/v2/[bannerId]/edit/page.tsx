@@ -307,7 +307,7 @@ export default function BannerPhotosV2EditPage() {
           <select
             value={isActive}
             onChange={(e) => setIsActive(e.target.value)}
-            className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42] bg-white"
+            className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42] bg-card"
           >
             <option value="1">Active (shown on website)</option>
             <option value="0">Inactive (hidden)</option>

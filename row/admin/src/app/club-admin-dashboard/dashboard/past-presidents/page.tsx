@@ -165,7 +165,7 @@ export default function DashboardPastPresidentsPage() {
         />
       </div>
 
-      <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+      <div className="bg-card rounded-2xl border border-slate-200 overflow-hidden">
         {filtered.length === 0 ? (
           <div className="px-5 py-12 text-center text-slate-500">
             <Award className="h-10 w-10 mx-auto mb-3 text-slate-300" />

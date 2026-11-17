@@ -28,7 +28,7 @@ public class ClubGalleryPublicController : ControllerBase
         _yearTables = yearTables;
     }
 
-    private MySqlConnection CreateConn() => new(_connectionString);
+    private MySqlConnection CreateConn() => RowDb.Connect(_connectionString);
 
     // Same SQL as ClubWebsitePublicDataController.IsClubServiceableAsync — duplicated
     // intentionally so this controller has no compile-time dependency on the other one
@@ -147,7 +147,7 @@ public class ClubGalleryPublicController : ControllerBase
             ModuleName   = (string?)r.ModuleName ?? "",
             ImagePath    = (string?)r.ImagePath ?? "",
             IsPrimary    = r.IsPrimary == null ? false : Convert.ToBoolean(r.IsPrimary),
-            CreatedDate  = r.CreatedDate is DateTime cd ? cd.ToString("yyyy-MM-ddTHH:mm:ss") : null,
+            CreatedDate  = r.CreatedDate is DateTime cd ? ZoneTime.Iso(cd) : null,
         }).ToList();
 
         return Ok(new GalleryPageDto
@@ -234,7 +234,7 @@ public class ClubGalleryPublicController : ControllerBase
             Title            = (string?)r.Title ?? "",
             Description      = (string?)r.Description,
             Venue            = (string?)r.Venue,
-            EventDate        = ((DateTime)r.EventDate).ToString("yyyy-MM-ddTHH:mm:ss"),
+            EventDate        = ZoneTime.Iso((DateTime)r.EventDate),
             ImagePath        = (string?)r.ImagePath,
             RegistrationLink = (string?)r.RegistrationLink,
         }));

@@ -29,7 +29,7 @@ public class MobileDistrictAwardsController : ControllerBase
         _connectionString = configuration.GetConnectionString("DefaultConnection")!;
     }
 
-    private MySqlConnection Conn() => new(_connectionString);
+    private MySqlConnection Conn() => RowDb.Connect(_connectionString);
 
     // Same rule as the web district-modules citation routes this mirrors: members and managers of the district.
     // Was: any signed-in user could read any district's awards.

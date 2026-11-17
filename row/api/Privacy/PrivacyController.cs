@@ -123,7 +123,7 @@ public class MemberLanguageController : ControllerBase
         if (!LanguageCode.IsMatch(language)) return BadRequest(new { message = "language must be a language code such as \"en\" or \"pt-BR\"." });
         var memberId = int.TryParse(User.FindFirst("memberId")?.Value, out var id) ? id : 0;
         if (memberId <= 0) return StatusCode(403, new { message = "Not signed in as a member." });
-        await using var conn = new MySqlConnection(_connectionString);
+        await using var conn = RowDb.Connect(_connectionString);
         await conn.ExecuteAsync("UPDATE member_master_profile SET PrimaryLanguage = @Lang WHERE pk_member_master_profile_id = @Id", new { Lang = language, Id = memberId });
         return Ok(new { language });
     }

@@ -56,7 +56,7 @@ public class PublicClubWebsiteController : ControllerBase
         if (!TryToken(token, out var clubId, out var yearId, out var error))
             return BadRequest(new { message = error ?? "Invalid link." });
 
-        using var conn = new MySqlConnection(_connectionString);
+        using var conn = RowDb.Connect(_connectionString);
         await conn.OpenAsync();
         var club = await conn.QueryFirstOrDefaultAsync<dynamic>(@"
             SELECT c.ClubName AS clubName, c.IsActive AS isActive, c.isdeleted AS isDeleted

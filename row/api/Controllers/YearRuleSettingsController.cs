@@ -46,7 +46,7 @@ public class YearRuleSettingsController : ControllerBase
 
     private async Task<MySqlConnection> OpenAsync()
     {
-        var conn = new MySqlConnection(_connectionString);
+        var conn = RowDb.Connect(_connectionString);
         await conn.OpenAsync();
         return conn;
     }

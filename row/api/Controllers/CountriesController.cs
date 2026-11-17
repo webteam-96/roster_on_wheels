@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using RotaryApi.DTOs;
 using RotaryApi.Services;
@@ -5,6 +6,7 @@ using RotaryApi.Services;
 namespace RotaryApi.Controllers;
 
 [ApiController]
+[AllowAnonymous] // country list is public lookup data (sign-up and public forms)
 [Route("api/[controller]")]
 public class CountriesController : ControllerBase
 {

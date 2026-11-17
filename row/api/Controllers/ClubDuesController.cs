@@ -48,7 +48,7 @@ public class ClubDuesController : ControllerBase
     private async Task<bool> CanPayForClubAsync(int memberId, int clubId, int duesId)
     {
         if (memberId <= 0 || clubId <= 0) return false;
-        await using var conn = new MySqlConnection(_connStr);
+        await using var conn = RowDb.Connect(_connStr);
         var count = await conn.ExecuteScalarAsync<int>(@"
             SELECT COUNT(*)
             FROM board_of_directors bod
@@ -73,7 +73,7 @@ public class ClubDuesController : ControllerBase
     private async Task<bool> IsDistrictAdminForDuesAsync(int memberId, int duesId)
     {
         if (memberId <= 0 || duesId <= 0) return false;
-        await using var conn = new MySqlConnection(_connStr);
+        await using var conn = RowDb.Connect(_connStr);
         var count = await conn.ExecuteScalarAsync<int>(@"
             SELECT COUNT(*)
             FROM club_dues cd
@@ -92,7 +92,7 @@ public class ClubDuesController : ControllerBase
     private async Task<bool> IsDistrictAdminForPaymentAsync(int memberId, int paymentId)
     {
         if (memberId <= 0 || paymentId <= 0) return false;
-        await using var conn = new MySqlConnection(_connStr);
+        await using var conn = RowDb.Connect(_connStr);
         var count = await conn.ExecuteScalarAsync<int>(@"
             SELECT COUNT(*)
             FROM club_dues_payments p
@@ -456,7 +456,7 @@ public class ClubDuesController : ControllerBase
     {
         var memberId = GetUserId();
         if (memberId <= 0) return OfficerDenied();
-        await using var conn = new MySqlConnection(_connStr);
+        await using var conn = RowDb.Connect(_connStr);
         var rows = await conn.QueryAsync<dynamic>($@"
             SELECT DISTINCT cd.pk_club_dues_id AS duesId, cd.Purpose AS purpose, cd.RotaryYear AS rotaryYear,
                    c.pk_club_id AS clubId, c.ClubName AS clubName, d.DistrictNumber AS districtNumber
@@ -545,7 +545,7 @@ public class ClubDuesController : ControllerBase
     {
         var memberId = GetUserId();
         if (memberId <= 0) return Denied();
-        await using var conn = new MySqlConnection(_connStr);
+        await using var conn = RowDb.Connect(_connStr);
 
         if (districtId.HasValue && districtId.Value > 0 &&
             (IsSuperAdmin() || await IsDistrictAdminOfDistrictAsync(memberId, districtId.Value)))
@@ -583,7 +583,7 @@ public class ClubDuesController : ControllerBase
     private async Task<bool> IsDistrictAdminOfDistrictAsync(int memberId, int districtId)
     {
         if (memberId <= 0 || districtId <= 0) return false;
-        await using var conn = new MySqlConnection(_connStr);
+        await using var conn = RowDb.Connect(_connStr);
         var count = await conn.ExecuteScalarAsync<int>(@"
             SELECT COUNT(*) FROM member_roles mr
             WHERE mr.fk_member_master_profile_id = @MemberId AND mr.fk_role_id = 2

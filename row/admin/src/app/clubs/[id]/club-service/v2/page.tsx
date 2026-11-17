@@ -56,7 +56,7 @@ function meetingTypeChipStyle(t: string): string {
   switch ((t || "").toLowerCase()) {
     case "regular":    return "bg-blue-50 text-blue-700 border-blue-200";
     case "fellowship": return "bg-emerald-50 text-emerald-700 border-emerald-200";
-    case "bod":        return "bg-violet-50 text-violet-700 border-violet-200";
+    case "bod":        return "bg-slate-50 text-slate-700 border-slate-200";
     case "assembly":   return "bg-amber-50 text-amber-700 border-amber-200";
     case "trust":      return "bg-rose-50 text-rose-700 border-rose-200";
     default:           return "bg-slate-50 text-slate-700 border-slate-200";
@@ -248,7 +248,7 @@ export default function ClubServiceV2Page() {
         </div>
 
         {/* Table card */}
-        <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+        <div className="bg-card rounded-2xl border border-slate-200 overflow-hidden">
           <div className="px-5 py-3 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div>
               <h3 className="text-sm font-semibold text-slate-800">Meeting Records</h3>
@@ -258,7 +258,7 @@ export default function ClubServiceV2Page() {
               <select
                 value={selectedYearId ?? ""}
                 onChange={(e) => { setSelectedYearId(e.target.value ? Number(e.target.value) : null); setPage(1); }}
-                className="px-2 h-10 py-0 text-sm border border-slate-200 rounded-[12px] bg-white focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                className="px-2 h-10 py-0 text-sm border border-slate-200 rounded-[12px] bg-card focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
               >
                 {years.length === 0 && <option value="">No years</option>}
                 {years.map((y) => (

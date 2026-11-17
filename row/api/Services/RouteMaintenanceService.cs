@@ -13,7 +13,7 @@ public class RouteMaintenanceService : IRouteMaintenanceService
         _connectionString = configuration.GetConnectionString("DefaultConnection")!;
     }
 
-    private MySqlConnection CreateConnection() => new(_connectionString);
+    private MySqlConnection CreateConnection() => RowDb.Connect(_connectionString);
 
     // Mobile app reads only the rows currently flagged on — keeps the
     // payload small (the catalog can grow to ~200+ rows over time).

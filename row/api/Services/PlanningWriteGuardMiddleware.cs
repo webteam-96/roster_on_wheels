@@ -46,7 +46,7 @@ public class PlanningWriteGuardMiddleware
             if (int.TryParse(ctx.GetRouteValue("yearId")?.ToString(), out var yearId)) years.Add(yearId);
             if (years.Count > 0 && (districtId != null || clubId != null))
             {
-                await using var conn = new MySqlConnection(_connectionString);
+                await using var conn = RowDb.Connect(_connectionString);
                 if (await PlanningAccess.ReadOnlyYearAsync(conn, districtId, clubId, on) is { } ro && years.Contains(ro.Year))
                 {
                     ctx.Response.StatusCode = StatusCodes.Status409Conflict;

@@ -71,7 +71,7 @@ function ClubCard({
           <RotaryLoader size="md" />
         </div>
       )}
-      <div className={`rounded-lg border bg-white p-3 shadow-sm transition-all h-full ${
+      <div className={`rounded-lg border bg-card p-3 shadow-sm transition-all h-full ${
         navigating ? "border-azure/40" : "border-slate-200 hover:border-azure/40 hover:shadow-md"
       }`}>
         <h3 className="text-sm font-bold text-slate-800 leading-tight group-hover:text-azure transition-colors">
@@ -216,7 +216,7 @@ export default function AgClubsPage() {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Search clubs..."
-          className="w-full pl-9 pr-8 py-2 text-sm border border-slate-300 rounded-lg bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-azure focus:border-azure"
+          className="w-full pl-9 pr-8 py-2 text-sm border border-slate-300 rounded-lg bg-card shadow-sm focus:outline-none focus:ring-2 focus:ring-azure focus:border-azure"
         />
         {search && (
           <button

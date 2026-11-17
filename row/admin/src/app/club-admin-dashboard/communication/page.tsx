@@ -259,7 +259,7 @@ function GreetingsColumn({
   ];
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden flex flex-col">
+    <div className="bg-card rounded-2xl border border-slate-200 overflow-hidden flex flex-col">
       <div className="px-5 py-3 border-b border-slate-100 flex items-center gap-2">
         <PartyPopper size={16} className="text-rose-600" />
         <h3 className="text-sm font-semibold text-slate-800">Greetings</h3>

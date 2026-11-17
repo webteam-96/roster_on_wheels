@@ -74,7 +74,7 @@ export default function AgClubDetailPage() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white rounded-[20px] border border-slate-200 p-5">
+        <div className="bg-card rounded-[20px] border border-slate-200 p-5">
           <h3 className="text-sm font-semibold text-slate-800 mb-3">Monthly Activity</h3>
           {monthly.length === 0 ? (
             <p className="text-xs text-slate-400">No monthly data for this year yet.</p>
@@ -93,7 +93,7 @@ export default function AgClubDetailPage() {
           )}
         </div>
 
-        <div className="bg-white rounded-[20px] border border-slate-200 p-5">
+        <div className="bg-card rounded-[20px] border border-slate-200 p-5">
           <h3 className="text-sm font-semibold text-slate-800 mb-3">TRF Breakdown</h3>
           {trf.totalInr === 0 ? (
             <p className="text-xs text-slate-400">No TRF contributions recorded.</p>
@@ -119,7 +119,7 @@ export default function AgClubDetailPage() {
         </div>
       </div>
 
-      <div className="bg-white rounded-[20px] border border-slate-200 overflow-hidden">
+      <div className="bg-card rounded-[20px] border border-slate-200 overflow-hidden">
         <div className="px-5 py-3 border-b border-slate-100">
           <h3 className="text-sm font-semibold text-slate-800">Recent Projects</h3>
           <p className="text-xs text-slate-500 mt-0.5">Top 10 most recent</p>

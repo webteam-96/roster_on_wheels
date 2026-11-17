@@ -174,7 +174,7 @@ export default function PublicProjectPage() {
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col">
-      <header className="w-full border-b border-[color:var(--row-line)] bg-white">
+      <header className="w-full border-b border-[color:var(--row-line)] bg-card">
         <div className="max-w-5xl mx-auto px-4 py-3 flex items-center gap-3">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
@@ -236,7 +236,7 @@ export default function PublicProjectPage() {
 
             {/* Club Service meeting — only the Club Service add/edit fields. */}
             {isClubService && (meetingTypeLabel || attendanceText || project.agendaDocument || project.minutesDocument) && (
-              <div className="bg-white rounded-[20px] border border-slate-200 mb-6 overflow-hidden">
+              <div className="bg-card rounded-[20px] border border-slate-200 mb-6 overflow-hidden">
                 <dl className="divide-y divide-slate-100 text-sm">
                   {meetingTypeLabel && (
                     <div className="flex gap-4 px-4 py-2.5">
@@ -281,7 +281,7 @@ export default function PublicProjectPage() {
             )}
 
             {project.description && (
-              <div className="bg-white rounded-[20px] border border-slate-200 p-4 sm:p-5 mb-6">
+              <div className="bg-card rounded-[20px] border border-slate-200 p-4 sm:p-5 mb-6">
                 <p className="text-sm text-slate-700 whitespace-pre-wrap break-words">
                   {project.description}
                 </p>
@@ -289,7 +289,7 @@ export default function PublicProjectPage() {
             )}
 
             {photos.length === 0 ? (
-              <div className="bg-white rounded-xl border border-dashed border-slate-200 p-10 text-center text-sm text-slate-400">
+              <div className="bg-card rounded-xl border border-dashed border-slate-200 p-10 text-center text-sm text-slate-400">
                 No photos uploaded for this {isClubService ? "meeting" : "project"}.
               </div>
             ) : (
@@ -302,7 +302,7 @@ export default function PublicProjectPage() {
                     type="button"
                     onClick={handleDownloadAll}
                     disabled={bulkDownloading}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-full border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 disabled:opacity-60 disabled:cursor-wait"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-full border border-slate-200 bg-card text-slate-700 hover:bg-slate-50 disabled:opacity-60 disabled:cursor-wait"
                   >
                     <Download className="h-3.5 w-3.5" />
                     {bulkDownloading ? "Downloading…" : `Download all (${photos.length})`}
@@ -314,7 +314,7 @@ export default function PublicProjectPage() {
                       key={i}
                       type="button"
                       onClick={() => setLightboxIdx(i)}
-                      className="text-left bg-white rounded-[20px] border border-slate-200 overflow-hidden hover:shadow-md transition group"
+                      className="text-left bg-card rounded-[20px] border border-slate-200 overflow-hidden hover:shadow-md transition group"
                     >
                       <div className="aspect-square w-full bg-slate-100 overflow-hidden">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -341,7 +341,7 @@ export default function PublicProjectPage() {
         )}
       </main>
 
-      <footer className="w-full mt-10 py-5 border-t border-slate-200 bg-white">
+      <footer className="w-full mt-10 py-5 border-t border-slate-200 bg-card">
         <div className="max-w-5xl mx-auto px-4 text-center text-xs text-slate-500">
           ROW &mdash; portal.example.org
         </div>

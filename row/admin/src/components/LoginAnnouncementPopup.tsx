@@ -115,7 +115,7 @@ export default function LoginAnnouncementPopup() {
       <form
         autoComplete="off"
         onSubmit={(e) => e.preventDefault()}
-        className="bg-white rounded-2xl shadow-2xl max-w-lg w-full max-h-[80vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-300"
+        className="bg-card rounded-2xl shadow-2xl max-w-lg w-full max-h-[80vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-300"
       >
         {/* Header */}
         <div className="flex items-center justify-between gap-3 px-6 py-4 border-b bg-primary/10">

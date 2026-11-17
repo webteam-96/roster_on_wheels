@@ -13,7 +13,7 @@ public class TrfContributionService : ITrfContributionService
         _connectionString = configuration.GetConnectionString("DefaultConnection")!;
     }
 
-    private MySqlConnection CreateConnection() => new(_connectionString);
+    private MySqlConnection CreateConnection() => RowDb.Connect(_connectionString);
 
     // ── Fund Master ────────────────────────────────────────────────────
 

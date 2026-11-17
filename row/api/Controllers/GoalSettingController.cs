@@ -122,7 +122,7 @@ public class GoalSettingController : ControllerBase
         if (!IsAuthorisedRole()) return Forbid();
         var bytes = await _service.BuildDistrictMonthlyExcelAsync(GetMemberId(), 0, yearId, districtId);
         if (bytes == null) return NotFound(new { message = "No data." });
-        return File(bytes, XlsxMime, $"district-goal-report-{DateTime.Now:yyyyMMdd-HHmm}.xlsx");
+        return File(bytes, XlsxMime, $"district-goal-report-{DateTime.UtcNow:yyyyMMdd-HHmm}.xlsx");
     }
 
     [HttpGet("goals-excel/clubs")]
@@ -131,7 +131,7 @@ public class GoalSettingController : ControllerBase
         if (!IsAuthorisedRole()) return Forbid();
         var bytes = await _service.BuildClubMonthlyExcelAsync(GetMemberId(), 0, yearId, clubId);
         if (bytes == null) return NotFound(new { message = "No data." });
-        return File(bytes, XlsxMime, $"club-goal-report-{DateTime.Now:yyyyMMdd-HHmm}.xlsx");
+        return File(bytes, XlsxMime, $"club-goal-report-{DateTime.UtcNow:yyyyMMdd-HHmm}.xlsx");
     }
 
     // "Club Goal Setting → All" — every club in the district in one workbook (2 sheets, each club
@@ -142,7 +142,7 @@ public class GoalSettingController : ControllerBase
         if (!IsAuthorisedRole()) return Forbid();
         var bytes = await _service.BuildAllClubsMonthlyExcelAsync(GetMemberId(), yearId, districtId);
         if (bytes == null) return NotFound(new { message = "No data." });
-        return File(bytes, XlsxMime, $"all-clubs-goal-report-{DateTime.Now:yyyyMMdd-HHmm}.xlsx");
+        return File(bytes, XlsxMime, $"all-clubs-goal-report-{DateTime.UtcNow:yyyyMMdd-HHmm}.xlsx");
     }
 
     [HttpGet("monthly/districts/{categoryId:int}/excel")]
@@ -152,7 +152,7 @@ public class GoalSettingController : ControllerBase
         if (!IsAuthorisedRole()) return Forbid();
         var bytes = await _service.BuildDistrictMonthlyExcelAsync(GetMemberId(), categoryId, yearId, districtId);
         if (bytes == null) return NotFound(new { message = "No data." });
-        return File(bytes, XlsxMime, $"goals-monthly-district-{DateTime.Now:yyyyMMdd-HHmm}.xlsx");
+        return File(bytes, XlsxMime, $"goals-monthly-district-{DateTime.UtcNow:yyyyMMdd-HHmm}.xlsx");
     }
 
     [HttpGet("monthly/clubs/{categoryId:int}/excel")]
@@ -162,7 +162,7 @@ public class GoalSettingController : ControllerBase
         if (!IsAuthorisedRole()) return Forbid();
         var bytes = await _service.BuildClubMonthlyExcelAsync(GetMemberId(), categoryId, yearId, clubId);
         if (bytes == null) return NotFound(new { message = "No data." });
-        return File(bytes, XlsxMime, $"goals-monthly-club-{DateTime.Now:yyyyMMdd-HHmm}.xlsx");
+        return File(bytes, XlsxMime, $"goals-monthly-club-{DateTime.UtcNow:yyyyMMdd-HHmm}.xlsx");
     }
 
     [HttpGet("monthly/districts/{categoryId:int}")]
@@ -277,7 +277,7 @@ public class GoalSettingController : ControllerBase
         {
             var bytes = await _service.BuildAllClubsMonthlyExcelScopedAsync(GetMemberId(), yearId, districtId);
             return bytes == null ? NotFound(new { message = "No club goal data for this district." })
-                : File(bytes, XlsxMime, $"Club_Goal_Setting_D{districtId}_{DateTime.Now:yyyyMMdd-HHmm}.xlsx");
+                : File(bytes, XlsxMime, $"Club_Goal_Setting_D{districtId}_{DateTime.UtcNow:yyyyMMdd-HHmm}.xlsx");
         }
         catch (UnauthorizedAccessException ex) { return ForbidWithMessage(ex.Message); }
     }
@@ -342,7 +342,7 @@ public class GoalSettingController : ControllerBase
         {
             var bytes = await _service.BuildGoalDistrictReportExcelAsync(GetMemberId(), zoneId, districtId, yearId);
             return bytes == null ? NotFound(new { message = "No goal data to report for this selection." })
-                : File(bytes, XlsxMime, $"goal-district-report-{DateTime.Now:yyyyMMdd-HHmm}.xlsx");
+                : File(bytes, XlsxMime, $"goal-district-report-{DateTime.UtcNow:yyyyMMdd-HHmm}.xlsx");
         }
         catch (UnauthorizedAccessException ex) { return ForbidWithMessage(ex.Message); }
     }
@@ -356,7 +356,7 @@ public class GoalSettingController : ControllerBase
         {
             var bytes = await _service.BuildDistrictGoalSettingReportScopedAsync(GetMemberId(), districtId, yearId);
             return bytes == null ? NotFound(new { message = "No goal data to report for this district." })
-                : File(bytes, XlsxMime, $"District_Goal_Setting_{DateTime.Now:yyyyMMdd-HHmm}.xlsx");
+                : File(bytes, XlsxMime, $"District_Goal_Setting_{DateTime.UtcNow:yyyyMMdd-HHmm}.xlsx");
         }
         catch (UnauthorizedAccessException ex) { return ForbidWithMessage(ex.Message); }
     }
@@ -420,7 +420,7 @@ public class GoalSettingController : ControllerBase
         {
             var bytes = await _service.BuildGoalMessagesReportExcelAsync(GetMemberId(), zoneId, yearId, categoryId, districtId);
             return bytes == null ? NotFound(new { message = "No messages to report for this selection." })
-                : File(bytes, XlsxMime, $"Goal_Messages_Z{zoneId}_{DateTime.Now:yyyyMMdd-HHmm}.xlsx");
+                : File(bytes, XlsxMime, $"Goal_Messages_Z{zoneId}_{DateTime.UtcNow:yyyyMMdd-HHmm}.xlsx");
         }
         catch (UnauthorizedAccessException ex) { return ForbidWithMessage(ex.Message); }
     }
@@ -513,7 +513,7 @@ public class GoalSettingController : ControllerBase
     {
         if (!IsSuperAdminRole()) return Forbid();
         var bytes = await _service.BuildFoundationSampleExcelAsync();
-        var ts = DateTime.Now.ToString("ddMMyyyy_HHmmss");
+        var ts = DateTime.UtcNow.ToString("ddMMyyyy_HHmmss");
         return File(bytes,
             "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
             $"foundation_district_sample_{ts}.xlsx");
@@ -534,7 +534,7 @@ public class GoalSettingController : ControllerBase
             Response.Headers["X-Clubs-Filled"] = filled.ToString();
             Response.Headers["X-Clubs-Missing"] = missing.ToString();
             Response.Headers["Access-Control-Expose-Headers"] = "X-Clubs-Filled, X-Clubs-Missing, Content-Disposition";
-            var ts = DateTime.Now.ToString("ddMMyyyy_HHmmss");
+            var ts = DateTime.UtcNow.ToString("ddMMyyyy_HHmmss");
             return File(bytes,
                 "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                 $"foundation_club_import_{ts}.xlsx");
@@ -549,7 +549,7 @@ public class GoalSettingController : ControllerBase
     {
         if (!IsSuperAdminRole()) return Forbid();
         var bytes = await _service.BuildFoundationClubSampleExcelAsync();
-        var ts = DateTime.Now.ToString("ddMMyyyy_HHmmss");
+        var ts = DateTime.UtcNow.ToString("ddMMyyyy_HHmmss");
         return File(bytes,
             "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
             $"foundation_club_sample_{ts}.xlsx");

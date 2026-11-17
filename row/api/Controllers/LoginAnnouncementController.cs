@@ -18,7 +18,7 @@ public class LoginAnnouncementController : ControllerBase
         _connectionString = config.GetConnectionString("DefaultConnection")!;
     }
 
-    private MySqlConnection CreateConnection() => new(_connectionString);
+    private MySqlConnection CreateConnection() => RowDb.Connect(_connectionString);
     private int GetUserId() => int.Parse(User.FindFirst("memberId")?.Value ?? "0");
     private bool IsSuperAdmin() => User.FindFirst("roles")?.Value?.Contains("SuperAdmin") == true;
 
@@ -247,7 +247,7 @@ public class MobileLoginAnnouncementController : ControllerBase
         _connectionString = config.GetConnectionString("DefaultConnection")!;
     }
 
-    private MySqlConnection CreateConnection() => new(_connectionString);
+    private MySqlConnection CreateConnection() => RowDb.Connect(_connectionString);
     private int GetUserId() => int.Parse(User.FindFirst("memberId")?.Value ?? "0");
     // Family Login sessions carry a familyMemberId claim — they never see login announcements.
     private bool IsFamilySession() => User.FindFirst("familyMemberId") != null;

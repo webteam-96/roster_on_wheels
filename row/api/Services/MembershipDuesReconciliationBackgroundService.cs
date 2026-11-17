@@ -156,7 +156,7 @@ public class MembershipDuesReconciliationBackgroundService : BackgroundService
         }
 
         List<PendingOrder> pending;
-        using (var conn = new MySqlConnection(_connStr))
+        using (var conn = RowDb.Connect(_connStr))
         {
             // Candidate set: online dues orders still sitting in the pre-payment state,
             // old enough that checkout is definitely over, young enough to be worth asking about.

@@ -47,7 +47,7 @@ const MODULES: Mod[] = [
   { key: "banners",            name: "Banner Photos",       description: "Homepage banner rotation & captions",   icon: ImageIcon, accent: "bg-blue-50 text-blue-700",       ring: "hover:border-blue-300" },
   { key: "advertisements",     name: "Advertisement Area",  description: "Sponsored slots displayed on the site",  icon: Megaphone, accent: "bg-amber-50 text-amber-700",     ring: "hover:border-amber-300" },
   { key: "social-media-links", name: "Social Media Links",  description: "Facebook, X, LinkedIn, YouTube, etc.",   icon: Share2,    accent: "bg-emerald-50 text-emerald-700", ring: "hover:border-emerald-300" },
-  { key: "contact-details",    name: "Contact Details",     description: "Phone, email, address on Contact page",  icon: Phone,     accent: "bg-violet-50 text-violet-700",   ring: "hover:border-violet-300" },
+  { key: "contact-details",    name: "Contact Details",     description: "Phone, email, address on Contact page",  icon: Phone,     accent: "bg-slate-50 text-slate-700",   ring: "hover:border-slate-300" },
   { key: "menu-list",          name: "Menu List",           description: "Top navigation & footer menu items",     icon: List,      accent: "bg-rose-50 text-rose-700",       ring: "hover:border-rose-300" },
   { key: "about",              name: "About",               description: "About-us content on the public site",    icon: Info,      accent: "bg-sky-50 text-sky-700",         ring: "hover:border-sky-300" },
   { key: "languages",          name: "Languages",           description: "The site in more languages, with machine translation", icon: Languages, accent: "bg-teal-50 text-teal-700", ring: "hover:border-teal-300" },
@@ -153,7 +153,7 @@ export default function MyDistrictWebsitePage() {
       )}
 
       {error && (
-        <div className="flex flex-col items-center justify-center py-20 text-center bg-white rounded-2xl border border-slate-200 shadow-sm">
+        <div className="flex flex-col items-center justify-center py-20 text-center bg-card rounded-2xl border border-slate-200 shadow-sm">
           <AlertCircle className="h-12 w-12 text-red-500 mb-4" />
           <h3 className="text-lg font-semibold text-slate-800">Error</h3>
           <p className="text-slate-500 mt-2 max-w-md">{error}</p>
@@ -174,7 +174,7 @@ export default function MyDistrictWebsitePage() {
                   router.push(`/district-admin-dashboard/my-district-website/${mod.key}${suffix}`);
                 }}
                 disabled={busy}
-                className={`group text-left rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition-all hover:shadow-md ${mod.ring} ${busy ? "opacity-60 pointer-events-none" : ""}`}
+                className={`group text-left rounded-2xl border border-slate-200 bg-card p-5 shadow-sm transition-all hover:shadow-md ${mod.ring} ${busy ? "opacity-60 pointer-events-none" : ""}`}
               >
                 <div className="flex items-start gap-4">
                   <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl ${mod.accent}`}>
@@ -197,7 +197,7 @@ export default function MyDistrictWebsitePage() {
           site allows framing (CSP frame-ancestors), we can switch back to an
           inline <iframe>. */}
       {!loading && !error && publicUrl && (
-        <div className="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+        <div className="rounded-2xl border border-slate-200 bg-card shadow-sm overflow-hidden">
           <div className="flex items-center gap-2 px-4 py-2.5 border-b border-slate-100 bg-slate-50">
             <Globe size={16} className="text-ink" />
             <h3 className="text-sm font-semibold text-slate-800">District Website</h3>

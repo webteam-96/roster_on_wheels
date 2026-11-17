@@ -29,7 +29,7 @@ public class RiCodesController : ControllerBase
     [HttpGet("api/ri-codes")]
     public async Task<IActionResult> List()
     {
-        await using var c = new MySqlConnection(_cs);
+        await using var c = RowDb.Connect(_cs);
         return Ok(await c.QueryAsync<RiCodeDto>(@"
             SELECT pk_ri_code_id AS Id, kind AS Kind, code AS Code, label AS Label, sort_order AS SortOrder
             FROM ri_codes WHERE isdeleted = 0 ORDER BY kind, sort_order, label"));
@@ -49,7 +49,7 @@ public class RiCodesController : ControllerBase
         if (!RiCodes.Kinds.Contains(dto.Kind)) return BadRequest(new { message = "Unknown list." });
         if (code.Length is 0 or > 40 || label.Length is 0 or > 150)
             return BadRequest(new { message = "Give a code (40 characters at most) and a label (150 at most)." });
-        await using var c = new MySqlConnection(_cs);
+        await using var c = RowDb.Connect(_cs);
         if (await c.ExecuteScalarAsync<int>(@"SELECT COUNT(*) FROM ri_codes WHERE kind = @Kind AND code = @code
                 AND isdeleted = 0 AND pk_ri_code_id <> IFNULL(@id, 0)", new { dto.Kind, code, id }) > 0)
             return Conflict(new { message = "That code is already in the list." });
@@ -72,7 +72,7 @@ public class RiCodesController : ControllerBase
     public async Task<IActionResult> Delete(int id)
     {
         if (!IsSuperAdmin) return StatusCode(403, new { message = "Only Super Admin can change the RI lists." });
-        await using var c = new MySqlConnection(_cs);
+        await using var c = RowDb.Connect(_cs);
         var n = await c.ExecuteAsync("UPDATE ri_codes SET isdeleted = 1, modified_by = @Me WHERE pk_ri_code_id = @id AND isdeleted = 0", new { id, Me });
         return n == 0 ? NotFound(new { message = "Entry not found." }) : NoContent();
     }
@@ -80,7 +80,7 @@ public class RiCodesController : ControllerBase
     [HttpGet("api/clubs/{clubId:int}/members/{memberId:int}/ri-fields")]
     public async Task<IActionResult> GetMembership(int clubId, int memberId)
     {
-        await using var c = new MySqlConnection(_cs);
+        await using var c = RowDb.Connect(_cs);
         if (!await ScopeWriteGuardMiddleware.ReadAllowedAsync(_cs, Me, true, clubId))
             return StatusCode(403, new { message = "You do not have access to this club." });
         var row = await c.QueryFirstOrDefaultAsync<MembershipRiFieldsDto>(@"
@@ -94,7 +94,7 @@ public class RiCodesController : ControllerBase
     [HttpPut("api/clubs/{clubId:int}/members/{memberId:int}/ri-fields")]
     public async Task<IActionResult> SetMembership(int clubId, int memberId, [FromBody] MembershipRiFieldsDto dto)
     {
-        await using var c = new MySqlConnection(_cs);
+        await using var c = RowDb.Connect(_cs);
         await c.OpenAsync();
         if (!await RiCodes.IsValidAsync(c, "member_type", dto.RiMemberType) || !await RiCodes.IsValidAsync(c, "join_reason", dto.JoinReasonCode))
             return BadRequest(new { message = "Pick a member type and join reason from the RI lists." });

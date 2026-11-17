@@ -37,7 +37,7 @@ public class ClubDuesService : IClubDuesService
         _logger = logger;
     }
 
-    private MySqlConnection GetConnection() => new(_connStr);
+    private MySqlConnection GetConnection() => RowDb.Connect(_connStr);
 
     // ═══════════════════════════════════════════════════════════════
     //  Campaign CRUD
@@ -846,7 +846,7 @@ public class ClubDuesService : IClubDuesService
                 DuesId = duesId, ClubId = dto.FkClubId, Amount = amount, Count = count, PaidBy = dto.PaidByMemberId,
                 TransType = dto.TransactionType ?? "", TransId = dto.TransactionId ?? "", GivenTo = dto.GivenTo ?? "",
                 BankName = accountName ?? dto.BankName ?? "", dto.FkRouteAccountId, ChequeNo = dto.ChequeNumber ?? "", Remark = dto.Remark ?? "",
-                Attach = attachPath ?? "", PayDate = dto.PaymentDate ?? DateTime.Now, dto.ApprovalRemark, UserId = userId
+                Attach = attachPath ?? "", PayDate = dto.PaymentDate ?? DateTime.UtcNow, dto.ApprovalRemark, UserId = userId
             });
 
         var settledAccountIds = await ResolveSettledAccountIdsAsync(conn, duesId, dto.FkClubId, isOnline: false, dto.FkRouteAccountId);
@@ -908,7 +908,7 @@ public class ClubDuesService : IClubDuesService
                 DuesId = duesId, ClubId = dto.FkClubId, Amount = amount, Count = count, PaidBy = dto.PaidByMemberId,
                 TransType = dto.TransactionType ?? "", TransId = dto.TransactionId ?? "", GivenTo = dto.GivenTo ?? "",
                 BankName = accountName ?? dto.BankName ?? "", dto.FkRouteAccountId, ChequeNo = dto.ChequeNumber ?? "", Remark = dto.Remark ?? "",
-                Attach = attachPath ?? "", PayDate = dto.PaymentDate ?? DateTime.Now
+                Attach = attachPath ?? "", PayDate = dto.PaymentDate ?? DateTime.UtcNow
             });
 
         // Notify the approver (District Treasurer / configured ApproverEmail) synchronously.
@@ -1080,7 +1080,7 @@ own separate approval request.</p>
             {
                 TransType = dto.TransactionType ?? "", TransId = dto.TransactionId ?? "", GivenTo = dto.GivenTo ?? "",
                 BankName = accountName ?? dto.BankName ?? "", dto.FkRouteAccountId, ChequeNo = dto.ChequeNumber ?? "", Remark = dto.Remark ?? "",
-                Attach = attachPath ?? "", PayDate = dto.PaymentDate ?? DateTime.Now, UserId = userId, Id = paymentId
+                Attach = attachPath ?? "", PayDate = dto.PaymentDate ?? DateTime.UtcNow, UserId = userId, Id = paymentId
             });
 
         if (wasPending)
@@ -1686,7 +1686,7 @@ own separate approval request.</p>
             : null;
 
         long amountPaise = (long)Math.Round(onlineOwed * 100m, MidpointRounding.AwayFromZero);
-        var receipt = $"CDUE{duesId}_{DateTime.Now:ddMMyyyyHHmmss}";
+        var receipt = $"CDUE{duesId}_{DateTime.UtcNow:ddMMyyyyHHmmss}";
 
         var paymentId = await conn.ExecuteScalarAsync<int>(@"
             INSERT INTO club_dues_payments (fk_club_dues_id, fk_club_id, Amount, MemberCountCovered, PaidByMemberId,
@@ -1816,7 +1816,7 @@ own separate approval request.</p>
             var settledAccountIds = await ResolveSettledAccountIdsAsync(conn, duesId, (int)payment.fk_club_id, isOnline: true, null);
             await CoverUnpaidMembersAsync(conn, duesId, (int)payment.fk_club_id, dto.PaymentId, (int)payment.MemberCountCovered, settledAccountIds);
             await SyncGoogleSheetIfEnabledAsync(duesId);
-            _ = Task.Run(async () => { try { await SendReceiptEmailAsync(dto.PaymentId); } catch { } });
+            BackgroundWork.Run("SendReceiptEmailAsync", () => SendReceiptEmailAsync(dto.PaymentId));
         }
         var info = await conn.QueryFirstOrDefaultAsync<dynamic>(@"
             SELECT c.ClubName, p.Amount FROM club_dues_payments p LEFT JOIN club_master c ON c.pk_club_id=p.fk_club_id
@@ -1825,7 +1825,7 @@ own separate approval request.</p>
         {
             IsSuccess = true, OrderStatus = "PAID",
             MemberName = (string?)info?.ClubName, Amount = info?.Amount,
-            RegistrationType = "District Dues", PaymentDate = DateTime.Now
+            RegistrationType = "District Dues", PaymentDate = DateTime.UtcNow
         };
     }
 
@@ -1847,7 +1847,7 @@ own separate approval request.</p>
         var settledAccountIds = await ResolveSettledAccountIdsAsync(conn, duesId, (int)payment.fk_club_id, isOnline: true, null);
         await CoverUnpaidMembersAsync(conn, duesId, (int)payment.fk_club_id, paymentId, (int)payment.MemberCountCovered, settledAccountIds);
         await SyncGoogleSheetIfEnabledAsync(duesId);
-        _ = Task.Run(async () => { try { await SendReceiptEmailAsync(paymentId); } catch { } });
+        BackgroundWork.Run("SendReceiptEmailAsync", () => SendReceiptEmailAsync(paymentId));
     }
 
     // Razorpay webhook (X-Razorpay-Signature) — idempotent backstop for order.paid / payment.captured.
@@ -2104,7 +2104,7 @@ own separate approval request.</p>
 
         var purpose = ((string?)dues.Purpose ?? "DistrictDues").Trim();
         var safePurpose = System.Text.RegularExpressions.Regex.Replace(purpose, @"[^a-zA-Z0-9 _-]", "").Replace(" ", "_");
-        var sheetTitle = $"DistrictDues_{safePurpose}_{DateTime.Now:ddMMyyyyHHmmss}";
+        var sheetTitle = $"DistrictDues_{safePurpose}_{DateTime.UtcNow:ddMMyyyyHHmmss}";
         bool offlineEnabled = ChannelEnabled((int)dues.ModeOfPayment, isOnline: false);
 
         var sheetId = await _googleSheetsService.CreateSpreadsheetAsync(sheetTitle, BuildSheetHeaders(offlineEnabled));
@@ -2192,7 +2192,7 @@ own separate approval request.</p>
                 var safePurpose = System.Text.RegularExpressions.Regex.Replace(purpose, @"[^a-zA-Z0-9 _-]", "").Replace(" ", "_");
                 // Timestamp suffix is cosmetic only (GoogleSheetId, not the title, is the real
                 // identifier) — a fresh one each run is fine; this is a one-time/manual backfill.
-                await _googleSheetsService.RenameSpreadsheetAsync(sheetId, $"DistrictDues_{safePurpose}_{DateTime.Now:ddMMyyyyHHmmss}");
+                await _googleSheetsService.RenameSpreadsheetAsync(sheetId, $"DistrictDues_{safePurpose}_{DateTime.UtcNow:ddMMyyyyHHmmss}");
 
                 bool offlineEnabled = ChannelEnabled((int)c.ModeOfPayment, isOnline: false);
                 var clubs = await GetEnrichedClubsAsync(duesId);

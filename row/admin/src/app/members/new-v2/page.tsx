@@ -660,7 +660,7 @@ function AddMemberV2Form() {
                     return (
                       <div
                         key={member.id}
-                        className="overflow-hidden rounded-[20px] border border-slate-200 bg-white hover:shadow-md transition-shadow"
+                        className="overflow-hidden rounded-[20px] border border-slate-200 bg-card hover:shadow-md transition-shadow"
                       >
                         <div className="flex items-center gap-3 p-4 bg-blue-600 text-white">
                           <div className="relative h-12 w-12 flex-shrink-0 overflow-hidden rounded-full bg-white/20 border-2 border-white/40">
@@ -735,7 +735,7 @@ function AddMemberV2Form() {
                   setFormData((prev) => ({ ...prev, ...seedFromSearchTerm(searchTerm) }));
                   setShowForm(true);
                 }}
-                className="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold rounded-full border border-slate-300 bg-white text-slate-700 hover:bg-slate-50"
+                className="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold rounded-full border border-slate-300 bg-card text-slate-700 hover:bg-slate-50"
               >
                 <Plus className="h-4 w-4" />
                 Create New Member

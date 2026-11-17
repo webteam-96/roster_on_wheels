@@ -20,6 +20,7 @@ import {
 import { AlertCircle, CheckCircle2, Loader2, Upload, Clock, XCircle } from "@/components/icons";
 import { withBase, BASE_PATH } from "@/lib/basePath";
 import { sessionFrom, startCheckout } from "@/lib/checkout";
+import { SkeletonRows } from "@/components/row/AppKit";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
@@ -401,9 +402,7 @@ export default function MembershipDuesPaymentPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
+      <div className="min-h-screen bg-gray-50 px-4 py-16"><div className="mx-auto max-w-xl"><SkeletonRows rows={6} /></div></div>
     );
   }
 
@@ -476,7 +475,7 @@ export default function MembershipDuesPaymentPage() {
                     // Quill colour spans use inline style — already work.
                     // Block-level wraps for long content
                     "[&_p]:my-1",
-                    "[&_blockquote]:border-l-4 [&_blockquote]:border-slate-300 [&_blockquote]:pl-3 [&_blockquote]:italic",
+                    "[&_blockquote]:border [&_blockquote]:border-slate-300 [&_blockquote]:pl-3 [&_blockquote]:italic",
                     "[&_a]:text-blue-600 [&_a]:underline [&_a]:break-all",
                     "[&_img]:max-w-full [&_img]:h-auto",
                     "[&_table]:block [&_table]:max-w-full [&_table]:overflow-x-auto",
@@ -522,7 +521,7 @@ export default function MembershipDuesPaymentPage() {
                     <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-muted-foreground" />
                   )}
                   {dropdownOpen && searchResults.length > 0 && (
-                    <div className="absolute z-20 mt-1 w-full bg-white border rounded-md shadow-lg max-h-72 overflow-y-auto">
+                    <div className="absolute z-20 mt-1 w-full bg-card border rounded-md shadow-lg max-h-72 overflow-y-auto">
                       {searchResults.map(m => (
                         <button
                           type="button"
@@ -546,7 +545,7 @@ export default function MembershipDuesPaymentPage() {
                     </div>
                   )}
                   {memberSearchQuery.trim().length >= 2 && !searching && searchResults.length === 0 && dropdownOpen && (
-                    <div className="absolute z-20 mt-1 w-full bg-white border rounded-md shadow-lg p-3 text-sm text-muted-foreground">
+                    <div className="absolute z-20 mt-1 w-full bg-card border rounded-md shadow-lg p-3 text-sm text-muted-foreground">
                       No members found for &quot;{memberSearchQuery}&quot;.
                     </div>
                   )}
@@ -603,9 +602,7 @@ export default function MembershipDuesPaymentPage() {
             <CardHeader><CardTitle>Select Fee to Pay</CardTitle></CardHeader>
             <CardContent className="space-y-4">
               {feesLoading ? (
-                <div className="flex items-center justify-center py-8">
-                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                </div>
+                <div className="py-4"><SkeletonRows /></div>
               ) : (
                 <>
                   {/* Show "no allocation" message if backend returned it */}

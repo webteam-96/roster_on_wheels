@@ -279,7 +279,7 @@ public class SubscriptionGateMiddleware
     private static async Task<T> CachedAsync<T>(string connectionString, string key, Func<MySqlConnection, Task<T>> read)
     {
         if (Cache.TryGetValue(key, out var hit) && DateTime.UtcNow - hit.At < TimeSpan.FromSeconds(30)) return (T)hit.Value!;
-        await using var conn = new MySqlConnection(connectionString);
+        await using var conn = RowDb.Connect(connectionString);
         await conn.OpenAsync();
         var value = await read(conn);
         if (Cache.Count > 20_000) Cache.Clear();

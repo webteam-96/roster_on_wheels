@@ -32,8 +32,18 @@ jobs:
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 10.0.x
-      # No .NET test projects exist yet; build only.
       - run: dotnet build ${{ matrix.project }} -c Release --nologo
+
+  dotnet-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+      # Tests that need a database skip themselves when none is configured.
+      - run: dotnet test row/api.Tests/RotaryApi.Tests.csproj -c Release --nologo
 
   admin:
     runs-on: ubuntu-latest

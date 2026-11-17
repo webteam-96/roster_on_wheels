@@ -262,7 +262,7 @@ export default function DistrictAdminEGovernancePage() {
   return (
     <div className="space-y-6">
       {/* ─── Sub-tabs ─────────────────────────────────────────────────── */}
-      <div className="bg-white rounded-2xl border border-slate-200">
+      <div className="bg-card rounded-2xl border border-slate-200">
         <Tabs
           value={activeTab}
           onValueChange={(v) => {
@@ -495,9 +495,7 @@ function CmrEmailSettingsButton({ districtId }: { districtId: number }) {
 
         <div className="space-y-4 pt-1">
           {loading ? (
-            <div className="flex items-center gap-2 text-sm text-slate-500">
-              <Loader2 className="h-4 w-4 animate-spin" /> Loading…
-            </div>
+            <SkeletonRows />
           ) : (
             <>
               <div>
@@ -611,7 +609,7 @@ function MonthlySummary({
   };
 
   return (
-    <div className="bg-white rounded-[20px] border border-slate-200 overflow-hidden">
+    <div className="bg-card rounded-[20px] border border-slate-200 overflow-hidden">
       <div className="px-5 py-3 border-b border-slate-100 flex items-center justify-between flex-wrap gap-2">
         <div>
           <div className="flex items-center gap-1.5">
@@ -756,7 +754,7 @@ function PerClubGrid({
   );
 
   return (
-    <div className="bg-white rounded-[20px] border border-slate-200 overflow-hidden">
+    <div className="bg-card rounded-[20px] border border-slate-200 overflow-hidden">
       <div className="px-5 py-3 border-b border-slate-100">
         <div className="flex items-center justify-between gap-3 flex-wrap">
           <div>
@@ -879,7 +877,7 @@ function PerClubGrid({
 /* ============================================================== Reports */
 function ReportsTab({ rows, districtId, yearId }: { rows: ApiReportRow[] | undefined; districtId: number; yearId?: number | null }) {
   return (
-    <div className="bg-white rounded-[20px] border border-slate-200 overflow-hidden">
+    <div className="bg-card rounded-[20px] border border-slate-200 overflow-hidden">
       <ul className="divide-y divide-slate-100">
         {(rows ?? []).map((r) => (
           <li

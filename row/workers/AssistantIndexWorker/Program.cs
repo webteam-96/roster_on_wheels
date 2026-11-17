@@ -124,7 +124,7 @@ var mode = string.Join(" ", new[]
 
 try
 {
-    var started = DateTime.Now;
+    var started = DateTime.UtcNow;
     log.LogInformation("Started: {Mode} (model {Model}, {Dims} dims, Qdrant {Url})", mode, embeddingModel, embeddingDims, qdrantUrl);
 
     // Cleanup first: the retention purge must not depend on Gemini or Qdrant being reachable.
@@ -134,7 +134,7 @@ try
     if (indexing)
         await sp.GetRequiredService<Indexer>().RunAsync(full, dryRun);
 
-    var duration = DateTime.Now - started;
+    var duration = DateTime.UtcNow - started;
     log.LogInformation("Completed: {Mode}. Duration: {Min}m {Sec}s", mode, (int)duration.TotalMinutes, duration.Seconds);
     return 0;
 }

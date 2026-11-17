@@ -41,7 +41,7 @@ public class ClubWebsitesController : ControllerBase
         _useHttps = string.Equals(config.GetSection("ClubSite")["UseHttps"], "true", StringComparison.OrdinalIgnoreCase);
     }
 
-    private MySqlConnection CreateConnection() => new(_connectionString);
+    private MySqlConnection CreateConnection() => RowDb.Connect(_connectionString);
     private bool IsSuperAdmin() => User.FindFirst("roles")?.Value?.Contains("SuperAdmin") == true;
     private int GetUserId()
     {
@@ -606,7 +606,7 @@ public class ClubWebsitesController : ControllerBase
         // row) or "explicitly deactivated", and both must still go through the Activate button so the
         // vhost/SSL steps actually run. Soft-deleted rows are excluded by the WHERE clause.
         if (string.Equals((string?)existing.status, "Expired", StringComparison.OrdinalIgnoreCase)
-            && req.EndDate.Date >= DateTime.Today)
+            && req.EndDate.Date >= DateTime.UtcNow.Date)
         {
             await conn.ExecuteAsync(
                 "UPDATE club_websites SET Status = 'Active', modified_by = @U WHERE pk_id = @Id AND COALESCE(isdeleted, 0) = 0",
@@ -754,7 +754,7 @@ public class ClubWebsitesController : ControllerBase
                 await LogAction(conn, id, "PleskSubdomainDeleteFailed", ex.Message, userId);
                 // ABORT — don't touch DB. User can click Delete again to retry, or use Force Clean Plesk.
                 return BadRequest(new {
-                    message = $"Plesk delete failed — portal record preserved. Click Delete again to retry, or use 'Force Clean Plesk' button if the subdomain still exists in Plesk. Details are in the server log.",
+                    message = $"Plesk delete failed: portal record preserved. Click Delete again to retry, or use 'Force Clean Plesk' button if the subdomain still exists in Plesk. Details are in the server log.",
                     pleskFailed = true
                 });
             }
@@ -926,7 +926,7 @@ public class ClubWebsitesController : ControllerBase
         try
         {
             if (!await _plesk.SubdomainExistsAsync(label))
-                return Ok(new { success = true, message = $"Subdomain '{label}.{_pleskParentDomain}' does not exist in Plesk — nothing to delete." });
+                return Ok(new { success = true, message = $"Subdomain '{label}.{_pleskParentDomain}' does not exist in Plesk: nothing to delete." });
 
             await _plesk.DeleteSubdomainAsync(label);
             return Ok(new { success = true, message = $"Deleted '{label}.{_pleskParentDomain}' from Plesk." });
@@ -1028,7 +1028,7 @@ public class ClubWebsitesController : ControllerBase
                 continue;
             }
 
-            var start = DateTime.Today;
+            var start = DateTime.UtcNow.Date;
             var end = start.AddDays(req.Days);
 
             await conn.ExecuteAsync(@"

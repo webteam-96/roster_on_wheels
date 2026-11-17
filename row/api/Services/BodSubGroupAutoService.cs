@@ -36,7 +36,7 @@ public class BodSubGroupAutoService : IBodSubGroupAutoService
         _logger = logger;
     }
 
-    private MySqlConnection CreateConnection() => new(_connectionString);
+    private MySqlConnection CreateConnection() => RowDb.Connect(_connectionString);
 
     /// <summary>Best-effort check — a group is "auto" if its name starts with a designation name. Hard to be exact since users name groups freely; we treat any group created by this service as auto by tracking via the rebuild.</summary>
     public bool IsAutoBodSubGroup(string? groupName) => !string.IsNullOrWhiteSpace(groupName);
@@ -128,7 +128,7 @@ public class BodSubGroupAutoService : IBodSubGroupAutoService
             FROM rotary_year_master WHERE pk_year_id = @Id LIMIT 1",
             new { Id = yearId });
         if (string.IsNullOrEmpty(year.yearLabel)) return (0, 0, 0);
-        var today = DateTime.Today;
+        var today = DateTime.UtcNow.Date;
         var isCurrent = today >= year.startDate.Date && today <= year.endDate.Date;
         var groupName = BuildGroupName(designationName, year.yearLabel, isCurrent);
 

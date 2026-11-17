@@ -49,7 +49,7 @@ public class ClubCacheRefreshService : IClubCacheRefreshService
             return (0, 0, true);
         }
 
-        using var conn = new MySqlConnection(_connectionString);
+        using var conn = RowDb.Connect(_connectionString);
         await conn.OpenAsync(ct);
         var nowUtc = DateTime.UtcNow;
 
@@ -90,7 +90,7 @@ public class ClubCacheRefreshService : IClubCacheRefreshService
 
     public async Task<DateTime?> GetLastRefreshUtcAsync(CancellationToken ct = default)
     {
-        using var conn = new MySqlConnection(_connectionString);
+        using var conn = RowDb.Connect(_connectionString);
         await conn.OpenAsync(ct);
         return await conn.ExecuteScalarAsync<DateTime?>("SELECT MAX(LastFetchedUtc) FROM rotary_org_clubs_cache");
     }

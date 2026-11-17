@@ -314,7 +314,7 @@ export default function AboutV2Page() {
 
         {/* Empty state — no record yet */}
         {!loading && !about && (
-          <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+          <div className="bg-card rounded-2xl border border-slate-200 overflow-hidden">
             <div className="px-5 py-3 border-b border-slate-100 flex items-center gap-2 bg-blue-50">
               <div className="w-9 h-9 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center">
                 <Sparkles size={18} />
@@ -376,7 +376,7 @@ export default function AboutV2Page() {
             </div>
 
             {/* Preview card */}
-            <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+            <div className="bg-card rounded-2xl border border-slate-200 overflow-hidden">
               <div className="px-5 py-3 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-blue-50">
                 <div className="flex flex-wrap items-center gap-2">
                   <div className="w-9 h-9 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center">
@@ -465,7 +465,7 @@ export default function AboutV2Page() {
                 <select
                   value={formIsActive}
                   onChange={(e) => setFormIsActive(e.target.value)}
-                  className="w-40 px-3 h-10 py-0 text-sm border border-slate-200 rounded-[12px] bg-white focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                  className="w-40 px-3 h-10 py-0 text-sm border border-slate-200 rounded-[12px] bg-card focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
                 >
                   <option value="1">Active</option>
                   <option value="0">Inactive</option>
@@ -525,11 +525,11 @@ function KpiTile({
   const palette = {
     blue:    { bg: "bg-blue-100",    fg: "text-blue-700" },
     emerald: { bg: "bg-emerald-100", fg: "text-emerald-700" },
-    purple:  { bg: "bg-[#CFE2F6]",  fg: "text-purple-700" },
+    purple:  { bg: "bg-[#CFE2F6]",  fg: "text-slate-700" },
     slate:   { bg: "bg-slate-100",   fg: "text-slate-600" },
   }[color];
   return (
-    <div className="bg-white rounded-2xl border border-slate-200 p-4 flex items-center gap-3">
+    <div className="bg-card rounded-2xl border border-slate-200 p-4 flex items-center gap-3">
       <div className={`w-10 h-10 rounded-lg ${palette.bg} ${palette.fg} flex items-center justify-center flex-shrink-0`}>
         <Icon size={18} />
       </div>

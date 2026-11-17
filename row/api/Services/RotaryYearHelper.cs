@@ -64,6 +64,6 @@ public static class RotaryYearHelper
             transaction: transaction);
         if (currentId is > 0) return currentId.Value;
         // No current year set — auto-create for today's date.
-        return await EnsureRotaryYearAsync(connection, DateTime.Today, transaction);
+        return await EnsureRotaryYearAsync(connection, DateTime.UtcNow.Date, transaction);
     }
 }

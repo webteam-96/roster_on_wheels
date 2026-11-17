@@ -136,7 +136,7 @@ export default function MassEmailSection({ clubId }: { clubId: number }) {
         )}
       </div>
 
-      <div className="rounded-2xl border border-slate-200 shadow-sm bg-white p-4">
+      <div className="rounded-2xl border border-slate-200 shadow-sm bg-card p-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Select value={statusFilter || "all"} onValueChange={(v) => { setStatusFilter(v === "all" ? "" : v); setPage(1); }}>
             <SelectTrigger><SelectValue placeholder="All Statuses" /></SelectTrigger>
@@ -155,7 +155,7 @@ export default function MassEmailSection({ clubId }: { clubId: number }) {
       {loading ? (
         <div className="flex items-center justify-center py-16"><RotaryLoader size="lg" /></div>
       ) : (
-        <div className="rounded-2xl border border-slate-200 shadow-sm overflow-hidden bg-white">
+        <div className="rounded-2xl border border-slate-200 shadow-sm overflow-hidden bg-card">
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>

@@ -156,7 +156,7 @@ export default function TrainingAvailabilityTab() {
       </p>
 
       {/* ── 1. the repeating week ── */}
-      <div className="rounded-[20px] border border-slate-200 bg-white overflow-hidden">
+      <div className="rounded-[20px] border border-slate-200 bg-card overflow-hidden">
         <div className="px-4 sm:px-5 py-3 border-b border-slate-100 bg-blue-50 flex flex-wrap items-center gap-2">
           <Clock size={16} className="text-blue-600" />
           <h3 className="text-sm font-semibold text-slate-800">Working hours</h3>
@@ -239,7 +239,7 @@ export default function TrainingAvailabilityTab() {
       </div>
 
       {/* ── 2. one-off blocked dates ── */}
-      <div className="rounded-[20px] border border-slate-200 bg-white overflow-hidden">
+      <div className="rounded-[20px] border border-slate-200 bg-card overflow-hidden">
         <div className="px-4 sm:px-5 py-3 border-b border-slate-100 bg-amber-50 flex flex-wrap items-center gap-2">
           <CalendarX2 size={16} className="text-amber-600" />
           <h3 className="text-sm font-semibold text-slate-800">Blocked dates</h3>
@@ -268,7 +268,7 @@ export default function TrainingAvailabilityTab() {
                     </>
                   )}
                 </div>
-                <div className="rounded-[20px] border border-slate-200 bg-white p-4">
+                <div className="rounded-[20px] border border-slate-200 bg-card p-4">
                   <div className="flex items-center justify-between mb-2">
                     <button
                       type="button"

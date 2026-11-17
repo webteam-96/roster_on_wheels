@@ -13,7 +13,7 @@ public class WeblinkService : IWeblinkService
         _connectionString = configuration.GetConnectionString("DefaultConnection")!;
     }
 
-    private MySqlConnection CreateConnection() => new(_connectionString);
+    private MySqlConnection CreateConnection() => RowDb.Connect(_connectionString);
 
     // ── Get Weblinks (flat list) ────────────────────────────────────────
 
@@ -426,7 +426,7 @@ public class WeblinkService : IWeblinkService
         var originalBaseName = System.Text.RegularExpressions.Regex.Replace(Path.GetFileNameWithoutExtension(file.FileName), @"[^A-Za-z0-9\-]+", "_").Trim('_');
         if (string.IsNullOrEmpty(originalBaseName)) originalBaseName = "file";
         var extension = Path.GetExtension(file.FileName);
-        var now = DateTime.Now;
+        var now = DateTime.UtcNow;
         var timestamp = now.ToString("ddMMyyyyhhmmsstt");
         var fileName = $"{prefix}_{originalBaseName}_{Guid.NewGuid().ToString("N")[..8]}{timestamp}{extension}";
         var fullPath = Path.Combine(uploadsPath, fileName);

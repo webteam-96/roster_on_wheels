@@ -16,6 +16,7 @@ import ErrorAlert from "@/components/ErrorAlert";
 import { getWalletDistricts, type WalletDistrictRow } from "@/services/api";
 
 import { appLocale } from "@/lib/appFormat";
+import { SkeletonRows } from "@/components/row/AppKit";
 export default function DistrictWalletTab() {
   const [search, setSearch] = useState("");
   const [rows, setRows] = useState<WalletDistrictRow[]>([]);
@@ -60,7 +61,7 @@ export default function DistrictWalletTab() {
 
       {/* Common (pick-a-district) shareable links */}
       {commonLinks && (
-        <div className="rounded-[20px] border border-slate-200 bg-white p-4">
+        <div className="rounded-[20px] border border-slate-200 bg-card p-4">
           <div className="text-sm font-medium text-slate-700">Shareable links: any district</div>
           <p className="text-[11px] text-slate-400 mt-0.5 mb-3">Each opens a search: the district admin picks their district, sees its balance, and pays. Copy &amp; share.</p>
           <div className="flex flex-wrap gap-2">
@@ -92,7 +93,7 @@ export default function DistrictWalletTab() {
       </div>
 
       {/* Table */}
-      <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white">
+      <div className="overflow-x-auto rounded-xl border border-slate-200 bg-card">
         <table className="w-full text-sm">
           <thead className="bg-slate-50 text-slate-600">
             <tr>
@@ -103,7 +104,7 @@ export default function DistrictWalletTab() {
           </thead>
           <tbody>
             {loading ? (
-              <tr><td colSpan={4} className="px-3 py-10 text-center text-slate-400"><Loader2 className="h-5 w-5 animate-spin inline" /></td></tr>
+              <tr><td colSpan={4} className="px-4 py-3"><SkeletonRows /></td></tr>
             ) : rows.length === 0 ? (
               <tr><td colSpan={4} className="px-3 py-10 text-center text-slate-400">No districts found.</td></tr>
             ) : rows.map((r) => (

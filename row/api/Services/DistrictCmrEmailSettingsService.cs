@@ -64,7 +64,7 @@ public class DistrictCmrEmailSettingsService : IDistrictCmrEmailSettingsService
 
     public async Task<DistrictCmrEmailSettingsDto> GetAsync(int districtId, int yearId)
     {
-        await using var conn = new MySqlConnection(_conn);
+        await using var conn = RowDb.Connect(_conn);
         await conn.OpenAsync();
         await EnsureTableAsync(conn);
         var row = await conn.QueryFirstOrDefaultAsync<(sbyte SendToDistrictGovernor, string? CcEmails)?>(
@@ -84,7 +84,7 @@ public class DistrictCmrEmailSettingsService : IDistrictCmrEmailSettingsService
         // Normalise the CC list: valid-looking addresses only, trimmed + de-duplicated.
         var cleaned = string.Join(", ", ParseEmails(ccEmails));
 
-        await using var conn = new MySqlConnection(_conn);
+        await using var conn = RowDb.Connect(_conn);
         await conn.OpenAsync();
         await EnsureTableAsync(conn);
         await conn.ExecuteAsync(

@@ -24,7 +24,7 @@ export function PayCard({
   title?: string; subtitle?: string; children: React.ReactNode; className?: string;
 }) {
   return (
-    <section className={`rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm sm:p-6 ${className}`}>
+    <section className={`rounded-2xl border border-slate-200/80 bg-card p-5 shadow-sm sm:p-6 ${className}`}>
       {title && (
         <div className="mb-4 flex items-start gap-3">
           {Icon && (

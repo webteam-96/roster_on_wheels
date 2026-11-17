@@ -80,7 +80,7 @@ function ClubReportV2PageStub() {
           <ArrowLeft size={14} /> Back
         </Link>
 
-        <div className="bg-white rounded-[20px] border border-slate-200 p-6">
+        <div className="bg-card rounded-[20px] border border-slate-200 p-6">
           <div className="flex items-start gap-4">
             <div className="rounded-full bg-blue-100 p-3">
               <Award className="h-6 w-6 text-blue-700" />
@@ -416,7 +416,7 @@ export function ClubReportV2PageImpl({ clubId: propClubId, embedded = false, yea
             <select
               value={selectedYearId}
               onChange={(e) => setSelectedYearId(e.target.value)}
-              className="px-3 h-10 py-0 text-xs border border-slate-200 rounded-[12px] bg-white focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42] sm:w-56"
+              className="px-3 h-10 py-0 text-xs border border-slate-200 rounded-[12px] bg-card focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42] sm:w-56"
             >
               {years.map((y) => (
                 <option key={y.id} value={String(y.id)}>
@@ -431,7 +431,7 @@ export function ClubReportV2PageImpl({ clubId: propClubId, embedded = false, yea
         {reportLoading ? (
           <SkeletonRows />
         ) : !report ? (
-          <div className="rounded-2xl border border-slate-200 bg-white p-10 text-center text-sm text-slate-400">
+          <div className="rounded-2xl border border-slate-200 bg-card p-10 text-center text-sm text-slate-400">
             No report data available.
           </div>
         ) : (
@@ -442,7 +442,7 @@ export function ClubReportV2PageImpl({ clubId: propClubId, embedded = false, yea
                 isn't blocked by stat-card rendering. */}
 
             {embedded && (
-              <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden mb-4">
+              <div className="bg-card rounded-2xl border border-slate-200 overflow-hidden mb-4">
                 <div className="px-5 py-3 border-b border-slate-100">
                   <h3 className="text-sm font-semibold text-slate-800">Communication Logs</h3>
                   <p className="text-xs text-slate-500 mt-0.5">Delivery status of email sent to your club&apos;s members</p>
@@ -456,7 +456,7 @@ export function ClubReportV2PageImpl({ clubId: propClubId, embedded = false, yea
             )}
 
             {/* ── Per-section export rows ─────────────────────────────── */}
-            <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+            <div className="bg-card rounded-2xl border border-slate-200 overflow-hidden">
               <div className="px-5 py-3 border-b border-slate-100">
                 <h3 className="text-sm font-semibold text-slate-800">
                   Section Exports
@@ -1383,7 +1383,7 @@ function AvenueOfServiceRow({
         <select
           value={avenue}
           onChange={(e) => setAvenue(e.target.value as Avenue)}
-          className="text-xs border border-slate-200 rounded-[12px] px-2 py-1 bg-white focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42] max-w-[200px]"
+          className="text-xs border border-slate-200 rounded-[12px] px-2 py-1 bg-card focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42] max-w-[200px]"
         >
           <option value="all">All</option>
           <option value="club_service">Club Service</option>
@@ -1471,7 +1471,7 @@ function BodSectionRow({
         <select
           value={designation}
           onChange={(e) => setDesignation(e.target.value)}
-          className="text-xs border border-slate-200 rounded-[12px] px-2 py-1 bg-white focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42] max-w-[180px]"
+          className="text-xs border border-slate-200 rounded-[12px] px-2 py-1 bg-card focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42] max-w-[180px]"
         >
           <option value="__all__">All Designations</option>
           {designations.map((d) => (
