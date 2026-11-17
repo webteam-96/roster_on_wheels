@@ -1,0 +1,236 @@
+[
+ {
+  "en": "No auto points yet. Tap “Refresh” to compute.",
+  "lang": "ko",
+  "to": "아직 자동 점수가 없습니다. '새로고침'을 눌러 계산하세요.",
+  "why": "quoted button must match the button label (새로고침)"
+ },
+ {
+  "en": "Tap \"Add AG\" to assign your first Assistant Governor.",
+  "lang": "ja",
+  "to": "「ガバナー補佐を追加」をタップして最初のガバナー補佐を割り当ててください。",
+  "why": "quoted button must match the button label (ガバナー補佐を追加)"
+ },
+ {
+  "en": "Tap \"Add AG\" to assign your first Assistant Governor.",
+  "lang": "ko",
+  "to": "'지역대표 추가'를 눌러 첫 지역대표를 배정하세요.",
+  "why": "quoted button must match the button label (지역대표 추가)"
+ },
+ {
+  "en": "Tap \"Add AG\" to assign your first Assistant Governor.",
+  "lang": "pt",
+  "to": "Toque em \"Adicionar GA\" para designar seu primeiro governador assistente.",
+  "why": "quoted button must match the button label (Adicionar GA)"
+ },
+ {
+  "en": "Tap \"Add About\" to add content.",
+  "lang": "fr",
+  "to": "Touchez « Ajouter une présentation » pour ajouter du contenu.",
+  "why": "quoted button must match the button label (Ajouter une présentation)"
+ },
+ {
+  "en": "Tap \"Add About\" to add content.",
+  "lang": "de",
+  "to": "Tippen Sie auf „Über-uns-Text hinzufügen“, um Inhalt hinzuzufügen.",
+  "why": "quoted button must match the button label (Über-uns-Text hinzufügen)"
+ },
+ {
+  "en": "Tap \"Add About\" to add content.",
+  "lang": "it",
+  "to": "Tocca «Aggiungi presentazione» per aggiungere contenuti.",
+  "why": "quoted button must match the button label (Aggiungi presentazione)"
+ },
+ {
+  "en": "Tap \"Add About\" to add content.",
+  "lang": "ja",
+  "to": "「紹介を追加」をタップして内容を追加してください。",
+  "why": "quoted button must match the button label (紹介を追加)"
+ },
+ {
+  "en": "Tap \"Add About\" to add content.",
+  "lang": "pt",
+  "to": "Toque em \"Adicionar apresentação\" para incluir conteúdo.",
+  "why": "quoted button must match the button label (Adicionar apresentação)"
+ },
+ {
+  "en": "Tap \"Add About\" to add content.",
+  "lang": "es",
+  "to": "Toca «Agregar presentación» para agregar contenido.",
+  "why": "quoted button must match the button label (Agregar presentación)"
+ },
+ {
+  "en": "Tap \"Add Member\" to add your first sub-group member.",
+  "lang": "it",
+  "to": "Tocca «Aggiungi socio» per aggiungere il primo membro del sottogruppo.",
+  "why": "quoted button must match the button label (Aggiungi socio)"
+ },
+ {
+  "en": "Tap \"Add Member\" to add your first sub-group member.",
+  "lang": "ja",
+  "to": "「会員を追加」をタップしてサブグループの最初のメンバーを追加してください。",
+  "why": "quoted button must match the button label (会員を追加)"
+ },
+ {
+  "en": "Tap \"Add Member\" to add your first sub-group member.",
+  "lang": "ko",
+  "to": "'회원 추가'를 눌러 첫 하위 그룹 구성원을 추가하세요.",
+  "why": "quoted button must match the button label (회원 추가)"
+ },
+ {
+  "en": "Tap \"Add Member\" to add your first sub-group member.",
+  "lang": "pt",
+  "to": "Toque em \"Adicionar associado\" para incluir o primeiro membro do subgrupo.",
+  "why": "quoted button must match the button label (Adicionar associado)"
+ },
+ {
+  "en": "Tap \"Add Member\" to add your first sub-group member.",
+  "lang": "es",
+  "to": "Toca «Agregar socio» para agregar el primer miembro del subgrupo.",
+  "why": "quoted button must match the button label (Agregar socio)"
+ },
+ {
+  "en": "Tap \"Book training\" below to pick a Zoom session slot.",
+  "lang": "es",
+  "to": "Toca «Reservar capacitación» abajo para elegir un horario de Zoom.",
+  "why": "quoted button must match the button label (Reservar capacitación)"
+ },
+ {
+  "en": "Click \"Add AG\" to assign.",
+  "lang": "ja",
+  "to": "「ガバナー補佐を追加」をクリックして割り当ててください。",
+  "why": "quoted button must match the button label (ガバナー補佐を追加)"
+ },
+ {
+  "en": "Click \"Add Announcement\" to create one.",
+  "lang": "de",
+  "to": "Klicken Sie auf „Mitteilung hinzufügen“, um eine anzulegen.",
+  "why": "quoted button must match the button label (Mitteilung hinzufügen)"
+ },
+ {
+  "en": "Click \"Add Announcement\" to create one.",
+  "lang": "pt",
+  "to": "Clique em \"Adicionar comunicado\" para criar um.",
+  "why": "quoted button must match the button label (Adicionar comunicado)"
+ },
+ {
+  "en": "Click \"Add Weblink\" to create one.",
+  "lang": "ja",
+  "to": "「ウェブリンクを追加」をクリックして作成してください。",
+  "why": "quoted button must match the button label (ウェブリンクを追加)"
+ },
+ {
+  "en": "Click \"Add About\" to add content.",
+  "lang": "fr",
+  "to": "Cliquez sur « Ajouter une présentation » pour ajouter du contenu.",
+  "why": "quoted button must match the button label (Ajouter une présentation)"
+ },
+ {
+  "en": "Click \"Add About\" to add content.",
+  "lang": "de",
+  "to": "Klicken Sie auf „Über-uns-Text hinzufügen“, um Inhalte hinzuzufügen.",
+  "why": "quoted button must match the button label (Über-uns-Text hinzufügen)"
+ },
+ {
+  "en": "Click \"Add About\" to add content.",
+  "lang": "it",
+  "to": "Fai clic su \"Aggiungi presentazione\" per aggiungere contenuti.",
+  "why": "quoted button must match the button label (Aggiungi presentazione)"
+ },
+ {
+  "en": "Click \"Add About\" to add content.",
+  "lang": "ja",
+  "to": "「紹介を追加」をクリックして内容を追加してください。",
+  "why": "quoted button must match the button label (紹介を追加)"
+ },
+ {
+  "en": "Click \"Add About\" to add content.",
+  "lang": "pt",
+  "to": "Clique em \"Adicionar apresentação\" para adicionar conteúdo.",
+  "why": "quoted button must match the button label (Adicionar apresentação)"
+ },
+ {
+  "en": "Click \"Add About\" to add content.",
+  "lang": "es",
+  "to": "Haz clic en \"Agregar presentación\" para agregar contenido.",
+  "why": "quoted button must match the button label (Agregar presentación)"
+ },
+ {
+  "en": "Click \"Add Advertisement\" to upload your first advertisement.",
+  "lang": "it",
+  "to": "Fai clic su \"Aggiungi annuncio pubblicitario\" per caricare la tua prima pubblicità.",
+  "why": "quoted button must match the button label (Aggiungi annuncio pubblicitario)"
+ },
+ {
+  "en": "Click \"Add Attendance\" to create one.",
+  "lang": "fr",
+  "to": "Cliquez sur « Ajouter l'assiduité » pour en créer une.",
+  "why": "quoted button must match the button label (Ajouter l'assiduité)"
+ },
+ {
+  "en": "Click \"Add Attendance\" to create one.",
+  "lang": "de",
+  "to": "Klicken Sie auf „Präsenz erfassen“, um einen Eintrag anzulegen.",
+  "why": "quoted button must match the button label (Präsenz erfassen)"
+ },
+ {
+  "en": "Click \"Add Attendance\" to create one.",
+  "lang": "it",
+  "to": "Fai clic su \"Aggiungi presenze\" per crearne una.",
+  "why": "quoted button must match the button label (Aggiungi presenze)"
+ },
+ {
+  "en": "Click \"Add Meeting\" to create one.",
+  "lang": "ko",
+  "to": "'모임 추가'를 클릭하여 만드세요.",
+  "why": "quoted button must match the button label (모임 추가)"
+ },
+ {
+  "en": "Click \"Add Document\" to create one.",
+  "lang": "ja",
+  "to": "「書類を追加」をクリックして作成してください。",
+  "why": "quoted button must match the button label (書類を追加)"
+ },
+ {
+  "en": "Click \"Add Newsletter\" to create one.",
+  "lang": "it",
+  "to": "Fai clic su \"Aggiungi notiziario\" per crearne una.",
+  "why": "quoted button must match the button label (Aggiungi notiziario)"
+ },
+ {
+  "en": "Click \"Add Newsletter\" to create one.",
+  "lang": "ko",
+  "to": "'소식지 추가'를 클릭하여 만드세요.",
+  "why": "quoted button must match the button label (소식지 추가)"
+ },
+ {
+  "en": "Click \"Add Potential Member\" to add one.",
+  "lang": "it",
+  "to": "Fai clic su \"Aggiungi socio potenziale\" per aggiungerne uno.",
+  "why": "quoted button must match the button label (Aggiungi socio potenziale)"
+ },
+ {
+  "en": "Click \"Add Potential Member\" to add one.",
+  "lang": "ko",
+  "to": "'잠재 회원 추가'를 클릭하여 추가하세요.",
+  "why": "quoted button must match the button label (잠재 회원 추가)"
+ },
+ {
+  "en": "Click \"Add Potential Member\" to add one.",
+  "lang": "pt",
+  "to": "Clique em \"Adicionar associado em potencial\" para adicionar um.",
+  "why": "quoted button must match the button label (Adicionar associado em potencial)"
+ },
+ {
+  "en": "The \"View only\" wording",
+  "lang": "it",
+  "to": "Il testo \"Sola visualizzazione\"",
+  "why": "quoted button must match the button label (Sola visualizzazione)"
+ },
+ {
+  "en": "The \"View only\" wording",
+  "lang": "es",
+  "to": "El texto \"Solo lectura\"",
+  "why": "quoted button must match the button label (Solo lectura)"
+ }
+]

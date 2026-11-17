@@ -1,0 +1,62 @@
+[
+ {
+  "en": "Your club website is being set up in the background: this can take ",
+  "lang": "de",
+  "to": "Ihre Club-Website wird im Hintergrund eingerichtet: Das kann ",
+  "why": "split sentence joins in order; one term"
+ },
+ {
+  "en": "a few minutes. You can safely leave this page: we’ll show a ",
+  "lang": "de",
+  "to": "einige Minuten dauern. Sie können diese Seite verlassen: Wir zeigen eine ",
+  "why": "split sentence joins in order; one term"
+ },
+ {
+  "en": "Your club website is being set up in the background: this can take ",
+  "lang": "ja",
+  "to": "クラブのウェブサイトをバックグラウンドで設定中です。完了まで",
+  "why": "split sentence joins in order; one term"
+ },
+ {
+  "en": "a few minutes. You can safely leave this page: we’ll show a ",
+  "lang": "ja",
+  "to": "数分かかることがあります。このページを離れても大丈夫です。",
+  "why": "split sentence joins in order; one term"
+ },
+ {
+  "en": "Your club website is being set up in the background: this can take ",
+  "lang": "ko",
+  "to": "클럽 웹사이트를 백그라운드에서 설정 중입니다. 완료까지 ",
+  "why": "split sentence joins in order; one term"
+ },
+ {
+  "en": "a few minutes. You can safely leave this page: we’ll show a ",
+  "lang": "ko",
+  "to": "몇 분 정도 걸릴 수 있습니다. 이 페이지를 떠나도 됩니다. ",
+  "why": "split sentence joins in order; one term"
+ },
+ {
+  "en": "Youth & New Generation Services",
+  "lang": "de",
+  "to": "Jugenddienst",
+  "why": "split sentence joins in order; one term"
+ },
+ {
+  "en": "Unrestricted giving",
+  "lang": "de",
+  "to": "Nicht zweckgebundene Spenden",
+  "why": "split sentence joins in order; one term"
+ },
+ {
+  "en": "Your website is hidden by district administration (kill switch enabled).",
+  "lang": "de",
+  "to": "Ihre Website wurde von der Distriktverwaltung ausgeblendet (Not-Aus aktiv).",
+  "why": "split sentence joins in order; one term"
+ },
+ {
+  "en": "Year is not stored for birthdays & anniversaries.",
+  "lang": "de",
+  "to": "Bei Geburtstagen und Hochzeitstagen wird das Jahr nicht gespeichert.",
+  "why": "anniversary = Hochzeitstag"
+ }
+]

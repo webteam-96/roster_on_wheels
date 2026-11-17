@@ -74,7 +74,7 @@ open the file for the text. Do not edit by hand.
   -   19. Gates
   - … 15 more headings
 
-## row (65 documents)
+## row (66 documents)
 
 - **row/HANDOFF.md** (13 KB)
   - ROW: session handoff (read this first)
@@ -111,7 +111,7 @@ open the file for the text. Do not edit by hand.
   -   Configuration (set per server as environment variables; never commit values)
   -   Checks
   -   Refreshing from a newer RIZones copy
-- **row/ROW-CHANGES.md** (93 KB)
+- **row/ROW-CHANGES.md** (94 KB)
   - ROW changes to consider later
   -   Security and privacy
   -   Providers
@@ -235,6 +235,8 @@ open the file for the text. Do not edit by hand.
   -   10. Performance — DB indexes
   -   Known gaps (track separately, not blocking launch)
   -   Sample seed for fresh dev DB
+- **row/database/translations/review/README.md** (1 KB)
+  - UI label review sheets (one per language)
 - **row/deploy/iis/README.md** (8 KB)
   - ROW test go-live on IIS (test.rosteronwheels.com)
   -   1. Server prerequisites (once)
@@ -577,7 +579,7 @@ open the file for the text. Do not edit by hand.
   -   The normal scheduled run is separate
   -   Checking the database mapping (read-only)
 
-## reference (247 documents)
+## reference (251 documents)
 
 - **reference/RotaryIndia_Admin_API_Claude/Announcements.txt** (0 KB)
   - _Announcements:_
@@ -1125,6 +1127,26 @@ open the file for the text. Do not edit by hand.
   -   4. Version comparison — READ THIS, there is a real bug to avoid
   -   5. Client behavior (so you know what your response drives)
   -   6. Reuse checklist for a new project
+- **reference/RotaryIndia_Admin_API_Claude/MD_files/MOBILE_NOTE_club_rotary_sync_2026-11-10.md** (1 KB)
+  - Mobile: Club "Sync from Rotary.org" (2026-11-10)
+  -   Same endpoints as the DG sync - just add `clubId`
+  -   What a club sync changes
+  -   Please add in the app
+- **reference/RotaryIndia_Admin_API_Claude/MD_files/MOBILE_NOTE_dues_channel_currency_2026-11-09.md** (1 KB)
+  - Mobile: Club Dues / District Dues - Email/WhatsApp flags + ₹/$ sign (2026-11-09)
+  -   New JSON fields (same endpoints, nothing renamed)
+  -   Please change in the app
+  -   Payment OTP (server side, no app change)
+- **reference/RotaryIndia_Admin_API_Claude/MD_files/MOBILE_NOTE_new_goal_setting_live_2026-11-09.md** (3 KB)
+  - Mobile: new Goal Setting goes live (2026-11-09)
+  -   Menus
+  -   Year-wise rights (no app change needed for the rule, only the UI)
+  -   API
+- **reference/RotaryIndia_Admin_API_Claude/MD_files/MOBILE_NOTE_rcc_district_goals_2026-11-16.md** (7 KB)
+  - Mobile: RCC & District Goals (2026-11-16)
+  -   1. NOW: District Awards "Text" answer type
+  -   2. Go-live: the new page (web reference: `/district-admin-dashboard/rcc-goals`, `/club-admin-dashboard/rcc-goals`)
+  -   Not changed
 - **reference/RotaryIndia_Admin_API_Claude/MD_files/MOBILE_NOTE_tshirt_size_blood_group_2026-11-06.md** (2 KB)
   - Mobile: T-Shirt Size + Blood Group on the member profile (2026-11-06)
   -   Rules
@@ -2344,13 +2366,14 @@ open the file for the text. Do not edit by hand.
   -   Inspect saved submissions
   - list saved files
   - or just look in:
-- **reference/RotaryIndia_Admin_API_Claude/RccGoalsFetcher/WORKER_SETUP.md** (4 KB)
+- **reference/RotaryIndia_Admin_API_Claude/RccGoalsFetcher/WORKER_SETUP.md** (6 KB)
   - RccGoalsFetcher worker: District Governor syncs
   -   Requirements
   -   Install as a Windows Service (elevated command prompt)
   -   Statuses
   -   The normal scheduled run is separate
   -   Checking the database mapping (read-only)
+  -   Club syncs, zone days, month-end (2026-11-10)
 - **reference/RotaryIndia_Admin_API_Claude/RotaryApi/SQL/year_wise_admin_rights/README.md** (4 KB)
   - Year-wise Admin Rights — migration
   -   Run it

@@ -1,0 +1,98 @@
+[
+ {
+  "en": "Tap a chip to insert a value (e.g. club name, amount) into your ",
+  "lang": "de",
+  "to": "Tippen Sie auf einen Baustein, um einen Wert (z. B. Clubname, Betrag) in Ihren ",
+  "why": "split sentence joins in order; case ending; neutral wording"
+ },
+ {
+  "en": "text: it's filled in when the email is sent. If you don't add ",
+  "lang": "de",
+  "to": "Text einzufügen: Er wird beim Senden der E-Mail ausgefüllt. Wenn Sie keinen ",
+  "why": "split sentence joins in order; case ending; neutral wording"
+ },
+ {
+  "en": "an amount/members value, a summary is appended for you.",
+  "lang": "de",
+  "to": "Betrag und keine Mitgliederzahl einfügen, wird automatisch eine Zusammenfassung angehängt.",
+  "why": "split sentence joins in order; case ending; neutral wording"
+ },
+ {
+  "en": "Tap a chip to insert a value (e.g. club name, amount) into your ",
+  "lang": "ja",
+  "to": "チップをタップすると、値（クラブ名、金額など）を",
+  "why": "split sentence joins in order; case ending; neutral wording"
+ },
+ {
+  "en": "text: it's filled in when the email is sent. If you don't add ",
+  "lang": "ja",
+  "to": "本文に挿入できます。値はメール送信時に入ります。",
+  "why": "split sentence joins in order; case ending; neutral wording"
+ },
+ {
+  "en": "an amount/members value, a summary is appended for you.",
+  "lang": "ja",
+  "to": "金額／会員数を入れない場合は、概要が自動で追加されます。",
+  "why": "split sentence joins in order; case ending; neutral wording"
+ },
+ {
+  "en": "Tap a chip to insert a value (e.g. club name, amount) into your ",
+  "lang": "ko",
+  "to": "칩을 눌러 값(예: 클럽 이름, 금액)을 ",
+  "why": "split sentence joins in order; case ending; neutral wording"
+ },
+ {
+  "en": "text: it's filled in when the email is sent. If you don't add ",
+  "lang": "ko",
+  "to": "본문에 넣을 수 있습니다. 값은 이메일을 보낼 때 채워집니다. ",
+  "why": "split sentence joins in order; case ending; neutral wording"
+ },
+ {
+  "en": "an amount/members value, a summary is appended for you.",
+  "lang": "ko",
+  "to": "금액/회원 값을 넣지 않으면 요약이 자동으로 추가됩니다.",
+  "why": "split sentence joins in order; case ending; neutral wording"
+ },
+ {
+  "en": "Terms and Conditions",
+  "lang": "de",
+  "to": "Allgemeine Geschäftsbedingungen",
+  "why": "split sentence joins in order; case ending; neutral wording"
+ },
+ {
+  "en": "Set as primary",
+  "lang": "de",
+  "to": "Als primär festlegen",
+  "why": "split sentence joins in order; case ending; neutral wording"
+ },
+ {
+  "en": "Service Projects & Public Image",
+  "lang": "de",
+  "to": "Serviceprojekte und Öffentlichkeitsarbeit",
+  "why": "one term: Serviceprojekt"
+ },
+ {
+  "en": "Service Projects (≥10)",
+  "lang": "de",
+  "to": "Serviceprojekte (≥10)",
+  "why": "one term: Serviceprojekt"
+ },
+ {
+  "en": "Service Projects by Club",
+  "lang": "de",
+  "to": "Serviceprojekte je Club",
+  "why": "one term: Serviceprojekt"
+ },
+ {
+  "en": "Service Projects: By Avenue",
+  "lang": "de",
+  "to": "Serviceprojekte: nach Dienstbereich",
+  "why": "one term: Serviceprojekt"
+ },
+ {
+  "en": "The data I will enter is for a International Service project conducted by ",
+  "lang": "de",
+  "to": "Die Daten, die ich eingebe, betreffen ein internationales Serviceprojekt von ",
+  "why": "one term: Serviceprojekt"
+ }
+]
