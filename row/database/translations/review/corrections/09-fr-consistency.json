@@ -1,0 +1,212 @@
+[
+ {
+  "en": "Add Board Member",
+  "lang": "fr",
+  "to": "Ajouter un membre du comité",
+  "why": "French Rotary usage: comité (board), past-président, Fondation, bulletin"
+ },
+ {
+  "en": "Add TRF Contribution",
+  "lang": "fr",
+  "to": "Ajouter une contribution à la Fondation",
+  "why": "French Rotary usage: comité (board), past-président, Fondation, bulletin"
+ },
+ {
+  "en": "BOD Members",
+  "lang": "fr",
+  "to": "Membres du comité",
+  "why": "French Rotary usage: comité (board), past-président, Fondation, bulletin"
+ },
+ {
+  "en": "Board of Directors (BOD)",
+  "lang": "fr",
+  "to": "Comité",
+  "why": "French Rotary usage: comité (board), past-président, Fondation, bulletin"
+ },
+ {
+  "en": "TRF Amount (USD)",
+  "lang": "fr",
+  "to": "Montant Fondation (USD)",
+  "why": "French Rotary usage: comité (board), past-président, Fondation, bulletin"
+ },
+ {
+  "en": "TRF Contribution",
+  "lang": "fr",
+  "to": "Contribution à la Fondation",
+  "why": "French Rotary usage: comité (board), past-président, Fondation, bulletin"
+ },
+ {
+  "en": "TRF Contributions",
+  "lang": "fr",
+  "to": "Contributions à la Fondation",
+  "why": "French Rotary usage: comité (board), past-président, Fondation, bulletin"
+ },
+ {
+  "en": "TRF Giving Breakdown by Club",
+  "lang": "fr",
+  "to": "Dons à la Fondation par club",
+  "why": "French Rotary usage: comité (board), past-président, Fondation, bulletin"
+ },
+ {
+  "en": "TRF Giving per Club (USD)",
+  "lang": "fr",
+  "to": "Dons à la Fondation par club (USD)",
+  "why": "French Rotary usage: comité (board), past-président, Fondation, bulletin"
+ },
+ {
+  "en": "TRF Raised",
+  "lang": "fr",
+  "to": "Collecté pour la Fondation",
+  "why": "French Rotary usage: comité (board), past-président, Fondation, bulletin"
+ },
+ {
+  "en": "Top TRF Giving",
+  "lang": "fr",
+  "to": "Meilleurs dons à la Fondation",
+  "why": "French Rotary usage: comité (board), past-président, Fondation, bulletin"
+ },
+ {
+  "en": "Total TRF",
+  "lang": "fr",
+  "to": "Total Fondation",
+  "why": "French Rotary usage: comité (board), past-président, Fondation, bulletin"
+ },
+ {
+  "en": "Delete Past President",
+  "lang": "fr",
+  "to": "Supprimer le past-président",
+  "why": "French Rotary usage: comité (board), past-président, Fondation, bulletin"
+ },
+ {
+  "en": "Edit Past President",
+  "lang": "fr",
+  "to": "Modifier le past-président",
+  "why": "French Rotary usage: comité (board), past-président, Fondation, bulletin"
+ },
+ {
+  "en": "Enter co-host club name",
+  "lang": "fr",
+  "to": "Saisissez le nom du club coorganisateur",
+  "why": "French Rotary usage: comité (board), past-président, Fondation, bulletin"
+ },
+ {
+  "en": "Enter newsletter title",
+  "lang": "fr",
+  "to": "Saisissez le titre du bulletin",
+  "why": "French Rotary usage: comité (board), past-président, Fondation, bulletin"
+ },
+ {
+  "en": "Failed to load past presidents",
+  "lang": "fr",
+  "to": "Échec du chargement des past-présidents",
+  "why": "French Rotary usage: comité (board), past-président, Fondation, bulletin"
+ },
+ {
+  "en": "New bulletins and newsletters",
+  "lang": "fr",
+  "to": "Nouveaux bulletins",
+  "why": "French Rotary usage: comité (board), past-président, Fondation, bulletin"
+ },
+ {
+  "en": "No newsletters have been posted yet.",
+  "lang": "fr",
+  "to": "Aucune bulletin publiée pour l'instant.",
+  "why": "French Rotary usage: comité (board), past-président, Fondation, bulletin"
+ },
+ {
+  "en": "No past presidents found",
+  "lang": "fr",
+  "to": "Aucun past-président trouvé",
+  "why": "French Rotary usage: comité (board), past-président, Fondation, bulletin"
+ },
+ {
+  "en": "Tap + to create a new newsletter.",
+  "lang": "fr",
+  "to": "Touchez + pour créer un bulletin.",
+  "why": "French Rotary usage: comité (board), past-président, Fondation, bulletin"
+ },
+ {
+  "en": "This newsletter is no longer available.",
+  "lang": "fr",
+  "to": "Ce bulletin n'est plus disponible.",
+  "why": "French Rotary usage: comité (board), past-président, Fondation, bulletin"
+ },
+ {
+  "en": "Board Members",
+  "lang": "fr",
+  "to": "Membres du comité",
+  "why": "French Rotary usage: comité (board), past-président, Fondation, bulletin"
+ },
+ {
+  "en": "Board Member",
+  "lang": "fr",
+  "to": "Membre du comité",
+  "why": "French Rotary usage: comité (board), past-président, Fondation, bulletin"
+ },
+ {
+  "en": "TRF Breakdown",
+  "lang": "fr",
+  "to": "Répartition Fondation",
+  "why": "French Rotary usage: comité (board), past-président, Fondation, bulletin"
+ },
+ {
+  "en": "Attendance, reports, citations, TRF and district submissions",
+  "lang": "fr",
+  "to": "Présences, rapports, citations, Fondation et transmissions au district",
+  "why": "French Rotary usage: comité (board), past-président, Fondation, bulletin"
+ },
+ {
+  "en": "Please post all the Community Services executed by your club. The content posted here will be displayed in ROW Website, District website, Club Monthly Report & ROW integrated Club website.",
+  "lang": "fr",
+  "to": "Publiez toutes les actions d'intérêt public réalisées par votre club. Le contenu publié ici apparaîtra sur le site ROW, sur le site du district, dans le rapport mensuel du club et sur le site du club intégré à ROW.",
+  "why": "French Rotary usage: comité (board), past-président, Fondation, bulletin"
+ },
+ {
+  "en": "Detailed TRF Giving Table",
+  "lang": "fr",
+  "to": "Tableau détaillé des dons à la Fondation",
+  "why": "French Rotary usage: comité (board), past-président, Fondation, bulletin"
+ },
+ {
+  "en": "TRF & Foundation",
+  "lang": "fr",
+  "to": "Fondation Rotary",
+  "why": "French Rotary usage: comité (board), past-président, Fondation, bulletin"
+ },
+ {
+  "en": "TRF Entries",
+  "lang": "fr",
+  "to": "Saisies Fondation",
+  "why": "French Rotary usage: comité (board), past-président, Fondation, bulletin"
+ },
+ {
+  "en": "Community service projects",
+  "lang": "fr",
+  "to": "Projets d'action d'intérêt public",
+  "why": "French Rotary usage: comité (board), past-président, Fondation, bulletin"
+ },
+ {
+  "en": "Create a new community service initiative",
+  "lang": "fr",
+  "to": "Créer une action d'intérêt public",
+  "why": "French Rotary usage: comité (board), past-président, Fondation, bulletin"
+ },
+ {
+  "en": "No TRF contributions for this year.",
+  "lang": "fr",
+  "to": "Aucune contribution à la Fondation pour cette année.",
+  "why": "French Rotary usage: comité (board), past-président, Fondation, bulletin"
+ },
+ {
+  "en": "Board Position",
+  "lang": "fr",
+  "to": "Poste au comité",
+  "why": "French Rotary usage: comité (board), past-président, Fondation, bulletin"
+ },
+ {
+  "en": "Foundation (TRF)",
+  "lang": "fr",
+  "to": "Fondation Rotary",
+  "why": "French Rotary usage: comité (board), past-président, Fondation, bulletin"
+ }
+]

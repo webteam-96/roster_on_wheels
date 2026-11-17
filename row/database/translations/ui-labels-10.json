@@ -127,7 +127,7 @@
 "Agregar director"
 ],
 "Add Board Member": [
-"Ajouter un membre du conseil",
+"Ajouter un membre du comité",
 "Vorstandsmitglied hinzufügen",
 "Aggiungi membro del consiglio",
 "理事を追加",
@@ -253,7 +253,7 @@
 "Agregar enlace de red social"
 ],
 "Add TRF Contribution": [
-"Ajouter une contribution TRF",
+"Ajouter une contribution à la Fondation",
 "TRF-Spende hinzufügen",
 "Aggiungi contributo TRF",
 "TRF寄付を追加",
@@ -406,7 +406,7 @@
 "Avenida de Servicio (conteo por club)"
 ],
 "BOD Members": [
-"Membres du conseil",
+"Membres du comité",
 "Vorstandsmitglieder",
 "Membri del consiglio",
 "理事",
@@ -415,7 +415,7 @@
 "Miembros de la junta"
 ],
 "Board of Directors (BOD)": [
-"Conseil d'administration",
+"Comité",
 "Vorstand",
 "Consiglio direttivo",
 "理事会",
@@ -1360,7 +1360,7 @@
 "Sincronizar"
 ],
 "TRF Amount (USD)": [
-"Montant TRF (USD)",
+"Montant Fondation (USD)",
 "TRF-Betrag (USD)",
 "Importo TRF (USD)",
 "TRF金額（USD）",
@@ -1369,7 +1369,7 @@
 "Monto LFR (USD)"
 ],
 "TRF Contribution": [
-"Contribution TRF",
+"Contribution à la Fondation",
 "TRF-Spende",
 "Contributo TRF",
 "TRF寄付",
@@ -1378,7 +1378,7 @@
 "Contribución a LFR"
 ],
 "TRF Contributions": [
-"Contributions TRF",
+"Contributions à la Fondation",
 "TRF-Spenden",
 "Contributi TRF",
 "TRF寄付",
@@ -1387,7 +1387,7 @@
 "Contribuciones a LFR"
 ],
 "TRF Giving Breakdown by Club": [
-"Dons TRF par club",
+"Dons à la Fondation par club",
 "TRF-Spenden nach Club",
 "Donazioni TRF per club",
 "クラブ別TRF寄付内訳",
@@ -1396,7 +1396,7 @@
 "Donaciones a LFR por club"
 ],
 "TRF Giving per Club (USD)": [
-"Dons TRF par club (USD)",
+"Dons à la Fondation par club (USD)",
 "TRF-Spenden je Club (USD)",
 "Donazioni TRF per club (USD)",
 "クラブ当たりTRF寄付（USD）",
@@ -1405,7 +1405,7 @@
 "Donaciones a LFR por club (USD)"
 ],
 "TRF Raised": [
-"TRF collecté",
+"Collecté pour la Fondation",
 "TRF gesammelt",
 "TRF raccolto",
 "TRF寄付額",
@@ -1441,7 +1441,7 @@
 "Clubes con más donaciones"
 ],
 "Top TRF Giving": [
-"Meilleurs dons TRF",
+"Meilleurs dons à la Fondation",
 "Höchste TRF-Spenden",
 "Maggiori donazioni TRF",
 "TRF寄付上位",
@@ -1459,7 +1459,7 @@
 "Total de servicio en el club"
 ],
 "Total TRF": [
-"TRF total",
+"Total Fondation",
 "TRF gesamt",
 "TRF totale",
 "TRF合計",
