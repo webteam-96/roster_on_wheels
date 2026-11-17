@@ -3,7 +3,7 @@
 "(No avenue set)": [
 "(Aucun domaine d'action)",
 "(Kein Dienstbereich)",
-"(Nessuna area di azione)",
+"(Nessuna via d'azione)",
 "（奉仕部門なし）",
 "(봉사 부문 없음)",
 "(Nenhuma avenida definida)",
@@ -381,7 +381,7 @@
 "Avenue of Service": [
 "Domaine d'action",
 "Dienstbereich",
-"Area di azione",
+"Via d'azione",
 "奉仕部門",
 "봉사 부문",
 "Avenida de Serviço",
@@ -390,7 +390,7 @@
 "Avenue Of Service (AG Wise)": [
 "Domaine d'action (par AG)",
 "Dienstbereich (nach AG)",
-"Area di azione (per AG)",
+"Via d'azione (per AG)",
 "奉仕部門（ガバナー補佐別）",
 "봉사 부문 (지역대표별)",
 "Avenida de Serviço (por GA)",
@@ -399,7 +399,7 @@
 "Avenue Of Service (Club Wise Count)": [
 "Domaine d'action (nombre par club)",
 "Dienstbereich (Anzahl je Club)",
-"Area di azione (conteggio per club)",
+"Via d'azione (conteggio per club)",
 "奉仕部門（クラブ別件数）",
 "봉사 부문 (클럽별 건수)",
 "Avenida de Serviço (contagem por clube)",
@@ -642,7 +642,7 @@
 "Date of Joining": [
 "Date d'adhésion",
 "Eintrittsdatum",
-"Data di ammissione",
+"Data di ingresso",
 "入会日",
 "입회일",
 "Data de admissão",
@@ -696,7 +696,7 @@
 "District Awards (AG Wise)": [
 "Distinctions de district (par AG)",
 "Distriktauszeichnungen (nach AG)",
-"Premi distrettuali (per AG)",
+"Riconoscimenti distrettuali (per AG)",
 "地区賞（ガバナー補佐別）",
 "지구 시상 (지역대표별)",
 "Prêmios distritais (por GA)",
@@ -705,7 +705,7 @@
 "District Awards (Club Wise)": [
 "Distinctions de district (par club)",
 "Distriktauszeichnungen (nach Club)",
-"Premi distrettuali (per club)",
+"Riconoscimenti distrettuali (per club)",
 "地区賞（クラブ別）",
 "지구 시상 (클럽별)",
 "Prêmios distritais (por clube)",
@@ -714,7 +714,7 @@
 "District Awards Extended (AG Wise)": [
 "Distinctions de district détaillées (par AG)",
 "Distriktauszeichnungen erweitert (nach AG)",
-"Premi distrettuali estesi (per AG)",
+"Riconoscimenti distrettuali estesi (per AG)",
 "地区賞 詳細（ガバナー補佐別）",
 "지구 시상 확장 (지역대표별)",
 "Prêmios distritais detalhados (por GA)",
@@ -723,7 +723,7 @@
 "District Awards Extended (Club Wise)": [
 "Distinctions de district détaillées (par club)",
 "Distriktauszeichnungen erweitert (nach Club)",
-"Premi distrettuali estesi (per club)",
+"Riconoscimenti distrettuali estesi (per club)",
 "地区賞 詳細（クラブ別）",
 "지구 시상 확장 (클럽별)",
 "Prêmios distritais detalhados (por clube)",
@@ -867,7 +867,7 @@
 "Group District Committee": [
 "Regrouper la commission de district",
 "Distriktausschussgruppe",
-"Raggruppa commissione distrettuale",
+"Gruppo commissione distrettuale",
 "地区委員会をグループ化",
 "지구 위원회 그룹",
 "Agrupar comissão distrital",
@@ -1281,7 +1281,7 @@
 "Service Projects & Avenues": [
 "Projets d'action et domaines",
 "Serviceprojekte & Dienstbereiche",
-"Progetti di servizio e aree di azione",
+"Progetti di servizio e vie d'azione",
 "奉仕プロジェクトと奉仕部門",
 "봉사 프로젝트 및 부문",
 "Projetos de serviço e avenidas",
@@ -1578,7 +1578,7 @@
 "Avenue of Service and Public Image Initiative": [
 "Domaine d'action et action d'image publique",
 "Dienstbereich und Öffentlichkeitsarbeit-Initiative",
-"Area di azione e iniziativa di immagine pubblica",
+"Via d'azione e iniziativa di immagine pubblica",
 "奉仕部門と公共イメージの取り組み",
 "봉사 부문 및 공공 이미지 활동",
 "Avenida de Serviço e iniciativa de imagem pública",

@@ -1,0 +1,74 @@
+[
+ {
+  "en": "Delete Past President",
+  "lang": "it",
+  "to": "Elimina Past President",
+  "why": "it batch 4"
+ },
+ {
+  "en": "Edit Past President",
+  "lang": "it",
+  "to": "Modifica Past President",
+  "why": "it batch 4"
+ },
+ {
+  "en": "Failed to load past presidents",
+  "lang": "it",
+  "to": "Caricamento dei Past President non riuscito",
+  "why": "it batch 4"
+ },
+ {
+  "en": "No past presidents found",
+  "lang": "it",
+  "to": "Nessun Past President trovato",
+  "why": "it batch 4"
+ },
+ {
+  "en": "PHF Contributors",
+  "lang": "it",
+  "to": "Donatori PHF",
+  "why": "it batch 4"
+ },
+ {
+  "en": "Please select designation",
+  "lang": "it",
+  "to": "Seleziona l'incarico",
+  "why": "it batch 4"
+ },
+ {
+  "en": "No past presidents yet",
+  "lang": "it",
+  "to": "Nessun Past President per ora",
+  "why": "it batch 4"
+ },
+ {
+  "en": "No past presidents recorded",
+  "lang": "it",
+  "to": "Nessun Past President registrato",
+  "why": "it batch 4"
+ },
+ {
+  "en": "No past presidents recorded yet.",
+  "lang": "it",
+  "to": "Nessun Past President registrato per ora.",
+  "why": "it batch 4"
+ },
+ {
+  "en": "Past President Records",
+  "lang": "it",
+  "to": "Schede dei Past President",
+  "why": "it batch 4"
+ },
+ {
+  "en": "Total Past Presidents",
+  "lang": "it",
+  "to": "Totale Past President",
+  "why": "it batch 4"
+ },
+ {
+  "en": "Only one past president can be recorded per year.",
+  "lang": "it",
+  "to": "È possibile registrare un solo Past President per anno.",
+  "why": "it batch 4"
+ }
+]

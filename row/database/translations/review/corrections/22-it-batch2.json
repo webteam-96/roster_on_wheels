@@ -1,0 +1,422 @@
+[
+ {
+  "en": "Date of Joining",
+  "lang": "it",
+  "to": "Data di ingresso",
+  "why": "it batch 2: rapporto, email di massa, notiziario, riconoscimenti, attestato"
+ },
+ {
+  "en": "District Awards (AG Wise)",
+  "lang": "it",
+  "to": "Riconoscimenti distrettuali (per AG)",
+  "why": "it batch 2: rapporto, email di massa, notiziario, riconoscimenti, attestato"
+ },
+ {
+  "en": "District Awards (Club Wise)",
+  "lang": "it",
+  "to": "Riconoscimenti distrettuali (per club)",
+  "why": "it batch 2: rapporto, email di massa, notiziario, riconoscimenti, attestato"
+ },
+ {
+  "en": "District Awards Extended (AG Wise)",
+  "lang": "it",
+  "to": "Riconoscimenti distrettuali estesi (per AG)",
+  "why": "it batch 2: rapporto, email di massa, notiziario, riconoscimenti, attestato"
+ },
+ {
+  "en": "District Awards Extended (Club Wise)",
+  "lang": "it",
+  "to": "Riconoscimenti distrettuali estesi (per club)",
+  "why": "it batch 2: rapporto, email di massa, notiziario, riconoscimenti, attestato"
+ },
+ {
+  "en": "Compose & send bulk emails to district recipients",
+  "lang": "it",
+  "to": "Scrivi e invia email di massa ai destinatari del distretto",
+  "why": "it batch 2: rapporto, email di massa, notiziario, riconoscimenti, attestato"
+ },
+ {
+  "en": "Compose Mass Email",
+  "lang": "it",
+  "to": "Scrivi email di massa",
+  "why": "it batch 2: rapporto, email di massa, notiziario, riconoscimenti, attestato"
+ },
+ {
+  "en": "Compose mass email",
+  "lang": "it",
+  "to": "Scrivi email di massa",
+  "why": "it batch 2: rapporto, email di massa, notiziario, riconoscimenti, attestato"
+ },
+ {
+  "en": "Copy Report Link",
+  "lang": "it",
+  "to": "Copia link del rapporto",
+  "why": "it batch 2: rapporto, email di massa, notiziario, riconoscimenti, attestato"
+ },
+ {
+  "en": "Copy report link",
+  "lang": "it",
+  "to": "Copia link del rapporto",
+  "why": "it batch 2: rapporto, email di massa, notiziario, riconoscimenti, attestato"
+ },
+ {
+  "en": "Could not generate any club report for this AG.",
+  "lang": "it",
+  "to": "Impossibile generare rapporti dei club per questo AG.",
+  "why": "it batch 2: rapporto, email di massa, notiziario, riconoscimenti, attestato"
+ },
+ {
+  "en": "Could not open report",
+  "lang": "it",
+  "to": "Impossibile aprire il rapporto",
+  "why": "it batch 2: rapporto, email di massa, notiziario, riconoscimenti, attestato"
+ },
+ {
+  "en": "Delete Mass Email",
+  "lang": "it",
+  "to": "Elimina email di massa",
+  "why": "it batch 2: rapporto, email di massa, notiziario, riconoscimenti, attestato"
+ },
+ {
+  "en": "Designation Name *",
+  "lang": "it",
+  "to": "Nome dell'incarico *",
+  "why": "it batch 2: rapporto, email di massa, notiziario, riconoscimenti, attestato"
+ },
+ {
+  "en": "District Citation Report",
+  "lang": "it",
+  "to": "Rapporto degli attestati distrettuali",
+  "why": "it batch 2: rapporto, email di massa, notiziario, riconoscimenti, attestato"
+ },
+ {
+  "en": "District Citation Review",
+  "lang": "it",
+  "to": "Revisione degli attestati distrettuali",
+  "why": "it batch 2: rapporto, email di massa, notiziario, riconoscimenti, attestato"
+ },
+ {
+  "en": "Document compliance report",
+  "lang": "it",
+  "to": "Rapporto di conformità documentale",
+  "why": "it batch 2: rapporto, email di massa, notiziario, riconoscimenti, attestato"
+ },
+ {
+  "en": "Download District Report",
+  "lang": "it",
+  "to": "Scarica rapporto distrettuale",
+  "why": "it batch 2: rapporto, email di massa, notiziario, riconoscimenti, attestato"
+ },
+ {
+  "en": "Download Excel reports module-wise",
+  "lang": "it",
+  "to": "Scarica i rapporti Excel per modulo",
+  "why": "it batch 2: rapporto, email di massa, notiziario, riconoscimenti, attestato"
+ },
+ {
+  "en": "Download full report",
+  "lang": "it",
+  "to": "Scarica rapporto completo",
+  "why": "it batch 2: rapporto, email di massa, notiziario, riconoscimenti, attestato"
+ },
+ {
+  "en": "Download report (Excel)",
+  "lang": "it",
+  "to": "Scarica rapporto (Excel)",
+  "why": "it batch 2: rapporto, email di massa, notiziario, riconoscimenti, attestato"
+ },
+ {
+  "en": "Each club’s month-by-month reporting status",
+  "lang": "it",
+  "to": "Stato mensile dei rapporti di ogni club",
+  "why": "it batch 2: rapporto, email di massa, notiziario, riconoscimenti, attestato"
+ },
+ {
+  "en": "Edit Mass Email",
+  "lang": "it",
+  "to": "Modifica email di massa",
+  "why": "it batch 2: rapporto, email di massa, notiziario, riconoscimenti, attestato"
+ },
+ {
+  "en": "Enter newsletter title",
+  "lang": "it",
+  "to": "Inserisci il titolo del notiziario",
+  "why": "it batch 2: rapporto, email di massa, notiziario, riconoscimenti, attestato"
+ },
+ {
+  "en": "Failed to generate report",
+  "lang": "it",
+  "to": "Generazione del rapporto non riuscita",
+  "why": "it batch 2: rapporto, email di massa, notiziario, riconoscimenti, attestato"
+ },
+ {
+  "en": "Failed to initialize report",
+  "lang": "it",
+  "to": "Inizializzazione del rapporto non riuscita",
+  "why": "it batch 2: rapporto, email di massa, notiziario, riconoscimenti, attestato"
+ },
+ {
+  "en": "Failed to load monthly reports.",
+  "lang": "it",
+  "to": "Caricamento dei rapporti mensili non riuscito.",
+  "why": "it batch 2: rapporto, email di massa, notiziario, riconoscimenti, attestato"
+ },
+ {
+  "en": "Failed to load report",
+  "lang": "it",
+  "to": "Caricamento del rapporto non riuscito",
+  "why": "it batch 2: rapporto, email di massa, notiziario, riconoscimenti, attestato"
+ },
+ {
+  "en": "Failed to load report detail.",
+  "lang": "it",
+  "to": "Caricamento del dettaglio del rapporto non riuscito.",
+  "why": "it batch 2: rapporto, email di massa, notiziario, riconoscimenti, attestato"
+ },
+ {
+  "en": "Failed to save targets.",
+  "lang": "it",
+  "to": "Salvataggio degli obiettivi non riuscito.",
+  "why": "it batch 2: rapporto, email di massa, notiziario, riconoscimenti, attestato"
+ },
+ {
+  "en": "Generate OCV Report",
+  "lang": "it",
+  "to": "Genera rapporto OCV",
+  "why": "it batch 2: rapporto, email di massa, notiziario, riconoscimenti, attestato"
+ },
+ {
+  "en": "Live Documents are managed by club and district admins. Members do not have access to these reports.",
+  "lang": "it",
+  "to": "I documenti live sono gestiti dagli amministratori di club e distretto. I soci non hanno accesso a questi rapporti.",
+  "why": "it batch 2: rapporto, email di massa, notiziario, riconoscimenti, attestato"
+ },
+ {
+  "en": "Manage reports, documents, attendance & awards",
+  "lang": "it",
+  "to": "Gestisci rapporti, documenti, presenze e riconoscimenti",
+  "why": "it batch 2: rapporto, email di massa, notiziario, riconoscimenti, attestato"
+ },
+ {
+  "en": "Mass email deleted",
+  "lang": "it",
+  "to": "Email di massa eliminata",
+  "why": "it batch 2: rapporto, email di massa, notiziario, riconoscimenti, attestato"
+ },
+ {
+  "en": "Monthly Report Compliance",
+  "lang": "it",
+  "to": "Conformità dei rapporti mensili",
+  "why": "it batch 2: rapporto, email di massa, notiziario, riconoscimenti, attestato"
+ },
+ {
+  "en": "New Members Report",
+  "lang": "it",
+  "to": "Rapporto nuovi soci",
+  "why": "it batch 2: rapporto, email di massa, notiziario, riconoscimenti, attestato"
+ },
+ {
+  "en": "New bulletins and newsletters",
+  "lang": "it",
+  "to": "Nuovi bollettini e notiziari",
+  "why": "it batch 2: rapporto, email di massa, notiziario, riconoscimenti, attestato"
+ },
+ {
+  "en": "Newsletters, announcements and mass emails",
+  "lang": "it",
+  "to": "Notiziari, annunci ed email di massa",
+  "why": "it batch 2: rapporto, email di massa, notiziario, riconoscimenti, attestato"
+ },
+ {
+  "en": "No mass emails",
+  "lang": "it",
+  "to": "Nessuna email di massa",
+  "why": "it batch 2: rapporto, email di massa, notiziario, riconoscimenti, attestato"
+ },
+ {
+  "en": "No mass emails have been sent yet.",
+  "lang": "it",
+  "to": "Non è ancora stata inviata alcuna email di massa.",
+  "why": "it batch 2: rapporto, email di massa, notiziario, riconoscimenti, attestato"
+ },
+ {
+  "en": "No mass emails sent yet",
+  "lang": "it",
+  "to": "Ancora nessuna email di massa inviata",
+  "why": "it batch 2: rapporto, email di massa, notiziario, riconoscimenti, attestato"
+ },
+ {
+  "en": "No newsletters have been posted yet.",
+  "lang": "it",
+  "to": "Non è ancora stato pubblicato alcun notiziario.",
+  "why": "it batch 2: rapporto, email di massa, notiziario, riconoscimenti, attestato"
+ },
+ {
+  "en": "No report data",
+  "lang": "it",
+  "to": "Nessun dato del rapporto",
+  "why": "it batch 2: rapporto, email di massa, notiziario, riconoscimenti, attestato"
+ },
+ {
+  "en": "No report data available for this district.",
+  "lang": "it",
+  "to": "Nessun dato del rapporto per questo distretto.",
+  "why": "it batch 2: rapporto, email di massa, notiziario, riconoscimenti, attestato"
+ },
+ {
+  "en": "OCV Report",
+  "lang": "it",
+  "to": "Rapporto OCV",
+  "why": "it batch 2: rapporto, email di massa, notiziario, riconoscimenti, attestato"
+ },
+ {
+  "en": "Report generated and uploaded to district",
+  "lang": "it",
+  "to": "Rapporto generato e caricato per il distretto",
+  "why": "it batch 2: rapporto, email di massa, notiziario, riconoscimenti, attestato"
+ },
+ {
+  "en": "Report link copied",
+  "lang": "it",
+  "to": "Link del rapporto copiato",
+  "why": "it batch 2: rapporto, email di massa, notiziario, riconoscimenti, attestato"
+ },
+ {
+  "en": "Report link copied.",
+  "lang": "it",
+  "to": "Link del rapporto copiato.",
+  "why": "it batch 2: rapporto, email di massa, notiziario, riconoscimenti, attestato"
+ },
+ {
+  "en": "Send Mass Email",
+  "lang": "it",
+  "to": "Invia email di massa",
+  "why": "it batch 2: rapporto, email di massa, notiziario, riconoscimenti, attestato"
+ },
+ {
+  "en": "TRF District Report",
+  "lang": "it",
+  "to": "Rapporto distrettuale TRF",
+  "why": "it batch 2: rapporto, email di massa, notiziario, riconoscimenti, attestato"
+ },
+ {
+  "en": "Tap + to compose a new mass email.",
+  "lang": "it",
+  "to": "Tocca + per scrivere un'email di massa.",
+  "why": "it batch 2: rapporto, email di massa, notiziario, riconoscimenti, attestato"
+ },
+ {
+  "en": "Tap + to create a new newsletter.",
+  "lang": "it",
+  "to": "Tocca + per creare un notiziario.",
+  "why": "it batch 2: rapporto, email di massa, notiziario, riconoscimenti, attestato"
+ },
+ {
+  "en": "Tap a month to see each club’s report status",
+  "lang": "it",
+  "to": "Tocca un mese per vedere lo stato dei rapporti di ogni club",
+  "why": "it batch 2: rapporto, email di massa, notiziario, riconoscimenti, attestato"
+ },
+ {
+  "en": "Terminated Members Report",
+  "lang": "it",
+  "to": "Rapporto soci cessati",
+  "why": "it batch 2: rapporto, email di massa, notiziario, riconoscimenti, attestato"
+ },
+ {
+  "en": "This newsletter is no longer available.",
+  "lang": "it",
+  "to": "Questo notiziario non è più disponibile.",
+  "why": "it batch 2: rapporto, email di massa, notiziario, riconoscimenti, attestato"
+ },
+ {
+  "en": "below or jump straight to the compliance report.",
+  "lang": "it",
+  "to": "qui sotto o vai direttamente al rapporto di conformità.",
+  "why": "it batch 2: rapporto, email di massa, notiziario, riconoscimenti, attestato"
+ },
+ {
+  "en": "comprehensive club activity report",
+  "lang": "it",
+  "to": "rapporto completo delle attività del club",
+  "why": "it batch 2: rapporto, email di massa, notiziario, riconoscimenti, attestato"
+ },
+ {
+  "en": "Attendance, reports, citations, TRF and district submissions",
+  "lang": "it",
+  "to": "Presenze, rapporti, attestati, TRF e invii al distretto",
+  "why": "it batch 2: rapporto, email di massa, notiziario, riconoscimenti, attestato"
+ },
+ {
+  "en": "Emails sent to your club/district members (announcements, events, newsletters, credentials, etc.): full history from the email log.",
+  "lang": "it",
+  "to": "Email inviate ai soci del tuo club/distretto (annunci, eventi, notiziari, credenziali, ecc.): cronologia completa dal registro email.",
+  "why": "it batch 2: rapporto, email di massa, notiziario, riconoscimenti, attestato"
+ },
+ {
+  "en": "No newsletters found",
+  "lang": "it",
+  "to": "Nessun notiziario trovato",
+  "why": "it batch 2: rapporto, email di massa, notiziario, riconoscimenti, attestato"
+ },
+ {
+  "en": "District Awards Configuration",
+  "lang": "it",
+  "to": "Configurazione dei riconoscimenti distrettuali",
+  "why": "it batch 2: rapporto, email di massa, notiziario, riconoscimenti, attestato"
+ },
+ {
+  "en": "Manage new generation service projects",
+  "lang": "it",
+  "to": "Gestisci i progetti di azione Nuove Generazioni",
+  "why": "it batch 2: rapporto, email di massa, notiziario, riconoscimenti, attestato"
+ },
+ {
+  "en": "New Generation service projects",
+  "lang": "it",
+  "to": "Progetti di azione Nuove Generazioni",
+  "why": "it batch 2: rapporto, email di massa, notiziario, riconoscimenti, attestato"
+ },
+ {
+  "en": "Create a new new-generation service initiative",
+  "lang": "it",
+  "to": "Crea una nuova iniziativa di azione Nuove Generazioni",
+  "why": "it batch 2: rapporto, email di massa, notiziario, riconoscimenti, attestato"
+ },
+ {
+  "en": "No newsletters recorded for this year.",
+  "lang": "it",
+  "to": "Nessun notiziario registrato per quest'anno.",
+  "why": "it batch 2: rapporto, email di massa, notiziario, riconoscimenti, attestato"
+ },
+ {
+  "en": "Newsletters are visible to members during the configured publish window. After the expiry date the newsletter is archived but stays viewable in the listing.",
+  "lang": "it",
+  "to": "I notiziari sono visibili ai soci nel periodo di pubblicazione impostato. Dopo la data di scadenza il notiziario viene archiviato ma resta consultabile nell'elenco.",
+  "why": "it batch 2: rapporto, email di massa, notiziario, riconoscimenti, attestato"
+ },
+ {
+  "en": "Manage district newsletters",
+  "lang": "it",
+  "to": "Gestisci i notiziari del distretto",
+  "why": "it batch 2: rapporto, email di massa, notiziario, riconoscimenti, attestato"
+ },
+ {
+  "en": "District newsletters are visible to all clubs in the district during the configured publish window. After the expiry date the newsletter is archived but stays viewable in the listing.",
+  "lang": "it",
+  "to": "I notiziari del distretto sono visibili a tutti i club del distretto nel periodo di pubblicazione impostato. Dopo la data di scadenza il notiziario viene archiviato ma resta consultabile nell'elenco.",
+  "why": "it batch 2: rapporto, email di massa, notiziario, riconoscimenti, attestato"
+ },
+ {
+  "en": "Club Citation",
+  "lang": "it",
+  "to": "Attestato del club",
+  "why": "it batch 2: rapporto, email di massa, notiziario, riconoscimenti, attestato"
+ },
+ {
+  "en": "District Awards (by Club)",
+  "lang": "it",
+  "to": "Riconoscimenti distrettuali (per club)",
+  "why": "it batch 2: rapporto, email di massa, notiziario, riconoscimenti, attestato"
+ }
+]
