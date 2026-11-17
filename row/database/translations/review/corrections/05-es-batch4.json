@@ -1,0 +1,110 @@
+[
+ {
+  "en": "Payment received but not yet confirmed. Credits will be added shortly.",
+  "lang": "es",
+  "to": "Pago recibido pero aún no confirmado. Los créditos se agregarán en breve.",
+  "why": "Spanish read, batch 4"
+ },
+ {
+  "en": "Pick an open 30-minute slot and our team will host a live ",
+  "lang": "es",
+  "to": "Elige un horario libre de 30 minutos y nuestro equipo hará en vivo ",
+  "why": "Spanish read, batch 4"
+ },
+ {
+  "en": "Reorder, rename, and toggle visible menu items.",
+  "lang": "es",
+  "to": "Reordena, cambia el nombre y muestra u oculta elementos del menú.",
+  "why": "Spanish read, batch 4"
+ },
+ {
+  "en": "Please post all the Club Services executed by your club. The content posted here will be displayed in the Club monthly report, District Website & ROW integrated Club website.",
+  "lang": "es",
+  "to": "Publica todos los servicios en el club realizados por tu club. El contenido publicado aquí se mostrará en el informe mensual del club, en el sitio del distrito y en el sitio del club integrado en ROW.",
+  "why": "Spanish read, batch 4"
+ },
+ {
+  "en": "Please post all the Community Services executed by your club. The content posted here will be displayed in ROW Website, District website, Club Monthly Report & ROW integrated Club website.",
+  "lang": "es",
+  "to": "Publica todos los servicios en la comunidad realizados por tu club. El contenido publicado aquí se mostrará en el sitio de ROW, en el sitio del distrito, en el informe mensual del club y en el sitio del club integrado en ROW.",
+  "why": "Spanish read, batch 4"
+ },
+ {
+  "en": "Please post all the International Services executed by your club. The content posted here will be displayed in District website, Club Monthly Report & ROW integrated Club website.",
+  "lang": "es",
+  "to": "Publica todos los servicios internacionales realizados por tu club. El contenido publicado aquí se mostrará en el sitio del distrito, en el informe mensual del club y en el sitio del club integrado en ROW.",
+  "why": "Spanish read, batch 4"
+ },
+ {
+  "en": "Please post all the New Generation services executed by your club. The content posted here will be displayed in District website, Club Monthly Report & ROW integrated Club website.",
+  "lang": "es",
+  "to": "Publica todos los servicios a las nuevas generaciones realizados por tu club. El contenido publicado aquí se mostrará en el sitio del distrito, en el informe mensual del club y en el sitio del club integrado en ROW.",
+  "why": "Spanish read, batch 4"
+ },
+ {
+  "en": "Please post all the Public Image Initiatives executed by your club. The content posted here will be displayed in District website, Club Monthly Report & ROW integrated Club website.",
+  "lang": "es",
+  "to": "Publica todas las iniciativas de imagen pública realizadas por tu club. El contenido publicado aquí se mostrará en el sitio del distrito, en el informe mensual del club y en el sitio del club integrado en ROW.",
+  "why": "Spanish read, batch 4"
+ },
+ {
+  "en": "Please post all the Vocational services executed by your club. The content posted here will be displayed in District website, Club Monthly Report & ROW integrated Club website.",
+  "lang": "es",
+  "to": "Publica todos los servicios a través de la ocupación realizados por tu club. El contenido publicado aquí se mostrará en el sitio del distrito, en el informe mensual del club y en el sitio del club integrado en ROW.",
+  "why": "Spanish read, batch 4"
+ },
+ {
+  "en": "Please post all the Events executed by your District. The content posted here will be displayed on the District website.",
+  "lang": "es",
+  "to": "Publica todos los eventos realizados por tu distrito. El contenido publicado aquí se mostrará en el sitio del distrito.",
+  "why": "Spanish read, batch 4"
+ },
+ {
+  "en": "Please post all the Projects executed by your District. The content posted here will be displayed on the District website.",
+  "lang": "es",
+  "to": "Publica todos los proyectos realizados por tu distrito. El contenido publicado aquí se mostrará en el sitio del distrito.",
+  "why": "Spanish read, batch 4"
+ },
+ {
+  "en": "No events match your filters.",
+  "lang": "es",
+  "to": "Ningún evento coincide con tus filtros.",
+  "why": "Spanish read, batch 4"
+ },
+ {
+  "en": "Please post all the Events executed by your District.",
+  "lang": "es",
+  "to": "Publica todos los eventos realizados por tu distrito.",
+  "why": "Spanish read, batch 4"
+ },
+ {
+  "en": "Please post all the Projects executed by your District.",
+  "lang": "es",
+  "to": "Publica todos los proyectos realizados por tu distrito.",
+  "why": "Spanish read, batch 4"
+ },
+ {
+  "en": "Read-only goals for your zones & districts",
+  "lang": "es",
+  "to": "Metas de solo lectura para tus zonas y distritos",
+  "why": "Spanish read, batch 4"
+ },
+ {
+  "en": "Override any interface string for one language. Empty keys show English.",
+  "lang": "es",
+  "to": "Sustituye cualquier texto de la interfaz para un idioma. Las claves vacías se muestran en inglés.",
+  "why": "Spanish read, batch 4"
+ },
+ {
+  "en": "Placeholders, type them exactly, and they are filled in for each reader",
+  "lang": "es",
+  "to": "Marcadores: escríbelos tal cual y se completan para cada lector",
+  "why": "Spanish read, batch 4"
+ },
+ {
+  "en": "Opens in your browser",
+  "lang": "es",
+  "to": "Se abre en tu navegador",
+  "why": "Spanish read, batch 4"
+ }
+]

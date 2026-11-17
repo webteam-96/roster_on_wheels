@@ -1,0 +1,122 @@
+[
+ {
+  "en": "Family Name",
+  "lang": "fr",
+  "to": "Nom (famille)",
+  "why": "report column = the family member's name (beside Family Relation / Mobile / Email), not a surname"
+ },
+ {
+  "en": "Family Name",
+  "lang": "de",
+  "to": "Name (Familie)",
+  "why": "report column = the family member's name (beside Family Relation / Mobile / Email), not a surname"
+ },
+ {
+  "en": "Family Name",
+  "lang": "it",
+  "to": "Nome (familiare)",
+  "why": "report column = the family member's name (beside Family Relation / Mobile / Email), not a surname"
+ },
+ {
+  "en": "Family Name",
+  "lang": "ja",
+  "to": "家族の氏名",
+  "why": "report column = the family member's name (beside Family Relation / Mobile / Email), not a surname"
+ },
+ {
+  "en": "Family Name",
+  "lang": "ko",
+  "to": "가족 이름",
+  "why": "report column = the family member's name (beside Family Relation / Mobile / Email), not a surname"
+ },
+ {
+  "en": "Family Name",
+  "lang": "pt",
+  "to": "Nome (familiar)",
+  "why": "report column = the family member's name (beside Family Relation / Mobile / Email), not a surname"
+ },
+ {
+  "en": "Family Name",
+  "lang": "es",
+  "to": "Nombre (familiar)",
+  "why": "report column = the family member's name (beside Family Relation / Mobile / Email), not a surname"
+ },
+ {
+  "en": "Control who can see your phone & email",
+  "lang": "es",
+  "to": "Controla quién ve tu teléfono y correo",
+  "why": "Spanish read, batch 2"
+ },
+ {
+  "en": "Contact Us",
+  "lang": "es",
+  "to": "Contáctanos",
+  "why": "Spanish read, batch 2"
+ },
+ {
+  "en": "Create a new password for your account",
+  "lang": "es",
+  "to": "Crea una nueva contraseña para tu cuenta",
+  "why": "Spanish read, batch 2"
+ },
+ {
+  "en": "Customize how the app looks and behaves for you",
+  "lang": "es",
+  "to": "Personaliza el aspecto y el funcionamiento de la app",
+  "why": "Spanish read, batch 2"
+ },
+ {
+  "en": "Edit the About section that introduces your club.",
+  "lang": "es",
+  "to": "Edita la sección «Acerca de» que presenta a tu club.",
+  "why": "Spanish read, batch 2"
+ },
+ {
+  "en": "Emails sent to your club/district members (announcements, events, newsletters, credentials, etc.): full history from the email log.",
+  "lang": "es",
+  "to": "Correos enviados a los socios de tu club/distrito (anuncios, eventos, boletines, credenciales, etc.): historial completo del registro de correos.",
+  "why": "Spanish read, batch 2"
+ },
+ {
+  "en": "Create a new vocational service initiative",
+  "lang": "es",
+  "to": "Crear una nueva iniciativa de servicio a través de la ocupación",
+  "why": "Spanish read, batch 2"
+ },
+ {
+  "en": "Excludes honorary",
+  "lang": "es",
+  "to": "Excluye socios honorarios",
+  "why": "Spanish read, batch 2"
+ },
+ {
+  "en": "Failed to delete TRF",
+  "lang": "es",
+  "to": "Error al eliminar el registro de LFR",
+  "why": "Spanish read, batch 2"
+ },
+ {
+  "en": "Failed to save TRF",
+  "lang": "es",
+  "to": "Error al guardar el registro de LFR",
+  "why": "Spanish read, batch 2"
+ },
+ {
+  "en": "Fee waiver until",
+  "lang": "es",
+  "to": "Exención de cuota hasta",
+  "why": "Spanish read, batch 2"
+ },
+ {
+  "en": "Body",
+  "lang": "es",
+  "to": "Cuerpo del mensaje",
+  "why": "Spanish read, batch 2"
+ },
+ {
+  "en": "Diagnostic: enter a mobile number to see if it can login on the mobile app and what clubs would appear. No OTP sent",
+  "lang": "es",
+  "to": "Diagnóstico: introduce un número de móvil para ver si puede iniciar sesión en la app y qué clubes aparecerían. No se envía OTP",
+  "why": "Spanish read, batch 2"
+ }
+]

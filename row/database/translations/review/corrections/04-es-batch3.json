@@ -1,0 +1,128 @@
+[
+ {
+  "en": "First time here? Use \"Forgot password?\" to set your password.",
+  "lang": "es",
+  "to": "¿Primera vez aquí? Usa «¿Olvidaste tu contraseña?» para crear tu contraseña.",
+  "why": "Spanish read, batch 3"
+ },
+ {
+  "en": "Forgot Password?",
+  "lang": "es",
+  "to": "¿Olvidaste tu contraseña?",
+  "why": "Spanish read, batch 3"
+ },
+ {
+  "en": "Forgot password?",
+  "lang": "es",
+  "to": "¿Olvidaste tu contraseña?",
+  "why": "Spanish read, batch 3"
+ },
+ {
+  "en": "Get in Touch",
+  "lang": "es",
+  "to": "Contáctanos",
+  "why": "Spanish read, batch 3"
+ },
+ {
+  "en": "Foundation Achieved",
+  "lang": "es",
+  "to": "Fundación: alcanzado",
+  "why": "Spanish read, batch 3"
+ },
+ {
+  "en": "Governors-elect who signed up at the booth: mark paid to set the district up",
+  "lang": "es",
+  "to": "Gobernadores electos inscritos en el stand: marca como pagado para configurar el distrito",
+  "why": "Spanish read, batch 3"
+ },
+ {
+  "en": "It is not a Community / Vocational / International / New Generation ",
+  "lang": "es",
+  "to": "No es un servicio en la comunidad / a través de la ocupación / internacional / a las Nuevas Generaciones ",
+  "why": "Spanish read, batch 3"
+ },
+ {
+  "en": "Manage vocational service projects",
+  "lang": "es",
+  "to": "Gestionar los proyectos de servicio a través de la ocupación",
+  "why": "Spanish read, batch 3"
+ },
+ {
+  "en": "Members sharing a mobile or email (one holds it as primary, the other as secondary): compare side-by-side, then merge or keep both.",
+  "lang": "es",
+  "to": "Socios que comparten móvil o correo (uno como principal, el otro como secundario): compáralos uno al lado del otro y luego fusiónalos o conserva ambos.",
+  "why": "Spanish read, batch 3"
+ },
+ {
+  "en": "Members sharing a mobile or email: one holds it as primary, the other as secondary. Review each pair, then merge or keep both.",
+  "lang": "es",
+  "to": "Socios que comparten móvil o correo: uno como principal, el otro como secundario. Revisa cada pareja y luego fusiónalos o conserva ambos.",
+  "why": "Spanish read, batch 3"
+ },
+ {
+  "en": "MULTI-METRIC RADAR",
+  "lang": "es",
+  "to": "RADAR MULTIMÉTRICO",
+  "why": "Spanish read, batch 3"
+ },
+ {
+  "en": "Just now",
+  "lang": "es",
+  "to": "Ahora mismo",
+  "why": "Spanish read, batch 3"
+ },
+ {
+  "en": "Income, partners, qualified members and files are added on the web.",
+  "lang": "es",
+  "to": "Los ingresos, socios colaboradores, socios calificados y archivos se agregan en la web.",
+  "why": "Latin American Spanish: financiamiento, vencimiento, agregar"
+ },
+ {
+  "en": "Loaded from summary. Check funding and photos before saving.",
+  "lang": "es",
+  "to": "Cargado desde el resumen. Revisa el financiamiento y las fotos antes de guardar.",
+  "why": "Latin American Spanish: financiamiento, vencimiento, agregar"
+ },
+ {
+  "en": "Long-term programme funding",
+  "lang": "es",
+  "to": "Financiamiento de programas a largo plazo",
+  "why": "Latin American Spanish: financiamiento, vencimiento, agregar"
+ },
+ {
+  "en": "Share your personal link. Guests who reply through it are added to your club's contacts.",
+  "lang": "es",
+  "to": "Comparte tu enlace personal. Los invitados que respondan por él se agregan a los contactos de tu club.",
+  "why": "Latin American Spanish: financiamiento, vencimiento, agregar"
+ },
+ {
+  "en": "Manage project funding sources",
+  "lang": "es",
+  "to": "Gestionar las fuentes de financiamiento de proyectos",
+  "why": "Latin American Spanish: financiamiento, vencimiento, agregar"
+ },
+ {
+  "en": "Newsletters are visible to members during the configured publish window. After the expiry date the newsletter is archived but stays viewable in the listing.",
+  "lang": "es",
+  "to": "Los boletines son visibles para los socios durante el periodo de publicación configurado. Tras la fecha de vencimiento, el boletín se archiva, pero sigue visible en el listado.",
+  "why": "Latin American Spanish: financiamiento, vencimiento, agregar"
+ },
+ {
+  "en": "District newsletters are visible to all clubs in the district during the configured publish window. After the expiry date the newsletter is archived but stays viewable in the listing.",
+  "lang": "es",
+  "to": "Los boletines del distrito son visibles para todos los clubes del distrito durante el periodo de publicación configurado. Tras la fecha de vencimiento, el boletín se archiva, pero sigue visible en el listado.",
+  "why": "Latin American Spanish: financiamiento, vencimiento, agregar"
+ },
+ {
+  "en": "District events appear to all clubs in the district during the configured publish window. After the expiry date the event is archived but stays viewable in the listing.",
+  "lang": "es",
+  "to": "Los eventos del distrito son visibles para todos los clubes del distrito durante el periodo de publicación configurado. Tras la fecha de vencimiento, el evento se archiva, pero sigue visible en el listado.",
+  "why": "Latin American Spanish: financiamiento, vencimiento, agregar"
+ },
+ {
+  "en": "No funding sources",
+  "lang": "es",
+  "to": "No hay fuentes de financiamiento",
+  "why": "Latin American Spanish: financiamiento, vencimiento, agregar"
+ }
+]

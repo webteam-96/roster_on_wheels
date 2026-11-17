@@ -1,0 +1,1913 @@
+[
+ {
+  "en": "Add TRF Contribution",
+  "lang": "es",
+  "to": "Agregar contribución a LFR",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Agregar contribución a TRF"
+ },
+ {
+  "en": "TRF Amount (USD)",
+  "lang": "es",
+  "to": "Monto LFR (USD)",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Monto TRF (USD)"
+ },
+ {
+  "en": "TRF Contribution",
+  "lang": "es",
+  "to": "Contribución a LFR",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Contribución a TRF"
+ },
+ {
+  "en": "TRF Contributions",
+  "lang": "es",
+  "to": "Contribuciones a LFR",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Contribuciones a TRF"
+ },
+ {
+  "en": "TRF Giving Breakdown by Club",
+  "lang": "es",
+  "to": "Donaciones a LFR por club",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Donaciones a TRF por club"
+ },
+ {
+  "en": "TRF Giving per Club (USD)",
+  "lang": "es",
+  "to": "Donaciones a LFR por club (USD)",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Donaciones a TRF por club (USD)"
+ },
+ {
+  "en": "TRF Raised",
+  "lang": "es",
+  "to": "LFR recaudado",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "TRF recaudado"
+ },
+ {
+  "en": "Top TRF Giving",
+  "lang": "es",
+  "to": "Mayores donaciones a LFR",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Mayores donaciones a TRF"
+ },
+ {
+  "en": "Total TRF",
+  "lang": "es",
+  "to": "LFR total",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "TRF total"
+ },
+ {
+  "en": "100% of AG total",
+  "lang": "es",
+  "to": "100 % del total del GA",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "100 % del total del AG"
+ },
+ {
+  "en": "AG Club Name",
+  "lang": "es",
+  "to": "Nombre del club (GA)",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Nombre del club (AG)"
+ },
+ {
+  "en": "AG Email ID",
+  "lang": "es",
+  "to": "Correo del GA",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Correo del AG"
+ },
+ {
+  "en": "AG GROUP COMBINED TOTALS",
+  "lang": "es",
+  "to": "TOTALES COMBINADOS DEL GRUPO GA",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "TOTALES COMBINADOS DEL GRUPO AG"
+ },
+ {
+  "en": "AG GROUP IMPACT SUMMARY",
+  "lang": "es",
+  "to": "RESUMEN DE IMPACTO DEL GRUPO GA",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "RESUMEN DE IMPACTO DEL GRUPO AG"
+ },
+ {
+  "en": "AG Mobile",
+  "lang": "es",
+  "to": "Móvil del GA",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Móvil del AG"
+ },
+ {
+  "en": "AG Name",
+  "lang": "es",
+  "to": "Nombre del GA",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Nombre del AG"
+ },
+ {
+  "en": "AG Total",
+  "lang": "es",
+  "to": "Total del GA",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Total del AG"
+ },
+ {
+  "en": "AG Total (All Clubs)",
+  "lang": "es",
+  "to": "Total del GA (todos los clubes)",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Total del AG (todos los clubes)"
+ },
+ {
+  "en": "AG access required",
+  "lang": "es",
+  "to": "Se requiere acceso de GA",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Se requiere acceso de AG"
+ },
+ {
+  "en": "Add ",
+  "lang": "es",
+  "to": "Agregar ",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Añadir "
+ },
+ {
+  "en": "Add / Manage Payment Links",
+  "lang": "es",
+  "to": "Agregar / gestionar enlaces de pago",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Añadir / gestionar enlaces de pago"
+ },
+ {
+  "en": "Add Auto Question",
+  "lang": "es",
+  "to": "Agregar pregunta automática",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Añadir pregunta automática"
+ },
+ {
+  "en": "Add Club Service",
+  "lang": "es",
+  "to": "Agregar servicio en el club",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Añadir servicio en el club"
+ },
+ {
+  "en": "Add Contact Detail",
+  "lang": "es",
+  "to": "Agregar dato de contacto",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Añadir dato de contacto"
+ },
+ {
+  "en": "Add Family Member",
+  "lang": "es",
+  "to": "Agregar familiar",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Añadir familiar"
+ },
+ {
+  "en": "Add Manual Criteria",
+  "lang": "es",
+  "to": "Agregar criterio manual",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Añadir criterio manual"
+ },
+ {
+  "en": "Add Member to Club",
+  "lang": "es",
+  "to": "Agregar socio al club",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Añadir socio al club"
+ },
+ {
+  "en": "Add Social Link",
+  "lang": "es",
+  "to": "Agregar red social",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Añadir red social"
+ },
+ {
+  "en": "Add Sub Group",
+  "lang": "es",
+  "to": "Agregar subgrupo",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Añadir subgrupo"
+ },
+ {
+  "en": "Add a comment",
+  "lang": "es",
+  "to": "Agregar un comentario",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Añadir un comentario"
+ },
+ {
+  "en": "Add a description (optional)",
+  "lang": "es",
+  "to": "Agregar una descripción (opcional)",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Añadir una descripción (opcional)"
+ },
+ {
+  "en": "Add a longer description for AI suggestions.",
+  "lang": "es",
+  "to": "Agrega una descripción más larga para las sugerencias de la IA.",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Añade una descripción más larga para las sugerencias de la IA."
+ },
+ {
+  "en": "Add a person to this group",
+  "lang": "es",
+  "to": "Agregar una persona a este grupo",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Añadir una persona a este grupo"
+ },
+ {
+  "en": "Add a title and a longer description first for AI suggestions: the fields below are now unlocked.",
+  "lang": "es",
+  "to": "Para las sugerencias de la IA, agrega primero un título y una descripción más larga: los campos de abajo ya están desbloqueados.",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Para las sugerencias de la IA, añade primero un título y una descripción más larga: los campos de abajo ya están desbloqueados."
+ },
+ {
+  "en": "Add an expense",
+  "lang": "es",
+  "to": "Agregar un gasto",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Añadir un gasto"
+ },
+ {
+  "en": "Add members using the button below.",
+  "lang": "es",
+  "to": "Agrega socios con el botón de abajo.",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Añade socios con el botón de abajo."
+ },
+ {
+  "en": "Add sub-group member",
+  "lang": "es",
+  "to": "Agregar miembro al subgrupo",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Añadir miembro al subgrupo"
+ },
+ {
+  "en": "Add the speakers for your coming meetings.",
+  "lang": "es",
+  "to": "Agrega los oradores de tus próximas reuniones.",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Añade los oradores de tus próximas reuniones."
+ },
+ {
+  "en": "Add your clubs' meetings and events to your phone's calendar app. ",
+  "lang": "es",
+  "to": "Agrega las reuniones y eventos de tus clubes al calendario del teléfono. ",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Añade las reuniones y eventos de tus clubes al calendario del teléfono. "
+ },
+ {
+  "en": "Add your first club to begin.",
+  "lang": "es",
+  "to": "Agrega tu primer club para empezar.",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Añade tu primer club para empezar."
+ },
+ {
+  "en": "Add your first district to begin.",
+  "lang": "es",
+  "to": "Agrega tu primer distrito para empezar.",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Añade tu primer distrito para empezar."
+ },
+ {
+  "en": "Add your first potential member.",
+  "lang": "es",
+  "to": "Agrega tu primer socio potencial.",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Añade tu primer socio potencial."
+ },
+ {
+  "en": "Add your first zone to begin.",
+  "lang": "es",
+  "to": "Agrega tu primera zona para empezar.",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Añade tu primera zona para empezar."
+ },
+ {
+  "en": "Agenda, MOM added in meeting & Photographs added in Club Meetings will not be shared to the District, only the content displayed here will be shared to the District.",
+  "lang": "es",
+  "to": "El orden del día, el acta y las fotos agregadas a las reuniones del club no se comparten con el distrito: solo se comparte el contenido que se muestra aquí.",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "El orden del día, el acta y las fotos añadidas a las reuniones del club no se comparten con el distrito: solo se comparte el contenido que se muestra aquí."
+ },
+ {
+  "en": "All TRF funds combined",
+  "lang": "es",
+  "to": "Todos los fondos de LFR combinados",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Todos los fondos de TRF combinados"
+ },
+ {
+  "en": "All categories already have a manual criterion. Add a new Category to create another.",
+  "lang": "es",
+  "to": "Todas las categorías ya tienen un criterio manual. Agrega una categoría nueva para crear otro.",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Todas las categorías ya tienen un criterio manual. Añade una categoría nueva para crear otro."
+ },
+ {
+  "en": "Amount Received is required for CSR.",
+  "lang": "es",
+  "to": "El monto recibido es obligatorio para RSC.",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "El importe recibido es obligatorio para RSC."
+ },
+ {
+  "en": "Amount Received is required for Global Grant.",
+  "lang": "es",
+  "to": "El monto recibido es obligatorio para la Subvención Global.",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "El importe recibido es obligatorio para la Subvención Global."
+ },
+ {
+  "en": "Amount Sanctioned is required for CSR.",
+  "lang": "es",
+  "to": "El monto aprobado es obligatorio para RSC.",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "El importe aprobado es obligatorio para RSC."
+ },
+ {
+  "en": "Amount Sanctioned is required for Global Grant.",
+  "lang": "es",
+  "to": "El monto aprobado es obligatorio para la Subvención Global.",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "El importe aprobado es obligatorio para la Subvención Global."
+ },
+ {
+  "en": "Amount Spent Till Date",
+  "lang": "es",
+  "to": "Monto gastado hasta la fecha",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Importe gastado hasta la fecha"
+ },
+ {
+  "en": "Amount Spent Till Date is required for Global Grant.",
+  "lang": "es",
+  "to": "El monto gastado hasta la fecha es obligatorio para la Subvención Global.",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "El importe gastado hasta la fecha es obligatorio para la Subvención Global."
+ },
+ {
+  "en": "Amount USD *",
+  "lang": "es",
+  "to": "Monto en USD *",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Importe en USD *"
+ },
+ {
+  "en": "Amount spent till date",
+  "lang": "es",
+  "to": "Monto gastado hasta la fecha",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Importe gastado hasta la fecha"
+ },
+ {
+  "en": "Amount to pay",
+  "lang": "es",
+  "to": "Monto a pagar",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Importe a pagar"
+ },
+ {
+  "en": "Are you sure you want to delete this TRF contribution?",
+  "lang": "es",
+  "to": "¿Seguro que quieres eliminar esta contribución a LFR?",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "¿Seguro que quieres eliminar esta contribución a TRF?"
+ },
+ {
+  "en": "Attendance (AG wise)",
+  "lang": "es",
+  "to": "Asistencia (por GA)",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Asistencia (por AG)"
+ },
+ {
+  "en": "Club Monthly Report AG wise (Project Details)",
+  "lang": "es",
+  "to": "Informe mensual de clubes por GA (detalles de proyectos)",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Informe mensual de clubes por AG (detalles de proyectos)"
+ },
+ {
+  "en": "Clubs · Goals · TRF",
+  "lang": "es",
+  "to": "Clubes · Metas · LFR",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Clubes · Metas · TRF"
+ },
+ {
+  "en": "Could not generate any club report for this AG.",
+  "lang": "es",
+  "to": "No se pudo generar ningún informe de club para este GA.",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "No se pudo generar ningún informe de club para este AG."
+ },
+ {
+  "en": "Delete TRF entry?",
+  "lang": "es",
+  "to": "¿Eliminar registro de LFR?",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "¿Eliminar registro de TRF?"
+ },
+ {
+  "en": "Detailed TRF Giving",
+  "lang": "es",
+  "to": "Donaciones detalladas a LFR",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Donaciones detalladas a TRF"
+ },
+ {
+  "en": "Edit TRF Contribution",
+  "lang": "es",
+  "to": "Editar contribución a LFR",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Editar contribución a TRF"
+ },
+ {
+  "en": "Enter an amount to see how many credits you get.",
+  "lang": "es",
+  "to": "Escribe un monto para ver cuántos créditos obtienes.",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Escribe un importe para ver cuántos créditos obtienes."
+ },
+ {
+  "en": "Enter base amount",
+  "lang": "es",
+  "to": "Escribe el monto base",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Escribe el importe base"
+ },
+ {
+  "en": "Failed to delete TRF",
+  "lang": "es",
+  "to": "Error al eliminar LFR",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Error al eliminar TRF"
+ },
+ {
+  "en": "Failed to load TRF contributions",
+  "lang": "es",
+  "to": "Error al cargar las contribuciones a LFR",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Error al cargar las contribuciones a TRF"
+ },
+ {
+  "en": "Failed to save TRF",
+  "lang": "es",
+  "to": "Error al guardar LFR",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Error al guardar TRF"
+ },
+ {
+  "en": "Governor's Official Visit (AG Wise)",
+  "lang": "es",
+  "to": "Visita oficial del gobernador (por GA)",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Visita oficial del gobernador (por AG)"
+ },
+ {
+  "en": "MY CLUBS TRF SUMMARY",
+  "lang": "es",
+  "to": "RESUMEN LFR DE MIS CLUBES",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "RESUMEN TRF DE MIS CLUBES"
+ },
+ {
+  "en": "Member added to club",
+  "lang": "es",
+  "to": "Socio agregado al club",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Socio añadido al club"
+ },
+ {
+  "en": "Members (AG wise)",
+  "lang": "es",
+  "to": "Socios (por GA)",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Socios (por AG)"
+ },
+ {
+  "en": "Members Added is required",
+  "lang": "es",
+  "to": "El número de socios agregados es obligatorio",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "El número de socios añadidos es obligatorio"
+ },
+ {
+  "en": "Membership / TRF / Youth / Public Image · Excel",
+  "lang": "es",
+  "to": "Membresía / LFR / Juventud / Imagen pública · Excel",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Membresía / TRF / Juventud / Imagen pública · Excel"
+ },
+ {
+  "en": "No TRF contributions",
+  "lang": "es",
+  "to": "Sin contribuciones a LFR",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Sin contribuciones a TRF"
+ },
+ {
+  "en": "No TRF contributions recorded yet.",
+  "lang": "es",
+  "to": "Aún no hay contribuciones a LFR registradas.",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Aún no hay contribuciones a TRF registradas."
+ },
+ {
+  "en": "No TRF giving recorded yet.",
+  "lang": "es",
+  "to": "Aún no hay donaciones a LFR registradas.",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Aún no hay donaciones a TRF registradas."
+ },
+ {
+  "en": "No about content has been added yet.",
+  "lang": "es",
+  "to": "Aún no se ha agregado contenido «Acerca de».",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Aún no se ha añadido contenido «Acerca de»."
+ },
+ {
+  "en": "No advertisements added.",
+  "lang": "es",
+  "to": "No se han agregado anuncios.",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "No se han añadido anuncios."
+ },
+ {
+  "en": "No auto questions added yet.",
+  "lang": "es",
+  "to": "Aún no se han agregado preguntas automáticas.",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Aún no se han añadido preguntas automáticas."
+ },
+ {
+  "en": "No banners added",
+  "lang": "es",
+  "to": "No se han agregado banners",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "No se han añadido banners"
+ },
+ {
+  "en": "No banners added.",
+  "lang": "es",
+  "to": "No se han agregado banners.",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "No se han añadido banners."
+ },
+ {
+  "en": "No biometric is enrolled on this device. Add Face ID / fingerprint in phone Settings to use this option.",
+  "lang": "es",
+  "to": "No hay biometría registrada en este dispositivo. Agrega Face ID / huella en los ajustes del teléfono para usar esta opción.",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "No hay biometría registrada en este dispositivo. Añade Face ID / huella en los ajustes del teléfono para usar esta opción."
+ },
+ {
+  "en": "No categories added yet.",
+  "lang": "es",
+  "to": "Aún no se han agregado categorías.",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Aún no se han añadido categorías."
+ },
+ {
+  "en": "No categories exist yet. Add one from the Categories tab first, then create a manual criterion.",
+  "lang": "es",
+  "to": "Aún no hay categorías. Agrega una en la pestaña Categorías y luego crea un criterio manual.",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Aún no hay categorías. Añade una en la pestaña Categorías y luego crea un criterio manual."
+ },
+ {
+  "en": "No club data available for this AG group.",
+  "lang": "es",
+  "to": "No hay datos de clubes para este grupo de GA.",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "No hay datos de clubes para este grupo de AG."
+ },
+ {
+  "en": "No clubs found under this AG for the year.",
+  "lang": "es",
+  "to": "No se encontraron clubes de este GA en el año.",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "No se encontraron clubes de este AG en el año."
+ },
+ {
+  "en": "No contact details added yet.",
+  "lang": "es",
+  "to": "Aún no se han agregado datos de contacto.",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Aún no se han añadido datos de contacto."
+ },
+ {
+  "en": "No description added yet.",
+  "lang": "es",
+  "to": "Aún no se ha agregado una descripción.",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Aún no se ha añadido una descripción."
+ },
+ {
+  "en": "No description yet. Tap edit to add one.",
+  "lang": "es",
+  "to": "Aún no hay descripción. Toca Editar para agregar una.",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Aún no hay descripción. Toca Editar para añadir una."
+ },
+ {
+  "en": "No family members added.",
+  "lang": "es",
+  "to": "No se han agregado familiares.",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "No se han añadido familiares."
+ },
+ {
+  "en": "No links added yet",
+  "lang": "es",
+  "to": "Aún no se han agregado enlaces",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Aún no se han añadido enlaces"
+ },
+ {
+  "en": "No manual criteria added yet.",
+  "lang": "es",
+  "to": "Aún no se han agregado criterios manuales.",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Aún no se han añadido criterios manuales."
+ },
+ {
+  "en": "No members added for this sub-group.",
+  "lang": "es",
+  "to": "No se han agregado miembros a este subgrupo.",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "No se han añadido miembros a este subgrupo."
+ },
+ {
+  "en": "No members have been added to this sub-group.",
+  "lang": "es",
+  "to": "No se han agregado miembros a este subgrupo.",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "No se han añadido miembros a este subgrupo."
+ },
+ {
+  "en": "No members or sub-groups added yet.",
+  "lang": "es",
+  "to": "Aún no se han agregado miembros ni subgrupos.",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Aún no se han añadido miembros ni subgrupos."
+ },
+ {
+  "en": "No menus added.",
+  "lang": "es",
+  "to": "No se han agregado menús.",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "No se han añadido menús."
+ },
+ {
+  "en": "No mobile number on your profile.\nAdd one in \"Edit Profile\" to share your contact.",
+  "lang": "es",
+  "to": "No hay móvil en tu perfil.\nAgrega uno en «Editar perfil» para compartir tu contacto.",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "No hay móvil en tu perfil.\nAñade uno en «Editar perfil» para compartir tu contacto."
+ },
+ {
+  "en": "No social links added",
+  "lang": "es",
+  "to": "No se han agregado redes sociales",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "No se han añadido redes sociales"
+ },
+ {
+  "en": "No social links added.",
+  "lang": "es",
+  "to": "No se han agregado redes sociales.",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "No se han añadido redes sociales."
+ },
+ {
+  "en": "No sub criteria yet. Tap Add to create one.",
+  "lang": "es",
+  "to": "Aún no hay subcriterios. Toca Agregar para crear uno.",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Aún no hay subcriterios. Toca Añadir para crear uno."
+ },
+ {
+  "en": "No sub-groups added yet.",
+  "lang": "es",
+  "to": "Aún no se han agregado subgrupos.",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Aún no se han añadido subgrupos."
+ },
+ {
+  "en": "No sub-items yet. Tap Add to create one.",
+  "lang": "es",
+  "to": "Aún no hay subelementos. Toca Agregar para crear uno.",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Aún no hay subelementos. Toca Añadir para crear uno."
+ },
+ {
+  "en": "No weblinks added",
+  "lang": "es",
+  "to": "No se han agregado enlaces",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "No se han añadido enlaces"
+ },
+ {
+  "en": "Non-members can only be added for past rotary years, not the current or future year.",
+  "lang": "es",
+  "to": "Los no socios solo se pueden agregar en años rotarios pasados, no en el actual ni en futuros.",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Los no socios solo se pueden añadir en años rotarios pasados, no en el actual ni en futuros."
+ },
+ {
+  "en": "Note: Agenda, MOM added in meeting & Photographs added in Club Meetings will not be shared to the District, only the content displayed here will be shared to the District.",
+  "lang": "es",
+  "to": "Nota: el orden del día, el acta y las fotos agregadas a las reuniones del club no se comparten con el distrito; solo se comparte el contenido que se muestra aquí.",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Nota: el orden del día, el acta y las fotos añadidas a las reuniones del club no se comparten con el distrito; solo se comparte el contenido que se muestra aquí."
+ },
+ {
+  "en": "Only AG (Assistant Governor) can access this page.",
+  "lang": "es",
+  "to": "Solo el GA (gobernador asistente) puede acceder a esta página.",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Solo el AG (gobernador asistente) puede acceder a esta página."
+ },
+ {
+  "en": "Pick a member, or add a non-member (past years only) if the ",
+  "lang": "es",
+  "to": "Elige un socio o agrega un no socio (solo años pasados) si ",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Elige un socio o añade un no socio (solo años pasados) si "
+ },
+ {
+  "en": "Pick a member, or add a non-member if the ",
+  "lang": "es",
+  "to": "Elige un socio o agrega un no socio si ",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Elige un socio o añade un no socio si "
+ },
+ {
+  "en": "Please select a Category. If the list is empty, add a Category first from the Categories tab.",
+  "lang": "es",
+  "to": "Selecciona una categoría. Si la lista está vacía, agrega primero una en la pestaña Categorías.",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Selecciona una categoría. Si la lista está vacía, añade primero una en la pestaña Categorías."
+ },
+ {
+  "en": "Please select an AG to download",
+  "lang": "es",
+  "to": "Selecciona un GA para descargar",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Selecciona un AG para descargar"
+ },
+ {
+  "en": "Project activity, community impact, and monthly trends across your AG group",
+  "lang": "es",
+  "to": "Actividad de proyectos, impacto en la comunidad y tendencias mensuales de tu grupo de GA",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Actividad de proyectos, impacto en la comunidad y tendencias mensuales de tu grupo de AG"
+ },
+ {
+  "en": "Ready: every club under this AG (zipped)",
+  "lang": "es",
+  "to": "Listo: todos los clubes de este GA (ZIP)",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Listo: todos los clubes de este AG (ZIP)"
+ },
+ {
+  "en": "Search by donor, fund, amount...",
+  "lang": "es",
+  "to": "Buscar por donante, fondo, monto...",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Buscar por donante, fondo, importe..."
+ },
+ {
+  "en": "Select a member, or add a non-member (past years only).",
+  "lang": "es",
+  "to": "Elige un socio o agrega un no socio (solo años pasados).",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Elige un socio o añade un no socio (solo años pasados)."
+ },
+ {
+  "en": "Select a service type and tap “Add” to create one",
+  "lang": "es",
+  "to": "Elige un tipo de servicio y toca «Agregar» para crear uno",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Elige un tipo de servicio y toca «Añadir» para crear uno"
+ },
+ {
+  "en": "Side-by-side activity across every club in the AG's scope",
+  "lang": "es",
+  "to": "Actividad comparada de todos los clubes del GA",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Actividad comparada de todos los clubes del AG"
+ },
+ {
+  "en": "TOTAL TRF GIVING",
+  "lang": "es",
+  "to": "TOTAL DE DONACIONES A LFR",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "TOTAL DE DONACIONES A TRF"
+ },
+ {
+  "en": "TRF (USD)",
+  "lang": "es",
+  "to": "LFR (USD)",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "TRF (USD)"
+ },
+ {
+  "en": "TRF (usd)",
+  "lang": "es",
+  "to": "LFR (USD)",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "TRF (USD)"
+ },
+ {
+  "en": "TRF Date",
+  "lang": "es",
+  "to": "Fecha LFR",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Fecha TRF"
+ },
+ {
+  "en": "TRF District Report",
+  "lang": "es",
+  "to": "Informe distrital de LFR",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Informe distrital de TRF"
+ },
+ {
+  "en": "TRF Fundraiser Dinner",
+  "lang": "es",
+  "to": "Cena benéfica para LFR",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Cena benéfica para TRF"
+ },
+ {
+  "en": "TRF Giving Breakdown",
+  "lang": "es",
+  "to": "Desglose de donaciones a LFR",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Desglose de donaciones a TRF"
+ },
+ {
+  "en": "TRF Goal",
+  "lang": "es",
+  "to": "Meta de LFR",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Meta de TRF"
+ },
+ {
+  "en": "TRF entries saved",
+  "lang": "es",
+  "to": "Registros de LFR guardados",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Registros de TRF guardados"
+ },
+ {
+  "en": "TRF entry deleted",
+  "lang": "es",
+  "to": "Registro de LFR eliminado",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Registro de TRF eliminado"
+ },
+ {
+  "en": "TRF per Capita",
+  "lang": "es",
+  "to": "LFR per cápita",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "TRF per cápita"
+ },
+ {
+  "en": "TRF: Fund Breakdown",
+  "lang": "es",
+  "to": "LFR: desglose por fondo",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "TRF: desglose por fondo"
+ },
+ {
+  "en": "Tap \"Add AG\" to assign your first Assistant Governor.",
+  "lang": "es",
+  "to": "Toca «Agregar GA» para asignar tu primer gobernador asistente.",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Toca «Añadir AG» para asignar tu primer gobernador asistente."
+ },
+ {
+  "en": "Tap \"Add About\" to add content.",
+  "lang": "es",
+  "to": "Toca «Agregar Acerca de» para agregar contenido.",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Toca «Añadir Acerca de» para añadir contenido."
+ },
+ {
+  "en": "Tap \"Add Contact\" to add details.",
+  "lang": "es",
+  "to": "Toca «Agregar contacto» para agregar datos.",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Toca «Añadir contacto» para añadir datos."
+ },
+ {
+  "en": "Tap \"Add Member\" to add your first sub-group member.",
+  "lang": "es",
+  "to": "Toca «Agregar miembro» para agregar el primer miembro del subgrupo.",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Toca «Añadir miembro» para añadir el primer miembro del subgrupo."
+ },
+ {
+  "en": "Tap \"Add Sub Group\" to create one.",
+  "lang": "es",
+  "to": "Toca «Agregar subgrupo» para crear uno.",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Toca «Añadir subgrupo» para crear uno."
+ },
+ {
+  "en": "Tap \"Add Sub-Group\" to create one.",
+  "lang": "es",
+  "to": "Toca «Agregar subgrupo» para crear uno.",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Toca «Añadir subgrupo» para crear uno."
+ },
+ {
+  "en": "Tap + to add a banner.",
+  "lang": "es",
+  "to": "Toca + para agregar un banner.",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Toca + para añadir un banner."
+ },
+ {
+  "en": "Tap + to add a member or a sub-group.",
+  "lang": "es",
+  "to": "Toca + para agregar un miembro o un subgrupo.",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Toca + para añadir un miembro o un subgrupo."
+ },
+ {
+  "en": "Tap + to add a menu.",
+  "lang": "es",
+  "to": "Toca + para agregar un menú.",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Toca + para añadir un menú."
+ },
+ {
+  "en": "Tap + to add a new area of focus.",
+  "lang": "es",
+  "to": "Toca + para agregar un área de interés.",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Toca + para añadir un área de interés."
+ },
+ {
+  "en": "Tap + to add a new designation.",
+  "lang": "es",
+  "to": "Toca + para agregar un cargo.",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Toca + para añadir un cargo."
+ },
+ {
+  "en": "Tap + to add a new document.",
+  "lang": "es",
+  "to": "Toca + para agregar un documento.",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Toca + para añadir un documento."
+ },
+ {
+  "en": "Tap + to add a social link.",
+  "lang": "es",
+  "to": "Toca + para agregar una red social.",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Toca + para añadir una red social."
+ },
+ {
+  "en": "Tap + to add a weblink.",
+  "lang": "es",
+  "to": "Toca + para agregar un enlace.",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Toca + para añadir un enlace."
+ },
+ {
+  "en": "Tap + to add one.",
+  "lang": "es",
+  "to": "Toca + para agregar uno.",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Toca + para añadir uno."
+ },
+ {
+  "en": "Tap a chip to insert a value (e.g. club name, amount) into your ",
+  "lang": "es",
+  "to": "Toca una etiqueta para insertar un valor (p. ej., nombre del club, monto) en tu ",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Toca una etiqueta para insertar un valor (p. ej., nombre del club, importe) en tu "
+ },
+ {
+  "en": "Tap the photo to add",
+  "lang": "es",
+  "to": "Toca la foto para agregar",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Toca la foto para añadir"
+ },
+ {
+  "en": "Tap the photo to add one (optional).",
+  "lang": "es",
+  "to": "Toca la foto para agregar una (opcional).",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Toca la foto para añadir una (opcional)."
+ },
+ {
+  "en": "Total TRF (USD)",
+  "lang": "es",
+  "to": "Total LFR (USD)",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Total TRF (USD)"
+ },
+ {
+  "en": "Use the + button to add an office bearer or group.",
+  "lang": "es",
+  "to": "Usa el botón + para agregar un cargo o un grupo.",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Usa el botón + para añadir un cargo o un grupo."
+ },
+ {
+  "en": "View only: you are not an admin for the current Rotary year, so you cannot add, edit or delete records here.",
+  "lang": "es",
+  "to": "Solo lectura: no eres administrador del año rotario actual, así que no puedes agregar, editar ni eliminar registros aquí.",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Solo lectura: no eres administrador del año rotario actual, así que no puedes añadir, editar ni eliminar registros aquí."
+ },
+ {
+  "en": "an amount/members value, a summary is appended for you.",
+  "lang": "es",
+  "to": "un monto o número de socios, se agrega un resumen por ti.",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "un importe o número de socios, se añade un resumen por ti."
+ },
+ {
+  "en": "year’s TRF contributions.",
+  "lang": "es",
+  "to": "las contribuciones a LFR del año.",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "las contribuciones a TRF del año."
+ },
+ {
+  "en": "Click \"Add Project\" to create one.",
+  "lang": "es",
+  "to": "Haz clic en \"Agregar proyecto\" para crear uno.",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Haga clic en \"Añadir proyecto\" para crear uno."
+ },
+ {
+  "en": "Add new project",
+  "lang": "es",
+  "to": "Agregar nuevo proyecto",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Añadir nuevo proyecto"
+ },
+ {
+  "en": "Click to upload photos",
+  "lang": "es",
+  "to": "Haz clic para subir fotos",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Haga clic para subir fotos"
+ },
+ {
+  "en": "Upload 1-5 photos. First photo is set as primary by default.",
+  "lang": "es",
+  "to": "Sube de 1 a 5 fotos. La primera foto es la principal de forma predeterminada.",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Suba de 1 a 5 fotos. La primera foto es la principal de forma predeterminada."
+ },
+ {
+  "en": "TRF Breakdown",
+  "lang": "es",
+  "to": "Desglose de LFR",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Desglose de TRF"
+ },
+ {
+  "en": "Select a year",
+  "lang": "es",
+  "to": "Selecciona un año",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Seleccione un año"
+ },
+ {
+  "en": "Click \"Add Member\" to add committee members.",
+  "lang": "es",
+  "to": "Haz clic en \"Agregar socio\" para agregar miembros del comité.",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Haga clic en \"Añadir socio\" para añadir miembros del comité."
+ },
+ {
+  "en": "Add Custom Menu",
+  "lang": "es",
+  "to": "Agregar menú personalizado",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Añadir menú personalizado"
+ },
+ {
+  "en": "Click \"Add Menu\" to create your first navigation menu.",
+  "lang": "es",
+  "to": "Haz clic en \"Agregar menú\" para crear tu primer menú de navegación.",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Haga clic en \"Añadir menú\" para crear su primer menú de navegación."
+ },
+ {
+  "en": "Click \"Add Link\" to add your first social media link.",
+  "lang": "es",
+  "to": "Haz clic en \"Agregar enlace\" para agregar tu primer enlace de redes sociales.",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Haga clic en \"Añadir enlace\" para añadir su primer enlace de redes sociales."
+ },
+ {
+  "en": "Click \"Add AG\" to assign.",
+  "lang": "es",
+  "to": "Haz clic en \"Agregar GA\" para asignar.",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Haga clic en \"Añadir GA\" para asignar."
+ },
+ {
+  "en": "No categories. Add one to get started.",
+  "lang": "es",
+  "to": "No hay categorías. Agrega una para empezar.",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "No hay categorías. Añada una para empezar."
+ },
+ {
+  "en": "Add District Event",
+  "lang": "es",
+  "to": "Agregar evento distrital",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Añadir evento distrital"
+ },
+ {
+  "en": "Select a district",
+  "lang": "es",
+  "to": "Selecciona un distrito",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Seleccione un distrito"
+ },
+ {
+  "en": "Attendance, reports, citations, TRF and district submissions",
+  "lang": "es",
+  "to": "Asistencia, informes, menciones, LFR y envíos al distrito",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Asistencia, informes, menciones, TRF y envíos al distrito"
+ },
+ {
+  "en": "Configure every section of your club site.",
+  "lang": "es",
+  "to": "Configura cada sección del sitio de tu club.",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Configure cada sección del sitio de su club."
+ },
+ {
+  "en": "Pick a colour palette and visual style.",
+  "lang": "es",
+  "to": "Elige una paleta de colores y un estilo visual.",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Elija una paleta de colores y un estilo visual."
+ },
+ {
+  "en": "Upload Club Logo + Rotary Logo (3:1 horizontal crop). Same Club Logo column as the profile page: change here reflects everywhere.",
+  "lang": "es",
+  "to": "Sube el logotipo del club y el logotipo de Rotary (recorte horizontal 3:1). Es el mismo logotipo de la página de perfil: el cambio aquí se aplica en todas partes.",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Suba el logotipo del club y el logotipo de Rotary (recorte horizontal 3:1). Es el mismo logotipo de la página de perfil: el cambio aquí se aplica en todas partes."
+ },
+ {
+  "en": "Click \"Add Announcement\" to create one.",
+  "lang": "es",
+  "to": "Haz clic en \"Agregar anuncio\" para crear uno.",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Haga clic en \"Añadir anuncio\" para crear uno."
+ },
+ {
+  "en": "Click \"Add Weblink\" to create one.",
+  "lang": "es",
+  "to": "Haz clic en \"Agregar enlace web\" para crear uno.",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Haga clic en \"Añadir enlace web\" para crear uno."
+ },
+ {
+  "en": "Click \"Add About\" to add content.",
+  "lang": "es",
+  "to": "Haz clic en \"Agregar Acerca de\" para agregar contenido.",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Haga clic en \"Añadir Acerca de\" para añadir contenido."
+ },
+ {
+  "en": "Click to upload a document (max 10 MB)",
+  "lang": "es",
+  "to": "Haz clic para subir un documento (máx. 10 MB)",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Haga clic para subir un documento (máx. 10 MB)"
+ },
+ {
+  "en": "Click \"Add Group\" to create a group.",
+  "lang": "es",
+  "to": "Haz clic en \"Agregar grupo\" para crear un grupo.",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Haga clic en \"Añadir grupo\" para crear un grupo."
+ },
+ {
+  "en": "Click \"Add Advertisement\" to upload your first advertisement.",
+  "lang": "es",
+  "to": "Haz clic en \"Agregar anuncio publicitario\" para subir tu primer anuncio.",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Haga clic en \"Añadir anuncio publicitario\" para subir su primer anuncio."
+ },
+ {
+  "en": "Click \"Add Banner\" to upload your first banner photo.",
+  "lang": "es",
+  "to": "Haz clic en \"Agregar banner\" para subir tu primera foto de banner.",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Haga clic en \"Añadir banner\" para subir su primera foto de banner."
+ },
+ {
+  "en": "Click \"Add Contact\" to add contact details.",
+  "lang": "es",
+  "to": "Haz clic en \"Agregar contacto\" para agregar datos de contacto.",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Haga clic en \"Añadir contacto\" para añadir datos de contacto."
+ },
+ {
+  "en": "Add New Member",
+  "lang": "es",
+  "to": "Agregar nuevo socio",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Añadir nuevo socio"
+ },
+ {
+  "en": "Select T-Shirt Size",
+  "lang": "es",
+  "to": "Selecciona la talla de camiseta",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Seleccione la talla de camiseta"
+ },
+ {
+  "en": "Apply at least one filter and click Search. Records are not loaded automatically.",
+  "lang": "es",
+  "to": "Aplica al menos un filtro y haz clic en Buscar. Los registros no se cargan automáticamente.",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Aplique al menos un filtro y haga clic en Buscar. Los registros no se cargan automáticamente."
+ },
+ {
+  "en": "Apply filters above (name/mobile/email, date range, or status) and click Search to load login records.",
+  "lang": "es",
+  "to": "Aplica los filtros de arriba (nombre/móvil/correo, rango de fechas o estado) y haz clic en Buscar para cargar los inicios de sesión.",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Aplique los filtros de arriba (nombre/móvil/correo, rango de fechas o estado) y haga clic en Buscar para cargar los inicios de sesión."
+ },
+ {
+  "en": "Select a category",
+  "lang": "es",
+  "to": "Selecciona una categoría",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Seleccione una categoría"
+ },
+ {
+  "en": "Upload a custom icon image (optional). Takes priority over icon class.",
+  "lang": "es",
+  "to": "Sube una imagen de icono personalizada (opcional). Tiene prioridad sobre la clase de icono.",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Suba una imagen de icono personalizada (opcional). Tiene prioridad sobre la clase de icono."
+ },
+ {
+  "en": "Click any column header to sort. National Rank is awaiting publication and shown as Pending.",
+  "lang": "es",
+  "to": "Haz clic en el encabezado de una columna para ordenar. La clasificación nacional está pendiente de publicación y se muestra como Pendiente.",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Haga clic en el encabezado de una columna para ordenar. La clasificación nacional está pendiente de publicación y se muestra como Pendiente."
+ },
+ {
+  "en": "Click column headers to sort",
+  "lang": "es",
+  "to": "Haz clic en los encabezados de columna para ordenar",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Haga clic en los encabezados de columna para ordenar"
+ },
+ {
+  "en": "Detailed TRF Giving Table",
+  "lang": "es",
+  "to": "Tabla detallada de donaciones a LFR",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Tabla detallada de donaciones a TRF"
+ },
+ {
+  "en": "TRF & Foundation",
+  "lang": "es",
+  "to": "LFR y Fundación",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "TRF y Fundación"
+ },
+ {
+  "en": "Click \"Add Attendance\" to create one.",
+  "lang": "es",
+  "to": "Haz clic en \"Agregar asistencia\" para crear una.",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Haga clic en \"Añadir asistencia\" para crear una."
+ },
+ {
+  "en": "Click any tile to manage attendees of that category.",
+  "lang": "es",
+  "to": "Haz clic en un recuadro para gestionar los asistentes de esa categoría.",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Haga clic en un recuadro para gestionar los asistentes de esa categoría."
+ },
+ {
+  "en": "Non-member entries are for past years only. Choose a past Rotary year below to enable them.",
+  "lang": "es",
+  "to": "Las entradas de no socios son solo para años pasados. Elige un año rotario pasado abajo para activarlas.",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Las entradas de no socios son solo para años pasados. Elija un año rotario pasado abajo para activarlas."
+ },
+ {
+  "en": "Select a designation",
+  "lang": "es",
+  "to": "Selecciona un cargo",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Seleccione un cargo"
+ },
+ {
+  "en": "TRF Entries",
+  "lang": "es",
+  "to": "Entradas de LFR",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Entradas de TRF"
+ },
+ {
+  "en": "Click \"Add Meeting\" to create one.",
+  "lang": "es",
+  "to": "Haz clic en \"Agregar reunión\" para crear una.",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Haga clic en \"Añadir reunión\" para crear una."
+ },
+ {
+  "en": "Add Club Service Meeting",
+  "lang": "es",
+  "to": "Agregar reunión de servicio en el club",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Añadir reunión de servicio en el club"
+ },
+ {
+  "en": "Click \"Add Document\" to create one.",
+  "lang": "es",
+  "to": "Haz clic en \"Agregar documento\" para crear uno.",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Haga clic en \"Añadir documento\" para crear uno."
+ },
+ {
+  "en": "Upload club documents (constitution, bylaws, forms, attachments). Choose 'View Only' to restrict downloads or 'Downloadable' to let members save the file locally.",
+  "lang": "es",
+  "to": "Sube los documentos del club (estatutos, reglamento, formularios, adjuntos). Elige 'Solo ver' para impedir descargas o 'Descargable' para que los socios puedan guardar el archivo.",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Suba los documentos del club (estatutos, reglamento, formularios, adjuntos). Elija 'Solo ver' para impedir descargas o 'Descargable' para que los socios puedan guardar el archivo."
+ },
+ {
+  "en": "Click \"Add Newsletter\" to create one.",
+  "lang": "es",
+  "to": "Haz clic en \"Agregar boletín\" para crear uno.",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Haga clic en \"Añadir boletín\" para crear uno."
+ },
+ {
+  "en": "Pick a current/former member from the dropdown, or add a Non-Member if the person is not in the system.",
+  "lang": "es",
+  "to": "Elige un socio actual o antiguo de la lista, o agrega un no socio si la persona no está en el sistema.",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Elija un socio actual o antiguo de la lista, o añada un no socio si la persona no está en el sistema."
+ },
+ {
+  "en": "Select a year…",
+  "lang": "es",
+  "to": "Selecciona un año…",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Seleccione un año…"
+ },
+ {
+  "en": "Click \"Add Potential Member\" to add one.",
+  "lang": "es",
+  "to": "Haz clic en \"Agregar socio potencial\" para agregar uno.",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Haga clic en \"Añadir socio potencial\" para añadir uno."
+ },
+ {
+  "en": "Capture prospective members the club may invite to join. Provide as much contact information as possible so the club can follow up.",
+  "lang": "es",
+  "to": "Registra a los posibles socios que el club podría invitar. Indica tantos datos de contacto como sea posible para que el club pueda hacer el seguimiento.",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Registre a los posibles socios que el club podría invitar. Indique tantos datos de contacto como sea posible para que el club pueda hacer el seguimiento."
+ },
+ {
+  "en": "Add (Terminate Member)",
+  "lang": "es",
+  "to": "Agregar (dar de baja a un socio)",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Añadir (dar de baja a un socio)"
+ },
+ {
+  "en": "Select a reason…",
+  "lang": "es",
+  "to": "Selecciona un motivo…",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Seleccione un motivo…"
+ },
+ {
+  "en": "No TRF contributions for this year.",
+  "lang": "es",
+  "to": "No hay contribuciones a LFR para este año.",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "No hay contribuciones a TRF para este año."
+ },
+ {
+  "en": "Record a donor's contribution to The Rotary Foundation. Amounts are tracked in USD and roll up into the club's monthly report and the district / zone foundation totals.",
+  "lang": "es",
+  "to": "Registra la contribución de un donante a La Fundación Rotaria. Los montos se registran en USD y se suman al informe mensual del club y a los totales de la Fundación del distrito y la zona.",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Registre la contribución de un donante a La Fundación Rotaria. Los importes se registran en USD y se suman al informe mensual del club y a los totales de la Fundación del distrito y la zona."
+ },
+ {
+  "en": "Select fund type",
+  "lang": "es",
+  "to": "Selecciona el tipo de fondo",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Seleccione el tipo de fondo"
+ },
+ {
+  "en": "Click \"Add Event\" to create one.",
+  "lang": "es",
+  "to": "Haz clic en \"Agregar evento\" para crear uno.",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Haga clic en \"Añadir evento\" para crear uno."
+ },
+ {
+  "en": "Add a paragraph or two introducing the club, its history, or its mission. Up to 5,000 characters with rich formatting and inline images.",
+  "lang": "es",
+  "to": "Agrega uno o dos párrafos que presenten al club, su historia o su misión. Hasta 5.000 caracteres con formato e imágenes.",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Añada uno o dos párrafos que presenten al club, su historia o su misión. Hasta 5.000 caracteres con formato e imágenes."
+ },
+ {
+  "en": "Click to upload banner image",
+  "lang": "es",
+  "to": "Haz clic para subir la imagen del banner",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Haga clic para subir la imagen del banner"
+ },
+ {
+  "en": "Click to upload image",
+  "lang": "es",
+  "to": "Haz clic para subir una imagen",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Haga clic para subir una imagen"
+ },
+ {
+  "en": "Click \"Add Contact\" to add the first contact detail.",
+  "lang": "es",
+  "to": "Haz clic en \"Agregar contacto\" para agregar el primer dato de contacto.",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Haga clic en \"Añadir contacto\" para añadir el primer dato de contacto."
+ },
+ {
+  "en": "No record · Add new",
+  "lang": "es",
+  "to": "Sin registro · Agregar",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Sin registro · Añadir"
+ },
+ {
+  "en": "Pick a Rotary year above to create the first contact",
+  "lang": "es",
+  "to": "Elige un año rotario arriba para crear el primer contacto",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Elija un año rotario arriba para crear el primer contacto"
+ },
+ {
+  "en": "Same image as on the Club add/edit page. Update here and it reflects everywhere.",
+  "lang": "es",
+  "to": "La misma imagen que en la página de agregar/editar club. Si la actualiza aquí, se aplica en todas partes.",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "La misma imagen que en la página de añadir/editar club. Si la actualiza aquí, se aplica en todas partes."
+ },
+ {
+  "en": "Add Menu Item",
+  "lang": "es",
+  "to": "Agregar elemento de menú",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Añadir elemento de menú"
+ },
+ {
+  "en": "Add a custom menu entry",
+  "lang": "es",
+  "to": "Agregar una entrada de menú personalizada",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Añadir una entrada de menú personalizada"
+ },
+ {
+  "en": "Select an existing page…",
+  "lang": "es",
+  "to": "Selecciona una página existente…",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Seleccione una página existente…"
+ },
+ {
+  "en": "No social media links added yet.",
+  "lang": "es",
+  "to": "Aún no se han agregado enlaces de redes sociales.",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Aún no se han añadido enlaces de redes sociales."
+ },
+ {
+  "en": "Add a new social link",
+  "lang": "es",
+  "to": "Agregar un nuevo enlace social",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Añadir un nuevo enlace social"
+ },
+ {
+  "en": "Select a platform",
+  "lang": "es",
+  "to": "Selecciona una plataforma",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Seleccione una plataforma"
+ },
+ {
+  "en": "Pick the look of your public club website. The switch is instant: the public site refreshes within 5 minutes.",
+  "lang": "es",
+  "to": "Elige el aspecto del sitio público de tu club. El cambio es inmediato: el sitio público se actualiza en un máximo de 5 minutos.",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Elija el aspecto del sitio público de su club. El cambio es inmediato: el sitio público se actualiza en un máximo de 5 minutos."
+ },
+ {
+  "en": "Choose a theme",
+  "lang": "es",
+  "to": "Elige un tema",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Elija un tema"
+ },
+ {
+  "en": "Pick the look of your public club website. The switch is instant: the public site refreshes within ~5 minutes.",
+  "lang": "es",
+  "to": "Elige el aspecto del sitio público de tu club. El cambio es inmediato: el sitio público se actualiza en unos 5 minutos.",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Elija el aspecto del sitio público de su club. El cambio es inmediato: el sitio público se actualiza en unos 5 minutos."
+ },
+ {
+  "en": "Set the district's own targets, or review each club's goals.",
+  "lang": "es",
+  "to": "Fije las metas propias del distrito o revisa las metas de cada club.",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Fije las metas propias del distrito o revise las metas de cada club."
+ },
+ {
+  "en": "Add a paragraph or two introducing the district, its history, or its mission. Up to 5,000 characters with rich formatting and inline images.",
+  "lang": "es",
+  "to": "Agrega uno o dos párrafos que presenten al distrito, su historia o su misión. Hasta 5.000 caracteres con formato e imágenes.",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Añada uno o dos párrafos que presenten al distrito, su historia o su misión. Hasta 5.000 caracteres con formato e imágenes."
+ },
+ {
+  "en": "Click \"Add Link\" to create one.",
+  "lang": "es",
+  "to": "Haz clic en \"Agregar enlace\" para crear uno.",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Haga clic en \"Añadir enlace\" para crear uno."
+ },
+ {
+  "en": "Add Web Link",
+  "lang": "es",
+  "to": "Agregar enlace web",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Añadir enlace web"
+ },
+ {
+  "en": "Enter a district number and click Search to find districts.",
+  "lang": "es",
+  "to": "Introduce un número de distrito y haz clic en Buscar para encontrar distritos.",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Introduzca un número de distrito y haga clic en Buscar para encontrar distritos."
+ },
+ {
+  "en": "Contact Super Admin to assign modules to this district.",
+  "lang": "es",
+  "to": "Contacta al Superadministrador para asignar módulos a este distrito.",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Contacte al Superadministrador para asignar módulos a este distrito."
+ },
+ {
+  "en": "Upload district documents (constitution, bylaws, forms, attachments). Choose 'View Only' to restrict downloads or 'Downloadable' to let members save the file locally.",
+  "lang": "es",
+  "to": "Sube los documentos del distrito (estatutos, reglamento, formularios, adjuntos). Elige 'Solo ver' para impedir descargas o 'Descargable' para que los socios puedan guardar el archivo.",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Suba los documentos del distrito (estatutos, reglamento, formularios, adjuntos). Elija 'Solo ver' para impedir descargas o 'Descargable' para que los socios puedan guardar el archivo."
+ },
+ {
+  "en": "Select rotary year…",
+  "lang": "es",
+  "to": "Selecciona el año rotario…",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Seleccione el año rotario…"
+ },
+ {
+  "en": "Click to upload new logo",
+  "lang": "es",
+  "to": "Haz clic para subir un nuevo logotipo",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Haga clic para subir un nuevo logotipo"
+ },
+ {
+  "en": "Select a country",
+  "lang": "es",
+  "to": "Selecciona un país",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Seleccione un país"
+ },
+ {
+  "en": "Select a zone",
+  "lang": "es",
+  "to": "Selecciona una zona",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Seleccione una zona"
+ },
+ {
+  "en": "Select a zone to view its districts.",
+  "lang": "es",
+  "to": "Selecciona una zona para ver sus distritos.",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Seleccione una zona para ver sus distritos."
+ },
+ {
+  "en": "Fill in the details to add a new member",
+  "lang": "es",
+  "to": "Completa los datos para agregar un nuevo socio",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Complete los datos para añadir un nuevo socio"
+ },
+ {
+  "en": "Enter the email address your club has for you.",
+  "lang": "es",
+  "to": "Introduce la dirección de correo que tu club tiene registrada.",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Introduzca la dirección de correo que su club tiene registrada."
+ },
+ {
+  "en": "Browse all zones → districts → clubs and open any club dashboard (SuperAdmin landing moved to Global Search)",
+  "lang": "es",
+  "to": "Recorre todas las zonas → distritos → clubes y abre el panel de cualquier club (el inicio de SuperAdmin pasó a la Búsqueda global)",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Recorra todas las zonas → distritos → clubes y abra el panel de cualquier club (el inicio de SuperAdmin pasó a la Búsqueda global)"
+ },
+ {
+  "en": "Add Area of Focus",
+  "lang": "es",
+  "to": "Agregar área de interés",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Añadir área de interés"
+ },
+ {
+  "en": "Select District and Year to load clubs.",
+  "lang": "es",
+  "to": "Selecciona distrito y año para cargar los clubes.",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Seleccione distrito y año para cargar los clubes."
+ },
+ {
+  "en": "Choose which modules each edition switches on",
+  "lang": "es",
+  "to": "Elige qué módulos activa cada edición",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Elija qué módulos activa cada edición"
+ },
+ {
+  "en": "Every email sent via Brevo. Click a row to view the full HTML body.",
+  "lang": "es",
+  "to": "Todos los correos enviados por Brevo. Haz clic en una fila para ver el cuerpo HTML completo.",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Todos los correos enviados por Brevo. Haga clic en una fila para ver el cuerpo HTML completo."
+ },
+ {
+  "en": "Enter a name, email, mobile, rotary ID or club name to search.",
+  "lang": "es",
+  "to": "Introduce un nombre, correo, móvil, ID de Rotary o nombre del club para buscar.",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Introduzca un nombre, correo, móvil, ID de Rotary o nombre del club para buscar."
+ },
+ {
+  "en": "Search zones, districts or clubs. Click any result to open its dashboard.",
+  "lang": "es",
+  "to": "Busca zonas, distritos o clubes. Haz clic en un resultado para abrir su panel.",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Busque zonas, distritos o clubes. Haga clic en un resultado para abrir su panel."
+ },
+ {
+  "en": "Type a name or number to start searching.",
+  "lang": "es",
+  "to": "Escribe un nombre o número para empezar a buscar.",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Escriba un nombre o número para empezar a buscar."
+ },
+ {
+  "en": "Allowed: JPG, JPEG, PNG, WEBP (max 5 MB). Upload a photo, then crop + zoom before saving.",
+  "lang": "es",
+  "to": "Permitidos: JPG, JPEG, PNG, WEBP (máx. 5 MB). Sube una foto y recórtela y amplíela antes de guardar.",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Permitidos: JPG, JPEG, PNG, WEBP (máx. 5 MB). Suba una foto y recórtela y amplíela antes de guardar."
+ },
+ {
+  "en": "Enter a mobile number to preview what the mobile app would show on login. No OTP is sent.",
+  "lang": "es",
+  "to": "Introduce un número de móvil para ver lo que mostraría la app al iniciar sesión. No se envía OTP.",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Introduzca un número de móvil para ver lo que mostraría la app al iniciar sesión. No se envía OTP."
+ },
+ {
+  "en": "No versions yet. Click Add Version",
+  "lang": "es",
+  "to": "Aún no hay versiones. Haz clic en Agregar versión",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Aún no hay versiones. Haga clic en Añadir versión"
+ },
+ {
+  "en": "Rotary.org project sync log. Search a club by name, then click a project for its full history.",
+  "lang": "es",
+  "to": "Registro de sincronización de proyectos con Rotary.org. Busca un club por nombre y haz clic en un proyecto para ver su historial completo.",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Registro de sincronización de proyectos con Rotary.org. Busque un club por nombre y haga clic en un proyecto para ver su historial completo."
+ },
+ {
+  "en": "Members sharing a mobile or email: one holds it as primary, the other as secondary. Review each pair, then merge or keep both.",
+  "lang": "es",
+  "to": "Socios que comparten móvil o correo: uno como principal, el otro como secundario. Revisa cada pareja y luego fusiónelos o conserve ambos.",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Socios que comparten móvil o correo: uno como principal, el otro como secundario. Revise cada pareja y luego fusiónelos o conserve ambos."
+ },
+ {
+  "en": "Pick district first",
+  "lang": "es",
+  "to": "Elige primero el distrito",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Elija primero el distrito"
+ },
+ {
+  "en": "Add Next Year",
+  "lang": "es",
+  "to": "Agregar el año siguiente",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Añadir el año siguiente"
+ },
+ {
+  "en": "Add SuperAdmin",
+  "lang": "es",
+  "to": "Agregar SuperAdmin",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Añadir SuperAdmin"
+ },
+ {
+  "en": "Add or remove SuperAdmin access: OTP-gated by the approver on record.",
+  "lang": "es",
+  "to": "Agregar o retirar el acceso de SuperAdmin: lo aprueba por OTP el aprobador registrado.",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Añadir o retirar el acceso de SuperAdmin: lo aprueba por OTP el aprobador registrado."
+ },
+ {
+  "en": "Choose a club…",
+  "lang": "es",
+  "to": "Elige un club…",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Elija un club…"
+ },
+ {
+  "en": "Choose a district…",
+  "lang": "es",
+  "to": "Elige un distrito…",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Elija un distrito…"
+ },
+ {
+  "en": "Download your data or withdraw consent",
+  "lang": "es",
+  "to": "Descarga tus datos o retira tu consentimiento",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Descargue sus datos o retire su consentimiento"
+ },
+ {
+  "en": "Before continuing, please read and accept our",
+  "lang": "es",
+  "to": "Antes de continuar, lea y acepta nuestros",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Antes de continuar, lea y acepte nuestros"
+ },
+ {
+  "en": "Enter your email",
+  "lang": "es",
+  "to": "Ingresa tu correo electrónico",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Ingrese su correo electrónico"
+ },
+ {
+  "en": "Enter your password",
+  "lang": "es",
+  "to": "Ingresa tu contraseña",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Ingrese su contraseña"
+ },
+ {
+  "en": "First time here? Use \"Forgot password?\" to set your password.",
+  "lang": "es",
+  "to": "¿Primera vez aquí? Usa \"¿Olvidó tu contraseña?\" para crear tu contraseña.",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "¿Primera vez aquí? Use \"¿Olvidó su contraseña?\" para crear su contraseña."
+ },
+ {
+  "en": "Call us",
+  "lang": "es",
+  "to": "Llámanos",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Llámenos"
+ },
+ {
+  "en": "Choose One",
+  "lang": "es",
+  "to": "Elige uno",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Elija uno"
+ },
+ {
+  "en": "Enter Passcode",
+  "lang": "es",
+  "to": "Ingresa el código",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Ingrese el código"
+ },
+ {
+  "en": "Enter city",
+  "lang": "es",
+  "to": "Ingresa la ciudad",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Ingrese la ciudad"
+ },
+ {
+  "en": "Enter description",
+  "lang": "es",
+  "to": "Ingresa una descripción",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Ingrese una descripción"
+ },
+ {
+  "en": "Enter location",
+  "lang": "es",
+  "to": "Ingresa el lugar",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Ingrese el lugar"
+ },
+ {
+  "en": "Enter name",
+  "lang": "es",
+  "to": "Ingresa el nombre",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Ingrese el nombre"
+ },
+ {
+  "en": "Enter text…",
+  "lang": "es",
+  "to": "Ingresa texto…",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Ingrese texto…"
+ },
+ {
+  "en": "Enter title",
+  "lang": "es",
+  "to": "Ingresa un título",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Ingrese un título"
+ },
+ {
+  "en": "Foundation (TRF)",
+  "lang": "es",
+  "to": "Fundación (LFR)",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Fundación (TRF)"
+ },
+ {
+  "en": "Write here…",
+  "lang": "es",
+  "to": "Escribe aquí…",
+  "why": "one Spanish: Latin American (Agregar, Monto), tú, GA, LFR (La Fundación Rotaria)",
+  "from": "Escriba aquí…"
+ }
+]

@@ -1,0 +1,74 @@
+[
+ {
+  "en": "Tap + to create a new community service project.",
+  "lang": "es",
+  "to": "Toca + para crear un proyecto de servicio en la comunidad.",
+  "why": "Spanish read, batch 5a"
+ },
+ {
+  "en": "The data I will enter is for a Community service project conducted by my ",
+  "lang": "es",
+  "to": "Los datos que voy a introducir son de un proyecto de servicio en la comunidad realizado por mi ",
+  "why": "Spanish read, batch 5a"
+ },
+ {
+  "en": "Short, focused screencasts for every flow.",
+  "lang": "es",
+  "to": "Videos cortos y concretos para cada flujo.",
+  "why": "Spanish read, batch 5a"
+ },
+ {
+  "en": "Search by club name, Rotary ID, or district number to find clubs.",
+  "lang": "es",
+  "to": "Busca por nombre del club, ID de Rotary o número de distrito para encontrar clubes.",
+  "why": "Spanish read, batch 5a"
+ },
+ {
+  "en": "Same image as on the Club add/edit page. Update here and it reflects everywhere.",
+  "lang": "es",
+  "to": "La misma imagen que en la página de agregar/editar club. Si la actualizas aquí, se aplica en todas partes.",
+  "why": "Spanish read, batch 5a"
+ },
+ {
+  "en": "Set the district's own targets, or review each club's goals.",
+  "lang": "es",
+  "to": "Fija las metas propias del distrito o revisa las metas de cada club.",
+  "why": "Spanish read, batch 5a"
+ },
+ {
+  "en": "Reset your account password",
+  "lang": "es",
+  "to": "Restablecer la contraseña de tu cuenta",
+  "why": "Spanish read, batch 5a"
+ },
+ {
+  "en": "Sign your district up for ROW",
+  "lang": "es",
+  "to": "Inscribe a tu distrito en ROW",
+  "why": "Spanish read, batch 5a"
+ },
+ {
+  "en": "Set each district's default currency for project-add forms; a district without one uses the instance currency",
+  "lang": "es",
+  "to": "Fija la moneda predeterminada de cada distrito para los formularios de proyecto; un distrito sin moneda usa la de la instancia",
+  "why": "Spanish read, batch 5a"
+ },
+ {
+  "en": "Set each district's default currency for project-add forms",
+  "lang": "es",
+  "to": "Fija la moneda predeterminada de cada distrito para los formularios de proyecto",
+  "why": "Spanish read, batch 5a"
+ },
+ {
+  "en": "Search a club by name to see its project sync log.",
+  "lang": "es",
+  "to": "Busca un club por nombre para ver su registro de sincronización de proyectos.",
+  "why": "Spanish read, batch 5a"
+ },
+ {
+  "en": "Report message",
+  "lang": "es",
+  "to": "Denunciar mensaje",
+  "why": "Spanish read, batch 5a"
+ }
+]

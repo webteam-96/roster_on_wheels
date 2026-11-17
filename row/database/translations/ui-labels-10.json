@@ -259,7 +259,7 @@
 "TRF寄付を追加",
 "TRF 기부 추가",
 "Adicionar contribuição à TRF",
-"Agregar contribución a TRF"
+"Agregar contribución a LFR"
 ],
 "Add Terminated Member": [
 "Ajouter un membre radié",
@@ -581,7 +581,7 @@
 "Club-Beauftragter Serviceprojekte",
 "Presidente commissione Progetti di servizio del club",
 "クラブ奉仕プロジェクト委員長",
-"클럽 봉사 프로젝트 위원장",
+"클럽봉사 프로젝트 위원장",
 "Presidente da comissão de Projetos do clube",
 "Presidente del comité de Proyectos de servicio del club"
 ],
@@ -1366,7 +1366,7 @@
 "TRF金額（USD）",
 "TRF 금액 (USD)",
 "Valor TRF (USD)",
-"Monto TRF (USD)"
+"Monto LFR (USD)"
 ],
 "TRF Contribution": [
 "Contribution TRF",
@@ -1375,7 +1375,7 @@
 "TRF寄付",
 "TRF 기부",
 "Contribuição à TRF",
-"Contribución a TRF"
+"Contribución a LFR"
 ],
 "TRF Contributions": [
 "Contributions TRF",
@@ -1384,7 +1384,7 @@
 "TRF寄付",
 "TRF 기부",
 "Contribuições à TRF",
-"Contribuciones a TRF"
+"Contribuciones a LFR"
 ],
 "TRF Giving Breakdown by Club": [
 "Dons TRF par club",
@@ -1393,7 +1393,7 @@
 "クラブ別TRF寄付内訳",
 "클럽별 TRF 기부 내역",
 "Doações à TRF por clube",
-"Donaciones a TRF por club"
+"Donaciones a LFR por club"
 ],
 "TRF Giving per Club (USD)": [
 "Dons TRF par club (USD)",
@@ -1402,7 +1402,7 @@
 "クラブ当たりTRF寄付（USD）",
 "클럽당 TRF 기부 (USD)",
 "Doações à TRF por clube (USD)",
-"Donaciones a TRF por club (USD)"
+"Donaciones a LFR por club (USD)"
 ],
 "TRF Raised": [
 "TRF collecté",
@@ -1411,7 +1411,7 @@
 "TRF寄付額",
 "TRF 모금액",
 "TRF arrecadado",
-"TRF recaudado"
+"LFR recaudado"
 ],
 "Thumbnail": [
 "Miniature",
@@ -1447,7 +1447,7 @@
 "TRF寄付上位",
 "TRF 기부 상위",
 "Maiores doações à TRF",
-"Mayores donaciones a TRF"
+"Mayores donaciones a LFR"
 ],
 "Total Club Service": [
 "Total action intérieure",
@@ -1465,7 +1465,7 @@
 "TRF合計",
 "TRF 합계",
 "TRF total",
-"TRF total"
+"LFR total"
 ],
 "Tutorials: Coming Soon": [
 "Tutoriels : bientôt disponibles",
