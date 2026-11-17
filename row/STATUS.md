@@ -1,6 +1,11 @@
 # ROW Build — Status and Handover
 
-Last updated: 2026-10-21 (Wave 1 done) · Branch: `main`
+Last updated: 2026-11-17 · Branch: `feat/rizones-pull-2026-11-06`
+
+> **Current status (2026-11-17):** the build is largely done; what is left waits on outside inputs, production steps
+> and testing. Live date 30 Nov 2026. The up-to-date picture is `row/TRACKER.md` (top), the next steps are in
+> `row/HANDOFF.md` ("Next task"), and the owner's view is the OMS project pages. Sections 5 to 6d below are the dated
+> history up to 2026-10-21 and are not kept current.
 
 > **Stack finalized 2026-10-15: Next.js frontend + ASP.NET Core (.NET) backend.** The NestJS port of the API
 > was deleted and the former `row-dotnet/` edition was promoted to the main `row/` folder, so there is now a
@@ -43,14 +48,18 @@ Related documents:
 
 | Path | What | State |
 |---|---|---|
-| `row/api` | ASP.NET Core (.NET) backend, the RIZones API rebranded to ROW, MySQL, same schema | Rebranded; brand, privacy, member-data flags, currency, time zone, phone/SMS in; Payments still India (decision 4) |
-| `row/workers` | .NET worker programs (AwardsAutoCalc, Greetings, RotaryOrgSync) | Rebranded; same ROW behaviour as the API |
-| `row/admin` | Next.js + Tailwind + TypeScript admin portal (from the RIZones admin UI) | RIZones content and India formats removed (tasks A, B); task C waits for Payments |
-| `row/club-website` | Next.js public club website | Converted (no RIZones literals, locale and currency from settings) |
-| `row/mobile` | Flutter app (converted from the RIZones app) | Converted to the ROW API; WS10 items pending. Keep as-is — in-scope decision deferred (2026-10-15) |
+| `row/api` + `row/api.Tests` | ASP.NET Core (.NET 10) backend, MySQL | Built; times stored in UTC (2026-11-17); payments run on a simulated gateway until Stripe; 92 tests pass |
+| `row/workers` | .NET worker programs (AwardsAutoCalc, Greetings, RotaryOrgSync) | Built; share the API's UTC database layer |
+| `row/admin` | Next.js admin portal (Super Admin, District, Club, AG) | Built; 147 tests pass; runtime translation in 8 languages |
+| `row/website` | Public ROW brand site | Built; legal pages (privacy, terms, refunds) are the RIZones texts with the ROW name |
+| `row/club-website` | Next.js public club websites, 11 themes ported from RIZones | Built; selling and renewing sites waits on payments and wildcard DNS |
+| `row/mobile` | Flutter app `com.kaizen.roww` | Built; 62 tests pass; Android debug build works; iOS needs a Mac build |
+| `row/assistant-web` | AI assistant (from the 2026-11 RIZones pull) | Ported |
+| `row/deploy/iis` | IIS configs and guide | Test host `test.rosteronwheels.com` on the production DB since 2026-10-30 |
+| `row/database` | Schema, maintenance scripts (UTC migration, district zones, schema catch-up), UI label glossary | Current |
 | `kb/` | Knowledge base: generated RIZones-vs-ROW diffs, document index, testing record, tools | Rebuild with `bash kb/rebuild.sh` |
-| `document/` | Plans and design documents | — |
-| `reference/` | RIZones sources for reading only — **gitignored, never commit** | — |
+| `document/` | Build Specification v4.1, Build Decisions, Subscription Flow (KIS/ROW/SUB/01), module sheet, early plans | — |
+| `reference/` | RIZones sources for reading only (API + admin + workers pulled 2026-11-17 at `be034332`; Flutter app last changed 2026-09-24) — **gitignored, never commit** | — |
 
 The RIZones C# API being ported lives at `reference/RotaryIndia_Admin_API_Claude/RotaryApi`
 (`Controllers/`, `Services/`, `DTOs/`).

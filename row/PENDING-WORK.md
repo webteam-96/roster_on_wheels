@@ -1,5 +1,11 @@
 # ROW — Pending Work and Why
 
+> **2026-11-17: this file is history (written mid-October).** Much of it is done since: admin task C (payments run on
+> a simulated gateway), mobile scope (built), privacy texts (RIZones texts with the ROW name), translation (runtime,
+> glossary in 7 languages), IIS deployment (test host since 2026-10-30), Firebase (`roww-54213`), Rotary.org live
+> access (2026-11-13). The current pending and blocked list is `row/TRACKER.md` section 6 and 7; next steps are in
+> `row/HANDOFF.md`.
+
 > **Stack finalized 2026-10-15: Next.js + ASP.NET Core (.NET).** The NestJS API was deleted and the former
 > `row-dotnet/` edition is now the single edition under `row/`. Items below that tracked the NestJS edition or
 > edition parity (notably §12) are moot; §14 (India-specific behaviour) now applies to the one `.NET` backend.

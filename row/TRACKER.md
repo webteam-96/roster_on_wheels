@@ -1,7 +1,16 @@
 # ROW work tracker
 
 One list of all ROW work: done, to do, blocked and removed, across frontend (admin web, public sites), backend
-(API, workers), database and mobile app. Update the row when work moves. Started 2026-10-22.
+(API, workers), database and mobile app. Update the row when work moves. Started 2026-10-22. **Last updated
+2026-11-17.** Live date 30 Nov 2026; work to be complete by 23 Nov.
+
+Since the 28 Oct crawl: simulated payment gateway for all five money flows (11-04), localization service and UI
+label glossary in 7 languages (11-04 to 11-13), RIZones pull build (11-06 to 11-13: year-wise admin rights, AI
+assistant), production schema catch-up script (e451e4c), District and Club subscriptions behind
+`Subscriptions:Enforce` = off (11-16), and on 11-17: security, backend and frontend audit fixes, UTC time storage
+(code done, production migration pending), RIZones legal texts with the ROW name, district time zones on
+production (483 districts), a full review of all 7 translations, and split sentences that always showed in English
+(app and web) now translated.
 
 Sources: `document/ROW Build Specification.docx` v4.1, `document/ROW Platform Build Decisions for Engineering.docx`,
 the module sheet "RotaryIndia_Modules_and_Labels" (Google Sheet), decisions in memory and `PENDING-WORK.md`.
@@ -14,8 +23,11 @@ Stripe), **Removed**.
 
 | Area | Done | In progress | To do | Blocked / on hold |
 |---|---|---|---|---|
-| Existing modules, web (93 in scope) | 84 pages exist (+8 app-only, 1 removed); crawled as Super Admin, Club Admin, District Admin, AG | | | 7 payment modules on hold |
-| Existing modules, mobile app | 59 | | none: the 28 Super Admin tools stay web-only (decision), duplicate check runs in the API | 7 payment modules on hold |
+| Existing modules, web (93 in scope) | 84 pages exist (+8 app-only, 1 removed); crawled as Super Admin, Club Admin, District Admin, AG | | Manual tests (OMS page 9, Testing) | 7 payment modules: built on the simulated gateway, wait for Stripe |
+| Existing modules, mobile app | 59 | | none: the 28 Super Admin tools stay web-only (decision), duplicate check runs in the API | 7 payment modules: as web |
+| Subscriptions (KIS/ROW/SUB/01) | Gate, purchase, jobs, screens, e2e (2026-11-16) | | | Prices, club website USD price, wildcard DNS; `Subscriptions:Enforce` stays off until the owner decides |
+| Translation (8 languages) | Runtime translation, glossary 4,638 labels, full review of all 7 languages, split sentences fixed (2026-11-17) | | Native-speaker check | |
+| UTC time storage | Code, tests, migration tool rehearsed on a copy (2026-11-17) | | Production window (see section 7) | Waits for the owner to stop the site |
 | Skipped modules (14 sheet rows) | Removed completely (2026-10-22/23) | | Drop leftover objects on prod: `database/maintenance/2026-10-23-drop-removed-modules.sql`, user go-ahead | |
 | Phase 1 web hardening | 7 of 7 | | | |
 | New spec modules (section 5) | N1-N13 web + API + app (flags off until a SuperAdmin turns them on) | | | 9 items blocked (section 6) |
@@ -196,15 +208,19 @@ Web = admin pages + public sites. All To do unless noted.
 
 | Item | Spec | Waiting on |
 |---|---|---|
-| Payments: Stripe, fees, refunds, webhooks; dues invoices; subscriptions; donations; wallet | 3.4-3.6, #4, #5, #14, #16, #21 | On hold: Stripe test account |
-| RI outbound sync, reason codes, officer titles, reconciliation | 3.2, #2, #9 | ROW's own Rotary.org access |
+| Payments: Stripe, fees, refunds, webhooks; dues invoices; donations; wallet | 3.4-3.6, #4, #5, #14, #16, #21 | On hold: Stripe meeting not held yet. All five money flows already run through one gateway seam with a simulator (2026-11-04) |
+| Subscription prices, club website price in USD | KIS/ROW/SUB/01 | owner |
+| Brevo key on the server (real email sends) | | the person holding it is on leave |
+| Wildcard DNS for club sites | | owner |
+| District website design | | approval pending |
+| Events inside ROW, form builder, QR check-in | 3.7, #15, #22 | another developer, starts Thursday 19 Nov |
+| RI outbound sync, reason codes, officer titles, reconciliation | 3.2, #2, #9 | Rotary.org live login works since 2026-11-13 (server `web.config`); these items still to review against it |
 | Roster snapshot and Foundation report imports | 3.2 | a real My Rotary export file |
 | Data migration, booth mode, ClubRunner site importer | 3.9, #6 | real ClubRunner / DACdb exports |
-| Events inside ROW, form builder, QR check-in | 3.7, #15, #22 | decision C8 (Kaizen Events) |
 | Zoom / Google meeting creation and attendance | 3.17 | Zoom and Google OAuth apps |
-| Push notifications | many | ROW Firebase project |
-| Production environment, CDN, backups, pen test, load test, support desk | 3.18, #13 | hosting decision |
-| Translation provider for production | 3.3 | user choosing (DeepL or LibreTranslate) |
+| Push notifications | many | Firebase project `roww-54213` exists (config files outside git); real sends to check on devices |
+| Pen test, load test, CDN, support desk | 3.18, #13 | not started; IIS test host runs since 2026-10-30 |
+| Native-speaker check of the 7 languages | 3.3 | no reviewers; the glossary works with `Translation__Provider = none`, DeepL optional |
 
 ## 7. Launch items (build guide)
 
@@ -216,10 +232,13 @@ Web = admin pages + public sites. All To do unless noted.
 | Rotary.org sync from configuration | Done (2026-10-21) |
 | Phone E.164 | Done |
 | Locale, time zone, currency | Done (N12, 2026-10-23) |
-| App build and store listings | To do |
+| App build and store listings | To do: Android debug build works; iOS needs a Mac build (the `AppDelegate.swift` time-zone channel is not compiled yet); store listings `com.kaizen.roww` |
+| UTC window on production | To do, owner stops the site: backup (taken 2026-11-17), `database/maintenance/utc_migration.py --apply`, deploy the new build, re-run the UI label glossary SQL, smoke test |
+| Drop leftovers of removed modules on production | To do: `database/maintenance/2026-10-23-drop-removed-modules.sql`, owner's go-ahead (deletes data) |
 | Smoke suites for regression | Done 2026-10-26: `kb/tools/smoke_all.py` runs the 31 e2e scripts, 31/31 PASS on row_prod_copy |
-| Prod schema catch-up (5 tables the code has, prod lacks) | To do, with the next deploy |
+| Prod schema catch-up (tables the code has, prod lacks) | Script ready (`e451e4c`, 15 tables); run with the next deploy |
 | Secret scan, rotate committed demo passwords (repo is public) | Scan done 2026-10-26: no keys, tokens or private keys in history; old e2e scripts hold demo-account passwords (the dropped demo DB and the local SuperAdmin): change any such password on production before go-live (owner) |
 | Payments, club subdomains | Blocked / on hold |
 
-Code freeze 28 October and launch 15 November 2026 (build guide): **not confirmed by the user**.
+Dates (user, November): go live 30 November 2026, work complete by 23 November. The build guide's 28 Oct freeze and
+15 Nov launch no longer apply.

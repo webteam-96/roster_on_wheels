@@ -1,6 +1,7 @@
 # ROW: session handoff (read this first)
 
-Last session: **2026-10-23**. A new session starts here, then continues with **"Next task"** below without
+Last session: **2026-11-17** (audit fixes, UTC storage, legal pages, translation review; see the 2026-11-17 note
+below and `ROW-CHANGES.md`). A new session starts here, then continues with **"Next task"** below without
 re-reading whole codebases (use `kb/README.md` and the graphify commands in the root `CLAUDE.md`).
 
 **2026-10-29, club website themes:** the club site's themes are now a port of the RIZones club site's 11 themes
@@ -25,6 +26,13 @@ Events and QR with another developer. Work on the production DB is allowed; do n
 Still open: subscription prices and the club website price in USD (owner), the Brevo key on the server, the wildcard
 DNS for club sites, turning `Subscriptions:Enforce` on (owner decides
 when: it locks every club and district that has no subscription).
+
+**2026-11-17, audit, UTC, translations:** security, backend and frontend audit fixes; all times stored in UTC
+(`api/Services/RowDb.cs` sets the session to +00:00, viewer zone from `X-Time-Zone`; migration tool
+`database/maintenance/utc_migration.py`, rehearsed, not yet run on production); district time zones written to
+production; legal pages in `row/website`; all 7 translations reviewed; split sentences and the project I Agree notices
+now translate (app `tool/gen_ui_strings.py`, glossary `database/translations/join_split.py`, web
+`components/AgreeText.tsx`). Checks: API 92, admin 147, Flutter 62 tests pass.
 
 ## Ground rules (from the user)
 
@@ -78,7 +86,24 @@ sheet (PENDING-WORK §11a; Settings > Features; e2e `kb/tools/feature_gate_e2e.p
   sites tsc 0; e2e on `row_prod_copy`: the 10 new suites, `scope_read_guard`, `feature_gate` (now takes the DB name
   as 3rd argument) all PASS.
 
-## Next task
+## Next task (2026-11-17)
+
+1. **UTC window on production**, when the owner says the site is stopped: check no other DB sessions, run
+   `python -I database/maintenance/utc_migration.py --apply` on `row_production` (refuses a second run; backup
+   `_local/backups/row_production-2026-11-17-pre-utc.sql`), owner uploads `_local/deploy-2026-11-17/` (rebuild it
+   first: it predates the translation and I Agree fixes), re-run `database/maintenance/2026-11-12-ui-label-glossary.sql`
+   with a UTC session, recycle the API pool, smoke test.
+2. Waiting on others: Stripe meeting, subscription prices and the club website USD price, Brevo key, wildcard DNS,
+   district website approval; Events + QR is another developer's from Thu 19 Nov.
+3. Owner decisions: port the ~20 new RIZones admin pages from the 11-17 pull or not; drop removed-module tables on
+   production; when to turn `Subscriptions:Enforce` on; change the demo passwords (repo is public).
+4. Releases: app store builds (iOS needs a Mac), admin deploy. Testing: manual module tests (OMS page 9), real sends
+   once Brevo is in, load test.
+
+Current status for the owner: `TRACKER.md` (top) and the OMS pages (1 Overview and Status, 4 Work Done, 5 Remaining
+Work and Plan, 6 Blocked Items).
+
+### Earlier next task (2026-10-23, done)
 
 Read `row/STATUS-REPORT.md` first (done, to do in order, on hold, blocked, decisions). Order agreed with the owner:
 Phase 1b security (HIGH: records fetched by id inside a club's URL are not tied to that club, sub group members,
