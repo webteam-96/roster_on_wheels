@@ -28,13 +28,34 @@ def unescape(s):
     return ''.join(out)
 LETTERS = re.compile(r'[A-Za-z]{2,}')
 # Paths, URLs, assets, map keys and identifiers are never shown as text.
-SKIP = re.compile(r'^(/|package:|dart:|https?:|#|[a-z]+[A-Z_][A-Za-z_]*$|[a-z_]+\.[a-z_.]+$|[\w.-]+\.(png|svg|jpg|json|ttf)$)')
+SKIP = re.compile(r'^(/|<|package:|dart:|https?:|#|[a-z]+[A-Z_][A-Za-z_]*$|[a-z_]+\.[a-z_.]+$|[\w.-]+\.(png|svg|jpg|json|ttf)$)')
+
+# Dart joins adjacent literals ('a ' 'b') into one string at compile time, and that joined string is what the
+# translator looks up, so a sentence split over several lines is listed whole as well as piece by piece.
+PIECE = r"""(?<![\w$r])(?:'(?:[^'\\$\n]|\\.)*'|"(?:[^"\\$\n]|\\.)*")"""
+RUN = re.compile(PIECE + r'(?:\s+' + PIECE + r')+')
+QUOTE_AFTER = re.compile(r"""\s*['"]""")
+
+
+def joined_runs(text):
+    for m in RUN.finditer(text):
+        before = text[:m.start()].rstrip()[-1:]
+        if before in ("'", '"') or QUOTE_AFTER.match(text, m.end()):
+            continue  # part of a run that also has an interpolated piece: not a fixed text
+        pieces = [unescape(p[1:-1]) for p in re.findall(PIECE, m.group(0))]
+        if None not in pieces:
+            yield ''.join(pieces)
+
 
 found = set()
 for f in (ROOT / 'lib').rglob('*.dart'):
     if f == OUT:
         continue
-    for line in f.read_text(encoding='utf-8').splitlines():
+    text = f.read_text(encoding='utf-8')
+    for s in joined_runs(text):
+        if LETTERS.search(s) and not SKIP.match(s.strip()):
+            found.add(s)
+    for line in text.splitlines():
         if line.lstrip().startswith(('import ', 'export ', 'part ', '//')):
             continue
         for m in LIT.finditer(line):

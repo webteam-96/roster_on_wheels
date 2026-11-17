@@ -1,0 +1,282 @@
+{
+ "_columns": [
+  "fr",
+  "de",
+  "it",
+  "ja",
+  "ko",
+  "pt",
+  "es"
+ ],
+ "_note": "Whole sentences the app joins from adjacent literals (2026-11-17). Each is the join of its reviewed pieces; edit the pieces, then rerun.",
+ "File not found on the server. It may have been moved or did not upload correctly.": [
+  "Fichier introuvable sur le serveur. Il a peut-être été déplacé ou n'a pas été envoyé correctement.",
+  "Datei auf dem Server nicht gefunden. Sie wurde eventuell verschoben oder nicht korrekt hochgeladen.",
+  "File non trovato sul server. Potrebbe essere stato spostato o non caricato correttamente.",
+  "サーバー上にファイルが見つかりません。移動されたか、次の状態の可能性があります：正しくアップロードされませんでした。",
+  "서버에서 파일을 찾을 수 없습니다. 이동되었거나 다음 상태일 수 있습니다: 올바르게 업로드되지 않았습니다.",
+  "Arquivo não encontrado no servidor. Pode ter sido movido ou não ter sido enviado corretamente.",
+  "Archivo no encontrado en el servidor. Puede que se haya movido o no se haya subido correctamente."
+ ],
+ "All metrics normalised 0-100 so clubs can be compared across dimensions. Outer edge = leader in that axis.": [
+  "Tous les indicateurs sont ramenés sur 0-100 pour comparer les clubs sur toutes les dimensions. Bord extérieur = meilleur sur cet axe.",
+  "Alle Kennzahlen auf 0-100 normiert, damit Clubs über alle Dimensionen vergleichbar sind. Außenrand = führend auf dieser Achse.",
+  "Tutte le metriche normalizzate su 0-100 per confrontare i club in tutte le dimensioni. Bordo esterno = primo su quell'asse.",
+  "すべての指標を0〜100に正規化し、項目をまたいでクラブを比較できます。外側の端＝その軸のトップ。",
+  "모든 지표를 0-100으로 정규화하여 여러 차원에서 클럽을 비교할 수 있습니다. 바깥쪽 끝 = 해당 축의 선두.",
+  "Todos os indicadores normalizados de 0 a 100 para comparar clubes em todas as dimensões. Borda externa = líder nesse eixo.",
+  "Todas las métricas normalizadas de 0 a 100 para comparar clubes en todas las dimensiones. Borde exterior = líder en ese eje."
+ ],
+ "Only the Club President, Secretary or Treasurer can pay club dues, and only when a district campaign is active.": [
+  "Seuls le président, le secrétaire ou le trésorier du club peuvent payer les cotisations, et uniquement quand une campagne de district est active.",
+  "Nur Präsident, Sekretär oder Schatzmeister können Clubbeiträge zahlen, und nur, wenn eine Distriktkampagne aktiv ist.",
+  "Solo presidente, segretario o tesoriere del club possono pagare le quote, e solo quando è attiva una campagna distrettuale.",
+  "クラブ会費を支払えるのは、クラブ会長、幹事、会計のみで、地区キャンペーンが有効な場合に限ります。",
+  "클럽 회비는 클럽 회장, 총무 또는 재무만 납부할 수 있으며, 지구 캠페인이 진행 중일 때만 가능합니다.",
+  "Só o presidente, o secretário ou o tesoureiro do clube podem pagar as quotas, e só quando há uma campanha distrital ativa.",
+  "Solo el presidente, el secretario o el tesorero del club pueden pagar las cuotas, y solo cuando hay una campaña distrital activa."
+ ],
+ "The server reported an error loading projects for this club. Please try again in a moment.": [
+  "Le serveur a signalé une erreur lors du chargement des projets de ce club. Réessayez dans un instant.",
+  "Der Server meldete einen Fehler beim Laden der Projekte dieses Clubs. Bitte gleich erneut versuchen.",
+  "Il server ha segnalato un errore nel caricare i progetti del club. Riprova tra un momento.",
+  "このクラブのプロジェクト読み込み中にサーバーでエラーが発生しました。少し後でもう一度お試しください。",
+  "이 클럽의 프로젝트를 불러오는 중 서버 오류가 발생했습니다. 잠시 후 다시 시도하세요.",
+  "O servidor relatou um erro ao carregar os projetos deste clube. Tente novamente em instantes.",
+  "El servidor informó de un error al cargar los proyectos de este club. Inténtalo de nuevo en un momento."
+ ],
+ "Searches club name, Rotary ID, city, state, country, district number, zone and meeting day.": [
+  "Recherche dans le nom du club, l'ID Rotary, la ville, la région, le pays, le numéro de district, la zone et le jour de réunion.",
+  "Durchsucht Clubname, Rotary-ID, Stadt, Bundesland, Land, Distriktnummer, Zone und Meetingtag.",
+  "Cerca nel nome del club, ID Rotary, città, regione, paese, numero del distretto, zona e giorno di riunione.",
+  "検索対象：クラブ名、ロータリーID、市区町村、州・県、国、地区番号、ゾーン、例会日。",
+  "검색 대상: 클럽 이름, 로타리 ID, 도시, 주, 국가, 지구 번호, 존, 모임 요일.",
+  "Pesquisa nome do clube, ID Rotary, cidade, estado, país, número do distrito, zona e dia de reunião.",
+  "Busca en nombre del club, ID Rotary, ciudad, estado, país, número de distrito, zona y día de reunión."
+ ],
+ "Pick a member, or add a non-member (past years only) if the person isn’t in the system.": [
+  "Choisissez un membre, ou ajoutez un non-membre (années passées uniquement) si la personne n'est pas dans le système.",
+  "Mitglied wählen oder Nichtmitglied hinzufügen (nur vergangene Jahre), wenn die Person nicht im System ist.",
+  "Scegli un socio o aggiungi un non socio (solo anni passati) se la persona non è nel sistema.",
+  "会員を選ぶか、過去の年度のみ、システムに登録されていない場合は非会員を追加してください。",
+  "회원을 선택하거나, (지난 연도만) 시스템에 없는 사람은 비회원으로 추가하세요.",
+  "Escolha um associado ou adicione um não associado (só anos anteriores) se a pessoa não estiver no sistema.",
+  "Elige un socio o agrega un no socio (solo años pasados) si la persona no está en el sistema."
+ ],
+ "Event Payment Links are managed by club and district admins. Members do not have access to this module.": [
+  "Les liens de paiement des événements sont gérés par les administrateurs du club et du district. Les membres n'ont pas accès à ce module.",
+  "Zahlungslinks für Veranstaltungen werden von Club- und Distrikt-Admins verwaltet. Mitglieder haben keinen Zugriff auf dieses Modul.",
+  "I link di pagamento degli eventi sono gestiti dagli amministratori di club e distretto. I soci non hanno accesso a questo modulo.",
+  "イベントの支払いリンクはクラブと地区の管理者が管理します。会員はこのモジュールを利用できません。",
+  "행사 결제 링크는 클럽 및 지구 관리자가 관리합니다. 회원은 이 모듈에 접근할 수 없습니다.",
+  "Os links de pagamento de eventos são geridos pelos administradores do clube e do distrito. Os associados não têm acesso a este módulo.",
+  "Los enlaces de pago de eventos los gestionan los administradores del club y del distrito. Los socios no tienen acceso a este módulo."
+ ],
+ "Tap to search by name, mobile, designation, district and more.": [
+  "Touchez pour rechercher par nom, mobile, fonction, district et plus encore.",
+  "Tippen, um nach Name, Mobilnummer, Funktion, Distrikt und mehr zu suchen.",
+  "Tocca per cercare per nome, cellulare, incarico, distretto e altro.",
+  "タップして、氏名、携帯電話、役職、地区などで検索できます。",
+  "눌러서 이름, 휴대폰, 직책, 지구 등으로 검색하세요.",
+  "Toque para pesquisar por nome, celular, cargo, distrito e mais.",
+  "Toca para buscar por nombre, móvil, cargo, distrito y más."
+ ],
+ "Fill in any one detail (or a few) and tap Search. You can search by just a name, a mobile number, or any of the fields below.": [
+  "Remplissez un ou plusieurs champs et touchez Rechercher. Vous pouvez rechercher uniquement par nom, numéro de mobile ou l'un des champs ci-dessous.",
+  "Eine oder mehrere Angaben ausfüllen und auf Suchen tippen. Sie können nur nach Name, Mobilnummer oder einem beliebigen der Felder unten suchen.",
+  "Compila uno o più dati e tocca Cerca. Puoi cercare solo per nome, cellulare o uno qualsiasi dei campi qui sotto.",
+  "1つ以上の項目を入力して「検索」をタップしてください。氏名、携帯電話番号、または下のいずれかの項目だけでも検索できます。",
+  "하나 이상의 정보를 입력하고 검색을 누르세요. 이름, 휴대폰 번호 또는 아래 항목 중 하나만으로도 검색할 수 있습니다.",
+  "Preencha um ou mais dados e toque em Pesquisar. Você pode pesquisar só por nome, celular ou qualquer um dos campos abaixo.",
+  "Rellena uno o varios datos y toca Buscar. Puedes buscar solo por nombre, móvil o cualquiera de los campos de abajo."
+ ],
+ "Club Dues are managed by club and district admins. Members do not have access to this module.": [
+  "Les cotisations du club sont gérées par les administrateurs du club et du district. Les membres n'ont pas accès à ce module.",
+  "Clubbeiträge werden von Club- und Distrikt-Admins verwaltet. Mitglieder haben keinen Zugriff auf dieses Modul.",
+  "Le quote del club sono gestite dagli amministratori di club e distretto. I soci non hanno accesso a questo modulo.",
+  "クラブ会費はクラブと地区の管理者が管理します。会員はこのモジュールを利用できません。",
+  "클럽 회비는 클럽 및 지구 관리자가 관리합니다. 회원은 이 모듈에 접근할 수 없습니다.",
+  "As quotas do clube são geridas pelos administradores do clube e do distrito. Os associados não têm acesso a este módulo.",
+  "Las cuotas del club las gestionan los administradores del club y del distrito. Los socios no tienen acceso a este módulo."
+ ],
+ "Upload, review and generate documents required for the Official Club Visit and Governor's Official Visit. Use the categories below or jump straight to the compliance report.": [
+  "Envoyez, vérifiez et générez les documents requis pour la visite officielle du club et la visite officielle du gouverneur. Utilisez les catégories ci-dessous ou passez directement au rapport de conformité.",
+  "Laden Sie die Dokumente für den offiziellen Clubbesuch und den offiziellen Governorbesuch hoch, prüfen und erstellen Sie sie. Verwenden Sie die Kategorien unten oder springen Sie direkt zum Bericht.",
+  "Carica, verifica e genera i documenti richiesti per la visita ufficiale al club e la visita ufficiale del governatore. Usa le categorie qui sotto o vai direttamente al rapporto di conformità.",
+  "公式クラブ訪問とガバナー公式訪問に必要な文書をアップロード、確認、作成できます。下のカテゴリーを使うか、コンプライアンス報告へ直接移動してください。",
+  "공식 클럽 방문과 총재 공식 방문에 필요한 문서를 업로드, 검토, 생성할 수 있습니다. 아래 카테고리를 사용하거나 준수 보고서로 바로 이동하세요.",
+  "Envie, revise e gere os documentos exigidos para a visita oficial ao clube e a visita oficial do governador. Use as categorias abaixo ou vá direto ao relatório de conformidade.",
+  "Sube, revisa y genera los documentos necesarios para la visita oficial al club y la visita oficial del gobernador. Usa las categorías abajo o ve directamente al informe de cumplimiento."
+ ],
+ "Pick a member, or add a non-member if the person isn’t in the system.": [
+  "Choisissez un membre, ou ajoutez un non-membre si la personne n'est pas dans le système.",
+  "Mitglied wählen oder Nichtmitglied hinzufügen, wenn die Person nicht im System ist.",
+  "Scegli un socio o aggiungi un non socio se la persona non è nel sistema.",
+  "会員を選ぶか、システムに登録されていない場合は非会員を追加してください。",
+  "회원을 선택하거나, 시스템에 없는 사람은 비회원으로 추가하세요.",
+  "Escolha um associado ou adicione um não associado se a pessoa não estiver no sistema.",
+  "Elige un socio o agrega un no socio si la persona no está en el sistema."
+ ],
+ "Showing summary only. Full details (documents, photos, attendance) could not be loaded.": [
+  "Synthèse uniquement. Les détails complets (documents, photos, présence) n'ont pas pu être chargés.",
+  "Nur Übersicht. Alle Details (Dokumente, Fotos, Präsenz) konnten nicht geladen werden.",
+  "Solo riepilogo. I dettagli completi (documenti, foto, presenze) non sono stati caricati.",
+  "概要のみ表示しています。詳細（文書、写真、出席）を読み込めませんでした。",
+  "요약만 표시합니다. 전체 상세(문서, 사진, 출석)를 불러올 수 없습니다.",
+  "Mostrando só o resumo. Os detalhes completos (documentos, fotos, frequência) não puderam ser carregados.",
+  "Solo se muestra el resumen. Los detalles completos (documentos, fotos, asistencia) no se pudieron cargar."
+ ],
+ "Couldn't load projects: the server returned an error. Please try again later or use \"Create New\".": [
+  "Impossible de charger les projets : le serveur a renvoyé une erreur. Réessayez plus tard ou utilisez « Créer ».",
+  "Projekte konnten nicht geladen werden: Der Server lieferte einen Fehler. Bitte später erneut versuchen oder „Neu erstellen“ verwenden.",
+  "Impossibile caricare i progetti: il server ha restituito un errore. Riprova più tardi o usa «Crea nuovo».",
+  "プロジェクトを読み込めませんでした。サーバーがエラーを返しました。後でもう一度試すか、「新規作成」を使ってください。",
+  "프로젝트를 불러올 수 없습니다. 서버가 오류를 반환했습니다. 나중에 다시 시도하거나 '새로 만들기'를 사용하세요.",
+  "Não foi possível carregar os projetos: o servidor retornou um erro. Tente mais tarde ou use \"Criar novo\".",
+  "No se pudieron cargar los proyectos: el servidor devolvió un error. Inténtalo más tarde o usa «Crear nuevo»."
+ ],
+ "Your club emblem. Also used on the club profile page. Square (1:1).": [
+  "L'emblème de votre club. Également utilisé sur la page de profil du club. Carré (1:1).",
+  "Ihr Clubemblem. Wird auch auf der Profilseite des Clubs verwendet. Quadratisch (1:1).",
+  "L'emblema del club. Usato anche nella pagina del profilo del club. Quadrata (1:1).",
+  "クラブの紋章。クラブのプロフィールページにも使われます。正方形（1:1）。",
+  "클럽 엠블럼. 클럽 프로필 페이지에도 사용됩니다. 정사각형(1:1).",
+  "O emblema do clube. Também usado na página de perfil do clube. Quadrada (1:1).",
+  "El emblema de tu club. También se usa en la página de perfil del club. Cuadrada (1:1)."
+ ],
+ "Horizontal Rotary logo shown in the website header. Wide (3.75:1).": [
+  "Logo Rotary horizontal affiché dans l'en-tête du site. Large (3,75:1).",
+  "Horizontales Rotary-Logo im Kopf der Website. Breit (3,75:1).",
+  "Logo Rotary orizzontale mostrato nell'intestazione del sito. Largo (3,75:1).",
+  "ウェブサイトのヘッダーに表示される横型ロータリーロゴ。横長（3.75:1）。",
+  "웹사이트 머리글에 표시되는 가로형 로타리 로고. 와이드(3.75:1).",
+  "Logo Rotary horizontal exibido no cabeçalho do site. Largo (3,75:1).",
+  "Logo Rotary horizontal que se muestra en el encabezado del sitio. Ancho (3,75:1)."
+ ],
+ "You’ll complete the payment on a secure checkout page. Setup runs in the background afterwards: we’ll email you when your website is live.": [
+  "Vous finaliserez le paiement sur une page sécurisée. La configuration se poursuit en arrière-plan : nous vous écrirons quand votre site sera en ligne.",
+  "Sie schließen die Zahlung auf einer sicheren Bezahlseite ab. Die Einrichtung läuft danach im Hintergrund: Wir senden Ihnen eine E-Mail, wenn Ihre Website online ist.",
+  "Completerai il pagamento in una pagina di checkout sicura. La configurazione prosegue in background: ti scriveremo quando il tuo sito è online.",
+  "支払いは安全な決済ページで完了します。設定はその後バックグラウンドで実行され、ウェブサイトが公開されたらメールでお知らせします。",
+  "결제는 안전한 결제 페이지에서 완료합니다. 설정은 이후 백그라운드에서 진행되며, 웹사이트가 공개되면 이메일로 알려 드립니다.",
+  "Você concluirá o pagamento em uma página segura. A configuração continua em segundo plano: enviaremos um e-mail quando seu site estiver no ar.",
+  "Completarás el pago en una página de pago segura. La configuración sigue en segundo plano: te escribiremos cuando tu sitio web esté publicado."
+ ],
+ "Your club website is being set up in the background: this can take a few minutes. You can safely leave this page: we’ll show a notification the moment it’s live and email you too.": [
+  "Le site de votre club est en cours de création en arrière-plan : cela peut prendre quelques minutes. Vous pouvez quitter cette page : nous afficherons une notification dès la mise en ligne et vous enverrons aussi un e-mail.",
+  "Ihre Club-Website wird im Hintergrund eingerichtet: Das kann einige Minuten dauern. Sie können diese Seite verlassen: Wir zeigen eine Benachrichtigung, sobald sie online ist, und senden Ihnen auch eine E-Mail.",
+  "Il sito del club è in configurazione in background: può richiedere qualche minuto. Puoi lasciare questa pagina: mostreremo una notifica appena sarà online e ti invieremo anche un'email.",
+  "クラブのウェブサイトをバックグラウンドで設定中です。完了まで数分かかることがあります。このページを離れても大丈夫です。公開と同時に通知し、メールでもお知らせします。",
+  "클럽 웹사이트를 백그라운드에서 설정 중입니다. 완료까지 몇 분 정도 걸릴 수 있습니다. 이 페이지를 떠나도 됩니다. 공개되는 즉시 알림을 표시하고 이메일도 보내 드립니다.",
+  "O site do seu clube está sendo configurado em segundo plano: isso pode levar alguns minutos. Você pode sair desta página: mostraremos uma notificação assim que estiver no ar e também enviaremos um e-mail.",
+  "El sitio web de tu club se está configurando en segundo plano: puede tardar unos minutos. Puedes salir de esta página: mostraremos una notificación en cuanto esté publicado y también te enviaremos un correo."
+ ],
+ "Pick an open 30-minute slot and our team will host a live Zoom walkthrough of your club website tools.": [
+  "Choisissez un créneau libre de 30 minutes et notre équipe animera une présentation Zoom en direct des outils du site de votre club.",
+  "Wählen Sie einen freien 30-Minuten-Termin, unser Team zeigt Ihnen dann live per Zoom die Werkzeuge Ihrer Club-Website.",
+  "Scegli uno slot libero di 30 minuti e il nostro team terrà una presentazione dal vivo su Zoom degli strumenti del sito del club.",
+  "空いている30分枠を選ぶと、チームがクラブのウェブサイトツールをZoomでライブ説明します。",
+  "비어 있는 30분 시간대를 선택하면 저희 팀이 클럽 웹사이트 도구를 Zoom으로 실시간 안내합니다.",
+  "Escolha um horário livre de 30 minutos e nossa equipe fará uma apresentação ao vivo no Zoom das ferramentas do site do clube.",
+  "Elige un horario libre de 30 minutos y nuestro equipo hará un recorrido en vivo por Zoom de las herramientas del sitio web de tu club."
+ ],
+ "Your club website status, public link and management tools will appear here soon.": [
+  "Statut du site de votre club, lien public et outils de gestion apparaîtront bientôt ici.",
+  "Status Ihrer Club-Website, öffentlicher Link und Verwaltungswerkzeuge erscheinen bald hier.",
+  "Stato del sito del club, link pubblico e strumenti di gestione appariranno presto qui.",
+  "クラブのウェブサイトの状態、公開リンク、管理ツールはまもなくここに表示されます。",
+  "클럽 웹사이트 상태, 공개 링크 및 관리 도구는 곧 여기에 표시됩니다.",
+  "Status do site do clube, link público e ferramentas de gestão aparecerão aqui em breve.",
+  "Estado del sitio web del club, enlace público y herramientas de gestión aparecerán aquí pronto."
+ ],
+ "This club has not set up its website yet. Please contact support if you need more information.": [
+  "Ce club n'a pas encore créé son site. Contactez l'assistance si vous avez besoin d'informations.",
+  "Dieser Club hat seine Website noch nicht eingerichtet. Bitte wenden Sie sich an den Support, wenn Sie weitere Informationen brauchen.",
+  "Questo club non ha ancora configurato il sito. Contatta il supporto se ti servono altre informazioni.",
+  "このクラブはまだウェブサイトを設定していません。詳しくはサポートまでお問い合わせください。",
+  "이 클럽은 아직 웹사이트를 설정하지 않았습니다. 추가 정보가 필요하면 지원팀에 문의하세요.",
+  "Este clube ainda não configurou o site. Entre em contato com o suporte se precisar de mais informações.",
+  "Este club aún no ha configurado su sitio web. Contacta con soporte si necesitas más información."
+ ],
+ "Track which clubs have paid, approve offline payments, and edit the branding & email content for your district's dues.": [
+  "Suivez les clubs qui ont payé, validez les paiements hors ligne et modifiez l'image et le contenu des e-mails des cotisations de votre district.",
+  "Sehen Sie, welche Clubs bezahlt haben, geben Sie Offline-Zahlungen frei und bearbeiten Sie das Branding und die E-Mail-Inhalte für die Beiträge Ihres Distrikts.",
+  "Controlla quali club hanno pagato, approva i pagamenti offline e modifica il marchio e i contenuti email per le quote del distretto.",
+  "支払済みのクラブの確認、オフライン支払いの承認、地区会費のブランドとメール内容の編集ができます。",
+  "납부한 클럽 확인, 오프라인 결제 승인, 지구 회비의 브랜딩과 이메일 내용 편집을 할 수 있습니다.",
+  "Acompanhe os clubes que pagaram, aprove pagamentos offline e edite a identidade visual e o conteúdo dos e-mails das quotas do distrito.",
+  "Controla qué clubes han pagado, aprueba pagos fuera de línea y edita la imagen y el contenido de los correos de las cuotas de tu distrito."
+ ],
+ "Tap a chip to insert a value (e.g. club name, amount) into your text: it's filled in when the email is sent. If you don't add an amount/members value, a summary is appended for you.": [
+  "Touchez une étiquette pour insérer une valeur (ex. nom du club, montant) dans votre texte : elle est remplie à l'envoi de l'e-mail. Si vous n'ajoutez pas un montant ou un nombre de membres, un résumé est ajouté automatiquement.",
+  "Tippen Sie auf einen Baustein, um einen Wert (z. B. Clubname, Betrag) in Ihren Text einzufügen: Er wird beim Senden der E-Mail ausgefüllt. Wenn Sie keinen Betrag und keine Mitgliederzahl einfügen, wird automatisch eine Zusammenfassung angehängt.",
+  "Tocca un'etichetta per inserire un valore (es. nome del club, importo) nel testo: viene compilato all'invio dell'email. Se non aggiungi un importo o numero di soci, viene aggiunto un riepilogo.",
+  "チップをタップすると、値（クラブ名、金額など）を本文に挿入できます。値はメール送信時に入ります。金額／会員数を入れない場合は、概要が自動で追加されます。",
+  "칩을 눌러 값(예: 클럽 이름, 금액)을 본문에 넣을 수 있습니다. 값은 이메일을 보낼 때 채워집니다. 금액/회원 값을 넣지 않으면 요약이 자동으로 추가됩니다.",
+  "Toque em uma etiqueta para inserir um valor (ex.: nome do clube, valor) no seu texto: é preenchido quando o e-mail é enviado. Se você não incluir um valor ou número de associados, um resumo é adicionado para você.",
+  "Toca una etiqueta para insertar un valor (p. ej., nombre del club, monto) en tu texto: se rellena al enviar el correo. Si no agregas un monto o número de socios, se agrega un resumen por ti."
+ ],
+ "Targets are entered in USD. “Raised so far” is this year’s TRF contributions.": [
+  "Les objectifs sont saisis en USD. « Collecté à ce jour » correspond à aux contributions à la Fondation de l'année.",
+  "Ziele werden in USD erfasst. „Bisher gesammelt“ sind die TRF-Beiträge des Jahres.",
+  "Gli obiettivi sono in USD. «Raccolto finora» indica i contributi TRF dell'anno.",
+  "目標はUSDで入力します。「現在までの募金額」は今年度のTRF寄付です。",
+  "목표는 USD로 입력합니다. '현재까지 모금액'은 올해 TRF 기부입니다.",
+  "As metas são em USD. \"Arrecadado até agora\" são as contribuições à TRF do ano.",
+  "Las metas se introducen en USD. «Recaudado hasta ahora» son las contribuciones a LFR del año."
+ ],
+ "Goals are stored one row per (district, year). Switching the year loads that RY’s saved values, if any.": [
+  "Les objectifs sont enregistrés par district et par année. Changer d'année charge les valeurs enregistrées de cette année rotarienne, s'il y en a.",
+  "Ziele werden je Distrikt und Jahr gespeichert. Beim Wechsel des Jahres werden die gespeicherten Werte dieses Rotary-Jahres geladen, falls vorhanden.",
+  "Gli obiettivi sono salvati per distretto e anno. Cambiando anno si caricano i valori salvati di quell'anno rotariano, se presenti.",
+  "目標は地区・年度ごとに保存されます。年度を切り替えると、その年度の保存値（あれば）を読み込みます。",
+  "목표는 지구·연도별로 저장됩니다. 연도를 바꾸면 해당 로타리 연도의 저장 값(있는 경우)을 불러옵니다.",
+  "As metas são salvas por distrito e ano. Ao trocar de ano, os valores salvos desse ano rotário são carregados, se houver.",
+  "Las metas se guardan por distrito y año. Al cambiar de año se cargan los valores guardados de ese año rotario, si los hay."
+ ],
+ "Some identity fields (Rotary ID, gender, blood group, honorary/youth status, joining date, secondary mobile, language and visibility) are locked here. You can still update this member's mobile, email and country.": [
+  "Certains champs d'identité (ID Rotary, genre, groupe sanguin, honoraire/jeune statut, date d'adhésion, mobile secondaire, langue et visibilité) sont verrouillés ici. Vous pouvez toujours modifier le mobile, l'e-mail et le pays de ce membre.",
+  "Einige Identitätsfelder (Rotary-ID, Geschlecht, Blutgruppe, Ehren-/Jugendstatus, Eintrittsdatum, Zweitnummer, Sprache und Sichtbarkeit) sind hier gesperrt. Mobilnummer, E-Mail und Land dieses Mitglieds können Sie weiterhin ändern.",
+  "Alcuni campi anagrafici (ID Rotary, genere, gruppo sanguigno, onorario/giovane stato, data di ingresso, cellulare secondario, lingua e visibilità) sono bloccati qui. Puoi comunque aggiornare cellulare, email e paese del socio.",
+  "一部の本人情報（ロータリーID、性別、血液型、名誉／青少年状態、入会日、予備の携帯電話、言語、公開設定）はここでは変更できません。携帯電話、メール、国は更新できます。",
+  "일부 신원 항목(로타리 ID, 성별, 혈액형, 명예/청소년 상태, 가입일, 보조 휴대폰, 언어 및 공개 설정)은 여기서 잠겨 있습니다. 이 회원의 휴대폰, 이메일, 국가는 계속 변경할 수 있습니다.",
+  "Alguns campos de identidade (ID Rotary, gênero, tipo sanguíneo, honorário/jovem status, data de admissão, celular secundário, idioma e visibilidade) estão bloqueados aqui. Você ainda pode atualizar celular, e-mail e país deste associado.",
+  "Algunos campos de identidad (ID Rotary, género, grupo sanguíneo, honorario/joven condición, fecha de ingreso, móvil secundario, idioma y visibilidad) están bloqueados aquí. Aún puedes actualizar el móvil, el correo y el país de este socio."
+ ],
+ "Mobile number, email, Rotary ID and honorary status are managed by your club admin and can't be changed here. Contact your club admin to update them.": [
+  "Le numéro de mobile, l'e-mail, l'ID Rotary et le statut honoraire sont gérés par l'administrateur du club et ne peuvent pas être modifiés ici. Contactez-le pour les mettre à jour.",
+  "Mobilnummer, E-Mail, Rotary-ID und Ehrenstatus werden von Ihrem Club-Admin verwaltet und können hier nicht geändert werden. Wenden Sie sich zur Änderung an den Club-Admin.",
+  "Cellulare, email, ID Rotary e status onorario sono gestiti dall'amministratore del club e non si possono modificare qui. Contattalo per aggiornarli.",
+  "携帯電話番号、メール、ロータリーID、名誉会員の状態はクラブ管理者が管理しており、ここでは変更できません。更新はクラブ管理者に依頼してください。",
+  "휴대폰 번호, 이메일, 로타리 ID, 명예 회원 여부는 클럽 관리자가 관리하며 여기서 변경할 수 없습니다. 변경하려면 클럽 관리자에게 문의하세요.",
+  "Celular, e-mail, ID Rotary e status honorário são geridos pelo administrador do clube e não podem ser alterados aqui. Fale com ele para atualizá-los.",
+  "El móvil, el correo, el ID Rotary y la condición honoraria los gestiona el administrador del club y no se pueden cambiar aquí. Contacta con él para actualizarlos."
+ ],
+ "Add your clubs' meetings and events to your phone's calendar app. Anyone with the link can see them, so keep it private.": [
+  "Ajoutez les réunions et événements de vos clubs à l'agenda de votre téléphone. Toute personne disposant du lien peut les voir : ne le partagez pas.",
+  "Meetings und Veranstaltungen Ihrer Clubs zum Kalender des Telefons hinzufügen. Jeder mit dem Link kann sie sehen, also den Link nicht weitergeben.",
+  "Aggiungi riunioni ed eventi dei tuoi club al calendario del telefono. Chiunque abbia il link può vederli, quindi tienilo riservato.",
+  "クラブの例会とイベントをスマートフォンのカレンダーに追加します。リンクを知っている人は誰でも閲覧できるため、共有しないでください。",
+  "클럽의 모임과 행사를 휴대폰 캘린더에 추가합니다. 링크가 있으면 누구나 볼 수 있으니 공유하지 마세요.",
+  "Adicione as reuniões e eventos dos seus clubes à agenda do celular. Qualquer pessoa com o link pode vê-los, então mantenha-o privado.",
+  "Agrega las reuniones y eventos de tus clubes al calendario del teléfono. Cualquiera con el enlace puede verlos, así que mantenlo en privado."
+ ],
+ "These apply only when your profile's personal details are visible. Turning a toggle off hides that detail from the chosen audience.": [
+  "Ces options s'appliquent uniquement si vos informations personnelles sont visibles. Désactiver une option masque cette information au public choisi.",
+  "Gilt nur, wenn die persönlichen Daten Ihres Profils sichtbar sind. Wenn Sie einen Schalter ausschalten, wird diese Angabe für die gewählte Gruppe ausgeblendet.",
+  "Valgono solo se i dati personali del profilo sono visibili. Disattivare un interruttore nasconde quel dato al pubblico scelto.",
+  "これはプロフィールの個人情報が表示されている場合にのみ適用されます。スイッチをオフにすると、その情報は選んだ相手に表示されません。",
+  "프로필의 개인 정보가 표시될 때만 적용됩니다. 스위치를 끄면 선택한 대상에게 해당 정보가 숨겨집니다.",
+  "Isto só vale quando os dados pessoais do perfil estão visíveis. Desligar uma opção oculta esse dado do público escolhido.",
+  "Solo se aplican cuando los datos personales de tu perfil son visibles. Desactivar una opción oculta ese dato al público elegido."
+ ],
+ "This section is temporarily unavailable while we make improvements. Please check back soon.": [
+  "Cette section est temporairement indisponible pendant que nous l'améliorons. Revenez bientôt.",
+  "Dieser Bereich ist wegen Verbesserungen vorübergehend nicht verfügbar. Bitte schauen Sie bald wieder vorbei.",
+  "Questa sezione è temporaneamente non disponibile per miglioramenti. Ricontrolla presto.",
+  "改善作業のため、このセクションは一時的に利用できません。しばらくしてから再度ご確認ください。",
+  "개선 작업 중이라 이 섹션을 일시적으로 사용할 수 없습니다. 곧 다시 확인해 주세요.",
+  "Esta seção está temporariamente indisponível enquanto fazemos melhorias. Volte em breve.",
+  "Esta sección no está disponible temporalmente mientras hacemos mejoras. Vuelve pronto."
+ ]
+}

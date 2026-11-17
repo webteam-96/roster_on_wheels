@@ -1,0 +1,98 @@
+[
+ {
+  "en": "Lives impacted",
+  "lang": "ja",
+  "to": "恩恵を受けた人数",
+  "why": "ja batch 2"
+ },
+ {
+  "en": "District Awards (AG Wise)",
+  "lang": "ja",
+  "to": "地区表彰（ガバナー補佐別）",
+  "why": "ja batch 2"
+ },
+ {
+  "en": "District Awards (Club Wise)",
+  "lang": "ja",
+  "to": "地区表彰（クラブ別）",
+  "why": "ja batch 2"
+ },
+ {
+  "en": "District Awards Extended (AG Wise)",
+  "lang": "ja",
+  "to": "地区表彰 詳細（ガバナー補佐別）",
+  "why": "ja batch 2"
+ },
+ {
+  "en": "District Awards Extended (Club Wise)",
+  "lang": "ja",
+  "to": "地区表彰 詳細（クラブ別）",
+  "why": "ja batch 2"
+ },
+ {
+  "en": "Group District Committee",
+  "lang": "ja",
+  "to": "地区委員会グループ",
+  "why": "ja batch 2"
+ },
+ {
+  "en": "District Citation Report",
+  "lang": "ja",
+  "to": "地区表彰状の報告",
+  "why": "ja batch 2"
+ },
+ {
+  "en": "District Citation Review",
+  "lang": "ja",
+  "to": "地区表彰状の審査",
+  "why": "ja batch 2"
+ },
+ {
+  "en": "Man Hours *",
+  "lang": "ja",
+  "to": "奉仕時間 *",
+  "why": "ja batch 2"
+ },
+ {
+  "en": "Man Hours is required",
+  "lang": "ja",
+  "to": "奉仕時間は必須です",
+  "why": "ja batch 2"
+ },
+ {
+  "en": "Total Man Hours",
+  "lang": "ja",
+  "to": "奉仕時間の合計",
+  "why": "ja batch 2"
+ },
+ {
+  "en": "District Delegates",
+  "lang": "ja",
+  "to": "地区代議員",
+  "why": "ja batch 2"
+ },
+ {
+  "en": "Year is not stored for birthdays & anniversaries.",
+  "lang": "ja",
+  "to": "誕生日と結婚記念日の年は保存されません。",
+  "why": "ja batch 2"
+ },
+ {
+  "en": "Enable Anniversary Email",
+  "lang": "ja",
+  "to": "結婚記念日メールを有効にする",
+  "why": "ja batch 2"
+ },
+ {
+  "en": "Enable Anniversary Notifications",
+  "lang": "ja",
+  "to": "結婚記念日の通知を有効にする",
+  "why": "ja batch 2"
+ },
+ {
+  "en": "Club Citation",
+  "lang": "ja",
+  "to": "クラブ表彰状",
+  "why": "ja batch 2"
+ }
+]

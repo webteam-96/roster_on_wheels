@@ -1,0 +1,57 @@
+{
+ "_columns": [
+  "fr",
+  "de",
+  "it",
+  "ja",
+  "ko",
+  "pt",
+  "es"
+ ],
+ "_note": "Whole sentences the app joins from pieces that are not in the glossary, translated whole (2026-11-17).",
+ "Auto-filled from the club's member records: last-month count (as at the 1st), plus joins and terminations dated within this month. Adjust if needed; the current count auto-calculates below.": [
+  "Rempli automatiquement à partir des membres du club : effectif du mois précédent (au 1er), plus les admissions et les départs datés de ce mois. Modifiez si besoin ; l'effectif actuel se calcule automatiquement ci-dessous.",
+  "Automatisch aus den Mitgliederdaten des Clubs ausgefüllt: Mitgliederzahl des Vormonats (zum 1.), plus Eintritte und Austritte in diesem Monat. Bei Bedarf anpassen; die aktuelle Zahl wird unten automatisch berechnet.",
+  "Compilato in automatico dai dati dei soci del club: numero del mese scorso (al 1°), più ingressi e cessazioni datati in questo mese. Modifica se serve; il numero attuale si calcola automaticamente qui sotto.",
+  "クラブの会員記録から自動入力：先月の人数（1日時点）に、今月の入会と退会を加えたものです。必要に応じて調整してください。現在の人数は下で自動計算されます。",
+  "클럽 회원 기록에서 자동으로 입력됩니다: 지난달 인원(1일 기준)에 이번 달 입회 및 퇴회를 더한 값입니다. 필요하면 조정하세요. 현재 인원은 아래에서 자동으로 계산됩니다.",
+  "Preenchido automaticamente pelos registros de associados do clube: total do mês passado (no dia 1º), mais admissões e desligamentos datados neste mês. Ajuste se necessário; o total atual é calculado automaticamente abaixo.",
+  "Completado automáticamente con los registros de socios del club: total del mes pasado (al día 1), más altas y bajas con fecha de este mes. Ajusta si hace falta; el total actual se calcula automáticamente abajo."
+ ],
+ "Finding clubs near your location is coming soon. For now, use \"Any Club\" to search by name, city, district and more.": [
+  "La recherche de clubs près de vous arrive bientôt. En attendant, utilisez « N'importe quel club » pour chercher par nom, ville, district et plus.",
+  "Die Clubsuche in Ihrer Nähe kommt bald. Nutzen Sie vorerst „Beliebiger Club“, um nach Name, Stadt, Distrikt und mehr zu suchen.",
+  "La ricerca dei club vicini arriverà presto. Per ora usa «Qualsiasi club» per cercare per nome, città, distretto e altro.",
+  "近くのクラブ検索は近日公開です。現在は「すべてのクラブ」で、名前、都市、地区などから検索してください。",
+  "내 주변 클럽 찾기는 곧 제공됩니다. 지금은 '모든 클럽'에서 이름, 도시, 지구 등으로 검색하세요.",
+  "A busca de clubes perto de você chega em breve. Por enquanto, use \"Qualquer clube\" para pesquisar por nome, cidade, distrito e mais.",
+  "La búsqueda de clubes cerca de ti llegará pronto. Por ahora, usa «Cualquier club» para buscar por nombre, ciudad, distrito y más."
+ ],
+ "Target number of projects per avenue for the year. “Done” is what clubs have reported so far.": [
+  "Nombre de projets visé par domaine d'action pour l'année. « Terminé » correspond à ce que les clubs ont déclaré jusqu'ici.",
+  "Angestrebte Projektzahl je Dienstbereich für das Jahr. „Fertig“ ist das, was die Clubs bisher gemeldet haben.",
+  "Numero di progetti obiettivo per via d'azione nell'anno. «Fatto» è quanto i club hanno comunicato finora.",
+  "奉仕部門ごとの年間プロジェクト目標数。「完了」は各クラブがこれまでに報告した数です。",
+  "봉사 부문별 연간 목표 프로젝트 수. '완료'는 지금까지 클럽이 보고한 수입니다.",
+  "Número de projetos pretendido por avenida no ano. \"Concluído\" é o que os clubes informaram até agora.",
+  "Número de proyectos objetivo por avenida en el año. «Listo» es lo que los clubes han informado hasta ahora."
+ ],
+ "Your roles were recently updated. Please log in again so your access is up to date.": [
+  "Vos rôles ont été modifiés récemment. Reconnectez-vous pour mettre à jour vos accès.",
+  "Ihre Rollen wurden kürzlich geändert. Bitte erneut anmelden, damit Ihre Zugriffsrechte aktuell sind.",
+  "I tuoi ruoli sono stati aggiornati di recente. Accedi di nuovo per aggiornare i tuoi accessi.",
+  "役割が更新されました。アクセス権を最新にするため、再度ログインしてください。",
+  "역할이 최근에 변경되었습니다. 접근 권한을 최신 상태로 하려면 다시 로그인하세요.",
+  "Suas funções foram atualizadas recentemente. Entre novamente para atualizar seus acessos.",
+  "Tus roles se actualizaron hace poco. Vuelve a iniciar sesión para actualizar tus accesos."
+ ],
+ "The app opens for members once the club has a Club subscription. A club executive can subscribe on the ROW website. Nothing has been deleted.": [
+  "L'application s'ouvre aux membres dès que le club dispose d'un abonnement Club. Un dirigeant du club peut s'abonner sur le site ROW. Rien n'a été supprimé.",
+  "Die App steht den Mitgliedern offen, sobald der Club ein Club-Abonnement hat. Ein Vorstandsmitglied des Clubs kann es auf der ROW-Website abschließen. Es wurde nichts gelöscht.",
+  "L'app si apre ai soci quando il club ha un abbonamento Club. Un dirigente del club può abbonarsi sul sito ROW. Non è stato eliminato nulla.",
+  "クラブがクラブ向けプランを契約すると、会員はアプリを利用できます。クラブ役員はROWのウェブサイトで契約できます。データは削除されていません。",
+  "클럽이 클럽 구독을 하면 회원이 앱을 사용할 수 있습니다. 클럽 임원은 ROW 웹사이트에서 구독할 수 있습니다. 삭제된 내용은 없습니다.",
+  "O app fica disponível para os associados quando o clube tiver uma assinatura Clube. Um dirigente do clube pode assinar no site do ROW. Nada foi excluído.",
+  "La app se abre para los socios cuando el club tiene una suscripción Club. Un directivo del club puede suscribirse en el sitio web de ROW. No se ha eliminado nada."
+ ]
+}

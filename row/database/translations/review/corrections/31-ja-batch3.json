@@ -1,0 +1,32 @@
+[
+ {
+  "en": "District Awards Extended (AG Wise)",
+  "lang": "ja",
+  "to": "地区表彰詳細（ガバナー補佐別）",
+  "why": "ja: stray space between CJK characters"
+ },
+ {
+  "en": "District Awards Extended (Club Wise)",
+  "lang": "ja",
+  "to": "地区表彰詳細（クラブ別）",
+  "why": "ja: stray space between CJK characters"
+ },
+ {
+  "en": "Cache refresh ~5 min",
+  "lang": "ja",
+  "to": "キャッシュ更新約5分",
+  "why": "ja: stray space between CJK characters"
+ },
+ {
+  "en": "Year rule OFF",
+  "lang": "ja",
+  "to": "年度ルールオフ",
+  "why": "ja: stray space between CJK characters"
+ },
+ {
+  "en": "Near Me",
+  "lang": "ja",
+  "to": "近くを探す",
+  "why": "ja: stray space between CJK characters"
+ }
+]

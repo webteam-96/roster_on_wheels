@@ -102,7 +102,7 @@
 "Son": ["Fils", "Sohn", "Figlio", "息子", "아들", "Filho", "Hijo"],
 "Son-in-law": ["Gendre", "Schwiegersohn", "Genero", "義理の息子", "사위", "Genro", "Yerno"],
 "Soon": ["Bientôt", "Bald", "Presto", "近日", "곧", "Em breve", "Pronto"],
-"Speakers": ["Intervenants", "Redner", "Relatori", "講演者", "연사", "Palestrantes", "Oradores"],
+"Speakers": ["Intervenants", "Redner", "Relatori", "卓話者", "연사", "Palestrantes", "Oradores"],
 "Specific Clubs": ["Clubs spécifiques", "Bestimmte Clubs", "Club specifici", "特定のクラブ", "특정 클럽", "Clubes específicos", "Clubes específicos"],
 "Specify": ["Préciser", "Angeben", "Specifica", "具体的に入力", "직접 입력", "Especificar", "Especificar"],
 "Spouse": ["Conjoint", "Ehepartner", "Coniuge", "配偶者", "배우자", "Cônjuge", "Cónyuge"],

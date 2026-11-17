@@ -1,0 +1,386 @@
+[
+ {
+  "en": "100% of AG total",
+  "lang": "ja",
+  "to": "ガバナー補佐合計の100%",
+  "why": "ja batch 1"
+ },
+ {
+  "en": "AG Club Name",
+  "lang": "ja",
+  "to": "ガバナー補佐クラブ名",
+  "why": "ja batch 1"
+ },
+ {
+  "en": "AG Email ID",
+  "lang": "ja",
+  "to": "ガバナー補佐のメールアドレス",
+  "why": "ja batch 1"
+ },
+ {
+  "en": "AG GROUP COMBINED TOTALS",
+  "lang": "ja",
+  "to": "ガバナー補佐グループ合計",
+  "why": "ja batch 1"
+ },
+ {
+  "en": "AG GROUP IMPACT SUMMARY",
+  "lang": "ja",
+  "to": "ガバナー補佐グループ成果概要",
+  "why": "ja batch 1"
+ },
+ {
+  "en": "AG Mobile",
+  "lang": "ja",
+  "to": "ガバナー補佐の携帯電話",
+  "why": "ja batch 1"
+ },
+ {
+  "en": "AG Name",
+  "lang": "ja",
+  "to": "ガバナー補佐氏名",
+  "why": "ja batch 1"
+ },
+ {
+  "en": "AG Total",
+  "lang": "ja",
+  "to": "ガバナー補佐合計",
+  "why": "ja batch 1"
+ },
+ {
+  "en": "AG Total (All Clubs)",
+  "lang": "ja",
+  "to": "ガバナー補佐合計（全クラブ）",
+  "why": "ja batch 1"
+ },
+ {
+  "en": "AG access required",
+  "lang": "ja",
+  "to": "ガバナー補佐権限が必要です",
+  "why": "ja batch 1"
+ },
+ {
+  "en": "All categories already have a manual criterion. Add a new Category to create another.",
+  "lang": "ja",
+  "to": "すべてのカテゴリーに手動基準があります。別の基準を作るには新しいカテゴリーを追加してください。",
+  "why": "ja batch 1"
+ },
+ {
+  "en": "Attendance (AG wise)",
+  "lang": "ja",
+  "to": "出席（ガバナー補佐別）",
+  "why": "ja batch 1"
+ },
+ {
+  "en": "Birthday & anniversary greetings are paused",
+  "lang": "ja",
+  "to": "誕生日・結婚記念日のお祝いは一時停止中です",
+  "why": "ja batch 1"
+ },
+ {
+  "en": "Category is required",
+  "lang": "ja",
+  "to": "カテゴリーは必須です",
+  "why": "ja batch 1"
+ },
+ {
+  "en": "Category is required.",
+  "lang": "ja",
+  "to": "カテゴリーは必須です。",
+  "why": "ja batch 1"
+ },
+ {
+  "en": "Club Monthly Report AG wise (Project Details)",
+  "lang": "ja",
+  "to": "ガバナー補佐別クラブ月次報告（プロジェクト詳細）",
+  "why": "ja batch 1"
+ },
+ {
+  "en": "Club Rotary Id",
+  "lang": "ja",
+  "to": "クラブのロータリーID",
+  "why": "ja batch 1"
+ },
+ {
+  "en": "Could not generate any club report for this AG.",
+  "lang": "ja",
+  "to": "このガバナー補佐のクラブ報告を作成できませんでした。",
+  "why": "ja batch 1"
+ },
+ {
+  "en": "Delete Past President",
+  "lang": "ja",
+  "to": "パスト会長を削除",
+  "why": "ja batch 1"
+ },
+ {
+  "en": "District-level targets for the year, by category",
+  "lang": "ja",
+  "to": "地区レベルの年間目標（カテゴリー別）",
+  "why": "ja batch 1"
+ },
+ {
+  "en": "Edit Past President",
+  "lang": "ja",
+  "to": "パスト会長を編集",
+  "why": "ja batch 1"
+ },
+ {
+  "en": "Governor's Official Visit (AG Wise)",
+  "lang": "ja",
+  "to": "ガバナー公式訪問（ガバナー補佐別）",
+  "why": "ja batch 1"
+ },
+ {
+  "en": "Members (AG wise)",
+  "lang": "ja",
+  "to": "会員（ガバナー補佐別）",
+  "why": "ja batch 1"
+ },
+ {
+  "en": "Mobile number, email, Rotary ID and honorary status are managed by your ",
+  "lang": "ja",
+  "to": "携帯電話番号、メール、ロータリーID、名誉会員の状態は",
+  "why": "ja batch 1"
+ },
+ {
+  "en": "Month wise & Till date · all categories",
+  "lang": "ja",
+  "to": "月別・累計 · 全カテゴリー",
+  "why": "ja batch 1"
+ },
+ {
+  "en": "No OCV/GOV categories are configured for this club.",
+  "lang": "ja",
+  "to": "このクラブにはOCV/GOVカテゴリーが設定されていません。",
+  "why": "ja batch 1"
+ },
+ {
+  "en": "No categories added yet.",
+  "lang": "ja",
+  "to": "カテゴリーはまだ追加されていません。",
+  "why": "ja batch 1"
+ },
+ {
+  "en": "No categories configured",
+  "lang": "ja",
+  "to": "カテゴリーは設定されていません",
+  "why": "ja batch 1"
+ },
+ {
+  "en": "No categories exist yet. Add one from the Categories tab first, then create a manual criterion.",
+  "lang": "ja",
+  "to": "カテゴリーがまだありません。先に「カテゴリー」タブで追加してから、手動基準を作成してください。",
+  "why": "ja batch 1"
+ },
+ {
+  "en": "No categories yet",
+  "lang": "ja",
+  "to": "カテゴリーはまだありません",
+  "why": "ja batch 1"
+ },
+ {
+  "en": "No club data available for this AG group.",
+  "lang": "ja",
+  "to": "このガバナー補佐グループのクラブデータはありません。",
+  "why": "ja batch 1"
+ },
+ {
+  "en": "No clubs found under this AG for the year.",
+  "lang": "ja",
+  "to": "今年度、このガバナー補佐の担当クラブは見つかりません。",
+  "why": "ja batch 1"
+ },
+ {
+  "en": "No current Rotary year or goal categories.",
+  "lang": "ja",
+  "to": "現ロータリー年度または目標カテゴリーがありません。",
+  "why": "ja batch 1"
+ },
+ {
+  "en": "No goal categories are available.",
+  "lang": "ja",
+  "to": "利用できる目標カテゴリーはありません。",
+  "why": "ja batch 1"
+ },
+ {
+  "en": "Only AG (Assistant Governor) can access this page.",
+  "lang": "ja",
+  "to": "このページはガバナー補佐のみ利用できます。",
+  "why": "ja batch 1"
+ },
+ {
+  "en": "Please select a Category. If the list is empty, add a Category first from the Categories tab.",
+  "lang": "ja",
+  "to": "カテゴリーを選択してください。一覧が空の場合は、先に「カテゴリー」タブで追加してください。",
+  "why": "ja batch 1"
+ },
+ {
+  "en": "Please select an AG to download",
+  "lang": "ja",
+  "to": "ダウンロードするガバナー補佐を選択してください",
+  "why": "ja batch 1"
+ },
+ {
+  "en": "Project activity, community impact, and monthly trends across your AG group",
+  "lang": "ja",
+  "to": "ガバナー補佐グループ全体のプロジェクト活動、地域への成果、月別推移",
+  "why": "ja batch 1"
+ },
+ {
+  "en": "Ready: every club under this AG (zipped)",
+  "lang": "ja",
+  "to": "準備完了：このガバナー補佐の全クラブ（ZIP）",
+  "why": "ja batch 1"
+ },
+ {
+  "en": "Search by name, Email ID, mobile or Rotary ID",
+  "lang": "ja",
+  "to": "氏名、メール、携帯電話、ロータリーIDで検索",
+  "why": "ja batch 1"
+ },
+ {
+  "en": "Search club name or Rotary ID",
+  "lang": "ja",
+  "to": "クラブ名またはロータリーIDで検索",
+  "why": "ja batch 1"
+ },
+ {
+  "en": "Searches club name, Rotary ID, city, state, country, ",
+  "lang": "ja",
+  "to": "検索対象：クラブ名、ロータリーID、市区町村、州・県、国、",
+  "why": "ja batch 1"
+ },
+ {
+  "en": "Set your club's targets for the year, by category",
+  "lang": "ja",
+  "to": "クラブの年間目標をカテゴリー別に設定",
+  "why": "ja batch 1"
+ },
+ {
+  "en": "Side-by-side activity across every club in the AG's scope",
+  "lang": "ja",
+  "to": "ガバナー補佐担当の全クラブの活動を並べて比較",
+  "why": "ja batch 1"
+ },
+ {
+  "en": "Some identity fields (Rotary ID, gender, blood group, honorary/youth ",
+  "lang": "ja",
+  "to": "一部の本人情報（ロータリーID、性別、血液型、名誉／青少年",
+  "why": "ja batch 1"
+ },
+ {
+  "en": "Stacked bar: each colour is a scoring category",
+  "lang": "ja",
+  "to": "積み上げ棒グラフ：色ごとに採点カテゴリー",
+  "why": "ja batch 1"
+ },
+ {
+  "en": "Default",
+  "lang": "ja",
+  "to": "既定",
+  "why": "ja batch 1"
+ },
+ {
+  "en": "Club Services",
+  "lang": "ja",
+  "to": "クラブ奉仕",
+  "why": "ja batch 1"
+ },
+ {
+  "en": "Past President",
+  "lang": "ja",
+  "to": "パスト会長",
+  "why": "ja batch 1"
+ },
+ {
+  "en": "Write to the zone about a goal category",
+  "lang": "ja",
+  "to": "目標カテゴリーについてゾーンに連絡",
+  "why": "ja batch 1"
+ },
+ {
+  "en": "all service categories",
+  "lang": "ja",
+  "to": "全奉仕カテゴリー",
+  "why": "ja batch 1"
+ },
+ {
+  "en": "below or jump straight to the compliance report.",
+  "lang": "ja",
+  "to": "下のカテゴリーを使うか、コンプライアンス報告へ直接移動してください。",
+  "why": "ja batch 1"
+ },
+ {
+  "en": "Birthdays & anniversaries",
+  "lang": "ja",
+  "to": "誕生日と結婚記念日",
+  "why": "ja batch 1"
+ },
+ {
+  "en": "Charter Date is required",
+  "lang": "ja",
+  "to": "創立日は必須です",
+  "why": "ja batch 1"
+ },
+ {
+  "en": "Default Currency",
+  "lang": "ja",
+  "to": "既定の通貨",
+  "why": "ja batch 1"
+ },
+ {
+  "en": "Add speaker",
+  "lang": "ja",
+  "to": "卓話者を追加",
+  "why": "ja batch 1"
+ },
+ {
+  "en": "Anniv.",
+  "lang": "ja",
+  "to": "結婚記念日",
+  "why": "ja batch 1"
+ },
+ {
+  "en": "Edit speaker",
+  "lang": "ja",
+  "to": "卓話者を編集",
+  "why": "ja batch 1"
+ },
+ {
+  "en": "Remove speaker",
+  "lang": "ja",
+  "to": "卓話者を外す",
+  "why": "ja batch 1"
+ },
+ {
+  "en": "Speakers",
+  "lang": "ja",
+  "to": "卓話者",
+  "why": "ja batch 1"
+ },
+ {
+  "en": "Add Past President",
+  "lang": "ja",
+  "to": "パスト会長を追加",
+  "why": "Past President = パスト会長"
+ },
+ {
+  "en": "Save Past President",
+  "lang": "ja",
+  "to": "パスト会長を保存",
+  "why": "Past President = パスト会長"
+ },
+ {
+  "en": "Past President Records",
+  "lang": "ja",
+  "to": "パスト会長の記録",
+  "why": "Past President = パスト会長"
+ },
+ {
+  "en": "Only one past president can be recorded per year.",
+  "lang": "ja",
+  "to": "1年度につき登録できるパスト会長は1名のみです。",
+  "why": "Past President = パスト会長"
+ }
+]
