@@ -110,8 +110,8 @@ sheet (PENDING-WORK §11a; Settings > Features; e2e `kb/tools/feature_gate_e2e.p
    (pay, reset-password, invite links now 404 at the root). Leave `ClubSite__PurgeSecret` unset.
 2. Owner uploads `_local/deploy-2026-11-17/api` (year fix) and, when wildcard DNS exists, `club-website/`.
 3. Club website open items: link previews (crawler meta endpoint + IIS rule) not built. 18 Nov: support contact
-   set, Handloom released (owner must run `database/maintenance/2026-11-18-club-theme-handloom.sql` on production); many old event/banner images 404 on the server (files never uploaded, data only).
-4. `bash kb/rebuild.sh` (club-website changed completely), then commit when the owner says so.
+   set, Handloom released and its SQL applied on production 18 Nov (theme_master pk 17); many old event/banner images 404 on the server (files never uploaded, data only).
+4. Done 18 Nov: kb rebuilt, committed c66dd0d0, merged origin/main, pushed feat/rizones-pull-2026-11-06. Prod Firebase APNs key uploaded (dev + prod).
 5. OMS: update the 4 QA bugs once the owner decides on #3; ROW Sprint 1 move needs a PM account.
 
 ## Next task (2026-11-17)
