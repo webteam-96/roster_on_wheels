@@ -1,4 +1,3 @@
-'use client'
 // ─────────────────────────────────────────────────────────────────────────────
 // HORIZONTAL JOURNEY · Event detail — one stop on the road ahead.
 //
@@ -11,8 +10,9 @@
 // (goldData.useEventGold: null loading, false not found; upcoming then past feed).
 // ─────────────────────────────────────────────────────────────────────────────
 import { useRef, useState } from 'react'
-import { useLocation } from '@/site/router.js'
-import { useEventData, PhotoLightbox, LightboxStyles } from '../../_shared/data.js'
+import { useLocation } from 'react-router-dom'
+import { useEventData, useEventShare, shareChannels, PhotoLightbox, LightboxStyles } from '../../_shared/data.js'
+import { ShareList } from './ProjectDetail.jsx'
 import { PageHero, Button, Loading, NotFound, useLightboxModal } from '../kit.jsx'
 import { useScene, afterFonts, useRefreshOnImages, gsap, titleIn, rise, wipeIn, revealBatch } from '../motion.js'
 import './EventDetail.css'
@@ -23,14 +23,15 @@ const trim = (v) => (v == null ? '' : String(v).trim())
 const CAL = <svg className="hj-ed-ico" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" /><path d="M16 2v4M8 2v4M3 10h18" /></svg>
 const PIN = <svg className="hj-ed-ico" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" /><circle cx="12" cy="10" r="3" /></svg>
 
-export default function EventDetail({ data }) {
+export default function EventDetail() {
   const location = useLocation()
   const id = parseInt(new URLSearchParams(location.search).get('id'), 10) || 0
-  const ev = useEventData(id, data)                        // null = loading, false = not found
+  const ev = useEventData(id)                        // null = loading, false = not found
   const [lb, setLb] = useState(null)
   const [badImg, setBadImg] = useState('')
   const ref = useRef(null)
   const shotRef = useRef(null)
+  const channels = shareChannels(useEventShare(ev, id))
 
   const ok = !!ev
   const title = ok ? trim(ev.title) || 'Club event' : ''
@@ -145,6 +146,13 @@ export default function EventDetail({ data }) {
           <div className="hj-ed-about">
             <h2 className="hj-ed-h2">About this event</h2>
             <div className="hj-prose hj-ed-prose" dangerouslySetInnerHTML={{ __html: html }} />
+          </div>
+        ) : null}
+
+        {channels.length ? (
+          <div className="hj-ed-share">
+            <h2 className="hj-pd-rail__t">Share this event</h2>
+            <ShareList channels={channels} />
           </div>
         ) : null}
 

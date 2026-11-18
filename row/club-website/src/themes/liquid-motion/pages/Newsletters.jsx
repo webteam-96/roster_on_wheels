@@ -1,4 +1,3 @@
-'use client'
 // ─────────────────────────────────────────────────────────────────────────────
 // LIQUID MOTION · NEWSLETTERS — "on the stand".
 // The ink breadcrumb band carries the menu label. Then ONE gold band (the home's
@@ -45,13 +44,13 @@ function Rows({ list, latest }) {
   )
 }
 
-export default function Newsletters({ data }) {
+export default function Newsletters() {
   const club = useClub()
   const menuName = useCurrentMenuName()
   const title = (menuName && menuName.trim()) || 'Newsletters'
   usePageTitle(title)
 
-  const items = useNewslettersData(data) // null while loading
+  const items = useNewslettersData() // null while loading
   const [q, setQ] = useState('')
   const all = items || []
   const latest = all[0] || null

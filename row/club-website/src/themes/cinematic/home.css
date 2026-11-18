@@ -91,7 +91,10 @@ a.cin-slide:focus-visible { outline-offset: -4px; }
 .cin-figures__note { margin: 0; color: var(--cin-mist); font-size: 15px; }
 .cin-figs { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 40px 20px; }
 .cin-fig { position: relative; padding-top: 18px; border-top: 1px solid var(--cin-line); min-width: 0; }
-.cin-fig--money { grid-column: 1 / -1; order: 1; }
+/* phones keep the client order projects, cost, beneficiaries, members (2026-11-17): the long money figure still takes a
+   whole row, but in 2nd place - the first figure takes the row above it, so there is no hole beside it */
+.cin-fig--money { grid-column: 1 / -1; order: 0; }
+.cin-fig:first-child:has(+ .cin-fig--money) { grid-column: 1 / -1; }
 .cin-fig__value {
   display: block; font-stretch: var(--cin-cond); font-weight: 800; line-height: .92; white-space: nowrap;
   font-size: clamp(40px, 7vw, 88px); color: var(--cin-gold-ink); font-variant-numeric: tabular-nums;
@@ -100,7 +103,7 @@ a.cin-slide:focus-visible { outline-offset: -4px; }
 .cin-fig__bar { position: absolute; left: 0; right: 0; top: -1px; height: 2px; background: var(--cin-gold); transform-origin: 0 50%; display: none; }
 @media (min-width: 900px) {
   .cin-figs { grid-template-columns: repeat(var(--cols, 6), minmax(0, 1fr)); }
-  .cin-fig { grid-column: span 1; }
+  .cin-fig, .cin-fig:first-child:has(+ .cin-fig--money) { grid-column: span 1; }
   .cin-fig--money { grid-column: span 2; order: 0; }
   .cin-fig__value { font-size: clamp(40px, 5.2vw, 84px); }
 }

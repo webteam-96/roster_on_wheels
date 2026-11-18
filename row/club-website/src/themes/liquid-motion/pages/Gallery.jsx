@@ -1,4 +1,3 @@
-'use client'
 // ─────────────────────────────────────────────────────────────────────────────
 // LIQUID MOTION · GALLERY — the year's photographs, album by album.
 //
@@ -15,7 +14,7 @@
 // GALLERY_PAGE_SIZE per page, plain /gallery?page= links.
 // ─────────────────────────────────────────────────────────────────────────────
 import { useEffect, useRef, useState } from 'react'
-import { useSearchParams } from '@/site/router.js'
+import { useSearchParams } from 'react-router-dom'
 import {
   useClub, useCurrentMenuName, usePageTitle, useGalleryData, GALLERY_PAGE_SIZE,
   PhotoLightbox, LightboxStyles, withYear,
@@ -74,7 +73,7 @@ function Pager({ page, total }) {
   )
 }
 
-export default function Gallery({ data }) {
+export default function Gallery() {
   const club = useClub()
   const menuName = useCurrentMenuName()
   const title = (menuName && menuName.trim()) || 'Gallery'
@@ -84,7 +83,7 @@ export default function Gallery({ data }) {
   let page = parseInt(params.get('page'), 10)
   if (Number.isNaN(page) || page < 1) page = 1
 
-  const g = useGalleryData(page, data)
+  const g = useGalleryData(page)
   const [avenue, setAvenue] = useState('')
   const [lb, setLb] = useState(null)
   const ref = useRef(null)

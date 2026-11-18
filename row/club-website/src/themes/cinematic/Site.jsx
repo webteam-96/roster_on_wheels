@@ -1,4 +1,3 @@
-'use client'
 // ─────────────────────────────────────────────────────────────────────────────
 // CINEMATIC — the shell. A sticky two-row header (client, 2026-09-28): row 1 the
 // club lockup, year picker, Admin login and the light/dark switch; row 2 the
@@ -13,9 +12,10 @@
 // ─────────────────────────────────────────────────────────────────────────────
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { flushSync } from 'react-dom'
-import { useLocation } from '@/site/router.js'
+import { useLocation } from 'react-router-dom'
 // getAbout is not re-exported by _shared/data.js; the shell needs the raw row
 // for the two logos and the district (per-request cached, so no extra fetch).
+import { getAbout } from '../../api/clubService.js'
 import {
   useClub, useMenus, titleCase, menuHref, menuExternal, routeKey, YearSelect, VisitorCount,
   useThemeShell, useLoader, media, LOGO_PLACEHOLDER, useAboutData,
@@ -100,8 +100,7 @@ export default function Site({ children }) {
   const [mode, toggleMode] = useCinMode()
   const loc = useLocation()
   const info = useAboutData()
-  // The shell's about (lib/pageShell): already for the picked year and in the visitor's language.
-  const about = club.about || {}
+  const [about, setAbout] = useState(null)
   const [openSub, setOpenSub] = useState(-1)
   const [menuOpen, setMenuOpen] = useState(false)
   const [menuShown, setMenuShown] = useState(false)
@@ -117,6 +116,12 @@ export default function Site({ children }) {
   useThemeShell('cinematic', menus.length > 0)
   useLoader(!club.loading)
 
+  useEffect(() => {
+    if (!club.clubId) return undefined
+    let cancelled = false
+    getAbout(club.clubId, club.selectedYearId).then((a) => { if (!cancelled) setAbout(a || {}) })
+    return () => { cancelled = true }
+  }, [club.clubId, club.selectedYearId])
 
   const names = clubNames(club.clubDisplayName)
   const rotaryLogo = media(about ? about.rotaryLogoPath : null)

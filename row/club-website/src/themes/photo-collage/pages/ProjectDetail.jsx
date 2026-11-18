@@ -1,4 +1,3 @@
-'use client'
 // ─────────────────────────────────────────────────────────────────────────────
 // Photo Collage · PROJECT DETAIL — a scrapbook spread.
 //
@@ -17,7 +16,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 import { useEffect, useId, useLayoutEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { useLocation } from '@/site/router.js'
+import { useLocation } from 'react-router-dom'
 import {
   useClub, useProjectData, usePageTitle, avenueLabel, groupInt,
   useProjectShare, shareChannels, sharePopup, SHARE_ICONS, PhotoLightbox, LightboxStyles,
@@ -124,7 +123,43 @@ function UpdatePanel({ c, currency, onClose, onPhoto }) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-export default function ProjectDetail({ data }) {
+/** The sticker share row (project + event pages). */
+export function ShareWrap({ channels, caption, id = 'col-pjd-share-h' }) {
+  return (
+    <div className="col-pjd-share-wrap">
+      <h2 className="col-pjd-cap" id={id}>{caption}</h2>
+      <ul className="col-pjd-share">
+        {channels.map((ch, i) => {
+          const tone = SHARE_TONE[i % SHARE_TONE.length]
+          const style = { '--col-c': 'var(--col-' + tone + ')', '--col-fg': tone === 'gold' || tone === 'turq' ? 'var(--col-ink)' : '#fff', '--col-t': (side(i) * (3 + (i % 3) * 2)) + 'deg' }
+          if (ch.brand) style['--col-pjd-brand'] = ch.brand
+          const glyph = (
+            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"
+              fill={ch.fill && !ch.done ? 'currentColor' : 'none'} stroke={ch.fill && !ch.done ? 'none' : 'currentColor'}
+              strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              {ch.done ? SHARE_ICONS.check : ch.icon}
+            </svg>
+          )
+          const newTab = ch.href && ch.key !== 'mail'
+          return (
+            <li key={ch.key} style={style} className={ch.brand ? 'is-brand' : undefined}>
+              {ch.href ? (
+                <a href={ch.href} className="col-pjd-stk" aria-label={ch.label + (newTab ? ' (opens in a new tab)' : '')}
+                  title={ch.label} target={newTab ? '_blank' : undefined} rel={newTab ? 'noopener noreferrer' : undefined}
+                  onClick={ch.popup ? sharePopup : undefined}>{glyph}</a>
+              ) : (
+                <button type="button" className="col-pjd-stk" aria-label={ch.label} title={ch.label} onClick={ch.onClick}>{glyph}</button>
+              )}
+              {ch.doneLabel ? <span className={'col-pjd-toast' + (ch.done ? ' is-on' : '')} aria-live="polite">{ch.done ? ch.doneLabel : ''}</span> : null}
+            </li>
+          )
+        })}
+      </ul>
+    </div>
+  )
+}
+
+export default function ProjectDetail() {
   const club = useClub()
   const loc = useLocation()
   const params = new URLSearchParams(loc.search)
@@ -135,7 +170,7 @@ export default function ProjectDetail({ data }) {
   const backLabel = fromMeetings ? 'Back to Club Services' : 'Back to all projects'
 
   // demoChild (the local ?demoChild=1 preview) needs isLocalRequest, which data.js does not export.
-  const { p, notFound } = useProjectData(pid, false, data)
+  const { p, notFound } = useProjectData(pid, false)
   usePageTitle(notFound ? 'Project Not Found' : (p ? p.title : null))
 
   const share = useProjectShare({
@@ -271,6 +306,7 @@ export default function ProjectDetail({ data }) {
   const record = [
     p.dateText && <><b>Date</b> {p.dateText}</>,
     p.location && <><b>Venue</b> {p.location}</>,
+    p.president && <><b>{p.president.role}</b> {p.president.name}</>,
     Y && <><b>Rotary year</b> {Y}</>,
     photos.length > 1 && <><b>Photos</b> {photos.length}</>,
     kids.length > 0 && <><b>Updates</b> {kids.length}</>,
@@ -389,36 +425,7 @@ export default function ProjectDetail({ data }) {
       {/* ══ share + the way back ══ */}
       <section className="col-sec col-pjd-end" aria-labelledby={channels.length ? 'col-pjd-share-h' : undefined} aria-label={channels.length ? undefined : 'Back'}>
         {channels.length ? (
-          <div className="col-pjd-share-wrap">
-            <h2 className="col-pjd-cap" id="col-pjd-share-h">Share this project</h2>
-            <ul className="col-pjd-share">
-              {channels.map((ch, i) => {
-                const tone = SHARE_TONE[i % SHARE_TONE.length]
-                const style = { '--col-c': 'var(--col-' + tone + ')', '--col-fg': tone === 'gold' || tone === 'turq' ? 'var(--col-ink)' : '#fff', '--col-t': (side(i) * (3 + (i % 3) * 2)) + 'deg' }
-                if (ch.brand) style['--col-pjd-brand'] = ch.brand
-                const glyph = (
-                  <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"
-                    fill={ch.fill && !ch.done ? 'currentColor' : 'none'} stroke={ch.fill && !ch.done ? 'none' : 'currentColor'}
-                    strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    {ch.done ? SHARE_ICONS.check : ch.icon}
-                  </svg>
-                )
-                const newTab = ch.href && ch.key !== 'mail'
-                return (
-                  <li key={ch.key} style={style} className={ch.brand ? 'is-brand' : undefined}>
-                    {ch.href ? (
-                      <a href={ch.href} className="col-pjd-stk" aria-label={ch.label + (newTab ? ' (opens in a new tab)' : '')}
-                        title={ch.label} target={newTab ? '_blank' : undefined} rel={newTab ? 'noopener noreferrer' : undefined}
-                        onClick={ch.popup ? sharePopup : undefined}>{glyph}</a>
-                    ) : (
-                      <button type="button" className="col-pjd-stk" aria-label={ch.label} title={ch.label} onClick={ch.onClick}>{glyph}</button>
-                    )}
-                    {ch.doneLabel ? <span className={'col-pjd-toast' + (ch.done ? ' is-on' : '')} aria-live="polite">{ch.done ? ch.doneLabel : ''}</span> : null}
-                  </li>
-                )
-              })}
-            </ul>
-          </div>
+          <ShareWrap channels={channels} caption="Share this project" />
         ) : null}
         <Button href={backHref} variant="ghost" className="col-pjd-back"><span aria-hidden="true">&larr;</span> {backLabel}</Button>
       </section>

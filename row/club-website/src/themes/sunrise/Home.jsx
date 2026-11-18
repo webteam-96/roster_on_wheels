@@ -1,4 +1,3 @@
-'use client'
 // ─────────────────────────────────────────────────────────────────────────────
 // SUNRISE — the home page. The approved sample (H-sunrise-modes) ported onto
 // useHomeData, for every club:
@@ -75,9 +74,9 @@ function parseAbout(html) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-export default function Home({ data }) {
+export default function Home() {
   const club = useClub()
-  const d = useHomeData(data.home, { newsletterTake: 2 })
+  const d = useHomeData({ newsletterTake: 2 })
   usePageTitle(club.clubDisplayName)
 
   const clubName = club.clubDisplayName
@@ -101,7 +100,6 @@ export default function Home({ data }) {
       { k: 'projects', label: 'Projects', v: n.projects },
       { k: 'totalCost', label: 'Total cost', v: n.totalCost, money: true },
       { k: 'beneficiaries', label: 'Beneficiaries', v: n.beneficiaries },
-      { k: 'manHours', label: 'Man-hours', v: n.manHours },
       { k: 'members', label: 'Members', v: members },
     ].filter((f) => Number(f.v) > 0)
   }, [d.impactNumbers, d.membershipStats])

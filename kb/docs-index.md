@@ -74,20 +74,21 @@ open the file for the text. Do not edit by hand.
   -   19. Gates
   - … 15 more headings
 
-## row (66 documents)
+## row (72 documents)
 
-- **row/HANDOFF.md** (13 KB)
+- **row/HANDOFF.md** (18 KB)
   - ROW: session handoff (read this first)
   -   Ground rules (from the user)
   -   Done on 2026-10-19
   -   Done on 2026-10-21
   -   Done on 2026-10-23
-  -   Next task
+  -   Resume here (stopped 2026-11-17 19:25, owner: "resume tomorrow")
+  -   Next task (2026-11-17)
   -   Still pending after Wave 1
   -   Known gaps and flags
   -   Run locally (dev only)
   -   Checks to run after changes
-- **row/PENDING-WORK.md** (17 KB)
+- **row/PENDING-WORK.md** (18 KB)
   - ROW — Pending Work and Why
   -   1. Summary
   -   2. Payments (largest backend gap)
@@ -111,8 +112,9 @@ open the file for the text. Do not edit by hand.
   -   Configuration (set per server as environment variables; never commit values)
   -   Checks
   -   Refreshing from a newer RIZones copy
-- **row/ROW-CHANGES.md** (94 KB)
+- **row/ROW-CHANGES.md** (97 KB)
   - ROW changes to consider later
+  -   Club website replaced (2026-11-17, done)
   -   Security and privacy
   -   Providers
   -   Data and time
@@ -136,8 +138,7 @@ open the file for the text. Do not edit by hand.
   -   2026-10-19: Fellowship design port (admin + mobile)
   -   2026-10-23: Skipped modules removed, 10 new spec modules, security fixes
   -   2026-10-23 (part 2): security and read review, time zones, planning mode, escalation, rebranding
-  -   2026-10-28: Build spec completion (plan `docs/superpowers/plans/2026-10-28-build-spec-completion.md`)
-  - … 10 more headings
+  - … 11 more headings
 - **row/STATUS-REPORT.md** (6 KB)
   - ROW status report (updated 2026-10-23, evening)
   -   Done (verified on a local copy of production, `row_prod_copy`)
@@ -146,7 +147,7 @@ open the file for the text. Do not edit by hand.
   -   Blocked outside the team
   -   Needs a decision or an action
   -   How to run and check locally
-- **row/STATUS.md** (33 KB)
+- **row/STATUS.md** (34 KB)
   - ROW Build — Status and Handover
   -   1. What ROW is
   -   2. Repository layout
@@ -165,7 +166,7 @@ open the file for the text. Do not edit by hand.
   -   8. Open decisions (owner: product / company)
   -   9. Working rules agreed with the team
   -   10. How to resume
-- **row/TRACKER.md** (25 KB)
+- **row/TRACKER.md** (27 KB)
   - ROW work tracker
   -   1. Summary
   -   2. Skipped modules: remove completely
@@ -212,32 +213,84 @@ open the file for the text. Do not edit by hand.
   - _1:"$Sreact.fragment"_
 - **row/assistant-web/out/login/__next.login/__PAGE__.txt** (3 KB)
   - _1:"$Sreact.fragment"_
-- **row/club-website/README.md** (2 KB)
-  - Club Website
-  -   Phases
-  -   Local dev
+- **row/club-website/README.md** (3 KB)
+  - ROW club website
+  -   Configuration
+  -   Themes
+  -   ROW rules built in
   -   Deploy
-  -   Architecture key bits
-  -   Themes contract
-- **row/club-website/TESTING.md** (9 KB)
-  - Club Website — Test Plan
-  -   0. Prerequisites
-  - C:\Windows\System32\drivers\etc\hosts  (run editor as Administrator)
-  -   1. Tenant resolution
-  -   2. Status states — all 4 transitions
-  -   3. All 8 default menus
-  -   4. Year filter
-  -   5. All 5 themes
-  -   6. Menu cap (8 default + 1 custom)
-  -   7. Privacy (PII)
-  -   8. Reminder emails (dry run)
-  -   9. Cache + ISR
-  -   10. Performance — DB indexes
-  -   Known gaps (track separately, not blocking launch)
-  -   Sample seed for fresh dev DB
+- **row/club-website/src/themes/README.md** (11 KB)
+  - Theme 8 family — the scroll-animated themes (React)
+  -   1. How a theme plugs in (already wired — do not edit the wiring)
+  -   2. File ownership (parallel agents — no two write the same file)
+  -   3. CSS rules
+  -   4. Data
+  -   5. Motion (from `_shared/motion.js`)
+  -   6. Quality floor (every page, both 1440×900 and 390×700)
+  -   7. Checking your work (build agents: NO browser)
+- **row/club-website/src/themes/cinematic/DESIGN.md** (18 KB)
+  - Cinematic — design guide for page agents
+  -   1. Tokens (declared on `html[data-theme="cinematic"]`, use them — never raw hex)
+  -   2. Page structure
+  -   3. Kit (`../kit.jsx`) — styles live in theme.css
+  -   4. Motion (`../motion.js`) — GSAP only, always inside `useScene`
+  -   5. Page directions
+  -   6. Do / don't
+- **row/club-website/src/themes/horizontal-journey/DESIGN.md** (20 KB)
+  - Horizontal Journey — design guide for page agents
+  -   1. Tokens and type (declared on `html[data-theme="horizontal-journey"]`)
+  -   2. Page skeleton
+  -   3. Kit (`../kit.jsx`)
+  -   4. Motion (`../motion.js`) — call inside `useScene` (after fonts when splitting text)
+  -   5. Page directions
+  -   6. Dos and don'ts
+  -   7. Class naming
+- **row/club-website/src/themes/liquid-motion/DESIGN.md** (31 KB)
+  - Liquid Motion — design guide for page agents
+  -   1. Tokens (declared on `html[data-theme="liquid-motion"]` — use `var(--liq-…)`, never raw hex)
+  -   2. Type
+  -   3. The page skeleton (copy this)
+  -   4. Kit (`import { … } from '../kit.jsx'`)
+  -   5. Motion (`import { … } from '../motion.js'`)
+  -   6. Class naming
+  -   7. Page directions
+  -   8. Do / don't
+  -   9. Before you return
+- **row/club-website/src/themes/photo-collage/DESIGN.md** (25 KB)
+  - Photo Collage: design notes for page agents
+  -   1. Tokens and type
+  -   2. Every page starts the same way
+  -   3. Kit (`../kit.jsx`)
+  -   4. Motion (`../motion.js`)
+  -   5. Each page group
+  -   6. Do and don't
+  -   7. Class naming
+- **row/club-website/src/themes/split-story/DESIGN.md** (26 KB)
+  - Split Story — design notes for page agents
+  -   1. Character in one paragraph
+  -   2. Tokens (declared on `html[data-theme="split-story"]`)
+  -   3. Page skeleton (every inner page)
+  -   4. Kit (`../kit.jsx`)
+  -   5. The Split (signature layout)
+  -   6. Motion (`../motion.js`)
+  -   7. Page directions
+  -   8. Dos and don'ts
+  -   9. Checking
+- **row/club-website/src/themes/sunrise/DESIGN.md** (34 KB)
+  - Sunrise — design guide for page agents
+  -   1. The idea
+  -   2. Tokens (exact names — `var(--sun-…)`, declared on `html[data-theme="sunrise"]`)
+  -   3. Type scale (classes in theme.css)
+  -   4. The page skeleton (every inner page)
+  -   5. Kit API (`../kit.jsx`)
+  -   6. Motion API (`../motion.js`)
+  -   7. Page directions
+  -   8. Dos and don'ts
+  -   9. Class naming
+  -   10. Checking (no browser — README §7)
 - **row/database/translations/review/README.md** (1 KB)
   - UI label review sheets (one per language)
-- **row/deploy/iis/README.md** (8 KB)
+- **row/deploy/iis/README.md** (9 KB)
   - ROW test go-live on IIS (test.rosteronwheels.com)
   -   1. Server prerequisites (once)
   -   2. API: Plesk subdomain `api.test.rosteronwheels.com`

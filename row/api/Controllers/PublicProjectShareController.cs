@@ -220,7 +220,7 @@ public class PublicProjectShareController : ControllerBase
         // only correct when the caller supplied no yearId at all (a legacy link).
         if (yearId is > 0)
         {
-            var info = await _yearTables.ResolveByYearIdAsync(conn, yearId.Value);
+            var info = await _yearTables.ResolveExistingByYearIdAsync(conn, yearId.Value);
             return info == null ? null : await QueryOneAsync(conn, info, id);
         }
 

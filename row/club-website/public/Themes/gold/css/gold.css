@@ -1743,3 +1743,7 @@ html[data-theme="gold"] main h1.font-heading {
   from { opacity: 0; transform: translateY(16px); filter: blur(6px); }
   to   { opacity: 1; transform: none; filter: none; }
 }
+/* 2026-11-17: man-hours left the home counters (4 figures, 3 if a club has no members figure).
+   >=1100: one track per figure, no empty fifth cell. 720-1099: a lone 4th figure sits centred. */
+@media (min-width: 1100px) { .gld-statgrid { grid-template-columns: none; grid-auto-flow: column; grid-auto-columns: minmax(min-content, 1fr); } }
+@media (min-width: 720px) and (max-width: 1099px) { .gld-stat:nth-child(4):last-child:not(.gld-stat--wide) { grid-column: 3 / span 2; } }

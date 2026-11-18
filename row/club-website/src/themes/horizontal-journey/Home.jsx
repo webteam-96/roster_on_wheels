@@ -1,4 +1,3 @@
-'use client'
 // ─────────────────────────────────────────────────────────────────────────────
 // HORIZONTAL JOURNEY — the home page (Theme8-Samples/F-horizontal-journey).
 //
@@ -182,9 +181,9 @@ function AdCard({ ads }) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-export default function Home({ data }) {
+export default function Home() {
   const club = useClub()
-  const d = useHomeData(data.home, { featuredTake: 7, newsletterTake: 2 })
+  const d = useHomeData({ featuredTake: 7, newsletterTake: 2 })
   usePageTitle(club.clubDisplayName)
   const rootRef = useRef(null)
   const tall = useMedia('(min-height: 620px)')
@@ -203,7 +202,6 @@ export default function Home({ data }) {
     { v: inum.projects, label: 'Projects', icon: 'projects', tone: 'cran' },
     { v: inum.totalCost, label: 'Total cost', icon: 'money', tone: 'azure', fmt: (n) => formatMoney(n, cur, compactCost ? { compact: true } : undefined) },
     { v: inum.beneficiaries, label: 'Beneficiaries', icon: 'people', tone: 'royal' },
-    { v: inum.manHours, label: 'Man-hours', icon: 'hours', tone: 'ink' },
     { v: members, label: 'Members', icon: 'member', tone: 'violet' },
   ].filter((f) => f.v > 0).map((f) => ({ ...f, fmt: f.fmt || ((n) => groupInt(n, cur)) }))
 

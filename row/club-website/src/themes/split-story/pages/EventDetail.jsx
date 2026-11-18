@@ -1,4 +1,3 @@
-'use client'
 // ─────────────────────────────────────────────────────────────────────────────
 // Split Story · Event detail — the event as a ticket. The royal hero raises the
 // event's name letter by letter under its weekday and date. Below, the split in
@@ -10,9 +9,10 @@
 // Data: useEventData(id) only (upcoming feed, then past — goldData).
 // ─────────────────────────────────────────────────────────────────────────────
 import { useRef, useState } from 'react'
-import { useLocation } from '@/site/router.js'
-import { useEventData, usePageTitle, PhotoLightbox, LightboxStyles } from '../../_shared/data.js'
-import { PageHero, NotFound, Loading, Button, BackLink, TextLink, Num, useLightboxFocus } from '../kit.jsx'
+import { useLocation } from 'react-router-dom'
+import { useEventData, useEventShare, shareChannels, usePageTitle, PhotoLightbox, LightboxStyles } from '../../_shared/data.js'
+import { PageHero, NotFound, Loading, Button, BackLink, TextLink, Num, GoldBand, useLightboxFocus } from '../kit.jsx'
+import { ShareRow } from './ProjectDetail.jsx'
 import { gsap, useScene, useRefreshOnImages, riseIn, countUp, irisOnce } from '../motion.js'
 import './EventDetail.css'
 
@@ -24,8 +24,9 @@ const timeOf = (when) => {
   return t === '12:00 AM' ? '' : t
 }
 
-function Detail({ ev }) {
+function Detail({ ev, id }) {
   const ref = useRef(null)
+  const channels = shareChannels(useEventShare(ev, id)).filter((ch) => ch.href || ch.onClick)
   const shotRef = useRef(null)
   const [broken, setBroken] = useState(false)
   const [lb, setLb] = useState(null)
@@ -119,14 +120,21 @@ function Detail({ ev }) {
           ) : null}
         </div>
       </section>
+
+      {/* the share icons on the gold band, as on the project page */}
+      {channels.length ? (
+        <GoldBand id="spl-evd-share-h" title="Share this event">
+          <ShareRow channels={channels} />
+        </GoldBand>
+      ) : null}
     </div>
   )
 }
 
-export default function EventDetail({ data }) {
+export default function EventDetail() {
   const location = useLocation()
   const id = parseInt(new URLSearchParams(location.search).get('id'), 10) || 0
-  const ev = useEventData(id, data)                    // null = loading, false = not found
+  const ev = useEventData(id)                    // null = loading, false = not found
   usePageTitle(ev === false ? 'Event not found' : ev ? ev.title || 'Event' : null)
 
   if (ev === null) {
@@ -144,5 +152,5 @@ export default function EventDetail({ data }) {
                 backHref="/events" backLabel="All events" />
     )
   }
-  return <Detail key={id} ev={ev} />
+  return <Detail key={id} ev={ev} id={id} />
 }

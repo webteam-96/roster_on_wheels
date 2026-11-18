@@ -1,4 +1,3 @@
-'use client'
 // ─────────────────────────────────────────────────────────────────────────────
 // PHOTO COLLAGE · DIGNITARY — a feature profile pinned into the scrapbook.
 //   PageHero: the name, photo-filled with the person's own portrait (it wipes in)
@@ -11,7 +10,7 @@
 // 4 club president, 5 club secretary; any other number reads as RI President.
 // ─────────────────────────────────────────────────────────────────────────────
 import { useRef } from 'react'
-import { useSearchParams } from '@/site/router.js'
+import { useSearchParams } from 'react-router-dom'
 import { useClub, useDignitaryData, usePageTitle } from '../../_shared/data.js'
 import { isPlaceholderPhoto } from '../../_shared/kit.jsx'
 import {
@@ -24,14 +23,14 @@ const OFFICE = { 1: 'RI President', 2: 'District Governor', 4: 'Club President',
 const TINT = { 1: 'royal', 2: 'azure', 4: 'cran', 5: 'violet' }
 const photo = (src) => (isPlaceholderPhoto(src) ? '' : src)
 
-export default function Dignitary({ data }) {
+export default function Dignitary() {
   const club = useClub()
   const [params] = useSearchParams()
   let type = parseInt(params.get('Type'), 10)
   if (Number.isNaN(type)) type = 1
   const key = OFFICE[type] ? type : 1       // the hook reads every other number as RI President
 
-  const vm = useDignitaryData(key, data)
+  const vm = useDignitaryData(key)
   usePageTitle(vm.found ? vm.name : 'Dignitaries of Rotary')
 
   const yearId = club.selectedYearId

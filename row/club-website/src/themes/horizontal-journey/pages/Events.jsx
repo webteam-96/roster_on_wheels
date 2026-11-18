@@ -1,4 +1,3 @@
-'use client'
 // ─────────────────────────────────────────────────────────────────────────────
 // HORIZONTAL JOURNEY · Events — the road ahead.
 //
@@ -28,9 +27,9 @@ const PIN = <svg className="hj-ev-ico" viewBox="0 0 24 24" aria-hidden="true" fi
 const CLOCK = <svg className="hj-ev-ico" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></svg>
 
 /** homeData's rule: a time of exactly midnight means none was filed. */
-function timeOf(ts, zone) {
+function timeOf(ts) {
   const d = new Date(ts)
-  return d.getHours() || d.getMinutes() || d.getSeconds() ? formatTime(d, zone) : ''
+  return d.getHours() || d.getMinutes() || d.getSeconds() ? formatTime(d) : ''
 }
 
 /** Gold's countdown: "Today" / "Tomorrow" / "In 17 days", in whole days from midnight. */
@@ -57,8 +56,7 @@ function byMonth(rows) {
 
 /** One ticket on the trail: coloured stub (day + month), white body, one stretched link. */
 function Ticket({ e, past }) {
-  const club = useClub()
-  const when = [e.weekday, timeOf(e.ts, club.timeZone)].filter(Boolean).join(' · ')
+  const when = [e.weekday, timeOf(e.ts)].filter(Boolean).join(' · ')
   const title = trim(e.title) || 'Club event'
   return (
     <li className="hj-ev-item">
@@ -102,9 +100,8 @@ function Month({ g, past }) {
 
 /** The next event, at poster size: stub with a sun rising over hills, photo alongside. */
 function NextUp({ e, today }) {
-  const club = useClub()
   const near = countdown(e.ts, today)
-  const time = timeOf(e.ts, club.timeZone)
+  const time = timeOf(e.ts)
   const desc = cut(htmlText(e.desc), 220)
   const title = trim(e.title) || 'Club event'
   const [photo, setPhoto] = useState(!!e.img)          // a broken photo drops out; the ticket takes the row
@@ -187,9 +184,9 @@ function WeeklyMeet() {
   )
 }
 
-export default function Events({ data }) {
+export default function Events() {
   const club = useClub()
-  const events = useEventsData(data)                     // null while loading
+  const events = useEventsData()                     // null while loading
   const ref = useRef(null)
 
   const list = events || []

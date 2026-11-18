@@ -1,4 +1,3 @@
-'use client'
 // ─────────────────────────────────────────────────────────────────────────────
 // HORIZONTAL JOURNEY · Projects — the year's work, laid out to search.
 //
@@ -17,7 +16,7 @@
 // pre-selects that avenue; a new ?pr= resets every filter.
 // ─────────────────────────────────────────────────────────────────────────────
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { useLocation } from '@/site/router.js'
+import { useLocation } from 'react-router-dom'
 import { useClub, useProjectsData, withYear, formatMoney, useProjectFacets, useAllYearsTotals } from '../../_shared/data.js'
 import {
   PageHero, SectionHead, ChipGroup, SearchField, ResultCount, PhotoCard, StatRow, EmptyState, Loading, Button,
@@ -72,14 +71,14 @@ function Select({ id, label, value, onChange, disabled, all, options }) {
   )
 }
 
-export default function Projects({ data }) {
+export default function Projects() {
   const club = useClub()
   const location = useLocation()
   const pr = (new URLSearchParams(location.search).get('pr') || '').trim().toUpperCase()
   const isMeetings = pr === 'CE'
   // this year's projects or every year's (client, 2026-10-06) - ?all=1
   const [scope, setScope] = useProjectScope()
-  const d = useProjectsData(isMeetings, scope, data.projects)
+  const d = useProjectsData(isMeetings, scope)
   const { projects, totalCount, avenueTabs } = d
   const cur = club.currency
   const yr = yearText(club.selectedYearLabel)
@@ -147,7 +146,6 @@ export default function Projects({ data }) {
     { value: figs.c, label: 'Total cost', shape: 'pill', tone: 'gold', fmt: (v) => formatMoney(v, (allYears && at && at.currency) || cur) },
     { value: figs.b, label: 'Beneficiaries', shape: 'circle', tone: 'white' },
     allYears ? null : { value: figs.r, label: 'Rotarians involved', shape: 'arch', tone: 'cran' },
-    { value: figs.h, label: 'Man hours', shape: 'square', tone: 'royal' },
   ].filter(Boolean).map((s) => (resting && !s.keep ? { ...s, value: 0, text: '—' } : s))
     .filter((s) => s.keep || resting || s.value > 0)
 

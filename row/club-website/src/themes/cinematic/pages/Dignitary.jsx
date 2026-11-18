@@ -1,4 +1,3 @@
-'use client'
 // ─────────────────────────────────────────────────────────────────────────────
 // CINEMATIC · DIGNITARY — "the feature presentation".
 // One person, presented like the feature: the DESIGNATION is the title card
@@ -12,7 +11,7 @@
 // 4 club president, 5 club secretary; any other number reads as RI President.
 // ─────────────────────────────────────────────────────────────────────────────
 import { useRef } from 'react'
-import { useSearchParams } from '@/site/router.js'
+import { useSearchParams } from 'react-router-dom'
 import { useDignitaryData, usePageTitle } from '../../_shared/data.js'
 import { isPlaceholderPhoto } from '../../_shared/kit.jsx'
 import { PageHero, SectionHead, Button, PersonPhoto, EmptyState, Loading, Arrow, demoteH1 } from '../kit.jsx'
@@ -74,14 +73,14 @@ function Feature({ vm }) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-export default function Dignitary({ data }) {
+export default function Dignitary() {
   const [params] = useSearchParams()
   let type = parseInt(params.get('Type'), 10)
   if (Number.isNaN(type)) type = 1
   const key = type === 2 || type === 4 || type === 5 ? type : 1   // the hook reads every other number as RI President
 
   // Only this person's profile loads (the switcher and the leader cards that needed all four are gone).
-  const vm = useDignitaryData(key, data)
+  const vm = useDignitaryData(key)
 
   usePageTitle(vm.found ? vm.name : 'Dignitaries of Rotary')
   const pageRef = useRef(null)

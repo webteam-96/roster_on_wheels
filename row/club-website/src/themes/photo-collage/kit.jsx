@@ -1,4 +1,3 @@
-'use client'
 // ─────────────────────────────────────────────────────────────────────────────
 // Photo Collage — the theme's reusable pieces (ported from the G sample's
 // vocabulary: taped white prints, kraft tags and memos, stickers, hand-drawn
@@ -10,9 +9,9 @@ import { useCurrentMenuName, usePageTitle, formatMoney, groupInt, formatYear } f
 import { PersonPhoto, imgFallback, hideOnError, useFitNumbers } from '../_shared/kit.jsx'
 import { useScene, refreshSoon, lockScroll, gsap, prefersReducedMotion } from '../_shared/motion.js'
 import { heroIn, heroPhotosIn, DEV0, DEV1 } from './motion.js'
-import { ADMIN_LOGIN_URL } from '@/site/adminUrl.js'
+import { appSettings } from '../../config.js'
 
-export const ADMIN_URL = ADMIN_LOGIN_URL
+export const ADMIN_URL = appSettings.AdminLoginUrl
 
 // ── hand-drawn strokes ──────────────────────────────────────────────────────
 /** Path data from the sample; every stroke is drawn with pathLength=1. */

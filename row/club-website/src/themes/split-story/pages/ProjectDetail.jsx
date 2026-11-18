@@ -1,4 +1,3 @@
-'use client'
 // ─────────────────────────────────────────────────────────────────────────────
 // Split Story · Project detail — one project told as the theme's split. The
 // royal hero carries the title (letters rise), avenue, date and venue, and the
@@ -17,7 +16,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 import { useEffect, useId, useLayoutEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { useLocation } from '@/site/router.js'
+import { useLocation } from 'react-router-dom'
 import {
   useClub, useProjectData, usePageTitle, avenueLabel, groupInt,
   useProjectShare, shareChannels, sharePopup, SHARE_ICONS, PhotoLightbox, LightboxStyles,
@@ -89,8 +88,8 @@ function Photos({ photos, captions, onOpen }) {
   )
 }
 
-// ── the share row (on the gold band) ─────────────────────────────────────────
-function ShareRow({ channels }) {
+// ── the share row (on the gold band; also on the event page) ─────────────────
+export function ShareRow({ channels }) {
   return (
     <ul className="spl-pd-share">
       {channels.map((ch) => {
@@ -206,7 +205,7 @@ function UpdateDialog({ c, currency, at, lbOpen, onClose, onPhoto }) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-export default function ProjectDetail({ data }) {
+export default function ProjectDetail() {
   const club = useClub()
   const loc = useLocation()
   const params = new URLSearchParams(loc.search)
@@ -217,7 +216,7 @@ export default function ProjectDetail({ data }) {
   const backLabel = fromMeetings ? 'Back to Club Services' : 'Back to all projects'
 
   // demoChild (the local ?demoChild=1 preview) needs isLocalRequest, which data.js does not export.
-  const { p, notFound } = useProjectData(pid, false, data)
+  const { p, notFound } = useProjectData(pid, false)
   usePageTitle(notFound ? 'Project not found' : (p ? p.title : null))
 
   const share = useProjectShare({
@@ -316,6 +315,7 @@ export default function ProjectDetail({ data }) {
     p.dateText && ['Date', p.dateText],
     year && ['Rotary year', year],
     p.location && ['Venue', p.location],
+    p.president && [p.president.role, p.president.name],
   ].filter(Boolean)
 
   const rail = ['The project', figs.length && 'Impact', kids.length && 'Updates', photos.length > 1 && 'Photos'].filter(Boolean)

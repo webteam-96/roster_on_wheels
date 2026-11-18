@@ -1,4 +1,3 @@
-'use client'
 // ─────────────────────────────────────────────────────────────────────────────
 // PHOTO COLLAGE · DIRECTORS — the board pinned into the scrapbook.
 //
@@ -27,10 +26,10 @@ const SEARCH_FROM = 7
 const TILT = [-3, 2, -1, 3]
 const hasPhoto = (d) => !isPlaceholderPhoto(d.img)
 
-export default function Directors({ data }) {
+export default function Directors() {
   const club = useClub()
   const name = usePageName('Directors')
-  const directors = useDirectorsData(data)            // null while loading; board order already sorted
+  const directors = useDirectorsData()            // null while loading; board order already sorted
   const [query, setQuery] = useState('')
   const rootRef = useRef(null)
   const gridRef = useRef(null)

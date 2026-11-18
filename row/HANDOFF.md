@@ -86,6 +86,34 @@ sheet (PENDING-WORK §11a; Settings > Features; e2e `kb/tools/feature_gate_e2e.p
   sites tsc 0; e2e on `row_prod_copy`: the 10 new suites, `scope_read_guard`, `feature_gate` (now takes the DB name
   as 3rd argument) all PASS.
 
+## Resume here (stopped 2026-11-17 19:25, owner: "resume tomorrow")
+
+**Done on 17 Nov evening (NOT committed; owner commits only when asked):**
+- UTC migration ran on `row_production` (restored from `_local/backups/row_production-2026-11-17-pre-utc-final.sql`
+  after a half Workbench import, then migrated once; marker `row_utc_migration` 13:07 UTC). Glossary SQL re-run
+  (32,466). API started by owner; health 200. Owner should restart the API once more so the glossary cache reloads.
+- QA bugs (OMS, Aditya): #2 dashboard back 404 fixed (`withBase` in HeaderAdminDashboardLink + DashboardSwitcher);
+  #4 app BOD non-member current year in 5656 (`board_of_directors_screen.dart`, ROW-51 rule); #1 no email = Brevo
+  key not set (not code); #3 ROW Test Club missing = 5656 district admins have AllClubsAccess=0 (owner to decide).
+- **Club website replaced** by the owner's Vite app (see ROW-CHANGES "Club website replaced"): RIZones pages /
+  URLs / phone removed, Madras club ids emptied, DOMPurify sanitising in `src/lib/http.js`, ROW `.env.production`,
+  `public/web.config`, README. Checked: build OK; 13 themes x 13 pages (1440) + 4 pages (375) against prod public API
+  read-only: 212/221 ok, the rest = old-year 500 (fixed below), local-origin CORS artefact, HJ /gallery redirect
+  (by design). Gate pages /expired and /not-configured OK. Sanitiser tested with attack strings.
+- API fix: `IYearTableResolver.ResolveExistingByYearIdAsync` (old Rotary years without year tables returned 500 on
+  public meetings / v2/projects / v2/impact); used in the 5 public read controllers. `dotnet test` 92 pass.
+- Deploy folder rebuilt: `_local/deploy-2026-11-17/` = `api/` (with the year fix), `admin/`, `root/`,
+  `club-website/` (static, upload contents to the club-websites IIS site). No web.config / appsettings / .env in api.
+
+**Next:**
+1. Server config (owner): `FrontendUrl` in the server's `api\web.config` must be `https://test.rosteronwheels.com/admin`
+   (pay, reset-password, invite links now 404 at the root). Leave `ClubSite__PurgeSecret` unset.
+2. Owner uploads `_local/deploy-2026-11-17/api` (year fix) and, when wildcard DNS exists, `club-website/`.
+3. Club website open items: link previews (crawler meta endpoint + IIS rule) not built. 18 Nov: support contact
+   set, Handloom released (owner must run `database/maintenance/2026-11-18-club-theme-handloom.sql` on production); many old event/banner images 404 on the server (files never uploaded, data only).
+4. `bash kb/rebuild.sh` (club-website changed completely), then commit when the owner says so.
+5. OMS: update the 4 QA bugs once the owner decides on #3; ROW Sprint 1 move needs a PM account.
+
 ## Next task (2026-11-17)
 
 1. **UTC window on production**, when the owner says the site is stopped: check no other DB sessions, run

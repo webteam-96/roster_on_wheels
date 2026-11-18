@@ -1,4 +1,3 @@
-'use client'
 // ─────────────────────────────────────────────────────────────────────────────
 // CINEMATIC · NEWSLETTERS — the press kit.
 //
@@ -37,10 +36,10 @@ function ReadButton({ n, ...rest }) {
   )
 }
 
-export default function Newsletters({ data }) {
+export default function Newsletters() {
   const club = useClub()
   const title = usePageName('Newsletters')
-  const items = useNewslettersData(data)             // null while loading, newest first
+  const items = useNewslettersData()             // null while loading, newest first
   const [query, setQuery] = useState('')
   const ref = useRef(null)
 

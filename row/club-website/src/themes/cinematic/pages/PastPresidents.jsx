@@ -1,4 +1,3 @@
-'use client'
 // ─────────────────────────────────────────────────────────────────────────────
 // CINEMATIC · PAST PRESIDENTS — the credits roll.
 //
@@ -28,10 +27,10 @@ import './PastPresidents.css'
 /** "2025-26" -> "2025–26" (display only; search matches the label as filed). */
 const dash = (s) => String(s || '').replace(/-/g, '–')
 
-export default function PastPresidents({ data }) {
+export default function PastPresidents() {
   const club = useClub()
   const title = usePageName('Past Presidents')
-  const list = usePastPresidentsData(data)          // null while loading; newest first
+  const list = usePastPresidentsData()          // null while loading; newest first
   const [query, setQuery] = useState('')
   const rollRef = useRef(null)
   const searchRef = useRef(null)

@@ -1,4 +1,3 @@
-'use client'
 // ─────────────────────────────────────────────────────────────────────────────
 // PHOTO COLLAGE · NEWSLETTERS — the clipboard.
 //
@@ -27,10 +26,10 @@ const titleOf = (n) => cleanText(n.title) || 'Newsletter'
 /** "August 2026" -> "Aug 2026" for the filter chips ("Undated" stays). */
 const shortMonth = (label) => (/^\S+ \d{4}$/.test(label) ? label.slice(0, 3) + label.slice(label.indexOf(' ')) : label)
 
-export default function Newsletters({ data }) {
+export default function Newsletters() {
   const club = useClub()
   const name = usePageName('Newsletters')
-  const items = useNewslettersData(data)           // null while loading; newest first
+  const items = useNewslettersData()           // null while loading; newest first
   const [query, setQuery] = useState('')       // what the field shows
   const [q, setQ] = useState('')               // what the list shows: the query once typing pauses
   const [month, setMonth] = useState('')       // '' = every month

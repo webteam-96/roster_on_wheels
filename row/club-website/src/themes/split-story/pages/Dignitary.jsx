@@ -1,4 +1,3 @@
-'use client'
 // ─────────────────────────────────────────────────────────────────────────────
 // Split Story · Dignitary — one leader's profile, told as the theme's split.
 // The name rises letter by letter in the royal hero; the portrait opens through
@@ -11,7 +10,7 @@
 // 2 District Governor, 4 Club President, 5 Club Secretary.
 // ─────────────────────────────────────────────────────────────────────────────
 import { useRef } from 'react'
-import { useSearchParams } from '@/site/router.js'
+import { useSearchParams } from 'react-router-dom'
 import { useClub, useDignitaryData, usePageTitle, withYear, plainText } from '../../_shared/data.js'
 import { PageHero, SectionHead, Split, Chapter, fig, Button, PersonCard, EmptyState, Loading, PersonPhoto, excerpt, yearText } from '../kit.jsx'
 import { useScene, useRefreshOnImages, gsap, revealBatch, photosIn, irisOnce } from '../motion.js'
@@ -38,7 +37,7 @@ function MoreLeaders({ items, yearId }) {
   )
 }
 
-export default function Dignitary({ data }) {
+export default function Dignitary() {
   const club = useClub()
   const [params] = useSearchParams()
   let type = parseInt(params.get('Type'), 10)
@@ -47,7 +46,7 @@ export default function Dignitary({ data }) {
   const t = TYPES.indexOf(type) >= 0 ? type : 1
 
   // Always the same four hooks (constant order); the page's own profile is one of them.
-  const all = { 1: useDignitaryData(1, data), 2: useDignitaryData(2, data), 4: useDignitaryData(4, data), 5: useDignitaryData(5, data) }
+  const all = { 1: useDignitaryData(1), 2: useDignitaryData(2), 4: useDignitaryData(4), 5: useDignitaryData(5) }
   const vm = all[t]
   const more = TYPES.filter((k) => k !== t && all[k].found).map((k) => ({ ...all[k], type: k }))
 

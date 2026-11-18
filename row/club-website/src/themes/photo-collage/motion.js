@@ -1,4 +1,3 @@
-'use client'
 // ─────────────────────────────────────────────────────────────────────────────
 // Photo Collage — the theme's signature motions, as helpers on _shared/motion.js.
 //

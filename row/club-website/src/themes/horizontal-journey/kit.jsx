@@ -1,4 +1,3 @@
-'use client'
 // ─────────────────────────────────────────────────────────────────────────────
 // HORIZONTAL JOURNEY — the theme's reusable pieces (read DESIGN.md first).
 //

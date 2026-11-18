@@ -1,4 +1,3 @@
-'use client'
 // ─────────────────────────────────────────────────────────────────────────────
 // HORIZONTAL JOURNEY · PAST PRESIDENTS — the walk back through the years.
 //
@@ -74,9 +73,9 @@ function President({ p, first }) {
   )
 }
 
-export default function PastPresidents({ data }) {
+export default function PastPresidents() {
   const club = useClub()
-  const list = usePastPresidentsData(data)      // null while loading; newest first
+  const list = usePastPresidentsData()      // null while loading; newest first
   const [query, setQuery] = useState('')
   const tall = useMedia('(min-height: 620px)')
   const rootRef = useRef(null)

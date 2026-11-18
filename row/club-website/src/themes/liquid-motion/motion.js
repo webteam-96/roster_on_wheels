@@ -1,4 +1,3 @@
-'use client'
 // ─────────────────────────────────────────────────────────────────────────────
 // LIQUID MOTION — the theme's signature motions, as small helpers on top of
 // _shared/motion.js. Every helper is meant to be called INSIDE a useScene()

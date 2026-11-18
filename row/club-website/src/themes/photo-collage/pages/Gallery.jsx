@@ -1,4 +1,3 @@
-'use client'
 // ─────────────────────────────────────────────────────────────────────────────
 // Photo Collage · Gallery — the year's photos as scrapbook contact sheets.
 //
@@ -10,7 +9,7 @@
 // Contract = GalleryGold: ?page=<n>, GALLERY_PAGE_SIZE per page, pager links.
 // ─────────────────────────────────────────────────────────────────────────────
 import { useEffect, useRef, useState } from 'react'
-import { useSearchParams } from '@/site/router.js'
+import { useSearchParams } from 'react-router-dom'
 import { useClub, useGalleryData, GALLERY_PAGE_SIZE, withYear, groupInt, PhotoLightbox, LightboxStyles } from '../../_shared/data.js'
 import { hideOnError } from '../../_shared/kit.jsx'
 import { gsap, useScene, useRefreshOnImages, scrollToY, prefersReducedMotion, house, captionIn } from '../motion.js'
@@ -47,13 +46,13 @@ function pageList(cur, total) {
   return out
 }
 
-export default function Gallery({ data }) {
+export default function Gallery() {
   const club = useClub()
   const name = usePageName('Gallery')
   const [params] = useSearchParams()
   let page = parseInt(params.get('page'), 10)
   if (Number.isNaN(page) || page < 1) page = 1
-  const g = useGalleryData(page, data)
+  const g = useGalleryData(page)
   const Y = yearDash(club.selectedYearLabel)
   const yearId = club.selectedYearId
 

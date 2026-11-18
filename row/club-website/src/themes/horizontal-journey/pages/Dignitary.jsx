@@ -1,4 +1,3 @@
-'use client'
 // ─────────────────────────────────────────────────────────────────────────────
 // HORIZONTAL JOURNEY · DIGNITARY — a portrait at dusk.
 //
@@ -20,7 +19,7 @@
 // Personal email/phone are never shown (the shared page shows none either).
 // ─────────────────────────────────────────────────────────────────────────────
 import { useRef } from 'react'
-import { useSearchParams } from '@/site/router.js'
+import { useSearchParams } from 'react-router-dom'
 import { useClub, useDignitaryData, withYear, currentRotaryYearLabel } from '../../_shared/data.js'
 import { PageHero, SectionHead, Band, Button, Portrait, EmptyState, Loading, Ridge, htmlText, cut, yearText } from '../kit.jsx'
 import { gsap, useScene, afterFonts, titleIn, rise, revealBatch, archOpen, useRefreshOnImages } from '../motion.js'
@@ -28,7 +27,7 @@ import './Dignitary.css'
 
 const TYPES = [1, 2, 4, 5]
 
-export default function Dignitary({ data }) {
+export default function Dignitary() {
   const [params] = useSearchParams()
   let type = parseInt(params.get('Type'), 10)
   if (Number.isNaN(type)) type = 1
@@ -36,10 +35,10 @@ export default function Dignitary({ data }) {
   const cur = TYPES.includes(type) ? type : 1
 
   const club = useClub()
-  const ri = useDignitaryData(1, data)
-  const dg = useDignitaryData(2, data)
-  const pres = useDignitaryData(4, data)
-  const sec = useDignitaryData(5, data)
+  const ri = useDignitaryData(1)
+  const dg = useDignitaryData(2)
+  const pres = useDignitaryData(4)
+  const sec = useDignitaryData(5)
   const byType = { 1: ri, 2: dg, 4: pres, 5: sec }
   const vm = byType[cur]
 

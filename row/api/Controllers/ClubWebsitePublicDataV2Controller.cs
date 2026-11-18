@@ -252,7 +252,7 @@ public class ClubWebsitePublicDataV2Controller : ControllerBase
         string? yearLabel = null;
         if (yearId.HasValue && yearId.Value > 0)
         {
-            var info = await _yearTables.ResolveByYearIdAsync(conn, yearId.Value);
+            var info = await _yearTables.ResolveExistingByYearIdAsync(conn, yearId.Value);
             if (info == null)
             {
                 // Year exists in the master but has no year-wise table yet — nothing to sum.
@@ -637,7 +637,7 @@ public class ClubWebsitePublicDataV2Controller : ControllerBase
         if (!await IsClubServiceableAsync(conn, clubId)) return NotFound();
 
         var tables = (yearId.HasValue && yearId.Value > 0)
-            ? new List<YearTableInfo> { (await _yearTables.ResolveByYearIdAsync(conn, yearId.Value)) }
+            ? new List<YearTableInfo> { (await _yearTables.ResolveExistingByYearIdAsync(conn, yearId.Value)) }
                 .Where(t => t != null).Cast<YearTableInfo>().ToList()
             : await _yearTables.GetAllExistingYearTablesAsync(conn);
 
@@ -747,7 +747,7 @@ public class ClubWebsitePublicDataV2Controller : ControllerBase
 
         // Year tables to scan — same logic as v1
         List<YearTableInfo> tables = (yearId.HasValue && yearId.Value > 0)
-            ? new List<YearTableInfo> { (await _yearTables.ResolveByYearIdAsync(conn, yearId.Value)) }
+            ? new List<YearTableInfo> { (await _yearTables.ResolveExistingByYearIdAsync(conn, yearId.Value)) }
                 .Where(t => t != null).Cast<YearTableInfo>().ToList()
             : await _yearTables.GetAllExistingYearTablesAsync(conn);
         if (tables.Count == 0) return Ok(Array.Empty<V2ProjectDto>());

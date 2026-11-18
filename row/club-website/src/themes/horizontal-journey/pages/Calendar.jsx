@@ -1,4 +1,3 @@
-'use client'
 // ─────────────────────────────────────────────────────────────────────────────
 // HORIZONTAL JOURNEY · Calendar — a month is a day's walk.
 //
@@ -22,10 +21,10 @@
 // links, the day filter is local state re-armed on every month/date change.
 // ─────────────────────────────────────────────────────────────────────────────
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { useLocation } from '@/site/router.js'
+import { useLocation } from 'react-router-dom'
 import { useCalendarData, monthName, fullDayLabelOf } from '../../_shared/data.js'
 // ponytail: Gold's URL rule (?month=/?date=) is not re-exported by _shared/data.js yet (sharedRequest) — imported, never re-implemented.
-import { resolveContext, addMonths } from '@/themes/shared/pages/AllSpecialDates.jsx'
+import { resolveContext, addMonths } from '../../../pages/AllSpecialDates.jsx'
 import { PageHero, Button, EmptyState, Loading, Ridge, PersonPhoto, IconArrow, IconBack } from '../kit.jsx'
 import { useScene, afterFonts, gsap, split, rise } from '../motion.js'
 import './Calendar.css'
@@ -83,12 +82,12 @@ function MonthNav({ year, month, isNow }) {
   )
 }
 
-export default function Calendar({ data }) {
+export default function Calendar() {
   const location = useLocation()
   const today = useMemo(() => new Date(), [])
   const ctx = useMemo(() => resolveContext(location.search, today), [location.search, today])
   const { year, month } = ctx
-  const d = useCalendarData(year, month, data)
+  const d = useCalendarData(year, month)
 
   // The ?date= deep link pre-selects a day; 0 = the whole month. Re-armed on every
   // month/date change (Gold's rule) — derived, so no render ever pairs a new month

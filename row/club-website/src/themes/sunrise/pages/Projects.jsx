@@ -1,4 +1,3 @@
-'use client'
 // ─────────────────────────────────────────────────────────────────────────────
 // SUNRISE · PROJECTS — the year's work, dealt onto the sky.
 //
@@ -17,7 +16,7 @@
 // (no tabs, no figures, detail links carry &pr=CE so "back" returns here).
 // ─────────────────────────────────────────────────────────────────────────────
 import { useEffect, useId, useMemo, useRef, useState } from 'react'
-import { useLocation } from '@/site/router.js'
+import { useLocation } from 'react-router-dom'
 import { useClub, useProjectsData, withYear, formatMoney, useProjectFacets, useAllYearsTotals } from '../../_shared/data.js'
 import { PageHero, Card, Button, Chips, SearchField, StatRow, EmptyState, Loading, excerpt, noEmoji, yearText } from '../kit.jsx'
 import { useScene, useRefreshOnImages, revealBatch, tiltRise } from '../motion.js'
@@ -25,9 +24,9 @@ import './Projects.css'
 import { ScopeSwitch, useProjectScope } from '../../_shared/kit.jsx'
 
 const PAGE = 20
-const STAT_LABELS = ['Total cost', 'Beneficiaries', 'Rotarians involved', 'Man hours']
+const STAT_LABELS = ['Total cost', 'Beneficiaries', 'Rotarians involved']   // man hours: project page only (client, 2026-11-17)
 
-export default function Projects({ data }) {
+export default function Projects() {
   const club = useClub()
   const loc = useLocation()
   const pr = (new URLSearchParams(loc.search).get('pr') || '').trim().toUpperCase()
@@ -37,7 +36,7 @@ export default function Projects({ data }) {
 
   // this year's projects or every year's (client, 2026-10-06) - ?all=1
   const [scope, setScope] = useProjectScope()
-  const d = useProjectsData(isMeetings, scope, data.projects)
+  const d = useProjectsData(isMeetings, scope)
   const { projects, totalCount, avenueTabs } = d
 
   const [avenue, setAvenue] = useState(initialAvenue)
@@ -159,12 +158,11 @@ export default function Projects({ data }) {
   const figs = allYears ? { c: at ? at.c : 0, b: at ? at.b : 0, r: 0, h: at ? at.h : 0 } : totals
   const countItem = { label: matched.length === 1 ? 'Project' : 'Projects', value: matched.length }
   const stats = [countItem].concat(loadingStats
-    ? (allYears ? [STAT_LABELS[0], STAT_LABELS[1], STAT_LABELS[3]] : STAT_LABELS).map((label) => ({ label, text: '…' }))
+    ? (allYears ? [STAT_LABELS[0], STAT_LABELS[1]] : STAT_LABELS).map((label) => ({ label, text: '…' }))
     : [
         figs.c > 0 ? { label: STAT_LABELS[0], text: formatMoney(figs.c, (allYears && at && at.currency) || cur) } : null,
         { label: STAT_LABELS[1], value: figs.b },
         allYears ? null : { label: STAT_LABELS[2], value: figs.r },
-        { label: STAT_LABELS[3], value: figs.h },
       ].filter(Boolean))
   const filteredNow = !!(avenue || area || sub || sc || type || query.trim())
 

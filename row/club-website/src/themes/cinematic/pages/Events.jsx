@@ -1,4 +1,3 @@
-'use client'
 // ─────────────────────────────────────────────────────────────────────────────
 // CINEMATIC · EVENTS — "coming attractions".
 // The next event is the feature on the marquee: a royal ticket whose poster
@@ -21,9 +20,9 @@ const has = (v) => v && String(v).trim()
 const today0 = () => { const d = new Date(); d.setHours(0, 0, 0, 0); return d.getTime() }
 
 /** The home's rule (homeData): a record filed at exactly midnight has no time. */
-function timeOf(ts, zone) {
+function timeOf(ts) {
   const d = new Date(ts)
-  return d.getHours() || d.getMinutes() || d.getSeconds() ? formatTime(d, zone) : ''
+  return d.getHours() || d.getMinutes() || d.getSeconds() ? formatTime(d) : ''
 }
 
 /** "Today" / "Tomorrow" / "In 17 days" (Gold's countdown). Empty once it has passed. */
@@ -39,7 +38,6 @@ function countdown(ts) {
 
 // ── the feature: next up, a royal ticket ─────────────────────────────────────
 function NextUp({ ev }) {
-  const club = useClub()
   const ref = useRef(null)
   const [broken, setBroken] = useState(false)
   const shot = ev.img && !broken
@@ -55,7 +53,7 @@ function NextUp({ ev }) {
     if (c.wide) parallax(root.querySelector('.cin-ev-next__fill'), { amount: 8, trigger: root })
   }, [ev.id, shot])
 
-  const time = timeOf(ev.ts, club.timeZone)
+  const time = timeOf(ev.ts)
   const near = countdown(ev.ts)
   const text = cutText(plainText(ev.desc), 240)
   const title = ev.title || 'Club event'
@@ -100,8 +98,7 @@ function NextUp({ ev }) {
 
 // ── one programme row: slate date | title, time, venue | still | arrow ───────
 function Row({ ev, past }) {
-  const club = useClub()
-  const time = timeOf(ev.ts, club.timeZone)
+  const time = timeOf(ev.ts)
   const title = ev.title || 'Club event'
   return (
     <li className={'cin-ev-row' + (past ? ' is-past' : '')}>
@@ -229,10 +226,10 @@ function Nothing({ yearLabel }) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-export default function Events({ data }) {
+export default function Events() {
   const club = useClub()
   const name = usePageName('Upcoming Events')
-  const events = useEventsData(data)                 // null while loading
+  const events = useEventsData()                 // null while loading
   const yearLabel = yearText(club.selectedYearLabel)
 
   // The hook's order (this Rotary year, by date) is kept; anything already

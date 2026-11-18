@@ -1,4 +1,3 @@
-'use client'
 // ─────────────────────────────────────────────────────────────────────────────
 // SUNRISE · PROJECT DETAIL — the project seen through the window.
 //
@@ -20,14 +19,14 @@
 // ─────────────────────────────────────────────────────────────────────────────
 import { useEffect, useId, useLayoutEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { useLocation } from '@/site/router.js'
+import { useLocation } from 'react-router-dom'
 import {
   useClub, useProjectData, avenueLabel, groupInt, plainText,
   useProjectShare, shareChannels, sharePopup, SHARE_ICONS, PhotoLightbox, LightboxStyles,
 } from '../../_shared/data.js'
 import {
   PageHero, SectionHead, StatRow, Button, Panel, NotFound, Loading, DateSun, WinSlide, SlideCtrl, useSlides,
-  noEmoji, demoteH1, Arrow, SearchIcon, CloseIcon, PinIcon, CalendarIcon, hideOnError, yearText,
+  noEmoji, demoteH1, Arrow, SearchIcon, CloseIcon, PinIcon, CalendarIcon, PersonIcon, hideOnError,
 } from '../kit.jsx'
 import {
   gsap, ScrollTrigger, useScene, useRefreshOnImages, flyTitle, focusPull, revealBatch, tiltRise,
@@ -135,7 +134,37 @@ function UpdatePanel({ c, currency, lbOpen, onClose, onPhoto }) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-export default function ProjectDetail({ data }) {
+/** The share channel buttons (project + event pages). */
+export function ShareList({ channels }) {
+  return (
+    <ul className="sun-pd-share">
+      {channels.map((ch) => {
+        const glyph = (
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"
+               fill={ch.fill && !ch.done ? 'currentColor' : 'none'} stroke={ch.fill && !ch.done ? 'none' : 'currentColor'}
+               strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            {ch.done ? SHARE_ICONS.check : ch.icon}
+          </svg>
+        )
+        const newTab = !!ch.href && ch.key !== 'mail'
+        return (
+          <li key={ch.key}>
+            {ch.href ? (
+              <a href={ch.href} aria-label={ch.label + (newTab ? ' (opens in a new tab)' : '')} title={ch.label}
+                 target={newTab ? '_blank' : undefined} rel={newTab ? 'noopener noreferrer' : undefined}
+                 onClick={ch.popup ? sharePopup : undefined}>{glyph}</a>
+            ) : (
+              <button type="button" aria-label={ch.label} title={ch.label} onClick={ch.onClick}>{glyph}</button>
+            )}
+            {ch.doneLabel ? <span className={'sun-pd-share__toast' + (ch.done ? ' is-on' : '')} aria-live="polite">{ch.done ? ch.doneLabel : ''}</span> : null}
+          </li>
+        )
+      })}
+    </ul>
+  )
+}
+
+export default function ProjectDetail() {
   const club = useClub()
   const loc = useLocation()
   const params = new URLSearchParams(loc.search)
@@ -146,7 +175,7 @@ export default function ProjectDetail({ data }) {
   const backLabel = fromMeetings ? 'Back to Club Services' : 'Back to all projects'
 
   // demoChild (the local ?demoChild=1 preview) needs isLocalRequest, which data.js does not export.
-  const { p, notFound } = useProjectData(pid, false, data)
+  const { p, notFound } = useProjectData(pid, false)
 
   const share = useProjectShare({
     projectId: p ? p.id : 0,
@@ -270,7 +299,12 @@ export default function ProjectDetail({ data }) {
   const title = noEmoji(p.title) || 'Project'
   // what the old eyebrow said (the page head is crumbs + h1 only now)
   const kind = avenueLabel(p.moduleKey) || (fromMeetings ? 'Club service' : '')
-  const year = yearText(club.selectedYearLabel)
+  // the record under the page head: date, place, the year's President (no Rotary year - client, 2026-11-03)
+  const rec = [
+    p.dateText && { k: 'date', icon: <CalendarIcon />, label: 'Date', value: p.dateText },
+    p.location && { k: 'loc', icon: <PinIcon />, label: 'Location', value: p.location },
+    p.president && { k: 'pres', icon: <PersonIcon />, label: p.president.role, value: p.president.name },
+  ].filter(Boolean)
   const html = demoteH1(p.description).trim()
   const showHtml = hasBody(html)
   const figs = [
@@ -296,13 +330,21 @@ export default function ProjectDetail({ data }) {
         menuTitle={false}
         crumbs={[{ label: listLabel, href: backHref }, { label: title }]}
       >
-        {kind || p.dateText || p.location || year ? (
-          <ul className="sun-pd-facts">
-            {kind ? <li className="sun-pd-facts__kind">{kind}</li> : null}
-            {p.dateText ? <li><CalendarIcon /><span className="sun-sr">Date: </span>{p.dateText}</li> : null}
-            {p.location ? <li><PinIcon /><span className="sun-sr">Location: </span>{p.location}</li> : null}
-            {year ? <li className="sun-pd-facts__yr">Rotary year <b>{year}</b></li> : null}
-          </ul>
+        {kind || rec.length ? (
+          <div className="sun-pd-rec">
+            {kind ? <p className="sun-pd-rec__kind">{kind}</p> : null}
+            {rec.length ? (
+              <dl className="sun-pd-rec__list">
+                {rec.map((f) => (
+                  <div className="sun-pd-rec__f" key={f.k}>
+                    <span className="sun-pd-rec__ico" aria-hidden="true">{f.icon}</span>
+                    <dt>{f.label}</dt>
+                    <dd>{f.value}</dd>
+                  </div>
+                ))}
+              </dl>
+            ) : null}
+          </div>
         ) : null}
       </PageHero>
 
@@ -415,30 +457,7 @@ export default function ProjectDetail({ data }) {
           {channels.length ? (
             <div className="sun-pd-end__share">
               <h2 className="sun-eyebrow" id={uid + 's'}>Share this project</h2>
-              <ul className="sun-pd-share">
-                {channels.map((ch) => {
-                  const glyph = (
-                    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"
-                         fill={ch.fill && !ch.done ? 'currentColor' : 'none'} stroke={ch.fill && !ch.done ? 'none' : 'currentColor'}
-                         strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      {ch.done ? SHARE_ICONS.check : ch.icon}
-                    </svg>
-                  )
-                  const newTab = !!ch.href && ch.key !== 'mail'
-                  return (
-                    <li key={ch.key}>
-                      {ch.href ? (
-                        <a href={ch.href} aria-label={ch.label + (newTab ? ' (opens in a new tab)' : '')} title={ch.label}
-                           target={newTab ? '_blank' : undefined} rel={newTab ? 'noopener noreferrer' : undefined}
-                           onClick={ch.popup ? sharePopup : undefined}>{glyph}</a>
-                      ) : (
-                        <button type="button" aria-label={ch.label} title={ch.label} onClick={ch.onClick}>{glyph}</button>
-                      )}
-                      {ch.doneLabel ? <span className={'sun-pd-share__toast' + (ch.done ? ' is-on' : '')} aria-live="polite">{ch.done ? ch.doneLabel : ''}</span> : null}
-                    </li>
-                  )
-                })}
-              </ul>
+              <ShareList channels={channels} />
             </div>
           ) : <h2 className="sun-sr" id={uid + 's'}>More</h2>}
           <Button href={backHref} variant="line" icon="back">{backLabel}</Button>

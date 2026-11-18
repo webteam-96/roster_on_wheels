@@ -1,4 +1,3 @@
-'use client'
 // ─────────────────────────────────────────────────────────────────────────────
 // SPLIT STORY · CALENDAR — the month told day by day.
 //
@@ -19,10 +18,10 @@
 // (?month=yyyy-MM, ?date=yyyy-MM-dd) parsed by the same resolveContext Gold uses.
 // ─────────────────────────────────────────────────────────────────────────────
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { useLocation } from '@/site/router.js'
+import { useLocation } from 'react-router-dom'
 // The /calendar query contract. Gold imports it from this module; _shared/data.js
 // does not re-export it yet (see sharedRequests) — imported, never copied.
-import { resolveContext, addMonths } from '@/themes/shared/pages/AllSpecialDates.jsx'
+import { resolveContext, addMonths } from '../../../pages/AllSpecialDates.jsx'
 import {
   useClub, useCalendarData, usePageTitle, useCurrentMenuName, monthName, fullDayLabelOf, withYear,
 } from '../../_shared/data.js'
@@ -55,7 +54,7 @@ const Rings = () => (
   <svg {...ico}><circle cx="9" cy="14" r="5.5" /><circle cx="15" cy="14" r="5.5" /><path d="M10.5 3h3L12 6z" /></svg>
 )
 
-export default function Calendar({ data }) {
+export default function Calendar() {
   const club = useClub()
   const location = useLocation()
   const menuName = useCurrentMenuName()
@@ -65,7 +64,7 @@ export default function Calendar({ data }) {
   const today = useMemo(() => new Date(), [])
   const ctx = useMemo(() => resolveContext(location.search, today), [location.search, today])
   const { year, month } = ctx
-  const d = useCalendarData(year, month, data)
+  const d = useCalendarData(year, month)
 
   // ?date= pre-selects a day; 0 = the whole month. Re-armed on every month change (as Gold).
   const [sel, setSel] = useState(ctx.selectedDay || 0)

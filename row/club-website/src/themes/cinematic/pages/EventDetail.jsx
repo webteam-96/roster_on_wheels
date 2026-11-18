@@ -1,4 +1,3 @@
-'use client'
 // ─────────────────────────────────────────────────────────────────────────────
 // CINEMATIC · EVENT DETAIL — the ticket, torn off.
 // The hero projects a blurred copy of the poster behind the title; below it the
@@ -10,8 +9,9 @@
 // Data: useEventData(id) only (goldData.useEventGold: upcoming feed, then past).
 // ─────────────────────────────────────────────────────────────────────────────
 import { useRef, useState } from 'react'
-import { useLocation } from '@/site/router.js'
-import { useEventData, usePageTitle, PhotoLightbox, LightboxStyles } from '../../_shared/data.js'
+import { useLocation } from 'react-router-dom'
+import { useEventData, useEventShare, shareChannels, usePageTitle, PhotoLightbox, LightboxStyles } from '../../_shared/data.js'
+import { ShareList } from './ProjectDetail.jsx'
 import { PageHero, Button, DateStamp, NotFound, Loading, ArrowBack, ArrowOut, demoteH1, useModal } from '../kit.jsx'
 import { gsap, useScene, useRefreshOnImages, riseIn, projectorOpen, parallax } from '../motion.js'
 import './EventDetail.css'
@@ -24,8 +24,9 @@ const timeOf = (when) => {
   return t === '12:00 AM' ? '' : t
 }
 
-function Detail({ ev }) {
+function Detail({ ev, id }) {
   const ref = useRef(null)
+  const channels = shareChannels(useEventShare(ev, id)).filter((ch) => ch.href || ch.onClick)
   const shotRef = useRef(null)
   const [broken, setBroken] = useState(false)
   const [lb, setLb] = useState(null)
@@ -38,7 +39,7 @@ function Detail({ ev }) {
   useScene(ref, (c) => {
     const root = ref.current
     riseIn(root.querySelectorAll('.cin-evd-stub > *'), { trigger: false, delay: 0.45, stagger: 0.08 })
-    riseIn(root.querySelectorAll('.cin-evd-copy, .cin-evd-back'), { stagger: 0.1 })
+    riseIn(root.querySelectorAll('.cin-evd-copy, .cin-evd-share, .cin-evd-back'), { stagger: 0.1 })
     const screen = root.querySelector('.cin-evd-screen')
     if (screen) {
       // on phones the poster sits below the stub, so the projector waits until it is on screen
@@ -106,6 +107,13 @@ function Detail({ ev }) {
           </section>
         ) : null}
 
+        {channels.length ? (
+          <section className="cin-evd-share" aria-labelledby="cin-evd-share-h">
+            <h2 className="cin-evd-cap" id="cin-evd-share-h">Share this event</h2>
+            <ShareList channels={channels} />
+          </section>
+        ) : null}
+
         <div className="cin-evd-back">
           <Button href="/events" variant="line"><ArrowBack /> All events</Button>
         </div>
@@ -114,10 +122,10 @@ function Detail({ ev }) {
   )
 }
 
-export default function EventDetail({ data }) {
+export default function EventDetail() {
   const location = useLocation()
   const id = parseInt(new URLSearchParams(location.search).get('id'), 10) || 0
-  const ev = useEventData(id, data)                    // null = loading, false = not found
+  const ev = useEventData(id)                    // null = loading, false = not found
   usePageTitle(ev === false ? 'Event not found' : ev ? ev.title || 'Event' : null)
 
   if (ev === null) return <Loading label="Loading event" />
@@ -132,5 +140,5 @@ export default function EventDetail({ data }) {
       />
     )
   }
-  return <Detail key={id} ev={ev} />
+  return <Detail key={id} ev={ev} id={id} />
 }

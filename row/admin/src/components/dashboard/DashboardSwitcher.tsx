@@ -327,7 +327,7 @@ export default function DashboardSwitcher({ currentKind, onNavigate }: Dashboard
     // For same-kind switches (just a scope change), soft navigation is fine
     // because the layout doesn't change.
     if (entry.kind !== currentKind) {
-      window.location.assign(entry.route);
+      window.location.assign(withBase(entry.route));
     } else {
       router.push(entry.route);
     }

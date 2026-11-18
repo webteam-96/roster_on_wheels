@@ -1,4 +1,3 @@
-'use client'
 // ─────────────────────────────────────────────────────────────────────────────
 // CINEMATIC — the theme's shared vocabulary. Every inner page is built from
 // these (styles in theme.css), so thirteen routes read as one film.
@@ -8,11 +7,11 @@ import { useEffect, useId, useRef, useState } from 'react'
 import { usePageTitle, useCurrentMenuName, socialLabel, externalUrl, formatYear } from '../_shared/data.js'
 import { PersonPhoto, SafeImg, paragraphs, imgFallback, hideOnError, useFitNumbers } from '../_shared/kit.jsx'
 import { useScene, afterFonts, titleIn, pageHeroIn, countUp, cleanups, lockScroll } from './motion.js'
-import { ADMIN_LOGIN_URL } from '@/site/adminUrl.js'
+import { appSettings } from '../../config.js'
 
 export { PersonPhoto, SafeImg, paragraphs, imgFallback, hideOnError }
 
-export const ADMIN_URL = ADMIN_LOGIN_URL
+export const ADMIN_URL = appSettings.AdminLoginUrl
 
 // ── icons ────────────────────────────────────────────────────────────────────
 export const Arrow = () => (
@@ -33,6 +32,11 @@ export const ArrowBack = () => (
 export const Pin = () => (
   <svg className="cin-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false">
     <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" /><circle cx="12" cy="10" r="3" />
+  </svg>
+)
+export const Person = () => (
+  <svg className="cin-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false">
+    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" />
   </svg>
 )
 export const Chevron = () => (

@@ -1,4 +1,3 @@
-'use client'
 // ─────────────────────────────────────────────────────────────────────────────
 // PHOTO COLLAGE · EVENTS — tickets on a string.
 //
@@ -124,11 +123,11 @@ function Month({ g }) {
   )
 }
 
-export default function Events({ data }) {
+export default function Events() {
   const club = useClub()
   const name = usePageName('Upcoming events')
-  const events = useEventsData(data)                 // null while loading; this Rotary year, by date
-  const about = useAboutData(data)                   // the regular meeting, for the empty state
+  const events = useEventsData()                 // null while loading; this Rotary year, by date
+  const about = useAboutData()                   // the regular meeting, for the empty state
   const ref = useRef(null)
 
   const midnight = new Date().setHours(0, 0, 0, 0)

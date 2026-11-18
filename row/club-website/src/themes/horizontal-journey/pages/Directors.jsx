@@ -1,4 +1,3 @@
-'use client'
 // ─────────────────────────────────────────────────────────────────────────────
 // HORIZONTAL JOURNEY · DIRECTORS — the board as a ridge line.
 //
@@ -27,9 +26,9 @@ import './Directors.css'
 /** Arch portrait; aria-hidden by its wrapper because the name is right beside it. */
 const Arch = ({ d }) => <Portrait src={d.img} name={d.name} alt="" />
 
-export default function Directors({ data }) {
+export default function Directors() {
   const club = useClub()
-  const directors = useDirectorsData(data)
+  const directors = useDirectorsData()
   const [query, setQuery] = useState('')
   const ref = useRef(null)
 

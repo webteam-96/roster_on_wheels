@@ -1,4 +1,3 @@
-'use client'
 // ─────────────────────────────────────────────────────────────────────────────
 // HORIZONTAL JOURNEY — the shell (header, menus, footer) for every page.
 //
@@ -10,9 +9,10 @@
 // transformed ancestor would re-anchor them) and no route-enter class.
 // ─────────────────────────────────────────────────────────────────────────────
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
-import { useLocation } from '@/site/router.js'
+import { useLocation } from 'react-router-dom'
 // The shell's one direct API call, exactly as every layout makes it: logos,
 // socials, district and meeting come from v2/about (request-cached).
+import { getAbout } from '../../api/clubService.js'
 import {
   useClub, useMenus, menuHref, menuExternal, socialLabel, LOGO_PLACEHOLDER, routeKey,
   YearSelect, VisitorCount, useThemeShell, useLoader, media, externalUrl, useAboutData,
@@ -20,9 +20,9 @@ import {
 import { useSmoothScroll, lockScroll, gsap, prefersReducedMotion, scrollToEl } from './motion.js'
 import { Ridge, IconOut, yearText } from './kit.jsx'
 import './theme.css'
-import { ADMIN_LOGIN_URL } from '@/site/adminUrl.js'
+import { appSettings } from '../../config.js'
 
-const ADMIN_URL = ADMIN_LOGIN_URL
+const ADMIN_URL = appSettings.AdminLoginUrl
 
 const SOCIAL = {
   facebook: <svg viewBox="0 0 24 24" fill="currentColor"><path d="M13.5 22v-8h2.7l.4-3.2h-3.1V8.8c0-.9.3-1.5 1.6-1.5h1.7V4.4c-.3 0-1.3-.1-2.4-.1-2.4 0-4.1 1.5-4.1 4.2v2.3H7.6V14h2.7v8h3.2z" /></svg>,
@@ -186,9 +186,8 @@ export default function Site({ children }) {
       .map((m) => ({ ...m, subMenus: (m.subMenus || []).filter((s) => s && !isGallery(s.linkType, s.linkValue)) }))
   }, [allMenus])
   const location = useLocation()
-  // The shell's about (lib/pageShell): already for the picked year and in the visitor's language.
-  const about = club.about || null
-  const aboutDone = true
+  const [about, setAbout] = useState(null)
+  const [aboutDone, setAboutDone] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
   const [compact, setCompact] = useState(false)
   const hdrRef = useRef(null)
@@ -202,6 +201,16 @@ export default function Site({ children }) {
   useThemeShell('horizontal-journey', menus.length > 0)
   useLoader(!club.loading)
 
+  useEffect(() => {
+    if (!club.clubId) return undefined
+    let cancelled = false
+    getAbout(club.clubId, club.selectedYearId).then((a) => {
+      if (cancelled) return
+      setAbout(a || null)
+      setAboutDone(true)
+    })
+    return () => { cancelled = true }
+  }, [club.clubId, club.selectedYearId])
 
   const clubName = club.clubDisplayName
   const current = routeKey(location.pathname)

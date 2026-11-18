@@ -1,4 +1,3 @@
-'use client'
 // ─────────────────────────────────────────────────────────────────────────────
 // CINEMATIC · CALENDAR — "the call sheet".
 // The hero carries the month switcher; the month's name rises out of its line
@@ -12,11 +11,11 @@
 // /calendar URL contract (?month=yyyy-MM, ?date=yyyy-MM-dd) exactly as Gold.
 // ─────────────────────────────────────────────────────────────────────────────
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { useLocation } from '@/site/router.js'
+import { useLocation } from 'react-router-dom'
 // The /calendar query contract. Gold imports it from the same module; it is not
 // re-exported by _shared/data.js yet (see sharedRequests), so it is imported
 // here rather than copied — the parse rule stays single-sourced.
-import { resolveContext, addMonths } from '@/themes/shared/pages/AllSpecialDates.jsx'
+import { resolveContext, addMonths } from '../../../pages/AllSpecialDates.jsx'
 import { useCalendarData, monthName } from '../../_shared/data.js'
 import {
   usePageName, PageHero, Button, ChipGroup, ResultCount, StatRow, DateStamp, EmptyState, Loading,
@@ -137,14 +136,14 @@ function Slate({ cat, items, sel, year, month, off }) {
   )
 }
 
-export default function Calendar({ data }) {
+export default function Calendar() {
   const name = usePageName('Calendar')
   const location = useLocation()
   const today = useMemo(() => new Date(), [])
   const ctx = useMemo(() => resolveContext(location.search, today), [location.search, today])
   const { year, month } = ctx
   const mk = year + '-' + month
-  const d = useCalendarData(year, month, data)
+  const d = useCalendarData(year, month)
 
   // For one render after the month changes the hook still holds the previous
   // month's lists; its flags object is only replaced when the new month lands.

@@ -1,4 +1,3 @@
-'use client'
 // ─────────────────────────────────────────────────────────────────────────────
 // HORIZONTAL JOURNEY · NEWSLETTERS — printed covers on the walk.
 //
@@ -60,9 +59,9 @@ function Cover({ nl, tone, latest, decor }) {
   )
 }
 
-export default function Newsletters({ data }) {
+export default function Newsletters() {
   const club = useClub()
-  const items = useNewslettersData(data)            // null while loading, newest first
+  const items = useNewslettersData()            // null while loading, newest first
   const [query, setQuery] = useState('')
   const ref = useRef(null)
 

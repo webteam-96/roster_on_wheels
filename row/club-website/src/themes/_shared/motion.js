@@ -1,4 +1,3 @@
-'use client'
 // ─────────────────────────────────────────────────────────────────────────────
 // Theme 8 family — SPA-safe scroll motion (GSAP + ScrollTrigger + SplitText +
 // Lenis), written once so six themes don't each get the lifecycle wrong.
@@ -16,7 +15,7 @@
 //   - reduced motion: setup code never runs, so nothing is ever hidden
 // ─────────────────────────────────────────────────────────────────────────────
 import { useEffect, useLayoutEffect } from 'react'
-import { useLocation } from '@/site/router.js'
+import { useLocation } from 'react-router-dom'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { SplitText } from 'gsap/SplitText'

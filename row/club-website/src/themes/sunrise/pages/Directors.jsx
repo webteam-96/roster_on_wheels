@@ -1,4 +1,3 @@
-'use client'
 // ─────────────────────────────────────────────────────────────────────────────
 // SUNRISE · DIRECTORS — the board at sunrise.
 // One centred grid of arch portraits that rise like suns, row by row (People):
@@ -29,8 +28,8 @@ function boardOrder(all) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-export default function Directors({ data }) {
-  const directors = useDirectorsData(data)
+export default function Directors() {
+  const directors = useDirectorsData()
   const [query, setQuery] = useState('')
   const pageRef = useRef(null)
   useRefreshOnImages(pageRef, [directors])

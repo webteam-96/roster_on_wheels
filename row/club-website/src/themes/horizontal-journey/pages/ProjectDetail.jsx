@@ -1,4 +1,3 @@
-'use client'
 // ─────────────────────────────────────────────────────────────────────────────
 // HORIZONTAL JOURNEY · Project detail — one stop on the walk.
 //
@@ -20,7 +19,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { useLocation } from '@/site/router.js'
+import { useLocation } from 'react-router-dom'
 import {
   useClub, useProjectData, useProjectShare, shareChannels, sharePopup, SHARE_ICONS,
   PhotoLightbox, LightboxStyles, avenueLabel, formatMoney, groupInt,
@@ -63,6 +62,7 @@ const svg = (d, extra) => (
 const I = {
   cal: svg(<><rect x="3" y="4" width="18" height="18" rx="2" /><path d="M16 2v4M8 2v4M3 10h18" /></>),
   pin: svg(<><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" /><circle cx="12" cy="10" r="3" /></>),
+  person: svg(<><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></>),
   sun: svg(<><circle cx="12" cy="14" r="4" /><path d="M12 5v2M5.6 7.6 7 9M18.4 7.6 17 9M3 18h18" /></>),
   zoom: svg(<><circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5M11 8v6M8 11h6" /></>),
   x: svg(<path d="M18 6 6 18M6 6l12 12" />),
@@ -119,7 +119,41 @@ function UpdateBody({ c, cur, onPhoto }) {
   )
 }
 
-export default function ProjectDetail({ data }) {
+/** The share channel buttons (project + event pages). */
+export function ShareList({ channels }) {
+  return (
+    <ul className="hj-pd-share">
+      {channels.map((ch) => {
+        const glyph = (
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"
+               fill={ch.fill ? 'currentColor' : 'none'} stroke={ch.fill ? 'none' : 'currentColor'}
+               strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            {ch.done ? SHARE_ICONS.check : ch.icon}
+          </svg>
+        )
+        const style = ch.brand ? { '--hj-brand': ch.brand } : undefined
+        const newTab = ch.key !== 'mail'
+        return (
+          <li key={ch.key}>
+            {ch.href ? (
+              <a className="hj-pd-share__b" href={ch.href} style={style} title={ch.label}
+                 aria-label={ch.label + (newTab ? ' (opens in a new tab)' : '')}
+                 target={newTab ? '_blank' : undefined} rel={newTab ? 'noopener noreferrer' : undefined}
+                 onClick={ch.popup ? sharePopup : undefined}>{glyph}</a>
+            ) : (
+              <button type="button" className="hj-pd-share__b" style={style} title={ch.label} aria-label={ch.label} onClick={ch.onClick}>
+                {glyph}
+                {ch.doneLabel ? <span className={'hj-pd-share__toast' + (ch.done ? ' is-on' : '')} aria-live="polite">{ch.done ? ch.doneLabel : ''}</span> : null}
+              </button>
+            )}
+          </li>
+        )
+      })}
+    </ul>
+  )
+}
+
+export default function ProjectDetail() {
   const club = useClub()
   const location = useLocation()
   const params = new URLSearchParams(location.search)
@@ -132,7 +166,7 @@ export default function ProjectDetail({ data }) {
   const yr = yearText(club.selectedYearLabel)
 
   // The local ?demoChild=1 preview needs isLocalRequest, which data.js does not export.
-  const { p, notFound } = useProjectData(pid, false, data)
+  const { p, notFound } = useProjectData(pid, false)
 
   // The API's own share payload; p.shareFallback keeps the row working without it.
   const share = useProjectShare({ projectId: p ? p.id : 0, yearId: p ? p.yearId : null, fallback: p ? p.shareFallback : null })
@@ -290,6 +324,7 @@ export default function ProjectDetail({ data }) {
 
   const meta = [
     p.location && <li key="pin">{I.pin}<span>{p.location}</span></li>,
+    p.president && <li key="pres">{I.person}<span>{p.president.role}: {p.president.name}</span></li>,
     yr && <li key="yr">{I.sun}<span>Rotary year {yr}</span></li>,
   ].filter(Boolean)
 
@@ -355,34 +390,7 @@ export default function ProjectDetail({ data }) {
 
         <div className="hj-pd-rail">
           <h2 className="hj-pd-rail__t">Share this project</h2>
-          <ul className="hj-pd-share">
-            {channels.map((ch) => {
-              const glyph = (
-                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"
-                     fill={ch.fill ? 'currentColor' : 'none'} stroke={ch.fill ? 'none' : 'currentColor'}
-                     strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  {ch.done ? SHARE_ICONS.check : ch.icon}
-                </svg>
-              )
-              const style = ch.brand ? { '--hj-brand': ch.brand } : undefined
-              const newTab = ch.key !== 'mail'
-              return (
-                <li key={ch.key}>
-                  {ch.href ? (
-                    <a className="hj-pd-share__b" href={ch.href} style={style} title={ch.label}
-                       aria-label={ch.label + (newTab ? ' (opens in a new tab)' : '')}
-                       target={newTab ? '_blank' : undefined} rel={newTab ? 'noopener noreferrer' : undefined}
-                       onClick={ch.popup ? sharePopup : undefined}>{glyph}</a>
-                  ) : (
-                    <button type="button" className="hj-pd-share__b" style={style} title={ch.label} aria-label={ch.label} onClick={ch.onClick}>
-                      {glyph}
-                      {ch.doneLabel ? <span className={'hj-pd-share__toast' + (ch.done ? ' is-on' : '')} aria-live="polite">{ch.done ? ch.doneLabel : ''}</span> : null}
-                    </button>
-                  )}
-                </li>
-              )
-            })}
-          </ul>
+          <ShareList channels={channels} />
           <Button href={backHref} variant="ink" size="sm" icon="back">{backLabel}</Button>
         </div>
       </div>

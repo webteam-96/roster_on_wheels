@@ -1,4 +1,3 @@
-'use client'
 // ─────────────────────────────────────────────────────────────────────────────
 // LIQUID MOTION · PROJECTS — "the work, filtered".
 // The ink hero carries the menu label, the search, the avenue chips (a pressed
@@ -11,7 +10,7 @@
 // feed, filters, counts and metric back-fill as ProjectsGold; ?pr= contract too.
 // ─────────────────────────────────────────────────────────────────────────────
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
-import { useLocation } from '@/site/router.js'
+import { useLocation } from 'react-router-dom'
 import {
   useClub, useProjectsData, useCurrentMenuName, usePageTitle, withYear, formatMoney, groupInt, useProjectFacets, useAllYearsTotals } from '../../_shared/data.js'
 import {
@@ -44,7 +43,7 @@ function twoLines(s) {
   return [w[0], w.slice(1).join(' ')]
 }
 
-export default function Projects({ data }) {
+export default function Projects() {
   const club = useClub()
   const location = useLocation()
   const pr = (new URLSearchParams(location.search).get('pr') || '').trim().toUpperCase()
@@ -55,7 +54,7 @@ export default function Projects({ data }) {
 
   // this year's projects or every year's (client, 2026-10-06) - ?all=1
   const [scope, setScope] = useProjectScope()
-  const d = useProjectsData(isMeetings, scope, data.projects)
+  const d = useProjectsData(isMeetings, scope)
   const { projects, totalCount, avenueTabs } = d
 
   // ?pr= pre-selects a tab; CE/CS are never tabs of their own (as Gold).
@@ -124,7 +123,6 @@ export default function Projects({ data }) {
     { label: 'Total cost', value: fig(formatMoney(t.c, (allYears && allT && allT.currency) || club.currency)) },
     { label: 'Beneficiaries', value: fig(groupInt(t.b, club.currency)) },
     allYears ? null : { label: 'Rotarians involved', value: fig(groupInt(t.r, club.currency)) },
-    { label: 'Man-hours', value: fig(groupInt(t.h, club.currency)) },
   ].filter(Boolean)
   const noFigures = false // the project count always shows
 

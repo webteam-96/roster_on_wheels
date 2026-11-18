@@ -35,7 +35,7 @@ public class PublicProjectController : ControllerBase
         YearTableInfo? info = null;
         if (yearId.HasValue && yearId.Value > 0)
         {
-            info = await _yearTables.ResolveByYearIdAsync(conn, yearId.Value);
+            info = await _yearTables.ResolveExistingByYearIdAsync(conn, yearId.Value);
         }
         else
         {

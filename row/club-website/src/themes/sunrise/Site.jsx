@@ -1,4 +1,3 @@
-'use client'
 // ─────────────────────────────────────────────────────────────────────────────
 // SUNRISE — the shell (Theme 8 option H). A two-tier header (client, 2026-09-29):
 // a strip that scrolls away over a bar that stays pinned. When the whole menu
@@ -22,7 +21,8 @@
 // ─────────────────────────────────────────────────────────────────────────────
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { flushSync } from 'react-dom'
-import { useLocation } from '@/site/router.js'
+import { useLocation } from 'react-router-dom'
+import { getAbout } from '../../api/clubService.js'
 import {
   useClub, useMenus, menuHref, menuExternal, routeKey, YearSelect, VisitorCount,
   useThemeShell, useLoader, media, LOGO_PLACEHOLDER,
@@ -42,20 +42,12 @@ const storedMode = () => {
 const deviceMode = () =>
   (typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark')
 
-// Layout effects run in the browser only; on the server (pages are server-rendered) they are plain effects.
-const useBeforePaint = typeof window === 'undefined' ? useEffect : useLayoutEffect
-
 function useSunMode() {
-  // The server renders dark; the visitor's stored or device mode is applied before the first paint.
-  const [mode, setMode] = useState('dark')
+  const [mode, setMode] = useState(() => storedMode() || deviceMode())
   const original = useRef(undefined)
-  useBeforePaint(() => {
-    const m = storedMode() || deviceMode()
-    if (m !== 'dark') setMode(m)
-  }, [])
 
   // Before paint: the attribute every mode token keys off, and the browser chrome colour.
-  useBeforePaint(() => {
+  useLayoutEffect(() => {
     document.documentElement.setAttribute('data-sun-mode', mode)
     let meta = document.querySelector('meta[name="theme-color"]')
     if (!meta) { meta = document.createElement('meta'); meta.name = 'theme-color'; document.head.appendChild(meta) }
@@ -64,7 +56,7 @@ function useSunMode() {
   }, [mode])
 
   // Leaving the theme: hand the document back untouched.
-  useBeforePaint(() => () => {
+  useLayoutEffect(() => () => {
     document.documentElement.removeAttribute('data-sun-mode')
     const meta = document.querySelector('meta[name="theme-color"]')
     if (meta) { if (original.current) meta.setAttribute('content', original.current); else meta.remove() }
@@ -263,12 +255,10 @@ export default function Site({ children }) {
   const menus = useMenus()
   const loc = useLocation()
   const [mode, toggleMode] = useSunMode()
-  // The shell's about (lib/pageShell): already for the picked year and in the visitor's language.
-  const about = club.about || null
+  const [about, setAbout] = useState(null)
   const [menuOpen, setMenuOpen] = useState(false)
   // until the menus land, guess fit mode on a wide screen (most clubs' menus fit): the header keeps its shape when they do
-  // (false on the server and at hydration; the measuring effect below switches to fit mode on a wide screen)
-  const [fits, setFits] = useState(false)
+  const [fits, setFits] = useState(canFit)
 
   const hdrRef = useRef(null), barRef = useRef(null), burgerRef = useRef(null)
   const navRef = useRef(null), listRef = useRef(null), menuRef = useRef(null)
@@ -278,6 +268,12 @@ export default function Site({ children }) {
   useThemeShell('sunrise', menus.length > 0)
   useLoader(!club.loading)
 
+  useEffect(() => {
+    if (!club.clubId) return undefined
+    let cancelled = false
+    getAbout(club.clubId, club.selectedYearId).then((a) => { if (!cancelled) setAbout(a || null) })
+    return () => { cancelled = true }
+  }, [club.clubId, club.selectedYearId])
 
   const items = useMemo(() => cleanMenus(menus), [menus])
   const clubName = club.clubDisplayName
@@ -290,7 +286,7 @@ export default function Site({ children }) {
   const isHome = routeKey(loc.pathname) === 'home'
 
   // ── fit mode: does the whole menu fit on the bar by itself? else the burger ──
-  useBeforePaint(() => {
+  useLayoutEffect(() => {
     const bar = barRef.current, list = listRef.current
     if (!bar || !list) return undefined
     let retry = 0, alive = true

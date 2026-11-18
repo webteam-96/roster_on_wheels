@@ -1,4 +1,3 @@
-'use client'
 // ─────────────────────────────────────────────────────────────────────────────
 // CINEMATIC · DIRECTORS — "the billing".
 // A film poster bills its leads above the title and the ensemble below it. The
@@ -105,9 +104,9 @@ function Board({ people, searching }) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-export default function Directors({ data }) {
+export default function Directors() {
   const name = usePageName('Directors')
-  const directors = useDirectorsData(data)
+  const directors = useDirectorsData()
   const [query, setQuery] = useState('')
   const pageRef = useRef(null)
   const searchRef = useRef(null)

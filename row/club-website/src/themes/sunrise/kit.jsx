@@ -1,4 +1,3 @@
-'use client'
 // ─────────────────────────────────────────────────────────────────────────────
 // SUNRISE — the theme's reusable pieces. Page agents build every inner page
 // from these so thirteen routes read as one site (see DESIGN.md for the API and
@@ -12,11 +11,11 @@ import { Children, useEffect, useId, useRef, useState } from 'react'
 import { useCurrentMenuName, usePageTitle, formatMoney, groupInt, plainText, adAnchorProps, externalUrl, socialLabel, formatYear } from '../_shared/data.js'
 import { PersonPhoto, SafeImg, paragraphs, imgFallback, hideOnError, portraitFallback, isPlaceholderPhoto, useFitNumbers } from '../_shared/kit.jsx'
 import { useScene, pageHeroIn, countUp, cleanups, drum, riseArches, prefersReducedMotion } from './motion.js'
-import { ADMIN_LOGIN_URL } from '@/site/adminUrl.js'
+import { appSettings } from '../../config.js'
 
 export { PersonPhoto, SafeImg, paragraphs, imgFallback, hideOnError, portraitFallback, isPlaceholderPhoto }
 
-export const ADMIN_URL = ADMIN_LOGIN_URL
+export const ADMIN_URL = appSettings.AdminLoginUrl
 
 // ── icons (stroke = currentColor) ───────────────────────────────────────────
 const svg = (d, extra) => ({ className, ...p }) => (
@@ -31,6 +30,7 @@ export const SearchIcon = svg(<><circle cx="7" cy="7" r="4.6" /><path d="m10.5 1
 export const CloseIcon = svg(<path d="M3.5 3.5l9 9M12.5 3.5l-9 9" />)
 export const PinIcon = svg(<><path d="M8 14.5s4.5-4.2 4.5-7.8a4.5 4.5 0 0 0-9 0c0 3.6 4.5 7.8 4.5 7.8z" /><circle cx="8" cy="6.7" r="1.6" /></>)
 export const ClockIcon = svg(<><circle cx="8" cy="8" r="6.3" /><path d="M8 4.6V8l2.4 1.5" /></>)
+export const PersonIcon = svg(<><circle cx="8" cy="5.3" r="2.8" /><path d="M2.6 14.2c.7-2.9 2.8-4.4 5.4-4.4s4.7 1.5 5.4 4.4" /></>)
 export const CalendarIcon = svg(<><rect x="2" y="3" width="12" height="11" rx="2" /><path d="M2 6.5h12M5.5 1.5v3M10.5 1.5v3" /></>)
 
 /** target/rel for a link that opens in a new tab. */

@@ -1,4 +1,3 @@
-'use client'
 // ─────────────────────────────────────────────────────────────────────────────
 // LIQUID MOTION · DIGNITARY — "the arch".
 // The ink breadcrumb band carries the designation (client, 2026-09-29: the office,
@@ -11,7 +10,7 @@
 // club president / secretary, which the hook also serves).
 // ─────────────────────────────────────────────────────────────────────────────
 import { useRef } from 'react'
-import { useSearchParams } from '@/site/router.js'
+import { useSearchParams } from 'react-router-dom'
 import { useClub, useDignitaryData, usePageTitle, withYear } from '../../_shared/data.js'
 import { PageHero, Band, Portrait, Pill, EmptyState, Loading } from '../kit.jsx'
 import { usePageMotion, useScene, gsap } from '../motion.js'
@@ -22,14 +21,14 @@ const ROLE = { 1: 'RI President', 2: 'District Governor', 4: 'Club President', 5
 // Admin bios sometimes carry their own <h1>; the hero's is the page's only one.
 const demoteH1 = (html) => String(html || '').replace(/<(\/?)h1\b/gi, '<$1h2')
 
-export default function Dignitary({ data }) {
+export default function Dignitary() {
   const club = useClub()
   const [params] = useSearchParams()
   let type = parseInt(params.get('Type'), 10)
   if (Number.isNaN(type)) type = 1
   const key = type === 2 || type === 4 || type === 5 ? type : 1 // the hook reads every other number as RI President
 
-  const vm = useDignitaryData(key, data)
+  const vm = useDignitaryData(key)
   const role = vm.role || ROLE[key]
   usePageTitle(vm.found ? vm.name + ' – ' + role : role)
 

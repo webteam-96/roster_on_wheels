@@ -1,4 +1,3 @@
-'use client'
 // ─────────────────────────────────────────────────────────────────────────────
 // LIQUID MOTION — home. The approved sample (Theme8-Samples/E-liquid-webgl)
 // ported onto useHomeData, section for section:
@@ -106,9 +105,9 @@ function AdPopup({ ads, clubId }) {
   )
 }
 
-export default function Home({ data }) {
+export default function Home() {
   const club = useClub()
-  const d = useHomeData(data.home, { featuredTake: 6, newsletterTake: 4 })
+  const d = useHomeData({ featuredTake: 6, newsletterTake: 4 })
   usePageTitle(club.clubDisplayName)
 
   const rootRef = useRef(null), heroRef = useRef(null), stageRef = useRef(null)
@@ -129,7 +128,6 @@ export default function Home({ data }) {
     ['Projects', n.projects, false],
     ['Total cost', n.totalCost, true],
     ['Beneficiaries', n.beneficiaries, false],
-    ['Man-hours', n.manHours, false],
     ['Members', members, false],
   ].filter(([, v]) => v > 0).map(([label, v, money]) => ({ label, value: money ? formatMoney(v, d.currency) : groupInt(v, d.currency) }))
 

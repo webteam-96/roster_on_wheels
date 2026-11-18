@@ -1,4 +1,3 @@
-'use client'
 // ─────────────────────────────────────────────────────────────────────────────
 // Split Story · Gallery — the year's photos told as the theme's split. Each page
 // of the gallery (Gold's ?page= contract, GALLERY_PAGE_SIZE photos) is grouped
@@ -13,7 +12,7 @@
 // cannot filter them.
 // ─────────────────────────────────────────────────────────────────────────────
 import { useEffect, useRef, useState } from 'react'
-import { useSearchParams } from '@/site/router.js'
+import { useSearchParams } from 'react-router-dom'
 import {
   useClub, useGalleryData, GALLERY_PAGE_SIZE, PhotoLightbox, LightboxStyles, withYear, groupInt,
   usePageTitle, useCurrentMenuName,
@@ -105,7 +104,7 @@ function Pager({ page, total, yearId }) {
   )
 }
 
-export default function Gallery({ data }) {
+export default function Gallery() {
   const club = useClub()
   const menuName = useCurrentMenuName()
   const title = (menuName && menuName.trim()) || 'Gallery'
@@ -115,7 +114,7 @@ export default function Gallery({ data }) {
   let page = parseInt(params.get('page'), 10)
   if (Number.isNaN(page) || page < 1) page = 1
 
-  const g = useGalleryData(page, data)
+  const g = useGalleryData(page)
   const [avenue, setAvenue] = useState('')
   const [broken, setBroken] = useState(() => new Set())
   const [lb, setLb] = useState(null)

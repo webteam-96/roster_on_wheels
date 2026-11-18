@@ -1,4 +1,3 @@
-'use client'
 // ─────────────────────────────────────────────────────────────────────────────
 // CINEMATIC · DIRECTORY — the cast list.
 //
@@ -30,9 +29,9 @@ function letterOf(name) {
   return c >= 'A' && c <= 'Z' ? c : '#'
 }
 
-export default function Directory({ data }) {
+export default function Directory() {
   const title = usePageName('Directory')
-  const members = useDirectoryData(data)            // null while loading
+  const members = useDirectoryData()            // null while loading
   const [query, setQuery] = useState('')
   const [letter, setLetter] = useState('')      // '' = all letters
   const bodyRef = useRef(null)

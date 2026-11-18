@@ -1,4 +1,3 @@
-'use client'
 // ─────────────────────────────────────────────────────────────────────────────
 // LIQUID MOTION · PAST PRESIDENTS: the lineage.
 //
@@ -31,12 +30,12 @@ const plural = (n) => (n === 1 ? 'president' : 'presidents')
 /** "2020-21" / "2020-2021" -> "2020–21"; other labels as filed. */
 const yr = (label) => yearText(clean(label))
 
-export default function PastPresidents({ data }) {
+export default function PastPresidents() {
   const club = useClub()
   const menuName = useCurrentMenuName()
   const title = (menuName && menuName.trim()) || 'Past Presidents'
   usePageTitle(title)
-  const list = usePastPresidentsData(data)          // null while loading; newest first
+  const list = usePastPresidentsData()          // null while loading; newest first
   const [q, setQ] = useState('')
   const ref = useRef(null)
 

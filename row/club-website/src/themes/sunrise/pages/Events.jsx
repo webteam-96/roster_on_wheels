@@ -1,4 +1,3 @@
-'use client'
 // ─────────────────────────────────────────────────────────────────────────────
 // SUNRISE · EVENTS — the date suns.
 //
@@ -30,9 +29,9 @@ const has = (v) => !!v && !!String(v).trim()
 const today0 = () => new Date().setHours(0, 0, 0, 0)
 
 /** The home's rule (homeData): a record filed at exactly midnight has no time. */
-function timeOf(ts, zone) {
+function timeOf(ts) {
   const d = new Date(ts)
-  return d.getHours() || d.getMinutes() || d.getSeconds() ? formatTime(d, zone) : ''
+  return d.getHours() || d.getMinutes() || d.getSeconds() ? formatTime(d) : ''
 }
 
 /** Gold's countdown: "Today" / "Tomorrow" / "In 17 days", in whole days from midnight; '' once past. */
@@ -58,12 +57,11 @@ const slug = (s) => String(s).replace(/[^A-Za-z0-9]+/g, '-')
 
 // ── the next event ───────────────────────────────────────────────────────────
 function Feature({ ev }) {
-  const club = useClub()
   const [broken, setBroken] = useState(false)      // a poster that fails drops its window - never an empty frame
   const title = noEmoji(ev.title) || 'Club event'
   const href = '/event?id=' + ev.id
   const near = countdown(ev.ts)
-  const time = timeOf(ev.ts, club.timeZone)
+  const time = timeOf(ev.ts)
   const venue = venueText(ev.venue)
   const shot = has(ev.img) && !broken
   return (
@@ -105,10 +103,9 @@ function Feature({ ev }) {
 
 // ── one agenda row: date sun | weekday · time, title, venue, actions | photo ──
 function Row({ ev, past }) {
-  const club = useClub()
   const title = noEmoji(ev.title) || 'Club event'
   const href = '/event?id=' + ev.id
-  const time = timeOf(ev.ts, club.timeZone)
+  const time = timeOf(ev.ts)
   const venue = venueText(ev.venue)
   return (
     <li className={'sun-evs-row' + (past ? ' is-past' : '')}>
@@ -184,9 +181,9 @@ function Nothing({ year }) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-export default function Events({ data }) {
+export default function Events() {
   const club = useClub()
-  const events = useEventsData(data)             // null while loading; this Rotary year, date order
+  const events = useEventsData()             // null while loading; this Rotary year, date order
   const ref = useRef(null)
   const year = yearText(club.selectedYearLabel)
 

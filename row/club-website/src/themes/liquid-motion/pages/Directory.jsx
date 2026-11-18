@@ -1,4 +1,3 @@
-'use client'
 // ─────────────────────────────────────────────────────────────────────────────
 // LIQUID MOTION · DIRECTORY — every member, A to Z.
 //
@@ -27,11 +26,11 @@ const byKey = (a, b) => (a === OTHER) - (b === OTHER) || (a < b ? -1 : a > b ? 1
 const letterLabel = (k) => (k === OTHER ? 'Other names' : 'Names starting with ' + k)
 const plural = (n) => (n === 1 ? 'member' : 'members')
 
-export default function Directory({ data }) {
+export default function Directory() {
   const menuName = useCurrentMenuName()
   const title = (menuName && menuName.trim()) || 'Directory'
   usePageTitle(title)
-  const members = useDirectoryData(data)            // null while loading
+  const members = useDirectoryData()            // null while loading
   const [q, setQ] = useState('')
   const [letter, setLetter] = useState('all')
   const dq = useDeferredValue(q)

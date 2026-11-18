@@ -1,16 +1,15 @@
-'use client'
 // ─────────────────────────────────────────────────────────────────────────────
 // Theme 8 family — the few UI pieces that are behaviour, not design. Each theme
 // styles them through its own class names; nothing here carries a look.
 // ─────────────────────────────────────────────────────────────────────────────
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { useNavigate, useSearchParams } from '@/site/router.js'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import './monthpick.css'
 import './scope.css'
-import { initials } from '@/themes/shared/rotaryPage.js'
+import { initials } from '../../shared/rotaryPage.js'
 import { refreshSoon } from './motion.js'
-export { imgFallback, hideOnError, portraitFallback, isPlaceholderPhoto } from '@/themes/gold/pages/kit.jsx'
+export { imgFallback, hideOnError, portraitFallback, isPlaceholderPhoto } from '../../pages/gold/kit.jsx'
 
 const PLACEHOLDER = /profile_pic\.png$/i
 

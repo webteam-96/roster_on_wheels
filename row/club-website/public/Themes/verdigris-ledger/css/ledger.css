@@ -1144,3 +1144,5 @@ html[data-theme="verdigris-ledger"] [data-dir-grid] [data-dir-card]:hover > span
   transition:background .2s ease,border-color .2s ease,color .2s ease;}
 .vl-deck__arrow:hover,.vl-deck__arrow:focus-visible{background:rgba(144,31,147,.22);
   border-color:#901F93;color:#fff;}
+/* 2026-11-17: the counter row sizes to however many figures post (4 since man-hours left the home) - no empty 5th cell */
+@media(min-width:720px){.vl-stats{grid-template-columns:none;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);}}

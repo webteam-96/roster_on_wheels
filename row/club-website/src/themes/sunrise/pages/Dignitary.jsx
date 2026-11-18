@@ -1,4 +1,3 @@
-'use client'
 // ─────────────────────────────────────────────────────────────────────────────
 // SUNRISE · DIGNITARY — one leader, rising like the sun.
 // The name is the page's title. The profile reads in one column while a side
@@ -11,7 +10,7 @@
 // 4 club president, 5 club secretary; any other number reads as RI President.
 // ─────────────────────────────────────────────────────────────────────────────
 import { useId, useRef } from 'react'
-import { useSearchParams } from '@/site/router.js'
+import { useSearchParams } from 'react-router-dom'
 import { useClub, useDignitaryData, withYear } from '../../_shared/data.js'
 import { PageHero, SectionHead, Button, Arch, Person, People, EmptyState, Loading, demoteH1, yearText } from '../kit.jsx'
 import { gsap, useScene, useRefreshOnImages, flyTitle, focusPull } from '../motion.js'
@@ -45,7 +44,7 @@ function Portrait({ vm }) {
   )
 }
 
-export default function Dignitary({ data }) {
+export default function Dignitary() {
   const club = useClub()
   const [params] = useSearchParams()
   let type = parseInt(params.get('Type'), 10)
@@ -54,7 +53,7 @@ export default function Dignitary({ data }) {
 
   // Always the same four hooks (constant order): switching profiles needs no wait,
   // and "More leaders" shows only people whose own page has a profile.
-  const byType = { 1: useDignitaryData(1, data), 2: useDignitaryData(2, data), 4: useDignitaryData(4, data), 5: useDignitaryData(5, data) }
+  const byType = { 1: useDignitaryData(1), 2: useDignitaryData(2), 4: useDignitaryData(4), 5: useDignitaryData(5) }
   const vm = byType[t]
   const more = ORDER.filter((k) => k !== t && byType[k].found).map((k) => ({ ...byType[k], type: k }))
 

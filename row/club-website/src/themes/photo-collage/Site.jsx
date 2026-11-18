@@ -1,4 +1,3 @@
-'use client'
 // ─────────────────────────────────────────────────────────────────────────────
 // Photo Collage — the shell: paper header (logo, the club's menus with
 // submenus, year, burger), the cranberry full-screen menu, <main>, and the
@@ -10,9 +9,10 @@
 // position:fixed, which a transformed ancestor would re-anchor.
 // ─────────────────────────────────────────────────────────────────────────────
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
-import { useLocation } from '@/site/router.js'
+import { useLocation } from 'react-router-dom'
 // sharedRequest: data.js does not re-export getAbout; the shell needs the raw
 // about row (rotary + club logos, socials) exactly as SiteGold reads it.
+import { getAbout } from '../../api/clubService.js'
 import {
   useClub, useMenus, menuHref, menuExternal, socialLabel, routeKey, YearSelect, VisitorCount,
   useThemeShell, useLoader, media, externalUrl, LOGO_PLACEHOLDER,
@@ -73,8 +73,7 @@ export default function Site({ children }) {
   const club = useClub()
   const menus = useMenus()
   const location = useLocation()
-  // The shell's about (lib/pageShell): already for the picked year and in the visitor's language.
-  const about = club.about || null
+  const [about, setAbout] = useState(undefined)      // undefined = loading, null = none
   const [open, setOpen] = useState(false)            // mobile menu
   const [sub, setSub] = useState(-1)                 // desktop submenu opened by keyboard/click
   const [compact, setCompact] = useState(false)      // menu too long for one row
@@ -91,6 +90,12 @@ export default function Site({ children }) {
   useThemeShell('photo-collage', menus.length > 0)
   useLoader(!club.loading)
 
+  useEffect(() => {
+    if (!club.clubId) return undefined
+    let cancelled = false
+    getAbout(club.clubId, club.selectedYearId).then((a) => { if (!cancelled) setAbout(a || null) })
+    return () => { cancelled = true }
+  }, [club.clubId, club.selectedYearId])
 
   // ── where are we ──────────────────────────────────────────────────────────
   const hereKey = routeKey(location.pathname)

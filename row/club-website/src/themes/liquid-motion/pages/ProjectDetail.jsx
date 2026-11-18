@@ -1,4 +1,3 @@
-'use client'
 // ─────────────────────────────────────────────────────────────────────────────
 // LIQUID MOTION · PROJECT DETAIL — "the story, then the pictures".
 // The ink hero carries the avenue, the title and the lead photograph, which wipes
@@ -13,7 +12,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 import { useEffect, useId, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { useLocation } from '@/site/router.js'
+import { useLocation } from 'react-router-dom'
 import {
   useClub, useProjectData, usePageTitle, avenueLabel, groupInt,
   useProjectShare, shareChannels, sharePopup, SHARE_ICONS, PhotoLightbox, LightboxStyles,
@@ -28,6 +27,41 @@ import './ProjectDetail.css'
 const MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 
 /** "Jul 2026 – Aug 2026", or one month when every update falls in it (as Gold). */
+/** The share channel row (project + event pages). */
+export function ShareBlock({ channels, caption }) {
+  return (
+    <div className="liq-pd-share liq-rv">
+      <p className="liq-pd-cap">{caption}</p>
+      <ul className="liq-pd-share__row">
+        {channels.map((ch) => {
+          const glyph = (
+            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill={ch.fill ? 'currentColor' : 'none'}
+                 stroke={ch.fill ? 'none' : 'currentColor'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              {ch.done ? SHARE_ICONS.check : ch.icon}
+            </svg>
+          )
+          const ext = ch.href && ch.key !== 'mail'
+          return (
+            <li key={ch.key}>
+              {ch.href ? (
+                <a className="liq-pd-share__b" href={ch.href} title={ch.label} onClick={ch.popup ? sharePopup : undefined}
+                   {...(ext ? { target: '_blank', rel: 'noopener noreferrer' } : {})}>
+                  {glyph}<span className="liq-sr">{ch.label}{ext ? ' (opens in new tab)' : ''}</span>
+                </a>
+              ) : (
+                <button type="button" className="liq-pd-share__b" title={ch.label} onClick={ch.onClick}>
+                  {glyph}<span className="liq-sr">{ch.label}</span>
+                </button>
+              )}
+              {ch.doneLabel ? <span className="liq-pd-toast" aria-live="polite">{ch.done ? ch.doneLabel : ''}</span> : null}
+            </li>
+          )
+        })}
+      </ul>
+    </div>
+  )
+}
+
 function runSpan(list) {
   const ds = list.map((c) => (c.date ? new Date(c.date) : null))
     .filter((x) => x && !Number.isNaN(x.getTime()))
@@ -92,7 +126,7 @@ function UpdateBody({ c, titleId, currency, onPhoto }) {
   )
 }
 
-export default function ProjectDetail({ data }) {
+export default function ProjectDetail() {
   const club = useClub()
   const location = useLocation()
   const params = new URLSearchParams(location.search)
@@ -103,7 +137,7 @@ export default function ProjectDetail({ data }) {
   const backLabel = fromMeetings ? 'Back to Club Services' : 'All projects'
 
   // ponytail: no local ?demoChild=1 preview - data.js exports no isLocalRequest (sharedRequest).
-  const { p, notFound } = useProjectData(pid, false, data)
+  const { p, notFound } = useProjectData(pid, false)
   usePageTitle(notFound ? 'Project Not Found' : (p ? p.title : null))
 
   // The API's share payload (canonical club-domain URL, ready-made text, card); p.shareFallback keeps the row working without it.
@@ -222,38 +256,11 @@ export default function ProjectDetail({ data }) {
               ['Avenue', av],
               ['Date', p.dateText],
               ['Venue', p.location],
+              p.president ? [p.president.role, p.president.name] : ['President', null],
               ['Rotary year', yearText(club.selectedYearLabel)],
             ]} />
             {figs.length ? <StatRow items={figs} className="liq-pd-figs" /> : null}
-            <div className="liq-pd-share liq-rv">
-              <p className="liq-pd-cap">Share this project</p>
-              <ul className="liq-pd-share__row">
-                {channels.map((ch) => {
-                  const glyph = (
-                    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill={ch.fill ? 'currentColor' : 'none'}
-                         stroke={ch.fill ? 'none' : 'currentColor'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      {ch.done ? SHARE_ICONS.check : ch.icon}
-                    </svg>
-                  )
-                  const ext = ch.href && ch.key !== 'mail'
-                  return (
-                    <li key={ch.key}>
-                      {ch.href ? (
-                        <a className="liq-pd-share__b" href={ch.href} title={ch.label} onClick={ch.popup ? sharePopup : undefined}
-                           {...(ext ? { target: '_blank', rel: 'noopener noreferrer' } : {})}>
-                          {glyph}<span className="liq-sr">{ch.label}{ext ? ' (opens in new tab)' : ''}</span>
-                        </a>
-                      ) : (
-                        <button type="button" className="liq-pd-share__b" title={ch.label} onClick={ch.onClick}>
-                          {glyph}<span className="liq-sr">{ch.label}</span>
-                        </button>
-                      )}
-                      {ch.doneLabel ? <span className="liq-pd-toast" aria-live="polite">{ch.done ? ch.doneLabel : ''}</span> : null}
-                    </li>
-                  )
-                })}
-              </ul>
-            </div>
+            <ShareBlock channels={channels} caption="Share this project" />
           </Card>
         </div>
         {last === 'paper' ? end : null}

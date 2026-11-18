@@ -1,4 +1,3 @@
-'use client'
 // ─────────────────────────────────────────────────────────────────────────────
 // SUNRISE · NEWSLETTERS — the bulletin sheet.
 //
@@ -45,9 +44,9 @@ function Issue({ n }) {
   )
 }
 
-export default function Newsletters({ data }) {
+export default function Newsletters() {
   const club = useClub()
-  const items = useNewslettersData(data)             // null while loading
+  const items = useNewslettersData()             // null while loading
   const [query, setQuery] = useState('')
   const ref = useRef(null)
   const bodyRef = useRef(null)

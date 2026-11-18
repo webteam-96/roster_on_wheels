@@ -1,9 +1,23 @@
 node_modules/
-.next/
-out/
-publish-deploy/
+dist/
 .env.local
-.env*.local
-*.tsbuildinfo
-next-env.d.ts
-.DS_Store
+.env.*.local
+*.log
+
+# ── Local-only artifacts (added 2026-08-24) ────────────────────────────────
+# browser console logs from local verification runs
+.playwright-cli/
+# og.php's API cache, written by local testing only
+og-cache/
+# scratch screenshots
+.s-*.png
+
+# NOT PUBLISHED: this workbook holds 78 club-officer email addresses and 77
+# phone numbers. It is working data, not part of the site, and putting it in a
+# git remote publishes those people's contact details. Remove this line only
+# deliberately, and only into a private repository.
+custom-domain-officers.xlsx
+
+# Same reason as above: DNS-chase workbook with president/secretary phone numbers.
+custom-domain-dns-pending-*.xlsx
+custom-domain-dns-pending-*.csv

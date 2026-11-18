@@ -4,6 +4,28 @@ The NestJS backend is a faithful port of the RIZones API. These are places
 where ROW will probably want different behaviour. They are **not** made yet
 unless marked "done"; decide them when the area is worked on.
 
+## Club website replaced (2026-11-17, done)
+
+- `row/club-website` is now the React + Vite app (13 themes) the owner sent on 17 Nov; the Next.js version is in git
+  history. It is a static site that calls the ROW API from the browser (`api/public/*`, CORS-open). Owner decisions:
+  replace the app, remove the RIZones club pages, keep contact details hidden.
+- Removed: 13 pages of one RIZones club or dev-only (Madras club pages, Guindy Trust, Selaiyur, Manav Seva, a DGN
+  page, Inner Wheel, Sister Clubs, Youth Partners, ProofDesign), the RC Madras pop-ups in the Madras Legacy layout,
+  13 club photos, the RIZones `deploy/` (PHP) folder. Every RIZones URL, email and phone is now a setting
+  (`AdminLoginUrl`, `RenewUrl`, `SupportEmail`, `SupportPhone`); blank support contacts are not shown.
+- Madras Legacy is not given to any club (`MADRAS_CLUBS` empty: id 2037 is an unrelated ROW club). Handloom was
+  released 2026-11-18 (`UNRELEASED_THEMES` empty; owner request) and gets a 12th `theme_master` row
+  (`database/maintenance/2026-11-18-club-theme-handloom.sql`). The `theme_master` rows map 1:1 to theme keys.
+  Support contact set 2026-11-18: support@rosteronwheels.com, two phones (`VITE_SupportPhone` takes a comma list).
+- Security: `src/lib/http.js` sanitises every markup string from the API (DOMPurify) and blanks script URLs, because
+  the themes render admin-typed text as HTML and project / event descriptions are not cleaned by the API.
+- India assumptions removed: page title "Rotary India", en-IN digit grouping for non-INR clubs and USD figures.
+- Visitor counter uses the API's `api/public/club-website/visits` (no PHP).
+- API fix: public club endpoints asked for an old Rotary year with no year tables (e.g. 2008-09) returned 500; they
+  now return empty (`IYearTableResolver.ResolveExistingByYearIdAsync`, used by the 5 public read controllers).
+- Open: link previews (WhatsApp / Facebook) need a server-side meta endpoint; server `FrontendUrl` must end in
+  `/admin` (pay, reset-password and invite links built from it point at the public site root and 404).
+
 ## Security and privacy
 
 - **Audit fixes, 2026-11-17** (done; `/security`, `/backend`, `/frontend` audits). Uploaded `.svg` files are served

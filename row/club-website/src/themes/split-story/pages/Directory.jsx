@@ -1,4 +1,3 @@
-'use client'
 // ─────────────────────────────────────────────────────────────────────────────
 // Split Story · Directory — the roll, told A to Z.
 //
@@ -35,12 +34,12 @@ function guide(ms) {
   return ms.length > 1 && a !== b ? [a, b].filter(Boolean).join(' – ') : a
 }
 
-export default function Directory({ data }) {
+export default function Directory() {
   const club = useClub()
   const menuName = useCurrentMenuName()
   const title = (menuName && menuName.trim()) || 'Directory'
   usePageTitle(title)
-  const members = useDirectoryData(data)            // null while loading
+  const members = useDirectoryData()            // null while loading
   const [query, setQuery] = useState('')
   const [letter, setLetter] = useState('')      // '' = every letter
   const ref = useRef(null)

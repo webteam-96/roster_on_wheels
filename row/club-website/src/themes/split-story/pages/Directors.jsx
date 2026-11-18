@@ -1,4 +1,3 @@
-'use client'
 // ─────────────────────────────────────────────────────────────────────────────
 // Split Story · Directors — the board for the selected Rotary year, told as the
 // theme's split: the sticky royal panel ticks 01 → 02 → … with each director's
@@ -51,12 +50,12 @@ function Director({ d, n, title, lead }) {
   )
 }
 
-export default function Directors({ data }) {
+export default function Directors() {
   const club = useClub()
   const menuName = useCurrentMenuName()
   const title = (menuName && menuName.trim()) || 'Directors'
   usePageTitle(title)
-  const directors = useDirectorsData(data)          // null while loading
+  const directors = useDirectorsData()          // null while loading
   const [query, setQuery] = useState('')
   const ref = useRef(null)
 

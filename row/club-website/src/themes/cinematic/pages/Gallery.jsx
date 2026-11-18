@@ -1,4 +1,3 @@
-'use client'
 // ─────────────────────────────────────────────────────────────────────────────
 // CINEMATIC · GALLERY — the contact sheet.
 //
@@ -12,7 +11,7 @@
 // Every frame opens the shared PhotoLightbox (Esc, arrows, swipe, captions).
 // ─────────────────────────────────────────────────────────────────────────────
 import { useEffect, useRef, useState } from 'react'
-import { useSearchParams } from '@/site/router.js'
+import { useSearchParams } from 'react-router-dom'
 import {
   useClub, useGalleryData, GALLERY_PAGE_SIZE, PhotoLightbox, LightboxStyles, withYear,
 } from '../../_shared/data.js'
@@ -81,14 +80,14 @@ function Pager({ page, total }) {
   )
 }
 
-export default function Gallery({ data }) {
+export default function Gallery() {
   const club = useClub()
   const name = usePageName('Gallery')
   const [params] = useSearchParams()
   let page = parseInt(params.get('page'), 10)
   if (Number.isNaN(page) || page < 1) page = 1
 
-  const g = useGalleryData(page, data)
+  const g = useGalleryData(page)
   const [avenue, setAvenue] = useState('')
   const [lb, setLb] = useState(null)
   const bodyRef = useRef(null)

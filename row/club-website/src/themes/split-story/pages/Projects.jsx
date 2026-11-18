@@ -1,4 +1,3 @@
-'use client'
 // ─────────────────────────────────────────────────────────────────────────────
 // Split Story · Projects — the year's work as a dealt hand. The royal hero states
 // the count in gold and carries every control the hook supports (avenue chips
@@ -15,7 +14,7 @@
 // zero totals dropped, never a row of zeroes).
 // ─────────────────────────────────────────────────────────────────────────────
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { useLocation } from '@/site/router.js'
+import { useLocation } from 'react-router-dom'
 import { useClub, useProjectsData, useCurrentMenuName, usePageTitle, withYear, plainText, useProjectFacets, useAllYearsTotals } from '../../_shared/data.js'
 import { PageHero, Chips, SearchField, StatRow, Card, Tag, Button, EmptyState, Loading, Chevron, excerpt, yearText } from '../kit.jsx'
 import { gsap, useScene, useRefreshOnImages, revealBatch } from '../motion.js'
@@ -24,7 +23,7 @@ import { ScopeSwitch, useProjectScope } from '../../_shared/kit.jsx'
 
 // 24 divides into 1, 2, 3 and 4 columns, so a new hand never leaves a hole in the last row.
 const PAGE = 24
-const STAT_LABELS = ['Total cost', 'Beneficiaries', 'Rotarians involved', 'Man hours']
+const STAT_LABELS = ['Total cost', 'Beneficiaries', 'Rotarians involved']   // man hours: project page only (client, 2026-11-17)
 
 /**
  * The deal: each photo frame opens once as it enters - iris and diagonal wipe
@@ -93,7 +92,7 @@ function Hand({ items, hrefOf }) {
   )
 }
 
-export default function Projects({ data }) {
+export default function Projects() {
   const club = useClub()
   const loc = useLocation()
   const pr = (new URLSearchParams(loc.search).get('pr') || '').trim().toUpperCase()
@@ -104,7 +103,7 @@ export default function Projects({ data }) {
 
   // this year's projects or every year's (client, 2026-10-06) - ?all=1
   const [scope, setScope] = useProjectScope()
-  const d = useProjectsData(isMeetings, scope, data.projects)
+  const d = useProjectsData(isMeetings, scope)
   const { projects, totalCount, avenueTabs } = d
 
   // ?pr= pre-selects a tab; CE/CS are never tabs of their own (ProjectsGold).
@@ -187,8 +186,7 @@ export default function Projects({ data }) {
     stats = [countStat].concat(t ? [
       { label: STAT_LABELS[0], value: t.c, fmt: 'moneyFull', currency: t.currency || cur },
       { label: STAT_LABELS[1], value: t.b, currency: cur },
-      { label: STAT_LABELS[3], value: t.h, currency: cur },
-    ].filter((s) => s.value > 0) : [STAT_LABELS[0], STAT_LABELS[1], STAT_LABELS[3]].map((label) => ({ label, value: '—' })))
+    ].filter((s) => s.value > 0) : [STAT_LABELS[0], STAT_LABELS[1]].map((label) => ({ label, value: '—' })))
   } else if (loadingStats) {
     stats = [countStat].concat(STAT_LABELS.map((label) => ({ label, value: '—' })))
   } else if (!isMeetings && d.metricsPhase === 'ready') {
@@ -196,7 +194,6 @@ export default function Projects({ data }) {
       { label: STAT_LABELS[0], value: totals.c, fmt: 'moneyFull', currency: cur }, // full amount (client, 2026-10-06)
       { label: STAT_LABELS[1], value: totals.b, currency: cur },
       { label: STAT_LABELS[2], value: totals.r, currency: cur },
-      { label: STAT_LABELS[3], value: totals.h, currency: cur },
     ].filter((s) => s.value > 0))
   } else if (!isMeetings && !d.loading && matched.length) {
     stats = [countStat]

@@ -1,4 +1,3 @@
-'use client'
 // ─────────────────────────────────────────────────────────────────────────────
 // SUNRISE · GALLERY — travel through the photos, then walk the albums.
 //
@@ -16,7 +15,7 @@
 // THIS page only - the API pages the photos, so the chips say so.
 // ─────────────────────────────────────────────────────────────────────────────
 import { Fragment, useEffect, useId, useRef, useState } from 'react'
-import { useSearchParams } from '@/site/router.js'
+import { useSearchParams } from 'react-router-dom'
 import {
   useClub, useGalleryData, GALLERY_PAGE_SIZE, PhotoLightbox, LightboxStyles, withYear,
 } from '../../_shared/data.js'
@@ -27,13 +26,13 @@ import './Gallery.css'
 const TUNNEL_MAX = 8
 const clampRatio = (r) => Math.min(2.2, Math.max(0.6, r))
 
-export default function Gallery({ data }) {
+export default function Gallery() {
   const club = useClub()
   const [params] = useSearchParams()
   let page = parseInt(params.get('page'), 10)
   if (Number.isNaN(page) || page < 1) page = 1
 
-  const g = useGalleryData(page, data)
+  const g = useGalleryData(page)
   const year = yearText(club.selectedYearLabel)
   const yearId = club.selectedYearId
   const multi = g.totalPages > 1

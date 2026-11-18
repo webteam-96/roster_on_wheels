@@ -124,3 +124,6 @@
 
 /* night into the footer's night: room for its ridge only (RIZO-31) */
 .hj-endpad.hj-pp-end{padding-bottom:var(--hj-ftr)}
+/* the pinned track already ends on its night ground: the footer's ridge rises over the ground's plain foot
+   (the hill's line is >=56% of the ground's height up, the ridge's crest lower), so no spacer under it */
+.hj-pp:has(.hj-pp-jr--h) > .hj-pp-end{padding-bottom:0}

@@ -1,4 +1,3 @@
-'use client'
 // ─────────────────────────────────────────────────────────────────────────────
 // HORIZONTAL JOURNEY · DIRECTORY — the people on the walk.
 //
@@ -42,9 +41,9 @@ function Member({ m, tone }) {
   )
 }
 
-export default function Directory({ data }) {
+export default function Directory() {
   const club = useClub()
-  const members = useDirectoryData(data)            // null while loading
+  const members = useDirectoryData()            // null while loading
   const [query, setQuery] = useState('')
   const [letter, setLetter] = useState('')      // '' = every letter
   const rootRef = useRef(null)

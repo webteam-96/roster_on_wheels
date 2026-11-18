@@ -5,15 +5,16 @@
    ═════════════════════════════════════════════════════════════════════════════ */
 
 /* ---------- the body: details, poster, description, way back ---------- */
-.sun-evd-body{display:grid;gap:clamp(28px,4vw,48px);grid-template-columns:minmax(0,1fr);grid-template-areas:"facts" "side" "about" "back"}
+.sun-evd-body{display:grid;gap:clamp(28px,4vw,48px);grid-template-columns:minmax(0,1fr);grid-template-areas:"facts" "side" "about" "share" "back"}
 .sun-evd-body:not(.has-shot)>*{max-width:820px}
 .sun-evd-facts{grid-area:facts;display:grid;gap:20px}
 .sun-evd-side{grid-area:side;min-width:0}
 .sun-evd-about{grid-area:about;min-width:0}
 .sun-evd-back{grid-area:back;justify-self:start}
+.sun-evd-share{grid-area:share}   /* buttons styled by ProjectDetail.css (.sun-pd-share) */
 @media (min-width:900px){
-  .sun-evd-body.has-shot{grid-template-columns:minmax(0,7fr) minmax(0,5fr);grid-template-rows:auto auto 1fr;
-    grid-template-areas:"facts side" "about side" "back side";column-gap:clamp(40px,5vw,72px);align-items:start}
+  .sun-evd-body.has-shot{grid-template-columns:minmax(0,7fr) minmax(0,5fr);grid-template-rows:auto auto auto 1fr;
+    grid-template-areas:"facts side" "about side" "share side" "back side";column-gap:clamp(40px,5vw,72px);align-items:start}
   .sun-evd-side{position:sticky;top:calc(var(--sun-hh) + 24px);align-self:start}
 }
 

@@ -1,4 +1,3 @@
-'use client'
 // ─────────────────────────────────────────────────────────────────────────────
 // Split Story · Events — the selected Rotary year's events, told as the theme's
 // split: one chapter per month. As each event crosses the middle of the screen
@@ -35,9 +34,9 @@ function countdown(ts) {
 }
 
 /** A midnight record has no time filed (the home's rule). */
-function timeOf(ts, zone) {
+function timeOf(ts) {
   const d = new Date(ts)
-  return d.getHours() === 0 && d.getMinutes() === 0 ? '' : formatTime(d, zone)
+  return d.getHours() === 0 && d.getMinutes() === 0 ? '' : formatTime(d)
 }
 
 const has = (v) => !!v && String(v).trim() !== '' && String(v).trim() !== '—'
@@ -74,12 +73,12 @@ function NoEvents({ year }) {
   )
 }
 
-export default function Events({ data }) {
+export default function Events() {
   const club = useClub()
   const menuName = useCurrentMenuName()
   const title = (menuName && menuName.trim()) || 'Upcoming events'
   usePageTitle(title)
-  const events = useEventsData(data)                 // null while loading
+  const events = useEventsData()                 // null while loading
   const ref = useRef(null)
   const year = yearText(club.selectedYearLabel)
 
@@ -88,7 +87,7 @@ export default function Events({ data }) {
     const out = []
     let upcoming = 0, next = null
     for (const e of events || []) {
-      const row = { ...e, when: countdown(e.ts), time: timeOf(e.ts, club.timeZone) }
+      const row = { ...e, when: countdown(e.ts), time: timeOf(e.ts) }
       if (row.when) { upcoming++; if (!next) next = row }
       const last = out[out.length - 1]
       if (!last || last.label !== e.monthLabel) out.push({ label: e.monthLabel, rows: [row] })

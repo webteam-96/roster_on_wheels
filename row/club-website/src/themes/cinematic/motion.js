@@ -1,4 +1,3 @@
-'use client'
 // ─────────────────────────────────────────────────────────────────────────────
 // CINEMATIC — the theme's signature motions, as small helpers on top of
 // ../_shared/motion.js. Every helper is safe to call inside a useScene setup:

@@ -1,4 +1,3 @@
-'use client'
 // ─────────────────────────────────────────────────────────────────────────────
 // Split Story · About. The club's own words are told as chapters beside the
 // sticky royal panel: Our story (crest, a lead line, the admin HTML), Where we
@@ -93,9 +92,9 @@ function Crest({ src, alt }) {
   )
 }
 
-export default function About({ data }) {
+export default function About() {
   const club = useClub()
-  const d = useAboutData(data)
+  const d = useAboutData()
   const menuName = useCurrentMenuName()
   const title = trim(menuName) || 'About Us'
   usePageTitle(title)

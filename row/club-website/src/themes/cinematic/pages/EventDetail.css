@@ -60,6 +60,9 @@
 
 /* ───────────── the description ───────────── */
 .cin-evd-copy { min-width: 0; max-width: 68ch; }
+/* share row: the project page's .cin-pd-share buttons (styles in ProjectDetail.css) */
+.cin-evd-share { min-width: 0; }
+.cin-evd-share .cin-pd-share { margin-top: 14px; }
 .cin-evd-cap {
   display: flex; align-items: center; gap: 14px; margin: 0 0 18px;
   font-size: 14px; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; color: var(--cin-gold-ink);
@@ -71,14 +74,16 @@
   .cin-evd-body.has-shot { grid-template-columns: minmax(0, 1fr) minmax(0, .82fr); column-gap: clamp(40px, 6vw, 96px); }
   .cin-evd-body.has-shot > * { grid-column: 1; }
   .cin-evd-body.has-shot > .cin-evd-aside {
-    grid-column: 2; grid-row: 1 / span 3; position: sticky; top: calc(var(--cin-hh) + 32px);
+    grid-column: 2; grid-row: 1 / span 4; position: sticky; top: calc(var(--cin-hh) + 32px);
   }
 }
 
 /* wide, no poster: the stub on the left, the club's words beside it */
 @media (min-width: 900px) {
   .cin-evd-body:not(.has-shot):has(.cin-evd-copy) { grid-template-columns: minmax(0, 440px) minmax(0, 1fr); column-gap: clamp(40px, 6vw, 96px); }
-  .cin-evd-body:not(.has-shot):has(.cin-evd-copy) > .cin-evd-stub { grid-row: 1 / span 2; }
+  /* about, share, back beside the stub; the last row takes the slack so they sit together */
+  .cin-evd-body:not(.has-shot):has(.cin-evd-copy) { grid-template-rows: auto auto 1fr; }
+  .cin-evd-body:not(.has-shot):has(.cin-evd-copy) > .cin-evd-stub { grid-row: 1 / span 3; }
   .cin-evd-body:not(.has-shot):has(.cin-evd-copy) > :not(.cin-evd-stub) { grid-column: 2; }
 }
 

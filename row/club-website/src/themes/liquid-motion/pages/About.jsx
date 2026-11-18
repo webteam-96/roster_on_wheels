@@ -1,4 +1,3 @@
-'use client'
 // ─────────────────────────────────────────────────────────────────────────────
 // LIQUID MOTION · ABOUT — "the statement".
 // The club's own words are the page. The ink hero carries the menu label; then
@@ -32,9 +31,9 @@ function crestFallback(e) {
   el.src = LOGO_PLACEHOLDER
 }
 
-export default function About({ data }) {
+export default function About() {
   const club = useClub()
-  const d = useAboutData(data)
+  const d = useAboutData()
   const menuName = useCurrentMenuName()
   const title = (menuName && menuName.trim()) || 'About Us'
   usePageTitle(title)

@@ -1,4 +1,3 @@
-'use client'
 // ─────────────────────────────────────────────────────────────────────────────
 // CINEMATIC · ABOUT — "the screening notes".
 // The club's own words are the centrepiece: one readable column with a gold
@@ -81,9 +80,9 @@ function Notes({ html, logo, logoAlt, email, phone, socials }) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-export default function About({ data }) {
+export default function About() {
   const club = useClub()
-  const d = useAboutData(data)
+  const d = useAboutData()
   const name = usePageName('About Us')
   const pageRef = useRef(null)
   useRefreshOnImages(pageRef, [d.loading, d.html, d.logo])

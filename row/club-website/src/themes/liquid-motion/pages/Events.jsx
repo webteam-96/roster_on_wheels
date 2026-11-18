@@ -1,4 +1,3 @@
-'use client'
 // ─────────────────────────────────────────────────────────────────────────────
 // LIQUID MOTION · EVENTS — "what's on".
 // The ink hero carries the menu label and the count, drifting behind in outline.
@@ -80,14 +79,14 @@ function MonthHead({ label, count, id }) {
   )
 }
 
-export default function Events({ data }) {
+export default function Events() {
   const club = useClub()
   const year = yearText(club.selectedYearLabel)
   const menuName = useCurrentMenuName()
   const title = (menuName && menuName.trim()) || 'Upcoming Events'
   usePageTitle(title)
-  const events = useEventsData(data)        // null while loading
-  const ab = useAboutData(data)             // the weekly meeting, for the empty state
+  const events = useEventsData()        // null while loading
+  const ab = useAboutData()             // the weekly meeting, for the empty state
 
   const list = events || []
   const { next, groups, past } = useMemo(() => {

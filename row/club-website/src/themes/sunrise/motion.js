@@ -1,4 +1,3 @@
-'use client'
 // ─────────────────────────────────────────────────────────────────────────────
 // SUNRISE — the theme's signature motions, as small helpers on top of
 // ../_shared/motion.js. Everything the shared file exports is re-exported here,

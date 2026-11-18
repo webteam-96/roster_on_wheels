@@ -1,4 +1,3 @@
-'use client'
 // ─────────────────────────────────────────────────────────────────────────────
 // HORIZONTAL JOURNEY · About — the walk's starting point.
 //
@@ -27,9 +26,9 @@ const ONWARD = [
   { href: '/past-presidents', label: 'Past presidents', c: 'var(--hj-night)', sun: '#E6EBFA' },
 ]
 
-export default function About({ data }) {
+export default function About() {
   const club = useClub()
-  const d = useAboutData(data)
+  const d = useAboutData()
   const ref = useRef(null)
 
   const name = trim(club.clubDisplayName)

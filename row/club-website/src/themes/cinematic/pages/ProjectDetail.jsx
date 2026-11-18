@@ -1,4 +1,3 @@
-'use client'
 // ─────────────────────────────────────────────────────────────────────────────
 // CINEMATIC · PROJECT DETAIL — "the feature".
 // The hero projects a blurred copy of the project's photo behind its title
@@ -15,13 +14,13 @@
 // ─────────────────────────────────────────────────────────────────────────────
 import { useEffect, useId, useLayoutEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { useLocation } from '@/site/router.js'
+import { useLocation } from 'react-router-dom'
 import {
   useClub, useProjectData, usePageTitle, avenueLabel, formatMoney, groupInt,
   useProjectShare, shareChannels, sharePopup, SHARE_ICONS, PhotoLightbox, LightboxStyles,
 } from '../../_shared/data.js'
 import {
-  PageHero, SectionHead, StatRow, Button, NotFound, Loading, DateStamp, Arrow, ArrowBack, Pin, hideOnError, demoteH1, useModal,
+  PageHero, SectionHead, StatRow, Button, NotFound, Loading, DateStamp, Arrow, ArrowBack, Pin, Person, hideOnError, demoteH1, useModal,
 } from '../kit.jsx'
 import { gsap, useScene, useRefreshOnImages, riseIn, wipeIn, parallax, projectorOpen, prefersReducedMotion, rowsOf } from '../motion.js'
 import './ProjectDetail.css'
@@ -237,6 +236,36 @@ function UpdatePanel({ c, currency, onClose, onPhoto }) {
     </div>, document.body)
 }
 
+// ── the share channels (also on the event page) ───────────────────────────────
+export function ShareList({ channels }) {
+  return (
+    <ul className="cin-pd-share">
+      {channels.map((ch) => {
+        const glyph = (
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"
+            fill={ch.fill && !ch.done ? 'currentColor' : 'none'} stroke={ch.fill && !ch.done ? 'none' : 'currentColor'}
+            strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            {ch.done ? SHARE_ICONS.check : ch.icon}
+          </svg>
+        )
+        const newTab = ch.href && ch.key !== 'mail'
+        return (
+          <li key={ch.key}>
+            {ch.href ? (
+              <a href={ch.href} className="cin-magnet" aria-label={ch.label + (newTab ? ' (opens in a new tab)' : '')}
+                title={ch.label} target={newTab ? '_blank' : undefined} rel={newTab ? 'noopener noreferrer' : undefined}
+                onClick={ch.popup ? sharePopup : undefined}>{glyph}</a>
+            ) : (
+              <button type="button" className="cin-magnet" aria-label={ch.label} title={ch.label} onClick={ch.onClick}>{glyph}</button>
+            )}
+            {ch.doneLabel ? <span className={'cin-pd-share__toast' + (ch.done ? ' is-on' : '')} aria-live="polite">{ch.done ? ch.doneLabel : ''}</span> : null}
+          </li>
+        )
+      })}
+    </ul>
+  )
+}
+
 // ── the credits: share + the way back ────────────────────────────────────────
 function Credits({ channels, backHref, backLabel }) {
   const ref = useRef(null)
@@ -245,30 +274,7 @@ function Credits({ channels, backHref, backLabel }) {
     <section ref={ref} className="cin-sec cin-pd-end" aria-labelledby="cin-pd-share-h">
       <div className="cin-pd-end__col">
         <h2 className="cin-pd-cap" id="cin-pd-share-h">Share this project</h2>
-        <ul className="cin-pd-share">
-          {channels.map((ch) => {
-            const glyph = (
-              <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"
-                fill={ch.fill && !ch.done ? 'currentColor' : 'none'} stroke={ch.fill && !ch.done ? 'none' : 'currentColor'}
-                strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                {ch.done ? SHARE_ICONS.check : ch.icon}
-              </svg>
-            )
-            const newTab = ch.href && ch.key !== 'mail'
-            return (
-              <li key={ch.key}>
-                {ch.href ? (
-                  <a href={ch.href} className="cin-magnet" aria-label={ch.label + (newTab ? ' (opens in a new tab)' : '')}
-                    title={ch.label} target={newTab ? '_blank' : undefined} rel={newTab ? 'noopener noreferrer' : undefined}
-                    onClick={ch.popup ? sharePopup : undefined}>{glyph}</a>
-                ) : (
-                  <button type="button" className="cin-magnet" aria-label={ch.label} title={ch.label} onClick={ch.onClick}>{glyph}</button>
-                )}
-                {ch.doneLabel ? <span className={'cin-pd-share__toast' + (ch.done ? ' is-on' : '')} aria-live="polite">{ch.done ? ch.doneLabel : ''}</span> : null}
-              </li>
-            )
-          })}
-        </ul>
+        <ShareList channels={channels} />
       </div>
       <div className="cin-pd-end__col">
         <Button href={backHref} variant="line"><ArrowBack /> {backLabel}</Button>
@@ -278,7 +284,7 @@ function Credits({ channels, backHref, backLabel }) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-export default function ProjectDetail({ data }) {
+export default function ProjectDetail() {
   const club = useClub()
   const loc = useLocation()
   const params = new URLSearchParams(loc.search)
@@ -289,7 +295,7 @@ export default function ProjectDetail({ data }) {
   const backLabel = fromMeetings ? 'Back to Club Services' : 'Back to all projects'
 
   // demoChild (local ?demoChild=1 preview) needs isLocalRequest, which data.js does not export.
-  const { p, notFound } = useProjectData(pid, false, data)
+  const { p, notFound } = useProjectData(pid, false)
   usePageTitle(p ? p.title : null)   // NotFound sets its own title
 
   const share = useProjectShare({
@@ -354,10 +360,11 @@ export default function ProjectDetail({ data }) {
     p.manHours > 0 && { label: 'Man hours', value: p.manHours, format: (n) => groupInt(n, cur) },
   ].filter(Boolean)
   const when = stampOf(p.dateText)
-  const facts = when.day || p.location ? (
+  const facts = when.day || p.location || p.president ? (
     <div className="cin-pd-facts">
       {when.day ? <DateStamp day={when.day} mon={when.mon} year={when.year} /> : null}
       {p.location ? <p className="cin-pd-fact"><Pin /><span><span className="cin-sr">Venue: </span>{p.location}</span></p> : null}
+      {p.president ? <p className="cin-pd-fact"><Person /><span>{p.president.role}: {p.president.name}</span></p> : null}
     </div>
   ) : null
 

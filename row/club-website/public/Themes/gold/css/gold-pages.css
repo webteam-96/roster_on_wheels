@@ -1439,6 +1439,9 @@ html[data-theme="gold"] .gp-head__main.is-visible .gp-head__t {
 .ged-rule span:last-child { flex: 1; }
 .ged-rule svg { flex: none; width: 16px; height: 16px; }
 .ged-copy { max-width: 62ch; }
+/* Share row (2026-11-02) — the project page's channel buttons (.gpd-share). */
+.ged-shr { margin-top: var(--g-6); }
+.ged-shr .gpd-share { margin-top: var(--g-2); }
 /* The poster stays with you while you read the description. --gp-stick clears
    the sticky masthead. */
 @media (min-width: 900px) { .ged-shot { position: sticky; top: var(--gp-stick); } }
@@ -1455,6 +1458,7 @@ html[data-theme="gold"] .gp-head__main.is-visible .gp-head__t {
   .ged-rule   { order: 4; }
   .ged-copy   { order: 5; }
   .ged-cta    { order: 6; }
+  .ged-shr    { order: 6; }
 }
 
 /* ════════════════════════════════════════════════════════════════════════════

@@ -1,4 +1,3 @@
-'use client'
 // ─────────────────────────────────────────────────────────────────────────────
 // PHOTO COLLAGE · DIRECTORY — the club's contact sheet.
 //
@@ -26,9 +25,9 @@ import './Directory.css'
 const TILT = [-3, 2, -1, 3]
 const SWAY = [0.8, -0.9, 1, -0.7]
 
-export default function Directory({ data }) {
+export default function Directory() {
   const name = usePageName('Directory')
-  const members = useDirectoryData(data)            // null while loading
+  const members = useDirectoryData()            // null while loading
   const [query, setQuery] = useState('')        // what the field shows
   const [q, setQ] = useState('')                // what the sheet shows: the query once typing pauses
   const rootRef = useRef(null)

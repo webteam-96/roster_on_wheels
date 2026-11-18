@@ -291,6 +291,13 @@
       if (e.key === "Enter" || e.key === " " || e.key === "Spacebar") { e.preventDefault(); open(); }
     });
     if (collapseBtn) collapseBtn.addEventListener("click", function (e) { e.stopPropagation(); close(); });
+    // The deck OPENS as the slider (client, 2026-11-17); "Collapse the deck" stacks it and a
+    // click on the stack fans it out again. The markup already carries is-open, so open() has
+    // nothing to animate here - it only starts the marquee / phone drift and the arrows.
+    // Lazy photos never load inside the moving row (a translated / scrolled card is not
+    // "near the viewport" to the browser), so the open slider showed empty grey boxes.
+    Array.prototype.slice.call(track.querySelectorAll('img[loading="lazy"]')).forEach(function (im) { im.loading = "eager"; });
+    if (realCards().length > 1) { comm.classList.add("is-open"); open(); }
   });
   }
 

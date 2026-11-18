@@ -1,4 +1,3 @@
-'use client'
 // ─────────────────────────────────────────────────────────────────────────────
 // Photo Collage — home. The G sample ("the club's year as a crafted
 // scrapbook") on useHomeData, for any club:
@@ -183,9 +182,9 @@ function AdPopup({ ads, clubId }) {
   )
 }
 
-export default function Home({ data }) {
+export default function Home() {
   const club = useClub()
-  const d = useHomeData(data.home, { featuredTake: 4, newsletterTake: 2 }) // the wall shows four projects (client, 2026-09-29)
+  const d = useHomeData({ featuredTake: 4, newsletterTake: 2 }) // the wall shows four projects (client, 2026-09-29)
   usePageTitle(club.clubDisplayName)
 
   const rootRef = useRef(null)
@@ -261,7 +260,6 @@ export default function Home({ data }) {
     { value: imp.projects, label: 'Projects' },
     { value: imp.totalCost, label: 'Total project cost', money: true },
     { value: imp.beneficiaries, label: 'Beneficiaries' },
-    { value: imp.manHours, label: 'Man hours' },
     { value: members, label: 'Members' },
   ].filter((s) => Number(s.value) > 0)
 

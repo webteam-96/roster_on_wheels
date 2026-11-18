@@ -1,4 +1,3 @@
-'use client'
 // ─────────────────────────────────────────────────────────────────────────────
 // Split Story — the theme's signature motions, as small helpers on top of
 // _shared/motion.js. Everything here is meant to be called INSIDE a useScene

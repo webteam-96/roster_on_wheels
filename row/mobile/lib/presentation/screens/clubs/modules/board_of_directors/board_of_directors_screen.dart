@@ -445,6 +445,8 @@ class _BodDirectorFormScreenState extends State<BodDirectorFormScreen> {
   final _nonMemberNameCtrl = TextEditingController();
   final _nonMemberMobileCtrl = TextEditingController();
   final _nonMemberEmailCtrl = TextEditingController();
+  // OMS ROW-51: the test district may also add non-members for the current year (same rule as the web).
+  bool _nonMemberCurrentYear = false;
 
   int? _designationId;
   int? _yearId;
@@ -455,6 +457,7 @@ class _BodDirectorFormScreenState extends State<BodDirectorFormScreen> {
   @override
   void initState() {
     super.initState();
+    _loadRules();
     if (_isEdit) {
       _memberId = (widget.director!['memberId'] as num?)?.toInt();
       _memberName = widget.director!['memberName']?.toString();
@@ -498,6 +501,19 @@ class _BodDirectorFormScreenState extends State<BodDirectorFormScreen> {
     _debounce = Timer(const Duration(milliseconds: 300), () {
       _searchMembers(query.trim());
     });
+  }
+
+  Future<void> _loadRules() async {
+    try {
+      final resp = await _api.get(
+        '/api/clubs/${widget.clubId}/board-of-directors/rules',
+        fromJson: (j) => j,
+      );
+      final allowed = (resp.data as Map<String, dynamic>?)?['nonMemberCurrentYear'] == true;
+      if (mounted && allowed) setState(() => _nonMemberCurrentYear = true);
+    } catch (_) {
+      // Rule unknown: keep the stricter past-years-only behaviour; the server enforces it anyway.
+    }
   }
 
   Future<void> _searchMembers(String query) async {
@@ -554,10 +570,13 @@ class _BodDirectorFormScreenState extends State<BodDirectorFormScreen> {
   bool get _hasMember => _memberId != null;
   bool get _hasSelection => _hasMember || _isNonMember;
 
+  bool _nonMemberYearAllowed(BodRotaryYear y) =>
+      y.isPast || (_nonMemberCurrentYear && y.isCurrent);
+
   bool _isYearPast(int? yearId) {
     if (yearId == null) return false;
     for (final y in widget.allRotaryYears) {
-      if (y.id == yearId) return y.isPast;
+      if (y.id == yearId) return _nonMemberYearAllowed(y);
     }
     return false;
   }
@@ -568,7 +587,7 @@ class _BodDirectorFormScreenState extends State<BodDirectorFormScreen> {
   List<BodRotaryYear> get _yearOptions {
     if (!_isNonMember) return widget.allRotaryYears;
     return widget.allRotaryYears
-        .where((y) => y.isPast || (_isEdit && y.id == _yearId))
+        .where((y) => _nonMemberYearAllowed(y) || (_isEdit && y.id == _yearId))
         .toList();
   }
 

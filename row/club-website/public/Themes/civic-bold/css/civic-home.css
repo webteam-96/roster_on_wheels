@@ -1736,7 +1736,7 @@ main .cv2-btn-ghost { border: 1px solid rgba(255, 255, 255, 0.35); padding: 1rem
     padding-top: 1.6rem;
 }
 @media (min-width: 1100px) {
-    #numbers .cv2-statcols { grid-template-columns: minmax(0, 4fr) minmax(0, 1.1fr); gap: 0; }
+    #numbers .cv2-statcols { grid-template-columns: minmax(0, 3fr) minmax(0, 1.1fr); gap: 0; }
     #numbers .cv-stat-group:last-child { border-left: 1px solid var(--m-line); padding-left: 1.4rem; }
     #numbers .cv2-stat--feature { grid-column: auto; }
 }
@@ -1757,7 +1757,9 @@ main .cv2-btn-ghost { border: 1px solid rgba(255, 255, 255, 0.35); padding: 1rem
     overflow: visible;
 }
 @media (min-width: 560px) { #numbers .cv-stat-group:first-child .cv2-statgrid { grid-template-columns: repeat(2, 1fr); } }
-@media (min-width: 1100px) { #numbers .cv-stat-group:first-child .cv2-statgrid { grid-template-columns: repeat(4, 1fr); } }
+@media (min-width: 1100px) { #numbers .cv-stat-group:first-child .cv2-statgrid { grid-template-columns: repeat(3, 1fr); } }
+/* 3 project figures since man-hours left the home (2026-11-17): on the 2-up grid the odd last one takes the row, no hole */
+@media (min-width: 560px) and (max-width: 1099.98px) { #numbers .cv-stat-group:first-child .cv2-statgrid > .cv2-stat:last-child:nth-child(odd) { grid-column: 1 / -1; } }
 /* per-badge gradients — matched to the Meridian theme (royal blues + golds) */
 #numbers .cv2-statgrid .cv2-stat:not(.cv2-stat--feature):nth-child(1) { --dia: linear-gradient(160deg, #0B2C6F, #2E6BE6); }
 #numbers .cv2-statgrid .cv2-stat:not(.cv2-stat--feature):nth-child(2) { --dia: linear-gradient(160deg, #9C7413, #D4A429); }

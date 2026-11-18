@@ -12,21 +12,21 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 // ── club context, routing, menus ─────────────────────────────────────────────
-export { useClub, currentRotaryYearLabel, currentRotaryYearStart } from '@/site/ClubContext.jsx'
-export { useTheme } from '@/site/theme.js'
-export { useMenus, titleCase, menuHref, menuExternal, socialLabel, formatYear, LOGO_PLACEHOLDER } from '@/site/menus.js'
-export { routeKey, toRoute } from '@/site/routes.js'
-export { default as YearSelect } from '@/site/YearSelect.jsx'
-export { default as VisitorCount } from '@/themes/shared/visitorCount.jsx'
-export { useThemeShell, useLoader, useRotaryAnim } from '@/themes/shared/useRotaryAnim.js'
+export { useClub, currentRotaryYearLabel, currentRotaryYearStart } from '../../context/ClubProvider.jsx'
+export { useTheme } from '../../theme/ThemeProvider.jsx'
+export { useMenus, titleCase, menuHref, menuExternal, socialLabel, formatYear, LOGO_PLACEHOLDER } from '../../shared/menus.js'
+export { routeKey, toRoute } from '../../routes.js'
+export { default as YearSelect } from '../../shared/YearSelect.jsx'
+export { default as VisitorCount } from '../../shared/visitorCount.jsx'
+export { useThemeShell, useLoader, useRotaryAnim } from '../../shared/useRotaryAnim.js'
 
 // ── helpers (formatting, media, titles) ──────────────────────────────────────
 export {
   media, withYear, externalUrl, wrappableHtml, initials, avenueLabel, avenueColor, avenueCode,
   usePageTitle, wheelFallback, WHEEL_SRC,
-} from '@/themes/shared/rotaryPage.js'
-export { formatMoney, groupInt, groupIntBlankZero, moneySymbol, DEFAULT_CURRENCY } from '@/themes/shared/money.js'
-export { formatDate, formatTime, buildProjectStatTiles, mediaCandidates, slideLink, adAnchorProps } from '@/themes/shared/homeData.js'
+} from '../../shared/rotaryPage.js'
+export { formatMoney, groupInt, groupIntBlankZero, moneySymbol, DEFAULT_CURRENCY } from '../../shared/money.js'
+export { formatDate, formatTime, buildProjectStatTiles, mediaCandidates, slideLink, adAnchorProps } from '../../shared/homeData.js'
 
 /**
  * Admin HTML -> plain text with EVERY entity decoded (&rsquo; &ndash; &#8217;...).
@@ -39,12 +39,12 @@ export function plainText(html) {
   const doc = new DOMParser().parseFromString(String(html), 'text/html')
   return (doc.body.textContent || '').replace(/\s+/g, ' ').trim()
 }
-export { useCurrentMenuName } from '@/themes/shared/Breadcrumb.jsx'
+export { useCurrentMenuName } from '../../shared/Breadcrumb.jsx'
 
 // ── home page ────────────────────────────────────────────────────────────────
 // Banners, ads, about excerpt, meeting, BOD, featured projects, impact numbers,
 // newsletters, events, dignitaries — everything the released homes render.
-export { useHomeData, getImpactNumbersForYear } from '@/themes/shared/homeData.js'
+export { useHomeData, getImpactNumbersForYear } from '../../shared/homeData.js'
 
 // ── inner pages (one hook per page; read goldData.js for each return shape) ──
 export {
@@ -63,8 +63,9 @@ export {
   useCalendarGold as useCalendarData,          // (year, month)
   useDignitaryGold as useDignitaryData,        // (type) - ?type= from the URL
   GALLERY_PAGE_SIZE, monthName, dayLabelOf, fullDayLabelOf,
-} from '@/themes/gold/pages/goldData.js'
+} from '../../pages/gold/goldData.js'
 
 // ── shared interactive pieces ────────────────────────────────────────────────
-export { useProjectShare, shareChannels, sharePopup, SHARE_ICONS, shareUrlFor } from '@/themes/shared/projectShare.jsx'
-export { default as PhotoLightbox, LightboxStyles } from '@/themes/shared/PhotoLightbox.jsx'
+export { useProjectShare, shareChannels, sharePopup, SHARE_ICONS, shareUrlFor } from '../../shared/projectShare.jsx'
+export { useEventShare } from '../../shared/ShareRow.jsx'
+export { default as PhotoLightbox, LightboxStyles } from '../../shared/PhotoLightbox.jsx'

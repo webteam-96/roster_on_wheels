@@ -1,4 +1,3 @@
-'use client'
 // ─────────────────────────────────────────────────────────────────────────────
 // Split Story — the shell (header, full-screen menu, footer), ported from
 // Theme8-Samples/C-split-story. Live data only: the club's own menus (with
@@ -9,8 +8,9 @@
 // re-anchored by a transformed ancestor.
 // ─────────────────────────────────────────────────────────────────────────────
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
-import { useLocation } from '@/site/router.js'
+import { useLocation } from 'react-router-dom'
 // ponytail: data.js has no about-fetch export yet; SiteGold reads the same call (request-cached).
+import { getAbout } from '../../api/clubService.js'
 import {
   useClub, useMenus, titleCase, menuHref, menuExternal, socialLabel, LOGO_PLACEHOLDER, routeKey,
   YearSelect, VisitorCount, useThemeShell, useLoader, media, externalUrl,
@@ -18,9 +18,9 @@ import {
 import { useSmoothScroll, lockScroll, scrollToY, gsap, motionOn, irisOpen, irisClose } from './motion.js'
 import { yearText } from './kit.jsx'
 import './theme.css'
-import { ADMIN_LOGIN_URL } from '@/site/adminUrl.js'
+import { appSettings } from '../../config.js'
 
-const ADMIN_URL = ADMIN_LOGIN_URL
+const ADMIN_URL = appSettings.AdminLoginUrl
 const hdIco = (d) => function Ico() {
   return <svg className="spl-hd-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d={d} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
 }
@@ -141,8 +141,7 @@ export default function Site({ children }) {
   const club = useClub()
   const menus = useMenus()
   const location = useLocation()
-  // The shell's about (lib/pageShell): already for the picked year and in the visitor's language.
-  const about = club.about || null
+  const [about, setAbout] = useState(undefined)   // undefined = not fetched yet, null = none
   const [tight, setTight] = useState(false)        // the club's menu does not fit the desktop bar
   const [menuOpen, setMenuOpen] = useState(false)
   const hdRef = useRef(null), navRef = useRef(null), ulRef = useRef(null), pillRef = useRef(null)
@@ -152,6 +151,12 @@ export default function Site({ children }) {
   useThemeShell('split-story', menus.length > 0)
   useLoader(!club.loading)
 
+  useEffect(() => {
+    if (!club.clubId) return undefined
+    let cancelled = false
+    getAbout(club.clubId, club.selectedYearId).then((a) => { if (!cancelled) setAbout(a || null) })
+    return () => { cancelled = true }
+  }, [club.clubId, club.selectedYearId])
 
   const clubName = club.clubDisplayName
   const rotaryLogo = media(about ? about.rotaryLogoPath : null)

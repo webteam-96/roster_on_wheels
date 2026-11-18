@@ -1,0 +1,199 @@
+/* RotaryLoader — "Glide & Tunnel" full-screen brand loader.
+   Two INDEPENDENT motion layers: the outer wrapper glides in once (and later
+   tunnel-dives out), while the inner wrapper spins continuously. Keeping them on
+   separate elements is what makes it read as a real spinner, not a rolling
+   wheel. Multi-stage motion → keyframes live here (CSS-module scoped). */
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+  --rl-core: #005daa; /* centre of the radial */
+  --rl-edge: #16429b; /* outer ring, and the solid fallback */
+  background: var(--rl-edge);
+  background: radial-gradient(circle at 50% 50%, var(--rl-core) 0%, var(--rl-edge) 100%);
+  animation: overlayIn 0.35s ease both;
+}
+
+/* Each theme's own dark ground, sampled from its footer. These live HERE rather
+   than in the theme stylesheets because the loader covers the screen before any
+   theme sheet has loaded — it only ever has html[data-theme] to go on. Every
+   other colour in this file is white/black alpha, so it reads on all of them. */
+html[data-theme='warm-modern'] .overlay {
+  --rl-core: #8a2e14;
+  --rl-edge: #601f0e;
+}
+html[data-theme='civic-bold'] .overlay {
+  --rl-core: #0c2a5a;
+  --rl-edge: #061634;
+}
+html[data-theme='verdigris-ledger'] .overlay {
+  --rl-core: #3a0e3c;
+  --rl-edge: #2a0a2c;
+}
+html[data-theme='madras-legacy'] .overlay {
+  --rl-core: #3a41a5;
+  --rl-edge: #2d3383;
+}
+html[data-theme='handloom'] .overlay {
+  --rl-core: #1f5138;
+  --rl-edge: #12332a;
+}
+
+/* exit: the blue backdrop fades out while the wheel tunnels in */
+.leaving {
+  opacity: 0;
+  transition: opacity 0.6s ease;
+  pointer-events: none;
+}
+
+@keyframes overlayIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* ── Layer 1 — outer wrapper: glide path (plays once on mount) ──── */
+.outer {
+  position: relative;
+  display: grid;
+  place-items: center;
+  animation: glideIn var(--glide, 1200ms) cubic-bezier(0.45, 0, 0.2, 1) both;
+  will-change: transform, opacity;
+}
+
+@keyframes glideIn {
+  from {
+    transform: translate(-130px, -60px) scale(0.5);
+    opacity: 0;
+  }
+  to {
+    transform: translate(0, 0) scale(1);
+    opacity: 1;
+  }
+}
+
+/* exit — tunnel dive: scale up + fade, "pulls you into the wheel" */
+.outer.diving {
+  animation: tunnel 0.7s ease-in forwards;
+}
+
+@keyframes tunnel {
+  from {
+    transform: scale(1);
+    opacity: 1;
+  }
+  to {
+    transform: scale(4);
+    opacity: 0;
+  }
+}
+
+/* looping demo mode: glide → hold → tunnel, forever */
+.outer.loop {
+  animation: glideLoop calc(var(--glide, 1200ms) + 1100ms) ease-in-out infinite;
+}
+
+@keyframes glideLoop {
+  0% {
+    transform: translate(-130px, -60px) scale(0.5);
+    opacity: 0;
+  }
+  30%,
+  62% {
+    transform: translate(0, 0) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(4);
+    opacity: 0;
+  }
+}
+
+/* ── Layer 2 — inner wrapper: continuous spin ──────────────────── */
+.inner {
+  display: grid;
+  place-items: center;
+  animation: spin var(--spin, 0.9s) linear infinite;
+  will-change: transform;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.wheel {
+  width: clamp(84px, 22vw, 120px);
+  height: clamp(84px, 22vw, 120px);
+  object-fit: contain;
+  filter: drop-shadow(0 10px 26px rgba(0, 0, 0, 0.35));
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+/* faint white ring that expands from behind the wheel during the dive */
+.ring {
+  position: absolute;
+  inset: 50% auto auto 50%;
+  width: clamp(84px, 22vw, 120px);
+  height: clamp(84px, 22vw, 120px);
+  margin: 0;
+  translate: -50% -50%;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.85);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.outer.diving .ring {
+  animation: ringExpand 0.7s ease-out forwards;
+}
+
+@keyframes ringExpand {
+  from {
+    transform: scale(0.4);
+    opacity: 0.55;
+  }
+  to {
+    transform: scale(3.4);
+    opacity: 0;
+  }
+}
+
+/* ── label under the wheel ─────────────────────────────────────── */
+.label {
+  margin: 0;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.92);
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.25);
+}
+
+/* ── reduced motion: no glide, no tunnel — just fade + slow wheel ── */
+@media (prefers-reduced-motion: reduce) {
+  .outer,
+  .outer.diving,
+  .outer.loop {
+    animation: none !important;
+    transform: none !important;
+    opacity: 1 !important;
+  }
+  .inner {
+    animation: spin 3s linear infinite;
+  }
+  .ring {
+    display: none;
+  }
+}

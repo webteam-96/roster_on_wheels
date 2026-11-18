@@ -7,7 +7,8 @@ site. Club websites need their own host names (one IIS site serves every club ho
 Ready-to-copy folders (made on the developer machine, not in git): `E:\websites\row\_local\deploy\`
 - `web\root\` = the ROW public website, copied into the site root (its `web.config` is `root-site.web.config`);
   `web\admin\` = the admin panel, copied into the `admin` folder of the site root (its `web.config` is
-  `admin-app.web.config`); `web\club-websites\` = the club sites (Next.js standalone + its `web.config`, own IIS site).
+  `admin-app.web.config`); `web\club-websites\` = the club sites (static React build of `row/club-website` with its
+  `web.config`, own IIS site).
 - `api\` = the API (dotnet publish, Release); `api\sql\` holds the MySQL Workbench scripts (`sql\README.txt`).
   ASP.NET Core serves no file from it.
 The browser-side code in `web\admin\` and `web\club-websites\` is built for `https://test.rosteronwheels.com`; a different
@@ -85,14 +86,23 @@ Email (Brevo), push (Firebase) and payment keys: leave empty for the test unless
 
 ## 4. Site "row-club-websites"
 
-- Folder: copy `row-deploy\web\club-websites`. App pool: **No Managed Code**.
+- Since 2026-11-17 the club website is a static React (Vite) app: `row/club-website`, `npm ci` then `npm run build`
+  -> `dist\`. Copy the CONTENTS of `dist\` (it includes its own `web.config`: SPA fallback + caching) into the
+  site folder. No Node, no server process. App pool: **No Managed Code**; needs the IIS URL Rewrite module.
+- Build settings are in `row/club-website/.env.production` (API URL, admin login URL, renewal URL, visitor counter).
+  They are compiled into the browser bundle: a different host means editing that file and rebuilding.
 - Club addresses: `<clubname>.test.rosteronwheels.com`. Binding: `https`, host `*.test.rosteronwheels.com`
   (IIS 10 wildcard binding), port 443, a wildcard certificate for `*.test.rosteronwheels.com`; DNS: a wildcard
   record `*.test.rosteronwheels.com` -> the server. A club appears when its `club_websites` row has
   `Subdomain` = `<clubname>` (or the full host).
 - On the API site also set `Brand__Domains__ClubSiteParent` = `test.rosteronwheels.com`.
-- Environment: `PURGE_CACHE_SECRET` = the API's `ClubSite__PurgeSecret`.
+- Leave the API's `ClubSite__PurgeSecret` UNSET: the static site has no cache to purge, and with the secret set the
+  API would POST to every club host on each save and log the failure.
 - Its browser code calls the API at `https://test.rosteronwheels.com/api/...` (public club endpoints are CORS-open).
+- Theme: the club admin picks it in Website > Change Theme (theme_master). Handloom is held back in the code
+  (`UNRELEASED_THEMES`) and Madras Legacy is not offered to any club (`MADRAS_CLUBS` is empty).
+- Link previews (WhatsApp, Facebook) show no club title or image yet: crawlers run no JavaScript and the site has no
+  server-side page. Needs a small API endpoint + an IIS rule for crawler user agents (not built).
 
 ## 5. Before opening it to anyone
 

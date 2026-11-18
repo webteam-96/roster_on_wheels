@@ -1,4 +1,3 @@
-'use client'
 // ─────────────────────────────────────────────────────────────────────────────
 // SUNRISE · DIRECTORY — a horizon of arches.
 //
@@ -28,8 +27,8 @@ function letterOf(name) {
   return c >= 'A' && c <= 'Z' ? c : '#'
 }
 
-export default function Directory({ data }) {
-  const members = useDirectoryData(data)            // null while loading
+export default function Directory() {
+  const members = useDirectoryData()            // null while loading
   const [query, setQuery] = useState('')
   const [letter, setLetter] = useState('')      // '' = every letter
   const rootRef = useRef(null)

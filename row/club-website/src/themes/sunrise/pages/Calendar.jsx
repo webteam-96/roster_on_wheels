@@ -1,4 +1,3 @@
-'use client'
 // ─────────────────────────────────────────────────────────────────────────────
 // SUNRISE · CALENDAR — "the month sky".
 // The row under the page head is the month switcher: changing month turns the
@@ -13,10 +12,10 @@
 // (?month=yyyy-MM, ?date=yyyy-MM-dd) parsed by the same resolveContext Gold uses.
 // ─────────────────────────────────────────────────────────────────────────────
 import { useEffect, useId, useMemo, useRef, useState } from 'react'
-import { useLocation } from '@/site/router.js'
+import { useLocation } from 'react-router-dom'
 // The /calendar query contract. Not re-exported by _shared/data.js yet (see
 // sharedRequests) - imported, not copied, so the parse rule stays single-sourced.
-import { resolveContext, addMonths } from '@/themes/shared/pages/AllSpecialDates.jsx'
+import { resolveContext, addMonths } from '../../../pages/AllSpecialDates.jsx'
 import { useCalendarData, monthName } from '../../_shared/data.js'
 import { PageHero, Chips, ResultCount, EmptyState, Loading, Button, DateSun, PersonPhoto, Arrow, ArrowLeft, CalendarIcon, venueText } from '../kit.jsx'
 import { gsap, useScene, revealBatch } from '../motion.js'
@@ -108,13 +107,13 @@ function Entry({ c, it }) {
   )
 }
 
-export default function Calendar({ data }) {
+export default function Calendar() {
   const location = useLocation()
   const today = useMemo(() => new Date(), [])
   const ctx = useMemo(() => resolveContext(location.search, today), [location.search, today])
   const { year, month } = ctx
   const mk = year + '-' + month
-  const d = useCalendarData(year, month, data)
+  const d = useCalendarData(year, month)
   const hid = useId()
 
   // For one render after the month changes the hook still holds the previous

@@ -1,4 +1,3 @@
-'use client'
 // ─────────────────────────────────────────────────────────────────────────────
 // SUNRISE · EVENT DETAIL — the invitation at sunrise.
 //
@@ -14,8 +13,9 @@
 // calendar links into past events resolve). null = loading, false = not found.
 // ─────────────────────────────────────────────────────────────────────────────
 import { useEffect, useRef, useState } from 'react'
-import { useLocation } from '@/site/router.js'
-import { useEventData, PhotoLightbox, LightboxStyles } from '../../_shared/data.js'
+import { useLocation } from 'react-router-dom'
+import { useEventData, useEventShare, shareChannels, PhotoLightbox, LightboxStyles } from '../../_shared/data.js'
+import { ShareList } from './ProjectDetail.jsx'
 import { PageHero, Panel, Button, Loading, NotFound, noEmoji, demoteH1, ClockIcon, PinIcon, CalendarIcon, venueText } from '../kit.jsx'
 import { useScene, useRefreshOnImages, gsap, flyTitle, focusPull, revealBatch, lockScroll } from '../motion.js'
 import './EventDetail.css'
@@ -24,7 +24,8 @@ const CLEAR = 'transform,opacity,translate,rotate,scale'
 const CRUMB = { label: 'Upcoming events', href: '/events' }
 const MAPS = 'https://www.google.com/maps/search/?api=1&query='
 
-function Detail({ ev }) {
+function Detail({ ev, id }) {
+  const channels = shareChannels(useEventShare(ev, id)).filter((ch) => ch.href || ch.onClick)
   const ref = useRef(null)
   const openRef = useRef(null)
   const [broken, setBroken] = useState(false)
@@ -151,6 +152,13 @@ function Detail({ ev }) {
           </section>
         ) : null}
 
+        {channels.length ? (
+          <section className="sun-evd-share sun-pd-end__share" aria-labelledby="sun-evd-share-h">
+            <h2 className="sun-eyebrow" id="sun-evd-share-h">Share this event</h2>
+            <ShareList channels={channels} />
+          </section>
+        ) : null}
+
         <div className="sun-evd-back">
           <Button href="/events" variant="line" icon="back">All events</Button>
         </div>
@@ -159,10 +167,10 @@ function Detail({ ev }) {
   )
 }
 
-export default function EventDetail({ data }) {
+export default function EventDetail() {
   const location = useLocation()
   const id = parseInt(new URLSearchParams(location.search).get('id'), 10) || 0
-  const ev = useEventData(id, data)                    // null = loading, false = not found
+  const ev = useEventData(id)                    // null = loading, false = not found
 
   if (ev === null) {
     return <div className="sun-page sun-evd"><div className="sun-wrap sun-block"><Loading label="Loading event" /></div></div>
@@ -178,5 +186,5 @@ export default function EventDetail({ data }) {
       />
     )
   }
-  return <Detail key={id} ev={ev} />
+  return <Detail key={id} ev={ev} id={id} />
 }

@@ -11,16 +11,17 @@
 
 /* ── layout: phones stack ticket, register, poster, notes, back; wide screens
    put the poster in the left column beside everything else ──────────────── */
-.col-evd-in{display:grid;grid-template-areas:"ticket" "cta" "poster" "note" "back";max-width:760px;margin:0 auto;align-items:start}
+.col-evd-in{display:grid;grid-template-areas:"ticket" "cta" "poster" "note" "share" "back";max-width:760px;margin:0 auto;align-items:start}
 .col-evd-hold{grid-area:ticket}
 .col-evd-cta{grid-area:cta}
 .col-evd-poster{grid-area:poster}
 .col-evd-note{grid-area:note}
 .col-evd-back{grid-area:back}
+.col-evd-share{grid-area:share;margin:var(--col-evd-gap) 0 0;min-width:0}
 .col-evd-cta,.col-evd-poster,.col-evd-note,.col-evd-back{margin:var(--col-evd-gap) 0 0}
 .col-evd-cta,.col-evd-back{text-align:center}
 @media (min-width:900px){
-  .col-evd-in.has-img{max-width:var(--col-max);grid-template-columns:minmax(0,5fr) minmax(0,6fr);grid-template-rows:auto auto auto 1fr;grid-template-areas:"poster ticket" "poster cta" "poster note" "poster back";column-gap:clamp(40px,6vw,88px)}
+  .col-evd-in.has-img{max-width:var(--col-max);grid-template-columns:minmax(0,5fr) minmax(0,6fr);grid-template-rows:auto auto auto auto 1fr;grid-template-areas:"poster ticket" "poster cta" "poster note" "poster share" "poster back";column-gap:clamp(40px,6vw,88px)}
   .col-evd-in.has-img .col-evd-poster{margin-top:0}
 }
 

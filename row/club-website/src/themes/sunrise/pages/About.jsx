@@ -1,4 +1,3 @@
-'use client'
 // ─────────────────────────────────────────────────────────────────────────────
 // SUNRISE · ABOUT — the club's own words at first light.
 // The club's About HTML is the centrepiece: one readable column whose paragraphs
@@ -24,9 +23,9 @@ function crestFallback(e) {
   img.src = LOGO_PLACEHOLDER
 }
 
-export default function About({ data }) {
+export default function About() {
   const club = useClub()
-  const d = useAboutData(data)
+  const d = useAboutData()
   const clubName = String(club.clubDisplayName || '').trim()
   // "Rotary Club of" in the serif; the rest of the name as the accent
   const short = clubName.replace(/^\s*(the\s+)?rotary\s+club\s+of\s+/i, '').trim()

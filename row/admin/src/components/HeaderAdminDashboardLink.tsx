@@ -11,6 +11,7 @@ import { useEffect, useState } from "react";
 import { useAuth, decodeJwt } from "@/contexts/AuthContext";
 import { resolveDashboardLanding, type DashboardEntry } from "@/services/api";
 import { LayoutDashboard } from "@/components/icons";
+import { withBase } from "@/lib/basePath";
 
 const OPERATIONAL_ORDER = ["district-admin", "club-admin", "ag"];
 
@@ -64,7 +65,7 @@ export default function HeaderAdminDashboardLink() {
     if (target.districtId != null) scopeArgs.districtId = target.districtId;
     if (target.zoneId != null) scopeArgs.zoneId = target.zoneId;
     if (Object.keys(scopeArgs).length > 0) selectScope(scopeArgs);
-    window.location.assign(target.route);
+    window.location.assign(withBase(target.route));
   };
 
   return (

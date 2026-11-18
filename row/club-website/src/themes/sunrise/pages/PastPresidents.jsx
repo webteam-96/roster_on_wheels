@@ -1,4 +1,3 @@
-'use client'
 // ─────────────────────────────────────────────────────────────────────────────
 // SUNRISE · PAST PRESIDENTS — the sun path.
 //
@@ -32,10 +31,10 @@ function charterYear(html) {
   return y >= 1905 && y <= new Date().getFullYear() ? y : 0
 }
 
-export default function PastPresidents({ data }) {
+export default function PastPresidents() {
   const club = useClub()
-  const list = usePastPresidentsData(data)          // null while loading; newest first
-  const about = useAboutData(data)                  // the charter year
+  const list = usePastPresidentsData()          // null while loading; newest first
+  const about = useAboutData()                  // the charter year
   const [query, setQuery] = useState('')
   const ref = useRef(null)
 

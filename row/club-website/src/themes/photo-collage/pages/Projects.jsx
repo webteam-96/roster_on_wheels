@@ -1,4 +1,3 @@
-'use client'
 // ─────────────────────────────────────────────────────────────────────────────
 // Photo Collage · PROJECTS — the home wall, extended to the whole year.
 //
@@ -14,7 +13,7 @@
 // no area/type filters, no totals); ?pr=CP|VS|NGS|IS|PII pre-selects a tab.
 // ─────────────────────────────────────────────────────────────────────────────
 import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from 'react'
-import { useLocation } from '@/site/router.js'
+import { useLocation } from 'react-router-dom'
 import { useClub, useProjectsData, withYear, useProjectFacets, useAllYearsTotals } from '../../_shared/data.js'
 import {
   PageHero, StatRow, Print, Note, Chip, TextLink, Button, FilterGroup, SearchField,
@@ -65,7 +64,7 @@ function Totals({ items, currency, phase, note }) {
   )
 }
 
-export default function Projects({ data }) {
+export default function Projects() {
   const club = useClub()
   const loc = useLocation()
   const pr = (new URLSearchParams(loc.search).get('pr') || '').trim().toUpperCase()
@@ -74,7 +73,7 @@ export default function Projects({ data }) {
 
   // this year's projects or every year's (client, 2026-10-06) - ?all=1
   const [scope, setScope] = useProjectScope()
-  const d = useProjectsData(isMeetings, scope, data.projects)
+  const d = useProjectsData(isMeetings, scope)
   const { projects, avenueTabs } = d
 
   // ?pr= pre-selects a tab; CE/CS are never tabs of their own (as Gold).
@@ -191,7 +190,6 @@ export default function Projects({ data }) {
     { value: figs.c, label: 'Total cost', money: true },
     { value: figs.b, label: 'Beneficiaries' },
     allYears ? null : { value: figs.r, label: 'Rotarians involved' },
-    { value: figs.h, label: 'Man hours' },
   ].filter(Boolean)
   const totalsPhase = allYears ? (at ? 'ready' : 'loading') : d.metricsPhase
   const filteredNow = !!(avenue || area || sub || sc || type || query.trim())

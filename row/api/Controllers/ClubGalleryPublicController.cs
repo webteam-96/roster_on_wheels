@@ -91,7 +91,7 @@ public class ClubGalleryPublicController : ControllerBase
         if (!await IsClubServiceableAsync(conn, clubId)) return NotFound();
 
         var tables = (yearId.HasValue && yearId.Value > 0)
-            ? new List<YearTableInfo> { (await _yearTables.ResolveByYearIdAsync(conn, yearId.Value)) }
+            ? new List<YearTableInfo> { (await _yearTables.ResolveExistingByYearIdAsync(conn, yearId.Value)) }
                 .Where(t => t != null).Cast<YearTableInfo>().ToList()
             : await _yearTables.GetAllExistingYearTablesAsync(conn);
 

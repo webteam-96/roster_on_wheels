@@ -1,4 +1,3 @@
-'use client'
 // ─────────────────────────────────────────────────────────────────────────────
 // Split Story · Newsletters — the bulletin, filed month by month.
 //
@@ -36,12 +35,12 @@ function Issue({ n, latest, state }) {
                   srHint={n.url ? hintFor(n.url) : undefined} status="No file attached" state={state} />
 }
 
-export default function Newsletters({ data }) {
+export default function Newsletters() {
   const club = useClub()
   const menuName = useCurrentMenuName()
   const title = (menuName && menuName.trim()) || 'Newsletters'
   usePageTitle(title)
-  const items = useNewslettersData(data)          // null while loading, newest first
+  const items = useNewslettersData()          // null while loading, newest first
   const [query, setQuery] = useState('')
   const ref = useRef(null)
 

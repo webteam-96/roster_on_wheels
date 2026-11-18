@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!-- Chrome for Android repaints any site that declares no colour scheme when the
+         reader has ⋮ > Settings > Theme > "Apply Dark themes to sites, when possible"
+         switched on. It is a PER-PHONE setting, which is why a site looks wrong on one
+         member's handset and right on everyone else's.
+
+         What it broke here: the classic-blue navbar is a white glass pill
+         (bg-white/80, SiteRotary.jsx:246) and the Home counters are a WHITE GRADIENT
+         CLIPPED TO THE DIGITS (bg-gradient-to-b from-white + bg-clip-text +
+         text-transparent, Home.jsx:314/343). Auto Dark Theme inverts light surfaces
+         but leaves gradients and already-dark areas alone, so the pill went near-black
+         and the figures went near-black while the hero, the plain white headings and
+         the gold tiles stayed correct — the page arrived half-repainted.
+
+         "only light" is Chrome's documented opt-out; plain "light" is NOT sufficient.
+         As a <meta> it lands before first paint, so there is no flash of dark content.
+         Safe for all themes: nothing in this app uses prefers-color-scheme, and
+         civic-bold's dark mode runs off its own [data-civic-mode] attribute (set by
+         ThemeProvider), so it is re-declared below rather than inherited. -->
+    <meta name="color-scheme" content="only light" />
+    <style>html[data-civic-mode="dark"]{color-scheme:only dark}</style>
+    <link rel="icon" href="/images/logo/wheel.png" />
+    <title>Rotary Club</title>
+</head>
+<body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+</body>
+</html>

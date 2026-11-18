@@ -1,4 +1,3 @@
-'use client'
 // ─────────────────────────────────────────────────────────────────────────────
 // Photo Collage · About — the club's own letter, pinned into the scrapbook.
 //   PageHero (title filled with a club photo, ONE card: the crest)
@@ -48,11 +47,11 @@ function letterHtml(html) {
 
 const SOC_TONES = ['cran', 'azure', 'royal', 'violet']
 
-export default function About({ data }) {
+export default function About() {
   const club = useClub()
   const name = usePageName('About Us')
-  const d = useAboutData(data)
-  const g = useGalleryData(1, data)
+  const d = useAboutData()
+  const g = useGalleryData(1)
   const clubName = String(club.clubDisplayName || '').trim()
   const shortName = clubName.replace(/^\s*(the\s+)?(rotary|rotaract)\s+club\s+of\s+/i, '').trim() || clubName
 

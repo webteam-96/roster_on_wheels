@@ -1,4 +1,3 @@
-'use client'
 // ─────────────────────────────────────────────────────────────────────────────
 // LIQUID MOTION · EVENT DETAIL — "the invitation".
 // The ink hero carries the event's name (auto-fits), its weekday in the serif
@@ -11,8 +10,9 @@
 // Data: useEventData(id) only (goldData.useEventGold: upcoming feed, then past).
 // ─────────────────────────────────────────────────────────────────────────────
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { useLocation } from '@/site/router.js'
-import { useEventData, usePageTitle, PhotoLightbox, LightboxStyles } from '../../_shared/data.js'
+import { useLocation } from 'react-router-dom'
+import { useEventData, useEventShare, shareChannels, usePageTitle, PhotoLightbox, LightboxStyles } from '../../_shared/data.js'
+import { ShareBlock } from './ProjectDetail.jsx'
 import {
   PageHero, NotFound, Band, Card, Facts, Pill, Odometer, EmptyState, Loading, ArrowOut, SearchIco, useInertBehind,
   clean, clip,
@@ -31,8 +31,9 @@ const timeOf = (when) => {
   return t === '12:00 AM' ? '' : t
 }
 
-function Detail({ ev }) {
+function Detail({ ev, id }) {
   const ref = useRef(null)
+  const channels = shareChannels(useEventShare(ev, id))
   const posterRef = useRef(null)
   const [broken, setBroken] = useState(false)
   const [lb, setLb] = useState(null)
@@ -103,6 +104,7 @@ function Detail({ ev }) {
               </p>
             ) : null}
             <Facts items={[['When', when], ['Venue', venue]]} />
+            {channels.length ? <ShareBlock channels={channels} caption="Share this event" /> : null}
             <div className="liq-ed-act liq-rv">
               {ev.reg ? <Pill href={ev.reg} variant="ink" external>Register</Pill> : null}
               <Pill href="/events" variant="line" back>All events</Pill>
@@ -135,10 +137,10 @@ function Detail({ ev }) {
   )
 }
 
-export default function EventDetail({ data }) {
+export default function EventDetail() {
   const { search } = useLocation()
   const id = parseInt(new URLSearchParams(search).get('id'), 10) || 0
-  const ev = useEventData(id, data)                // null loading · false not found · the event
+  const ev = useEventData(id)                // null loading · false not found · the event
   usePageTitle(ev === false ? 'Event' : (ev ? ev.title : null))
 
   if (ev === null) {
@@ -162,5 +164,5 @@ export default function EventDetail({ data }) {
     )
   }
   // keyed by the event itself: moving to another event replays the entrance on ITS data
-  return <Detail ev={ev} key={id + '|' + ev.title} />
+  return <Detail ev={ev} id={id} key={id + '|' + ev.title} />
 }

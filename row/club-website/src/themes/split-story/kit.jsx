@@ -1,4 +1,3 @@
-'use client'
 // ─────────────────────────────────────────────────────────────────────────────
 // Split Story — the theme's reusable pieces. Derived from the approved sample
 // (Theme8-Samples/C-split-story): the royal page hero with ScrollFloat letters,

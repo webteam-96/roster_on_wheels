@@ -775,7 +775,7 @@ public class ClubWebsitePublicDataController : ControllerBase
         await conn.OpenAsync();
         if (!await IsDistrictClubServiceableAsync(conn, districtId, null)) return NotFound();
         var year = yearId ?? await conn.ExecuteScalarAsync<int?>("SELECT pk_year_id FROM rotary_year_master WHERE IsCurrent = 1 AND isdeleted = 0 LIMIT 1");
-        var t = year.HasValue ? await _yearTables.ResolveByYearIdAsync(conn, year.Value) : null;
+        var t = year.HasValue ? await _yearTables.ResolveExistingByYearIdAsync(conn, year.Value) : null;
         var projects = t == null ? null : await conn.QueryFirstOrDefaultAsync<dynamic>($@"
             SELECT COUNT(*) AS projects, COALESCE(SUM(p.direct_beneficiaries), 0) AS beneficiaries,
                    COALESCE(SUM(p.project_cost), 0) AS cost, COALESCE(SUM(p.man_hours), 0) AS manHours
@@ -828,7 +828,7 @@ public class ClubWebsitePublicDataController : ControllerBase
         YearTableInfo? info = null;
         if (yearId.HasValue && yearId.Value > 0)
         {
-            info = await _yearTables.ResolveByYearIdAsync(conn, yearId.Value);
+            info = await _yearTables.ResolveExistingByYearIdAsync(conn, yearId.Value);
         }
         else
         {
@@ -1130,7 +1130,7 @@ public class ClubWebsitePublicDataController : ControllerBase
         // existing year-wise tables. Primary photo is reconstructed via CONCAT — handles both
         // new uploads (with year segment in folder) and migrated rows (no year segment, uses old_pk).
         var tables = (yearId.HasValue && yearId.Value > 0)
-            ? new List<YearTableInfo> { (await _yearTables.ResolveByYearIdAsync(conn, yearId.Value)) }
+            ? new List<YearTableInfo> { (await _yearTables.ResolveExistingByYearIdAsync(conn, yearId.Value)) }
                 .Where(t => t != null).Cast<YearTableInfo>().ToList()
             : await _yearTables.GetAllExistingYearTablesAsync(conn);
         if (tables.Count == 0) return new List<PublicProjectDto>();

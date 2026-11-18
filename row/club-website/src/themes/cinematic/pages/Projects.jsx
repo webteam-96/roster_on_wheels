@@ -1,4 +1,3 @@
-'use client'
 // ─────────────────────────────────────────────────────────────────────────────
 // CINEMATIC · PROJECTS — "the reel".
 // The year's work as a programme of frames. The hero states the count as the
@@ -14,7 +13,7 @@
 // metrics back-fill phase (hidden | loading -> '—' | ready).
 // ─────────────────────────────────────────────────────────────────────────────
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { useLocation } from '@/site/router.js'
+import { useLocation } from 'react-router-dom'
 import { useClub, useProjectsData, withYear, formatMoney, groupInt, plainText, useProjectFacets, useAllYearsTotals } from '../../_shared/data.js'
 import {
   usePageName, PageHero, Button, ChipGroup, SearchField, ResultCount, StatRow, Pill, FrameCard,
@@ -28,7 +27,7 @@ import './Projects.css'
 // frame; the first strip carries one more because the lead frame takes a row of its own
 // (was 20: 1 + 19 left one frame alone and "Show 1 more" put the next one under it - client, 2026-09-28).
 const PAGE = 18
-const STAT_LABELS = ['Total cost', 'Beneficiaries', 'Rotarians involved', 'Man hours']
+const STAT_LABELS = ['Total cost', 'Beneficiaries', 'Rotarians involved']   // man hours: project page only (client, 2026-11-17)
 
 // ── one strip of up to PAGE frames (Show more mounts another, so only it enters) ──
 function Strip({ items, feature, hrefOf }) {
@@ -69,7 +68,7 @@ function Strip({ items, feature, hrefOf }) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-export default function Projects({ data }) {
+export default function Projects() {
   const club = useClub()
   const loc = useLocation()
   const pr = (new URLSearchParams(loc.search).get('pr') || '').trim().toUpperCase()
@@ -78,7 +77,7 @@ export default function Projects({ data }) {
 
   // this year's projects or every year's (client, 2026-10-06) - ?all=1
   const [scope, setScope] = useProjectScope()
-  const d = useProjectsData(isMeetings, scope, data.projects)
+  const d = useProjectsData(isMeetings, scope)
   const { projects, totalCount, avenueTabs } = d
 
   // ?pr= pre-selects a tab; CE/CS are never tabs of their own (Gold).
@@ -156,8 +155,7 @@ export default function Projects({ data }) {
     stats = [countStat].concat(t ? [
       { label: STAT_LABELS[0], value: t.c, format: (n) => formatMoney(n, t.currency || cur) },
       { label: STAT_LABELS[1], value: t.b, format: (n) => groupInt(n, cur) },
-      { label: STAT_LABELS[3], value: t.h, format: (n) => groupInt(n, cur) },
-    ].filter((s) => s.value > 0) : [STAT_LABELS[0], STAT_LABELS[1], STAT_LABELS[3]].map((label) => ({ label, text: '—' })))
+    ].filter((s) => s.value > 0) : [STAT_LABELS[0], STAT_LABELS[1]].map((label) => ({ label, text: '—' })))
   } else if (!isMeetings && d.metricsPhase === 'loading') {
     stats = [countStat].concat(STAT_LABELS.map((label) => ({ label, text: '—' })))
   } else if (!isMeetings && d.metricsPhase === 'ready') {
@@ -165,7 +163,6 @@ export default function Projects({ data }) {
       { label: STAT_LABELS[0], value: totals.c, format: (n) => formatMoney(n, cur) },
       { label: STAT_LABELS[1], value: totals.b, format: (n) => groupInt(n, cur) },
       { label: STAT_LABELS[2], value: totals.r, format: (n) => groupInt(n, cur) },
-      { label: STAT_LABELS[3], value: totals.h, format: (n) => groupInt(n, cur) },
     ].filter((s) => s.value > 0))
   } else if (!isMeetings && !d.loading && matched.length) {
     stats = [countStat]

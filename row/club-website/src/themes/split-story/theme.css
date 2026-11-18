@@ -459,6 +459,8 @@ html[data-theme="split-story"] .spl-nav .spl-sub{text-transform:capitalize;lette
 /* bigger cards, bigger figures (client, 2026-10-06) - still sized to fit the longest figure in its card */
 .spl-stack.is-grid .spl-stat-num{font-size:min(26cqi,160px,calc(200cqi / var(--len,6)))}
 @media (max-width:599.98px){ .spl-stack.is-grid{grid-template-columns:minmax(0,1fr)} }
+/* home "Our Impact" with 4 figures (man-hours left the home, 2026-11-17): two a row, not three + a lone fourth */
+@media (min-width:600px){ #spl-ch-numbers .spl-stack.is-grid:has(> .spl-stat:nth-child(4):last-child){grid-template-columns:repeat(2,minmax(0,1fr))} }
 
 /* ── footer, 2026-10-06: logo · visitor counter · socials in one row; the menu centred under it ── */
 .spl-foot .spl-foot-top{display:flex;flex-direction:column;align-items:center;gap:24px;text-align:center}

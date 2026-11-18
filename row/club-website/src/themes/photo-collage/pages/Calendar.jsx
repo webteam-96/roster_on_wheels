@@ -1,4 +1,3 @@
-'use client'
 // ─────────────────────────────────────────────────────────────────────────────
 // Photo Collage · CALENDAR — a planner page.
 //
@@ -17,11 +16,11 @@
 // and the day button's label — never by colour alone.
 // ─────────────────────────────────────────────────────────────────────────────
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { useLocation } from '@/site/router.js'
+import { useLocation } from 'react-router-dom'
 // The /calendar query contract (?month=yyyy-MM, ?date=yyyy-MM-dd). CalendarGold
 // imports it from this module; _shared/data.js does not re-export it yet
 // (sharedRequest) — imported, never copied, so the parse rule stays single-sourced.
-import { resolveContext, addMonths } from '@/themes/shared/pages/AllSpecialDates.jsx'
+import { resolveContext, addMonths } from '../../../pages/AllSpecialDates.jsx'
 import { useCalendarData, monthName } from '../../_shared/data.js'
 import { PersonPhoto } from '../../_shared/kit.jsx'
 import { PageHero, Button, ResultCount, EmptyState, Loading, Tape, Draw, Underline, Chip, cleanText, usePageName } from '../kit.jsx'
@@ -54,14 +53,14 @@ const Chev = ({ next }) => (
 )
 const side = (i) => (i % 2 ? 1 : -1)
 
-export default function Calendar({ data }) {
+export default function Calendar() {
   const location = useLocation()
   const name = usePageName('Calendar')
 
   const today = useMemo(() => new Date(), [])
   const ctx = useMemo(() => resolveContext(location.search, today), [location.search, today])
   const { year, month } = ctx
-  const d = useCalendarData(year, month, data)
+  const d = useCalendarData(year, month)
 
   // ?date= pre-selects a day; 0 = the whole month. Re-armed on every month change (as Gold).
   const [sel, setSel] = useState(ctx.selectedDay || 0)

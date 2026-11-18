@@ -1,4 +1,3 @@
-'use client'
 // ─────────────────────────────────────────────────────────────────────────────
 // Split Story — home. The sample's page (hero with the iris-open banner, the
 // split story with its sticky chapter panel, the gold meeting band) on
@@ -116,9 +115,9 @@ function AdPopup({ ads, clubId, onDone }) {
   )
 }
 
-export default function Home({ data }) {
+export default function Home() {
   const club = useClub()
-  const d = useHomeData(data.home, { newsletterTake: 4 })
+  const d = useHomeData({ newsletterTake: 4 })
   const root = useRef(null)
   const name = club.clubDisplayName
   usePageTitle(name)
@@ -134,7 +133,6 @@ export default function Home({ data }) {
     { label: 'Projects', value: n.projects },
     { label: 'Total project cost', value: n.totalCost, fmt: 'moneyFull', currency: n.currency || club.currency }, // full amount, no L / Cr / M (client, 2026-10-06)
     { label: 'Beneficiaries', value: n.beneficiaries },
-    { label: 'Man hours', value: n.manHours },
     { label: 'Members', value: members },
   ].filter((s) => s.value > 0)
   const projects = d.featured.slice(0, 6)

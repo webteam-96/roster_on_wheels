@@ -1,4 +1,3 @@
-'use client'
 // ─────────────────────────────────────────────────────────────────────────────
 // CINEMATIC — home. The approved sample (Theme8-Samples/A-cinematic) on live
 // data: the projector-open hero that pulls back into a lit frame, the charter
@@ -701,9 +700,9 @@ function AdPopup({ ads, clubId }) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-export default function Home({ data }) {
+export default function Home() {
   const club = useClub()
-  const d = useHomeData(data.home, { featuredTake: 8, newsletterTake: 5 }) // 5 fill the column beside the meeting (client, 2026-10-06)
+  const d = useHomeData({ featuredTake: 8, newsletterTake: 5 }) // 5 fill the column beside the meeting (client, 2026-10-06)
   usePageTitle(club.clubDisplayName)
 
   const names = clubNames(club.clubDisplayName)
@@ -719,11 +718,10 @@ export default function Home({ data }) {
     const n = d.impactNumbers || {}
     const cur = n.currency || d.currency
     const members = (d.membershipStats[0] && d.membershipStats[0].value) || 0
-    return [
-      { key: 'beneficiaries', label: 'Beneficiaries', value: n.beneficiaries },
+    return [   // order (client, 2026-11-17): projects, cost, beneficiaries, members
       { key: 'projects', label: 'Projects', value: n.projects },
-      { key: 'manHours', label: 'Man-hours', value: n.manHours },
       { key: 'totalCost', label: 'Total project cost', value: n.totalCost, money: true },
+      { key: 'beneficiaries', label: 'Beneficiaries', value: n.beneficiaries },
       { key: 'members', label: 'Members', value: members },
     ].filter((f) => Number(f.value) > 0)
       .map((f) => ({ ...f, value: Number(f.value), fmt: (v) => (f.money ? formatMoney(v, cur) : groupInt(v, cur)) }))

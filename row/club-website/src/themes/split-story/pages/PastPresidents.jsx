@@ -1,4 +1,3 @@
-'use client'
 // ─────────────────────────────────────────────────────────────────────────────
 // Split Story · Past presidents — laid out like the Directory (client, 2026-10-27:
 // "too much space, keep the same design like Directory"). One chapter per decade,
@@ -19,13 +18,13 @@ const OTHER_T = 'Other years'
 const yr = yearText
 const trim = (s) => String(s || '').trim()
 
-export default function PastPresidents({ data }) {
+export default function PastPresidents() {
   const club = useClub()
   const menuName = useCurrentMenuName()
   const title = (menuName && menuName.trim()) || 'Past presidents'
   usePageTitle(title)
-  const list = usePastPresidentsData(data)          // null while loading; newest first, unparseable years last
-  const about = useAboutData(data)                  // the charter year
+  const list = usePastPresidentsData()          // null while loading; newest first, unparseable years last
+  const about = useAboutData()                  // the charter year
   const [query, setQuery] = useState('')
   const ref = useRef(null)
 

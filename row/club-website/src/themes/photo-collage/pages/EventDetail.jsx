@@ -1,4 +1,3 @@
-'use client'
 // ─────────────────────────────────────────────────────────────────────────────
 // PHOTO COLLAGE · EVENT DETAIL (/event?id=) — the invitation.
 //
@@ -12,8 +11,9 @@
 // past feed), false when the event isn't listed -> PageHero + NotFound.
 // ─────────────────────────────────────────────────────────────────────────────
 import { useRef } from 'react'
-import { useLocation } from '@/site/router.js'
-import { useEventData, usePageTitle, PhotoLightbox, LightboxStyles } from '../../_shared/data.js'
+import { useLocation } from 'react-router-dom'
+import { useEventData, useEventShare, shareChannels, usePageTitle, PhotoLightbox, LightboxStyles } from '../../_shared/data.js'
+import { ShareWrap } from './ProjectDetail.jsx'
 import { useScene, useRefreshOnImages, gsap, CLEAR, DEV0, DEV1, revealBatch, parallax } from '../motion.js'
 import { PageHero, Print, Button, NotFound, Loading, Draw, Tape, P, cleanText, useLightbox } from '../kit.jsx'
 import './EventDetail.css'
@@ -36,7 +36,8 @@ function Missing() {
   )
 }
 
-function Detail({ ev }) {
+function Detail({ ev, id }) {
+  const channels = shareChannels(useEventShare(ev, id)).filter((ch) => ch.href || ch.onClick)
   const ref = useRef(null)
   const lb = useLightbox()                       // modal viewer: focus in and back, page inert
 
@@ -139,6 +140,12 @@ function Detail({ ev }) {
             </div>
           ) : null}
 
+          {channels.length ? (
+            <section className="col-evd-share" aria-labelledby="col-evd-share-h">
+              <ShareWrap channels={channels} caption="Share this event" id="col-evd-share-h" />
+            </section>
+          ) : null}
+
           <p className="col-evd-back">
             <Button href="/events" variant="ghost"><span aria-hidden="true">←</span> All upcoming events</Button>
           </p>
@@ -148,10 +155,10 @@ function Detail({ ev }) {
   )
 }
 
-export default function EventDetail({ data }) {
+export default function EventDetail() {
   const location = useLocation()
   const id = parseInt(new URLSearchParams(location.search).get('id'), 10) || 0
-  const ev = useEventData(id, data)                    // null = looking, false = not listed
+  const ev = useEventData(id)                    // null = looking, false = not listed
   usePageTitle(ev === false ? 'Event not found' : ev ? cleanText(ev.title) || 'Event' : null)
 
   if (ev === null) {
@@ -162,5 +169,5 @@ export default function EventDetail({ data }) {
     )
   }
   if (ev === false) return <Missing />
-  return <Detail key={id} ev={ev} />
+  return <Detail key={id} ev={ev} id={id} />
 }

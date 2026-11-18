@@ -1,4 +1,3 @@
-'use client'
 // ─────────────────────────────────────────────────────────────────────────────
 // LIQUID MOTION — the theme's building blocks. Every page is composed from
 // these so thirteen routes read as one site: ink / paper / azure / gold bands

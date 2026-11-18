@@ -1,4 +1,3 @@
-'use client'
 // ─────────────────────────────────────────────────────────────────────────────
 // LIQUID MOTION · DIRECTORS — the board for the selected Rotary year.
 //
@@ -26,11 +25,11 @@ function Member({ d }) {
   )
 }
 
-export default function Directors({ data }) {
+export default function Directors() {
   const menuName = useCurrentMenuName()
   const title = (menuName && menuName.trim()) || 'Directors'
   usePageTitle(title)
-  const directors = useDirectorsData(data) // null while loading, club's own order
+  const directors = useDirectorsData() // null while loading, club's own order
   const [query, setQuery] = useState('')
   const ref = useRef(null)
 

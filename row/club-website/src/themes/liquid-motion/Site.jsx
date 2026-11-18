@@ -1,4 +1,3 @@
-'use client'
 // ─────────────────────────────────────────────────────────────────────────────
 // LIQUID MOTION — the shell. Header = option C of Theme8-Samples/E-liquid-webgl/
 // header-samples.html (client, 2026-09-29): a dark strip (phone + email, year,
@@ -12,10 +11,11 @@
 // <main> carries NO transform (ScrollTrigger pins use position:fixed).
 // ─────────────────────────────────────────────────────────────────────────────
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
-import { useLocation } from '@/site/router.js'
+import { useLocation } from 'react-router-dom'
 // The shell needs the raw about row (Rotary lockup vs club crest) that no
 // data.js hook exposes on its own; getAbout is per-request
 // cached, so this costs no extra call (ClubProvider already made it).
+import { getAbout } from '../../api/clubService.js'
 import {
   useClub, useMenus, titleCase, menuHref, menuExternal, socialLabel, routeKey, YearSelect, VisitorCount,
   useThemeShell, useLoader, useAboutData, media, externalUrl, LOGO_PLACEHOLDER,
@@ -23,9 +23,9 @@ import {
 import { useSmoothScroll, useScene, lockScroll, scrollToY, gsap, prefersReducedMotion, shellMotion, revealBatch } from './motion.js'
 import { Edge, Pill, Chevron, clean } from './kit.jsx'
 import './theme.css'
-import { ADMIN_LOGIN_URL } from '@/site/adminUrl.js'
+import { appSettings } from '../../config.js'
 
-const ADMIN_URL = ADMIN_LOGIN_URL
+const ADMIN_URL = appSettings.AdminLoginUrl
 
 const SOCIAL_PATHS = {
   facebook: 'M13.5 22v-8.2h2.8l.4-3.3h-3.2V8.4c0-.9.3-1.6 1.6-1.6h1.7V3.9c-.3 0-1.3-.1-2.5-.1-2.5 0-4.2 1.5-4.2 4.3v2.4H7.3v3.3h2.8V22z',
@@ -99,8 +99,7 @@ export default function Site({ children }) {
   const menus = useMenus()
   const location = useLocation()
   const ab = useAboutData()
-  // The shell's about (lib/pageShell): already for the picked year and in the visitor's language.
-  const about = club.about
+  const [about, setAbout] = useState(null)
   const nav = useMemo(() => items(menus), [menus])
   const active = useActiveKey(menus)
 
@@ -108,6 +107,12 @@ export default function Site({ children }) {
   useThemeShell('liquid-motion', menus.length > 0)
   useLoader(!club.loading)
 
+  useEffect(() => {
+    if (!club.clubId) return undefined
+    let off = false
+    getAbout(club.clubId, club.selectedYearId).then((a) => { if (!off) setAbout(a) })
+    return () => { off = true }
+  }, [club.clubId, club.selectedYearId])
 
   const clubName = club.clubDisplayName
   const rotaryLogo = media(about ? about.rotaryLogoPath : null)

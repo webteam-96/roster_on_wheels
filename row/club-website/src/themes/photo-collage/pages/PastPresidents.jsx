@@ -1,4 +1,3 @@
-'use client'
 // ─────────────────────────────────────────────────────────────────────────────
 // PHOTO COLLAGE · PAST PRESIDENTS — the club's yearbook.
 //
@@ -39,11 +38,11 @@ const CHARTER_RE = /\bchartered\s+(?:on|in)\b[^.]{0,40}?\b(1[89]\d{2}|20\d{2})\b
 const hasPhoto = (src) => !isPlaceholderPhoto(src)
 const plural = (n, one, many) => n + ' ' + (n === 1 ? one : many)
 
-export default function PastPresidents({ data }) {
+export default function PastPresidents() {
   const club = useClub()
   const title = usePageName('Past Presidents')
-  const list = usePastPresidentsData(data)          // null while loading; newest first
-  const about = useAboutData(data)                  // the sitting president + the charter year
+  const list = usePastPresidentsData()          // null while loading; newest first
+  const about = useAboutData()                  // the sitting president + the charter year
   const [query, setQuery] = useState('')        // what the field shows
   const [q, setQ] = useState('')                // what the roll shows: the query once typing pauses
   const rootRef = useRef(null)

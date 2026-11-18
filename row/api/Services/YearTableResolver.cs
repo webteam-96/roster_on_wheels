@@ -23,6 +23,10 @@ public interface IYearTableResolver
     // Resolve year + table names from an fk_year_id (faster — single lookup).
     Task<YearTableInfo?> ResolveByYearIdAsync(MySqlConnection conn, int yearId);
 
+    // Read-only callers: as ResolveByYearIdAsync, but null when that year's tables do not exist (old Rotary years
+    // with no data), so a public page asking for 2008-09 gets "no projects" instead of a 500.
+    Task<YearTableInfo?> ResolveExistingByYearIdAsync(MySqlConnection conn, int yearId);
+
     // Return all year-wise table pairs that EXIST in the DB schema.
     // Used for "All Years" report queries (we UNION ALL across these).
     Task<List<YearTableInfo>> GetAllExistingYearTablesAsync(MySqlConnection conn);
@@ -73,6 +77,17 @@ public class YearTableResolver : IYearTableResolver
             new { Id = yearId });
         if (string.IsNullOrEmpty(label)) return null;
         return new YearTableInfo(yearId, label, GetProjectsTableName(label), GetPhotosTableName(label));
+    }
+
+    public async Task<YearTableInfo?> ResolveExistingByYearIdAsync(MySqlConnection conn, int yearId)
+    {
+        var info = await ResolveByYearIdAsync(conn, yearId);
+        if (info == null) return null;
+        var both = await conn.ExecuteScalarAsync<int>(@"
+            SELECT COUNT(*) FROM information_schema.tables
+            WHERE table_schema = DATABASE() AND table_name IN (@P, @F)",
+            new { P = info.ProjectsTable, F = info.PhotosTable });
+        return both == 2 ? info : null;
     }
 
     public async Task<List<YearTableInfo>> GetAllExistingYearTablesAsync(MySqlConnection conn)
