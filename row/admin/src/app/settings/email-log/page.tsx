@@ -37,7 +37,7 @@ function statusBadge(status: string) {
 }
 
 function typeBadge(type: string | null) {
-  if (!type) return <span className="text-slate-400">, </span>;
+  if (!type) return <span className="text-slate-400">–</span>;
   const palette: Record<string, string> = {
     "OTP":                        "bg-blue-100   text-blue-700   border-blue-200",
     "Mass Email":                 "bg-[#CFE2F6] text-slate-700 border-slate-200",

@@ -387,16 +387,16 @@ export default function AgTrfPage() {
                   <tr key={club.clubId} className="hover:bg-blue-50/40">
                     <td className="px-3 py-2.5 font-medium text-slate-800">{club.clubName}</td>
                     <td className="px-3 py-2.5 text-right tabular-nums text-slate-600">
-                      {club.trf.annualInr > 0 ? fmtUsd(club.trf.annualInr) : <span className="text-slate-300">, </span>}
+                      {club.trf.annualInr > 0 ? fmtUsd(club.trf.annualInr) : <span className="text-slate-300">–</span>}
                     </td>
                     <td className="px-3 py-2.5 text-right tabular-nums text-slate-600">
-                      {club.trf.polioInr > 0 ? fmtUsd(club.trf.polioInr) : <span className="text-slate-300">, </span>}
+                      {club.trf.polioInr > 0 ? fmtUsd(club.trf.polioInr) : <span className="text-slate-300">–</span>}
                     </td>
                     <td className="px-3 py-2.5 text-right tabular-nums text-slate-600">
-                      {club.trf.endowment > 0 ? fmtUsd(club.trf.endowment) : <span className="text-slate-300">, </span>}
+                      {club.trf.endowment > 0 ? fmtUsd(club.trf.endowment) : <span className="text-slate-300">–</span>}
                     </td>
                     <td className="px-3 py-2.5 text-right tabular-nums text-slate-600">
-                      {club.trf.others > 0 ? fmtUsd(club.trf.others) : <span className="text-slate-300">, </span>}
+                      {club.trf.others > 0 ? fmtUsd(club.trf.others) : <span className="text-slate-300">–</span>}
                     </td>
                     <td className="px-3 py-2.5 text-right tabular-nums font-semibold text-blue-700">
                       {fmtUsd(club.trf.totalInr)}
@@ -411,10 +411,10 @@ export default function AgTrfPage() {
                 <td className="px-3 py-3 text-right font-bold tabular-nums">{fmtUsd(data.totals.annualInr)}</td>
                 <td className="px-3 py-3 text-right font-bold tabular-nums">{fmtUsd(data.totals.polioInr)}</td>
                 <td className="px-3 py-3 text-right font-bold tabular-nums">
-                  {data.totals.endowment > 0 ? fmtUsd(data.totals.endowment) : <span className="text-slate-400">, </span>}
+                  {data.totals.endowment > 0 ? fmtUsd(data.totals.endowment) : <span className="text-slate-400">–</span>}
                 </td>
                 <td className="px-3 py-3 text-right font-bold tabular-nums">
-                  {data.totals.others > 0 ? fmtUsd(data.totals.others) : <span className="text-slate-400">, </span>}
+                  {data.totals.others > 0 ? fmtUsd(data.totals.others) : <span className="text-slate-400">–</span>}
                 </td>
                 <td className="px-3 py-3 text-right font-bold tabular-nums" style={{ color: ROTARY_GOLD }}>
                   {fmtUsd(data.totals.totalInr)}

@@ -12,6 +12,7 @@ import { Fragment, forwardRef, useEffect, useId, useLayoutEffect, useRef, useSta
 import { formatYear } from '../_shared/data.js'
 import { PersonPhoto, useFitNumbers } from '../_shared/kit.jsx'
 import { useScene, gsap, heroIn, prefersReducedMotion, lockScroll } from './motion.js'
+import Skeleton from '../../shared/Skeleton.jsx'
 
 export { PersonPhoto, SafeImg, paragraphs, imgFallback, hideOnError, isPlaceholderPhoto } from '../_shared/kit.jsx'
 
@@ -565,10 +566,6 @@ export function NotFound({ title = 'Page not found', text, crumbs, backHref = '/
 
 /** Loading placeholder (role=status). */
 export function Loading({ label = 'Loading' }) {
-  return (
-    <div className="liq-loading" role="status">
-      <span className="liq-loading__bar" aria-hidden="true"><i /></span>
-      <span className="liq-loading__l">{label}</span>
-    </div>
-  )
+  // Rule 25: a skeleton, not a spinner. Shared across themes; drawn in the surrounding text colour.
+  return <Skeleton label={label} />
 }

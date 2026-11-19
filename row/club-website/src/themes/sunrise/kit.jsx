@@ -12,6 +12,7 @@ import { useCurrentMenuName, usePageTitle, formatMoney, groupInt, plainText, adA
 import { PersonPhoto, SafeImg, paragraphs, imgFallback, hideOnError, portraitFallback, isPlaceholderPhoto, useFitNumbers } from '../_shared/kit.jsx'
 import { useScene, pageHeroIn, countUp, cleanups, drum, riseArches, prefersReducedMotion } from './motion.js'
 import { appSettings } from '../../config.js'
+import Skeleton from '../../shared/Skeleton.jsx'
 
 export { PersonPhoto, SafeImg, paragraphs, imgFallback, hideOnError, portraitFallback, isPlaceholderPhoto }
 
@@ -323,12 +324,8 @@ export function EmptyState({ title = 'Nothing to show yet', message, action, as:
 
 /** While a hook returns null / loading. */
 export function Loading({ label = 'Loading' }) {
-  return (
-    <div className="sun-loading" role="status">
-      <span className="sun-loading__sun" aria-hidden="true" />
-      <span>{label}…</span>
-    </div>
-  )
+  // Rule 25: a skeleton, not a spinner. Shared across themes; drawn in the surrounding text colour.
+  return <Skeleton label={label} />
 }
 
 /** A whole page for an unknown id (ProjectDetail ?pid=0, EventDetail ?id=999): hero + empty state + way back. */

@@ -864,7 +864,7 @@ export default function MenuListV2EditPage() {
                             <Pencil size={13} />
                           </button>
                         ) : (
-                          <span className="text-slate-300 text-xs">, </span>
+                          <span className="text-slate-300 text-xs">–</span>
                         )}
                       </td>
                       <td className="px-3 py-2 text-right">
@@ -879,7 +879,7 @@ export default function MenuListV2EditPage() {
                             <Trash2 size={13} />
                           </button>
                         ) : (
-                          <span className="text-slate-300 text-xs">, </span>
+                          <span className="text-slate-300 text-xs">–</span>
                         )}
                       </td>
                     </tr>

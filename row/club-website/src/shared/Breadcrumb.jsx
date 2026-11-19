@@ -271,23 +271,15 @@ export function buildBreadcrumbHtml(theme, { eyebrow, title, crumbLabel, midLabe
 
   const chevron = '<svg class="h-4 w-4 text-gold" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>'
   // -mt-24 pulls the navy band up behind the transparent floating pill header
-  // (header pt-4 + pill h-20 = 6rem = mt-24). The madras-legacy shell has a
-  // SOLID static header (no floating pill), so there the band keeps normal flow.
-  const madras = theme === 'madras-legacy'
-  parts.push(madras
-    ? '<section class="relative overflow-hidden bg-gradient-to-br from-navy-deep via-navy to-navy-deep text-white">'
-    : '<section class="relative -mt-24 overflow-hidden bg-gradient-to-br from-navy-deep via-navy to-navy-deep text-white">')
+  // (header pt-4 + pill h-20 = 6rem = mt-24).
+  parts.push('<section class="relative -mt-24 overflow-hidden bg-gradient-to-br from-navy-deep via-navy to-navy-deep text-white">')
   parts.push('<div class="aurora opacity-40"><span class="aurora-band aurora-band-1"></span><span class="aurora-band aurora-band-2"></span><span class="aurora-band aurora-band-3"></span></div>')
   parts.push('<div class="pointer-events-none absolute -right-6 top-1/2 -translate-y-1/2 opacity-[0.07]"><img src="images/logo/wheel.png" alt="" class="breadcrumb-wheel h-48 w-48" /></div>')
-  parts.push(madras
-    ? '<div class="container-x relative pt-10 pb-5 sm:pb-6">'
-    : '<div class="container-x relative pt-28 pb-5 sm:pt-32 sm:pb-6">')
+  parts.push('<div class="container-x relative pt-28 pb-5 sm:pt-32 sm:pb-6">')
   if (eyebrow) parts.push('<p class="label-eyebrow shiny-text mb-1.5">' + enc(eyebrow) + '</p>')
   parts.push('<h1 class="font-heading text-2xl font-extrabold tracking-tight md:text-[2.1rem] md:leading-tight ' +
     (titleClass || '') + '" data-split>' + enc(t) + '</h1>')
-  // Under madras the anchors need an explicit color: the shell's Bootstrap
-  // (loaded after rotary-design.css) paints bare <a> link-blue.
-  const crumbLink = madras ? 'text-white/70 transition-colors hover:text-gold' : 'transition-colors hover:text-gold'
+  const crumbLink = 'transition-colors hover:text-gold'
   parts.push('<nav class="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-white/70">')
   parts.push('<a href="/" class="' + crumbLink + '">Home</a>')
   if (midLabel) {

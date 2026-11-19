@@ -31,7 +31,6 @@ export const PAGES = {
   'sitenotconfigured.aspx': '/not-configured',
   // The theme Homes, reachable directly for side-by-side review.
   'homewarmmodern.aspx': '/home-warm-modern',
-  'homemadras.aspx': '/home-madras',
   'homecivicbold.aspx': '/home-civic-bold',
   'homeverdigrisledger.aspx': '/home-verdigris-ledger',
   'homehandloom.aspx': '/home-handloom',
@@ -80,7 +79,6 @@ const SLUGS = {
  */
 export const PINNED_THEME = {
   '/home-warm-modern': 'warm-modern',
-  '/home-madras': 'madras-legacy',
   '/home-civic-bold': 'civic-bold',
   '/home-verdigris-ledger': 'verdigris-ledger',
   '/home-gold': 'gold',

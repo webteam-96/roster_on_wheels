@@ -185,7 +185,7 @@ export default function GoalOverviewMatrix({
                                   <span className="font-semibold text-emerald-700">{cell.achieved ?? "–"}</span>
                                 </span>
                               )}
-                              {!row.hasReference && !row.hasTarget && !row.hasAchieved && <span className="text-muted-foreground">, </span>}
+                              {!row.hasReference && !row.hasTarget && !row.hasAchieved && <span className="text-muted-foreground">–</span>}
                             </div>
                           </td>
                         ))}

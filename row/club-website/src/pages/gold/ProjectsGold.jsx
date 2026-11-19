@@ -26,6 +26,7 @@ import { useRotaryAnim } from '../../shared/useRotaryAnim.js'
 import { useProjectsGold, useProjectFacets, useAllYearsTotals } from './goldData.js'
 import { useProjectScope, ScopeSwitch } from '../../themes/_shared/kit.jsx'
 import { GPageHead, GEmpty, Arrow, useRevealReplay, hideOnError, money, count } from './kit.jsx'
+import Skeleton from '../../shared/Skeleton.jsx'
 
 const PAGE_SIZE = 20
 
@@ -276,7 +277,7 @@ export default function ProjectsGold() {
         <div className="gld-x">
           <span ref={topRef} style={{ display: 'block', scrollMarginTop: 'var(--gp-stick)' }} />
 
-          {d.loading ? null : matched.length === 0 ? (
+          {d.loading ? <Skeleton label="Loading projects" /> : matched.length === 0 ? (
             <GEmpty
               title={projects.length === 0 ? 'Nothing recorded yet' : 'No matches'}
               message={projects.length === 0

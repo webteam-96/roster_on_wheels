@@ -469,7 +469,7 @@ export default function ClubAdminMembershipDuesPage() {
                         </button>
                       </div>
                     ) : (
-                      <span className="text-slate-400">, </span>
+                      <span className="text-slate-400">–</span>
                     )}
                   </td>
                 </tr>

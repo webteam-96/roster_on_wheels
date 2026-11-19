@@ -937,16 +937,6 @@ function NonClubAvenueSection({
                         )}
                       </div>
                     </td>
-                    <td className="px-3 py-2 text-right">
-                      <button
-                        type="button"
-                        onClick={() => setDeleteTarget(r)}
-                        className="inline-flex items-center justify-center w-7 h-7 rounded text-slate-400 hover:text-rose-700 hover:bg-rose-50"
-                        aria-label="Delete project"
-                      >
-                        <Trash2 size={13} />
-                      </button>
-                    </td>
                     {syncColumnVisible && (
                       <td className="px-3 py-2 text-right">
                         {r.syncedToOrg ? (
@@ -983,7 +973,7 @@ function NonClubAvenueSection({
                             <Puzzle size={12} /> Sync
                           </button>
                         ) : (
-                          <span className="text-xs text-slate-300">, </span>
+                          <span className="text-xs text-slate-300">–</span>
                         )}
                       </td>
                     )}
@@ -1080,7 +1070,7 @@ function NonClubAvenueSection({
                             <Puzzle size={12} /> Sync
                           </button>
                         ) : (
-                          <span className="text-xs text-slate-300">, </span>
+                          <span className="text-xs text-slate-300">–</span>
                         )}
                       </td>
                     )}

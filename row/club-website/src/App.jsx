@@ -13,7 +13,6 @@ import { ALL_ROUTES } from './routes.js'
 
 import SiteRotary from './layouts/SiteRotary.jsx'
 import SiteWarmModern from './layouts/SiteWarmModern.jsx'
-import SiteMadras from './layouts/SiteMadras.jsx'
 import SiteCivicBold from './layouts/SiteCivicBold.jsx'
 import SiteVerdigrisLedger from './layouts/SiteVerdigrisLedger.jsx'
 import SiteGold from './layouts/SiteGold.jsx'
@@ -21,7 +20,6 @@ import SiteHandloom from './layouts/SiteHandloom.jsx'
 
 import Home from './pages/Home.jsx'
 import HomeWarmModern from './pages/HomeWarmModern.jsx'
-import HomeMadras from './pages/HomeMadras.jsx'
 import HomeCivicBold from './pages/HomeCivicBold.jsx'
 import HomeVerdigrisLedger from './pages/HomeVerdigrisLedger.jsx'
 import HomeGold from './pages/HomeGold.jsx'
@@ -51,7 +49,6 @@ import { THEME8 } from './themes/registry.js'
 const LAYOUTS = {
   'classic-blue': SiteRotary,
   'warm-modern': SiteWarmModern,
-  'madras-legacy': SiteMadras,
   'civic-bold': SiteCivicBold,
   'verdigris-ledger': SiteVerdigrisLedger,
   gold: SiteGold,
@@ -131,7 +128,6 @@ function HomeSwitch() {
   const t8 = THEME8[theme]
   if (t8 && t8.Home) return <Suspense fallback={null}><t8.Home /></Suspense>
   if (theme === 'warm-modern') return <HomeWarmModern />
-  if (theme === 'madras-legacy') return <HomeMadras />
   if (theme === 'civic-bold') return <HomeCivicBold />
   if (theme === 'verdigris-ledger') return <HomeVerdigrisLedger />
   if (theme === 'gold') return <HomeGold />
@@ -231,7 +227,6 @@ function AppRoutes() {
 
       {/* The theme Homes are also reachable directly, each pinned to its own shell. */}
       <Route path="/home-warm-modern" element={<Gate><SiteWarmModern><HomeWarmModern /></SiteWarmModern></Gate>} />
-      <Route path="/home-madras" element={<Gate><SiteMadras><HomeMadras /></SiteMadras></Gate>} />
       <Route path="/home-civic-bold" element={<Gate><SiteCivicBold><HomeCivicBold /></SiteCivicBold></Gate>} />
       <Route path="/home-verdigris-ledger" element={<Gate><SiteVerdigrisLedger><HomeVerdigrisLedger /></SiteVerdigrisLedger></Gate>} />
       <Route path="/home-gold" element={<Gate><SiteGold><HomeGold /></SiteGold></Gate>} />

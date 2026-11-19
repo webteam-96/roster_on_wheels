@@ -1,0 +1,29 @@
+{
+ "_columns": [
+  "fr",
+  "de",
+  "it",
+  "ja",
+  "ko",
+  "pt",
+  "es"
+ ],
+ "Sign in to {app}": [
+  "Se connecter à {app}",
+  "Bei {app} anmelden",
+  "Accedi a {app}",
+  "{app}にサインイン",
+  "{app}에 로그인",
+  "Entrar em {app}",
+  "Inicia sesión en {app}"
+ ],
+ "Names, club names and what members write stay as entered.": [
+  "Les noms, les noms de club et ce que les membres écrivent restent tels qu'ils ont été saisis.",
+  "Namen, Clubnamen und was Mitglieder schreiben, bleiben wie eingegeben.",
+  "I nomi, i nomi dei club e ciò che scrivono i soci restano come sono stati inseriti.",
+  "名前、クラブ名、会員が入力した内容は入力されたまま表示されます。",
+  "이름, 클럽 이름 및 회원이 작성한 내용은 입력한 그대로 표시됩니다.",
+  "Nomes, nomes de clubes e o que os associados escrevem ficam como foram digitados.",
+  "Los nombres, los nombres de club y lo que escriben los socios se mantienen tal como se introdujeron."
+ ]
+}

@@ -23,6 +23,7 @@ import { useRotaryAnim } from '../../shared/useRotaryAnim.js'
 import { resolveContext, addMonths } from '../AllSpecialDates.jsx'
 import { useCalendarGold, monthName, fullDayLabelOf, initials } from './goldData.js'
 import { GPageHead, Arrow, useRevealReplay, hideOnError } from './kit.jsx'
+import Skeleton from '../../shared/Skeleton.jsx'
 
 const WEEK = ['M', 'T', 'W', 'T', 'F', 'S', 'S']
 
@@ -147,7 +148,7 @@ export default function CalendarGold() {
             {/* The one scrolling thing on the page from 1000px up — see the
                 .gcal-sheet__body rule. */}
             <div className="gcal-sheet__body">
-            {d.loading ? null : total === 0 ? (
+            {d.loading ? <Skeleton label="Loading the calendar" /> : total === 0 ? (
               <p className="gcal-none">
                 Nothing recorded {sel === 0 ? 'this month' : 'on this day'}.
               </p>

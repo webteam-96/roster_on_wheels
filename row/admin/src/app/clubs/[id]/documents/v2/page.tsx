@@ -360,7 +360,7 @@ export default function DocumentsV2Page() {
                             </a>
                           )
                         ) : (
-                          <span className="text-slate-300">, </span>
+                          <span className="text-slate-300">–</span>
                         )}
                       </td>
                       {canManage && (
@@ -374,7 +374,7 @@ export default function DocumentsV2Page() {
                               <Edit3 size={13} />
                             </Link>
                           ) : (
-                            <span className="text-slate-300">, </span>
+                            <span className="text-slate-300">–</span>
                           )}
                         </td>
                       )}

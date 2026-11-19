@@ -135,37 +135,6 @@ export const THEME_ASSETS = {
     scripts: ['/Themes/classic-blue/js/rotary-anim.js?v=10'],
   },
 
-  'madras-legacy': {
-    styles: [
-      'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Poppins:wght@500;600;700;800&family=Dancing+Script:wght@600;700&family=DM+Sans:wght@300;400;500;700&display=swap',
-      // Compiled design system FIRST so content pages authored for the classic
-      // theme keep their look inside this shell; the legacy template-4
-      // stylesheets load AFTER it so the RC Madras design always wins.
-      '/Themes/classic-blue/css/rotary-design.css?v=29',
-      '/Themes/madras-legacy/Home4CssAndStyles/css/all.min.css',
-      // ⚠ TRAP: Bootstrap defines many of the SAME utility names as Tailwind,
-      //   with !important and DIFFERENT values — .p-5 is 3rem here vs Tailwind's
-      //   1.25rem, .mb-4 1.5rem vs 1rem, .gap-4 1.5rem vs 1rem. Because it loads
-      //   after rotary-design.css AND uses !important, Bootstrap wins on every
-      //   shared page madras renders. Measured 2026-08-24: the project detail
-      //   stat cards came out 217px tall here against 153px on every other theme.
-      //   Shared markup that must not be hijacked has to avoid those class names
-      //   (ProjectDetail's STAT_BOX/STAT_ICON/STAT_GRID use inline styles).
-      '/Themes/madras-legacy/Home4CssAndStyles/bootstrap/css/bootstrap.min.css',
-      '/Themes/madras-legacy/Home4CssAndStyles/css/owl.carousel.new.css',
-      '/Themes/madras-legacy/Home4CssAndStyles/css/club-theme-one.css?v=8',
-    ],
-    scripts: [
-      // jQuery is in <head> on the original and every later script needs it, so
-      // the list is loaded strictly in order.
-      '/Themes/madras-legacy/Home4CssAndStyles/js/jquery.min.js',
-      '/Themes/madras-legacy/Home4CssAndStyles/bootstrap/js/bootstrap.bundle.min.js',
-      '/Themes/madras-legacy/Home4CssAndStyles/js/uiscript.js?v=2.8',
-      '/Themes/madras-legacy/js/jquery.magnific-popup.min.js',
-      '/Themes/madras-legacy/Home4CssAndStyles/js/owl.carousel.min.js',
-      '/Themes/madras-legacy/js/rotary-anim.js?v=11',
-    ],
-  },
 }
 
 const loadedStyles = new Map()   // href -> { el, promise, owners:Set<theme> }

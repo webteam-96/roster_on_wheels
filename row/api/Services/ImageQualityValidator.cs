@@ -61,6 +61,15 @@ public static class ImageQualityValidator
                 SizeBytes = file.Length,
             };
 
+        // Security #21: the content must be what the extension says (a renamed .html / .svg / script is refused).
+        if (!SignatureMatches(file, ext))
+            return new ValidationResult
+            {
+                Ok = false,
+                Error = "The file's content does not match its type. Upload a real JPG, PNG, GIF or WEBP image.",
+                SizeBytes = file.Length,
+            };
+
         var (width, height) = ReadDimensions(file, ext);
 
         // `strict` no longer gates anything — the format + max-size checks above
@@ -76,6 +85,8 @@ public static class ImageQualityValidator
             SizeBytes = file.Length,
         };
     }
+
+    internal static bool SignatureMatches(IFormFile file, string extension) => FileSignature.Matches(file, extension);
 
     private static (int width, int height) ReadDimensions(IFormFile file, string extension)
     {

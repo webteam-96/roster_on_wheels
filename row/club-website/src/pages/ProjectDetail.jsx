@@ -559,7 +559,7 @@ function ChildPanelBody({ c, onPhoto }) {
 
 export default function ProjectDetail() {
   const club = useClub()
-  const { isWarm, isMadras } = useTheme()
+  const { isWarm } = useTheme()
   const location = useLocation()
   const params = useMemo(() => new URLSearchParams(location.search), [location.search])
   const pid = parseInt(params.get('pid'), 10) || 0
@@ -805,7 +805,7 @@ export default function ProjectDetail() {
                       </div>
                     )}
 
-                    {isMadras && shareRow}
+                    
 
                   </div>
                 </div>
@@ -903,7 +903,7 @@ export default function ProjectDetail() {
                     </div>
                     )}
 
-                    {!isMadras && shareRow}
+                    {shareRow}
 
                   </div>
                 </div>

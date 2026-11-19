@@ -24,6 +24,7 @@ import { useCurrentMenuName } from '../../shared/Breadcrumb.jsx'
 import { useRotaryAnim } from '../../shared/useRotaryAnim.js'
 import { useEventsGold } from './goldData.js'
 import { GPageHead, GEmpty, Arrow, useRevealReplay, hideOnError } from './kit.jsx'
+import Skeleton from '../../shared/Skeleton.jsx'
 
 const PIN = (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -130,7 +131,7 @@ export default function EventsGold() {
       {(events === null || rest.length > 0 || list.length === 0) && (
       <section className="gev-body">
         <div className="gld-x">
-          {events === null ? null : list.length === 0 ? (
+          {events === null ? <Skeleton label="Loading events" /> : list.length === 0 ? (
             <GEmpty title="No events scheduled"
                     message="Club events for the selected Rotary year will be listed here. The calendar shows past months too."
                     action={<a href="/calendar" className="gld-btn gld-btn--gold">Open the calendar <Arrow /></a>}

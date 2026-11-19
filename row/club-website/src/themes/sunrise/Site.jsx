@@ -31,6 +31,7 @@ import {
   gsap, useScene, useSmoothScroll, lockScroll, getLenis, scrollToY, refreshSoon, prefersReducedMotion, skyDriver, sunrise,
 } from './motion.js'
 import { ADMIN_URL, Button, Chevron, Hills, NewTab, SocialLinks, ext } from './kit.jsx'
+import FooterLegal from '../../shared/FooterLegal.jsx'
 import './theme.css'
 
 // ── light / dark ─────────────────────────────────────────────────────────────
@@ -442,7 +443,7 @@ export default function Site({ children }) {
             <SocialLinks socials={socials} />
           </div>
           <div className="sun-foot__row">
-            <VisitorCount />
+            <VisitorCount /><FooterLegal />
             <div className="sun-foot__legal">
               <p>© {new Date().getFullYear()} {clubName}</p>
               <p>Powered by <a href="https://rosteronwheels.com/" {...ext}>Roster On Wheels<NewTab /></a></p>

@@ -24,6 +24,7 @@ import {
 import { enc } from '../shared/Breadcrumb.jsx'
 import YearSelect from '../shared/YearSelect.jsx'
 import VisitorCount from '../shared/visitorCount.jsx'
+import FooterLegal from '../shared/FooterLegal.jsx'
 import { useThemeShell, useRouteEnter, useLoader } from '../shared/useRotaryAnim.js'
 import { appSettings } from '../config.js'
 
@@ -328,7 +329,7 @@ export default function SiteRotary({ children }) {
             {/* Visitor count sits under the footer logo; its own type and rule
                 come from the .rv-vc rules in shared/visitorCount.jsx. */}
             <div style={{ margin: '0 auto 28px', maxWidth: '340px' }}>
-              <VisitorCount />
+              <VisitorCount /><FooterLegal />
             </div>
             <h3 className="font-light leading-tight" style={{ fontSize: '28px' }}>Quick Links</h3>
             <div className="mt-2 flex items-center justify-center gap-1.5">

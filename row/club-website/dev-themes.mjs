@@ -17,7 +17,6 @@ const PORTS = {
   8091: 'warm-modern',
   8092: 'civic-bold',
   8093: 'verdigris-ledger',
-  8094: 'madras-legacy',
   8095: 'gold',
   8096: 'handloom',
   // Theme 8 family (unreleased). 8099 is skipped: a local PHP dev server owns it.

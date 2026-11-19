@@ -12,6 +12,7 @@ import { useEffect, useId, useLayoutEffect, useRef, useState } from 'react'
 import { usePageTitle, useCurrentMenuName, groupInt } from '../_shared/data.js'
 import { PersonPhoto, useFitNumbers } from '../_shared/kit.jsx'
 import { RIDGE, ridgeD, useScene, afterFonts, heroIn, countUp, statsIn, lockScroll } from './motion.js'
+import Skeleton from '../../shared/Skeleton.jsx'
 
 export { PersonPhoto, SafeImg, paragraphs, imgFallback, hideOnError, isPlaceholderPhoto } from '../_shared/kit.jsx'
 
@@ -404,12 +405,8 @@ export function EmptyState({ title, message, action, as: H = 'h2', night = false
 
 /** Loading placeholder (a sun bobbing over the hills), announced once. */
 export function Loading({ label = 'Loading', className = '' }) {
-  return (
-    <div className={'hj-loading' + (className ? ' ' + className : '')} role="status">
-      <Scene />
-      <span>{label}…</span>
-    </div>
-  )
+  // Rule 25: a skeleton, not a spinner. Shared across themes; drawn in the surrounding text colour.
+  return <Skeleton label={label} className={className} />
 }
 
 /**

@@ -91,6 +91,8 @@ builder.Services.AddControllers(o =>
         // Dates in forms and query strings follow the same zone rule as JSON bodies (ViewerZone).
         o.ModelBinderProviders.Insert(0, new RotaryApi.Services.ViewerZoneDateTimeBinderProvider());
         // Every uploaded photo is re-saved at 2560 px / JPEG 88 before the action sees it (D: disk space).
+        // Script / executable types refused and file content checked against its extension, before anything else.
+        o.Filters.Add<RotaryApi.Services.UploadContentFilter>();
         o.Filters.Add<RotaryApi.Services.PhotoUploadOptimizeFilter>();
     })
     .AddJsonOptions(options =>

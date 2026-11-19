@@ -19,6 +19,7 @@ import {
 } from '../_shared/data.js'
 import { useSmoothScroll, lockScroll, gsap, prefersReducedMotion, scrollToY } from '../_shared/motion.js'
 import { ADMIN_URL, Underline, Tape, menuLabel, yearDash, useImgChain, SocialIcon } from './kit.jsx'
+import FooterLegal from '../../shared/FooterLegal.jsx'
 
 const ico = (d) => function Ico() {
   return <svg className="col-hd-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d={d} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
@@ -353,7 +354,7 @@ export default function Site({ children }) {
           {!footImg.done && footImg.src ? (
             <div className="col-foot-logo"><img src={footImg.src} alt={clubName + ' logo'} width="140" height="140" loading="lazy" onError={footImg.onError} /></div>
           ) : null}
-          <div className="col-foot-vc"><VisitorCount /></div>
+          <div className="col-foot-vc"><VisitorCount /><FooterLegal /></div>
           {socials.length ? (
             <ul className="col-socials">
               {socials.map((s, i) => (

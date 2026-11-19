@@ -24,6 +24,7 @@ import { useSmoothScroll, useScene, lockScroll, scrollToY, gsap, prefersReducedM
 import { Edge, Pill, Chevron, clean } from './kit.jsx'
 import './theme.css'
 import { appSettings } from '../../config.js'
+import FooterLegal from '../../shared/FooterLegal.jsx'
 
 const ADMIN_URL = appSettings.AdminLoginUrl
 
@@ -389,7 +390,7 @@ export default function Site({ children }) {
             <span className="liq-foot__logo liq-rv">
               <Logo srcs={[clubLogo, rotaryLogo, LOGO_PLACEHOLDER]} alt={clubName + ' logo'} />
             </span>
-            <div className="liq-foot__vc liq-rv"><VisitorCount /></div>
+            <div className="liq-foot__vc liq-rv"><VisitorCount /><FooterLegal /></div>
             <div className="liq-foot__act liq-rv">
               {socials.length > 0 ? (
                 <ul className="liq-socials" aria-label="Social media">

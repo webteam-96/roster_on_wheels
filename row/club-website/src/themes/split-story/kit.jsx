@@ -16,6 +16,7 @@ import {
   gsap, ScrollTrigger, useScene, SPL_WIDE, motionOn, titleIn, titleOnScroll, riseIn, countUp,
   swingStack, timelineIn, goldBand, magnet, wipeSlide, swapChars, lockScroll,
 } from './motion.js'
+import Skeleton from '../../shared/Skeleton.jsx'
 
 export { PersonPhoto, SafeImg, imgFallback, paragraphs }
 
@@ -758,12 +759,8 @@ export function NotFound({ title = 'Not found', message, crumbs, backHref = '/',
 
 /** Resting state while a hook returns null. */
 export function Loading({ label = 'Loading' }) {
-  return (
-    <div className="spl-loading" role="status">
-      <span className="spl-loading-orbit" aria-hidden="true"><i /></span>
-      <span>{label}…</span>
-    </div>
-  )
+  // Rule 25: a skeleton, not a spinner. Shared across themes; drawn in the surrounding text colour.
+  return <Skeleton label={label} />
 }
 
 /** First-sentence + excerpt helpers for API text (plain text in, plain text out). */

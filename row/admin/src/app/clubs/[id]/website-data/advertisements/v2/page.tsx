@@ -358,7 +358,7 @@ export default function AdvertisementsV2Page() {
                               <ExternalLink size={12} /> View
                             </button>
                           ) : (
-                            <span className="text-xs text-slate-400">, </span>
+                            <span className="text-xs text-slate-400">–</span>
                           )}
                         </td>
                         <td className="px-3 py-2">

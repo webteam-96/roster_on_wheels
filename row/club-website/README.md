@@ -36,7 +36,6 @@ name slugged (`Classic Blue` -> `classic-blue`), which `src/theme/ThemeResolver.
 | Classic Blue, Warm Modern, Civic Bold, Verdigris Ledger, Gold | same, slugged | shells in `src/layouts`, homes in `src/pages` |
 | Cinematic, Split Story, Liquid Motion, Horizontal Journey, Photo Collage, Sunrise | same, slugged | `src/themes/<key>` |
 | Handloom | `handloom` | released 2026-11-18; needs its `theme_master` row (`database/maintenance/2026-11-18-club-theme-handloom.sql`) |
-| (not offered) | `madras-legacy` | built for one RIZones club; `MADRAS_CLUBS` is empty, reachable only by preview / pin |
 
 Locally, `?theme=<key>` previews any theme on any page.
 

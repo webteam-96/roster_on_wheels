@@ -45,7 +45,7 @@ export default function GoalMatrixTable({ matrix }: { matrix: GoalOverviewMatrix
                       {row.hasAchieved && (
                         <span className="text-xs"><span className="text-slate-400">Achieved: </span><span className="font-semibold text-emerald-700">{cell.achieved ?? "–"}</span></span>
                       )}
-                      {!row.hasTarget && !row.hasAchieved && <span className="text-slate-400">, </span>}
+                      {!row.hasTarget && !row.hasAchieved && <span className="text-slate-400">–</span>}
                     </div>
                   </td>
                 ))}

@@ -7,6 +7,7 @@ import { media, externalUrl, wheelFallback } from '../shared/rotaryPage.js'
 import Breadcrumb, { EmptyState } from '../shared/Breadcrumb.jsx'
 import { formatDate, plainText } from '../shared/homeData.js'
 import { useRotaryAnim } from '../shared/useRotaryAnim.js'
+import Skeleton from '../shared/Skeleton.jsx'
 
 /** Rotary year label "2025-26" -> [2025-07-01, 2026-07-01). Null when no year is
  *  selected (then events aren't year-filtered). */
@@ -23,6 +24,7 @@ export default function UpcomingEvent() {
   const { clubId, selectedYearLabel } = club
   const { isWarm } = useTheme()
   const [events, setEvents] = useState([])
+  const [loaded, setLoaded] = useState(false) // skeleton until the first answer (rule 25)
   const [query, setQuery] = useState('')
 
   useEffect(() => {
@@ -37,6 +39,7 @@ export default function UpcomingEvent() {
 
     api.getUpcomingEvents(clubId, 99).then((rows) => {
       if (cancelled) return
+      setLoaded(true)
       setEvents(rows
         .filter((ev) => ev.eventDate)
         .map((ev) => ({ ev, d: new Date(ev.eventDate) }))
@@ -103,7 +106,7 @@ export default function UpcomingEvent() {
               </div>
             </div>
           )}
-          {count === 0 ? (
+          {!loaded ? <Skeleton label="Loading events" /> : count === 0 ? (
             <EmptyState title="No events found"
                         message={query.trim()
                           ? 'No events match \u201c' + query.trim() + '\u201d. Try a different search.'

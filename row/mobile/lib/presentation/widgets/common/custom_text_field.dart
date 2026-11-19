@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import '../../../core/theme/app_colors.dart';
 import 'package:rotary_flutter_app/core/theme/app_fonts.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
+import 'package:rotary_flutter_app/core/i18n/live_translator.dart' show TranslationScope;
 
 class CustomTextField extends StatefulWidget {
   final String label;
@@ -101,7 +102,8 @@ class _CustomTextFieldState extends State<CustomTextField> {
     return TextFormField(
       controller: widget.controller,
       initialValue: widget.controller == null ? widget.initialValue : null,
-      validator: widget.validator,
+      // Validator messages and the hint are plain strings to Flutter, so translate them here.
+      validator: widget.validator == null ? null : (v) { final m = widget.validator!(v); return m == null ? null : TranslationScope.of(context, m); },
       keyboardType: effectiveKeyboardType,
       textInputAction: effectiveTextInputAction,
       obscureText: widget.obscureText ? _obscure : false,
@@ -120,7 +122,7 @@ class _CustomTextFieldState extends State<CustomTextField> {
       ),
       decoration: InputDecoration(
         label: Text(widget.label), // the i18n Text widget, so labels are translated
-        hintText: widget.hint,
+        hintText: widget.hint == null ? null : TranslationScope.of(context, widget.hint!),
         prefixIcon: widget.prefixIcon != null
             ? Icon(
                 widget.prefixIcon,

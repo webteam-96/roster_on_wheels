@@ -18,6 +18,7 @@ import { useCurrentMenuName } from '../../shared/Breadcrumb.jsx'
 import { useRotaryAnim } from '../../shared/useRotaryAnim.js'
 import { usePastPresidentsGold, initials } from './goldData.js'
 import { GPageHead, GEmpty, Arrow, useRevealReplay, hideOnError } from './kit.jsx'
+import Skeleton from '../../shared/Skeleton.jsx'
 
 export default function PastPresidentsGold() {
   const club = useClub()
@@ -66,7 +67,7 @@ export default function PastPresidentsGold() {
       {/* ══ 02 · The spine ══ */}
       <section className="gpp-body">
         <div className="gld-x">
-          {list === null ? null : shown.length === 0 ? (
+          {list === null ? <Skeleton label="Loading past presidents" /> : shown.length === 0 ? (
             <GEmpty
               title={all.length === 0 ? 'No roll of honour yet' : 'No match'}
               message={all.length === 0

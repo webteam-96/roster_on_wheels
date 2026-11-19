@@ -482,7 +482,7 @@ export default function OcvReportV2Page() {
                                   </button>
                                 </div>
                               ) : (
-                                <span className="text-slate-300 text-xs">, </span>
+                                <span className="text-slate-300 text-xs">–</span>
                               )}
                             </td>
                           </tr>

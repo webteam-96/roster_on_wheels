@@ -14,6 +14,7 @@ import { useCurrentMenuName } from '../../shared/Breadcrumb.jsx'
 import { useRotaryAnim } from '../../shared/useRotaryAnim.js'
 import { useAboutGold } from './goldData.js'
 import { GPageHead, Arrow, useRevealReplay, hideOnError } from './kit.jsx'
+import Skeleton from '../../shared/Skeleton.jsx'
 
 const SOC = {
   facebook: '<path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/>',
@@ -109,7 +110,7 @@ export default function AboutGold() {
                 This club hasn&rsquo;t published its story yet. Meanwhile, the projects,
                 events and people pages show what it has been doing.
               </p>
-            ) : null}
+            ) : <Skeleton label="Loading the club's story" rows={2} />}
 
             <div className="reveal" style={{ marginTop: 'var(--g-5)', display: 'flex', flexWrap: 'wrap', gap: '12px' }}>
               <a href="/projects" className="gld-btn gld-btn--gold">Our projects <Arrow /></a>

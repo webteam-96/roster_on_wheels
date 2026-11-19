@@ -20,6 +20,7 @@ import { useCurrentMenuName } from '../../shared/Breadcrumb.jsx'
 import { useRotaryAnim } from '../../shared/useRotaryAnim.js'
 import { useDirectorsGold, initials, plainText } from './goldData.js'
 import { GPageHead, GEmpty, Arrow, useRevealReplay, portraitFallback, isPlaceholderPhoto } from './kit.jsx'
+import Skeleton from '../../shared/Skeleton.jsx'
 
 /** The two offices that lead the plate row, in this order. A club that files
  *  neither simply gets the ledger — nothing is invented to fill the space. */
@@ -80,7 +81,7 @@ export default function DirectorsGold() {
       {/* ══ 02 · The principals, then the rest of the board ══ */}
       <section className="gbd-body">
         <div className="gld-x">
-          {directors === null ? null : rest.length === 0 && leads.length === 0 ? (
+          {directors === null ? <Skeleton label="Loading directors" /> : rest.length === 0 && leads.length === 0 ? (
             <GEmpty title="No board published"
                     message="This club has not published its board of directors for the selected Rotary year."
                     icon={<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" /></svg>} />

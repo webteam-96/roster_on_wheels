@@ -19,6 +19,7 @@ import { useSmoothScroll, lockScroll, scrollToY, gsap, motionOn, irisOpen, irisC
 import { yearText } from './kit.jsx'
 import './theme.css'
 import { appSettings } from '../../config.js'
+import FooterLegal from '../../shared/FooterLegal.jsx'
 
 const ADMIN_URL = appSettings.AdminLoginUrl
 const hdIco = (d) => function Ico() {
@@ -377,7 +378,7 @@ export default function Site({ children }) {
           {footerLogos.length ? (
             <div className="spl-foot-logo"><Logo key={footerLogos.join('|')} sources={footerLogos} alt={clubName + ' logo'} /></div>
           ) : null}
-          <div className="spl-foot-vc"><VisitorCount /></div>
+          <div className="spl-foot-vc"><VisitorCount /><FooterLegal /></div>
           {socials.length ? (
             <ul className="spl-socials" aria-label="Social media">
               {socials.map((s, i) => {

@@ -20,6 +20,7 @@ import { useRotaryAnim } from '../../shared/useRotaryAnim.js'
 import PhotoLightbox, { LightboxStyles } from '../../shared/PhotoLightbox.jsx'
 import { useGalleryGold, GALLERY_PAGE_SIZE } from './goldData.js'
 import { GPageHead, GEmpty, Arrow, useRevealReplay, hideOnError } from './kit.jsx'
+import Skeleton from '../../shared/Skeleton.jsx'
 
 export default function GalleryGold() {
   const club = useClub()
@@ -63,7 +64,7 @@ export default function GalleryGold() {
       />
 
       {/* ══ 02 · The sheet ══ */}
-      {g.loading ? null : g.totalCount === 0 ? (
+      {g.loading ? <Skeleton label="Loading photographs" /> : g.totalCount === 0 ? (
         <section className="ggal-empty">
           <div className="gld-x">
             <GEmpty title="No photographs yet"

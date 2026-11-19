@@ -2,7 +2,7 @@ import type { Values } from "./actions";
 
 // The demo request email, in the site's colours. Email clients only keep inline styles and tables.
 const C = { ink: "#1B2C42", soft: "#64748B", azure: "#17458F", gold: "#F7A81B", wash: "#EDF4FB", line: "#E3E9F0" };
-const FONT = "font-family:Inter,'Segoe UI',Arial,sans-serif;";
+const FONT = "font-family:Figtree,'Segoe UI',Arial,sans-serif;";
 
 const esc = (s = "") => s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!);
 

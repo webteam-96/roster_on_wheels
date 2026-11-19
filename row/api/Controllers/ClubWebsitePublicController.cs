@@ -205,6 +205,86 @@ public class ClubWebsitePublicController : ControllerBase
         });
     }
 
+    // Page labels for link previews, keyed by the club site's first path segment.
+    private static readonly Dictionary<string, string> PreviewPages = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ["about"] = "About Us", ["directors"] = "Board of Directors", ["directory"] = "Members",
+        ["events"] = "Events", ["event"] = "Event", ["upcoming-events"] = "Events", ["gallery"] = "Gallery",
+        ["projects"] = "Projects", ["project"] = "Project", ["newsletters"] = "Newsletters",
+        ["past-presidents"] = "Past Presidents", ["calendar"] = "Calendar", ["dignitary"] = "Dignitaries",
+    };
+
+    /// <summary>
+    /// Link preview (Open Graph) page for a club website. The club site's web.config redirects only
+    /// link-preview bots (WhatsApp, Facebook, LinkedIn, X, Telegram, Slack, Discord) here, because the
+    /// site is a static SPA and bots run no JavaScript. People never see it; a person who lands here is
+    /// sent on to the club page. Only hosts that belong to a live club website are answered.
+    /// </summary>
+    [HttpGet("preview")]
+    // The API caches public responses; without these keys every club would get the first cached preview.
+    [ResponseCache(Duration = 600, Location = ResponseCacheLocation.Any, VaryByQueryKeys = new[] { "host", "path" })]
+    [Microsoft.AspNetCore.RateLimiting.EnableRateLimiting("public-read")]
+    public async Task<IActionResult> Preview([FromQuery] string? host, [FromQuery] string? path)
+    {
+        var normalized = NormalizeHost(host);
+        if (string.IsNullOrEmpty(normalized)) return NotFound();
+        using var conn = RowDb.Connect(_connectionString);
+        await conn.OpenAsync();
+        var cd = NormCol("w.ClientDomain");
+        var sd = NormCol("w.Subdomain");
+        var club = await conn.QueryFirstOrDefaultAsync<dynamic>($@"
+            SELECT c.pk_club_id AS clubId, c.ClubName AS clubName, d.DistrictNumber AS districtNumber,
+                   c.ClubLogoPath AS logo
+            FROM club_websites w
+            JOIN club_master c ON c.pk_club_id = w.fk_club_id
+            JOIN district_master d ON d.pk_district_id = c.fk_district_id
+            JOIN zone_master z ON z.pk_zone_id = d.fk_zone_id
+            WHERE w.isdeleted = 0 AND c.isdeleted = 0 AND c.IsActive = 1
+              AND d.isdeleted = 0 AND d.IsActive = 1 AND z.isdeleted = 0 AND z.IsActive = 1
+              AND ({cd} = @host OR {sd} = @host OR {sd} = @label)
+            ORDER BY CASE WHEN {cd} = @host THEN 0 WHEN {sd} = @host THEN 1 ELSE 2 END, w.created_date DESC
+            LIMIT 1", new { host = normalized, label = normalized.Split('.')[0] });
+        if (club == null) return NotFound();
+
+        var banner = await conn.ExecuteScalarAsync<string?>(@"
+            SELECT banner_image_path FROM club_website_banner
+            WHERE fk_club_id = @id AND (isdeleted = 0 OR isdeleted IS NULL) AND is_active = 1
+              AND banner_image_path IS NOT NULL AND banner_image_path <> ''
+            ORDER BY fk_year_id DESC, sort_order, pk_club_website_banner_id LIMIT 1", new { id = (int)club.clubId });
+
+        // Only a site-relative path is accepted, so the page can only ever point at the club's own host.
+        var p = string.IsNullOrWhiteSpace(path) || !path.StartsWith('/') || path.StartsWith("//") ? "/" : path;
+        var segment = p.TrimStart('/').Split('/', '?', '#')[0];
+        var clubName = (string)club.clubName;
+        var title = PreviewPages.TryGetValue(segment, out var page) ? $"{page} | {clubName}" : clubName;
+        var description = $"{clubName}, Rotary District {club.districtNumber}. Projects, events and news from the club.";
+        var origin = $"{Request.Scheme}://{Request.Host}{Request.PathBase}";
+        string? Media(string? v, string folder) => string.IsNullOrWhiteSpace(v) ? null
+            : v.StartsWith("http", StringComparison.OrdinalIgnoreCase) ? v
+            : origin + (v.StartsWith('/') ? v : folder + v);
+        var image = Media(banner, "/uploads/banner/") ?? Media((string?)club.logo, "/Documents/group/");
+        var url = $"https://{normalized}{p}";
+        string E(string s) => System.Net.WebUtility.HtmlEncode(s);
+
+        var html = $@"<!doctype html><html lang=""en""><head><meta charset=""utf-8"">
+<title>{E(title)}</title>
+<meta name=""description"" content=""{E(description)}"">
+<meta property=""og:type"" content=""website"">
+<meta property=""og:site_name"" content=""{E(clubName)}"">
+<meta property=""og:title"" content=""{E(title)}"">
+<meta property=""og:description"" content=""{E(description)}"">
+<meta property=""og:url"" content=""{E(url)}"">
+{(image != null ? $@"<meta property=""og:image"" content=""{E(image)}"">
+<meta name=""twitter:image"" content=""{E(image)}"">" : "")}
+<meta name=""twitter:card"" content=""{(image != null ? "summary_large_image" : "summary")}"">
+<meta name=""twitter:title"" content=""{E(title)}"">
+<meta name=""twitter:description"" content=""{E(description)}"">
+<link rel=""canonical"" href=""{E(url)}"">
+<meta http-equiv=""refresh"" content=""0;url={E(url)}"">
+</head><body><a href=""{E(url)}"">{E(title)}</a></body></html>";
+        return Content(html, "text/html; charset=utf-8");
+    }
+
     // Normalise a host (or a stored URL-ish value) to a bare, lowercase host: strip scheme
     // (http/https), leading "www.", any path/trailing slash and the port. Mirrors the old ASP.NET
     // TenantResolver so ClientDomain/Subdomain stored as full URLs (e.g. "https://www.rcmadras.in/")

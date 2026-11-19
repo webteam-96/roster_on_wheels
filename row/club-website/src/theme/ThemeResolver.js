@@ -8,8 +8,7 @@
 //   (b)  DevThemeOverride
 //   (c)  ClubThemeMap      — production per-club pin
 //   (d)  ForcedTheme       — production global lock
-//   (e)  the club's ThemeKey from the DB (dashboard pick) — madras-legacy is
-//        restricted to RC Madras at this step only; see fromClubTheme()
+//   (e)  the club's ThemeKey from the DB (dashboard pick); see fromClubTheme()
 //   ->   classic-blue
 //
 // Only KNOWN keys activate a theme — junk/unknown values fall through to the
@@ -41,7 +40,7 @@ export const PHOTO_COLLAGE = 'photo-collage'
 export const SUNRISE = 'sunrise'
 export const THEME8_KEYS = [CINEMATIC, SPLIT_STORY, LIQUID_MOTION, HORIZONTAL_JOURNEY, PHOTO_COLLAGE, SUNRISE]
 
-export const THEME_KEYS = [CLASSIC_BLUE, WARM_MODERN, MADRAS_LEGACY, CIVIC_BOLD, VERDIGRIS_LEDGER, GOLD, HANDLOOM, ...THEME8_KEYS]
+export const THEME_KEYS = [CLASSIC_BLUE, WARM_MODERN, CIVIC_BOLD, VERDIGRIS_LEDGER, GOLD, HANDLOOM, ...THEME8_KEYS]
 
 const PREVIEW_COOKIE = 'rotary_theme_preview'
 
@@ -59,7 +58,6 @@ export function dbName(themeKey) {
     // a club set to Gold in the dashboard now gets the Gold theme.
     case GOLD: return 'Gold'
     case VERDIGRIS_LEDGER: return 'Platinum'
-    case MADRAS_LEGACY: return 'Madras'
     // The gemstone for the green theme (2026-09-21): the dashboard row to add
     // is "Emerald", slugified by the API to `emerald` - see normalize().
     case HANDLOOM: return 'Emerald'
@@ -124,39 +122,11 @@ export function resolve(club) {
 }
 
 /**
- * RC Madras — the ONLY club allowed to render madras-legacy. Matched on club id
- * or subdomain label, the same two things ClubThemeMap keys on.
- */
-// ROW: empty. 2037 / rcmadras were RC Madras on the RIZones platform; in ROW id 2037 is an
-// unrelated club. madras-legacy stays reachable only through ClubThemeMap / ForcedTheme / preview.
-const MADRAS_CLUBS = []
-
-/** Is this the club madras-legacy was built for? */
-export function isMadrasClub(club) {
-  if (!club) return false
-  const id = String(club.clubId || '').trim().toLowerCase()
-  const sub = normalizeLabel(club.subdomain)
-  return MADRAS_CLUBS.includes(id) || (sub !== null && MADRAS_CLUBS.includes(sub))
-}
-
-/**
- * Step (e) of the chain: the club's own dashboard pick, with one restriction.
- *
- * madras-legacy is not a generic theme — it is RC Madras's own legacy "template
- * 4" design, carrying their layout and their identity. The dashboard's
- * theme_master table still lists "Madras" as a selectable row, so any club could
- * pick it and end up wearing another club's site. Every OTHER club that lands on
- * it falls back to classic-blue (Sapphire), which is also what a club with no
- * pick at all gets.
- *
- * Deliberately applied HERE and not to steps (a)-(d): an explicit ClubThemeMap
- * pin, a ForcedTheme lock and the ?theme=/preview overrides are all decisions
- * someone made on purpose, and must still be able to show madras-legacy anywhere
- * (that is how it gets previewed and how RC Madras itself is pinned).
+ * Step (e) of the chain: the club's own dashboard pick. A theme not released yet
+ * (UNRELEASED_THEMES) shows classic-blue, as does a club with no pick at all.
  */
 export function fromClubTheme(club) {
   const key = normalize(club ? club.themeKey : null)
-  if (key === MADRAS_LEGACY && !isMadrasClub(club)) return CLASSIC_BLUE
   if (UNRELEASED_THEMES.includes(key)) return CLASSIC_BLUE
   return key || CLASSIC_BLUE
 }
@@ -263,7 +233,8 @@ export function normalize(raw) {
   // Exact theme keys (and short aliases).
   if (v === CLASSIC_BLUE || v === 'classic') return CLASSIC_BLUE
   if (v === WARM_MODERN || v === 'warm') return WARM_MODERN
-  if (v === MADRAS_LEGACY || v === 'madras') return MADRAS_LEGACY
+  // Madras Legacy was removed (18 Nov); an old "Madras" pick shows classic-blue.
+  if (v === MADRAS_LEGACY || v === 'madras') return CLASSIC_BLUE
   if (v === CIVIC_BOLD || v === 'civic') return CIVIC_BOLD
   if (v === VERDIGRIS_LEDGER || v === 'verdigris') return VERDIGRIS_LEDGER
   if (v === GOLD) return GOLD
@@ -278,7 +249,7 @@ export function normalize(raw) {
   //
   //   Sapphire -> classic-blue      Topaz    -> warm-modern
   //   Ruby     -> civic-bold        Gold     -> gold (theme 6)
-  //   Platinum -> verdigris-ledger  Madras   -> madras-legacy (alias above)
+  //   Platinum -> verdigris-ledger  Madras   -> classic-blue (theme removed)
   if (v === 'sapphire') return CLASSIC_BLUE
   if (v === 'topaz') return WARM_MODERN
   if (v === 'ruby') return CIVIC_BOLD

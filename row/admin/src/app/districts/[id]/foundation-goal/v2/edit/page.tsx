@@ -657,7 +657,7 @@ export default function DistrictFoundationGoalV2EditPage() {
                             </td>
                             <td className="px-3 py-2 text-right tabular-nums">
                               {pct == null ? (
-                                <span className="text-slate-300">, </span>
+                                <span className="text-slate-300">–</span>
                               ) : (
                                 <span className={`font-semibold ${pct >= 100 ? "text-emerald-700" : pct >= 60 ? "text-blue-700" : pct >= 30 ? "text-amber-700" : "text-rose-700"}`}>
                                   {pct}%

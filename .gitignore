@@ -39,3 +39,6 @@ row/workers/GreetingsWorker/firebase-admin.json
 
 # Playwright MCP screenshots / logs
 .playwright-mcp/
+
+# API runtime upload temp files
+row/api/wwwroot/tempdocument/

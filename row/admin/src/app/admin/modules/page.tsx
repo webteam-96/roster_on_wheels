@@ -301,7 +301,7 @@ export default function ModulesPage() {
                             {formatCsDate(cs.comingSoonDate) || "Coming Soon"}
                           </Badge>
                         ) : (
-                          <span className="text-muted-foreground text-xs">, </span>
+                          <span className="text-muted-foreground text-xs">–</span>
                         )}
                         <Button variant="outline" size="sm" className="h-7 px-2" onClick={() => openCsDialog(mod)} title="Edit Coming Soon">
                           <Clock className="h-3 w-3 mr-1" />Edit

@@ -128,7 +128,7 @@ function ProjectDetailModal({
     return () => { cancelled = true; };
   }, [row.projectId, row.yearId, yearId, districtId]);
 
-  const dash = <span className="text-slate-300">, </span>;
+  const dash = <span className="text-slate-300">–</span>;
   // Fall back to the list row while the detail loads, so the popup is never empty.
   const d = detail;
 
@@ -531,10 +531,10 @@ export default function AgProjectsPage() {
                       </span>
                     </td>
                     <td className="px-3 py-2.5 text-right text-slate-700 whitespace-nowrap tabular-nums">
-                      {row.cost > 0 ? formatMoney(row.cost, row.currency) : <span className="text-slate-300">, </span>}
+                      {row.cost > 0 ? formatMoney(row.cost, row.currency) : <span className="text-slate-300">–</span>}
                     </td>
                     <td className="px-3 py-2.5 text-right text-slate-700 tabular-nums">
-                      {row.beneficiaries > 0 ? fmtInt(row.beneficiaries) : <span className="text-slate-300">, </span>}
+                      {row.beneficiaries > 0 ? fmtInt(row.beneficiaries) : <span className="text-slate-300">–</span>}
                     </td>
                     <td className="px-3 py-2.5 text-right tabular-nums">
                       {isManHoursPending(row) ? (
@@ -542,7 +542,7 @@ export default function AgProjectsPage() {
                       ) : row.manHours > 0 ? (
                         <span className="text-slate-700">{fmtInt(row.manHours)}</span>
                       ) : (
-                        <span className="text-slate-300">, </span>
+                        <span className="text-slate-300">–</span>
                       )}
                     </td>
                     <td className="px-3 py-2.5">
@@ -576,7 +576,7 @@ export default function AgProjectsPage() {
                       ? <PendingCell />
                       : fmtInt(pageRows.reduce((s, r) => s + (isManHoursPending(r) ? 0 : r.manHours || 0), 0))}
                   </td>
-                  <td className="px-3 py-3 text-slate-400">, </td>
+                  <td className="px-3 py-3 text-slate-400">–</td>
                 </tr>
               </tfoot>
             )}

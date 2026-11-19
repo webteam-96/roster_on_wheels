@@ -18,7 +18,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import Cropper from "react-easy-crop";
 import type { Area, MediaSize } from "react-easy-crop";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import RotaryLoader from "@/components/RotaryLoader";
 import { Image as ImageIcon, RectangleHorizontal, RectangleVertical, Save, Square, X, ZoomIn, ZoomOut } from "@/components/icons";
 import { getCroppedImageBlob, deriveOutputSize, probeNaturalZoom } from "@/lib/imageCrop";
@@ -168,8 +168,18 @@ export default function ImageCropDialog({
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onCancel()}>
       <DialogContent className="max-w-3xl">
-        <DialogHeader>
+        {/* ROW-54: Cancel / Save sit top right (pr-8 leaves room for the dialog's close X). */}
+        <DialogHeader className="flex-row flex-wrap items-center justify-between gap-3 space-y-0 pr-8">
           <DialogTitle>{title}</DialogTitle>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" onClick={onCancel} disabled={saving}>
+              <X className="h-4 w-4 mr-2" />Cancel
+            </Button>
+            <Button onClick={handleSave} disabled={saving || !croppedAreaPixels || belowMin}>
+              {saving ? <RotaryLoader size="sm" className="mr-2" /> : <Save className="h-4 w-4 mr-2" />}
+              {saving ? "Saving…" : "Save"}
+            </Button>
+          </div>
         </DialogHeader>
         <div className="space-y-2">
           {allowOrientation && (
@@ -234,15 +244,6 @@ export default function ImageCropDialog({
             </p>
           )}
         </div>
-        <DialogFooter>
-          <Button variant="outline" onClick={onCancel} disabled={saving}>
-            <X className="h-4 w-4 mr-2" />Cancel
-          </Button>
-          <Button onClick={handleSave} disabled={saving || !croppedAreaPixels || belowMin}>
-            {saving ? <RotaryLoader size="sm" className="mr-2" /> : <Save className="h-4 w-4 mr-2" />}
-            {saving ? "Saving…" : "Save"}
-          </Button>
-        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

@@ -533,7 +533,7 @@ export function DistrictRotaryNetworkView({ embedded = false }: { embedded?: boo
                             {r.terminationReason}
                           </span>
                         ) : (
-                          <span className="text-xs text-slate-400">, </span>
+                          <span className="text-xs text-slate-400">–</span>
                         )}
                       </td>
                     </>

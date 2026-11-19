@@ -29,7 +29,7 @@ class _DrawerItem {
 // One entry-point to /settings — that screen now hosts Theme, Font, App Lock,
 // Unified Tiles (and admin-only Configuration when applicable).
 const _settingsItems = [
-  _DrawerItem('Settings', Icons.settings_rounded, RouteNames.settings,
+  _DrawerItem('Settings', Icons.settings_rounded, RouteNames.settings, push: true, // Back returns home
       superAdminOnly: false),
 ];
 
@@ -44,7 +44,7 @@ const _meItems = [
 ];
 
 const _supportItems = [
-  _DrawerItem('Helpline', Icons.support_agent_rounded, RouteNames.helpline),
+  _DrawerItem('Helpline', Icons.support_agent_rounded, RouteNames.helpline, push: true),
 ];
 
 class CustomDrawer extends StatelessWidget {

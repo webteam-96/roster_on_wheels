@@ -7,6 +7,7 @@ import { media, initials } from '../shared/rotaryPage.js'
 import Breadcrumb from '../shared/Breadcrumb.jsx'
 import { useRotaryAnim } from '../shared/useRotaryAnim.js'
 import * as api from '../api/clubService.js'
+import Skeleton from '../shared/Skeleton.jsx'
 
 /**
  * Extracts the 4-digit start year from a Rotary year label such as "2020-21"
@@ -22,6 +23,7 @@ export default function PastPresidents() {
   const club = useClub()
   const { isWarm } = useTheme()
   const [presidents, setPresidents] = useState([])
+  const [loaded, setLoaded] = useState(false) // skeleton until the first answer (rule 25)
   const inputRef = useRef(null)
 
   // The .aspx ships the filter as an inline <script>; a <script> tag in JSX
@@ -64,7 +66,7 @@ export default function PastPresidents() {
         // OrderByDescending is stable, so co-presidents of one year keep API order.
         .sort((a, b) => (b._y === null ? -Infinity : b._y) - (a._y === null ? -Infinity : a._y) || a._i - b._i)
 
-      setPresidents(pres)
+      setPresidents(pres); setLoaded(true)
     })()
 
     return () => { cancelled = true }
@@ -120,6 +122,7 @@ export default function PastPresidents() {
             </div>
           </div>
 
+          {!loaded && <Skeleton label="Loading past presidents" />}
           <div id="ppGrid" className={(isWarm ? 'grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4' : 'grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4') + (noResults ? ' hidden' : '')}>
             {/* Cards are filtered with style.display, NOT by appending ' hidden' to
                 className: rotary-anim's initReveal adds `is-visible` to .reveal and
@@ -141,8 +144,8 @@ export default function PastPresidents() {
                     {/* medallion: photo when present, else the neutral placeholder silhouette */}
                     <div className="relative mb-4">
                       <span aria-hidden="true" className="pointer-events-none absolute -inset-1.5 rounded-full bg-gradient-to-br from-gold/30 via-gold-cta/10 to-transparent blur-[3px] transition-opacity duration-300 group-hover:opacity-80"></span>
-                      <img src={!p.Img ? 'Themes/madras-legacy/img/noimg.png' : p.Img} alt={p.Name} loading="lazy"
-                           onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = 'Themes/madras-legacy/img/noimg.png' }}
+                      <img src={!p.Img ? 'images/noimg.png' : p.Img} alt={p.Name} loading="lazy"
+                           onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = 'images/noimg.png' }}
                            className="relative h-20 w-20 rounded-full bg-white object-cover object-top shadow-md ring-4 ring-gold/25 transition-all duration-300 group-hover:ring-gold/60" />
                       {/* little gold seal notch */}
                       <span aria-hidden="true" className="absolute -bottom-1 left-1/2 flex h-6 w-6 -translate-x-1/2 items-center justify-center rounded-full border-2 border-white bg-gold text-white shadow"><svg className="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>

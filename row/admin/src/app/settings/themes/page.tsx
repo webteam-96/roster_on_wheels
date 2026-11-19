@@ -260,7 +260,7 @@ export default function ThemesPage() {
                         {theme.description ? (
                           <span className="line-clamp-2 text-sm text-muted-foreground" title={theme.description}>{theme.description}</span>
                         ) : (
-                          <span className="text-muted-foreground text-sm">, </span>
+                          <span className="text-muted-foreground text-sm">–</span>
                         )}
                       </TableCell>
                       <TableCell>

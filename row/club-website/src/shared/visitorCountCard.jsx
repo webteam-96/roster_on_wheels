@@ -120,14 +120,6 @@ html[data-theme="handloom"] .rv-vc{
     --rv-bg1:color-mix(in srgb, var(--hl-green-deep, #12332A) 45%, var(--hl-green, #1F5138))}
 }
 
-/* madras sits on the footer's WHITE strip, so it inverts: light card, navy ink,
-   and a dark badge disc to keep the white-bodied rocket visible. */
-html[data-theme="madras-legacy"] .rv-vc{
-  --rv-bg1:#FFFFFF; --rv-bg2:#F1F4FB;
-  --rv-edge:rgba(45,51,131,.18); --rv-today:#2D3383; --rv-total:#1A2044;
-  --rv-rule:rgba(45,51,131,.20); --rv-label:#5C6480; --rv-badge:#2D3383;
-  box-shadow:0 10px 26px rgba(45,51,131,.14)}
-
 /* CONTAINER queries, not viewport ones. The card lands in columns of very
    different widths — classic gives it ~452px, gold and verdigris only ~300px at
    the SAME viewport — so a @media rule cannot tell the two apart and the two

@@ -22,6 +22,7 @@ import { routeKey } from '../routes.js'
 import { enc } from '../shared/Breadcrumb.jsx'
 import YearSelect from '../shared/YearSelect.jsx'
 import VisitorCount from '../shared/visitorCount.jsx'
+import FooterLegal from '../shared/FooterLegal.jsx'
 import { useThemeShell, useRouteEnter, useLoader } from '../shared/useRotaryAnim.js'
 import { appSettings } from '../config.js'
 
@@ -417,7 +418,7 @@ export default function SiteCivicBold({ children }) {
                 logo plate above is inline-flex, so an inline-level counter would
                 flow onto the same line and sit ON the logo. */}
             <div style={{ marginTop: '18px' }}>
-              <VisitorCount />
+              <VisitorCount /><FooterLegal />
             </div>
           </div>
           <div>

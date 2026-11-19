@@ -20,6 +20,7 @@ import { useCurrentMenuName } from '../../shared/Breadcrumb.jsx'
 import { useRotaryAnim } from '../../shared/useRotaryAnim.js'
 import { useDirectoryGold, initials } from './goldData.js'
 import { GPageHead, GEmpty, Arrow, useRevealReplay, hideOnError } from './kit.jsx'
+import Skeleton from '../../shared/Skeleton.jsx'
 
 const PAGE_SIZE = 30
 
@@ -102,7 +103,7 @@ export default function DirectoryGold() {
       {/* ══ 02 · The wall (or the portraits) ══ */}
       <section className="gdir-body">
         <div className="gld-x">
-          {members === null ? null : matched.length === 0 ? (
+          {members === null ? <Skeleton label="Loading members" /> : matched.length === 0 ? (
             <GEmpty
               title={list.length === 0 ? 'No members published' : 'No match'}
               message={list.length === 0

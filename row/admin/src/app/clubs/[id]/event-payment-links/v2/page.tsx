@@ -268,7 +268,7 @@ export default function EventPaymentLinksV2ListingPage() {
                                 </button>
                               </div>
                             ) : (
-                              <span className="text-xs text-slate-300">, </span>
+                              <span className="text-xs text-slate-300">–</span>
                             )}
                           </td>
                           <td className="px-3 py-2 text-center">

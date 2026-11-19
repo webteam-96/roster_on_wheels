@@ -69,7 +69,7 @@ export default function WebsiteTrainingAppointmentsTab() {
                     <a href={r.zoomJoinUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-azure hover:underline">
                       <Video size={14} /> Join
                     </a>
-                  ) : <span className="text-slate-400">, </span>}
+                  ) : <span className="text-slate-400">–</span>}
                 </td>
                 <td className="px-4 py-2.5 text-right">
                   <button onClick={() => setResc({ id: r.id, clubId: r.clubId })}

@@ -11,6 +11,7 @@ import { media } from '../shared/rotaryPage.js'
 import Breadcrumb, { EmptyState } from '../shared/Breadcrumb.jsx'
 import { formatDate, newsletterLink } from '../shared/homeData.js'
 import { useRotaryAnim } from '../shared/useRotaryAnim.js'
+import Skeleton from '../shared/Skeleton.jsx'
 
 const MONTHS_FULL = ['January', 'February', 'March', 'April', 'May', 'June',
   'July', 'August', 'September', 'October', 'November', 'December']
@@ -56,13 +57,14 @@ export default function Newsletter() {
   const { clubId, selectedYearId: yearId } = useClub()
   const { isWarm } = useTheme()
   const [items, setItems] = useState([])
+  const [loaded, setLoaded] = useState(false) // skeleton until the first answer (rule 25)
   const [query, setQuery] = useState('')
 
   useEffect(() => {
     if (!clubId) return
     let cancelled = false
     api.getNewsletters(clubId, yearId, 500).then((rows) => {
-      if (!cancelled) setItems(buildItems(rows))
+      if (!cancelled) setItems(buildItems(rows)); setLoaded(true)
     })
     return () => { cancelled = true }
   }, [clubId, yearId])
@@ -171,6 +173,7 @@ export default function Newsletter() {
                 </>
               )}
 
+              {!loaded && <Skeleton label="Loading newsletters" />}
               <div className={isWarm ? 'reveal mx-auto grid max-w-3xl grid-cols-1 gap-3 sm:grid-cols-2' : 'grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3'}>
                 {shownItems.map((n, i) => (
                   <Fragment key={i}>

@@ -11,6 +11,7 @@ import '../../widgets/common/custom_button.dart';
 import '../../widgets/common/custom_text_field.dart';
 import 'package:rotary_flutter_app/core/brand/brand.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
+import 'package:rotary_flutter_app/core/i18n/live_translator.dart' show TranslationScope;
 
 /// Email + password sign-in for every member (ROW, 2026-10-19; replaces the
 /// earlier mobile-number OTP flow). A member without a password sets one via "Forgot password?".
@@ -100,7 +101,8 @@ class _LoginScreenState extends State<LoginScreen> {
               Text('Sign In', style: AppTextStyles.h1),
               const SizedBox(height: 8),
               Text(
-                'Sign in to ${Brand.current.productName}',
+                // Template with {app} so the sentence is translated whole (word order differs by language).
+                TranslationScope.of(context, 'Sign in to {app}').replaceAll('{app}', Brand.current.productName),
                 style: AppTextStyles.body.copyWith(color: AppColors.textSecondary),
               ),
               const SizedBox(height: 40),

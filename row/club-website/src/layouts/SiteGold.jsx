@@ -22,6 +22,7 @@ import { useMenus, menuHref, menuExternal, socialLabel, LOGO_PLACEHOLDER } from 
 import { routeKey } from '../routes.js'
 import YearSelect from '../shared/YearSelect.jsx'
 import VisitorCount from '../shared/visitorCount.jsx'
+import FooterLegal from '../shared/FooterLegal.jsx'
 import { useThemeShell, useRouteEnter, useLoader } from '../shared/useRotaryAnim.js'
 import { appSettings } from '../config.js'
 
@@ -345,7 +346,7 @@ export default function SiteGold({ children }) {
               {/* Visitor count closes this column, under the logo — look comes
                   from .rv-vc (Anton figures on the gold hairline). */}
               <div style={{ marginTop: '18px' }}>
-                <VisitorCount />
+                <VisitorCount /><FooterLegal />
               </div>
             </div>
 

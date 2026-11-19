@@ -4,6 +4,27 @@ The NestJS backend is a faithful port of the RIZones API. These are places
 where ROW will probably want different behaviour. They are **not** made yet
 unless marked "done"; decide them when the area is worked on.
 
+## 2026-11-18: Audit fixes, OMS ROW-54/55, app fixes, link previews, Madras Legacy removed (not committed)
+
+- **Security:** club-website DOMPurify 3.4.18, axios, react-router 7, Vite 8 (production deps: 0 advisories); admin
+  vitest 5, quill pinned 2.0.2 as a direct dependency (the XSS advisory is 2.0.3 only). Global `UploadContentFilter`:
+  script/executable uploads refused everywhere, image/PDF/Office content must match the extension (HEIC renamed .jpg
+  is refused). picomatch stays flagged (every version, build tools only).
+- **Admin:** ROW-54 crop dialog Cancel/Save top right (shared `ImageCropDialog`); ROW-55 leftover second delete cell
+  removed; `AgreeText` paragraphs are block spans (a `<p>` inside the dialog description broke hydration); 51 empty-cell
+  placeholders that an earlier em-dash sweep turned into ", " are "–" again.
+- **App:** Settings and Helpline open with push (Back returns home, it closed the app); text-field hints and validator
+  messages translated; sign-in subtitle is the template `Sign in to {app}`; release builds HTTPS only (debug overlay
+  keeps http to dev hosts); version 1.0.0+132202. Glossary `ui-labels-32.json` (applied to production).
+- **Club website:** Terms/Privacy in every footer (`FooterLegal`, `VITE_TermsUrl`/`VITE_PrivacyUrl`), skeleton loaders
+  (`shared/Skeleton.jsx`) on the theme kits, the shared older pages and Gold; Madras Legacy removed (it was built for one
+  RIZones club and no ROW club is offered it); link previews for bots via `api/public/club-website/preview`.
+- **Gate pages and contact email:** brand fonts (Figtree, Bricolage Grotesque) instead of Inter; glow orb removed.
+- **Ops:** nightly DB backup script `deploy/backup/backup-row-db.ps1`; Brevo + `FrontendUrl` + `BackgroundJobs` set
+  on the server by the owner. Audit false alarms recorded: admin `bg-white` is off-white and every shadow token is none.
+- **Deferred:** admin token to an httpOnly cookie (owner asked to start; touches every admin request), club hosting
+  catch-all, workers on the server, RIZones 9-17 Nov items.
+
 ## Club website replaced (2026-11-17, done)
 
 - `row/club-website` is now the React + Vite app (13 themes) the owner sent on 17 Nov; the Next.js version is in git

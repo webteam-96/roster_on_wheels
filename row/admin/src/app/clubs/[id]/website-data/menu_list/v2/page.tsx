@@ -619,13 +619,13 @@ function Row(props: RowProps) {
               <PlusCircle className="h-3.5 w-3.5" /> Add
             </Link>
           ) : (
-            <span className="text-slate-300 text-xs">, </span>
+            <span className="text-slate-300 text-xs">–</span>
           )}
         </td>
         {canManage && (
           <td className="px-3 py-2 text-right">
             {isHomeMenu(menu) ? (
-              <span className="text-slate-300 text-xs" title="Home menu is always active">, </span>
+              <span className="text-slate-300 text-xs" title="Home menu is always active">–</span>
             ) : (
             <button
               type="button"
@@ -642,7 +642,7 @@ function Row(props: RowProps) {
         {canManage && (
           <td className="px-3 py-2 text-right">
             {isHomeMenu(menu) ? (
-              <span className="text-slate-300 text-xs" title="Home menu cannot be edited">, </span>
+              <span className="text-slate-300 text-xs" title="Home menu cannot be edited">–</span>
             ) : (
             <Link
               href={editHref}
@@ -668,7 +668,7 @@ function Row(props: RowProps) {
                 <Trash2 size={13} />
               </button>
             ) : (
-              <span className="text-slate-300 text-xs" title="Default menus cannot be deleted">, </span>
+              <span className="text-slate-300 text-xs" title="Default menus cannot be deleted">–</span>
             )}
           </td>
         )}

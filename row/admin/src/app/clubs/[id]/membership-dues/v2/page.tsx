@@ -425,7 +425,7 @@ export default function ClubMembershipDuesV2Page() {
                                 </button>
                               </div>
                             ) : (
-                              <span className="text-slate-300">, </span>
+                              <span className="text-slate-300">–</span>
                             )}
                           </td>
                         </tr>

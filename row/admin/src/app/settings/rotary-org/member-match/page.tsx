@@ -285,7 +285,7 @@ export default function MemberMatchPage() {
                           )}
                         </TableCell>
                         <TableCell className="text-center">
-                          {!loaded ? <span className="text-muted-foreground">, </span>
+                          {!loaded ? <span className="text-muted-foreground">–</span>
                             : mismatch
                               ? <Badge variant="destructive" className="cursor-pointer hover:opacity-80" title="Click to see which members differ and what will happen to them" onClick={() => setDiffFor(c)}>{diff > 0 ? `+${diff}` : diff}</Badge>
                               : <CheckCircle2 className="mx-auto h-4 w-4 text-emerald-600" />}

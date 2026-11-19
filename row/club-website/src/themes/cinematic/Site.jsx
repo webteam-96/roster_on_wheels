@@ -22,6 +22,7 @@ import {
 } from '../_shared/data.js'
 import { useSmoothScroll, useScene, lockScroll, scrollToY, gsap, prefersReducedMotion, magnetField, navIndicator } from './motion.js'
 import { Logo, SocialLinks, Chevron, ArrowOut, clubNames, ADMIN_URL } from './kit.jsx'
+import FooterLegal from '../../shared/FooterLegal.jsx'
 import './theme.css'
 
 // ── light / dark ─────────────────────────────────────────────────────────────
@@ -436,7 +437,7 @@ export default function Site({ children }) {
                 </ul>
               </div>
             ) : null}
-            <VisitorCount className="cin-foot__vc" />
+            <VisitorCount className="cin-foot__vc" /><FooterLegal />
           </div>
         </div>
         <div className="cin-foot__row cin-foot__row--base">

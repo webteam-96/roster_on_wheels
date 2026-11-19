@@ -1,7 +1,7 @@
 name: rotary_flutter_app
 description: "ROW (Roster On Wheels) mobile app"
 publish_to: 'none'
-version: 59.0.42+132201 #old 59.0.9+10, 59.0.7+8  #current on live : 59.0.19+132176  #Android Play Store ceiling cleared at +132159; minSdk pinned to 21 at +132163
+version: 1.0.0+132202 # ROW first store release. Build number kept above the old RIZones-era builds (last 132201); raise it on every upload.
 
 environment:
   sdk: '>=3.3.0 <4.0.0'

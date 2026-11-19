@@ -386,7 +386,7 @@ export function DashboardRotaryNetworkView({ embedded = false }: { embedded?: bo
                               {r.terminationReason}
                             </span>
                           ) : (
-                            <span className="text-xs text-slate-400">, </span>
+                            <span className="text-xs text-slate-400">–</span>
                           )}
                         </td>
                       </>

@@ -6,7 +6,7 @@ import { useLocation } from 'react-router-dom'
 import { useClub } from '../context/ClubProvider.jsx'
 import {
   resolve, dbName,
-  CLASSIC_BLUE, WARM_MODERN, MADRAS_LEGACY, CIVIC_BOLD, VERDIGRIS_LEDGER, GOLD, HANDLOOM, THEME8_KEYS,
+  CLASSIC_BLUE, WARM_MODERN, CIVIC_BOLD, VERDIGRIS_LEDGER, GOLD, HANDLOOM, THEME8_KEYS,
 } from './ThemeResolver.js'
 import { loadThemeStyles } from './themeAssets.js'
 import { preloadTheme } from '../themes/registry.js'
@@ -87,7 +87,6 @@ export function ThemeProvider({ children }) {
     dbName: dbName(theme),
     isClassic: theme === CLASSIC_BLUE,
     isWarm: theme === WARM_MODERN,
-    isMadras: theme === MADRAS_LEGACY,
     isCivic: theme === CIVIC_BOLD,
     isVerdigris: theme === VERDIGRIS_LEDGER,
     isGold: theme === GOLD,

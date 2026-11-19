@@ -413,7 +413,7 @@ export default function NewslettersV2Page() {
                               <Download size={13} />
                             </a>
                           ) : (
-                            <span className="text-slate-300">, </span>
+                            <span className="text-slate-300">–</span>
                           )}
                         </td>
                         {canManage && (
@@ -427,7 +427,7 @@ export default function NewslettersV2Page() {
                                 <Edit3 size={13} />
                               </Link>
                             ) : (
-                              <span className="text-slate-300">, </span>
+                              <span className="text-slate-300">–</span>
                             )}
                           </td>
                         )}

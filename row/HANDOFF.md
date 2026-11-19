@@ -86,7 +86,54 @@ sheet (PENDING-WORK §11a; Settings > Features; e2e `kb/tools/feature_gate_e2e.p
   sites tsc 0; e2e on `row_prod_copy`: the 10 new suites, `scope_read_guard`, `feature_gate` (now takes the DB name
   as 3rd argument) all PASS.
 
-## Resume here (stopped 2026-11-17 19:25, owner: "resume tomorrow")
+## Resume here (stopped 2026-11-18 evening, owner: "we work tomorrow")
+
+**State:** everything below from 18 Nov is LIVE on the test server except the link-preview work and the Madras
+removal, and NOTHING from the 18 Nov second round onward is committed (about 100 tracked files + new files).
+First job tomorrow: commit + push to `feat/rizones-pull-2026-11-06` once the owner says so (scan for secrets first).
+
+**Done 18 Nov evening (not committed):**
+- Live checks after the owner's upload: API healthy, old years 200, translations live, admin/website/legal pages
+  200, Brevo sends, `FrontendUrl` now `/admin` (reset link checked), `BackgroundJobs__Enabled=true` on the server:
+  first run sent 30 queued test notifications (Thane City View test project to 25 members, ROW Test Club to 5);
+  57 event + 16 announcement reminders are queued but ineligible (parent email never sent). Push jobs running.
+- Production SQL run: `database/maintenance/2026-11-18-app-new-labels.sql` (14 rows exact, translation version 3).
+- Notifications parity vs RIZones: every email/push in RIZones exists in ROW except removed modules.
+- Cleanup: `_local` now holds only `server-backup/` (server api web.config of 13 Nov; older than the server, see its
+  README), `test-logins/`, `test-accounts.txt`, the district time-zone note, `missing-media-2026-11-18.csv`.
+  Build caches deleted. Madras Legacy theme removed from the repo (no-photo image moved to `public/images/noimg.png`;
+  an old "Madras" pick shows classic-blue; 12 themes x 3 pages checked).
+- Link previews (club sites): `GET api/public/club-website/preview?host=&path=` (Open Graph page, cache varies by
+  host+path, only live club hosts, path must be site-relative) + a bot-only redirect rule in
+  `club-website/public/web.config` whose `__API_BASE__` is filled at build by `vite.config.js`. Tested locally.
+  Needs API + club-site upload and working club hosting.
+- Missing media: 4,043 club-site images checked live; 4,021 missing, but 4,006 belong to club 1 (test club), club 0,
+  district 0 (do not exist) and district 1 (5656). Only 15 belong to real clubs (Lake Shore 31764, club 31765).
+  List: `_local/missing-media-2026-11-18.csv`.
+
+**Club website hosting (still broken):** wildcard DNS `*.rosteronwheels.com` -> 163.128.34.90 works, but no IIS
+site answers it; requests fall to the RIZones `rotaryindia.org` default site (500 URL Rewrite error, `*.rotaryindia.org`
+certificate). ROW still has RIZones' per-club Plesk provisioning (`PleskService`, `ClubWebsiteActivationService`),
+inactive because `PleskSettings` is not set on the server. Recommended instead: one catch-all `*.rosteronwheels.com`
+site in Plesk/IIS on the shared club-site folder + one wildcard certificate (no Plesk credentials in the API).
+
+**Background workers:** not running on the server (greeting_send_log missing, Rotary.org sync last 30 Oct, RCC goals
+empty). Offer: package the 4 workers + settings templates (secrets blank) + a Task Scheduler script.
+
+**RIZones pull 9-17 Nov (`9658c18b`..`be034332`, 169 files, 33 new): not ported.** New CMR designs A-D + Word V2,
+OCV Excel/Word V2, Club/District Goals + Goal Overview + scorecard, RCC & District Goals report, dues drafts and
+currency flags, wallet deduct/tally, download progress, Excel real numbers. Zonal Awards part does not apply.
+RIZones Flutter app: nothing new since 24 Sep.
+
+**Orphan/test media rows (club 0/1, district 0/1): KEEP** (owner, 2026-11-19: the tester is testing the system with
+them). Do not delete; ask again only after testing ends.
+
+**Next (in order, owner decides):** commit; admin sign-in token to httpOnly cookie (asked to start, not begun);
+club hosting catch-all + certificate; workers package; port the 9-17 Nov
+RIZones items; app device testing (Android here over adb; iOS only via the developer's Mac). App store release is
+after the demo.
+
+## Earlier: resume point (stopped 2026-11-17 19:25, owner: "resume tomorrow")
 
 **Done on 17 Nov evening (NOT committed; owner commits only when asked):**
 - UTC migration ran on `row_production` (restored from `_local/backups/row_production-2026-11-17-pre-utc-final.sql`
@@ -113,6 +160,43 @@ sheet (PENDING-WORK §11a; Settings > Features; e2e `kb/tools/feature_gate_e2e.p
    set, Handloom released and its SQL applied on production 18 Nov (theme_master pk 17); many old event/banner images 404 on the server (files never uploaded, data only).
 4. Done 18 Nov: kb rebuilt, committed c66dd0d0, merged origin/main, pushed feat/rizones-pull-2026-11-06. Prod Firebase APNs key uploaded (dev + prod).
 5. OMS: update the 4 QA bugs once the owner decides on #3; ROW Sprint 1 move needs a PM account.
+
+**18 Nov afternoon (NOT committed): audit fixes, plan `docs/plans/2026-11-18-audit-fixes.md`.**
+- Security: club-website DOMPurify 3.4.18 + axios/follow-redirects patched (attack strings re-tested); admin build-tool
+  packages patched (prod deps: 1 build-only high left; vitest critical is dev-only). API uploads now check the image
+  signature, not only the extension (`ImageQualityValidator`, 6 tests; `dotnet test` 98 pass).
+- OMS: ROW-54 crop dialog Cancel/Save moved top right (shared `ImageCropDialog`, all upload screens); ROW-55 extra
+  delete cell removed from the Service Projects list.
+- Frontend rules: gate pages + contact email use Figtree / Bricolage (no Inter), glow orb removed; Terms + Privacy in
+  all 13 club footers (`shared/FooterLegal.jsx`, `VITE_TermsUrl` / `VITE_PrivacyUrl`, checked in a browser); five new
+  themes' loaders are skeletons (`shared/Skeleton.jsx`). Admin "Sparkles" is already a lightbulb (icons.ts:192).
+- App: Language screen text; hint + validator messages translated (sign-in screen English); release builds https only
+  (debug overlay keeps http to dev hosts); version 1.0.0+132202 (owner to confirm). Back-to-sign-in was fixed 16 Nov
+  (router created once), needs a device check. `flutter test` 62 pass, analyze 0 errors.
+- Backend: `row/deploy/backup/backup-row-db.ps1` nightly mysqldump (owner installs on the server); the 34 interpolated
+  SQL strings reviewed, none take user input. Deploy folder rebuilt (club-website + api, no config, no Firebase key).
+- Open: skeletons on the 7 older themes' pages (src/pages, ~12 list pages); demo passwords on production; admin
+  shadows / bg-white restyle; token in localStorage; react-router v7 (moderate advisory).
+
+**18 Nov, second round (NOT committed):**
+- Packages: admin vitest 5.1.0 (+@types/node 22), quill pinned 2.0.2 (XSS advisory is 2.0.3 only) and now a direct
+  dependency; club-website react-router-dom 7.18.5, vite 8.3.8, plugin-react 6. Production deps: admin 1 high, club 0;
+  the only remaining advisory is picomatch (every version flagged, build tools only).
+- API: global `UploadContentFilter` (all upload endpoints): script/executable types refused, image/PDF/Office content
+  must match the extension. 108 tests pass. A HEIC renamed .jpg is now refused (by design).
+- Club website: skeletons on the 6 shared older pages and 10 Gold pages; 13 themes x 9 pages = 117/117 in a browser
+  (no page errors, skeletons clear, legal links). Admin: `AgreeText` used <p> inside a dialog <p> (hydration error),
+  now block spans; 51 stray ", " empty-cell placeholders (old dash sweep) back to "–" in 29 files.
+- Checked locally (API + admin on row_prod_copy, member 1's hash reset in the COPY only, login in
+  `_local/test-logins/local-superadmin-2026-11-18.txt`): ROW-54 crop dialog buttons top right; ROW-55 one delete
+  per row, 9 cells = 9 headers.
+- App on the emulator: Back to sign-in fixed (16 Nov); Settings / Helpline now push so Back returns home (they replaced
+  the home screen); sign-in screen fully translated (subtitle `Sign in to {app}`). Version 1.0.0 (132202) shows.
+  New glossary `ui-labels-32.json` + `database/maintenance/2026-11-18-app-new-labels.sql`: applied to the local copy
+  only; the owner runs it on production (Claude's prod write was refused), then recycles the API.
+- Audit false alarms: admin `bg-white` is #FCFDFE and every shadow token is `none` (tailwind.config); demo
+  `Admin@123` is refused by production since 6 Nov. Not done: admin token to httpOnly cookie (auth change, after launch).
+- Upload folder `_local/deploy-2026-11-17/`: admin (standalone, /admin), api, club-website rebuilt; no config/keys.
 
 ## Next task (2026-11-17)
 

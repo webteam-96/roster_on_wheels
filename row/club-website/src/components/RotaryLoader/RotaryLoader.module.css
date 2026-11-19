@@ -36,10 +36,6 @@ html[data-theme='verdigris-ledger'] .overlay {
   --rl-core: #3a0e3c;
   --rl-edge: #2a0a2c;
 }
-html[data-theme='madras-legacy'] .overlay {
-  --rl-core: #3a41a5;
-  --rl-edge: #2d3383;
-}
 html[data-theme='handloom'] .overlay {
   --rl-core: #1f5138;
   --rl-edge: #12332a;

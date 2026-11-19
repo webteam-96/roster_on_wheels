@@ -34,6 +34,7 @@ import { useMenus, titleCase, menuHref, menuExternal, socialLabel, LOGO_PLACEHOL
 import { routeKey } from '../routes.js'
 import YearSelect from '../shared/YearSelect.jsx'
 import VisitorCount from '../shared/visitorCount.jsx'
+import FooterLegal from '../shared/FooterLegal.jsx'
 import HandloomThemeColor from '../shared/handloomThemeColor.jsx'
 import { useThemeShell, useRouteEnter, useLoader } from '../shared/useRotaryAnim.js'
 import { appSettings } from '../config.js'
@@ -741,7 +742,7 @@ export default function SiteHandloom({ children }) {
                   logo's alt, and still printed in the copyright bar below.
                   THE VISITOR COUNT SITS HERE (2026-09-09, asked for; it was
                   under the social links). NEVER data-count on these figures. */}
-              <div className="hl-ft__vc"><VisitorCount /></div>
+              <div className="hl-ft__vc"><VisitorCount /><FooterLegal /></div>
             </div>
 
             <div className="hl-ft__col reveal">

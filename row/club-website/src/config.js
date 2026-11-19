@@ -37,7 +37,7 @@ export const appSettings = {
   /** Local: per-port theme pins, "8091=warm-modern;8092=civic-bold". BLANK in production. */
   DevThemePortMap: s('DevThemePortMap', ''),
 
-  /** PRODUCTION per-club pin, "12=madras-legacy;myclub=warm-modern". */
+  /** PRODUCTION per-club pin, "12=gold;myclub=warm-modern". */
   ClubThemeMap: s('ClubThemeMap', ''),
 
   /** PRODUCTION global lock — pins every club to one theme. Blank = per-club DB themes. */
@@ -70,6 +70,10 @@ export const appSettings = {
   SupportPhone: s('SupportPhone', ''),
   /** SupportPhone may hold several numbers, comma-separated; each renders as its own tel: link. */
   SupportPhones: s('SupportPhone', '').split(',').map((p) => p.trim()).filter(Boolean),
+
+  /** ROW Terms of Service / Privacy Policy, linked in every footer (shared/FooterLegal.jsx). Blank = hidden. */
+  TermsUrl: s('TermsUrl', ''),
+  PrivacyUrl: s('PrivacyUrl', ''),
 
   /**
    * Footer visitor counter. BLANK = the count comes from localStorage and

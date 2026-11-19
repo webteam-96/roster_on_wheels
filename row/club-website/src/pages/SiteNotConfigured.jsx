@@ -17,13 +17,11 @@ const CSS = `
         :root{ --gold:#F7A600; --gold-d:#E08C00; --gold-l:#FFB81C; --navy:#0A2472; --navy-d:#0B1F5E; --muted:#6B7280; }
         *{ box-sizing:border-box; }
         html,body{ margin:0; height:100%; }
-        body{ font-family:'Inter',system-ui,sans-serif; -webkit-font-smoothing:antialiased; }
+        body{ font-family:'Figtree',system-ui,sans-serif; -webkit-font-smoothing:antialiased; }
 
         .stage{ position:relative; min-height:100vh; display:flex; align-items:center; justify-content:center;
             padding:48px 18px; overflow:hidden;
             background:radial-gradient(1100px 620px at 50% -12%, #163e96 0%, var(--navy) 42%, var(--navy-d) 100%); }
-        .glow{ position:absolute; left:50%; top:46%; width:620px; height:620px; transform:translate(-50%,-50%);
-            background:radial-gradient(circle, rgba(247,166,0,.16), transparent 62%); filter:blur(8px); pointer-events:none; }
         .vignette{ position:absolute; inset:0; pointer-events:none;
             background:radial-gradient(120% 90% at 50% 40%, transparent 55%, rgba(5,14,46,.55)); }
         .dots{ position:absolute; inset:0; pointer-events:none; opacity:.5;
@@ -57,7 +55,7 @@ const CSS = `
             background:#FFF4DE; color:#9a6a00; font-weight:800; font-size:11px; letter-spacing:.14em; text-transform:uppercase; }
         .pill .dot{ width:7px; height:7px; border-radius:50%; background:var(--gold-d); box-shadow:0 0 0 4px rgba(247,166,0,.18); }
 
-        h1{ font-family:'Poppins',sans-serif; color:var(--navy); font-weight:800; line-height:1.16;
+        h1{ font-family:'Bricolage Grotesque',sans-serif; color:var(--navy); font-weight:800; line-height:1.16;
             font-size:27px; letter-spacing:-.01em; margin:18px 0 0; }
         .rule{ width:56px; height:4px; border-radius:999px; background:var(--gold); margin:20px auto 0; }
         .msg{ margin:22px 0 0; color:#3a3a4d; font-size:15px; line-height:1.65; }
@@ -88,10 +86,9 @@ export default function SiteNotConfigured() {
       <style dangerouslySetInnerHTML={{ __html: CSS }} />
       <link rel="preconnect" href="https://fonts.googleapis.com" />
       <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
-      <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet" />
+      <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&display=swap" rel="stylesheet" />
 
       <div className="stage">
-        <div className="glow"></div>
         <div className="dots"></div>
         <div className="vignette"></div>
         <img className="wheel wheel--r" src="images/logo/wheel.png" alt="" />

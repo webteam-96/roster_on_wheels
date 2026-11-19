@@ -119,11 +119,11 @@ export default function DistrictMonthWiseReport(
                         return (
                           <tr key={f.fieldId} className="border-b border-slate-100 hover:bg-slate-50">
                             <td className="px-2 py-1.5 font-medium text-slate-800 sticky left-0 z-10 bg-card">{monthlyFieldLabel(f)}</td>
-                            <td className="px-2 py-1.5 text-right text-slate-500">, </td>
+                            <td className="px-2 py-1.5 text-right text-slate-500">–</td>
                             <td className="px-2 py-1.5 text-right text-slate-700 whitespace-pre-line">{f.displayText ?? fmt(f.annualTarget)}</td>
                             {months.map((mo) => <td key={mo.month} colSpan={2} className="px-2 py-1.5 border-l border-slate-100" />)}
-                            <td className="px-2 py-1.5 text-right text-slate-400">, </td>
-                            <td className="px-2 py-1.5 text-right text-slate-400">, </td>
+                            <td className="px-2 py-1.5 text-right text-slate-400">–</td>
+                            <td className="px-2 py-1.5 text-right text-slate-400">–</td>
                           </tr>
                         );
                       }

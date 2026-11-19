@@ -21,6 +21,7 @@ import { useSmoothScroll, lockScroll, gsap, prefersReducedMotion, scrollToEl } f
 import { Ridge, IconOut, yearText } from './kit.jsx'
 import './theme.css'
 import { appSettings } from '../../config.js'
+import FooterLegal from '../../shared/FooterLegal.jsx'
 
 const ADMIN_URL = appSettings.AdminLoginUrl
 
@@ -406,7 +407,7 @@ export default function Site({ children }) {
           </div>
         </div>
         <div className="hj-ft__bottom">
-          <div className="hj-ft__vc"><VisitorCount /></div>
+          <div className="hj-ft__vc"><VisitorCount /><FooterLegal /></div>
           <p>© {new Date().getFullYear()} {clubName}{yr ? <> · <span className="hj-nowrap">Rotary year {yr}</span></> : null}</p>
           <p className="hj-ft__by">Powered by{' '}
             <a href="https://rosteronwheels.com/" target="_blank" rel="noopener noreferrer">Roster On Wheels<span className="hj-sr"> (opens in a new tab)</span></a>

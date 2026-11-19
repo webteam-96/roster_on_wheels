@@ -7,6 +7,7 @@ import { media, initials } from '../shared/rotaryPage.js'
 import Breadcrumb from '../shared/Breadcrumb.jsx'
 import { useRotaryAnim } from '../shared/useRotaryAnim.js'
 import * as api from '../api/clubService.js'
+import Skeleton from '../shared/Skeleton.jsx'
 
 const MAX = Number.MAX_SAFE_INTEGER
 
@@ -14,6 +15,7 @@ export default function Directors() {
   const club = useClub()
   const { isWarm } = useTheme()
   const [directors, setDirectors] = useState([])
+  const [loaded, setLoaded] = useState(false) // skeleton until the first answer (rule 25)
 
   // The .aspx ships the filter as an inline <script>; a <script> tag in JSX
   // never executes, so the same behaviour is driven from React state here. It
@@ -41,7 +43,7 @@ export default function Directors() {
           _s: b.sortOrder === null || b.sortOrder === undefined ? MAX : b.sortOrder,
         }))
         .sort((a, b) => a._d - b._d || a._s - b._s || a._i - b._i)
-      setDirectors(list)
+      setDirectors(list); setLoaded(true)
     })()
 
     return () => { cancelled = true }
@@ -87,6 +89,7 @@ export default function Directors() {
           </div>
 
           {/* ══ Directors grid ══ */}
+          {!loaded && <Skeleton label="Loading directors" />}
           <div id="directorsGrid" className={isWarm ? 'grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4' : 'grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3'}>
             {directors.map((d, i) => (
               <article key={i} data-director-card=""
@@ -102,8 +105,8 @@ export default function Directors() {
                 {isWarm ? (
                   <>
                     <div className="relative aspect-square w-full shrink-0 overflow-hidden bg-white">
-                      <img src={!d.Img ? 'Themes/madras-legacy/img/noimg.png' : d.Img} alt={d.Name} loading="lazy"
-                           onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = 'Themes/madras-legacy/img/noimg.png' }}
+                      <img src={!d.Img ? 'images/noimg.png' : d.Img} alt={d.Name} loading="lazy"
+                           onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = 'images/noimg.png' }}
                            className="absolute inset-0 h-full w-full object-cover object-top transition-transform duration-700 group-hover:scale-105" />
                       <div className="pointer-events-none absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-white/70 to-transparent"></div>
                     </div>

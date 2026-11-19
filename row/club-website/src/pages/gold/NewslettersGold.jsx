@@ -18,6 +18,7 @@ import { useClub } from '../../context/ClubProvider.jsx'
 import { useRotaryAnim } from '../../shared/useRotaryAnim.js'
 import { useNewslettersGold } from './goldData.js'
 import { GPageHead, GEmpty, Arrow, useRevealReplay } from './kit.jsx'
+import Skeleton from '../../shared/Skeleton.jsx'
 
 const PDF_ICON = (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round">
@@ -74,6 +75,7 @@ export default function NewslettersGold() {
       {/* The guard is on the SECTION, not inside it: this band is navy, so while
           the feed is still loading an empty one painted a bare dark slab under
           the masthead. */}
+      {items === null && <div style={{ maxWidth: 1100, margin: '48px auto', padding: '0 16px' }}><Skeleton label="Loading newsletters" /></div>}
       {items !== null && (
       <section className="gnl-feature">
         <div className="gld-x">

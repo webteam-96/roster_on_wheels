@@ -19,6 +19,7 @@ import { usePageTitle } from '../../shared/rotaryPage.js'
 import { useRotaryAnim } from '../../shared/useRotaryAnim.js'
 import { useDignitaryGold } from './goldData.js'
 import { GPageHead, GEmpty, Arrow, useRevealReplay, portraitFallback, isPlaceholderPhoto } from './kit.jsx'
+import Skeleton from '../../shared/Skeleton.jsx'
 
 export default function DignitaryGold() {
   const [params] = useSearchParams()
@@ -33,7 +34,7 @@ export default function DignitaryGold() {
   useRotaryAnim([vm.found, vm.name])
   useRevealReplay('gdig-page', [vm.found, vm.name])
 
-  if (vm.loading) return null
+  if (vm.loading) return <div style={{ maxWidth: 1100, margin: '48px auto', padding: '0 16px' }}><Skeleton label="Loading dignitaries" /></div>
 
   if (!vm.found) {
     return (

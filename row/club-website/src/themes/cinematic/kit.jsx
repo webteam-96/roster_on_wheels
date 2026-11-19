@@ -8,6 +8,7 @@ import { usePageTitle, useCurrentMenuName, socialLabel, externalUrl, formatYear 
 import { PersonPhoto, SafeImg, paragraphs, imgFallback, hideOnError, useFitNumbers } from '../_shared/kit.jsx'
 import { useScene, afterFonts, titleIn, pageHeroIn, countUp, cleanups, lockScroll } from './motion.js'
 import { appSettings } from '../../config.js'
+import Skeleton from '../../shared/Skeleton.jsx'
 
 export { PersonPhoto, SafeImg, paragraphs, imgFallback, hideOnError }
 
@@ -438,12 +439,8 @@ export function NotFound({ title = 'Page not found', message = 'It may have been
 
 /** Loading strip: a reel of frames sliding past. Announced once to screen readers. */
 export function Loading({ label = 'Loading' }) {
-  return (
-    <div className="cin-loading" role="status">
-      <span className="cin-loading__reel" aria-hidden="true"><i /><i /><i /><i /><i /></span>
-      <span className="cin-sr">{label}…</span>
-    </div>
-  )
+  // Rule 25: a skeleton, not a spinner. Shared across themes; drawn in the surrounding text colour.
+  return <Skeleton label={label} />
 }
 
 // ── socials ──────────────────────────────────────────────────────────────────

@@ -284,7 +284,7 @@ export default function RazorpayRouteAccountsPage() {
                   <td className="px-4 py-2.5">
                     {r.bankAccountLast4
                       ? <div><span className="font-mono text-slate-700">•••• {r.bankAccountLast4}</span>{r.bankIfsc && <div className="text-xs text-slate-400 font-mono">{r.bankIfsc}</div>}</div>
-                      : <span className="text-slate-300" title="Add via the edit (✎) dialog: Razorpay doesn't expose it for accounts created in their dashboard">, </span>}
+                      : <span className="text-slate-300" title="Add via the edit (✎) dialog: Razorpay doesn't expose it for accounts created in their dashboard">–</span>}
                   </td>
                   <td className="px-4 py-2.5">{statusBadge(r.status)}</td>
                   <td className="px-4 py-2.5">
@@ -482,7 +482,7 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 // Razorpay activation status → coloured badge. activated/active = green, rejected/suspended = red,
 // needs_clarification = amber, everything else (created/under_review/…) = neutral.
 function statusBadge(status: string | null) {
-  if (!status) return <span className="text-xs text-slate-400">, </span>;
+  if (!status) return <span className="text-xs text-slate-400">–</span>;
   const s = status.toLowerCase();
   const label = status.replace(/_/g, " ");
   if (s === "activated" || s === "active")

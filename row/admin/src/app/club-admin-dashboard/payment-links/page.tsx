@@ -326,7 +326,7 @@ export default function ClubAdminPaymentLinksPage() {
                           </button>
                         </div>
                       ) : (
-                        <span className="text-xs text-slate-300">, </span>
+                        <span className="text-xs text-slate-300">–</span>
                       )}
                     </td>
                     <td className="px-4 py-2.5 text-center">

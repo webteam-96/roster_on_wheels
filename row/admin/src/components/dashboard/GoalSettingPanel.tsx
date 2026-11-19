@@ -646,7 +646,7 @@ function SuggestionsList({
   // Read-only: just list the non-empty suggestions.
   if (!editable) {
     const filled = slots.map((s, i) => ({ s, v: valueAt(i) })).filter((x) => x.v.trim() !== "");
-    if (filled.length === 0) return <div className="py-3 text-sm text-slate-400">, </div>;
+    if (filled.length === 0) return <div className="py-3 text-sm text-slate-400">–</div>;
     return (
       <ol className="list-decimal pl-5 py-2 space-y-1.5">
         {filled.map(({ s, v }) => <li key={s.fieldId} className="text-sm text-slate-700 leading-snug">{v}</li>)}

@@ -23,6 +23,7 @@ import { useMenus, menuHref, menuExternal, socialLabel, LOGO_PLACEHOLDER } from 
 import { routeKey } from '../routes.js'
 import YearSelect from '../shared/YearSelect.jsx'
 import VisitorCount from '../shared/visitorCount.jsx'
+import FooterLegal from '../shared/FooterLegal.jsx'
 import { useThemeShell, useRouteEnter, useLoader } from '../shared/useRotaryAnim.js'
 import { appSettings } from '../config.js'
 
@@ -346,7 +347,7 @@ export default function SiteWarmModern({ children }) {
                   two was removed 2026-08-18 by request; the giant watermark behind
                   this band still carries the motto. */}
               <div style={{ marginTop: '18px' }}>
-                <VisitorCount />
+                <VisitorCount /><FooterLegal />
               </div>
             </div>
             <div>

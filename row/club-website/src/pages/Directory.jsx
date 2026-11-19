@@ -16,10 +16,11 @@ import * as api from '../api/clubService.js'
 import { media, initials } from '../shared/rotaryPage.js'
 import Breadcrumb from '../shared/Breadcrumb.jsx'
 import { useRotaryAnim } from '../shared/useRotaryAnim.js'
+import Skeleton from '../shared/Skeleton.jsx'
 
 /** Warm-modern's arch card always shows a portrait, so a missing photo falls
  *  back to the bundled placeholder art instead of the initials medallion. */
-const NOIMG = 'Themes/madras-legacy/img/noimg.png'
+const NOIMG = 'images/noimg.png'
 
 export default function Directory() {
   const club = useClub()
@@ -27,6 +28,7 @@ export default function Directory() {
 
   // BindMembers(): name + (profession, else designation) + resolved photo URL.
   const [members, setMembers] = useState([])
+  const [loaded, setLoaded] = useState(false) // skeleton until the first answer (rule 25)
 
   useEffect(() => {
     if (!club.clubId) return
@@ -38,7 +40,7 @@ export default function Directory() {
         name: m.memberName,
         work: (!m.profession || !String(m.profession).trim()) ? m.designation : m.profession,
         img: media(m.profilePhotoPath),
-      })))
+      }))); setLoaded(true)
     })()
     return () => { cancelled = true }
   }, [club.clubId])
@@ -314,6 +316,7 @@ export default function Directory() {
             </div>
           </div>
 
+          {!loaded && <Skeleton label="Loading members" />}
           {/* ── members: grid view ── */}
           <div data-dir-grid className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {members.map((m, i) => (

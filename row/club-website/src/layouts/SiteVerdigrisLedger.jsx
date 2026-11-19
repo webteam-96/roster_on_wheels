@@ -25,6 +25,7 @@ import { enc } from '../shared/Breadcrumb.jsx'
 import { routeKey } from '../routes.js'
 import YearSelect from '../shared/YearSelect.jsx'
 import VisitorCount from '../shared/visitorCount.jsx'
+import FooterLegal from '../shared/FooterLegal.jsx'
 import { useThemeShell, useRouteEnter, useLoader } from '../shared/useRotaryAnim.js'
 import { appSettings } from '../config.js'
 
@@ -363,7 +364,7 @@ export default function SiteVerdigrisLedger({ children }) {
             {/* Visitor count, under the footer logo. It is drawn as a ledger
                 FOOTING (marigold cap rule) by the .rv-vc theme block. */}
             <div style={{ marginTop: '18px' }}>
-              <VisitorCount />
+              <VisitorCount /><FooterLegal />
             </div>
           </div>
           <div className="vl-foot-cols grid gap-8 sm:grid-cols-2">

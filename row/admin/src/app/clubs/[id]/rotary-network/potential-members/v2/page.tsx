@@ -290,10 +290,10 @@ export default function PotentialMembersV2Page() {
                     <tr key={m.id} className="hover:bg-blue-50/40">
                       <td className="px-3 py-2 text-slate-500">{(page - 1) * LIST_PAGE_SIZE + i + 1}</td>
                       <td className="px-3 py-2 font-medium text-slate-800">{m.name || "–"}</td>
-                      <td className="px-3 py-2 text-slate-600">{m.email || <span className="text-slate-400">, </span>}</td>
-                      <td className="px-3 py-2 text-slate-600 whitespace-nowrap">{m.mobileNumber || <span className="text-slate-400">, </span>}</td>
+                      <td className="px-3 py-2 text-slate-600">{m.email || <span className="text-slate-400">–</span>}</td>
+                      <td className="px-3 py-2 text-slate-600 whitespace-nowrap">{m.mobileNumber || <span className="text-slate-400">–</span>}</td>
                       <td className="px-3 py-2 text-slate-600 max-w-[320px] truncate" title={m.referenceDetails || ""}>
-                        {m.referenceDetails || <span className="text-slate-400">, </span>}
+                        {m.referenceDetails || <span className="text-slate-400">–</span>}
                       </td>
                       {pipelineOn && (
                         <td className="px-3 py-2 text-slate-700 whitespace-nowrap" title={m.notes || ""}>{label(m.stage)}</td>

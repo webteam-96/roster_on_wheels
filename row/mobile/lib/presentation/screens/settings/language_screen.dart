@@ -26,7 +26,7 @@ class LanguageScreen extends StatelessWidget {
           children: [
             const Padding(
               padding: EdgeInsets.fromLTRB(16, 16, 16, 8),
-              child: Text('The app is translated by machine. Names, club names and what members write stay as entered.'),
+              child: Text('Names, club names and what members write stay as entered.'),
             ),
             for (final (code, name) in appLanguages)
               ListTile(

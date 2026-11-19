@@ -15,6 +15,7 @@ import Breadcrumb from '../shared/Breadcrumb.jsx'
 import PhotoLightbox, { LightboxStyles } from '../shared/PhotoLightbox.jsx'
 import { useRotaryAnim } from '../shared/useRotaryAnim.js'
 import * as api from '../api/clubService.js'
+import Skeleton from '../shared/Skeleton.jsx'
 
 const PAGE_SIZE = 24
 
@@ -23,6 +24,7 @@ export default function Gallery() {
   const { isWarm } = useTheme()
   const [searchParams] = useSearchParams()
   const [g, setG] = useState(null)
+  const [loaded, setLoaded] = useState(false) // skeleton until the first answer (rule 25)
   const [lb, setLb] = useState(null)      // open photo index; null = viewer closed
 
   let page = parseInt(searchParams.get('page'), 10)
@@ -36,7 +38,7 @@ export default function Gallery() {
 
     ;(async () => {
       const res = await api.getGallery(club.clubId, club.selectedYearId, page, PAGE_SIZE)
-      if (!cancelled) setG(res)
+      if (!cancelled) setG(res); setLoaded(true)
     })()
 
     return () => { cancelled = true }
@@ -69,7 +71,7 @@ export default function Gallery() {
       <section className="bg-mesh bg-canvas py-12 md:py-16">
         <div className="container-x">
 
-          {totalCount > 0 ? (
+          {!loaded ? <Skeleton label="Loading photographs" /> : totalCount > 0 ? (
             <>
               <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
                 {photos.map((p, i) => (
