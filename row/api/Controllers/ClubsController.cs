@@ -120,6 +120,113 @@ public class ClubsController : ControllerBase
         return Ok(years);
     }
 
+    // Member directory download (Excel or printable PDF). Managers only — the club's Admin / AG, its district Admin,
+    // SuperAdmin — not every member who may read the list: a whole-club file of contact details is a bulk export.
+    // Same filters as GET {id}/members; rows keep each member's privacy flags. Every download is audit-logged.
+    [HttpGet("{id}/members/export")]
+    public async Task<IActionResult> ExportMembers(
+        int id,
+        [FromQuery] string format = "xlsx",
+        [FromQuery] string? search = null,
+        [FromQuery] int? year = null,
+        [FromQuery] string? designation = null,
+        [FromQuery] string? classification = null)
+    {
+        format = format.ToLowerInvariant();
+        if (format is not ("xlsx" or "pdf"))
+            return BadRequest(new { message = "format must be xlsx or pdf" });
+
+        var club = await _clubService.GetByIdAsync(id);
+        if (club == null)
+            return NotFound(new { message = "Club not found" });
+        if (!await ScopeWriteGuardMiddleware.AllowedAsync(_connectionString, GetCurrentMemberId(), true, id))
+            return StatusCode(403, new { message = "Only the club's managers can download the member directory." });
+
+        // shortcut: one page of up to 5,000 rows; the largest club (COG) holds about 1,100. Page it if a club ever passes 5,000.
+        var members = (await _clubService.GetMembersAsync(id, 1, 5000, search, year, null, null, null, designation,
+            classification, null, MemberPrivacyHelper.GetViewerMemberId(User))).Items;
+
+        var bytes = format == "pdf"
+            ? MemberDirectoryExportBuilder.BuildPdf(club.ClubName, members)
+            : MemberDirectoryExportBuilder.BuildExcel(club.ClubName, members);
+
+        await _auditLog.LogAsync(GetCurrentMemberId(), "EXPORT", "club_members", id, club.ClubName,
+            new { format, count = members.Count, search, year, designation, classification }, HttpContext);
+
+        var safeName = string.Concat(club.ClubName.Select(ch => Path.GetInvalidFileNameChars().Contains(ch) ? '_' : ch));
+        var stem = $"{safeName} members {DateTime.UtcNow:yyyy-MM-dd}";
+        return format == "pdf"
+            ? File(bytes, "application/pdf", stem + ".pdf")
+            : File(bytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", stem + ".xlsx");
+    }
+
+    // Printable outputs for meetings and mailings: Avery mailing labels, name badges, folded table tents (PDF).
+    // Same managers-only rule and audit log as the export. paper = a4 | letter. Labels skip members with no postal
+    // address; the X-Members-Without-Address header says how many were skipped.
+    [HttpGet("{id}/members/print")]
+    public async Task<IActionResult> PrintMembers(int id, [FromQuery] string kind = "badges", [FromQuery] string paper = "a4",
+        [FromQuery] string? search = null)
+    {
+        kind = kind.ToLowerInvariant();
+        paper = paper.ToLowerInvariant();
+        if (kind is not ("labels" or "badges" or "tents") || paper is not ("a4" or "letter"))
+            return BadRequest(new { message = "kind must be labels, badges or tents; paper must be a4 or letter" });
+
+        var club = await _clubService.GetByIdAsync(id);
+        if (club == null)
+            return NotFound(new { message = "Club not found" });
+        if (!await ScopeWriteGuardMiddleware.AllowedAsync(_connectionString, GetCurrentMemberId(), true, id))
+            return StatusCode(403, new { message = "Only the club's managers can print member labels and badges." });
+
+        // shortcut: one page of up to 5,000 rows, as in ExportMembers.
+        var list = (await _clubService.GetMembersAsync(id, 1, 5000, search, null, null, null, null, null, null, null,
+            MemberPrivacyHelper.GetViewerMemberId(User))).Items
+            .OrderBy(m => m.MemberName, StringComparer.OrdinalIgnoreCase).ToList();
+
+        var addresses = new Dictionary<int, IReadOnlyList<string>>();
+        if (kind == "labels" && list.Count > 0)
+        {
+            await using var conn = RowDb.Connect(_connectionString);
+            // Home address first, business as the fallback; the newest row wins inside each type.
+            var rows = await conn.QueryAsync<(int MemberId, string? AddressType, string? Address, string? City, string? State, string? PinCode, string? Country)>(@"
+                SELECT a.fk_member_master_profile_id, a.AddressType, a.Address, a.City, a.State, a.PinCode, c.CountryName
+                FROM member_address_details a
+                LEFT JOIN country_master c ON c.pk_country_id = a.fk_country_id
+                WHERE a.fk_member_master_profile_id IN @Ids AND IFNULL(a.isdeleted, 0) = 0
+                ORDER BY a.fk_member_master_profile_id, (a.AddressType = 'Residential') DESC, a.pk_member_address_details_id DESC",
+                new { Ids = list.Select(m => m.Id).ToArray() });
+            foreach (var r in rows)
+            {
+                if (addresses.ContainsKey(r.MemberId)) continue;
+                var lines = MemberPrintBuilder.AddressLines(r.Address, r.City, r.State, r.PinCode, r.Country);
+                if (lines.Count > 0) addresses[r.MemberId] = lines;
+            }
+        }
+
+        var people = list.Select(m => new PrintMember(
+            m.MemberName,
+            m.ClassificationProfession,
+            string.Join(", ", m.Roles.Append(m.Designation ?? "")
+                .Where(s => !string.IsNullOrWhiteSpace(s) && !s.Equals("Member", StringComparison.OrdinalIgnoreCase)).Distinct()),
+            addresses.GetValueOrDefault(m.Id) ?? [])).ToList();
+
+        var letter = paper == "letter";
+        var bytes = kind switch
+        {
+            "labels" => MemberPrintBuilder.Labels(people, letter),
+            "tents" => MemberPrintBuilder.TableTents(people, club.ClubName, letter),
+            _ => MemberPrintBuilder.Badges(people, club.ClubName, letter),
+        };
+
+        await _auditLog.LogAsync(GetCurrentMemberId(), "EXPORT", "club_members", id, club.ClubName,
+            new { kind, paper, count = people.Count, search }, HttpContext);
+
+        if (kind == "labels")
+            Response.Headers["X-Members-Without-Address"] = people.Count(p => p.AddressLines.Count == 0).ToString();
+        var safeName = string.Concat(club.ClubName.Select(ch => Path.GetInvalidFileNameChars().Contains(ch) ? '_' : ch));
+        return File(bytes, "application/pdf", $"{safeName} {kind} {DateTime.UtcNow:yyyy-MM-dd}.pdf");
+    }
+
     // The "COG" catch-all club — its member rows carry a past-DG label in
     // club_members.Designation ("3292 Dg 2025 - 26") instead of a real classification.
     private static int CogClubId => RotaryApi.Services.Brand.CogClubId;

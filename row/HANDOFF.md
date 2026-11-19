@@ -111,6 +111,11 @@ First job tomorrow: commit + push to `feat/rizones-pull-2026-11-06` once the own
   district 0 (do not exist) and district 1 (5656). Only 15 belong to real clubs (Lake Shore 31764, club 31765).
   List: `_local/missing-media-2026-11-18.csv`.
 
+**19 Nov, OMS bugs (not committed, not deployed):** ROW-56/57/58/59 fixed (see `ROW-CHANGES.md` 2026-11-19);
+ROW-48/49/50/51/54/55 were already done (QA); ROW-3 is a task with no defect. Checks: admin tsc + 147 tests,
+API build + 116 tests, flutter analyze 0 errors. Not clicked through in a browser yet. Deploy needs admin + API +
+app rebuild; AI suggestions need `Gemini:ApiKey` and emails need the Brevo key in the server's `api\web.config`.
+
 **Club website hosting (still broken):** wildcard DNS `*.rosteronwheels.com` -> 163.128.34.90 works, but no IIS
 site answers it; requests fall to the RIZones `rotaryindia.org` default site (500 URL Rewrite error, `*.rotaryindia.org`
 certificate). ROW still has RIZones' per-club Plesk provisioning (`PleskService`, `ClubWebsiteActivationService`),

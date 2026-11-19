@@ -85,7 +85,7 @@ export default function ImageCropDialog({
   maxOutputWidth = 1200,
   minOutputWidth,
   title = "Crop Photo",
-  saving = false,
+  saving: savingProp = false,
   // Zoom must not go below 1: react-easy-crop sizes the crop box from the
   // image's fitted (zoom-1) size, so at zoom < 1 the image shrinks away from a
   // crop box that stays put — which is what produced the "crop frame wider than
@@ -101,6 +101,11 @@ export default function ImageCropDialog({
   const [orientation, setOrientation] = useState<CropOrientation>("landscape");
   const [naturalAspect, setNaturalAspect] = useState<number | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
+  // ROW-57: Save is locked from the first click until onSave finishes. The ref blocks a
+  // second click in the same tick; the state disables the button during the crop itself.
+  const busyRef = useRef(false);
+  const [busy, setBusy] = useState(false);
+  const saving = savingProp || busy;
 
   // Reset crop state and pick a natural-size initial zoom each time a new
   // image is opened for cropping.
@@ -155,10 +160,17 @@ export default function ImageCropDialog({
   const belowMin = !!minOutputWidth && projectedWidth > 0 && projectedWidth < minOutputWidth;
 
   const handleSave = async () => {
-    if (!imageSrc || !croppedAreaPixels || belowMin) return;
-    const outputSize = deriveOutputSize(croppedAreaPixels.width, croppedAreaPixels.height, effectiveAspect, maxOutputWidth);
-    const blob = await getCroppedImageBlob(imageSrc, croppedAreaPixels, outputSize);
-    await onSave(blob);
+    if (!imageSrc || !croppedAreaPixels || belowMin || busyRef.current) return;
+    busyRef.current = true;
+    setBusy(true);
+    try {
+      const outputSize = deriveOutputSize(croppedAreaPixels.width, croppedAreaPixels.height, effectiveAspect, maxOutputWidth);
+      const blob = await getCroppedImageBlob(imageSrc, croppedAreaPixels, outputSize);
+      await onSave(blob);
+    } finally {
+      busyRef.current = false;
+      setBusy(false);
+    }
   };
 
   const onCropComplete = useCallback((_: Area, pixels: Area) => {

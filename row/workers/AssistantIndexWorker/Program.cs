@@ -65,6 +65,7 @@ var indexing = full || delta;
 var config = new ConfigurationBuilder()
     .SetBasePath(AppContext.BaseDirectory)
     .AddJsonFile("appsettings.json", optional: false, reloadOnChange: false)
+    .AddJsonFile("appsettings.secrets.json", optional: true, reloadOnChange: false)   // server only, git-ignored, never in an upload
     .AddEnvironmentVariables()
     .Build();
 

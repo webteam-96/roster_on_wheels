@@ -235,9 +235,10 @@ public static class Brand
         return false;
     }
 
-    /// <summary>Logo for email headers: Brand:Look:LogoUrl, else the white ROW lockup served by the portal; empty when neither is set.</summary>
+    /// <summary>Logo for email headers: Brand:Look:LogoUrl, else the ROW badge served by the API itself (ROW-58: the
+    /// portal path broke when the admin app moved under /admin); empty when neither is set.</summary>
     public static string EmailLogoUrl =>
-        LogoUrl.Length > 0 ? AbsoluteFromPortal(LogoUrl) : PortalOrigin.Length > 0 ? PortalOrigin + "/brand/row-logo-badge.png" : "";
+        LogoUrl.Length > 0 ? AbsoluteFromPortal(LogoUrl) : ApiOrigin.Length > 0 ? ApiOrigin + "/api/public/brand/email-logo.png" : "";
 
     private static string AbsoluteFromPortal(string url) =>
         url.StartsWith("http", StringComparison.OrdinalIgnoreCase) || PortalOrigin.Length == 0 ? url : PortalOrigin + "/" + url.TrimStart('/');

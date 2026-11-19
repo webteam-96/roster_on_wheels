@@ -4,6 +4,8 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../../../../../core/constants/api_constants.dart';
 import '../../../../../core/network/api_client.dart';
+import '../../../../../core/network/api_exceptions.dart';
+import '../../../../../core/utils/file_download_utils.dart';
 import '../../../../../core/utils/ri_codes.dart';
 import '../../../../../core/network/api_response.dart';
 import '../../../../../core/routing/route_names.dart';
@@ -355,6 +357,66 @@ class _ClubMembersScreenState extends State<ClubMembersScreen> {
     }
   }
 
+  // Member directory download (Excel or PDF) for the club's managers. The API
+  // checks the role again and returns 403 to anyone else.
+  bool _exporting = false;
+
+  Widget _exportMenu() {
+    if (_exporting) {
+      return const SizedBox(
+        width: 18,
+        height: 18,
+        child: CircularProgressIndicator(strokeWidth: 2),
+      );
+    }
+    return PopupMenuButton<String>(
+      tooltip: 'Download directory',
+      icon: const Icon(Icons.download_outlined,
+          size: 20, color: AppColors.primary),
+      onSelected: _export,
+      itemBuilder: (_) => const [
+        PopupMenuItem(value: 'xlsx', child: Text('Export to Excel')),
+        PopupMenuItem(value: 'pdf', child: Text('Printable directory (PDF)')),
+        PopupMenuItem(value: 'badges', child: Text('Name badges')),
+        PopupMenuItem(value: 'labels', child: Text('Mailing labels')),
+        PopupMenuItem(value: 'tents', child: Text('Table tents')),
+      ],
+    );
+  }
+
+  Future<void> _export(String choice) async {
+    setState(() => _exporting = true);
+    final messenger = ScaffoldMessenger.of(context);
+    final isPrint = choice == 'badges' || choice == 'labels' || choice == 'tents';
+    // US Letter label stock in the US and Canada, A4 everywhere else.
+    final region =
+        WidgetsBinding.instance.platformDispatcher.locale.countryCode ?? '';
+    final paper = (region == 'US' || region == 'CA') ? 'letter' : 'a4';
+    try {
+      final bytes = await _api.downloadBytes(
+        isPrint
+            ? '/api/clubs/${widget.clubId}/members/print'
+            : '/api/clubs/${widget.clubId}/members/export',
+        queryParams: {
+          if (isPrint) 'kind': choice else 'format': choice,
+          if (isPrint) 'paper': paper,
+          if (_search.isNotEmpty) 'search': _search,
+        },
+      );
+      await saveAndOpenBytes(
+          bytes, isPrint ? 'Club $choice.pdf' : 'Club members.$choice');
+    } on ApiException catch (e) {
+      messenger.showSnackBar(SnackBar(
+        content: Text(e.statusCode == 403
+            ? "Only the club's managers can download the member directory."
+            : 'The member directory could not be downloaded.'),
+        backgroundColor: AppColors.error,
+      ));
+    } finally {
+      if (mounted) setState(() => _exporting = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final canManage = context.watch<AuthProvider>().isSuperAdmin;
@@ -429,6 +491,8 @@ class _ClubMembersScreenState extends State<ClubMembersScreen> {
                     style: AppTextStyles.caption
                         .copyWith(color: AppColors.textSecondary),
                   ),
+                  const Spacer(),
+                  if (_isClubAdmin || canManage) _exportMenu(),
                 ],
               ),
             ),

@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useParams, useSearchParams } from "next/navigation";
 import { ClubMemberItem } from "@/types/club";
 import { PagedResult } from "@/types/member";
-import { getClub, getClubMembers, getClubMemberYears, removeClubMember, getPhotoUrl, assignRole, removeRole, getMemberRemovalPreview, getDistricts, getRotaryYears, updateCogDesignation, getRiCodes } from "@/services/api";
+import { downloadClubMembersExport, downloadClubMembersPrint, type PrintKind, type PrintPaper, getClub, getClubMembers, getClubMemberYears, removeClubMember, getPhotoUrl, assignRole, removeRole, getMemberRemovalPreview, getDistricts, getRotaryYears, updateCogDesignation, getRiCodes } from "@/services/api";
 import { MemberRemovalPreview } from "@/types/memberRemoval";
 import AdminYearsDialog from "@/components/AdminYearsDialog";
 import { formatDMY } from "@/lib/dateUtils";
@@ -25,7 +25,7 @@ import Pagination from "@/components/Pagination";
 import MemberRemovalDialog from "@/components/MemberRemovalDialog";
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
-import { ArrowLeft, Search, User, Users, Plus, MoreVertical, MoreHorizontal, Pencil, Trash2, ShieldCheck, ShieldOff, Mail, Phone, IdCard, Calendar, LayoutGrid, List, X, MapPin } from "@/components/icons";
+import { ArrowLeft, Search, User, Users, Plus, MoreVertical, MoreHorizontal, Pencil, Trash2, ShieldCheck, ShieldOff, Mail, Phone, IdCard, Calendar, LayoutGrid, List, X, MapPin, FileSpreadsheet, Printer } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import Link from "next/link";
 import Image from "next/image";
@@ -34,6 +34,16 @@ import SearchBox from "@/components/SearchBox";
 import MemberDetailDialog from "@/components/MemberDetailDialog";
 import SearchableCombo from "@/components/SearchableCombo";
 import { ListPageSkeleton } from "@/components/row/AppKit";
+
+// Avery stock the API lays out for: A4 = L7160 labels / L7418 badges, Letter = 5160 labels / 5395 badges.
+const PRINT_OPTIONS: { kind: PrintKind; paper: PrintPaper; label: string }[] = [
+  { kind: "badges", paper: "a4", label: "Name badges (A4, Avery L7418)" },
+  { kind: "badges", paper: "letter", label: "Name badges (Letter, Avery 5395)" },
+  { kind: "labels", paper: "a4", label: "Mailing labels (A4, Avery L7160)" },
+  { kind: "labels", paper: "letter", label: "Mailing labels (Letter, Avery 5160)" },
+  { kind: "tents", paper: "a4", label: "Table tents (A4)" },
+  { kind: "tents", paper: "letter", label: "Table tents (Letter)" },
+];
 
 export default function ClubMembersPage() {
   const params = useParams();
@@ -169,6 +179,55 @@ export default function ClubMembersPage() {
   const handleSearch = () => {
     setPage(1);
     fetchMembers(1);
+  };
+
+  // Downloads the whole filtered list, not just the visible page. The API refuses anyone who does not manage the club.
+  const [exporting, setExporting] = useState<"xlsx" | "pdf" | PrintKind | null>(null);
+
+  const saveBlob = (blob: Blob, name: string) => {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = name;
+    document.body.appendChild(a); a.click(); a.remove();
+    URL.revokeObjectURL(url);
+  };
+
+  const handlePrint = async (kind: PrintKind, paper: PrintPaper) => {
+    setExporting(kind);
+    try {
+      const { blob, withoutAddress } = await downloadClubMembersPrint(clubId, kind, paper, search || undefined);
+      saveBlob(blob, `${clubName || "Club"} ${kind}.pdf`);
+      if (kind === "labels" && withoutAddress > 0)
+        setSuccessMessage(`Labels downloaded. ${withoutAddress} member(s) have no postal address and were left out.`);
+    } catch (e: unknown) {
+      const status = (e as { response?: { status?: number } })?.response?.status;
+      setErrorMessage(status === 403
+        ? "Only the club's managers can print member labels and badges."
+        : "The file could not be downloaded. Please try again.");
+    } finally {
+      setExporting(null);
+    }
+  };
+  const handleExport = async (format: "xlsx" | "pdf") => {
+    setExporting(format);
+    try {
+      const cog = cogFilterOptions();
+      const blob = await downloadClubMembersExport(clubId, format, {
+        search: search || undefined,
+        year: cog?.year,
+        designation: cog?.designation,
+        classification: cog?.classification,
+      });
+      saveBlob(blob, `${clubName || "Club"} members.${format}`);
+    } catch (e: unknown) {
+      const status = (e as { response?: { status?: number } })?.response?.status;
+      setErrorMessage(status === 403
+        ? "Only the club's managers can download the member directory."
+        : "The member directory could not be downloaded. Please try again.");
+    } finally {
+      setExporting(null);
+    }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -340,11 +399,31 @@ export default function ClubMembersPage() {
               )}
             </div>
           </div>
-          {isSuperAdmin && (
-            <Button asChild>
-              <Link href={`/members/new?clubId=${clubId}`}><Plus className="mr-2 h-4 w-4" />Add Member</Link>
+          <div className="flex flex-wrap items-center gap-2">
+            <Button variant="outline" size="sm" disabled={exporting !== null} onClick={() => handleExport("xlsx")}>
+              <FileSpreadsheet className="mr-2 h-4 w-4" />{exporting === "xlsx" ? "Preparing..." : "Export to Excel"}
             </Button>
-          )}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm" disabled={exporting !== null}>
+                  <Printer className="mr-2 h-4 w-4" />{exporting && exporting !== "xlsx" ? "Preparing..." : "Print"}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => handleExport("pdf")}>Member directory</DropdownMenuItem>
+                {PRINT_OPTIONS.map((o) => (
+                  <DropdownMenuItem key={`${o.kind}-${o.paper}`} onClick={() => handlePrint(o.kind, o.paper)}>
+                    {o.label}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+            {isSuperAdmin && (
+              <Button asChild>
+                <Link href={`/members/new?clubId=${clubId}`}><Plus className="mr-2 h-4 w-4" />Add Member</Link>
+              </Button>
+            )}
+          </div>
         </div>
 
         {/* Search bar + View toggle */}

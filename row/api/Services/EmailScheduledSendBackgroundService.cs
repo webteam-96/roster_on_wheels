@@ -259,9 +259,10 @@ public class EmailScheduledSendBackgroundService : BackgroundService
                 continue;
             }
 
-            var cost = rec.ProjectCost != null ? Convert.ToDecimal(rec.ProjectCost).ToString("N0") : "-";
-            var ben = rec.DirectBeneficiaries != null ? rec.DirectBeneficiaries.ToString() : "-";
-            var mh = rec.ManHours != null ? rec.ManHours.ToString() : "-";
+            // ROW-58: null (a field the module does not collect, e.g. Public Image beneficiaries) hides the row.
+            string? cost = rec.ProjectCost != null ? Convert.ToDecimal(rec.ProjectCost).ToString("N0") : null;
+            string? ben = rec.DirectBeneficiaries != null ? rec.DirectBeneficiaries.ToString() : null;
+            string? mh = rec.ManHours != null ? rec.ManHours.ToString() : null;
             var subject = $"Project from {sourceName}: {(string)rec.Title}";
             string html = BuildProjectHtml(sourceName, (string)rec.Title, projectDate, (string?)rec.AreaOfFocus, cost, ben, mh, publicLink);
             await SendBatchAsync(recipients, subject, html, async (sent, failed) =>

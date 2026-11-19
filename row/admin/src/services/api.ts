@@ -275,6 +275,38 @@ export async function getDailyStatsReportCounts(): Promise<{
   return response.data;
 }
 
+// Club member directory (club managers only): Excel sheet or printable PDF, same filters as the members list.
+export async function downloadClubMembersExport(
+  clubId: number,
+  format: "xlsx" | "pdf",
+  filters?: { search?: string; year?: number; designation?: string; classification?: string },
+): Promise<Blob> {
+  const response = await api.get(`/api/clubs/${clubId}/members/export`, {
+    params: { format, ...filters },
+    responseType: "blob",
+    timeout: 120000,
+  });
+  return response.data;
+}
+
+export type PrintKind = "labels" | "badges" | "tents";
+export type PrintPaper = "a4" | "letter";
+
+// Printable club outputs (club managers only). withoutAddress: members left off the labels for lack of an address.
+export async function downloadClubMembersPrint(
+  clubId: number,
+  kind: PrintKind,
+  paper: PrintPaper,
+  search?: string,
+): Promise<{ blob: Blob; withoutAddress: number }> {
+  const response = await api.get(`/api/clubs/${clubId}/members/print`, {
+    params: { kind, paper, search },
+    responseType: "blob",
+    timeout: 120000,
+  });
+  return { blob: response.data, withoutAddress: Number(response.headers["x-members-without-address"] ?? 0) };
+}
+
 export async function downloadDailyStatsReportExcel(): Promise<Blob> {
   const response = await api.get("/api/daily-stats-report/preview", { responseType: "blob" });
   return response.data;

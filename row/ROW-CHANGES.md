@@ -4,6 +4,38 @@ The NestJS backend is a faithful port of the RIZones API. These are places
 where ROW will probably want different behaviour. They are **not** made yet
 unless marked "done"; decide them when the area is worked on.
 
+## 2026-11-19: Member directory export, competitor-gap plan (not committed)
+
+- **Plan:** every gap from the ClubRunner/DACdb comparison is being built, area by area, on API + admin + app
+  (`docs/superpowers/plans/2026-11-19-competitor-gaps.md`). Communication: email only.
+- **Member directory export (done):** `GET api/clubs/{id}/members/export?format=xlsx|pdf` (`MemberDirectoryExportBuilder`).
+  Club managers only (SuperAdmin, the club's Admin/AG, its district Admin; ordinary members get 403), same filters as
+  the members list, each member's phone/email privacy flags kept, every download audit-logged (`EXPORT`,
+  `club_members`). Admin: "Export to Excel" and "Printable directory" on the club members page. App: download menu on
+  Club Members for club admins. Tests: 3 unit tests, `kb/tools/member_export_e2e.py` 10/10 on `row_prod_copy`.
+- **Printable outputs (done):** `GET api/clubs/{id}/members/print?kind=labels|badges|tents&paper=a4|letter`
+  (`MemberPrintBuilder`). Avery L7160/5160 mailing labels (home address, business as fallback; members without one are
+  left out and counted in `X-Members-Without-Address`, exposed through CORS), L7418/5395 name badges, folded table tents
+  (top half upside down). Text scales to fit each cell, so long addresses never spill the sheet. Same managers-only rule
+  and audit log as the export. Admin: Print menu on the club members page; app: badges/labels/tents in the download
+  menu, Letter in the US and Canada, A4 elsewhere. Tests: 5 unit tests, e2e 18/18.
+- **Local dev:** MySQL data dir now `E:\websites\row\_local\rowdb\data`; `row_prod_copy` re-copied from production.
+- **OMS ROW-56 (done):** project classification search results no longer carry an "Area" chip (every result is an
+  Area of Focus since categories were removed); admin `ClassificationAssist` + app `projects_screen`. A 501 from
+  `/api/project-classification/suggest` (no `Gemini:ApiKey`) now shows "AI suggestions are not set up" instead of
+  the red "AI unavailable". AI works only once a Gemini key is in the server's `api\web.config`.
+- **OMS ROW-57 (done):** the shared `ImageCropDialog` locks Save from the first click until the save ends. A second
+  click while the crop was being drawn uploaded the same photo twice and also skipped the next queued photo.
+- **OMS ROW-58 (done):** project emails hide Project Cost / Direct Beneficiaries / Man Hours when empty (Public Image
+  has no beneficiaries field; it showed "-"). Email header logo now comes from the API,
+  `GET api/public/brand/email-logo.png` (embedded badge); `{portal}/brand/...` was a 404 because the admin app lives
+  under `/admin`.
+- **OMS ROW-59 (done):** Attendance embedded in the club E-Governance tab sends Add/Edit back to that tab
+  (`/club-admin-dashboard/e-governance?tab=attendance`), not the standalone listing whose Back led to the old
+  `/clubs/{id}/dashboard`.
+- **OMS ROW-48:** re-checked, still no code change: add-member (`MemberService`) and make-admin (`RoleService`) both
+  send email; delivery needs a valid Brevo key on the server.
+
 ## 2026-11-18: Audit fixes, OMS ROW-54/55, app fixes, link previews, Madras Legacy removed (not committed)
 
 - **Security:** club-website DOMPurify 3.4.18, axios, react-router 7, Vite 8 (production deps: 0 advisories); admin

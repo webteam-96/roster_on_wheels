@@ -137,7 +137,8 @@ builder.Services.AddCors(options =>
         {
             policy.AllowAnyOrigin()
                   .AllowAnyHeader()
-                  .AllowAnyMethod();
+                  .AllowAnyMethod()
+                  .WithExposedHeaders("X-Members-Without-Address");
         }
         else
         {
@@ -154,7 +155,8 @@ builder.Services.AddCors(options =>
                       return RotaryApi.Services.Brand.IsOwnHost(host);
                   })
                   .AllowAnyHeader()
-                  .AllowAnyMethod();
+                  .AllowAnyMethod()
+                  .WithExposedHeaders("X-Members-Without-Address"); // label print: members skipped for no address
         }
     });
 

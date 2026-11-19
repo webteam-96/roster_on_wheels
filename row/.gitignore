@@ -19,3 +19,5 @@ Google.Apis.Auth.OAuth2.Responses.TokenResponse-*
 workers/RotaryOrgSyncWorker-FromRIZones/
 # Sync worker secrets (Rotary.org login, row_production connection). Never commit.
 workers/RotaryOrgSyncWorker/appsettings.Local.json
+# Server-only worker secrets (connection string, Brevo key). Never commit, never upload over the server copy.
+workers/*/appsettings.secrets.json

@@ -26,7 +26,7 @@ import {
 } from "@/services/api";
 import { isRoutableModule, stashProjectSwitchDraft } from "@/lib/projectDraft";
 
-type AiStatus = "idle" | "loading" | "error" | "done";
+type AiStatus = "idle" | "loading" | "error" | "off" | "done";
 
 const MIN_DESC = 15; // need at least this much description before an AI call is worth making
 
@@ -100,9 +100,11 @@ export default function ClassificationAssist({
       setMatches(res.matches ?? []);
       setBetter(res.betterModule ?? null);
       setAiStatus("done");
-    } catch {
+    } catch (e) {
       setMatches([]); setBetter(null);
-      setAiStatus("error");
+      // 501 = no AI key on the server (a setup state, not an outage).
+      const status = (e as { response?: { status?: number } })?.response?.status;
+      setAiStatus(status === 501 ? "off" : "error");
     }
   };
 
@@ -171,6 +173,7 @@ export default function ClassificationAssist({
             Auto-Suggest
           </button>
           {aiStatus === "error" && <span className="text-xs text-rose-600">AI unavailable. Use the search or dropdowns.</span>}
+          {aiStatus === "off" && <span className="text-xs text-slate-500">AI suggestions are not set up. Use the search or dropdowns.</span>}
           {needText && <span className="text-xs text-amber-600">Add a longer description for AI suggestions.</span>}
         </div>
       )}
@@ -202,9 +205,6 @@ export default function ClassificationAssist({
                 onClick={() => applyPick(r)}
                 className="w-full text-left px-3 py-2 hover:bg-slate-50 flex items-center gap-2"
               >
-                <span className="shrink-0 text-[10px] uppercase font-semibold px-1.5 py-0.5 rounded bg-slate-100 text-slate-700">
-                  Area
-                </span>
                 <span className="text-sm text-slate-700">{pathLabel(r)}</span>
               </button>
             ))}

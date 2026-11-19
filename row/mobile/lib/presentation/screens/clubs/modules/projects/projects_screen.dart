@@ -2479,12 +2479,13 @@ class _ProjectFormScreenState extends State<_ProjectFormScreen> {
         _aiBetter = better;
         _aiStatus = 'done';
       });
-    } catch (_) {
+    } catch (e) {
       if (!mounted) return;
       setState(() {
         _aiMatches = [];
         _aiBetter = null;
-        _aiStatus = 'error';
+        // 501 = no AI key on the server (a setup state, not an outage).
+        _aiStatus = (e is ApiException && e.statusCode == 501) ? 'off' : 'error';
       });
     }
   }
@@ -3841,6 +3842,10 @@ class _ProjectFormScreenState extends State<_ProjectFormScreen> {
                 const SizedBox(height: 6),
                 Text('AI unavailable: use the search or dropdown.',
                     style: AppTextStyles.caption.copyWith(color: AppColors.error)),
+              ] else if (_aiStatus == 'off') ...[
+                const SizedBox(height: 6),
+                Text('AI suggestions are not set up: use the search or dropdown.',
+                    style: AppTextStyles.caption),
               ] else if (_aiNeedText) ...[
                 const SizedBox(height: 6),
                 Text('Add a longer description for AI suggestions.',
@@ -3988,22 +3993,7 @@ class _ProjectFormScreenState extends State<_ProjectFormScreen> {
       onTap: () => _applyClassificationResult(r),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-              decoration: BoxDecoration(
-                color: _kVioletBg,
-                borderRadius: BorderRadius.circular(4),
-              ),
-              child: Text('AREA',
-                  style: AppTextStyles.caption.copyWith(
-                      color: _kViolet, fontWeight: FontWeight.w700, fontSize: 13)),
-            ),
-            const SizedBox(width: 8),
-            Expanded(child: Text(r.areaOfFocusName, style: AppTextStyles.body)),
-          ],
-        ),
+        child: Text(r.areaOfFocusName, style: AppTextStyles.body),
       ),
     );
   }

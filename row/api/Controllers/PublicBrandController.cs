@@ -19,6 +19,12 @@ public class PublicBrandController : ControllerBase
     [HttpGet]
     [ResponseCache(Duration = 3600, Location = ResponseCacheLocation.Any)]
     public IActionResult Get() => Ok(Brand.PublicView());
+
+    /// <summary>The logo for email headers (embedded in the API), so emails do not depend on where the admin app is hosted.</summary>
+    [HttpGet("email-logo.png")]
+    [ResponseCache(Duration = 86400, Location = ResponseCacheLocation.Any)]
+    public IActionResult EmailLogo() =>
+        BrandAssets.PdfLogoOnDark is { } png ? File(png, "image/png") : NotFound();
 }
 
 /// <summary>

@@ -154,7 +154,11 @@ export function AttendanceV2View({ clubId: propClubId, embedded = false }: { clu
   // Child Add/Edit pages get returnTo = the listing URL (with the listing's own
   // returnTo nested inside). Save → back to listing. Back on listing → dashboard.
   const parentReturnTo = searchParams.get("returnTo") || "";
-  const myListingUrl = `/clubs/${clubId}/attendance/v2${parentReturnTo ? `?returnTo=${encodeURIComponent(parentReturnTo)}` : ""}`;
+  // ROW-59: embedded in the E-Governance tab, Add/Edit return to that tab (not the standalone listing,
+  // whose Back led to the old /clubs/[id]/dashboard).
+  const myListingUrl = embedded
+    ? "/club-admin-dashboard/e-governance?tab=attendance"
+    : `/clubs/${clubId}/attendance/v2${parentReturnTo ? `?returnTo=${encodeURIComponent(parentReturnTo)}` : ""}`;
   const childReturnTo = encodeURIComponent(myListingUrl);
 
   const addUrl = `/clubs/${clubId}/attendance/v2/add?returnTo=${childReturnTo}`;
