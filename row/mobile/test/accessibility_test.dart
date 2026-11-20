@@ -11,6 +11,8 @@ import 'package:rotary_flutter_app/presentation/screens/volunteers/volunteers_sc
 // at least 48x48 (Android) / 44x44 (iOS), every tappable element labelled, and text contrast.
 class _Volunteers implements VolunteerApi {
   @override
+  Future<List<Map<String, dynamic>>> mySignups() async => const [];
+  @override
   Future<List<Map<String, dynamic>>> sheets() async => [
         {
           'id': 1,

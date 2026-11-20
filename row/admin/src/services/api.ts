@@ -2,6 +2,7 @@ import axios, { type InternalAxiosRequestConfig } from "axios";
 import { toast } from "@/hooks/use-toast";
 import { validateImagePhoto } from "@/utils/validateImagePhoto";
 import { fileTimestamp } from "@/lib/dateUtils";
+import { downloadProgressListener } from "@/lib/downloadProgress";
 import { validateAndProcessUpload, UploadValidationError } from "@/lib/uploadValidate";
 import type { Override } from "@/i18n/messages";
 import { postTranslate } from "@/i18n/postTranslate";
@@ -166,6 +167,12 @@ api.interceptors.request.use((config) => {
   // real upload isn't cut off (the 30s cap is meant for stuck GET/POST calls).
   if (typeof FormData !== "undefined" && config.data instanceof FormData) {
     config.timeout = 120000;
+  }
+  // Report download progress in the clicked button (lib/downloadProgress): report the file transfer of a blob
+  // download while one runs, unless the call already tracks its own progress.
+  const dl = downloadProgressListener();
+  if (dl && config.responseType === "blob" && !config.onDownloadProgress) {
+    config.onDownloadProgress = (e) => { if (e.total) dl(e.loaded / e.total); };
   }
   return config;
 });
@@ -756,6 +763,10 @@ import type {
   GoalDistrictConversationDto,
   GoalFoundationImportResultDto,
   GoalOverviewMatrixDto,
+  GoalDirectContactDto,
+  GoalDirectConversationDto,
+  GoalGroupDto,
+  GoalGroupConversationDto,
 } from "@/types/goalSetting";
 
 export async function getGoalCategories(): Promise<GoalCategoryDto[]> {
@@ -3226,8 +3237,27 @@ export async function getMonthlyReportPreview(clubId: number, yearId: number, mo
   return response.data;
 }
 
-export async function uploadMonthlyReportToDistrict(clubId: number, reportId: number): Promise<void> {
-  await api.post(`/api/clubs/${clubId}/monthly-reports/upload-to-district/${reportId}`);
+export async function uploadMonthlyReportToDistrict(clubId: number, reportId: number, pdfBase64?: string): Promise<void> {
+  // pdfBase64 (new CMR): the Design B PDF the server emails instead of building its own. Old CMR sends none.
+  await api.post(`/api/clubs/${clubId}/monthly-reports/upload-to-district/${reportId}`, pdfBase64 ? { pdfBase64 } : undefined);
+}
+
+// NEW CMR Word (user 2026-11-13): Design B layout. The Foundation + Membership tables are sent exactly as the
+// CMR screen / PDF show them, so Word = screen = PDF. Triggers a browser download.
+export async function downloadClubMonthlyReportWordV2(
+  clubId: number, yearId: number, month: number, payload: unknown, fileName: string,
+): Promise<void> {
+  const response = await api.post(`/api/clubs/${clubId}/monthly-reports/word-v2/${yearId}/${month}`, payload, {
+    responseType: "blob",
+    timeout: 300000, // embedded photos - allow up to 5 minutes
+  });
+  const blob = new Blob([response.data], { type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document" });
+  const url = window.URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = fileName;
+  link.click();
+  window.URL.revokeObjectURL(url);
 }
 
 // Detailed CMR Word (.docx): summary + meetings + all service avenues with photos.
@@ -3322,10 +3352,12 @@ export async function downloadOcvReportWord(
   clubId: number,
   yearId: number,
   baseFileName: string,
+  onProgress?: (fraction: number) => void,   // 0..1 while the finished file comes down (user 2026-11-13)
 ): Promise<void> {
   const response = await api.get(`/api/clubs/${clubId}/ocv-gov/report/word`, {
     params: { yearId },
     responseType: "blob",
+    onDownloadProgress: (e) => { if (onProgress && e.total) onProgress(e.loaded / e.total); },
     // The Word report rasterizes uploaded Office/PDF docs (LibreOffice/pdfium) — slow when a club has
     // several attachments, so the default 30s axios timeout trips. Allow up to 5 minutes.
     timeout: 300000,
@@ -3341,23 +3373,26 @@ export async function downloadOcvReportWord(
   window.URL.revokeObjectURL(url);
 }
 
-// OCV Excel (.xls): server-generated HTML-table workbook that exactly matches the legacy
-// example.org "OCVList….xls" — header block + one row per document-type across all
+// OCV Excel (.xlsx, real Excel file since 2026-11-13): server-generated, same layout as the legacy
+// OCV list — header block + one row per document-type across all
 // categories with "Download Here" hyperlinks + Live Documents + Newsletters sections.
 export async function downloadOcvReportExcel(
   clubId: number,
   yearId: number,
   baseFileName: string,
+  onProgress?: (fraction: number) => void,
 ): Promise<void> {
   const response = await api.get(`/api/clubs/${clubId}/ocv-gov/report/excel`, {
     params: { yearId },
     responseType: "blob",
+    timeout: 300000,
+    onDownloadProgress: (e) => { if (onProgress && e.total) onProgress(e.loaded / e.total); },
   });
-  const blob = new Blob([response.data], { type: "application/vnd.ms-excel" });
+  const blob = new Blob([response.data], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
   const url = window.URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = url;
-  link.download = `${baseFileName.replace(/\s+/g, "_")}.xls`;
+  link.download = `${baseFileName.replace(/\s+/g, "_")}.xlsx`;   // real .xlsx (user 2026-11-13)
   link.click();
   window.URL.revokeObjectURL(url);
 }
@@ -3370,7 +3405,7 @@ export async function fetchOcvReportWordBlob(clubId: number, yearId: number): Pr
 }
 export async function fetchOcvReportExcelBlob(clubId: number, yearId: number): Promise<Blob> {
   const response = await api.get(`/api/clubs/${clubId}/ocv-gov/report/excel`, { params: { yearId }, responseType: "blob" });
-  return new Blob([response.data], { type: "application/vnd.ms-excel" });
+  return new Blob([response.data], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
 }
 
 // The Live Documents module snapshots the Word report renders, as JSON — so the Excel
@@ -3968,6 +4003,36 @@ export async function updateCredit(id: number, data: FormData) {
 }
 export async function deleteCredit(id: number) {
   const res = await api.delete(`/api/credit-management/${id}`);
+  return res.data;
+}
+// "RCC & District Goals" combined report (RCC + District Goals) for a district or a club (user 2026-11-16).
+export async function downloadRccDistrictReport(districtId: number, yearId?: number | null): Promise<Blob> {
+  const r = await api.get(`/api/rcc-goals/report/district/${districtId}`, { params: yearId ? { yearId } : {}, responseType: "blob", timeout: 300000 });
+  return r.data;
+}
+export async function downloadRccClubReport(clubId: number, yearId?: number | null): Promise<Blob> {
+  const r = await api.get(`/api/rcc-goals/report/club/${clubId}`, { params: yearId ? { yearId } : {}, responseType: "blob", timeout: 300000 });
+  return r.data;
+}
+// Settings > Wallet: Super Admin deducts credits used outside ROW, with a reason (user 2026-11-16).
+export async function deductCredit(id: number, count: number, reason: string): Promise<{ message: string; balanceBefore: number; balanceAfter: number }> {
+  const res = await api.post(`/api/credit-management/${id}/deduct`, { count, reason });
+  return res.data;
+}
+export interface CreditHistoryEntry {
+  date: string; dateTo: string | null; kind: "Credit" | "Debit"; group: "Support" | "Online" | "ROW" | "Expired";
+  source: string; count: number; detail: string | null; balanceAfter: number | null; lines: number;
+}
+export interface CreditHistory {
+  districtNumber: string; clubName: string | null; creditType: string;
+  activeCredited: number; activeUsed: number;
+  creditedBySupport: number; boughtOnline: number; sentThroughRow: number; deductedBySupport: number; expired: number; balance: number;
+  tally: CreditHistoryEntry[];    // grouped, oldest first
+  entries: CreditHistoryEntry[];  // every single entry, oldest first
+}
+// Every credit and debit of the pack's club / district wallet for its type, newest first.
+export async function getCreditHistory(id: number): Promise<CreditHistory> {
+  const res = await api.get(`/api/credit-management/${id}/history`);
   return res.data;
 }
 export async function getClubCreditBalance(clubId: number) {
@@ -6862,8 +6927,9 @@ export async function requestMemberExport(memberId: number): Promise<PrivacyRequ
   const res = await api.post(`/api/privacy/members/${memberId}/export`);
   return res.data;
 }
-export async function requestMemberErasure(memberId: number, reason: string): Promise<PrivacyRequest> {
-  const res = await api.post(`/api/privacy/members/${memberId}/erase`, { reason });
+/** `confirm` is the member's name as the admin typed it; the server refuses the erasure unless it matches. */
+export async function requestMemberErasure(memberId: number, reason: string, confirm: string): Promise<PrivacyRequest> {
+  const res = await api.post(`/api/privacy/members/${memberId}/erase`, { reason, confirm });
   return res.data;
 }
 // Erasure by a District Admin needs a second District Admin's approval.
@@ -7071,6 +7137,8 @@ export interface Contact {
   source: string;
   createdDate: string;
   groupIds: number[];
+  /** Club tags (member flexibility); empty for district contacts. */
+  tagIds?: number[];
 }
 export interface SaveContact {
   name: string;
@@ -7149,7 +7217,7 @@ export interface PublicInvite {
 }
 
 export async function getContacts(scope: ContactScope, ownerId: number,
-  params: { search?: string; type?: string; groupId?: number; page?: number; pageSize?: number }): Promise<PagedResult<Contact>> {
+  params: { search?: string; type?: string; groupId?: number; tagId?: number; page?: number; pageSize?: number }): Promise<PagedResult<Contact>> {
   return (await api.get(`/api/${scope}/${ownerId}/contacts`, { params })).data;
 }
 export async function createContact(scope: ContactScope, ownerId: number, data: SaveContact): Promise<{ id: number }> {
@@ -7636,21 +7704,23 @@ export interface RotaryOrgSyncStatus {
   current?: { id: number; status: "QUEUED" | "RUNNING"; stage: string | null; clubsDone: number; clubsTotal: number; queuePosition: number; etaSeconds: number; startedAt: string | null; requestedAt: string } | null;
   savedLogin?: { email: string; allowNightly: boolean; status: "NEW" | "OK" | "EXPIRED" | "MFA" | "DISABLED"; statusMessage: string | null; lastOkAt: string | null } | null;
   last?: { status: "DONE" | "FAILED" | "LOGIN_FAILED"; finishedAt: string | null; error: string | null; rows: number; clubs: number } | null;
+  districtAuto?: boolean;   // club only: the district's DG weekly auto-sync is on (it covers this club)
 }
-export async function getRotaryOrgSyncStatus(districtId: number): Promise<RotaryOrgSyncStatus> {
-  return (await api.get("/api/goal-setting-rotary/sync/status", { params: { districtId } })).data;
+// clubId > 0 = that club's own sync (user 2026-11-10: Club Admin / President / Secretary, own Rotary.org login).
+export async function getRotaryOrgSyncStatus(districtId: number, clubId?: number): Promise<RotaryOrgSyncStatus> {
+  return (await api.get("/api/goal-setting-rotary/sync/status", { params: { districtId, clubId: clubId || 0 } })).data;
 }
-export async function getRotaryOrgSyncAsOn(districtId: number): Promise<{ asOn: string | null }> {
-  return (await api.get("/api/goal-setting-rotary/sync/as-on", { params: { districtId } })).data;
+export async function getRotaryOrgSyncAsOn(districtId: number, clubId?: number): Promise<{ asOn: string | null }> {
+  return (await api.get("/api/goal-setting-rotary/sync/as-on", { params: { districtId, clubId: clubId || 0 } })).data;
 }
-export async function startRotaryOrgSync(body: { districtId: number; email?: string; password?: string; savePassword?: boolean; allowNightly?: boolean }): Promise<{ requestId: number; alreadyRunning: boolean }> {
+export async function startRotaryOrgSync(body: { districtId: number; clubId?: number; email?: string; password?: string; savePassword?: boolean; allowNightly?: boolean }): Promise<{ requestId: number; alreadyRunning: boolean }> {
   return (await api.post("/api/goal-setting-rotary/sync/start", body)).data;
 }
-export async function setRotaryOrgSyncNightly(districtId: number, allowNightly: boolean) {
-  return (await api.post("/api/goal-setting-rotary/sync/nightly", { districtId, allowNightly })).data;
+export async function setRotaryOrgSyncNightly(districtId: number, allowNightly: boolean, clubId?: number) {
+  return (await api.post("/api/goal-setting-rotary/sync/nightly", { districtId, clubId: clubId || 0, allowNightly })).data;
 }
-export async function removeRotaryOrgSyncLogin(districtId: number) {
-  return (await api.post("/api/goal-setting-rotary/sync/remove-login", { districtId })).data;
+export async function removeRotaryOrgSyncLogin(districtId: number, clubId?: number) {
+  return (await api.post("/api/goal-setting-rotary/sync/remove-login", { districtId, clubId: clubId || 0 })).data;
 }
 
 
@@ -7660,8 +7730,20 @@ export interface GoalRotaryOrgValue { itemName: string; kind: string; value: num
 export async function getGoalRotaryYears(): Promise<GoalRotaryYear[]> {
   return (await api.get("/api/goal-setting-rotary/years")).data;
 }
-export async function getGoalRotaryOrgValues(yearId: number, districtId: number): Promise<{ isCurrentYear: boolean; updatedAt: string | null; values: GoalRotaryOrgValue[] }> {
-  return (await api.get("/api/goal-setting-rotary/rotary-org-values", { params: { yearId, districtId } })).data;
+// One district, or one club (clubId; the new CMR goal panels, RIZones 2026-11-13).
+export interface GoalRotaryOrgValues { isCurrentYear: boolean; updatedAt: string | null; values: GoalRotaryOrgValue[] }
+export async function getGoalRotaryOrgValues(yearId: number, districtId: number | null, clubId?: number | null): Promise<GoalRotaryOrgValues> {
+  return (await api.get("/api/goal-setting-rotary/rotary-org-values", { params: { yearId, districtId: districtId || undefined, clubId: clubId || undefined } })).data;
+}
+// The 5 Rotary.org club-size (RAG) bands of a district.
+export interface GoalRagBands { red: number; yellow: number; orange: number; blue: number; purple: number }
+export async function getGoalRotaryRagBands(districtId: number): Promise<GoalRagBands> {
+  return (await api.get("/api/goal-setting-rotary/rag-bands", { params: { districtId } })).data;
+}
+// Dates for the "where this figure comes from" note on goal cards (ROW, used by the new CMR panels).
+export interface GoalSourceDates { rotaryOrgSync: string | null; memberSync?: string | null; clubSync?: string | null; dgSync?: string | null; imports: Record<string, string>; lastSaved: Record<number, string>; savedByField?: Record<number, string> }
+export async function getGoalSourceDates(yearId: number, districtId: number | null, clubId: number | null): Promise<GoalSourceDates> {
+  return (await api.get("/api/goal-setting-rotary/source-dates", { params: { yearId, districtId: districtId || undefined, clubId: clubId || undefined } })).data;
 }
 export async function downloadGoalRotaryDistrictReport(districtId: number, yearId: number): Promise<Blob> {
   return (await api.get("/api/goal-setting-rotary/report/districts", { params: { districtIds: String(districtId), yearId }, responseType: "blob" })).data;
@@ -7703,4 +7785,1502 @@ export async function setSubscriptionPrice(kind: "district" | "club", amount: nu
 }
 export async function activateSubscriptionOffline(body: { kind: "district" | "club"; districtId: number; clubId: number; amount: number; currency: string }): Promise<{ orderId: number }> {
   return (await api.post("/api/subscriptions/activate-offline", body)).data;
+}
+
+// ===== Attendance rules: makeups, leave, exemptions, standing (gap agent) =====
+export type MakeupStatus = "pending" | "approved" | "rejected";
+export interface AttendanceMemberStanding {
+  memberId: number; memberName: string; counted: number; present: number; madeUp: number; excused: number;
+  exempt: boolean; percent: number | null; rule85: boolean; memberType: string; inClubTotal: boolean;
+}
+export interface AttendanceStanding {
+  from: string; to: string; windowDays: number; meetings: number; counted: number; credited: number;
+  clubPercent: number | null; members: AttendanceMemberStanding[];
+}
+export interface AttendanceMakeup {
+  id: number; memberId: number; memberName: string; makeupDate: string; makeupType: string; note: string | null;
+  missedAttendanceId: number | null; missedEventName: string | null; status: MakeupStatus; reviewNote: string | null; selfLogged: number | boolean;
+}
+export interface AttendanceLeave { id: number; memberId: number; memberName: string; fromDate: string; toDate: string; reason: string | null }
+export interface AttendanceExemption { id: number; memberId: number; memberName: string; reason: string; endDate: string | null }
+
+function attendanceQuery(yearId: number, month?: number | null): string {
+  return `yearId=${yearId}${month ? `&month=${month}` : ""}`;
+}
+export async function getAttendanceStanding(clubId: number, yearId: number, month?: number | null): Promise<AttendanceStanding> {
+  return (await api.get(`/api/clubs/${clubId}/attendance/standing?${attendanceQuery(yearId, month)}`)).data;
+}
+export async function getAttendanceMakeups(clubId: number, yearId: number, status?: MakeupStatus): Promise<AttendanceMakeup[]> {
+  return (await api.get(`/api/clubs/${clubId}/attendance/makeups?${attendanceQuery(yearId)}${status ? `&status=${status}` : ""}`)).data;
+}
+export async function addAttendanceMakeup(clubId: number, body: { memberId: number; makeupDate: string; makeupType: string; note?: string; missedAttendanceId?: number | null }): Promise<{ id: number }> {
+  return (await api.post(`/api/clubs/${clubId}/attendance/makeups`, body)).data;
+}
+export async function reviewAttendanceMakeup(clubId: number, id: number, approve: boolean, note?: string): Promise<void> {
+  await api.post(`/api/clubs/${clubId}/attendance/makeups/${id}/review`, { approve, note });
+}
+export async function deleteAttendanceMakeup(clubId: number, id: number): Promise<void> {
+  await api.delete(`/api/clubs/${clubId}/attendance/makeups/${id}`);
+}
+export async function getAttendanceLeaves(clubId: number, yearId: number): Promise<AttendanceLeave[]> {
+  return (await api.get(`/api/clubs/${clubId}/attendance/leaves?yearId=${yearId}`)).data;
+}
+export async function addAttendanceLeave(clubId: number, body: { memberId: number; fromDate: string; toDate: string; reason?: string }): Promise<{ id: number }> {
+  return (await api.post(`/api/clubs/${clubId}/attendance/leaves`, body)).data;
+}
+export async function deleteAttendanceLeave(clubId: number, id: number): Promise<void> {
+  await api.delete(`/api/clubs/${clubId}/attendance/leaves/${id}`);
+}
+export async function getAttendanceExemptions(clubId: number): Promise<AttendanceExemption[]> {
+  return (await api.get(`/api/clubs/${clubId}/attendance/exemptions`)).data;
+}
+export async function saveAttendanceExemption(clubId: number, body: { memberId: number; reason: string; endDate?: string | null }): Promise<void> {
+  await api.put(`/api/clubs/${clubId}/attendance/exemptions`, body);
+}
+export async function deleteAttendanceExemption(clubId: number, id: number): Promise<void> {
+  await api.delete(`/api/clubs/${clubId}/attendance/exemptions/${id}`);
+}
+export async function getAttendanceSettings(clubId: number): Promise<{ makeupWindowDays: number }> {
+  return (await api.get(`/api/clubs/${clubId}/attendance/settings`)).data;
+}
+export async function saveAttendanceSettings(clubId: number, makeupWindowDays: number): Promise<void> {
+  await api.put(`/api/clubs/${clubId}/attendance/settings`, { makeupWindowDays });
+}
+export type AttendanceCountRule = "counted" | "own_only" | "excluded";
+export interface AttendanceMeeting {
+  id: number; eventName: string; meetingDate: string; presentCount: number; closed: number | boolean;
+  closedDate: string | null; closedByName: string | null;
+}
+export interface AttendanceMemberTypeRule { memberType: string; label: string; rule: AttendanceCountRule; isDefault: boolean }
+export interface AttendanceRule85Row { memberId: number; memberName: string; age: number; years: number; exempt: boolean }
+export async function getAttendanceMeetings(clubId: number, yearId: number): Promise<AttendanceMeeting[]> {
+  return (await api.get(`/api/clubs/${clubId}/attendance/meetings?yearId=${yearId}`)).data;
+}
+export async function setAttendanceMeetingClosed(clubId: number, id: number, close: boolean): Promise<void> {
+  await api.post(`/api/clubs/${clubId}/attendance/${id}/${close ? "close" : "reopen"}`);
+}
+export async function downloadAttendanceSignInSheet(clubId: number, id: number): Promise<Blob> {
+  return (await api.get(`/api/clubs/${clubId}/attendance/${id}/sign-in-sheet`, { responseType: "blob" })).data;
+}
+export async function getAttendanceRule85(clubId: number): Promise<AttendanceRule85Row[]> {
+  return (await api.get(`/api/clubs/${clubId}/attendance/rule85`)).data;
+}
+export async function downloadAttendanceRule85(clubId: number, format: "csv" | "pdf"): Promise<Blob> {
+  return (await api.get(`/api/clubs/${clubId}/attendance/rule85?format=${format}`, { responseType: "blob" })).data;
+}
+export async function getAttendanceMemberTypeRules(clubId: number): Promise<AttendanceMemberTypeRule[]> {
+  return (await api.get(`/api/clubs/${clubId}/attendance/member-type-rules`)).data;
+}
+export async function saveAttendanceMemberTypeRule(clubId: number, memberType: string, rule: AttendanceCountRule): Promise<AttendanceMemberTypeRule[]> {
+  return (await api.put(`/api/clubs/${clubId}/attendance/member-type-rules`, { memberType, rule })).data;
+}
+
+// ===== GDPR erase (gap agent) =====
+/** What erasing a member would change, table by table. Writes nothing. */
+export async function getErasePreview(memberId: number): Promise<import("@/types/privacy").ErasePreview> {
+  return (await api.get(`/api/privacy/members/${memberId}/erase-preview`)).data;
+}
+/** People who were in the club and have no active membership anywhere: whom the club's admins may erase. */
+export async function getClubFormerMembers(clubId: number, q?: string): Promise<import("@/types/privacy").FormerMember[]> {
+  return (await api.get(`/api/privacy/clubs/${clubId}/former-members`, { params: q ? { q } : {} })).data;
+}
+
+// ===== Club admin limit (gap agent) =====
+export interface ClubAdminLimitSetting { max: number; defaultMax: number; isDefault: boolean }
+export interface ClubOverAdminLimit {
+  clubId: number; clubName: string; districtNumber: string | null; adminCount: number;
+  admins: { memberId: number; name: string }[];
+}
+export async function getClubAdminLimit(): Promise<ClubAdminLimitSetting> {
+  return (await api.get("/api/admin/club-admin-limit")).data;
+}
+export async function setClubAdminLimit(max: number): Promise<ClubAdminLimitSetting> {
+  return (await api.put("/api/admin/club-admin-limit", { max })).data;
+}
+/** Clubs holding more active Club Admins than the limit (SuperAdmins not counted). Nothing is changed for them. */
+export async function getClubAdminLimitReport(): Promise<{ max: number; clubs: ClubOverAdminLimit[] }> {
+  return (await api.get("/api/admin/club-admin-limit/report")).data;
+}
+
+// ===== Account security (gap agent) =====
+// MFA (TOTP) and email magic-link sign-in. The login-time calls live under /api/auth/, so a wrong code (401)
+// does not trigger the global sign-out redirect.
+export type MfaLoginResponse = LoginResponse & {
+  mfaRequired?: boolean; mfaToken?: string | null; mfaSetupRequired?: boolean; recoveryCodes?: string[] | null;
+};
+export interface MfaSetupInfo { secret: string; otpAuthUri: string; qrSvg: string }
+export interface MfaStatus { enabled: boolean; required: boolean; enabledAt: string | null; recoveryCodesLeft: number }
+export interface ClubSecurityPolicy {
+  clubId: number; clubName: string; requireMfa: boolean; updatedAt: string | null; activeMembers: number; membersWithMfa: number;
+}
+export async function mfaLoginSetup(mfaToken: string): Promise<MfaSetupInfo> {
+  return (await api.post("/api/auth/mfa/setup", { mfaToken })).data;
+}
+export async function mfaLoginVerify(mfaToken: string, code: string): Promise<MfaLoginResponse> {
+  return (await api.post("/api/auth/mfa/verify", { mfaToken, code })).data;
+}
+export async function requestMagicLink(email: string): Promise<{ message: string }> {
+  return (await api.post("/api/auth/magic-link", { email })).data;
+}
+export async function consumeMagicLink(token: string): Promise<MfaLoginResponse> {
+  return (await api.post("/api/auth/magic-link/consume", { token })).data;
+}
+export async function getMfaStatus(): Promise<MfaStatus> {
+  return (await api.get("/api/account-security/mfa")).data;
+}
+export async function startMfaEnrol(): Promise<MfaSetupInfo> {
+  return (await api.post("/api/account-security/mfa/enrol")).data;
+}
+export async function confirmMfaEnrol(code: string): Promise<{ recoveryCodes: string[] }> {
+  return (await api.post("/api/account-security/mfa/confirm", { code })).data;
+}
+export async function disableMfa(code: string): Promise<{ message: string }> {
+  return (await api.post("/api/account-security/mfa/disable", { code })).data;
+}
+export async function regenerateMfaRecoveryCodes(code: string): Promise<{ recoveryCodes: string[] }> {
+  return (await api.post("/api/account-security/mfa/recovery-codes", { code })).data;
+}
+export async function getClubSecurityPolicy(clubId: number): Promise<ClubSecurityPolicy> {
+  return (await api.get(`/api/account-security/club-policy/${clubId}`)).data;
+}
+export async function setClubSecurityPolicy(clubId: number, requireMfa: boolean): Promise<ClubSecurityPolicy> {
+  return (await api.put(`/api/account-security/club-policy/${clubId}`, { requireMfa })).data;
+}
+
+// ===== Cross-district access (gap agent) =====
+export type DistrictAccessStatus = "active" | "scheduled" | "expiring" | "expired" | "revoked";
+export interface DistrictAccessGrant {
+  id: number; memberId: number; memberName: string | null; districtId: number; districtNumber: string | null;
+  canWrite: boolean; purpose: string; note: string | null; startsAtUtc: string; expiresAtUtc: string;
+  grantedBy: number; grantedByName: string | null; grantedAtUtc: string;
+  revokedAtUtc: string | null; revokedByName: string | null; revokeReason: string | null; status: DistrictAccessStatus;
+}
+export interface DistrictAccessList { items: DistrictAccessGrant[]; counts: Partial<Record<DistrictAccessStatus, number>>; expiringSoonDays: number }
+export interface DistrictAccessMember { id: number; name: string; clubName: string | null; districtNumber: string | null }
+export async function getDistrictAccessGrants(status?: string): Promise<DistrictAccessList> {
+  return (await api.get("/api/district-access-grants", { params: status ? { status } : undefined })).data;
+}
+export async function getDistrictAccessDistricts(): Promise<{ id: number; districtNumber: string }[]> {
+  return (await api.get("/api/district-access-grants/districts")).data;
+}
+export async function searchDistrictAccessMembers(q: string): Promise<DistrictAccessMember[]> {
+  return (await api.get("/api/district-access-grants/members", { params: { q } })).data;
+}
+export async function createDistrictAccessGrant(body: {
+  memberId: number; districtId: number; canWrite: boolean; purpose: string; note?: string; startsAtUtc: string; expiresAtUtc: string;
+}): Promise<{ id: number }> {
+  return (await api.post("/api/district-access-grants", body)).data;
+}
+export async function revokeDistrictAccessGrant(id: number, reason?: string): Promise<void> {
+  await api.post(`/api/district-access-grants/${id}/revoke`, { reason });
+}
+
+// ===== Invoices and statements (gap agent) =====
+export type InvoiceStatus = "open" | "part_paid" | "paid" | "void";
+export interface ClubInvoice {
+  id: number; invoiceNo: string; memberId: number; memberName: string; duesId: number | null; memberFeeId: number | null;
+  feeType: number | null; kind: "dues" | "items"; issueDate: string; dueDate: string; amount: number; paidAmount: number;
+  balance: number; status: InvoiceStatus; description: string | null; notes: string | null; voidReason: string | null;
+  emailCount: number; emailedAt: string | null;
+}
+export interface InvoiceLineItem { productId: number | null; description: string; quantity: number; unitAmount: number; amount: number }
+export interface InvoiceAppliedPayment { date: string; reference: string; method: string; amount: number }
+export interface InvoiceDetail { invoice: ClubInvoice; lines: InvoiceLineItem[]; payments: InvoiceAppliedPayment[] }
+export interface InvoiceProduct { id: number; name: string; description: string | null; unitAmount: number; isActive: boolean }
+export interface MemberBalance {
+  memberId: number; memberName: string; openInvoices: number; invoiced: number; paid: number; outstanding: number; credit: number; oldestDue: string | null;
+}
+export interface InvoiceReceipt {
+  id: number; memberId: number; memberName: string; receiptDate: string; method: string; reference: string | null; amount: number; applied: number; notes: string | null;
+}
+export interface MemberStatement {
+  from: string; to: string; opening: number; charges: number; payments: number; closing: number;
+  rows: { date: string; isCharge: boolean; reference: string; description: string; amount: number; balance: number }[];
+}
+export interface InvoiceRunResult { created: number; skipped: number; invoiceNos: string[] }
+export interface InvoiceEmailResult { sent: number; skipped: number; problems: string[] }
+
+const inv = (clubId: number) => `/api/clubs/${clubId}/invoices`;
+export async function getClubInvoices(clubId: number, params?: { status?: InvoiceStatus; memberId?: number; duesId?: number }): Promise<ClubInvoice[]> {
+  return (await api.get(inv(clubId), { params })).data;
+}
+export async function getClubInvoice(clubId: number, id: number): Promise<InvoiceDetail> {
+  return (await api.get(`${inv(clubId)}/${id}`)).data;
+}
+export async function generateDuesInvoices(clubId: number, body: { duesId: number; feeType: number; issueDate: string; dueDate: string }): Promise<InvoiceRunResult> {
+  return (await api.post(`${inv(clubId)}/generate-dues`, body)).data;
+}
+export async function createClubInvoices(clubId: number, body: {
+  memberIds: number[]; issueDate: string; dueDate: string; notes?: string;
+  lines: { productId: number | null; description: string; quantity: number; unitAmount: number }[];
+}): Promise<InvoiceRunResult> {
+  return (await api.post(inv(clubId), body)).data;
+}
+export async function voidClubInvoice(clubId: number, id: number, reason: string): Promise<void> {
+  await api.post(`${inv(clubId)}/${id}/void`, { reason });
+}
+export async function emailClubInvoices(clubId: number, invoiceIds: number[]): Promise<InvoiceEmailResult> {
+  return (await api.post(`${inv(clubId)}/email`, { invoiceIds }, { timeout: 300000 })).data;
+}
+export async function getMemberBalances(clubId: number): Promise<MemberBalance[]> {
+  return (await api.get(`${inv(clubId)}/balances`)).data;
+}
+export async function getMemberStatement(clubId: number, memberId: number, from: string, to: string): Promise<MemberStatement> {
+  return (await api.get(`${inv(clubId)}/members/${memberId}/statement`, { params: { from, to } })).data;
+}
+export async function getInvoiceProducts(clubId: number, activeOnly = false): Promise<InvoiceProduct[]> {
+  return (await api.get(`${inv(clubId)}/products`, { params: { activeOnly } })).data;
+}
+export async function saveInvoiceProduct(clubId: number, p: { id?: number; name: string; description?: string; unitAmount: number; isActive: boolean }): Promise<void> {
+  if (p.id) await api.put(`${inv(clubId)}/products/${p.id}`, p);
+  else await api.post(`${inv(clubId)}/products`, p);
+}
+export async function getInvoiceReceipts(clubId: number, memberId?: number): Promise<InvoiceReceipt[]> {
+  return (await api.get(`${inv(clubId)}/receipts`, { params: { memberId } })).data;
+}
+export async function recordInvoicePayment(clubId: number, body: {
+  memberId: number; receiptDate: string; method: "cash" | "cheque" | "bank"; reference?: string; amount: number; notes?: string;
+  splits?: { invoiceId: number; amount: number }[];
+}): Promise<{ id: number }> {
+  return (await api.post(`${inv(clubId)}/receipts`, body)).data;
+}
+/** PDFs and QuickBooks files come back as a Blob; the caller saves it. */
+export async function downloadInvoiceFile(clubId: number, path: string, params?: Record<string, string>): Promise<Blob> {
+  return (await api.get(`${inv(clubId)}/${path}`, { params, responseType: "blob", timeout: 300000 })).data;
+}
+export interface MealMeetingRow { attendanceId: number; eventName: string; eventDate: string; meetingPrice: number | null; diners: number; billed: number }
+export interface MealCharge {
+  id: number; attendanceId: number; eventName: string; mealDate: string; memberId: number; memberName: string; guestName: string;
+  amount: number; invoiceId: number | null; invoiceNo: string | null; billed: boolean;
+}
+export interface MealMeetingDetail {
+  meeting: { attendanceId: number; eventName: string; eventDate: string; meetingPrice: number | null };
+  defaultPrice: number | null;
+  members: { memberId: number; memberName: string; attended: boolean }[];
+  charges: MealCharge[];
+}
+export interface MealBillResult { invoicesCreated: number; invoicesUpdated: number; chargesBilled: number; invoiceNos: string[] }
+export async function getMealSettings(clubId: number): Promise<{ defaultPrice: number | null }> {
+  return (await api.get(`${inv(clubId)}/meals/settings`)).data;
+}
+export async function saveMealSettings(clubId: number, defaultPrice: number): Promise<void> {
+  await api.put(`${inv(clubId)}/meals/settings`, { defaultPrice });
+}
+export async function getMealMeetings(clubId: number, from: string, to: string): Promise<MealMeetingRow[]> {
+  return (await api.get(`${inv(clubId)}/meals/meetings`, { params: { from, to } })).data;
+}
+export async function getMealMeeting(clubId: number, attendanceId: number): Promise<MealMeetingDetail> {
+  return (await api.get(`${inv(clubId)}/meals/meetings/${attendanceId}`)).data;
+}
+export async function saveMealDiners(clubId: number, attendanceId: number, body: {
+  price?: number; diners: { memberId: number; ate: boolean; guests: string[] }[];
+}): Promise<{ meals: number }> {
+  return (await api.put(`${inv(clubId)}/meals/meetings/${attendanceId}`, body)).data;
+}
+export async function billMeals(clubId: number, body: { month: string; mode: "monthly" | "open"; issueDate: string; dueDate: string }): Promise<MealBillResult> {
+  return (await api.post(`${inv(clubId)}/meals/bill`, body)).data;
+}
+// ===== end Invoices and statements (gap agent) =====
+
+// ===== Club accounts (gap agent) =====
+// Chart of accounts, double-entry journal (posted entries are only reversed), P&L, balance sheet, budget vs actual.
+export type ClubAccountType = "asset" | "liability" | "equity" | "income" | "expense";
+export interface ClubAccount { id: number; code: string; name: string; type: ClubAccountType; systemKey: string | null; isBank: boolean; bankName: string | null; accountLast4: string | null; isActive: boolean; balance: number; used: boolean }
+export interface SaveClubAccount { code: string; name: string; type: ClubAccountType; isBank: boolean; bankName: string | null; accountLast4: string | null; isActive: boolean }
+export interface JournalLine { accountId: number; code: string; name: string; debit: number; credit: number; description: string | null }
+export interface JournalEntry { id: number; entryDate: string; memo: string; sourceType: string | null; sourceId: string | null; reversesEntryId: number | null; reversedByEntryId: number | null; createdAt: string; createdByName: string | null; total: number; lines: JournalLine[]; vendorId: number | null; vendorName: string | null; reference: string | null }
+export interface ClubAccountsSummary { yearLabel: string | null; yearStart: string | null; yearEnd: string | null; banks: ClubAccount[]; yearIncome: number; yearExpenses: number; yearNet: number; recent: JournalEntry[] }
+export interface LedgerReportLine { accountId: number; code: string; name: string; amount: number }
+export interface ProfitAndLoss { income: LedgerReportLine[]; expenses: LedgerReportLine[]; totalIncome: number; totalExpenses: number; net: number }
+export interface BalanceSheet { assets: LedgerReportLine[]; liabilities: LedgerReportLine[]; equity: LedgerReportLine[]; totalAssets: number; totalLiabilities: number; currentEarnings: number; totalEquity: number; balanced: boolean }
+export interface BudgetLine { accountId: number; code: string; name: string; type: string; budget: number; actual: number; variance: number; percentUsed: number | null }
+export interface BudgetReport { year: { id: number; yearLabel: string; startDate: string; endDate: string }; report: { lines: BudgetLine[]; budgetIncome: number; actualIncome: number; budgetExpenses: number; actualExpenses: number } }
+export type AccountsReport = "profit-loss" | "balance-sheet" | "budget" | "journal" | "aged";
+export interface NewJournalLine { accountId: number; debit: number; credit: number; description: string | null }
+const acctBase = (clubId: number) => `/api/clubs/${clubId}/accounts`;
+export async function getClubAccountsSummary(clubId: number): Promise<ClubAccountsSummary> {
+  return (await api.get(`${acctBase(clubId)}/summary`)).data;
+}
+export async function getClubAccounts(clubId: number): Promise<ClubAccount[]> {
+  return (await api.get(acctBase(clubId))).data;
+}
+export async function saveClubAccount(clubId: number, accountId: number | null, body: SaveClubAccount): Promise<ClubAccount> {
+  return (accountId ? await api.put(`${acctBase(clubId)}/chart/${accountId}`, body) : await api.post(`${acctBase(clubId)}/chart`, body)).data;
+}
+export async function getJournal(clubId: number, params: { from?: string; to?: string; accountId?: number }): Promise<JournalEntry[]> {
+  return (await api.get(`${acctBase(clubId)}/journal`, { params })).data;
+}
+export async function createJournalEntry(clubId: number, body: { entryDate: string; memo: string; lines: NewJournalLine[]; vendorId?: number | null; reference?: string | null }): Promise<JournalEntry> {
+  return (await api.post(`${acctBase(clubId)}/journal`, body)).data;
+}
+export async function createQuickEntry(clubId: number, body: { kind: "in" | "out"; entryDate: string; categoryAccountId: number; bankAccountId: number; amount: number; memo: string; vendorId?: number | null; reference?: string | null }): Promise<JournalEntry> {
+  return (await api.post(`${acctBase(clubId)}/journal/quick`, body)).data;
+}
+export async function reverseJournalEntry(clubId: number, entryId: number, body: { entryDate?: string; memo?: string }): Promise<JournalEntry> {
+  return (await api.post(`${acctBase(clubId)}/journal/${entryId}/reverse`, body)).data;
+}
+export async function getProfitAndLoss(clubId: number, from: string, to: string): Promise<ProfitAndLoss> {
+  return (await api.get(`${acctBase(clubId)}/reports/profit-loss`, { params: { from, to } })).data;
+}
+export async function getBalanceSheet(clubId: number, asOf: string): Promise<BalanceSheet> {
+  return (await api.get(`${acctBase(clubId)}/reports/balance-sheet`, { params: { asOf } })).data;
+}
+export async function getBudgetReport(clubId: number, yearId: number): Promise<BudgetReport> {
+  return (await api.get(`${acctBase(clubId)}/reports/budget`, { params: { yearId } })).data;
+}
+export async function saveBudget(clubId: number, yearId: number, lines: { accountId: number; amount: number }[]): Promise<void> {
+  await api.put(`${acctBase(clubId)}/budget/${yearId}`, { lines });
+}
+export async function downloadAccountsReport(clubId: number, report: AccountsReport, format: "csv" | "xlsx" | "pdf", params: Record<string, string | number>): Promise<Blob> {
+  return (await api.get(`${acctBase(clubId)}/export/${report}`, { params: { ...params, format }, responseType: "blob" })).data;
+}
+
+// Club accounts, second package: payees, bank reconciliation, payment voucher, aged balances.
+export interface ClubVendor { id: number; name: string; email: string | null; phone: string | null; address: string | null; notes: string | null; isActive: boolean; paidThisYear: number }
+export interface SaveClubVendor { name: string; email: string | null; phone: string | null; address: string | null; notes: string | null; isActive: boolean }
+export interface StatementLine { id: number; lineDate: string; description: string; amount: number; journalLineId: number | null; journalEntryId: number | null; journalMemo: string | null; reconciledAt: string | null }
+export interface BookLine { journalLineId: number; entryId: number; entryDate: string; memo: string; amount: number; reference: string | null }
+export interface Reconciliation { accountId: number; accountName: string; bookBalance: number; reconciledBalance: number; statementTotal: number; unreconciledBook: number; statement: StatementLine[]; unmatchedBook: BookLine[] }
+export interface AgedRow { memberId: number; memberName: string; notDue: number; days0To30: number; days31To60: number; days61To90: number; over90: number; total: number; items: { item: string; amount: number; dueDate: string }[] }
+export interface AgedReport { asOf: string; rows: AgedRow[]; totals: AgedRow }
+export async function getClubVendors(clubId: number): Promise<ClubVendor[]> {
+  return (await api.get(`${acctBase(clubId)}/vendors`)).data;
+}
+export async function saveClubVendor(clubId: number, vendorId: number | null, body: SaveClubVendor): Promise<ClubVendor> {
+  return (vendorId ? await api.put(`${acctBase(clubId)}/vendors/${vendorId}`, body) : await api.post(`${acctBase(clubId)}/vendors`, body)).data;
+}
+export async function getReconciliation(clubId: number, accountId: number): Promise<Reconciliation> {
+  return (await api.get(`${acctBase(clubId)}/reconciliation/${accountId}`)).data;
+}
+export async function addStatementLines(clubId: number, accountId: number, lines: { lineDate: string; description: string; amount: number }[]): Promise<{ added: number; problems: string[] }> {
+  return (await api.post(`${acctBase(clubId)}/reconciliation/${accountId}/lines`, { lines })).data;
+}
+export async function importStatementCsv(clubId: number, accountId: number, file: File): Promise<{ added: number; problems: string[] }> {
+  const form = new FormData();
+  form.append("file", file);
+  return (await api.post(`${acctBase(clubId)}/reconciliation/${accountId}/import`, form, { headers: { "Content-Type": "multipart/form-data" } })).data;
+}
+export async function autoMatchStatement(clubId: number, accountId: number): Promise<{ matched: number }> {
+  return (await api.post(`${acctBase(clubId)}/reconciliation/${accountId}/auto-match`)).data;
+}
+export async function matchStatementLine(clubId: number, lineId: number, journalLineId: number): Promise<void> {
+  await api.post(`${acctBase(clubId)}/statement-lines/${lineId}/match`, { journalLineId });
+}
+export async function unmatchStatementLine(clubId: number, lineId: number): Promise<void> {
+  await api.post(`${acctBase(clubId)}/statement-lines/${lineId}/unmatch`);
+}
+export async function deleteStatementLine(clubId: number, lineId: number): Promise<void> {
+  await api.delete(`${acctBase(clubId)}/statement-lines/${lineId}`);
+}
+export async function downloadVoucher(clubId: number, entryId: number): Promise<Blob> {
+  return (await api.get(`${acctBase(clubId)}/journal/${entryId}/voucher`, { responseType: "blob" })).data;
+}
+export async function getAgedBalances(clubId: number, asOf: string): Promise<AgedReport> {
+  return (await api.get(`${acctBase(clubId)}/reports/aged`, { params: { asOf } })).data;
+}
+
+// ===== Grants lifecycle (gap agent) =====
+// Interim reports, file kinds for the document archive, report reminders and the per-year summary (GrantsController).
+export async function submitGrantInterimReport(clubId: number, id: number, body: { progress: string; amountSpent: number | null }): Promise<GrantApplication> {
+  return (await api.post(`${grantsBase("club", clubId)}/applications/${id}/interim-reports`, body)).data;
+}
+export async function uploadGrantFileOfKind(clubId: number, id: number, file: File, kind: string): Promise<GrantAttachment> {
+  const checked = file.type.startsWith("image/") ? await processImageBeforeUpload(file) : await processDocumentBeforeUpload(file);
+  const form = new FormData();
+  form.append("file", checked);
+  return (await api.post(`${grantsBase("club", clubId)}/applications/${id}/attachments`, form, {
+    params: { kind },
+    headers: { "Content-Type": "multipart/form-data" },
+    timeout: 120000,
+  })).data;
+}
+export async function sendGrantReportReminders(districtId: number): Promise<{ sent: number }> {
+  return (await api.post(`${grantsBase("district", districtId)}/reminders`)).data;
+}
+export async function getGrantYearSummary(districtId: number): Promise<import("@/types/grants").GrantYearSummary[]> {
+  return (await api.get(`${grantsBase("district", districtId)}/summary`)).data;
+}
+// Grants extras: qualified clubs, monthly cash flow with receipts (Excel), notification email templates.
+export async function getGrantQualifications(districtId: number, yearId: number): Promise<import("@/types/grants").GrantClubQualification[]> {
+  return (await api.get(`${grantsBase("district", districtId)}/qualifications`, { params: { yearId } })).data;
+}
+export async function saveGrantQualification(districtId: number, clubId: number, yearId: number, body: import("@/types/grants").SaveGrantQualification): Promise<import("@/types/grants").GrantClubQualification> {
+  return (await api.put(`${grantsBase("district", districtId)}/qualifications/${clubId}/${yearId}`, body)).data;
+}
+export async function getGrantMonthlyCashFlow(districtId: number, cycleId: number): Promise<import("@/types/grants").GrantMonthlyCashFlow> {
+  return (await api.get(`${grantsBase("district", districtId)}/cycles/${cycleId}/monthly`)).data;
+}
+export async function addGrantReceipt(districtId: number, cycleId: number, body: { amount: number; receivedOn: string; source: string; reference: string | null }): Promise<import("@/types/grants").GrantMonthlyCashFlow> {
+  return (await api.post(`${grantsBase("district", districtId)}/cycles/${cycleId}/receipts`, body)).data;
+}
+export async function deleteGrantReceipt(districtId: number, cycleId: number, receiptId: number): Promise<void> {
+  await api.delete(`${grantsBase("district", districtId)}/cycles/${cycleId}/receipts/${receiptId}`);
+}
+export async function downloadGrantMonthlyCashFlow(districtId: number, cycleId: number, yearLabel: string) {
+  const r = await api.get(`${grantsBase("district", districtId)}/cycles/${cycleId}/monthly/export`, { responseType: "blob" });
+  saveBlob(new Blob([r.data], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" }), `grants_cash_flow_${yearLabel}_${fileTimestamp()}.xlsx`);
+}
+export async function getGrantEmailTemplates(districtId: number): Promise<{ templates: import("@/types/grants").GrantEmailTemplate[]; placeholders: string[] }> {
+  return (await api.get(`${grantsBase("district", districtId)}/email-templates`)).data;
+}
+export async function saveGrantEmailTemplate(districtId: number, kind: string, body: { subject: string; body: string }): Promise<import("@/types/grants").GrantEmailTemplate> {
+  return (await api.put(`${grantsBase("district", districtId)}/email-templates/${kind}`, body)).data;
+}
+export async function resetGrantEmailTemplate(districtId: number, kind: string): Promise<import("@/types/grants").GrantEmailTemplate> {
+  return (await api.delete(`${grantsBase("district", districtId)}/email-templates/${kind}`)).data;
+}
+export async function previewGrantEmailTemplate(districtId: number, kind: string, body: { subject: string; body: string }): Promise<{ subject: string; html: string }> {
+  return (await api.post(`${grantsBase("district", districtId)}/email-templates/${kind}/preview`, body)).data;
+}
+export async function getGrantSettings(districtId: number): Promise<{ requireQualification: boolean }> {
+  return (await api.get(`${grantsBase("district", districtId)}/settings`)).data;
+}
+export async function saveGrantSettings(districtId: number, body: { requireQualification: boolean }): Promise<{ requireQualification: boolean }> {
+  return (await api.put(`${grantsBase("district", districtId)}/settings`, body)).data;
+}
+
+// ===== Email bulletins (gap agent) =====
+export interface BulletinDraft {
+  title: string; intro: string | null; presidentMessage: string | null; layout: "classic" | "compact" | "spotlight";
+  announcementIds: number[]; eventIds: number[]; storyIds: number[]; includeBirthdays: boolean; includeSpeakers: boolean;
+}
+export interface BulletinListItem {
+  id: number; title: string; layout: string; status: string; sentDate: string | null; createdDate: string;
+  massEmailId: number | null; totalRecipients: number | null; subscriberCount: number;
+}
+export interface BulletinDetail extends BulletinDraft {
+  id: number; clubId: number; status: string; massEmailId: number | null; sentDate: string | null; createdDate: string; html: string | null;
+}
+export interface BulletinOption { id: number; title: string; date: string | null }
+export async function getBulletins(clubId: number): Promise<BulletinListItem[]> {
+  return (await api.get(`/api/clubs/${clubId}/bulletins`)).data;
+}
+export async function getBulletin(clubId: number, id: number): Promise<BulletinDetail> {
+  return (await api.get(`/api/clubs/${clubId}/bulletins/${id}`)).data;
+}
+export interface BulletinOptions {
+  announcements: BulletinOption[]; events: BulletinOption[]; stories: BulletinOption[]; confirmedSubscribers: number;
+}
+export async function getBulletinOptions(clubId: number): Promise<BulletinOptions> {
+  return (await api.get(`/api/clubs/${clubId}/bulletins/options`)).data;
+}
+export async function previewBulletin(clubId: number, draft: BulletinDraft): Promise<{ html: string }> {
+  return (await api.post(`/api/clubs/${clubId}/bulletins/preview`, draft)).data;
+}
+export async function createBulletin(clubId: number, draft: BulletinDraft): Promise<{ id: number }> {
+  return (await api.post(`/api/clubs/${clubId}/bulletins`, draft)).data;
+}
+export async function updateBulletin(clubId: number, id: number, draft: BulletinDraft): Promise<{ id: number }> {
+  return (await api.put(`/api/clubs/${clubId}/bulletins/${id}`, draft)).data;
+}
+export async function deleteBulletin(clubId: number, id: number): Promise<void> {
+  await api.delete(`/api/clubs/${clubId}/bulletins/${id}`);
+}
+/** recipientType 1 = all members, 2 = the given sub groups. Confirmed subscribers get it either way. */
+export async function sendBulletin(clubId: number, id: number, recipientType: 1 | 2 = 1, subgroupIds: number[] = []):
+  Promise<{ massEmailId: number; subscribers: number; message: string }> {
+  return (await api.post(`/api/clubs/${clubId}/bulletins/${id}/send`, { recipientType, subgroupIds })).data;
+}
+export async function getMassEmailNonOpeners(clubId: number, id: number): Promise<{ count: number }> {
+  return (await api.get(`/api/clubs/${clubId}/mass-emails/${id}/non-openers`)).data;
+}
+export async function resendMassEmailToNonOpeners(clubId: number, id: number, subject: string | null): Promise<{ id: number; message: string }> {
+  return (await api.post(`/api/clubs/${clubId}/mass-emails/${id}/resend-non-openers`, { subject })).data;
+}
+export interface ClubStory {
+  id: number; title: string; body: string; status: "Pending" | "Approved" | "Rejected" | "ChangesRequested";
+  authorId: number; authorName: string | null; submittedDate: string; reviewerName: string | null; reviewNote: string | null; reviewedDate: string | null;
+}
+export async function getClubStories(clubId: number, status?: string): Promise<{ canReview: boolean; items: ClubStory[] }> {
+  return (await api.get(`/api/club-stories/${clubId}`, { params: status ? { status } : undefined })).data;
+}
+export async function reviewClubStory(clubId: number, id: number, decision: "approve" | "reject" | "changes", note: string | null): Promise<void> {
+  await api.post(`/api/club-stories/${clubId}/${id}/review`, { decision, note });
+}
+export interface BulletinSubscriber {
+  id: number; email: string; name: string | null; status: "Pending" | "Confirmed" | "Unsubscribed";
+  signupDate: string; confirmedDate: string | null; unsubscribedDate: string | null;
+}
+export async function getBulletinSubscribers(clubId: number): Promise<BulletinSubscriber[]> {
+  return (await api.get(`/api/clubs/${clubId}/bulletin-subscribers`)).data;
+}
+export async function removeBulletinSubscriber(clubId: number, id: number): Promise<void> {
+  await api.delete(`/api/clubs/${clubId}/bulletin-subscribers/${id}`);
+}
+
+// ===== Mass email compose (gap agent) =====
+// Template library, merge fields, attachments and the sender's signature. scope: "clubs" | "districts".
+export interface MassEmailTemplate { id: number; key: string | null; name: string; subject: string; bodyHtml: string; isStarter: boolean; modifiedDate: string | null }
+export interface MassEmailMergeField { token: string; label: string }
+export interface MassEmailTemplateLibrary { starters: MassEmailTemplate[]; saved: MassEmailTemplate[]; mergeFields: MassEmailMergeField[] }
+export interface MassEmailAttachment { id: number; fileName: string; contentType: string; sizeBytes: number; createdDate: string }
+export async function getMassEmailTemplates(scope: CommsScope, ownerId: number): Promise<MassEmailTemplateLibrary> {
+  return (await api.get(`/api/${scope}/${ownerId}/mass-email-templates`)).data;
+}
+export async function createMassEmailTemplate(scope: CommsScope, ownerId: number, body: { name: string; subject: string; bodyHtml: string }): Promise<{ id: number }> {
+  return (await api.post(`/api/${scope}/${ownerId}/mass-email-templates`, body)).data;
+}
+export async function updateMassEmailTemplate(scope: CommsScope, ownerId: number, id: number, body: { name: string; subject: string; bodyHtml: string }) {
+  return (await api.put(`/api/${scope}/${ownerId}/mass-email-templates/${id}`, body)).data;
+}
+export async function deleteMassEmailTemplate(scope: CommsScope, ownerId: number, id: number) {
+  return (await api.delete(`/api/${scope}/${ownerId}/mass-email-templates/${id}`)).data;
+}
+export async function getMassEmailAttachments(scope: CommsScope, ownerId: number, emailId: number): Promise<MassEmailAttachment[]> {
+  return (await api.get(`/api/${scope}/${ownerId}/mass-emails/${emailId}/attachments`)).data;
+}
+export async function uploadMassEmailAttachment(scope: CommsScope, ownerId: number, emailId: number, file: File): Promise<MassEmailAttachment> {
+  const form = new FormData();
+  form.append("file", file);
+  return (await api.post(`/api/${scope}/${ownerId}/mass-emails/${emailId}/attachments`, form, { headers: { "Content-Type": "multipart/form-data" } })).data;
+}
+export async function deleteMassEmailAttachment(scope: CommsScope, ownerId: number, emailId: number, attachmentId: number) {
+  return (await api.delete(`/api/${scope}/${ownerId}/mass-emails/${emailId}/attachments/${attachmentId}`)).data;
+}
+export async function downloadMassEmailAttachment(scope: CommsScope, ownerId: number, emailId: number, attachmentId: number): Promise<Blob> {
+  return (await api.get(`/api/${scope}/${ownerId}/mass-emails/${emailId}/attachments/${attachmentId}/download`, { responseType: "blob" })).data;
+}
+export async function getMassEmailSignature(): Promise<{ html: string }> {
+  return (await api.get("/api/mass-email/signature")).data;
+}
+export async function saveMassEmailSignature(html: string): Promise<{ html: string }> {
+  return (await api.put("/api/mass-email/signature", { html })).data;
+}
+
+// ===== Surveys (gap agent) =====
+// api/Controllers/SurveysController.cs: a club's or a district's surveys and polls.
+import type { SaveSurvey, Survey, SurveyResults, SurveyScope, SurveySubGroup } from "@/types/surveys";
+
+const surveysBase = (scope: SurveyScope, id: number) => `/api/${scope}/${id}/surveys`;
+
+export async function getSurveys(scope: SurveyScope, id: number): Promise<Survey[]> {
+  return (await api.get(surveysBase(scope, id))).data;
+}
+export async function getSurvey(scope: SurveyScope, id: number, surveyId: number): Promise<Survey> {
+  return (await api.get(`${surveysBase(scope, id)}/${surveyId}`)).data;
+}
+export async function getSurveySubGroups(clubId: number): Promise<SurveySubGroup[]> {
+  return (await api.get(`${surveysBase("clubs", clubId)}/sub-groups`)).data;
+}
+export async function createSurvey(scope: SurveyScope, id: number, body: SaveSurvey): Promise<{ id: number }> {
+  return (await api.post(surveysBase(scope, id), body)).data;
+}
+export async function updateSurvey(scope: SurveyScope, id: number, surveyId: number, body: SaveSurvey): Promise<Survey> {
+  return (await api.put(`${surveysBase(scope, id)}/${surveyId}`, body)).data;
+}
+export async function deleteSurvey(scope: SurveyScope, id: number, surveyId: number): Promise<void> {
+  await api.delete(`${surveysBase(scope, id)}/${surveyId}`);
+}
+export async function publishSurvey(scope: SurveyScope, id: number, surveyId: number): Promise<Survey> {
+  return (await api.post(`${surveysBase(scope, id)}/${surveyId}/publish`)).data;
+}
+export async function closeSurvey(scope: SurveyScope, id: number, surveyId: number): Promise<Survey> {
+  return (await api.post(`${surveysBase(scope, id)}/${surveyId}/close`)).data;
+}
+export async function getSurveyResults(scope: SurveyScope, id: number, surveyId: number): Promise<SurveyResults> {
+  return (await api.get(`${surveysBase(scope, id)}/${surveyId}/results`)).data;
+}
+export async function downloadSurveyCsv(scope: SurveyScope, id: number, surveyId: number): Promise<Blob> {
+  return (await api.get(`${surveysBase(scope, id)}/${surveyId}/export`, { responseType: "blob" })).data;
+}
+
+// ===== Donation campaigns (gap agent) =====
+// api/Controllers/DonationsController.cs. Club and district share every route: /api/{clubs|districts}/{id}/...
+import type {
+  DonationCampaign, DonationOrder, DonationReceiptTemplate, DonationReport, DonationScope, PublicDonationCampaign,
+  SaveDonationCampaign,
+} from "@/types/donations";
+
+const donationBase = (scope: DonationScope, scopeId: number) => `/api/${scope}/${scopeId}/donation-campaigns`;
+
+/** Absolute URL of an uploaded campaign image (/Documents/donations/...). */
+export const donationImageUrl = (path: string | null) => (path ? API_BASE_URL + path : null);
+
+export async function getDonationCampaigns(scope: DonationScope, scopeId: number): Promise<{ currency: string; campaigns: DonationCampaign[] }> {
+  return (await api.get(donationBase(scope, scopeId))).data;
+}
+export async function saveDonationCampaign(scope: DonationScope, scopeId: number, body: SaveDonationCampaign, id?: number): Promise<void> {
+  if (id) await api.put(`${donationBase(scope, scopeId)}/${id}`, body);
+  else await api.post(donationBase(scope, scopeId), body);
+}
+export async function deleteDonationCampaign(scope: DonationScope, scopeId: number, id: number): Promise<void> {
+  await api.delete(`${donationBase(scope, scopeId)}/${id}`);
+}
+export async function getDonationReport(scope: DonationScope, scopeId: number, id: number): Promise<DonationReport> {
+  return (await api.get(`${donationBase(scope, scopeId)}/${id}`)).data;
+}
+export async function uploadDonationImage(scope: DonationScope, scopeId: number, file: File): Promise<string> {
+  const form = new FormData();
+  form.append("file", file);
+  return (await api.post(`${donationBase(scope, scopeId)}/image`, form, {
+    headers: { "Content-Type": "multipart/form-data" }, timeout: 120000,
+  })).data.path;
+}
+export async function downloadDonorList(scope: DonationScope, scopeId: number, id: number): Promise<void> {
+  const r = await api.get(`${donationBase(scope, scopeId)}/${id}/export`, { responseType: "blob" });
+  saveBlob(r.data, `donors-campaign-${id}.xlsx`);
+}
+/** The QR code PNG as an object URL for an <img>; the caller revokes it. */
+export async function getDonationQrUrl(scope: DonationScope, scopeId: number, id: number): Promise<string> {
+  const r = await api.get(`${donationBase(scope, scopeId)}/${id}/qr`, { responseType: "blob" });
+  return window.URL.createObjectURL(r.data);
+}
+export async function downloadDonationReceipt(scope: DonationScope, scopeId: number, id: number, donationId: number, orderId: string): Promise<void> {
+  const r = await api.get(`${donationBase(scope, scopeId)}/${id}/donations/${donationId}/receipt`, { responseType: "blob" });
+  saveBlob(r.data, `donation-receipt-${orderId}.pdf`);
+}
+export async function getDonationReceiptTemplate(scope: DonationScope, scopeId: number): Promise<{
+  template: DonationReceiptTemplate; defaultBody: string; placeholders: string[];
+}> {
+  return (await api.get(`/api/${scope}/${scopeId}/donation-receipt-template`)).data;
+}
+export async function saveDonationReceiptTemplate(scope: DonationScope, scopeId: number, body: DonationReceiptTemplate): Promise<void> {
+  await api.put(`/api/${scope}/${scopeId}/donation-receipt-template`, body);
+}
+export async function previewDonationReceiptTemplate(scope: DonationScope, scopeId: number, body: DonationReceiptTemplate): Promise<void> {
+  const r = await api.post(`/api/${scope}/${scopeId}/donation-receipt-template/preview`, body, { responseType: "blob" });
+  saveBlob(r.data, "donation-receipt-sample.pdf");
+}
+// The public giving page: no session, so the public instance.
+export async function getPublicDonationCampaign(id: number): Promise<PublicDonationCampaign> {
+  return (await publicApi.get(`/api/public/donations/${id}`)).data;
+}
+export async function startDonation(id: number, body: {
+  name: string; email: string; message: string | null; anonymous: boolean; hideAmount: boolean; amount: number; website: string;
+}): Promise<{ redirectUrl: string }> {
+  return (await publicApi.post(`/api/public/donations/${id}/donate`, body)).data;
+}
+export async function getDonationOrder(id: number, orderId: string, token: string): Promise<DonationOrder> {
+  return (await publicApi.get(`/api/public/donations/${id}/order/${encodeURIComponent(orderId)}`, { params: { token } })).data;
+}
+export async function downloadDonorReceipt(id: number, orderId: string, token: string): Promise<void> {
+  const r = await publicApi.get(`/api/public/donations/${id}/order/${encodeURIComponent(orderId)}/receipt`, { params: { token }, responseType: "blob" });
+  saveBlob(r.data, `donation-receipt-${orderId}.pdf`);
+}
+
+// ===== Speaker bureau (gap agent) =====
+// District speaker bureau (api/Controllers/SpeakerBureauController.cs; flagged module "volunteers").
+import type {
+  BureauBooking, BureauEntry, BureauProfile, BureauRating, BureauSearch, BureauStatus, SaveBureauEntry,
+} from "@/types/speakerBureau";
+
+const bureauDistrict = (districtId: number) => `/api/districts/${districtId}/speaker-bureau`;
+const bureauClub = (clubId: number) => `/api/clubs/${clubId}/speaker-bureau`;
+const bureauParams = (s: BureauSearch) =>
+  Object.fromEntries(Object.entries(s).filter(([, v]) => v !== "" && v !== undefined && v !== null));
+
+export async function getDistrictBureau(districtId: number, search: BureauSearch = {}): Promise<BureauEntry[]> {
+  return (await api.get(bureauDistrict(districtId), { params: bureauParams(search) })).data;
+}
+export async function getDistrictBureauProfile(districtId: number, id: number): Promise<BureauProfile> {
+  return (await api.get(`${bureauDistrict(districtId)}/${id}`)).data;
+}
+export async function saveDistrictBureauEntry(districtId: number, body: SaveBureauEntry, id?: number): Promise<BureauEntry> {
+  return (await (id ? api.put(`${bureauDistrict(districtId)}/${id}`, body) : api.post(bureauDistrict(districtId), body))).data;
+}
+export async function setBureauEntryStatus(districtId: number, id: number, status: BureauStatus): Promise<BureauEntry> {
+  return (await api.post(`${bureauDistrict(districtId)}/${id}/status`, { status })).data;
+}
+export async function deleteBureauEntry(districtId: number, id: number): Promise<void> {
+  await api.delete(`${bureauDistrict(districtId)}/${id}`);
+}
+export async function uploadBureauPhoto(districtId: number, id: number, file: File): Promise<BureauEntry> {
+  const form = new FormData();
+  form.append("file", file);
+  return (await api.post(`${bureauDistrict(districtId)}/${id}/photo`, form, { headers: { "Content-Type": "multipart/form-data" } })).data;
+}
+export async function hideBureauComment(districtId: number, ratingId: number, hidden: boolean): Promise<void> {
+  await api.post(`${bureauDistrict(districtId)}/ratings/${ratingId}/hide`, { hidden });
+}
+export async function findBureauSpeakers(clubId: number, search: BureauSearch = {}): Promise<BureauEntry[]> {
+  return (await api.get(bureauClub(clubId), { params: bureauParams(search) })).data;
+}
+export async function getClubBureauProfile(clubId: number, id: number): Promise<BureauProfile> {
+  return (await api.get(`${bureauClub(clubId)}/${id}`)).data;
+}
+export async function proposeBureauSpeaker(clubId: number, body: SaveBureauEntry): Promise<BureauEntry> {
+  return (await api.post(bureauClub(clubId), body)).data;
+}
+export async function shareSpeakerToBureau(clubId: number, speakerId: number): Promise<BureauEntry> {
+  return (await api.post(`/api/clubs/${clubId}/speakers/${speakerId}/share-to-bureau`)).data;
+}
+export async function getBureauBookings(clubId: number): Promise<BureauBooking[]> {
+  return (await api.get(`${bureauClub(clubId)}/bookings`)).data;
+}
+export async function bookBureauSpeaker(clubId: number, id: number, talkDate: string): Promise<BureauBooking> {
+  return (await api.post(`${bureauClub(clubId)}/${id}/bookings`, { talkDate })).data;
+}
+export async function cancelBureauBooking(clubId: number, bookingId: number): Promise<void> {
+  await api.delete(`${bureauClub(clubId)}/bookings/${bookingId}`);
+}
+export async function rateBureauSpeaker(clubId: number, id: number, body: { talkDate: string; rating: number; comment: string | null }): Promise<BureauRating> {
+  return (await api.post(`${bureauClub(clubId)}/${id}/ratings`, body)).data;
+}
+
+// ===== Youth programs (gap agent) =====
+export type YouthProgram = "ryla" | "rli";
+export type YouthStatus = "applied" | "approved" | "declined" | "attended" | "completed" | "withdrawn";
+export type ClearanceState = "incomplete" | "expired" | "expiring" | "cleared";
+export type YouthScope = { kind: "clubs" | "districts"; id: number };
+export interface YouthOfficer { memberId: number; memberName: string; clubName: string | null }
+export interface YouthMemberPick { id: number; name: string; clubName: string | null }
+export interface YouthYear { id: number; label: string; isCurrent: boolean }
+export interface YouthParticipant {
+  id: number; program: YouthProgram; yearId: number; yearLabel: string; sponsorClubId: number; sponsorClubName: string;
+  fullName: string; contactEmail: string | null; status: YouthStatus; createdDate: string;
+}
+export interface YouthClearance {
+  memberId: number; memberName: string; clubName: string | null;
+  trainingDate: string | null; checkDate: string | null; expiryDate: string | null; state: ClearanceState;
+}
+const youthBase = (s: YouthScope) => `/api/youth/${s.kind}/${s.id}`;
+export async function getYouthYears(): Promise<YouthYear[]> {
+  return (await api.get("/api/youth/years")).data;
+}
+export async function getYouthOfficers(s: YouthScope): Promise<YouthOfficer[]> {
+  return (await api.get(`${youthBase(s)}/officers`)).data;
+}
+export async function addYouthOfficer(s: YouthScope, memberId: number): Promise<void> {
+  await api.post(`${youthBase(s)}/officers`, { memberId });
+}
+export async function removeYouthOfficer(s: YouthScope, memberId: number): Promise<void> {
+  await api.delete(`${youthBase(s)}/officers/${memberId}`);
+}
+export async function searchYouthMembers(s: YouthScope, q: string): Promise<YouthMemberPick[]> {
+  return (await api.get(`${youthBase(s)}/members`, { params: { q } })).data;
+}
+export async function getYouthParticipants(s: YouthScope, yearId: number, program?: YouthProgram | ""): Promise<YouthParticipant[]> {
+  return (await api.get(`${youthBase(s)}/participants`, { params: { yearId, program: program || undefined } })).data;
+}
+export async function addYouthParticipant(clubId: number, body: { program: YouthProgram; yearId: number; fullName: string; contactEmail: string | null }): Promise<YouthParticipant> {
+  return (await api.post(`/api/youth/clubs/${clubId}/participants`, body)).data;
+}
+export async function setYouthParticipantStatus(s: YouthScope, id: number, status: YouthStatus): Promise<YouthParticipant> {
+  return (await api.put(`${youthBase(s)}/participants/${id}/status`, { status })).data;
+}
+export async function getYouthClearances(s: YouthScope): Promise<YouthClearance[]> {
+  return (await api.get(`${youthBase(s)}/clearances`)).data;
+}
+export async function saveYouthClearance(s: YouthScope, memberId: number, body: { trainingDate: string | null; checkDate: string | null; expiryDate: string | null }): Promise<YouthClearance> {
+  return (await api.put(`${youthBase(s)}/clearances/${memberId}`, body)).data;
+}
+
+// ===== Profile update requests + anniversaries report (gap agent) =====
+export type ProfileUpdateField = "photo" | "email" | "mobile" | "birthDate" | "classification";
+export type ProfileRequestStatus = "pending" | "updated" | "expired";
+export interface ProfileUpdateMember {
+  memberId: number;
+  memberName: string;
+  hasEmail: boolean;
+  missing: ProfileUpdateField[];
+  lastRequestedAt: string | null;
+  lastStatus: ProfileRequestStatus | null;
+}
+export interface ProfileUpdateRequest {
+  id: number;
+  memberId: number;
+  memberName: string;
+  requestedByName: string | null;
+  requestedAt: string;
+  expiresAt: string;
+  emailStatus: "emailed" | "no_email";
+  completedAt: string | null;
+  completedVia: "link" | "confirm" | "profile" | null;
+  status: ProfileRequestStatus;
+}
+export interface ProfileUpdateSendResult { requested: number; emailed: number; noEmail: number; skipped: number }
+export async function getProfileUpdateMembers(clubId: number): Promise<ProfileUpdateMember[]> {
+  return (await api.get(`/api/clubs/${clubId}/profile-updates/members`)).data;
+}
+export async function getProfileUpdateRequests(clubId: number): Promise<ProfileUpdateRequest[]> {
+  return (await api.get(`/api/clubs/${clubId}/profile-updates/requests`)).data;
+}
+export async function sendProfileUpdateRequests(
+  clubId: number, body: { memberIds?: number[]; incompleteOnly?: boolean; message?: string },
+): Promise<ProfileUpdateSendResult> {
+  return (await api.post(`/api/clubs/${clubId}/profile-updates/requests`, body)).data;
+}
+export interface PublicProfileUpdate {
+  clubName: string;
+  memberName: string;
+  email: string | null;
+  mobile: string | null;
+  secondaryEmailId: string | null;
+  secondaryMobileNumber: string | null;
+  birthDate: string | null;
+  anniversaryDate: string | null;
+  memberIntroduction: string | null;
+  linkedIn: string | null;
+  website: string | null;
+  classificationProfession: string | null;
+  alreadyUpdated: boolean;
+}
+export type PublicProfileUpdateBody =
+  Partial<Omit<PublicProfileUpdate, "clubName" | "memberName" | "email" | "mobile" | "alreadyUpdated">> & { confirmOnly?: boolean };
+export async function getPublicProfileUpdate(token: string): Promise<PublicProfileUpdate> {
+  return (await publicApi.get(`/api/public/profile-update/${encodeURIComponent(token)}`)).data;
+}
+export async function savePublicProfileUpdate(token: string, body: PublicProfileUpdateBody): Promise<{ message: string }> {
+  return (await publicApi.post(`/api/public/profile-update/${encodeURIComponent(token)}`, body)).data;
+}
+export interface AnniversaryRow {
+  memberId: number;
+  memberName: string;
+  joinedDate: string | null;
+  yearsOfService: number | null;
+  joinAnniversaryDay: number | null;
+  anniversaryYears: number | null;
+  milestone: boolean;
+  birthdayDay: number | null;
+  weddingAnniversaryDay: number | null;
+}
+export interface AnniversaryReport {
+  clubId: number;
+  clubName: string;
+  year: number;
+  month: number;
+  today: string;
+  counts: { members: number; milestones: number; joiningAnniversaries: number; birthdays: number; weddingAnniversaries: number };
+  members: AnniversaryRow[];
+}
+export async function getAnniversaryReport(clubId: number, year?: number, month?: number): Promise<AnniversaryReport> {
+  return (await api.get(`/api/clubs/${clubId}/anniversaries`, { params: year && month ? { year, month } : {} })).data;
+}
+export async function downloadAnniversaryCsv(clubId: number, year: number, month: number): Promise<Blob> {
+  return (await api.get(`/api/clubs/${clubId}/anniversaries`, { params: { year, month, format: "csv" }, responseType: "blob" })).data;
+}
+
+// ===== Prospect follow-up (gap agent) =====
+// Follow-up tasks on prospects and who hears about a new prospect (feature contacts_growth).
+export interface ProspectTask {
+  id: number; clubId: number; clubName?: string | null; prospectId: number; prospectName: string;
+  prospectEmail?: string | null; prospectMobile?: string | null; prospectStage?: string | null;
+  title: string; notes?: string | null; assigneeMemberId: number; assigneeName?: string | null;
+  dueDate: string; remindDaysBefore: number | null; status: "open" | "done";
+  reminderSentAt?: string | null; completedAt?: string | null; completionNote?: string | null; createdDate: string;
+}
+export interface SaveProspectTask {
+  prospectId: number; title: string; notes?: string; assigneeMemberId: number; dueDate: string;
+  remindDaysBefore: number | null; status?: "open" | "done";
+}
+export interface ProspectNotifySettings {
+  toPresident: boolean; toMembershipChair: boolean; memberIds: number[]; inApp: boolean; email: boolean;
+  presidents: string[]; membershipChairs: string[];
+}
+export async function getProspectTasks(clubId: number, opts: { status?: string; prospectId?: number } = {}): Promise<ProspectTask[]> {
+  return (await api.get(`/api/clubs/${clubId}/prospect-tasks`, { params: opts })).data;
+}
+export async function createProspectTask(clubId: number, body: SaveProspectTask): Promise<{ id: number }> {
+  return (await api.post(`/api/clubs/${clubId}/prospect-tasks`, body)).data;
+}
+export async function updateProspectTask(clubId: number, id: number, body: SaveProspectTask): Promise<void> {
+  await api.put(`/api/clubs/${clubId}/prospect-tasks/${id}`, body);
+}
+export async function deleteProspectTask(clubId: number, id: number): Promise<void> {
+  await api.delete(`/api/clubs/${clubId}/prospect-tasks/${id}`);
+}
+export async function getProspectNotifySettings(clubId: number): Promise<ProspectNotifySettings> {
+  return (await api.get(`/api/clubs/${clubId}/prospect-notify-settings`)).data;
+}
+export async function saveProspectNotifySettings(
+  clubId: number, body: Omit<ProspectNotifySettings, "presidents" | "membershipChairs">,
+): Promise<ProspectNotifySettings> {
+  return (await api.put(`/api/clubs/${clubId}/prospect-notify-settings`, body)).data;
+}
+
+// ===== Contacts export, merge, Friends of the club (gap agent) =====
+// "friends" marks the group the API keeps equal to the Friends of the club (merges into ContactGroup above).
+export interface ContactGroup { systemKey?: string | null }
+export interface ContactDuplicateGroup { contacts: Contact[]; reasons: string[] }
+export type ContactMergeField = "name" | "email" | "mobile" | "contactType" | "organisation" | "notes";
+export interface ContactMergeHistory { id: number; mergedContactId: number; merged: Contact; mergedBy: string | null; mergedDateUtc: string }
+export async function exportContacts(scope: ContactScope, ownerId: number, format: "xlsx" | "csv",
+  params: { search?: string; type?: string; groupId?: number }): Promise<void> {
+  const r = await api.get(`/api/${scope}/${ownerId}/contacts/export`, { params: { format, ...params }, responseType: "blob" });
+  const stamp = new Date().toISOString().slice(0, 10);
+  saveBlob(r.data, `${params.type === "friend" ? "friends" : "contacts"}-${stamp}.${format}`);
+}
+export async function getContactDuplicates(scope: ContactScope, ownerId: number): Promise<ContactDuplicateGroup[]> {
+  return (await api.get(`/api/${scope}/${ownerId}/contacts/duplicates`)).data;
+}
+export async function mergeContacts(scope: ContactScope, ownerId: number, survivorId: number, mergeIds: number[],
+  fieldSources: Partial<Record<ContactMergeField, number>>): Promise<Contact> {
+  return (await api.post(`/api/${scope}/${ownerId}/contacts/merge`, { survivorId, mergeIds, fieldSources })).data;
+}
+export async function getContactMergeHistory(scope: ContactScope, ownerId: number, id: number): Promise<ContactMergeHistory[]> {
+  return (await api.get(`/api/${scope}/${ownerId}/contacts/${id}/merge-history`)).data;
+}
+
+// ===== Member flexibility (gap agent) =====
+// Club tags on members and contacts, custom profile fields, smart lists (saved member filters).
+export interface ClubTag { id: number; name: string; color: string; memberCount: number; contactCount: number }
+export type ProfileFieldType = "text" | "number" | "date" | "choice" | "yesno";
+export interface ProfileField { id: number; label: string; fieldType: ProfileFieldType; options: string[]; visibility: "admins" | "members"; sortOrder: number }
+export interface ProfileFieldValue extends ProfileField { value: string | null }
+export type SaveProfileField = Omit<ProfileField, "id">;
+export interface FieldCondition { fieldId: number; op: string; value?: string }
+export interface SmartListFilter {
+  search?: string; tagIds?: number[]; tagMode?: "any" | "all"; memberType?: "" | "active" | "honorary";
+  joinedFrom?: string; joinedTo?: string; subGroupIds?: number[]; fields?: FieldCondition[];
+}
+export interface SmartList { id: number; name: string; filter: SmartListFilter; createdDate: string; modifiedDate: string | null }
+export interface SmartListMember { memberId: number; name: string; email: string | null; mobile: string | null; joinedDate: string | null; isHonorary: boolean; tagIds: number[] }
+
+export async function getClubTags(clubId: number): Promise<ClubTag[]> {
+  return (await api.get(`/api/clubs/${clubId}/tags`)).data;
+}
+export async function createClubTag(clubId: number, data: { name: string; color: string }): Promise<{ id: number }> {
+  return (await api.post(`/api/clubs/${clubId}/tags`, data)).data;
+}
+export async function updateClubTag(clubId: number, id: number, data: { name: string; color: string }): Promise<void> {
+  await api.put(`/api/clubs/${clubId}/tags/${id}`, data);
+}
+export async function deleteClubTag(clubId: number, id: number): Promise<void> {
+  await api.delete(`/api/clubs/${clubId}/tags/${id}`);
+}
+export async function setMemberTags(clubId: number, memberId: number, tagIds: number[]): Promise<void> {
+  await api.put(`/api/clubs/${clubId}/members/${memberId}/tags`, { tagIds });
+}
+export async function setContactTags(clubId: number, contactId: number, tagIds: number[]): Promise<void> {
+  await api.put(`/api/clubs/${clubId}/contacts/${contactId}/tags`, { tagIds });
+}
+export async function getProfileFields(clubId: number): Promise<ProfileField[]> {
+  return (await api.get(`/api/clubs/${clubId}/profile-fields`)).data;
+}
+export async function createProfileField(clubId: number, data: SaveProfileField): Promise<{ id: number }> {
+  return (await api.post(`/api/clubs/${clubId}/profile-fields`, data)).data;
+}
+export async function updateProfileField(clubId: number, id: number, data: SaveProfileField): Promise<void> {
+  await api.put(`/api/clubs/${clubId}/profile-fields/${id}`, data);
+}
+export async function deleteProfileField(clubId: number, id: number): Promise<void> {
+  await api.delete(`/api/clubs/${clubId}/profile-fields/${id}`);
+}
+export async function getMemberProfileFields(clubId: number, memberId: number): Promise<ProfileFieldValue[]> {
+  return (await api.get(`/api/clubs/${clubId}/members/${memberId}/profile-fields`)).data;
+}
+export async function saveMemberProfileFields(clubId: number, memberId: number, values: { fieldId: number; value: string | null }[]): Promise<void> {
+  await api.put(`/api/clubs/${clubId}/members/${memberId}/profile-fields`, { values });
+}
+export async function getClubCommittees(clubId: number): Promise<{ id: number; name: string }[]> {
+  return (await api.get(`/api/clubs/${clubId}/committees`)).data;
+}
+export async function getSmartLists(clubId: number): Promise<SmartList[]> {
+  return (await api.get(`/api/clubs/${clubId}/smart-lists`)).data;
+}
+export async function previewSmartList(clubId: number, filter: SmartListFilter, page = 1, pageSize = 25): Promise<PagedResult<SmartListMember>> {
+  return (await api.post(`/api/clubs/${clubId}/smart-lists/preview`, { filter, page, pageSize })).data;
+}
+export async function createSmartList(clubId: number, data: { name: string; filter: SmartListFilter }): Promise<{ id: number }> {
+  return (await api.post(`/api/clubs/${clubId}/smart-lists`, data)).data;
+}
+export async function updateSmartList(clubId: number, id: number, data: { name: string; filter: SmartListFilter }): Promise<void> {
+  await api.put(`/api/clubs/${clubId}/smart-lists/${id}`, data);
+}
+export async function deleteSmartList(clubId: number, id: number): Promise<void> {
+  await api.delete(`/api/clubs/${clubId}/smart-lists/${id}`);
+}
+export async function exportSmartList(clubId: number, id: number): Promise<Blob> {
+  return (await api.get(`/api/clubs/${clubId}/smart-lists/${id}/export`, { responseType: "blob" })).data;
+}
+export async function smartListMassEmail(clubId: number, id: number, data: { subject?: string; fromName?: string }): Promise<{ massEmailId: number }> {
+  return (await api.post(`/api/clubs/${clubId}/smart-lists/${id}/mass-email`, data)).data;
+}
+
+// ===== Custom reports (gap agent) =====
+// api/Controllers/CustomReportsController.cs: report builder for club and district admins.
+import type {
+  CustomReport, CustomReportDefinition, CustomReportFormat, CustomReportResult, CustomReportScope, CustomReportSource,
+  SaveCustomReport,
+} from "@/types/customReports";
+const customReportsBase = (scope: CustomReportScope, scopeId: number) =>
+  scope === "club" ? `/api/clubs/${scopeId}/custom-reports` : `/api/districts/${scopeId}/custom-reports`;
+export async function getCustomReportCatalog(scope: CustomReportScope, scopeId: number): Promise<CustomReportSource[]> {
+  return (await api.get(`${customReportsBase(scope, scopeId)}/catalog`)).data;
+}
+export async function getCustomReports(scope: CustomReportScope, scopeId: number): Promise<CustomReport[]> {
+  return (await api.get(customReportsBase(scope, scopeId))).data;
+}
+export async function saveCustomReport(scope: CustomReportScope, scopeId: number, id: number | null, body: SaveCustomReport): Promise<{ id: number }> {
+  const base = customReportsBase(scope, scopeId);
+  return (id == null ? await api.post(base, body) : await api.put(`${base}/${id}`, body)).data;
+}
+export async function deleteCustomReport(scope: CustomReportScope, scopeId: number, id: number): Promise<void> {
+  await api.delete(`${customReportsBase(scope, scopeId)}/${id}`);
+}
+export async function runCustomReport(scope: CustomReportScope, scopeId: number, definition: CustomReportDefinition): Promise<CustomReportResult> {
+  return (await api.post(`${customReportsBase(scope, scopeId)}/run`, definition, { timeout: 120000 })).data;
+}
+export async function exportCustomReport(scope: CustomReportScope, scopeId: number, definition: CustomReportDefinition,
+  format: CustomReportFormat, title: string): Promise<Blob> {
+  return (await api.post(`${customReportsBase(scope, scopeId)}/export`, definition,
+    { params: { format, title }, responseType: "blob", timeout: 120000 })).data;
+}
+export async function sendCustomReport(scope: CustomReportScope, scopeId: number, id: number): Promise<{ sent: number }> {
+  return (await api.post(`${customReportsBase(scope, scopeId)}/${id}/send`)).data;
+}
+
+// ===== Officer progression (gap agent) =====
+export type ProgressionScope = "club" | "district";
+export interface ProgressionStep {
+  stepId: number; role: string; title: string; yearLabel: string; yearId: number | null;
+  status: "pending" | "confirmed" | "dismissed" | "applying"; appliesTo: "record" | "board" | "governor";
+  currentHolderName: string | null; currentHolderIsNominee: boolean; decidedDate: string | null;
+}
+export interface Progression {
+  progressionId: number; scope: ProgressionScope; scopeId: number; memberId: number; memberName: string;
+  nomineeYearLabel: string; createdDate: string; steps: ProgressionStep[];
+}
+export interface ProgressionCandidate { memberId: number; memberName: string; clubName: string | null }
+export async function getOfficerProgressions(scope: ProgressionScope, scopeId: number): Promise<Progression[]> {
+  return (await api.get("/api/officer-progression", { params: { scope, scopeId } })).data;
+}
+export async function getOfficerProgressionCandidates(scope: ProgressionScope, scopeId: number, search: string): Promise<ProgressionCandidate[]> {
+  return (await api.get("/api/officer-progression/candidates", { params: { scope, scopeId, search } })).data;
+}
+export async function createOfficerProgression(scope: ProgressionScope, scopeId: number, memberId: number, nomineeStartYear: number): Promise<{ id: number }> {
+  return (await api.post("/api/officer-progression", { scope, scopeId, memberId, nomineeStartYear })).data;
+}
+export async function deleteOfficerProgression(progressionId: number): Promise<{ message: string }> {
+  return (await api.delete(`/api/officer-progression/${progressionId}`)).data;
+}
+export async function confirmOfficerProgressionStep(stepId: number): Promise<{ message: string }> {
+  return (await api.post(`/api/officer-progression/steps/${stepId}/confirm`)).data;
+}
+export async function dismissOfficerProgressionStep(stepId: number): Promise<{ message: string }> {
+  return (await api.post(`/api/officer-progression/steps/${stepId}/dismiss`)).data;
+}
+
+// ===== Year-end rollover (gap agent) =====
+export type RolloverScope = "club" | "district";
+export type RolloverAction = "add" | "exists" | "left";
+export interface RolloverMember { key: string; rowId: number; memberId: number | null; name: string; action: RolloverAction }
+export interface RolloverCommittee { sourceId: number; name: string; targetId: number | null; action: RolloverAction; subGroups: string[]; members: RolloverMember[] }
+export interface RolloverOfficer { sourceId: number; memberId: number | null; name: string; designationId: number; designation: string; action: RolloverAction }
+export interface RolloverRun {
+  runId: number; fromYearId: number; toYearId: number; status: "applied" | "undone";
+  summary: string | null; createdUtc: string; undoneUtc: string | null; createdByName: string | null;
+}
+export interface RolloverPreview {
+  scope: RolloverScope; scopeId: number;
+  fromYear: { id: number; label: string }; toYear: { id: number; label: string };
+  committees: RolloverCommittee[]; officers: RolloverOfficer[]; ipp: RolloverOfficer | null;
+  incoming: { name: string; designation: string }[];
+  pendingProgression: { connected: boolean; steps: { role: string; memberId: number; memberName: string; status: string }[] };
+  runs: RolloverRun[];
+}
+export interface RolloverApplyBody {
+  fromYearId: number; includeIpp: boolean; officerIds: number[];
+  committees: { sourceId: number; memberKeys: string[] }[];
+}
+export async function getRolloverPreview(scope: RolloverScope, scopeId: number, fromYearId?: number): Promise<RolloverPreview> {
+  return (await api.get(`/api/rollover/${scope}/${scopeId}`, { params: fromYearId ? { fromYearId } : {} })).data;
+}
+export async function applyRollover(scope: RolloverScope, scopeId: number, body: RolloverApplyBody): Promise<{ runId: number | null; changed: number; counts: Record<string, number> }> {
+  return (await api.post(`/api/rollover/${scope}/${scopeId}/apply`, body)).data;
+}
+/** Refused with 409 { message, blockers[] } when rows added or edited after the run hang off it. */
+export async function undoRollover(runId: number): Promise<{ runId: number; removed: number }> {
+  return (await api.post(`/api/rollover/runs/${runId}/undo`)).data;
+}
+
+// ===== Member map + business directory (gap agent) =====
+export interface MapMember { name: string; clubName: string; city: string | null; area: string | null; latitude: number; longitude: number }
+export interface MeetingPlace {
+  clubId: number; clubName: string; meetingAddress: string | null; meetingDay: string | null;
+  meetingFromTime: string | null; meetingToTime: string | null; latitude: number; longitude: number;
+}
+export interface MemberMap { members: MapMember[]; meetingPlaces: MeetingPlace[] }
+export type ListingStatus = "pending" | "approved" | "rejected";
+export interface BusinessListing {
+  id: number; clubId: number; clubName: string; memberName: string; businessName: string; classification: string | null;
+  description: string | null; website: string | null; phone: string | null; status: ListingStatus; reviewNote: string | null; modifiedUtc: string;
+}
+export type MapScope = "club" | "district";
+export async function getMemberMap(scope: MapScope, id: number): Promise<MemberMap> {
+  return (await api.get(`/api/${scope === "club" ? "clubs" : "districts"}/${id}/member-map`)).data;
+}
+export async function getBusinessListingsForReview(scope: MapScope, id: number, status?: ListingStatus): Promise<BusinessListing[]> {
+  return (await api.get(`/api/${scope === "club" ? "clubs" : "districts"}/${id}/business-directory/review`, { params: status ? { status } : {} })).data;
+}
+export async function reviewBusinessListing(id: number, approve: boolean, note?: string): Promise<BusinessListing> {
+  return (await api.post(`/api/business-directory/${id}/review`, { approve, note: note || null })).data;
+}
+/** Approved listings of a district (district pages) or of a club's district (club pages read the website's own feed). */
+export async function searchBusinessDirectory(scope: MapScope, id: number, q: string): Promise<BusinessListing[]> {
+  const path = scope === "club" ? `/api/public/club/${id}/business-directory` : `/api/districts/${id}/business-directory`;
+  return (await api.get(path, { params: q.trim() ? { q: q.trim() } : {} })).data;
+}
+
+// ===== Website builder (gap agent) =====
+// Custom pages + home layout (slug "home") with draft/publish, and the site media library, for club and district sites.
+// WebsiteScope ("clubs" | "districts") is the one declared for the multilingual websites above.
+export type WebsiteSectionType =
+  | "richtext" | "image" | "embed" | "file" | "events" | "officers" | "news" | "projects" | "gallery" | "sponsors" | "contact";
+export interface WebsiteSection {
+  id: string;
+  type: WebsiteSectionType;
+  title?: string | null;
+  html?: string | null;
+  url?: string | null;
+  caption?: string | null;
+  linkUrl?: string | null;
+  limit?: number | null;
+}
+export interface WebsitePageSummary {
+  id: number;
+  slug: string;
+  title: string;
+  isPublished: boolean;
+  hasUnpublishedChanges: boolean;
+  updatedAt: string;
+  publishedAt: string | null;
+  /** Only signed-in members of the club see it; applies on save. */
+  membersOnly: boolean;
+}
+export interface WebsitePageDetail extends WebsitePageSummary { sections: WebsiteSection[] }
+export interface WebsitePageInput { slug: string; title: string; sections: WebsiteSection[]; membersOnly: boolean }
+/** Members-only items come back with url "media:<id>"; sections reference them that way. */
+export interface WebsiteMedia { id: number; url: string; fileName: string; createdAt: string; membersOnly: boolean; contentType: string | null }
+
+export async function getWebsitePages(scope: WebsiteScope, ownerId: number): Promise<WebsitePageSummary[]> {
+  return (await api.get(`/api/${scope}/${ownerId}/website-pages`)).data;
+}
+export async function getWebsitePage(scope: WebsiteScope, ownerId: number, id: number): Promise<WebsitePageDetail> {
+  return (await api.get(`/api/${scope}/${ownerId}/website-pages/${id}`)).data;
+}
+export async function createWebsitePage(scope: WebsiteScope, ownerId: number, body: WebsitePageInput): Promise<{ id: number }> {
+  return (await api.post(`/api/${scope}/${ownerId}/website-pages`, body)).data;
+}
+export async function saveWebsitePage(scope: WebsiteScope, ownerId: number, id: number, body: WebsitePageInput): Promise<void> {
+  await api.put(`/api/${scope}/${ownerId}/website-pages/${id}`, body);
+}
+export async function publishWebsitePage(scope: WebsiteScope, ownerId: number, id: number, publish: boolean): Promise<void> {
+  await api.post(`/api/${scope}/${ownerId}/website-pages/${id}/${publish ? "publish" : "unpublish"}`);
+}
+export async function deleteWebsitePage(scope: WebsiteScope, ownerId: number, id: number): Promise<void> {
+  await api.delete(`/api/${scope}/${ownerId}/website-pages/${id}`);
+}
+export async function getWebsiteMedia(scope: WebsiteScope, ownerId: number): Promise<WebsiteMedia[]> {
+  return (await api.get(`/api/${scope}/${ownerId}/website-media`)).data;
+}
+export async function getWebsiteMediaLink(scope: WebsiteScope, ownerId: number, id: number): Promise<{ url: string }> {
+  return (await api.get(`/api/${scope}/${ownerId}/website-media/${id}/link`)).data;
+}
+export async function uploadWebsiteMedia(scope: WebsiteScope, ownerId: number, file: File, membersOnly = false): Promise<WebsiteMedia> {
+  const fd = new FormData();
+  fd.append("file", file, file.name);
+  fd.append("membersOnly", membersOnly ? "true" : "false");
+  return (await api.post(`/api/${scope}/${ownerId}/website-media`, fd, { headers: { "Content-Type": "multipart/form-data" } })).data;
+}
+export async function deleteWebsiteMedia(scope: WebsiteScope, ownerId: number, id: number): Promise<void> {
+  await api.delete(`/api/${scope}/${ownerId}/website-media/${id}`);
+}
+
+// ===== Website extras (gap agent) =====
+// Social feed embeds, Google Analytics ID and page QR codes of a club or district website (api WebsiteExtrasController).
+export interface WebsiteExtrasSettings {
+  facebookPageUrl: string | null;
+  instagramUsername: string | null;
+  xUsername: string | null;
+  gaMeasurementId: string | null;
+}
+export interface WebsiteExtrasView {
+  settings: WebsiteExtrasSettings;
+  siteUrl: string | null;
+  pages: { title: string; path: string }[];
+}
+const websiteExtrasPath = (scope: WebsiteScope, ownerId: number) => `/api/${scope}/${ownerId}/website-extras`;
+export async function getWebsiteExtras(scope: WebsiteScope, ownerId: number): Promise<WebsiteExtrasView> {
+  return (await api.get(websiteExtrasPath(scope, ownerId))).data;
+}
+export async function saveWebsiteExtras(scope: WebsiteScope, ownerId: number, settings: WebsiteExtrasSettings): Promise<WebsiteExtrasView> {
+  return (await api.put(websiteExtrasPath(scope, ownerId), settings)).data;
+}
+export async function downloadWebsiteQr(scope: WebsiteScope, ownerId: number, path: string, format: "png" | "svg"): Promise<Blob> {
+  return (await api.get(`${websiteExtrasPath(scope, ownerId)}/qr`, { params: { path, format }, responseType: "blob" })).data;
+}
+
+// ===== WordPress connector (gap agent) =====
+export type WebsiteApiScope = "clubs" | "districts";
+export interface WebsiteApiKey {
+  id: number; label: string; keyPrefix: string; createdUtc: string; lastUsedUtc: string | null; revokedUtc: string | null;
+}
+export interface WebsiteApiDocument {
+  id: number; title: string; publishDateTime: string; expiryDateTime: string; isPublicOnWebsite: boolean;
+}
+/** The API address the WordPress plugin settings need. */
+export const ROW_API_BASE_URL = API_BASE_URL;
+export async function getWebsiteApiKeys(scope: WebsiteApiScope, id: number): Promise<WebsiteApiKey[]> {
+  return (await api.get(`/api/${scope}/${id}/website-api/keys`)).data;
+}
+/** The plain key comes back only here, once. */
+export async function createWebsiteApiKey(scope: WebsiteApiScope, id: number, label: string): Promise<{ key: string; item: WebsiteApiKey }> {
+  return (await api.post(`/api/${scope}/${id}/website-api/keys`, { label })).data;
+}
+export async function revokeWebsiteApiKey(scope: WebsiteApiScope, id: number, keyId: number): Promise<void> {
+  await api.delete(`/api/${scope}/${id}/website-api/keys/${keyId}`);
+}
+export async function getWebsiteApiDocuments(scope: WebsiteApiScope, id: number): Promise<WebsiteApiDocument[]> {
+  return (await api.get(`/api/${scope}/${id}/website-api/documents`)).data;
+}
+export async function setWebsiteApiDocumentPublic(scope: WebsiteApiScope, id: number, documentId: number, isPublic: boolean): Promise<void> {
+  await api.put(`/api/${scope}/${id}/website-api/documents/${documentId}`, { isPublic });
+}
+
+// ===== Service hours (gap agent) =====
+// api/Controllers/ServiceHoursController.cs; flagged module "service_hours".
+import type {
+  Contribution, SaveContribution, ServiceHoursEntry, ServiceHoursStatus, ServiceProjectOption, ServiceReport,
+} from "@/types/serviceHours";
+
+const serviceHoursBase = (clubId: number) => `/api/clubs/${clubId}/service-hours`;
+
+export async function getServiceHours(clubId: number, yearId: number | null, status: ServiceHoursStatus | ""): Promise<ServiceHoursEntry[]> {
+  return (await api.get(serviceHoursBase(clubId), { params: { ...(yearId ? { yearId } : {}), ...(status ? { status } : {}) } })).data;
+}
+export async function reviewServiceHours(clubId: number, id: number, approve: boolean, note: string | null): Promise<ServiceHoursEntry> {
+  return (await api.post(`${serviceHoursBase(clubId)}/${id}/review`, { approve, note })).data;
+}
+export async function getServiceProjects(clubId: number, yearId: number): Promise<ServiceProjectOption[]> {
+  return (await api.get(`${serviceHoursBase(clubId)}/projects`, { params: { yearId } })).data;
+}
+export async function getServiceContributions(clubId: number, yearId: number): Promise<Contribution[]> {
+  return (await api.get(`${serviceHoursBase(clubId)}/contributions`, { params: { yearId } })).data;
+}
+export async function addServiceContribution(clubId: number, body: SaveContribution): Promise<Contribution> {
+  return (await api.post(`${serviceHoursBase(clubId)}/contributions`, body)).data;
+}
+export async function deleteServiceContribution(clubId: number, id: number): Promise<void> {
+  await api.delete(`${serviceHoursBase(clubId)}/contributions/${id}`);
+}
+export async function getClubServiceReport(clubId: number, yearId: number | null): Promise<ServiceReport> {
+  return (await api.get(`${serviceHoursBase(clubId)}/report`, { params: yearId ? { yearId } : {} })).data;
+}
+export async function getDistrictServiceReport(districtId: number, yearId: number | null): Promise<ServiceReport> {
+  return (await api.get(`/api/districts/${districtId}/service-hours/report`, { params: yearId ? { yearId } : {} })).data;
+}
+/** The report as an Excel file (club: by project, by member, contributions; district: by club). */
+export async function exportServiceReport(scope: "clubs" | "districts", id: number, yearId: number): Promise<Blob> {
+  return (await api.get(`/api/${scope}/${id}/service-hours/report/export`, { params: { yearId }, responseType: "blob", timeout: 120000 })).data;
+}
+
+// ===== Volunteer sheet extras (gap agent) =====
+// api/Controllers/VolunteerExtrasController.cs: confirmation text, follow-ups, coordinators, archive, copy.
+export async function getVolunteerSheetExtras(clubId: number, id: number): Promise<import("@/types/volunteers").VolunteerSheetExtras> {
+  return (await api.get(`${sheetsBase(clubId)}/${id}/extras`)).data;
+}
+export async function saveVolunteerSheetExtras(
+  clubId: number, id: number, body: import("@/types/volunteers").SaveVolunteerSheetExtras,
+): Promise<import("@/types/volunteers").VolunteerSheetExtras> {
+  return (await api.put(`${sheetsBase(clubId)}/${id}/extras`, body)).data;
+}
+export async function archiveVolunteerSheet(clubId: number, id: number, archived: boolean): Promise<void> {
+  await api.put(`${sheetsBase(clubId)}/${id}/archive`, { archived });
+}
+export async function copyVolunteerSheet(clubId: number, id: number, shiftDays: number): Promise<{ id: number }> {
+  return (await api.post(`${sheetsBase(clubId)}/${id}/copy`, { shiftDays })).data;
+}
+export async function emailVolunteerCoordinators(clubId: number, id: number): Promise<{ sent: number }> {
+  return (await api.post(`${sheetsBase(clubId)}/${id}/email-coordinators`)).data;
+}
+
+// ===== Enhanced committees (gap agent) =====
+// Club committees (sub groups) and district committees: subcommittee tree, private documents, committee email.
+// Every route checks the caller against the committee itself; platform switch "committees".
+export type CommitteeKind = "club" | "district";
+export interface CommitteeNode { id: number; name: string; parentId: number | null; memberCount: number; documentCount: number; messageCount: number }
+export interface CommitteeCrumb { id: number; name: string }
+export interface CommitteeDetail {
+  kind: CommitteeKind; id: number; name: string; scopeId: number; yearId: number; parentId: number | null;
+  path: CommitteeCrumb[]; children: CommitteeCrumb[];
+  members: { memberId: number | null; name: string; designation: string | null }[];
+  isMember: boolean; canManage: boolean;
+}
+export interface CommitteeDocumentRow {
+  id: number; title: string; originalName: string; sizeBytes: number; uploadedBy: number;
+  uploadedByName: string | null; createdDate: string; canDelete: boolean;
+}
+export interface CommitteeMessageRow {
+  id: number; subject: string; body: string; sentBy: number; sentByName: string | null; createdDate: string;
+  status: string | null; totalRecipients: number; sentCount: number; failedCount: number;
+}
+
+export async function getCommitteeTree(kind: CommitteeKind, scopeId: number, yearId: number): Promise<CommitteeNode[]> {
+  return (await api.get("/api/committees/tree", { params: { kind, scopeId, yearId } })).data;
+}
+export async function getCommitteeDetail(kind: CommitteeKind, id: number): Promise<CommitteeDetail> {
+  return (await api.get(`/api/committees/${kind}/${id}`)).data;
+}
+export async function setCommitteeParent(kind: CommitteeKind, id: number, parentId: number | null): Promise<void> {
+  await api.put(`/api/committees/${kind}/${id}/parent`, { parentId });
+}
+export async function getCommitteePrivateDocuments(kind: CommitteeKind, id: number): Promise<CommitteeDocumentRow[]> {
+  return (await api.get(`/api/committees/${kind}/${id}/documents`)).data;
+}
+export async function uploadCommitteePrivateDocument(kind: CommitteeKind, id: number, title: string, file: File): Promise<{ id: number }> {
+  const form = new FormData();
+  form.append("title", title);
+  form.append("file", file.type.startsWith("image/") ? file : await processDocumentBeforeUpload(file));
+  return (await api.post(`/api/committees/${kind}/${id}/documents`, form, {
+    headers: { "Content-Type": "multipart/form-data" },
+    timeout: 120000,
+  })).data;
+}
+export async function downloadCommitteePrivateDocument(kind: CommitteeKind, id: number, doc: CommitteeDocumentRow): Promise<void> {
+  const r = await api.get(`/api/committees/${kind}/${id}/documents/${doc.id}/file`, { responseType: "blob" });
+  saveBlob(r.data, doc.originalName);
+}
+export async function deleteCommitteePrivateDocument(kind: CommitteeKind, id: number, documentId: number): Promise<void> {
+  await api.delete(`/api/committees/${kind}/${id}/documents/${documentId}`);
+}
+export async function getCommitteeMessages(kind: CommitteeKind, id: number): Promise<CommitteeMessageRow[]> {
+  return (await api.get(`/api/committees/${kind}/${id}/messages`)).data;
+}
+export async function sendCommitteeMessage(kind: CommitteeKind, id: number, subject: string, body: string): Promise<{ id: number }> {
+  return (await api.post(`/api/committees/${kind}/${id}/messages`, { subject, body })).data;
+}
+
+// ===== Mobile extras (gap agent) =====
+// A club leader emails a member of their club the standard password-reset link (to the member's own address).
+export interface ClubPasswordResetRow {
+  id: number; memberId: number; memberName: string | null; sentById: number; sentByName: string | null; sentAtUtc: string;
+}
+export async function sendClubMemberPasswordReset(clubId: number, memberId: number): Promise<{ message: string; sentTo: string }> {
+  return (await api.post(`/api/clubs/${clubId}/members/${memberId}/password-reset`)).data;
+}
+export async function getClubPasswordResets(clubId: number): Promise<ClubPasswordResetRow[]> {
+  return (await api.get(`/api/clubs/${clubId}/password-resets`)).data;
+}
+
+// ===== RI data tools (gap agent) =====
+// Officer compare and transfer-in wizard. They read only RI data the server sync stored, never Rotary.org itself.
+export type RiOfficerStatus = "match" | "different" | "missing_in_row" | "missing_in_ri" | "empty" | "not_synced";
+export interface RiHolder { name: string; rotaryId: string | null; memberId: number | null }
+export interface RiOfficerRow { title: string; row: RiHolder[]; ri: RiHolder[]; status: RiOfficerStatus }
+export interface RiYear { id: number; label: string; start: string; end: string; isCurrent: boolean }
+export interface RiOfficerCompare {
+  clubId: number; clubName: string; riClubId: string | null; year: RiYear; years: RiYear[];
+  sync: { status: string; syncedAtUtc: string | null; message: string | null }; rows: RiOfficerRow[];
+}
+export interface RiCandidate { memberId: number; name: string; email: string | null; rotaryId: string | null; reason: "same_ri_id" | "email" | "name" }
+export interface RiOnlyMember {
+  rotaryMemberId: number; name: string; email: string | null; memberType: string | null; admissionDate: string | null;
+  sameRiId: RiCandidate | null; matches: RiCandidate[];
+}
+export interface RiTransferIn { clubId: number; clubName: string; riClubId: string | null; cacheFetchedUtc: string | null; riCount: number; missing: RiOnlyMember[] }
+export type RiTransferMode = "link" | "add" | "create";
+export async function getRiOfficerCompare(clubId: number, yearId?: number): Promise<RiOfficerCompare> {
+  return (await api.get(`/api/clubs/${clubId}/ri-tools/officers`, { params: yearId ? { yearId } : {} })).data;
+}
+export async function getRiTransferIn(clubId: number): Promise<RiTransferIn> {
+  return (await api.get(`/api/clubs/${clubId}/ri-tools/transfer-in`)).data;
+}
+export async function riTransferInOne(clubId: number, body: { rotaryMemberId: number; mode: RiTransferMode; memberId?: number }): Promise<{ message: string; memberId: number | null }> {
+  return (await api.post(`/api/clubs/${clubId}/ri-tools/transfer-in`, body)).data;
+}
+
+// ===== Job board (gap agent) =====
+// Job postings and B2B offers (flag job_board): the district admin's review queue. Members post and browse in the app.
+export type JobPostFilter = "pending" | "reported" | "live" | "closed";
+export interface JobPostReport { id: number; postId: number; reporterName: string | null; reason: string | null; reportedAt: string }
+export interface JobPost {
+  id: number; kind: "job" | "offer"; title: string; description: string; company: string | null; location: string | null;
+  contact: string; expiresOn: string; status: "pending" | "approved" | "rejected" | "removed" | "withdrawn" | "expired";
+  reviewNote: string | null; clubId: number; clubName: string | null; memberId: number; postedBy: string | null;
+  openReports: number; createdAt: string; reports: JobPostReport[] | null;
+}
+export async function getDistrictJobPosts(districtId: number, filter: JobPostFilter): Promise<JobPost[]> {
+  return (await api.get(`/api/districts/${districtId}/job-board`, { params: { filter } })).data;
+}
+export async function reviewJobPost(districtId: number, postId: number, action: "approve" | "reject" | "remove", note: string): Promise<void> {
+  await api.put(`/api/districts/${districtId}/job-board/${postId}/review`, { action, note });
+}
+
+// ===== Help centre (gap agent) =====
+export interface HelpCategory { id: number; slug: string; name: string; description: string | null; sortOrder: number; articles: number }
+export interface HelpArticleRow {
+  id: number; slug: string; title: string; summary: string | null; categoryId: number; categorySlug: string; categoryName: string;
+  status: "draft" | "published"; sortOrder: number; contextPath: string | null; helpfulYes: number; helpfulNo: number; updatedAt: string;
+}
+export interface HelpArticle extends HelpArticleRow { body: string; keywords: string | null; publishedAt: string | null }
+export interface HelpArticleInput {
+  categoryId: number; title: string; slug: string; summary: string; body: string; keywords: string; contextPath: string;
+  status: "draft" | "published"; sortOrder: number;
+}
+export interface HelpCategoryInput { name: string; slug: string; description: string; sortOrder: number }
+
+export async function getHelpCategories(): Promise<HelpCategory[]> {
+  return (await api.get("/api/help/admin/categories")).data;
+}
+export async function saveHelpCategory(id: number | null, body: HelpCategoryInput): Promise<{ id: number }> {
+  return (await (id ? api.put(`/api/help/admin/categories/${id}`, body) : api.post("/api/help/admin/categories", body))).data;
+}
+export async function deleteHelpCategory(id: number): Promise<void> {
+  await api.delete(`/api/help/admin/categories/${id}`);
+}
+export async function getHelpArticles(q?: string, status?: string): Promise<HelpArticleRow[]> {
+  return (await api.get("/api/help/admin/articles", { params: { q: q || undefined, status: status || undefined } })).data;
+}
+export async function getHelpArticle(id: number): Promise<HelpArticle> {
+  return (await api.get(`/api/help/admin/articles/${id}`)).data;
+}
+export async function saveHelpArticle(id: number | null, body: HelpArticleInput): Promise<{ id: number; slug: string }> {
+  return (await (id ? api.put(`/api/help/admin/articles/${id}`, body) : api.post("/api/help/admin/articles", body))).data;
+}
+export async function deleteHelpArticle(id: number): Promise<void> {
+  await api.delete(`/api/help/admin/articles/${id}`);
+}
+/** The published help article for an admin page (public endpoint), or null. */
+export async function getHelpForPage(path: string, lang?: string): Promise<{ slug: string; title: string } | null> {
+  return (await api.get("/api/public/help/context", { params: { path, lang } })).data?.article ?? null;
+}
+
+// ── Goal messages + RAG clubs (RIZones goal module, ported 2026-11-20) ──
+// One-to-one chats (2026-10-16): private to the two people. Scope = zoneId, or districtId for a
+// District Admin / DG login. ROW has no "view as" (goal oversight roles are not in ROW).
+export type GoalDirectScope = { zoneId?: number; districtId?: number };
+
+export async function getGoalDirectContacts(yearId: number, scope: GoalDirectScope): Promise<GoalDirectContactDto[]> {
+  const r = await api.get(`/api/goal-setting/direct/contacts`, { params: { yearId, ...scope } });
+  return r.data;
+}
+
+export async function getGoalDirectConversation(otherMemberId: number, yearId: number, scope: GoalDirectScope): Promise<GoalDirectConversationDto> {
+  const r = await api.get(`/api/goal-setting/direct/${otherMemberId}`, { params: { yearId, ...scope } });
+  return r.data;
+}
+
+export async function getGoalDirectHasUnread(yearId: number, scope: GoalDirectScope): Promise<boolean> {
+  const r = await api.get(`/api/goal-setting/direct/has-unread`, { params: { yearId, ...scope } });
+  return !!r.data?.hasUnread;
+}
+
+export async function postGoalDirectMessage(otherMemberId: number, yearId: number, scope: GoalDirectScope,
+  body: { commentText: string; categoryId: number; districtId: number }): Promise<GoalCommentDto> {
+  const r = await api.post(`/api/goal-setting/direct/${otherMemberId}`, body, { params: { yearId, ...scope } });
+  return r.data;
+}
+
+// Group messages (user 2026-10-19). The key ("D:12:3", "T:3:E/MGA", "B:3") travels in the query.
+export async function getGoalGroups(yearId: number, scope: GoalDirectScope): Promise<GoalGroupDto[]> {
+  const r = await api.get(`/api/goal-setting/groups`, { params: { yearId, ...scope } });
+  return r.data;
+}
+
+export async function getGoalGroupConversation(key: string, yearId: number, scope: GoalDirectScope): Promise<GoalGroupConversationDto> {
+  const r = await api.get(`/api/goal-setting/groups/conversation`, { params: { key, yearId, ...scope } });
+  return r.data;
+}
+
+export async function postGoalGroupMessage(key: string, yearId: number, scope: GoalDirectScope, commentText: string): Promise<GoalCommentDto> {
+  const r = await api.post(`/api/goal-setting/groups/conversation`, { commentText }, { params: { key, yearId, ...scope } });
+  return r.data;
+}
+
+// RAG Analysis popup: the district's clubs with their Rotary.org member count.
+export interface GoalRagClub { clubId: number; clubName: string; members: number }
+export async function getGoalRagClubs(yearId: number, districtId: number): Promise<GoalRagClub[]> {
+  const r = await api.get(`/api/goal-setting-rotary/rag-clubs`, { params: { yearId, districtId } });
+  return r.data;
 }

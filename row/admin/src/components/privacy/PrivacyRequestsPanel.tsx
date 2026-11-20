@@ -13,18 +13,16 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import AlertModal from "@/components/AlertModal";
+import EraseMemberDialog from "@/components/privacy/EraseMemberDialog";
 import { useFormat } from "@/hooks/useFormat";
 import { getErrorMessage } from "@/lib/errors";
 import {
   approvePrivacyRequest,
   getPrivacyRequests,
   rejectPrivacyRequest,
-  requestMemberErasure,
   requestMemberExport,
   searchDistrictCommitteeMembers,
 } from "@/services/api";
@@ -51,11 +49,14 @@ function NewRequestDialog({
   onOpenChange,
   districtId,
   onCreated,
+  onErase,
 }: {
   open: boolean;
   onOpenChange: (o: boolean) => void;
   districtId: number;
   onCreated: (r: PrivacyRequest) => void;
+  /** Erasure goes on to the preview and typed confirmation (EraseMemberDialog). */
+  onErase: (memberId: number) => void;
 }) {
   const t = useTranslations("privacy.create");
   const tKind = useTranslations("privacy.requests.kind");
@@ -65,8 +66,6 @@ function NewRequestDialog({
   const [searching, setSearching] = useState(false);
   const [member, setMember] = useState<MemberHit | null>(null);
   const [kind, setKind] = useState<PrivacyRequestKind>("export");
-  const [reason, setReason] = useState("");
-  const [understood, setUnderstood] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const timer = useRef<ReturnType<typeof setTimeout>>(undefined);
@@ -77,8 +76,6 @@ function NewRequestDialog({
     setHits(null);
     setMember(null);
     setKind("export");
-    setReason("");
-    setUnderstood(false);
     setError(null);
   }, [open]);
 
@@ -105,16 +102,15 @@ function NewRequestDialog({
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!member) return;
-    if (kind === "erase" && !reason.trim()) {
-      setError(t("reasonRequired"));
+    if (kind === "erase") {
+      onOpenChange(false);
+      onErase(member.memberId);
       return;
     }
     setSubmitting(true);
     setError(null);
     try {
-      const created =
-        kind === "export" ? await requestMemberExport(member.memberId) : await requestMemberErasure(member.memberId, reason.trim());
-      onCreated(created);
+      onCreated(await requestMemberExport(member.memberId));
       onOpenChange(false);
     } catch (err) {
       setError(getErrorMessage(err, tRoot));
@@ -123,7 +119,7 @@ function NewRequestDialog({
     }
   };
 
-  const canSubmit = !!member && !submitting && (kind === "export" || (reason.trim() !== "" && understood));
+  const canSubmit = !!member && !submitting;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -187,19 +183,6 @@ function NewRequestDialog({
             ))}
           </fieldset>
 
-          {kind === "erase" && (
-            <>
-              <div className="space-y-1.5">
-                <Label htmlFor="pr-reason">{t("reason")}</Label>
-                <Textarea id="pr-reason" rows={3} maxLength={500} value={reason} placeholder={t("reasonPlaceholder")} onChange={(e) => setReason(e.target.value)} />
-              </div>
-              <label className="flex items-center gap-2 text-sm">
-                <Checkbox checked={understood} onCheckedChange={(v) => setUnderstood(v === true)} />
-                {t("eraseConfirm")}
-              </label>
-            </>
-          )}
-
           {error && <p className="text-sm text-red-600" role="alert">{error}</p>}
 
           <DialogFooter className="gap-2">
@@ -208,7 +191,7 @@ function NewRequestDialog({
             </Button>
             <Button type="submit" disabled={!canSubmit} variant={kind === "erase" ? "destructive" : "default"} className="gap-1.5">
               {submitting && <Loader2 className="h-4 w-4 animate-spin" />}
-              {submitting ? t("submitting") : t("submit")}
+              {submitting ? t("submitting") : kind === "erase" ? t("review") : t("submit")}
             </Button>
           </DialogFooter>
         </form>
@@ -228,6 +211,8 @@ export default function PrivacyRequestsPanel({ districtId }: { districtId: numbe
   const [dialogOpen, setDialogOpen] = useState(false);
   const [busyId, setBusyId] = useState<number | null>(null);
   const [confirming, setConfirming] = useState<PrivacyRequest | null>(null);
+  const [erasing, setErasing] = useState<number | null>(null);
+  const tErase = useTranslations("privacy.erase");
 
   const load = useCallback(async () => {
     if (!districtId) return;
@@ -355,6 +340,16 @@ export default function PrivacyRequestsPanel({ districtId }: { districtId: numbe
         onCreated={(r) => {
           setRows((list) => [r, ...(list ?? [])]);
           setNotice(tCreate("created"));
+        }}
+        onErase={setErasing}
+      />
+
+      <EraseMemberDialog
+        memberId={erasing}
+        onOpenChange={(o) => !o && setErasing(null)}
+        onDone={(r) => {
+          setRows((list) => [r, ...(list ?? [])]);
+          setNotice(r.status === "awaiting_approval" ? tErase("awaiting") : tErase("done"));
         }}
       />
 

@@ -33,6 +33,7 @@ import {
 import { exportToCSV, exportMonthlyPivot } from "@/utils/csvExport";
 import { exportCitationMatrix } from "@/utils/citationMatrixExport";
 import { downloadAgOcvZip } from "@/utils/ocvAgZip";
+import { useDownloadProgress } from "@/lib/downloadProgress";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -121,10 +122,12 @@ function StatCard({ icon: Icon, label, value, color }: { icon: React.ElementType
   );
 }
 
-function ReportSection({ title, icon: Icon, count, onExport }: { title: string; icon: React.ElementType; count: number; onExport: () => void | Promise<void> }) {
+function ReportSection({ title, icon: Icon, count, onExport, dl, dlKey }: { title: string; icon: React.ElementType; count: number; onExport: () => void | Promise<void>; dl?: ReturnType<typeof useDownloadProgress>; dlKey?: string }) {
   const hasData = count > 0;
   const [busy, setBusy] = useState(false);
   const handleClick = async () => {
+    // Server file download: progress bar inside the button, one report at a time on the page.
+    if (dl && dlKey) { await dl.run(dlKey, async () => { await onExport(); }); return; }
     if (busy) return;
     setBusy(true);
     try { await onExport(); }
@@ -142,8 +145,8 @@ function ReportSection({ title, icon: Icon, count, onExport }: { title: string; 
             <p className="text-xs text-muted-foreground">{count} {count === 1 ? "record" : "records"}</p>
           </div>
         </div>
-        <Button variant="outline" size="sm" onClick={handleClick} disabled={!hasData || busy}>
-          {busy ? (
+        <Button variant="outline" size="sm" onClick={handleClick} disabled={!hasData || busy || !!dl?.busy}>
+          {dl && dlKey && dl.is(dlKey) ? dl.bar(dlKey) : busy ? (
             <span className="inline-flex items-center gap-2">
               <RotaryLoader size="sm" />
               Loading…
@@ -258,7 +261,7 @@ function ClubFilterRow({
   rows: any[];
   clubs: { clubId: number; clubName: string }[];
   defaultFile: string;
-  baseColumns: { key: string; label: string; width?: number; hyperlink?: boolean; linkText?: string; index?: boolean; format?: (v: any, r: any) => string }[];
+  baseColumns: { key: string; label: string; width?: number; hyperlink?: boolean; linkText?: string; index?: boolean; format?: (v: any, r: any) => string; numeric?: boolean }[];
   onDownload: (rows: any[], filenameBase: string, label: string, columns: typeof baseColumns, summary?: string) => void;
   renderNote?: (filtered: any[]) => React.ReactNode;
   /** Optional summary line written into the Excel header (e.g. Not Downloaded / Android / iOS totals). */
@@ -487,12 +490,12 @@ function ClubMonthlyProjectDetailsRow({
 
     const groups = MONTHNUMS.map((m) => ({
       label: `${MONTH_NAMES[m]} ${m >= 7 ? startYear : endYear}`,
-      cols: METRICS.map((mt) => ({ key: `m${m}_${mt.key}`, label: mt.label, width: mt.width })),
+      cols: METRICS.map((mt) => ({ key: `m${m}_${mt.key}`, label: mt.label, width: mt.width, numeric: true })),
     }));
     // Final "Total" group — sum of every shown month per metric, per club.
     groups.push({
       label: "Total (All Months)",
-      cols: METRICS.map((mt) => ({ key: `total_${mt.key}`, label: mt.label, width: mt.width })),
+      cols: METRICS.map((mt) => ({ key: `total_${mt.key}`, label: mt.label, width: mt.width, numeric: true })),
     });
 
     const pivotRows = targetClubs.map((club) => {
@@ -579,7 +582,7 @@ function AgFilterRow({
   rows: any[];
   ags: { agMemberId: number; agName: string; clubId: number; clubName: string }[];
   defaultFile: string;
-  baseColumns: { key: string; label: string; width?: number; hyperlink?: boolean; linkText?: string; index?: boolean; format?: (v: any, r: any) => string }[];
+  baseColumns: { key: string; label: string; width?: number; hyperlink?: boolean; linkText?: string; index?: boolean; format?: (v: any, r: any) => string; numeric?: boolean }[];
   onDownload: (rows: any[], filenameBase: string, label: string, columns: typeof baseColumns) => void;
 }) {
   // AG-wise reports REQUIRE an AG selection — there is no "All" (it would just be
@@ -641,7 +644,7 @@ function AvenueFilterRow({
   agMandatory?: boolean;
   clubs?: { clubId: number; clubName: string }[];
   defaultFile: string;
-  baseColumns: { key: string; label: string; width?: number; hyperlink?: boolean; linkText?: string; index?: boolean; format?: (v: any, r: any) => string }[];
+  baseColumns: { key: string; label: string; width?: number; hyperlink?: boolean; linkText?: string; index?: boolean; format?: (v: any, r: any) => string; numeric?: boolean }[];
   onDownload: (rows: any[], filenameBase: string, label: string, columns: typeof baseColumns) => void;
 }) {
   // For agMandatory rows the AG starts unselected ("") so the trigger shows the
@@ -764,8 +767,8 @@ function AvenueCountRow({
   const cols = [
     { key: "srNo", label: "Sr. No.", width: 8, index: true },
     { key: "clubName", label: "Club Name", width: 28 },
-    ...avenues.map((av) => ({ key: av, label: av, width: 18 })),
-    { key: "total", label: "Total", width: 12 },
+    ...avenues.map((av) => ({ key: av, label: av, width: 18, numeric: true })),
+    { key: "total", label: "Total", width: 12, numeric: true },
   ];
   const Icon = icon;
   const onClick = () => {
@@ -809,7 +812,7 @@ function AvenueCountRow({
 // AG Wise (mandatory AG). Lists every OCV sub-module + document type with the
 // uploaded file as a hyperlink, or "N/A" when nothing was uploaded.
 function OcvReportRow({
-  mode, clubs, ags, districtId, districtNumber, yearId, yearLabel, onEmpty,
+  mode, clubs, ags, districtId, districtNumber, yearId, yearLabel, onEmpty, dl,
 }: {
   mode: "club" | "ag";
   clubs?: { clubId: number; clubName: string }[];
@@ -819,11 +822,12 @@ function OcvReportRow({
   yearId: string;
   yearLabel: string;
   onEmpty?: (msg: string) => void;
+  /** Shared page-level download progress (one report at a time). */
+  dl: ReturnType<typeof useDownloadProgress>;
 }) {
   const isAg = mode === "ag";
   const uniqueAgs = Array.from(new Map((ags || []).map((a) => [a.agMemberId, { id: a.agMemberId, name: a.agName }])).values());
   const [sel, setSel] = useState<string>("");
-  const [busyFmt, setBusyFmt] = useState<null | "excel" | "word">(null);
   const hasSel = !!sel;
   const title = isAg
     ? "Governor's Official Visit (OCV/GOV) (AG Wise)"
@@ -835,9 +839,9 @@ function OcvReportRow({
 
   // Excel/Word icons. Club-wise → that club's rich OCV report; AG-wise → a ZIP of every
   // club under the AG (one report per club) in the chosen format.
-  const handleFormat = async (fmt: "excel" | "word") => {
-    if (!hasSel || busyFmt) return;
-    setBusyFmt(fmt);
+  const key = (fmt: "excel" | "word") => `ocv-${mode}-${fmt}`;
+  const handleFormat = (fmt: "excel" | "word") => dl.run(key(fmt), async () => {
+    if (!hasSel) return;
     try {
       if (isAg) {
         const res = await downloadAgOcvZip({
@@ -853,10 +857,8 @@ function OcvReportRow({
       }
     } catch {
       onEmpty?.("Failed to generate the OCV/GOV report.");
-    } finally {
-      setBusyFmt(null);
     }
-  };
+  }, fmt === "word");
 
   return (
     <Card>
@@ -887,16 +889,16 @@ function OcvReportRow({
           <Button
             variant="outline" size="sm" title="Download Excel"
             className="text-emerald-700 border-emerald-200 hover:bg-emerald-50"
-            onClick={() => handleFormat("excel")} disabled={!hasSel || busyFmt !== null}
+            onClick={() => handleFormat("excel")} disabled={!hasSel || dl.busy}
           >
-            {busyFmt === "excel" ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileSpreadsheet className="h-4 w-4" />}
+            {dl.is(key("excel")) ? dl.bar(key("excel"), "bg-emerald-600") : <FileSpreadsheet className="h-4 w-4" />}
           </Button>
           <Button
             variant="outline" size="sm" title="Download Word"
             className="text-blue-700 border-blue-200 hover:bg-blue-50"
-            onClick={() => handleFormat("word")} disabled={!hasSel || busyFmt !== null}
+            onClick={() => handleFormat("word")} disabled={!hasSel || dl.busy}
           >
-            {busyFmt === "word" ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileText className="h-4 w-4" />}
+            {dl.is(key("word")) ? dl.bar(key("word")) : <FileText className="h-4 w-4" />}
           </Button>
         </div>
       </CardContent>
@@ -915,7 +917,7 @@ function BodMultiFilterRow({
   rows: any[];
   clubs: { clubId: number; clubName: string }[];
   defaultFile: string;
-  baseColumns: { key: string; label: string; width?: number; hyperlink?: boolean; linkText?: string; index?: boolean; format?: (v: any, r: any) => string }[];
+  baseColumns: { key: string; label: string; width?: number; hyperlink?: boolean; linkText?: string; index?: boolean; format?: (v: any, r: any) => string; numeric?: boolean }[];
   onDownload: (rows: any[], filenameBase: string, label: string, columns: typeof baseColumns) => void;
   /** Multi-district ("All Districts") mode: drop the per-club dropdown (keep the designation filter). */
   hideClub?: boolean;
@@ -1155,6 +1157,8 @@ export default function DistrictReportContent({ districtId, initialYearId, servi
   // "(AG Wise)" report rows: hidden on an AG report (redundant) and when the caller
   // asks to hide AG-wise reports (hideAgReports). District-level rows keep using !isAgReport.
   const showAgRows = !isAgReport && !hideAgReports;
+  // Report downloads: progress inside the clicked button, one at a time on this page.
+  const dl = useDownloadProgress();
   const searchParams = useSearchParams();
   const [years, setYears] = useState<any[]>([]);
   const [selectedYearId, setSelectedYearId] = useState<string>("");
@@ -1251,7 +1255,7 @@ export default function DistrictReportContent({ districtId, initialYearId, servi
   // Report title/subtitle scope label — "District 3142" for one district, "All Districts" for the merge.
   const scopeLabel = isMulti ? "All Districts" : `District ${districtNumber}`;
 
-  const exportSection = (data: any[], sectionName: string, columns: { key: string; label: string; width?: number; hyperlink?: boolean; linkText?: string; index?: boolean; format?: (v: any, r: any) => string }[]) => {
+  const exportSection = (data: any[], sectionName: string, columns: { key: string; label: string; width?: number; hyperlink?: boolean; linkText?: string; index?: boolean; format?: (v: any, r: any) => string; numeric?: boolean }[]) => {
     if (!data || data.length === 0) return;
     exportToCSV(data, `${filePrefix}_${sectionName.replace(/\s+/g, "_")}`, injectGeo(columns), {
       title: `${sectionName} | ${scopeLabel}`,
@@ -1267,7 +1271,7 @@ export default function DistrictReportContent({ districtId, initialYearId, servi
   //   All clubs    → District_3142_Members_15-06-2026_22-30-15.xlsx
   //   one club     → Thane_Hills_Members_15-06-2026_22-30-15.xlsx
   //   AG           → AG_R_Sharma_Members_15-06-2026_22-30-15.xlsx
-  const exportWithFilename = (data: any[], baseFile: string, label: string, columns: { key: string; label: string; width?: number; hyperlink?: boolean; linkText?: string; index?: boolean; format?: (v: any, r: any) => string }[], summary?: string) => {
+  const exportWithFilename = (data: any[], baseFile: string, label: string, columns: { key: string; label: string; width?: number; hyperlink?: boolean; linkText?: string; index?: boolean; format?: (v: any, r: any) => string; numeric?: boolean }[], summary?: string) => {
     if (!data || data.length === 0) return;
     const isClubOrAgScoped = baseFile.includes("_") && !baseFile.startsWith(label.replace(/\s+/g, "_"));
     const finalBase = isClubOrAgScoped
@@ -1299,7 +1303,7 @@ export default function DistrictReportContent({ districtId, initialYearId, servi
   };
 
   // Full Members column set (shared by "Members" and "Members (AG wise)").
-  const membersCols: { key: string; label: string; width?: number; hyperlink?: boolean; linkText?: string; index?: boolean; format?: (v: any, r: any) => string }[] = [
+  const membersCols: { key: string; label: string; width?: number; hyperlink?: boolean; linkText?: string; index?: boolean; format?: (v: any, r: any) => string; numeric?: boolean }[] = [
     { key: "srNo", label: "Sr. No.", width: 8, index: true },
     { key: "clubName", label: "Club Name", width: 25 },
     { key: "memberName", label: "Member Name", width: 25 },
@@ -1337,12 +1341,12 @@ export default function DistrictReportContent({ districtId, initialYearId, servi
     { key: "eventName", label: "Event Name", width: 25 },
     { key: "description", label: "Description", width: 30 },
     { key: "eventDateTime", label: "Event Date & Time", width: 20 },
-    { key: "membersCount", label: "Members Count", width: 14 },
-    { key: "annsCount", label: "Anns Count", width: 12 },
-    { key: "annetsCount", label: "Annets Count", width: 12 },
-    { key: "visitorsCount", label: "Visitors Count", width: 14 },
-    { key: "rotariansOtherClubsCount", label: "Rotarians (Other Clubs) Count", width: 22 },
-    { key: "districtDelegatesCount", label: "District Delegates Count", width: 20 },
+    { key: "membersCount", label: "Members Count", width: 14, numeric: true },
+    { key: "annsCount", label: "Anns Count", width: 12, numeric: true },
+    { key: "annetsCount", label: "Annets Count", width: 12, numeric: true },
+    { key: "visitorsCount", label: "Visitors Count", width: 14, numeric: true },
+    { key: "rotariansOtherClubsCount", label: "Rotarians (Other Clubs) Count", width: 22, numeric: true },
+    { key: "districtDelegatesCount", label: "District Delegates Count", width: 20, numeric: true },
   ];
 
   // Full Avenue-of-Service project columns (shared by AG-wise + All-Clubs).
@@ -1357,20 +1361,20 @@ export default function DistrictReportContent({ districtId, initialYearId, servi
     { key: "title", label: "Title", width: 28 },
     { key: "description", label: "Description", width: 36 },
     { key: "location", label: "Project Location", width: 20 },
-    { key: "projectCost", label: "Project Cost", width: 14 },
+    { key: "projectCost", label: "Project Cost", width: 14, numeric: true },
     { key: "funding", label: "Funding", width: 16 },
     { key: "globalGrantNumber", label: "Global Grant No", width: 18 },
     { key: "csrCompanyName", label: "CSR Company", width: 22 },
-    { key: "amountSanctioned", label: "Amount Sanctioned", width: 16 },
-    { key: "amountReceived", label: "Amount Received", width: 16 },
-    { key: "amountSpent", label: "Amount Spent", width: 16 },
+    { key: "amountSanctioned", label: "Amount Sanctioned", width: 16, numeric: true },
+    { key: "amountReceived", label: "Amount Received", width: 16, numeric: true },
+    { key: "amountSpent", label: "Amount Spent", width: 16, numeric: true },
     { key: "hostClubsDistricts", label: "Host Clubs", width: 22 },
     { key: "globalPartners", label: "Global Partner", width: 22 },
-    { key: "directBeneficiaries", label: "Beneficiaries", width: 14 },
-    { key: "manHours", label: "Man Hours", width: 12 },
+    { key: "directBeneficiaries", label: "Beneficiaries", width: 14, numeric: true },
+    { key: "manHours", label: "Man Hours", width: 12, numeric: true },
     { key: "oneTimeOngoing", label: "OneTime/Ongoing", width: 16 },
     { key: "newExisting", label: "New/Existing", width: 14 },
-    { key: "rotariansInvolved", label: "Rotarians Involved", width: 18 },
+    { key: "rotariansInvolved", label: "Rotarians Involved", width: 18, numeric: true },
     { key: "publicPhotoUrl", label: "Images", width: 12, hyperlink: true, linkText: "Images" },
   ];
   // Avenue-of-Service reports (All Clubs / AG Wise / Club Wise Count) are CLUB
@@ -1679,6 +1683,8 @@ export default function DistrictReportContent({ districtId, initialYearId, servi
               title="Club Analytics"
               icon={BarChart3}
               count={clubsDropdown.length}
+              dl={dl}
+              dlKey="club-analytics"
               onExport={async () => {
                 const blob = await downloadClubAnalyticsDistrict(Number(selectedYearId) || undefined, effectiveDistrictId);
                 saveAs(blob, `Club_Analytics_D${districtNumber || ""}_${fileTimestamp()}.xlsx`);
@@ -1802,7 +1808,7 @@ export default function DistrictReportContent({ districtId, initialYearId, servi
                 { key: "trfDate", label: "Date", width: 14 },
                 { key: "donorName", label: "Member Name", width: 25 },
                 { key: "fundName", label: "Fund", width: 20 },
-                { key: "amountUsd", label: "Amount (USD)", width: 15 },
+                { key: "amountUsd", label: "Amount (USD)", width: 15, numeric: true },
               ]}
               onDownload={exportWithFilename}
             />
@@ -1960,18 +1966,18 @@ export default function DistrictReportContent({ districtId, initialYearId, servi
                   { key: "title", label: "Title", width: 28 },
                   { key: "description", label: "Description", width: 40 },
                   { key: "location", label: "Project Location", width: 22 },
-                  { key: "projectCost", label: "Project Cost", width: 14 },
+                  { key: "projectCost", label: "Project Cost", width: 14, numeric: true },
                   { key: "funding", label: "Funding", width: 16 },
                   { key: "globalGrantNumber", label: "Global Grant Number", width: 18 },
                   { key: "csrCompanyName", label: "Name of the CSR Company", width: 22 },
-                  { key: "amountSanctioned", label: "Amount Sanctioned", width: 16 },
-                  { key: "amountReceived", label: "Amount Received", width: 16 },
-                  { key: "amountSpent", label: "Amount spent till date", width: 18 },
+                  { key: "amountSanctioned", label: "Amount Sanctioned", width: 16, numeric: true },
+                  { key: "amountReceived", label: "Amount Received", width: 16, numeric: true },
+                  { key: "amountSpent", label: "Amount spent till date", width: 18, numeric: true },
                   { key: "hostClubsDistricts", label: "Host Clubs/Districts", width: 22 },
                   { key: "globalPartners", label: "Global Partner Clubs/Districts", width: 22 },
-                  { key: "directBeneficiaries", label: "Beneficiaries", width: 14 },
-                  { key: "manHours", label: "Man Hours", width: 12 },
-                  { key: "rotariansInvolved", label: "Rotarians Involved", width: 18 },
+                  { key: "directBeneficiaries", label: "Beneficiaries", width: 14, numeric: true },
+                  { key: "manHours", label: "Man Hours", width: 12, numeric: true },
+                  { key: "rotariansInvolved", label: "Rotarians Involved", width: 18, numeric: true },
                   { key: "publicPhotoUrl", label: "Image", width: 12, hyperlink: true, linkText: "Image" },
                 ])
               }
@@ -2240,6 +2246,7 @@ export default function DistrictReportContent({ districtId, initialYearId, servi
               hidden (hideClubFilter) or in "All Districts" mode. */}
           {!hideClubFilter && !isMulti && (
           <OcvReportRow
+            dl={dl}
             mode="club"
             clubs={clubsDropdown}
             districtId={effectiveDistrictId}
@@ -2252,6 +2259,7 @@ export default function DistrictReportContent({ districtId, initialYearId, servi
           {/* AG Wise — hidden on the AG report + when AG-wise reports are suppressed. */}
           {showAgRows && !isMulti && (
           <OcvReportRow
+            dl={dl}
             mode="ag"
             ags={agsDropdown}
             districtId={effectiveDistrictId}

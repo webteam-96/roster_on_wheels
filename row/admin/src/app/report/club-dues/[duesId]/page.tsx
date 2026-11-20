@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { getClubDuesReport } from "@/services/api";
 import { fileTimestamp, toLocalDateParts } from "@/lib/dateUtils";
+import { getCurrencySymbol } from "@/lib/currency";
 
 import { appLocale, currencySymbol } from "@/lib/appFormat";
 import { SkeletonRows } from "@/components/row/AppKit";
@@ -46,7 +47,7 @@ function onlinePending(c: ReportClub): number {
 const OFFLINE_MODES: Record<string, string> = { "1": "Cash", "2": "Cheque", "3": "NEFT", "4": "UPI", "5": "Other" };
 
 interface ReportData {
-  dues: { purpose: string | null; rotaryYear: string | null; districtNumber: string | null };
+  dues: { purpose: string | null; rotaryYear: string | null; districtNumber: string | null; currency?: string | null };
   clubs: ReportClub[];
 }
 
@@ -193,6 +194,7 @@ export default function ClubDuesReportPage() {
   }
 
   const dues = data.dues || { purpose: null, rotaryYear: null, districtNumber: null };
+  const cur = getCurrencySymbol(dues.currency);
   const clubs = data.clubs || [];
   const totalClubs = clubs.length;
   const fullyPaidClubs = clubs.filter((c) => c.status === "Fully Paid").length;
@@ -220,9 +222,9 @@ export default function ClubDuesReportPage() {
             <span>Clubs: <strong>{totalClubs}</strong></span>
             <span>Fully Paid Clubs: <strong>{fullyPaidClubs}</strong></span>
             <span>Total Members: <strong>{totalMembers}</strong></span>
-            <span>Total Collected: <strong>{currencySymbol()}{fmtAmt(totalCollected)}</strong></span>
-            <span>Collected via Offline: <strong>{currencySymbol()}{fmtAmt(totalOfflineCollected)}</strong></span>
-            <span>Collected via Online: <strong>{currencySymbol()}{fmtAmt(totalOnlineCollected)}</strong></span>
+            <span>Total Collected: <strong>{cur}{fmtAmt(totalCollected)}</strong></span>
+            <span>Collected via Offline: <strong>{cur}{fmtAmt(totalOfflineCollected)}</strong></span>
+            <span>Collected via Online: <strong>{cur}{fmtAmt(totalOnlineCollected)}</strong></span>
           </div>
         </div>
       </div>
@@ -285,15 +287,15 @@ export default function ClubDuesReportPage() {
                       {!c.isSyncedFromRotaryOrg && <span className="ml-2 text-xs rounded bg-amber-100 text-amber-700 px-1.5 py-0.5">non-sync</span>}
                     </td>
                     <td className="px-3 py-2.5 whitespace-nowrap text-center">{c.memberCount}</td>
-                    <td className="px-3 py-2.5 whitespace-nowrap text-right">{offAmounts ? `${currencySymbol()}${fmtAmt(offAmounts[0])}` : "-"}</td>
-                    <td className="px-3 py-2.5 whitespace-nowrap text-right">{offAmounts ? `${currencySymbol()}${fmtAmt(offAmounts[1])}` : "-"}</td>
-                    <td className="px-3 py-2.5 whitespace-nowrap text-right">{offAmounts ? `${currencySymbol()}${fmtAmt(offAmounts[2])}` : "-"}</td>
-                    <td className="px-3 py-2.5 whitespace-nowrap text-right">{offAmounts ? `${currencySymbol()}${fmtAmt(offAmounts[3])}` : "-"}</td>
-                    <td className="px-3 py-2.5 whitespace-nowrap text-right">{onAmounts ? `${currencySymbol()}${fmtAmt(onAmounts[0])}` : "-"}</td>
-                    <td className="px-3 py-2.5 whitespace-nowrap text-right">{onAmounts ? `${currencySymbol()}${fmtAmt(onAmounts[1])}` : "-"}</td>
-                    <td className="px-3 py-2.5 whitespace-nowrap text-right">{onAmounts ? `${currencySymbol()}${fmtAmt(onAmounts[2])}` : "-"}</td>
-                    <td className="px-3 py-2.5 whitespace-nowrap text-right">{onAmounts ? `${currencySymbol()}${fmtAmt(onAmounts[3])}` : "-"}</td>
-                    <td className="px-3 py-2.5 whitespace-nowrap text-right">{currencySymbol()}{fmtAmt(totalPaid(c))}</td>
+                    <td className="px-3 py-2.5 whitespace-nowrap text-right">{offAmounts ? `${cur}${fmtAmt(offAmounts[0])}` : "-"}</td>
+                    <td className="px-3 py-2.5 whitespace-nowrap text-right">{offAmounts ? `${cur}${fmtAmt(offAmounts[1])}` : "-"}</td>
+                    <td className="px-3 py-2.5 whitespace-nowrap text-right">{offAmounts ? `${cur}${fmtAmt(offAmounts[2])}` : "-"}</td>
+                    <td className="px-3 py-2.5 whitespace-nowrap text-right">{offAmounts ? `${cur}${fmtAmt(offAmounts[3])}` : "-"}</td>
+                    <td className="px-3 py-2.5 whitespace-nowrap text-right">{onAmounts ? `${cur}${fmtAmt(onAmounts[0])}` : "-"}</td>
+                    <td className="px-3 py-2.5 whitespace-nowrap text-right">{onAmounts ? `${cur}${fmtAmt(onAmounts[1])}` : "-"}</td>
+                    <td className="px-3 py-2.5 whitespace-nowrap text-right">{onAmounts ? `${cur}${fmtAmt(onAmounts[2])}` : "-"}</td>
+                    <td className="px-3 py-2.5 whitespace-nowrap text-right">{onAmounts ? `${cur}${fmtAmt(onAmounts[3])}` : "-"}</td>
+                    <td className="px-3 py-2.5 whitespace-nowrap text-right">{cur}{fmtAmt(totalPaid(c))}</td>
                     <td className="px-3 py-2.5 whitespace-nowrap text-center">
                       <span className={`text-xs font-medium px-2 py-0.5 rounded ${statusClasses(c.status)}`}>{reportStatus(c.status) || "-"}</span>
                     </td>
@@ -313,7 +315,7 @@ export default function ClubDuesReportPage() {
 
         {clubs.length > 0 && (
           <div className="mt-4 text-right text-sm text-gray-600">
-            Showing {totalClubs} club{totalClubs !== 1 ? "s" : ""} | Fully Paid: {fullyPaidClubs} | Total Members: {totalMembers} | Total Collected: {currencySymbol()}{fmtAmt(totalCollected)}
+            Showing {totalClubs} club{totalClubs !== 1 ? "s" : ""} | Fully Paid: {fullyPaidClubs} | Total Members: {totalMembers} | Total Collected: {cur}{fmtAmt(totalCollected)}
           </div>
         )}
       </div>

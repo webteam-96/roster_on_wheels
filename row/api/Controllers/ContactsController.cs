@@ -49,10 +49,10 @@ public class ContactsController : ControllerBase
 
     [HttpGet("contacts")]
     public async Task<ActionResult> List(string scope, int ownerId, [FromQuery] string? search, [FromQuery] string? type,
-        [FromQuery] int? groupId, [FromQuery] int page = 1, [FromQuery] int pageSize = 50)
+        [FromQuery] int? groupId, [FromQuery] int page = 1, [FromQuery] int pageSize = 50, [FromQuery] int? tagId = null)
     {
         if (await DenyReadAsync(scope, ownerId) is { } deny) return deny;
-        return Ok(await _service.ListAsync(Owner(scope, ownerId), search, type, groupId, page, pageSize));
+        return Ok(await _service.ListAsync(Owner(scope, ownerId), search, type, groupId, page, pageSize, tagId));
     }
 
     [HttpPost("contacts")]

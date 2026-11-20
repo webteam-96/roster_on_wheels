@@ -340,7 +340,7 @@ public partial class GoalSettingService
                 var mm = Metric(bi, cat, m.FieldKey);
                 if (single)
                 {
-                    if (mm?.DisplayText != null) { c.Value = mm.DisplayText; c.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center; }
+                    if (mm?.DisplayText != null) { ExcelFigure.Set(c, mm.DisplayText); c.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center; }
                     else SetNumCell(c, mm?.Target);
                     continue;
                 }

@@ -23,6 +23,8 @@ import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import "react-quill-new/dist/quill.snow.css";
 import { fileTimestamp } from "@/lib/dateUtils";
 
+import { useClubGoalPercents, goalRagClass, fmtGoalPct } from "@/components/awards/GoalAchievement";
+
 const ReactQuill = dynamic(() => import("react-quill-new"), { ssr: false });
 
 const CITATION_DESC_MAX_CHARS = 1000;
@@ -97,7 +99,12 @@ function BonusFieldsInner({ form, setField }: { form: any; setField: (f: string,
   );
 }
 
-export default function DistrictAwardsModule({ districtId }: { districtId: number }) {
+// rotarySections (new "RCC & District Goals" page only, user 2026-11-16): the Category dropdown of a new
+// question also lists these Rotary.org section names; picking one the district does not have yet creates
+// it as a category of the year on Add. E-Governance passes nothing, so it is unchanged.
+const RCC_PREFIX = "rcc:";
+
+export default function DistrictAwardsModule({ districtId, rotarySections }: { districtId: number; rotarySections?: string[] }) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -137,6 +144,8 @@ export default function DistrictAwardsModule({ districtId }: { districtId: numbe
   const [selectedYearId, setSelectedYearId] = useState<number | null>(null);
   const [currentYearId, setCurrentYearId] = useState<number | null>(null);
   const isCurrentYear = selectedYearId === currentYearId;
+  // Each club's Goal Setting % next to its award points - view only (user 2026-11-10).
+  const clubGoals = useClubGoalPercents(districtId, selectedYearId);
   // Start-year from a "2025-26" label; used to classify selected vs current year.
   const startYearOf = (y: any): number => { const m = /(\d{4})/.exec(String(y?.yearLabel || y?.YearLabel || "")); return m ? Number(m[1]) : 0; };
   const selMeta = yearsMeta.find((y: any) => y.id === selectedYearId);
@@ -181,6 +190,21 @@ export default function DistrictAwardsModule({ districtId }: { districtId: numbe
   const [manualForm, setManualForm] = useState<any>({ categoryId: "", criteriaName: "", sortOrder: "0", subCriteria: [] });
   const [manualSaving, setManualSaving] = useState(false);
   const [deleteManual, setDeleteManual] = useState<any>(null);
+
+  // Rotary.org sections the district has no category for yet (shown first in the Category dropdown).
+  const missingSections = (rotarySections ?? []).filter(
+    (n) => !categories.some((c: any) => (c.categoryName || "").trim().toLowerCase() === n.toLowerCase()));
+  const sectionItems = missingSections.map((n) => <SelectItem key={RCC_PREFIX + n} value={RCC_PREFIX + n}>{n}</SelectItem>);
+  // The chosen category id; a Rotary.org section not yet a category is created first.
+  const resolveCategoryId = async (value: string): Promise<number> => {
+    if (!value.startsWith(RCC_PREFIX)) return Number(value);
+    const name = value.slice(RCC_PREFIX.length);
+    const res: any = await createCitationCategory(districtId, { yearId: selectedYearId, categoryName: name, sortOrder: (rotarySections ?? []).indexOf(name) + 1 });
+    fetchCategories();
+    return Number(res?.id);
+  };
+  const categoryNameOf = (value: string) => value.startsWith(RCC_PREFIX) ? value.slice(RCC_PREFIX.length)
+    : categories.find((c: any) => String(c.id) === value)?.categoryName || "";
 
   // Club Points
   const [clubPoints, setClubPoints] = useState<any[]>([]);
@@ -384,7 +408,7 @@ export default function DistrictAwardsModule({ districtId }: { districtId: numbe
     setAutoSaving(true);
     try {
       const payload = {
-        yearId: selectedYearId, categoryId: Number(autoForm.categoryId), activityId: Number(autoForm.activityId),
+        yearId: selectedYearId, categoryId: await resolveCategoryId(autoForm.categoryId), activityId: Number(autoForm.activityId),
         points: Number(autoForm.points) || 0, isBonus: autoForm.isBonus, bonusPoints: Number(autoForm.bonusPoints) || 0,
         minBonus: Number(autoForm.minBonus) || 0, maxBonus: Number(autoForm.maxBonus) || 0, sortOrder: Number(autoForm.sortOrder) || 0,
         subItems: autoForm.subItems.map((s: any) => ({ subItemType: s.subItemType, subItemId: s.subItemId || null, subItemName: s.subItemName || null,
@@ -444,8 +468,9 @@ export default function DistrictAwardsModule({ districtId }: { districtId: numbe
 
   // ── Manual Criteria CRUD ──
   const openAddManual = () => { setEditingManual(null); setManualForm({ categoryId: "", sortOrder: "0", subCriteria: [] }); setManualDialogOpen(true); };
-  const normalizeManualAnswerType = (raw: any, hasOptions: boolean): "number" | "yesno" | "choose_one" => {
+  const normalizeManualAnswerType = (raw: any, hasOptions: boolean): "number" | "yesno" | "choose_one" | "text" => {
     const r = String(raw ?? "").toLowerCase().trim().replace(/[\s_\-/]/g, "");
+    if (r === "text") return "text";   // District Goals only (user 2026-11-16)
     if (r === "yesno" || r === "yn" || r === "boolean" || r === "bool" || r === "yes" || r === "no") return "yesno";
     if (r === "chooseone" || r === "choose" || r === "select" || r === "option" || r === "options" || r === "radio" || hasOptions) return "choose_one";
     return "number";
@@ -470,7 +495,7 @@ export default function DistrictAwardsModule({ districtId }: { districtId: numbe
     for (let i = 0; i < manualForm.subCriteria.length; i++) {
       const sc = manualForm.subCriteria[i];
       if (!sc.subCriteriaTitle?.trim()) { setErrorMessage(`Sub Criteria #${i + 1}: Title is required.`); return; }
-      if ((sc.answerType === "number" || sc.answerType === "yesno") && (!sc.points || Number(sc.points) <= 0)) { setErrorMessage(`Sub Criteria #${i + 1}: Points is required.`); return; }
+      if (!rotarySections && (sc.answerType === "number" || sc.answerType === "yesno") && (!sc.points || Number(sc.points) <= 0)) { setErrorMessage(`Sub Criteria #${i + 1}: Points is required.`); return; }
       if (sc.answerType === "choose_one") {
         if (sc.options.length === 0) { setErrorMessage(`Sub Criteria #${i + 1}: Add at least one option.`); return; }
         for (let j = 0; j < sc.options.length; j++) {
@@ -481,7 +506,7 @@ export default function DistrictAwardsModule({ districtId }: { districtId: numbe
     setManualSaving(true);
     try {
       const payload = {
-        yearId: selectedYearId, categoryId: Number(manualForm.categoryId), criteriaName: categories.find((c: any) => String(c.id) === manualForm.categoryId)?.categoryName || "", sortOrder: Number(manualForm.sortOrder) || 0,
+        yearId: selectedYearId, criteriaName: categoryNameOf(manualForm.categoryId), categoryId: await resolveCategoryId(manualForm.categoryId), sortOrder: Number(manualForm.sortOrder) || 0,
         subCriteria: manualForm.subCriteria.map((sc: any) => ({
           subCriteriaTitle: sc.subCriteriaTitle, answerType: sc.answerType,
           points: Number(sc.points) || 0, isBonus: sc.isBonus, bonusPoints: Number(sc.bonusPoints) || 0, minBonus: Number(sc.minBonus) || 0, maxBonus: Number(sc.maxBonus) || 0,
@@ -850,12 +875,15 @@ export default function DistrictAwardsModule({ districtId }: { districtId: numbe
                         <TableHead className="text-slate-600 w-14 text-xs font-semibold uppercase tracking-wider">#</TableHead>
                         <TableHead className="text-slate-600 text-xs font-semibold uppercase tracking-wider">Club</TableHead>
                         <TableHead className="text-slate-600 text-center text-xs font-semibold uppercase tracking-wider">Total Points</TableHead>
+                        {clubGoals.columns.map((g) => (
+                          <TableHead key={g.key} className="text-slate-600 text-center text-xs font-semibold uppercase tracking-wider" title="Goal achievement % from Goal Setting - view only, not part of the award points">{g.label} %</TableHead>
+                        ))}
                         <TableHead className="text-slate-600 text-center w-32 text-xs font-semibold uppercase tracking-wider">Action</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {clubPoints.length === 0 ? (
-                        <TableRow><TableCell colSpan={4} className="text-center py-8 text-slate-400 text-sm">No club data</TableCell></TableRow>
+                        <TableRow><TableCell colSpan={4 + clubGoals.columns.length} className="text-center py-8 text-slate-400 text-sm">No club data</TableCell></TableRow>
                       ) : clubPoints.map((c: any, i: number) => {
                         const total = Math.round(Number(c.totalPoints) || 0);
                         const isTop3 = i < 3;
@@ -878,6 +906,14 @@ export default function DistrictAwardsModule({ districtId }: { districtId: numbe
                                 {fmtInt(total)}
                               </span>
                             </TableCell>
+                            {clubGoals.columns.map((g) => {
+                              const p = clubGoals.byClub[c.clubId]?.[g.key] ?? null;
+                              return (
+                                <TableCell key={g.key} className="text-center">
+                                  <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-semibold tabular-nums ring-1 ${goalRagClass(p)}`}>{fmtGoalPct(p, g.categoryId)}</span>
+                                </TableCell>
+                              );
+                            })}
                             <TableCell className="text-center">
                               <Button variant="ghost" size="icon" title="View" onClick={() => setViewClub({ id: c.clubId, name: c.clubName })}>
                                 <Eye className="h-4 w-4" />
@@ -923,7 +959,7 @@ export default function DistrictAwardsModule({ districtId }: { districtId: numbe
             <div><Label>Category *</Label>
               <Select value={autoForm.categoryId} onValueChange={v => setAutoForm((p: any) => ({ ...p, categoryId: v }))}>
                 <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
-                <SelectContent>{categories.map((c: any) => <SelectItem key={c.id} value={String(c.id)}>{c.categoryName}</SelectItem>)}</SelectContent>
+                <SelectContent>{sectionItems}{categories.map((c: any) => <SelectItem key={c.id} value={String(c.id)}>{c.categoryName}</SelectItem>)}</SelectContent>
               </Select>
             </div>
             <div><Label>Activity *</Label>
@@ -1044,7 +1080,7 @@ export default function DistrictAwardsModule({ districtId }: { districtId: numbe
           <div><Label>Category *</Label>
             <Select value={manualForm.categoryId} onValueChange={v => setManualForm((p: any) => ({ ...p, categoryId: v }))}>
               <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
-              <SelectContent>{categories.filter((c: any) => {
+              <SelectContent>{sectionItems}{categories.filter((c: any) => {
                 const usedCatIds = manualCriteria.filter((mc: any) => !editingManual || mc.id !== editingManual.id).map((mc: any) => mc.categoryId);
                 return !usedCatIds.includes(c.id);
               }).map((c: any) => <SelectItem key={c.id} value={String(c.id)}>{c.categoryName}</SelectItem>)}</SelectContent>
@@ -1072,10 +1108,12 @@ export default function DistrictAwardsModule({ districtId }: { districtId: numbe
                         <SelectItem value="number">Number</SelectItem>
                         <SelectItem value="yesno">Yes/No</SelectItem>
                         <SelectItem value="choose_one">Choose One</SelectItem>
+                        {/* Text answer (no points) - District Goals only (user 2026-11-16). */}
+                        {(rotarySections || sc.answerType === "text") && <SelectItem value="text">Text</SelectItem>}
                       </SelectContent>
                     </Select>
                   </div>
-                  {sc.answerType !== "choose_one" && <div><Label className="text-xs">Points</Label><Input type="number" step="1" className="h-8" value={sc.points} onChange={e => updateManualSub(i, "points", intOnly(e.target.value))} /></div>}
+                  {sc.answerType !== "choose_one" && sc.answerType !== "text" && <div><Label className="text-xs">Points</Label><Input type="number" step="1" className="h-8" value={sc.points} onChange={e => updateManualSub(i, "points", intOnly(e.target.value))} /></div>}
                 </div>
                 {sc.answerType === "number" && <BonusFields form={sc} setField={(f, v) => updateManualSub(i, f, v)} />}
                 {sc.answerType === "choose_one" && (

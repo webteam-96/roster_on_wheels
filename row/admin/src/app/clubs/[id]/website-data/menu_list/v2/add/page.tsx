@@ -26,7 +26,9 @@ import {
   getClub,
   getClubMenus,
   uploadMenuDocument,
+  getWebsitePages,
 } from "@/services/api";
+import { customPageMenuOptions } from "@/lib/websiteBuilder";
 import { LINK_TYPES } from "@/types/menu";
 import V2FormShell, { useV2ReturnTo } from "@/components/v2/V2FormShell";
 import ClubAdminShell from "@/components/v2/ClubAdminShell";
@@ -100,9 +102,10 @@ export default function MenuListV2AddPage() {
     let cancelled = false;
     async function init() {
       try {
-        const [club, menus] = await Promise.all([
+        const [club, menus, sitePages] = await Promise.all([
           getClub(clubId),
           getClubMenus(clubId),
+          getWebsitePages("clubs", clubId).catch(() => []),
         ]);
         if (cancelled) return;
         setClubName(club.clubName);
@@ -110,10 +113,12 @@ export default function MenuListV2AddPage() {
         setCustomMenuExists(custom >= 1);
         // "Page" link type can only point at an EXISTING website page — offer the club's
         // seeded default pages (value = link_value, label = menu name).
-        setPageOptions(
-          menus.filter((m) => m.isDefault && m.linkValue)
+        // ...plus published custom pages from Pages and Layout (website builder).
+        setPageOptions([
+          ...menus.filter((m) => m.isDefault && m.linkValue)
                .map((m) => ({ value: m.linkValue, label: m.menuName })),
-        );
+          ...customPageMenuOptions(sitePages),
+        ]);
         // Default sort order = end of list
         setFormSortOrder(menus.length + 1);
       } catch (err: unknown) {

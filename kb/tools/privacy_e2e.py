@@ -135,7 +135,9 @@ try:
     # Erasure (WS7-03): DA requests, the same DA cannot approve, a second DA approves
     s, d = call("POST", f"/api/privacy/members/{member}/erase", pat, {"reason": "test"})
     check("member cannot erase", s == 403)
-    s, d = call("POST", f"/api/privacy/members/{member}/erase", da1, {"reason": reason})
+    s, d = call("POST", f"/api/privacy/members/{member}/erase", da1, {"reason": reason, "confirm": "not the name"})
+    check("erasure without the typed name is refused", s == 400, (s, d))
+    s, d = call("POST", f"/api/privacy/members/{member}/erase", da1, {"reason": reason, "confirm": name})
     check("DA erasure waits for approval", s == 200 and d["status"] == "awaiting_approval", (s, (d or {}).get("status")))
     rid = d.get("id") if isinstance(d, dict) else None
     s, _ = call("POST", f"/api/privacy/requests/{rid}/approve", da1)

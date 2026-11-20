@@ -18,11 +18,13 @@ public class VolunteersController : ControllerBase
 {
     private const string Club = "api/clubs/{clubId:int}/volunteer-sheets";
     private readonly VolunteerService _volunteers;
+    private readonly VolunteerExtrasService _extras;
     private readonly string _connectionString;
 
-    public VolunteersController(VolunteerService volunteers, IConfiguration configuration)
+    public VolunteersController(VolunteerService volunteers, VolunteerExtrasService extras, IConfiguration configuration)
     {
         _volunteers = volunteers;
+        _extras = extras;
         _connectionString = configuration.GetConnectionString("DefaultConnection")!;
     }
 
@@ -94,6 +96,7 @@ public class VolunteersController : ControllerBase
         if (await _volunteers.OpenSlotClubAsync(slotId) is not int clubId) return NotFound(new { message = "Slot not found." });
         if (!await _volunteers.IsActiveMemberAsync(MemberId, clubId)) return StatusCode(403, new { message = "Only members of the club can sign up here." });
         await _volunteers.MemberSignupAsync(MemberId, slotId);
+        await _extras.SendConfirmationAsync(slotId, MemberId, null);
         return NoContent();
     }
 
@@ -116,6 +119,8 @@ public class VolunteersController : ControllerBase
         const string thanks = "Thank you, you are signed up. You will get a reminder by email before your slot.";
         // honeypot: only a bot fills the hidden field; it gets the usual answer and nothing is stored
         if (!string.IsNullOrEmpty(dto.Website)) return Ok(new { message = thanks });
-        return await _volunteers.PublicSignupAsync(token, dto) ? Ok(new { message = thanks }) : NotFound(new { message = "This sign-up sheet is not open." });
+        if (!await _volunteers.PublicSignupAsync(token, dto)) return NotFound(new { message = "This sign-up sheet is not open." });
+        await _extras.SendConfirmationAsync(dto.SlotId, null, dto.Email);
+        return Ok(new { message = thanks });
     }
 }

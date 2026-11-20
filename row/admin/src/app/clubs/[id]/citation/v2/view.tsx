@@ -75,8 +75,9 @@ function isNegativeAnswer(value: string | undefined): boolean {
   return v !== "" && v !== "-" && Number(v) < 0;
 }
 
-function normalizeAnswerType(sc: { answerType?: unknown; options?: unknown }): "number" | "yesno" | "choose_one" {
+function normalizeAnswerType(sc: { answerType?: unknown; options?: unknown }): "number" | "yesno" | "choose_one" | "text" {
   const raw = String(sc.answerType ?? "").toLowerCase().trim().replace(/[\s_-]/g, "");
+  if (raw === "text") return "text";   // District Goals text answer, no points (user 2026-11-16)
   if (raw === "yesno" || raw === "yn" || raw === "boolean" || raw === "bool" || raw === "yes" || raw === "no") return "yesno";
   if (raw === "chooseone" || raw === "choose" || raw === "select" || raw === "option" || raw === "options" || raw === "radio" || (Array.isArray(sc.options) && sc.options.length > 0)) return "choose_one";
   return "number"; // Fallback for "number", blank, or unknown
@@ -753,6 +754,19 @@ function ManualRow({
           </div>
           <span className="text-xs text-slate-500">{fmtInt(Number(sc.points))} if Yes</span>
         </div>
+      )}
+
+      {normalizedType === "text" && (
+        <textarea
+          id={`award-answer-${sc.id}`}
+          rows={2}
+          maxLength={500}
+          value={answer.value}
+          onChange={(e) => onChange(sc.id, e.target.value, sc)}
+          disabled={!canManage}
+          placeholder="Type your answer..."
+          className="w-full px-3 py-1.5 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-slate-50 disabled:text-slate-500 disabled:cursor-not-allowed resize-y"
+        />
       )}
 
       {normalizedType === "choose_one" && (

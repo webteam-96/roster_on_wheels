@@ -17,7 +17,8 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { useAuth } from "@/contexts/AuthContext";
 import LanguagePicker from "@/components/LanguagePicker";
 import BrandLogo from "@/components/BrandLogo";
-import { requestExecutiveCode, verifyExecutiveCode, resolveDashboardLanding } from "@/services/api";
+import { requestExecutiveCode, verifyExecutiveCode, resolveDashboardLanding, type MfaLoginResponse } from "@/services/api";
+import MfaSignInStep from "@/components/MfaSignInStep";
 
 function apiMessage(e: unknown, fallback: string): string {
   return (e as { response?: { data?: { message?: string } } })?.response?.data?.message || fallback;
@@ -32,6 +33,8 @@ export default function ExecutiveSignInPage() {
   const [info, setInfo] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
+  // Account security: the emailed code is the first factor; an account with MFA then asks for its app code.
+  const [mfa, setMfa] = useState<{ token: string; setupRequired: boolean } | null>(null);
 
   const sendCode = async (e?: React.FormEvent) => {
     e?.preventDefault();
@@ -53,7 +56,20 @@ export default function ExecutiveSignInPage() {
     setError("");
     setBusy(true);
     try {
-      const response = await verifyExecutiveCode(email.trim(), code.trim());
+      await finish(await verifyExecutiveCode(email.trim(), code.trim()));
+    } catch (err) {
+      setError(apiMessage(err, "That code did not work. Try again."));
+      setBusy(false);
+    }
+  };
+
+  const finish = async (response: MfaLoginResponse) => {
+    if (response.mfaRequired && response.mfaToken) {
+      setMfa({ token: response.mfaToken, setupRequired: !!response.mfaSetupRequired });
+      setBusy(false);
+      return;
+    }
+    {
       login(
         response.token,
         {
@@ -78,9 +94,6 @@ export default function ExecutiveSignInPage() {
         }
       } catch { /* land on home */ }
       router.replace(landingRoute);
-    } catch (err) {
-      setError(apiMessage(err, "That code did not work. Try again."));
-      setBusy(false);
     }
   };
 
@@ -99,7 +112,11 @@ export default function ExecutiveSignInPage() {
           </p>
         </CardHeader>
         <CardContent className="px-7 pb-7 pt-6">
-          {!codeSent ? (
+          {mfa ? (
+            <MfaSignInStep mfaToken={mfa.token} setupRequired={mfa.setupRequired}
+              onSignedIn={(res) => { void finish(res); }}
+              onCancel={() => { setMfa(null); setCodeSent(false); setCode(""); }} />
+          ) : !codeSent ? (
             <form onSubmit={sendCode} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>

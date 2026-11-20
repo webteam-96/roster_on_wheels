@@ -13,9 +13,11 @@ public class ExecutiveSignInController : ControllerBase
 {
     private readonly ExecutiveSignInService _signIn;
     private readonly IAuthService _auth;
+    private readonly AccountSecurityService _accountSecurity;
 
-    public ExecutiveSignInController(ExecutiveSignInService signIn, IAuthService auth)
+    public ExecutiveSignInController(ExecutiveSignInService signIn, IAuthService auth, AccountSecurityService accountSecurity)
     {
+        _accountSecurity = accountSecurity;
         _signIn = signIn;
         _auth = auth;
     }
@@ -43,10 +45,14 @@ public class ExecutiveSignInController : ControllerBase
         try
         {
             var memberId = await _signIn.VerifyCodeAsync(req.Email, req.Code);
+            // Account security (gap agent): an emailed code is a first factor only; MFA still applies.
+            var mfa = await _accountSecurity.WebLoginGateAsync(memberId);
+            if (mfa != null) return Ok(new RotaryApi.DTOs.LoginResponseDto { MfaRequired = true, MfaToken = mfa.MfaToken, MfaSetupRequired = mfa.MfaSetupRequired });
             var session = await _auth.BuildSessionForMemberAsync(memberId);
             return session == null ? StatusCode(403, new { message = "Your account cannot sign in." }) : Ok(session);
         }
         catch (UnauthorizedAccessException ex) { return Unauthorized(new { message = ex.Message }); }
+        catch (ClubAdminLimitException ex) { return Conflict(new { message = ex.Message }); }
         catch (InvalidOperationException ex) { return BadRequest(new { message = ex.Message }); }
     }
 }

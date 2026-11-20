@@ -40,6 +40,14 @@ public class ClubDuesController : ControllerBase
 
     private ObjectResult Denied() => StatusCode(403, new { message = "Access denied." });
 
+    // Email / WhatsApp / currency flags are Super Admin only (user 2026-11-09): anyone else's values are
+    // dropped, so an admin save keeps what Super Admin set (a new dues gets email on + the district currency).
+    private void KeepSuperAdminFlags(CreateClubDuesDto dto)
+    {
+        if (User.FindFirst("roles")?.Value?.Contains("SuperAdmin") == true) return;
+        dto.NotifyEmail = null; dto.Currency = null;
+    }
+
     // A member may pay for a club only if they are its President / Secretary /
     // Treasurer in the CURRENT rotary year (matched by designation NAME), and only
     // for a campaign of the club's own district (else any officer could open another
@@ -131,6 +139,7 @@ public class ClubDuesController : ControllerBase
         if (denied != null) return denied;
 
         if (!IsSuperAdmin()) return Denied();
+        KeepSuperAdminFlags(dto);
         try
         {
             var id = await _service.CreateAsync(dto, logo, bgImage, emailLogo, GetUserId(), _env);
@@ -149,6 +158,7 @@ public class ClubDuesController : ControllerBase
         if (denied != null) return denied;
 
         if (!IsSuperAdmin()) return Denied();
+        KeepSuperAdminFlags(dto);
         await _service.UpdateAsync(id, dto, logo, bgImage, emailLogo, GetUserId(), _env);
         return Ok(new { message = "Updated." });
     }
@@ -253,7 +263,8 @@ public class ClubDuesController : ControllerBase
         if (denied != null) return denied;
 
         if (!IsSuperAdmin()) return Denied();
-        await _service.SendReceiptEmailAsync(paymentId);
+        try { await _service.SendReceiptEmailAsync(paymentId); }
+        catch (InvalidOperationException ex) { return BadRequest(new { message = ex.Message }); }
         return Ok(new { message = "Receipt sent." });
     }
 
@@ -330,6 +341,7 @@ public class ClubDuesController : ControllerBase
         if (denied != null) return denied;
 
         if (!IsSuperAdmin() && !await IsDistrictAdminForDuesAsync(GetUserId(), id)) return Denied();
+        if (!await _service.EmailOnAsync(id)) return BadRequest(new { message = "Email is switched off for this dues." });
         await _service.BulkSendReminderEmailAsync(id, dto.Remark);
         return Ok(new { message = "Reminders sent." });
     }
@@ -341,6 +353,7 @@ public class ClubDuesController : ControllerBase
         if (denied != null) return denied;
 
         if (!IsSuperAdmin() && !await IsDistrictAdminForDuesAsync(GetUserId(), id)) return Denied();
+        if (!await _service.EmailOnAsync(id)) return BadRequest(new { message = "Email is switched off for this dues." });
         await _service.SendReminderEmailAsync(id, clubId, dto.Remark);
         return Ok(new { message = "Reminder sent." });
     }
@@ -552,7 +565,7 @@ public class ClubDuesController : ControllerBase
         {
             var byDistrict = await conn.QueryAsync<ClubDuesListDto>($@"
                 SELECT cd.pk_club_dues_id AS Id, d.DistrictNumber, cd.RotaryYear, cd.Purpose,
-                       cd.DefaultPerMemberRate, cd.IsActive, cd.created_date AS CreatedDate
+                       cd.DefaultPerMemberRate, cd.IsActive, cd.created_date AS CreatedDate, cd.Currency
                 FROM club_dues cd
                 LEFT JOIN district_master d ON cd.fk_district_id = d.pk_district_id
                 WHERE cd.isdeleted = 0 AND cd.fk_district_id = @DistrictId
@@ -564,7 +577,7 @@ public class ClubDuesController : ControllerBase
         // Fallback: campaigns for the signed-in member's own district-admin role(s).
         var rows = await conn.QueryAsync<ClubDuesListDto>($@"
             SELECT cd.pk_club_dues_id AS Id, d.DistrictNumber, cd.RotaryYear, cd.Purpose,
-                   cd.DefaultPerMemberRate, cd.IsActive, cd.created_date AS CreatedDate
+                   cd.DefaultPerMemberRate, cd.IsActive, cd.created_date AS CreatedDate, cd.Currency
             FROM club_dues cd
             JOIN member_roles mr ON mr.fk_district_id = cd.fk_district_id
             LEFT JOIN district_master d ON cd.fk_district_id = d.pk_district_id

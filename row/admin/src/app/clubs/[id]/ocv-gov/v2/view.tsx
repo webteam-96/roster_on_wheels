@@ -37,6 +37,7 @@ import {
 } from "@/components/icons";
 import type { LucideIcon } from "@/components/icons";
 import { getClub, getTrfYears } from "@/services/api";
+import ClubGoalScorecard from "@/components/goal-rotary/ClubGoalScorecard";
 import type { ReportYear } from "@/types/clubMonthlyReport";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import ErrorAlert from "@/components/ErrorAlert";
@@ -304,18 +305,20 @@ export function OcvGovV2View({ clubId: propClubId, embedded = false, yearId: glo
         {!loading && (
           <>
             {/* Context banner */}
-            <div className="rounded-2xl border border-slate-200 bg-azure/[0.04] p-5">
-              <div className="flex items-start justify-between gap-3 flex-wrap">
-                <div>
-                  <p className="text-xs font-medium text-slate-500 uppercase tracking-wide">RY {yearLabel}</p>
-                  <p className="text-base font-semibold text-slate-800 mt-0.5">Document compliance hub</p>
-                  <p className="text-xs text-slate-500 mt-1 max-w-xl">
-                    Upload, review and generate documents required for the Official Club Visit and Governor&apos;s Official Visit. Use the categories below or jump straight to the compliance report.
-                  </p>
-                </div>
+            {/* One line, low height (RIZones 2026-11-12). */}
+            <div className="rounded-xl border border-slate-200 bg-azure/[0.04] px-4 py-2">
+              <div className="flex items-center justify-between gap-3">
+                <p className="min-w-0 truncate text-xs text-slate-500"
+                  title="Upload, review and generate documents required for the Official Club Visit and Governor's Official Visit. Use the categories below or jump straight to the compliance report.">
+                  <span className="font-medium uppercase tracking-wide">RY {yearLabel}</span>
+                  <span className="mx-1.5 text-slate-300">·</span>
+                  <span className="text-sm font-semibold text-slate-800">Document compliance hub</span>
+                  <span className="mx-1.5 text-slate-300">·</span>
+                  Upload, review and generate documents required for the Official Club Visit and Governor&apos;s Official Visit. Use the categories below or jump straight to the compliance report.
+                </p>
                 <LoadingLink
                   href={reportHref}
-                  className={`inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-2 rounded-lg border transition ${
+                  className={`shrink-0 inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg border transition ${
                     hasNoYear
                       ? "border-slate-200 text-slate-400 pointer-events-none"
                       : "border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100"
@@ -326,6 +329,10 @@ export function OcvGovV2View({ clubId: propClubId, embedded = false, yearId: glo
                 </LoadingLink>
               </div>
             </div>
+
+            {/* "Club Goals at a glance" - view only, only in the dashboard OCV tab (user 2026-11-12), above Categories. Loaded
+                fresh from Club Goals each time, so a change there shows here too. */}
+            {embedded && selectedYearId && <ClubGoalScorecard clubId={clubId} yearId={selectedYearId} />}
 
             {/* 8-card grid */}
             <div className="bg-card rounded-2xl border border-slate-200 p-5">
@@ -372,6 +379,7 @@ export function OcvGovV2View({ clubId: propClubId, embedded = false, yearId: glo
                 })}
               </div>
             </div>
+
           </>
         )}
 

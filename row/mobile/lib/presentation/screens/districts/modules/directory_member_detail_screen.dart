@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../../core/constants/api_constants.dart';
 import '../../../../core/network/api_client.dart';
+import '../../../../core/network/api_exceptions.dart';
 import '../../../../core/utils/maps_utils.dart';
 import '../../../../core/routing/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -212,6 +213,55 @@ class _DirectoryMemberDetailScreenState
       setState(() => _togglingAdmin = false);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Failed: $e'), backgroundColor: AppColors.error),
+      );
+    }
+  }
+
+  /// Club leader sends this member the standard password-reset email (link to
+  /// the member's own address). The leader never sees or sets the password;
+  /// the API checks the club, limits how often, and records it.
+  Future<void> _sendPasswordReset() async {
+    final clubId = widget.clubId;
+    if (clubId == null || _togglingAdmin) return;
+    final who = _detail?.member.memberName.trim();
+    final whoLabel = (who == null || who.isEmpty) ? 'this member' : who;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Send password reset'),
+        content: Text(
+            'Email $whoLabel a link to set a new password? The link goes to their own email address. You will not see their password.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: const Text('Send link'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+    setState(() => _togglingAdmin = true);
+    try {
+      final res = await _api.post<Map<String, dynamic>>(
+        '/api/clubs/$clubId/members/${widget.memberId}/password-reset',
+        fromJson: (j) => j as Map<String, dynamic>,
+      );
+      if (!mounted) return;
+      setState(() => _togglingAdmin = false);
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(res.data?['message']?.toString() ??
+            'Password reset link sent.'),
+        backgroundColor: AppColors.success,
+      ));
+    } on ApiException catch (e) {
+      if (!mounted) return;
+      setState(() => _togglingAdmin = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.message), backgroundColor: AppColors.error),
       );
     }
   }
@@ -592,6 +642,7 @@ class _DirectoryMemberDetailScreenState
                           tooltip: 'Admin options',
                           onSelected: (v) {
                             if (v == 'toggleAdmin') _toggleAdmin();
+                            if (v == 'sendReset') _sendPasswordReset();
                           },
                           itemBuilder: (_) => [
                             PopupMenuItem(
@@ -610,6 +661,17 @@ class _DirectoryMemberDetailScreenState
                                   Text(isAdminNow
                                       ? 'Remove Club Admin'
                                       : 'Make Club Admin'),
+                                ],
+                              ),
+                            ),
+                            const PopupMenuItem(
+                              value: 'sendReset',
+                              child: Row(
+                                children: [
+                                  Icon(Icons.lock_reset_rounded,
+                                      size: 20, color: AppColors.primary),
+                                  SizedBox(width: 12),
+                                  Text('Send password reset'),
                                 ],
                               ),
                             ),

@@ -20,9 +20,10 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { User, LogOut, Key, Settings, Clock, ClipboardList, Bell } from "@/components/icons";
+import { User, LogOut, Key, Settings, Clock, ClipboardList, Bell, ShieldCheck } from "@/components/icons";
 import ChangePasswordDialog from "@/components/ChangePasswordDialog";
 import LanguagePicker from "@/components/LanguagePicker";
+import HelpLink from "@/components/HelpLink";
 import BrandLogo from "@/components/BrandLogo";
 import SuperAdminBackToSearch from "@/components/SuperAdminBackToSearch";
 
@@ -137,6 +138,7 @@ export default function AppHeader() {
 
           <nav className="hidden md:flex items-center gap-1">
             <LanguagePicker signedIn={isAuthenticated} className="border-border bg-transparent text-foreground" />
+            <HelpLink />
             {/* Multi-role SuperAdmin: prominent way BACK to their own operational dashboard. */}
             {isAuthenticated && <HeaderAdminDashboardLink />}
             {isAuthenticated && isSuperAdmin && (
@@ -221,6 +223,12 @@ export default function AppHeader() {
                   <DropdownMenuItem onClick={() => setChangePasswordOpen(true)}>
                     <Key className="mr-2 h-4 w-4" />
                     Change Password
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/account/security">
+                      <ShieldCheck className="mr-2 h-4 w-4" />
+                      Account security
+                    </Link>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={logout}>

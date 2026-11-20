@@ -220,7 +220,12 @@ public class CitationMatrixController : ControllerBase
                     var raw = (string?)first?.answerValue ?? "";
                     var qMeta = manualQs.FirstOrDefault(q => (int)q.questionId == g.Key.qid);
                     var atype = qMeta != null ? NormalizeAnswerType((string?)qMeta.answerType) : "number";
-                    if (atype == "yesno")
+                    if (atype == "text")
+                    {
+                        achievedDisplay = raw;   // District Goals text answer (user 2026-11-16)
+                        achievedNumeric = null;
+                    }
+                    else if (atype == "yesno")
                     {
                         var lower = raw.Trim().ToLowerInvariant();
                         achievedDisplay = lower == "yes" ? "Yes" : (lower == "no" ? "No" : "");
@@ -274,6 +279,7 @@ public class CitationMatrixController : ControllerBase
     private static string NormalizeAnswerType(string? raw)
     {
         var r = (raw ?? "").Trim().ToLowerInvariant().Replace(" ", "").Replace("_", "").Replace("-", "");
+        if (r == "text") return "text";
         if (r == "yesno" || r == "yn" || r == "boolean" || r == "bool" || r == "yes" || r == "no") return "yesno";
         if (r == "chooseone" || r == "choose" || r == "select" || r == "option" || r == "options" || r == "radio") return "choose_one";
         return "number";

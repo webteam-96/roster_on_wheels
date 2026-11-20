@@ -530,7 +530,11 @@ public class ClubMonthlyReportService : IClubMonthlyReportService
         decimal avgAttendance = 0;
         try
         {
-            if (meetings.Count > 0 && meetings.Any(m => m.AttendancePercentage.HasValue))
+            // Recorded attendance (makeups, leave, exemptions; gap #5) wins; the typed-in % of the month's
+            // Club Service meetings is the fallback for clubs that do not record attendance.
+            var recorded = await AttendanceStandingService.ClubPercentAsync(connection, clubId, yearId, month);
+            if (recorded.HasValue) avgAttendance = recorded.Value;
+            else if (meetings.Count > 0 && meetings.Any(m => m.AttendancePercentage.HasValue))
             {
                 avgAttendance = meetings.Where(m => m.AttendancePercentage.HasValue)
                     .Average(m => m.AttendancePercentage!.Value);

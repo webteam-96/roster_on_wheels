@@ -49,6 +49,14 @@ public class MembershipDuesController : ControllerBase
 
     private ObjectResult Denied() => StatusCode(403, new { message = "Access denied." });
 
+    // Email / currency flags are Super Admin only (RIZones 2026-11-09): anyone else's values are dropped,
+    // so a club admin save keeps what Super Admin set.
+    private void KeepSuperAdminFlags(CreateMembershipDuesDto dto)
+    {
+        if (IsSuperAdmin()) return;
+        dto.NotifyEmail = null; dto.Currency = null;
+    }
+
     private static string? ValidateImageFile(IFormFile? file)
     {
         if (file == null || file.Length == 0) return null;
@@ -92,6 +100,7 @@ public class MembershipDuesController : ControllerBase
         if (denied != null) return denied;
 
         if (!IsSuperAdminOrAdmin()) return StatusCode(403, new { message = "Access denied." });
+        KeepSuperAdminFlags(dto);
         var imgErr = ValidateImageFile(logo) ?? ValidateImageFile(bgImage) ?? ValidateImageFile(emailLogo);
         if (imgErr != null) return BadRequest(new { message = imgErr });
         try
@@ -112,6 +121,7 @@ public class MembershipDuesController : ControllerBase
         if (denied != null) return denied;
 
         if (!IsSuperAdminOrAdmin()) return StatusCode(403, new { message = "Access denied." });
+        KeepSuperAdminFlags(dto);
         var imgErr = ValidateImageFile(logo) ?? ValidateImageFile(bgImage) ?? ValidateImageFile(emailLogo);
         if (imgErr != null) return BadRequest(new { message = imgErr });
         try
@@ -506,17 +516,19 @@ public class MembershipDuesController : ControllerBase
     }
 
     [HttpPost("{id}/members/{memberFeeId}/reminder-email")]
-    public ActionResult SendReminderEmail(int id, int memberFeeId, [FromBody] SendDuesReminderDto dto)
+    public async Task<ActionResult> SendReminderEmail(int id, int memberFeeId, [FromBody] SendDuesReminderDto dto)
     {
         if (!IsSuperAdminOrAdmin()) return StatusCode(403, new { message = "Access denied." });
+        if (!await _service.EmailOnAsync(id)) return BadRequest(new { message = "Email is switched off for this dues." });
         BackgroundWork.Run("SendReminderEmailAsync", () => _service.SendReminderEmailAsync(memberFeeId, dto.FeeType, dto.Remark));
         return Ok(new { message = "Reminder email is being sent." });
     }
 
     [HttpPost("{id}/bulk-reminder-email")]
-    public ActionResult BulkSendReminderEmail(int id, [FromBody] BulkDuesReminderDto? dto = null)
+    public async Task<ActionResult> BulkSendReminderEmail(int id, [FromBody] BulkDuesReminderDto? dto = null)
     {
         if (!IsSuperAdminOrAdmin()) return StatusCode(403, new { message = "Access denied." });
+        if (!await _service.EmailOnAsync(id)) return BadRequest(new { message = "Email is switched off for this dues." });
         BackgroundWork.Run("BulkSendReminderEmailAsync", () => _service.BulkSendReminderEmailAsync(id, dto?.Remark));
         return Ok(new { message = "Bulk email reminders are being sent in background." });
     }

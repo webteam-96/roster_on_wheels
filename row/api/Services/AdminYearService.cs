@@ -19,9 +19,12 @@ namespace RotaryApi.Services;
 ///                              already year-scoped:
 ///                                • Club President  → the year they are President
 ///                                • Club Secretary  → the year they are Secretary
-///                                • Club Executive Secretary/Director → ALL years,
-///                                  because the post is not year-wise; held while
-///                                  they hold the post.
+///                                • Club Executive Secretary/Director → ALL years
+///                                  ONLY while sitting (board row in the CURRENT
+///                                  Rotary year); a past holder keeps just the year
+///                                  of the post. No current year = fail closed
+///                                  (post year only). (2026-11-09 note
+///                                  BACKEND_NOTE_ywar_exec_secretary_year_scoped)
 ///   4. District Governor     → computed LIVE from district_governors, which is
 ///                              year-scoped too: the DG earns THE YEAR THEY ARE
 ///                              DG FOR, the district's mirror of the club
@@ -132,7 +135,7 @@ public interface IAdminYearService
 /// <summary>What a member may edit in one scope.</summary>
 public class AdminYearRights
 {
-    /// <summary>Every year, including ones not created yet (SuperAdmin, Executive Secretary, an AllYears grant).</summary>
+    /// <summary>Every year, including ones not created yet (SuperAdmin, the SITTING Executive Secretary, an AllYears grant).</summary>
     public bool AllYears { get; set; }
 
     /// <summary>Specific year ids. Ignore when <see cref="AllYears"/> is true.</summary>
@@ -267,14 +270,19 @@ public class AdminYearService : IAdminYearService
                 ExecSec = DesignationClubExecutiveSecretary,
             });
 
+        // All Years follows the SITTING Executive Secretary only (2026-11-09). Resolved once;
+        // null (no current year configured) = fail closed: the post's own year only.
+        var currentYearId = await GetCurrentYearIdAsync(conn);
         foreach (var row in bod)
         {
             if (row.DesignationId == DesignationClubExecutiveSecretary)
             {
-                // The post is not year-wise — holding it grants EVERY year.
-                rights.AllYears = true;
                 if (!rights.Sources.Contains("Club Executive Secretary"))
                     rights.Sources.Add("Club Executive Secretary");
+                if (currentYearId is int cy && row.YearId == cy)
+                    rights.AllYears = true;            // sitting holder: every year
+                else
+                    rights.YearIds.Add(row.YearId);    // past holder: that year only
                 continue;
             }
             // President / Secretary earn ONLY the year they hold the office.

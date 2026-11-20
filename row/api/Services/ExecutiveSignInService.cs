@@ -145,11 +145,21 @@ public sealed class ExecutiveSignInService
             SELECT n.pk_year_id FROM rotary_year_master c JOIN rotary_year_master n ON n.StartDate = DATE_ADD(c.StartDate, INTERVAL 1 YEAR)
             WHERE c.pk_year_id = @currentYear AND IFNULL(n.isdeleted,0) = 0 LIMIT 1", new { currentYear });
 
+        ClubAdminLimitException? refused = null;
+        var seated = 0;
         foreach (var seat in seats)
         {
             var hasAdmin = await conn.ExecuteScalarAsync<int>(@"
                 SELECT COUNT(*) FROM member_roles WHERE fk_member_master_profile_id = @memberId AND fk_role_id = 2
                   AND fk_club_id = @ClubId AND IsActive = 1 AND isdeleted = 0", new { memberId, seat.ClubId });
+            // Club Admin limit: a club already at its limit gives this executive no seat.
+            if (hasAdmin == 0 && await ClubAdminLimit.CanGrantAsync(conn, memberId, seat.ClubId) is int max)
+            {
+                refused = new ClubAdminLimitException(seat.ClubId, max);
+                _logger.LogWarning("Executive sign-in: member {MemberId} not seated at club {ClubId}, Club Admin limit {Max} reached", memberId, seat.ClubId, max);
+                continue;
+            }
+            seated++;
             if (hasAdmin == 0)
                 await conn.ExecuteAsync(@"
                     INSERT INTO member_roles (fk_member_master_profile_id, fk_role_id, fk_club_id, IsActive, isdeleted, AssignedDate,
@@ -161,6 +171,7 @@ public sealed class ExecutiveSignInService
             if (years.Length > 0 && hasAdmin == 0)
                 await _adminYears.SetManualGrantsAsync(conn, memberId, seat.ClubId, null, years, false, memberId);
         }
+        if (seated == 0 && refused != null) throw refused;
         _logger.LogInformation("Executive sign-in: member {MemberId} seated at {Clubs}", memberId, string.Join(",", seats.Select(s => s.ClubId)));
     }
 

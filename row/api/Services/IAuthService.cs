@@ -8,9 +8,10 @@ public interface IAuthService
 
     // Builds a full WEB login session (JWT + roles + scopes) for a member WITHOUT a password —
     // used by the mobile→web SSO handoff. Returns null if the member has no admin role.
-    Task<LoginResponseDto?> BuildSessionForMemberAsync(int memberId);
+    Task<LoginResponseDto?> BuildSessionForMemberAsync(int memberId, bool isTemporary = false);
     Task<(List<LoginAuditLogDto> items, int totalCount)> GetLoginLogsAsync(string search, string status, DateTime? fromDate, DateTime? toDate, int page, int pageSize);
     Task<object> ForgotPasswordAsync(ForgotPasswordRequestDto request, bool anyMember = false);
     Task<object> ResetPasswordAsync(ResetPasswordRequestDto request);
+    Task<string?> SendResetLinkToMemberAsync(int memberId);
     Task<object> ChangePasswordAsync(int memberId, ChangePasswordRequestDto request);
 }

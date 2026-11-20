@@ -3987,9 +3987,15 @@ public partial class DatabaseInitializer
                 }
 
                 await EnsureContactsGrowthSchemaAsync(connection);
+                await EnsureMassEmailComposeSchemaAsync(connection);
+                await EnsureProspectFollowUpSchemaAsync(connection); // prospect tasks + notices (gap agent)
+                await EnsureContactToolsSchemaAsync(connection);
+                await EnsureMemberFlexSchemaAsync(connection); // Member flexibility (gap agent)
 
                 // AI Assistant tables (ported from upstream 2026-11-09).
                 await EnsureAssistantTablesAsync(connection);
+                await EnsureMobileExtrasTablesAsync(connection);
+                await EnsureHelpCentreSchemaAsync(connection); // Help centre (gap agent)
 
                 _logger.LogInformation("Database tables and triggers ensured.");
 
@@ -5316,8 +5322,19 @@ public partial class DatabaseInitializer
                 await EnsureGrantTablesAsync(connection);
                 // Volunteers and speakers (ROW build spec 3.13): tables in DatabaseInitializer.Volunteers.cs.
                 await EnsureVolunteerTablesAsync(connection);
+                await EnsureBulletinTablesAsync(connection); // club email bulletins: DatabaseInitializer.Bulletins.cs
+                await EnsureSurveyTablesAsync(connection); // surveys and polls (gap #9): DatabaseInitializer.Surveys.cs
+                // Website donations with campaigns (gap #13): DatabaseInitializer.Donations.cs.
+                await EnsureDonationTablesAsync(connection);
+                await EnsureSpeakerBureauTablesAsync(connection);
+                // Service hours and contributions: DatabaseInitializer.ServiceHours.cs.
+                await EnsureServiceHoursTablesAsync(connection);
+                await EnsureVolunteerExtrasTablesAsync(connection);
                 // Club website visitor counter: table in DatabaseInitializer.Visits.cs.
                 await EnsureVisitTablesAsync(connection);
+                await EnsureCrossDistrictAccessTablesAsync(connection); // DatabaseInitializer.CrossDistrictAccess.cs
+                // Website builder (gap agent): tables in DatabaseInitializer.WebsiteBuilder.cs.
+                await EnsureWebsiteBuilderTablesAsync(connection);
                 // Hosted checkout and connected payment accounts: DatabaseInitializer.Payments.cs.
                 await EnsurePaymentCheckoutTablesAsync(connection);
                 // Translation memory: DatabaseInitializer.Localization.cs.
@@ -5326,7 +5343,28 @@ public partial class DatabaseInitializer
                 await EnsureEscalationCelebrationSchemaAsync(connection);
                 // Planning mode and cut-over (ROW build spec 3.1): DatabaseInitializer.Planning.cs.
                 await EnsurePlanningTablesAsync(connection);
+                // Youth programs (RYLA, RLI, Youth Protection): DatabaseInitializer.Youth.cs.
+                await EnsureYouthTablesAsync(connection);
+                // Year-end rollover runs and their snapshot items: DatabaseInitializer.Rollover.cs.
+                await EnsureRolloverTablesAsync(connection);
+                // Job postings and B2B offers (gap agent): DatabaseInitializer.JobBoard.cs.
+                await EnsureJobBoardTablesAsync(connection);
                 await EnsureSpecCompletionAsync(connection);
+                await EnsureAttendanceMakeupTablesAsync(connection);
+                await EnsureAccountSecurityTablesAsync(connection); // Account security (gap agent): DatabaseInitializer.AccountSecurity.cs
+                // Dues invoices, statements, QuickBooks export (gap #7): DatabaseInitializer.Invoices.cs.
+                await EnsureDuesInvoiceTablesAsync(connection);
+                await EnsureClubAccountsTablesAsync(connection); // Club accounts (gap agent): DatabaseInitializer.ClubAccounts.cs
+                await EnsureProfileUpdateTablesAsync(connection); // profile update requests (gap agent)
+                await EnsureCustomReportTablesAsync(connection); // Custom report builder: DatabaseInitializer.CustomReports.cs
+                await EnsureOfficerProgressionTablesAsync(connection); // Officer progression: DatabaseInitializer.OfficerProgression.cs
+                await EnsureMemberMapTablesAsync(connection); // Member map + business directory (gap agent)
+                await EnsureWebsiteExtrasTablesAsync(connection); // website extras (gap agent): DatabaseInitializer.WebsiteExtras.cs
+                await EnsureWordPressConnectorSchemaAsync(connection); // WordPress connector: DatabaseInitializer.WordPress.cs
+                await EnsureCommitteeTablesAsync(connection); // Enhanced committees (gap agent): DatabaseInitializer.Committees.cs
+                // RIZones pull 9-17 Nov (dues email/currency, club Rotary.org sync): DatabaseInitializer.RizonesPull1117.cs.
+                await EnsureRizonesPull1117SchemaAsync(connection);
+                await EnsureGoalModuleSchemaAsync(connection);
 
                 // Never reset any user's password on boot: passwords change only through
                 // explicit SuperAdmin reset flows.

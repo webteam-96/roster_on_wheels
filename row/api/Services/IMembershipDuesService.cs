@@ -26,6 +26,7 @@ public interface IMembershipDuesService
 
     // Receipts & Reminders
     Task SendReceiptEmailAsync(int paymentId);
+    Task<bool> EmailOnAsync(int duesId);
     // Fee-id-based send. Resolves latest-paid payment for the given
     // membership_dues_member_fees.pk_id, then dispatches the receipt.
     // Used by the "Send Receipt" button on the club-admin members list —

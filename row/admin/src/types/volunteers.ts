@@ -14,6 +14,33 @@ export interface VolunteerSheetListItem {
   filled: number;
   firstStart: string | null;
   hours: number;
+  archivedAt: string | null;
+}
+
+// Volunteer sheet extras (api/DTOs/VolunteerExtrasDtos.cs).
+export type FollowupKind = "before" | "after";
+
+export interface VolunteerFollowup {
+  id: number | null;
+  kind: FollowupKind;
+  days: number;
+  subject: string;
+  body: string;
+  sentCount: number;
+}
+
+export interface VolunteerSheetExtras {
+  confirmationText: string | null;
+  archivedAt: string | null;
+  followups: VolunteerFollowup[];
+  coordinatorIds: number[];
+  members: { memberId: number; name: string; hasEmail: boolean }[];
+}
+
+export interface SaveVolunteerSheetExtras {
+  confirmationText: string | null;
+  followups: { id: number | null; kind: FollowupKind; days: number; subject: string; body: string }[];
+  coordinatorIds: number[];
 }
 
 export interface VolunteerSignup {

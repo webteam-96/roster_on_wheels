@@ -16,6 +16,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import ErrorAlert from "@/components/ErrorAlert";
+import VolunteerSheetExtras from "@/components/volunteers/VolunteerSheetExtras";
 import { Skeleton, TableSkeleton } from "@/components/dashboard/DashboardSkeleton";
 import { useAuth } from "@/contexts/AuthContext";
 import { useFormat } from "@/hooks/useFormat";
@@ -375,6 +376,11 @@ export default function VolunteerSheetPage() {
             </div>
           </CardContent>
         </Card>
+      )}
+
+      {sheet && (
+        <VolunteerSheetExtras clubId={clubId} sheetId={id} onNotice={setNotice} onError={setError}
+          onChanged={() => { getVolunteerSheet(clubId, id).then(show).catch(() => setError("Could not reload the sheet.")); }} />
       )}
 
       <ErrorAlert open={!!error} title="Could not do that" description={error || ""} onOk={() => setError(null)} />

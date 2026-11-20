@@ -19,6 +19,8 @@ const DISTRICT_WEBSITE_MODULES = [
   { key: "menu_list", name: "Menu List", icon: "List", route: "menu_list" },
   { key: "about", name: "About", icon: "Info", route: "about" },
   { key: "languages", name: "Languages", icon: "Languages", route: "languages" },
+  { key: "extras", name: "Website extras", icon: "Share2", route: "extras" },
+  { key: "wordpress", name: "WordPress connector", icon: "Globe", route: "wordpress" },
 ];
 
 function getModuleIcon(iconName: string) {

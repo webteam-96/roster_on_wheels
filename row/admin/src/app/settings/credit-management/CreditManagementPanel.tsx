@@ -7,7 +7,8 @@ import {
   getCreditList, addCredit, updateCredit, deleteCredit, getDistricts, getDistrictClubs, getCreditUsageHistory,
 } from "@/services/api";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Pencil, Trash2 } from "@/components/icons";
+import { Pencil, Trash2, MinusCircle, History } from "@/components/icons";
+import { DeductCreditDialog, CreditHistoryDialog } from "./CreditDeductHistoryDialogs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -29,6 +30,15 @@ import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
 
 import { appLocale } from "@/lib/appFormat";
+
+// An empty slot the size of an action button, so History / Deduct / Edit / Delete stay in the same
+// column on every row whichever buttons a row has (RIZones 2026-11-16).
+const ActionSlot = () => (
+  <Button variant="outline" size="sm" className="invisible" tabIndex={-1} aria-hidden="true">
+    <Pencil className="h-3.5 w-3.5" />
+  </Button>
+);
+
 interface DistrictOption { id: number; districtNumber: string; }
 interface ClubOption { id: number; clubName: string; clubCode: string; }
 interface CreditItem {
@@ -95,6 +105,9 @@ export default function CreditManagementPanel({ embedded = false, onChanged }: {
   const [editTransactionId, setEditTransactionId] = useState("");
   const [editSubmitting, setEditSubmitting] = useState(false);
   const [deleteItem, setDeleteItem] = useState<CreditItem | null>(null);
+  // Deduct credits used outside ROW + credit/debit history (user 2026-11-16).
+  const [deductItem, setDeductItem] = useState<CreditItem | null>(null);
+  const [historyId, setHistoryId] = useState<number | null>(null);
 
   const openEdit = (item: CreditItem) => {
     setEditItem(item);
@@ -416,8 +429,8 @@ export default function CreditManagementPanel({ embedded = false, onChanged }: {
               <div className="flex justify-end">
                 <Button variant="outline" size="sm" onClick={() => exportToCSV(items, "credits", [
                   { key: "districtNumber", label: "District" }, { key: "clubName", label: "Club" },
-                  { key: "creditType", label: "Type" }, { key: "creditCount", label: "Total" },
-                  { key: "usedCount", label: "Used" }, { key: "remaining", label: "Remaining" },
+                  { key: "creditType", label: "Type" }, { key: "creditCount", label: "Total", numeric: true },
+                  { key: "usedCount", label: "Used", numeric: true }, { key: "remaining", label: "Remaining", numeric: true },
                   { key: "toDate", label: "Expiry" }, { key: "transactionId", label: "Txn ID" },
                   { key: "isActive", label: "Active" }, { key: "isExpired", label: "Expired" },
                   { key: "createdDate", label: "Created Date" }, { key: "lastUsedDate", label: "Last Used" },
@@ -491,17 +504,30 @@ export default function CreditManagementPanel({ embedded = false, onChanged }: {
                             <TableCell className="text-right">
                               {!item.isExpired && item.isActive ? (
                                 <div className="flex gap-1 justify-end">
+                                  <Button variant="outline" size="sm" onClick={() => setHistoryId(item.id)} title="History - credits and debits">
+                                    <History className="h-3.5 w-3.5" />
+                                  </Button>
+                                  {item.remaining > 0 ? (
+                                    <Button variant="outline" size="sm" className="text-amber-700 hover:bg-amber-50" onClick={() => setDeductItem(item)} title="Deduct credits used outside ROW">
+                                      <MinusCircle className="h-3.5 w-3.5" />
+                                    </Button>
+                                  ) : <ActionSlot />}
                                   <Button variant="outline" size="sm" onClick={() => openEdit(item)} title="Edit">
                                     <Pencil className="h-3.5 w-3.5" />
                                   </Button>
-                                  {item.usedCount === 0 && (
+                                  {item.usedCount === 0 ? (
                                     <Button variant="outline" size="sm" className="text-red-600 hover:bg-red-50" onClick={() => setDeleteItem(item)} title="Delete">
                                       <Trash2 className="h-3.5 w-3.5" />
                                     </Button>
-                                  )}
+                                  ) : <ActionSlot />}
                                 </div>
                               ) : (
-                                <span className="text-xs text-muted-foreground">–</span>
+                                <div className="flex gap-1 justify-end">
+                                  <Button variant="outline" size="sm" onClick={() => setHistoryId(item.id)} title="History - credits and debits">
+                                    <History className="h-3.5 w-3.5" />
+                                  </Button>
+                                  <ActionSlot /><ActionSlot /><ActionSlot />
+                                </div>
                               )}
                             </TableCell>
                           </TableRow>
@@ -637,6 +663,11 @@ export default function CreditManagementPanel({ embedded = false, onChanged }: {
 
       <SuccessAlert open={!!successMessage} title="Success" description={successMessage || ""} onOk={() => setSuccessMessage(null)} />
       <ErrorAlert open={!!errorMessage} title="Error" description={errorMessage || ""} onOk={() => setErrorMessage(null)} />
+
+      <DeductCreditDialog item={deductItem} onClose={() => setDeductItem(null)}
+        onError={(m) => setErrorMessage(m)}
+        onDone={async (m) => { setDeductItem(null); setSuccessMessage(m); await fetchCredits(); onChanged?.(); }} />
+      <CreditHistoryDialog creditId={historyId} onClose={() => setHistoryId(null)} />
 
       {/* Edit Credit Dialog */}
       <Dialog open={!!editItem} onOpenChange={(o) => { if (!o) setEditItem(null); }}>

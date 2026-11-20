@@ -98,7 +98,7 @@ export default function ClubReportPage() {
   const yearLabel = years.find((y: any) => String(y.id) === selectedYearId)?.yearLabel || "";
   const clubName = report?.club?.clubName || "";
 
-  const exportSection = (data: any[], sectionName: string, columns: { key: string; label: string; width?: number; hyperlink?: boolean; linkText?: string }[]) => {
+  const exportSection = (data: any[], sectionName: string, columns: { key: string; label: string; width?: number; hyperlink?: boolean; linkText?: string; numeric?: boolean }[]) => {
     if (!data || data.length === 0) return;
     exportToCSV(data, `${clubName}_${sectionName.replace(/\s+/g, "_")}`, columns, {
       title: `${sectionName} | ${clubName}`,
@@ -173,16 +173,16 @@ export default function ClubReportPage() {
               const projectCols = isClubService
                 ? [
                     { key: "title", label: "Title", width: 25 }, { key: "projectDate", label: "Date", width: 15 },
-                    { key: "location", label: "Location", width: 20 }, { key: "projectCost", label: "Cost", width: 12 },
-                    { key: "directBeneficiaries", label: "Beneficiaries", width: 14 }, { key: "manHours", label: "Man Hours", width: 12 },
+                    { key: "location", label: "Location", width: 20 }, { key: "projectCost", label: "Cost", width: 12, numeric: true },
+                    { key: "directBeneficiaries", label: "Beneficiaries", width: 14, numeric: true }, { key: "manHours", label: "Man Hours", width: 12, numeric: true },
                     { key: "funding", label: "Funding", width: 15 },
                     { key: "publicPhotoUrl", label: "Photos", width: 12, hyperlink: true, linkText: "Photos" },
                   ]
                 : [
                     { key: "title", label: "Title", width: 25 }, { key: "projectDate", label: "Date", width: 15 },
                     { key: "areaOfFocus", label: "Area of Focus", width: 20 },
-                    { key: "location", label: "Location", width: 20 }, { key: "projectCost", label: "Cost", width: 12 },
-                    { key: "directBeneficiaries", label: "Beneficiaries", width: 14 }, { key: "manHours", label: "Man Hours", width: 12 },
+                    { key: "location", label: "Location", width: 20 }, { key: "projectCost", label: "Cost", width: 12, numeric: true },
+                    { key: "directBeneficiaries", label: "Beneficiaries", width: 14, numeric: true }, { key: "manHours", label: "Man Hours", width: 12, numeric: true },
                     { key: "funding", label: "Funding", width: 15 },
                     { key: "publicPhotoUrl", label: "Photos", width: 12, hyperlink: true, linkText: "Photos" },
                   ];
@@ -230,9 +230,9 @@ export default function ClubReportPage() {
             <ReportSection title="Attendance" icon={CheckSquare} count={report.attendance?.length || 0}
               onExport={() => exportSection(report.attendance, "Attendance", [
                 { key: "eventName", label: "Event", width: 25 }, { key: "eventDateTime", label: "Date", width: 18 },
-                { key: "membersPresent", label: "Members Present", width: 16 }, { key: "visitors", label: "Visitors", width: 10 },
-                { key: "rotarians", label: "Rotarians", width: 10 }, { key: "totalMembers", label: "Total Active", width: 12 },
-                { key: "attendancePercent", label: "Attendance %", width: 14 },
+                { key: "membersPresent", label: "Members Present", width: 16, numeric: true }, { key: "visitors", label: "Visitors", width: 10, numeric: true },
+                { key: "rotarians", label: "Rotarians", width: 10, numeric: true }, { key: "totalMembers", label: "Total Active", width: 12, numeric: true },
+                { key: "attendancePercent", label: "Attendance %", width: 14, numeric: true },
               ])} />
 
             <ReportSection title="Board of Directors" icon={UserCircle} count={report.bod?.length || 0}
@@ -251,7 +251,7 @@ export default function ClubReportPage() {
             <ReportSection title="TRF Contributions" icon={IndianRupee} count={report.trf?.length || 0}
               onExport={() => exportSection(report.trf, "TRF_Contributions", [
                 { key: "donorName", label: "Donor", width: 25 }, { key: "fundName", label: "Fund", width: 20 },
-                { key: "fundType", label: "Type", width: 15 }, { key: "amountUsd", label: "Amount (USD)", width: 15 },
+                { key: "fundType", label: "Type", width: 15 }, { key: "amountUsd", label: "Amount (USD)", width: 15, numeric: true },
                 { key: "trfDate", label: "Date", width: 18 },
               ])} />
           </>

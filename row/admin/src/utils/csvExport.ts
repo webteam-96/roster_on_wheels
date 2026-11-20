@@ -15,6 +15,9 @@ interface CsvColumn {
   index?: boolean;
   /** Custom cell-value formatter (overrides default formatting). e.g. day+month only for DOB/DOA. */
   format?: (val: any, row: any) => string;
+  /** Numeric figure (cost, beneficiaries…): a value like "5000" or "5,000" is written as a real
+   *  Excel number so selecting cells shows the Sum. Values that are not numbers stay as text. */
+  numeric?: boolean;
 }
 
 interface ExportOptions {
@@ -131,6 +134,19 @@ function formatValue(val: any): string {
   return String(val);
 }
 
+/** Only for a column marked numeric (amounts / counts): a number or a numeric text ("5000", "5,000",
+ *  "12.5"). Unmarked columns stay as they were, so an ID or mobile sent as a JS number never turns into
+ *  9.19877E+11. Anything else (blank, "N/A") → null = keep as text. */
+function numberOf(val: any, numericCol: boolean): number | null {
+  if (!numericCol) return null;
+  if (typeof val === "number") return Number.isFinite(val) ? val : null;
+  if (typeof val !== "string") return null;
+  const s = val.replace(/,/g, "").trim();
+  if (!/^-?\d+(\.\d+)?$/.test(s)) return null;
+  const n = Number(s);
+  return Number.isFinite(n) ? n : null;
+}
+
 /**
  * buildCell — one worksheet cell for a column/row pair: serial numbers, hyperlinks
  * (relative document paths get the API host prepended, absolute URLs are used as-is),
@@ -154,6 +170,11 @@ function buildCell(col: CsvColumn, item: any, idx: number, style: any) {
     cell.s = { ...style, font: { ...style.font, color: { rgb: "0563C1" }, underline: true } };
   } else if (col.format) {
     cell.v = col.format(rawVal, item);
+  } else if (numberOf(rawVal, !!col.numeric) != null) {
+    // Real Excel number (user 2026-11-17): text figures made Excel show Count instead of Sum.
+    cell.v = numberOf(rawVal, !!col.numeric);
+    cell.t = "n";
+    cell.s = { ...style, alignment: { ...((style as any).alignment || {}), horizontal: "right" } };
   } else {
     cell.v = formatValue(rawVal);
   }
@@ -176,7 +197,7 @@ export function exportMonthlyPivot(opts: {
   title: string;
   subtitle?: string;
   leadCols: { key: string; label: string; width?: number }[];
-  groups: { label: string; cols: { key: string; label: string; width?: number }[] }[];
+  groups: { label: string; cols: { key: string; label: string; width?: number; numeric?: boolean }[] }[];
   rows: any[];
 }) {
   const { filename, title, subtitle, leadCols, groups, rows } = opts;
@@ -184,9 +205,9 @@ export function exportMonthlyPivot(opts: {
   const dateStr = now.toLocaleString(appLocale(), { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" });
 
   // Flatten all columns left→right (lead cols first, then each group's cols).
-  const flat: { key: string; width?: number }[] = [
+  const flat: { key: string; width?: number; numeric?: boolean }[] = [
     ...leadCols.map((c) => ({ key: c.key, width: c.width })),
-    ...groups.flatMap((g) => g.cols.map((c) => ({ key: c.key, width: c.width }))),
+    ...groups.flatMap((g) => g.cols.map((c) => ({ key: c.key, width: c.width, numeric: c.numeric }))),
   ];
   const colCount = flat.length;
 
@@ -228,8 +249,13 @@ export function exportMonthlyPivot(opts: {
     const style = idx % 2 === 0 ? oddRowStyle : evenRowStyle;
     flat.forEach((col, ci) => {
       const raw = item[col.key];
-      const v = typeof raw === "number" ? raw : formatValue(raw);
-      put(row, ci, v, style);
+      const n = numberOf(raw, !!col.numeric);
+      if (n != null) {
+        // Real Excel number (user 2026-11-17) so selecting cells shows Sum, not Count.
+        ws[XLSX.utils.encode_cell({ r: row, c: ci })] = { v: n, t: "n", s: { ...style, alignment: { horizontal: "right" } } };
+      } else {
+        put(row, ci, formatValue(raw), style);
+      }
     });
     row++;
   });

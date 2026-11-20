@@ -122,6 +122,10 @@ public static class MemberScopesHelper
                 ExecSec = AdminYearService.DesignationClubExecutiveSecretary,
             })).ToList();
 
+        // Executive Secretary All Years = SITTING holder only (2026-11-09); same rule and same
+        // fail-closed (no current year -> post year only) as AdminYearService.ClubRightsCoreAsync.
+        var currentYearId = await AdminYearService.GetCurrentYearIdAsync(conn);
+
         foreach (var a in admins)
         {
             foreach (var g in grants)
@@ -143,10 +147,12 @@ public static class MemberScopesHelper
             {
                 if (o.DesignationId == AdminYearService.DesignationClubExecutiveSecretary)
                 {
-                    // Not a year-wise post — holding it covers every year.
-                    a.AllYears = true;
                     if (!a.YearSources.Contains("Club Executive Secretary"))
                         a.YearSources.Add("Club Executive Secretary");
+                    if (currentYearId is int cy && o.YearId == cy)
+                        a.AllYears = true;          // sitting holder: every year
+                    else
+                        a.YearIds.Add(o.YearId);    // past holder: that year only
                     continue;
                 }
                 a.YearIds.Add(o.YearId);

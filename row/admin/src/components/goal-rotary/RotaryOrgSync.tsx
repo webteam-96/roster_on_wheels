@@ -4,6 +4,8 @@
 // login; the server queues the sync and a background worker fetches the district's current-year goals.
 // Shows queue / progress / time left, the "as on" date, and the saved-login state (expired password,
 // nightly auto-sync, remove). Same "as on" line is used on View Club Goals (RotaryOrgAsOn).
+// CLUB mode (user 2026-11-10): clubId > 0 = that club's own sync by its Club Admin / President / Secretary
+// with THEIR OWN Rotary.org login (Club Goals, new CMR). tone "light" = for white pages.
 import { useCallback, useEffect, useRef, useState } from "react";
 import { AlertTriangle, CheckCircle2, Loader2, RefreshCw } from "@/components/icons";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -31,7 +33,14 @@ export function RotaryOrgAsOn({ districtId, className }: { districtId: number | 
   return <span className={className}>{t ? `Synced from Rotary.org as on ${t}` : "Not synced from Rotary.org yet"}</span>;
 }
 
-export default function RotaryOrgSync({ districtId, onSynced }: { districtId: number | null | undefined; onSynced?: () => void }) {
+export default function RotaryOrgSync({ districtId, clubId, tone = "dark", onSynced }: {
+  districtId?: number | null; clubId?: number | null; tone?: "dark" | "light"; onSynced?: () => void;
+}) {
+  const isClub = !!clubId && clubId > 0;
+  const light = tone === "light";
+  const c = light
+    ? { muted: "text-slate-500", btn: "border-[#0B2A5E] text-[#0B2A5E] hover:bg-slate-50", box: "bg-slate-100 text-slate-800", bar: "bg-slate-200", bad: "bg-red-50 text-red-700", soft: "bg-slate-100 text-slate-600" }
+    : { muted: "text-[#C9D6EE]", btn: "border-[#5873A6] text-white hover:bg-white/10", box: "bg-white/10 text-white", bar: "bg-white/20", bad: "bg-red-500/20 text-white", soft: "bg-white/10 text-[#C9D6EE]" };
   const [st, setSt] = useState<RotaryOrgSyncStatus | null>(null);
   const [open, setOpen] = useState(false);
   const [email, setEmail] = useState("");
@@ -43,14 +52,14 @@ export default function RotaryOrgSync({ districtId, onSynced }: { districtId: nu
   const wasRunning = useRef(false);
 
   const load = useCallback(async () => {
-    if (!districtId) return;
+    if (!districtId && !isClub) return;
     try {
-      const s = await getRotaryOrgSyncStatus(districtId);
+      const s = await getRotaryOrgSyncStatus(districtId ?? 0, clubId ?? 0);
       setSt(s);
       if (wasRunning.current && !s.current) { wasRunning.current = false; if (s.last?.status === "DONE") onSynced?.(); }
       if (s.current) wasRunning.current = true;
     } catch { /* keep the last state */ }
-  }, [districtId, onSynced]);
+  }, [districtId, clubId, isClub, onSynced]);
 
   useEffect(() => { load(); }, [load]);
   // Poll while a sync is queued / running.
@@ -60,9 +69,10 @@ export default function RotaryOrgSync({ districtId, onSynced }: { districtId: nu
     return () => clearInterval(id);
   }, [st?.current, load]);
 
-  if (!districtId || !st) return null;
+  if ((!districtId && !isClub) || !st) return null;
+  const dId = districtId ?? 0, cId = clubId ?? 0;
   const asOn = fmt(st.asOn);
-  if (!st.canSync) return <p className="text-xs text-slate-500">{asOn ? `Synced from Rotary.org as on ${asOn}` : "Not synced from Rotary.org yet"}</p>;
+  if (!st.canSync) return <p className={`text-xs ${c.muted}`}>{asOn ? `Synced from Rotary.org as on ${asOn}` : "Not synced from Rotary.org yet"}</p>;
 
   const login = st.savedLogin;
   const needsPassword = !login || login.status === "EXPIRED" || login.status === "DISABLED" || login.status === "MFA";
@@ -72,8 +82,8 @@ export default function RotaryOrgSync({ districtId, onSynced }: { districtId: nu
     setBusy(true); setErr(null);
     try {
       await startRotaryOrgSync(useForm
-        ? { districtId, email: email.trim(), password, savePassword: save, allowNightly: save && nightly }
-        : { districtId });
+        ? { districtId: dId, clubId: cId, email: email.trim(), password, savePassword: save, allowNightly: save && nightly }
+        : { districtId: dId, clubId: cId });
       setPassword(""); setOpen(false); wasRunning.current = true;
       await load();
     } catch (e) { setErr(errMsg(e, "The sync could not be started.")); }
@@ -86,59 +96,64 @@ export default function RotaryOrgSync({ districtId, onSynced }: { districtId: nu
     <div className="flex flex-col items-start gap-1.5">
       <div className="flex flex-wrap items-center gap-2.5">
         <button type="button" onClick={onSyncClick} disabled={!!run || busy || st.configured === false}
-          className="inline-flex items-center gap-2 text-sm font-bold min-h-11 px-4 rounded-xl border border-slate-300 text-slate-700 hover:bg-slate-50 disabled:opacity-60"
-          title={st.configured === false ? "Rotary.org sync is not set up on the server yet" : `Fetch this district's goals from Rotary.org (about ${st.estimateMinutes ?? 5} min)`}>
+          className={`inline-flex items-center gap-2 text-sm font-bold min-h-11 px-4 rounded-xl border ${c.btn} disabled:opacity-60`}
+          title={st.configured === false ? "Rotary.org sync is not set up on the server yet" : `Fetch this ${isClub ? "club" : "district"}'s goals from Rotary.org (about ${st.estimateMinutes ?? 5} min)`}>
           {run || busy ? <Loader2 size={15} className="animate-spin" /> : <RefreshCw size={15} />} Sync from Rotary.org
         </button>
-        <span className="text-xs text-slate-500">{asOn ? `Synced from Rotary.org as on ${asOn}` : "Not synced from Rotary.org yet"}</span>
+        <span className={`text-xs ${c.muted}`}>{asOn ? `Synced from Rotary.org as on ${asOn}` : "Not synced from Rotary.org yet"}</span>
       </div>
+      {isClub && st.districtAuto && !run && (
+        <p className={`text-xs ${c.muted}`}>Your district&apos;s weekly Rotary.org sync is on - it already updates this club every week. You can still sync any time.</p>
+      )}
 
       {run && (
-        <div className="w-full max-w-md rounded-lg bg-slate-100 px-3 py-2 text-xs text-slate-700">
+        <div className={`w-full max-w-md rounded-lg px-3 py-2 text-xs ${c.box}`}>
           {run.status === "QUEUED"
             ? <>Waiting in queue{run.queuePosition > 1 ? ` (${run.queuePosition - 1} ahead)` : ""} · starts soon · done in {mins(run.etaSeconds)}</>
-            : <>{run.stage || "Syncing"}{run.clubsTotal > 0 ? ` · clubs ${run.clubsDone} of ${run.clubsTotal}` : ""} · {mins(run.etaSeconds)} left</>}
-          <div className="mt-1.5 h-1.5 w-full rounded-full bg-slate-200"><div className="h-1.5 rounded-full bg-amber-500 transition-all" style={{ width: `${run.status === "QUEUED" ? 2 : Math.max(4, pct)}%` }} /></div>
-          <p className="mt-1 text-slate-500">You can leave this page - the sync carries on in the background.</p>
+            : <>{run.stage || "Syncing"}{!isClub && run.clubsTotal > 0 ? ` · clubs ${run.clubsDone} of ${run.clubsTotal}` : ""} · {mins(run.etaSeconds)} left</>}
+          <div className={`mt-1.5 h-1.5 w-full rounded-full ${c.bar}`}><div className="h-1.5 rounded-full bg-[#F7A81B] transition-all" style={{ width: `${run.status === "QUEUED" ? 2 : Math.max(4, pct)}%` }} /></div>
+          <p className={`mt-1 ${c.muted}`}>You can leave this page - the sync carries on in the background.</p>
         </div>
       )}
 
       {!run && login?.status === "EXPIRED" && (
-        <p className="flex items-center gap-1.5 rounded-lg bg-red-50 px-3 py-1.5 text-xs text-red-700">
+        <p className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs ${c.bad}`}>
           <AlertTriangle size={13} /> Your Rotary.org password has changed. Please enter the new one to resume syncing.
           <button type="button" onClick={() => { setEmail(""); setOpen(true); }} className="font-bold underline">Update password</button>
         </p>
       )}
       {!run && login?.status === "MFA" && (
-        <p className="flex items-center gap-1.5 rounded-lg bg-red-50 px-3 py-1.5 text-xs text-red-700"><AlertTriangle size={13} /> This Rotary.org account needs extra verification, so automatic sync is not possible.</p>
+        <p className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs ${c.bad}`}><AlertTriangle size={13} /> This Rotary.org account needs extra verification, so automatic sync is not possible.</p>
       )}
       {!run && login?.status === "DISABLED" && login.statusMessage && (
-        <p className="rounded-lg bg-slate-100 px-3 py-1.5 text-xs text-slate-500">{login.statusMessage}</p>
+        <p className={`rounded-lg px-3 py-1.5 text-xs ${c.soft}`}>{login.statusMessage}</p>
       )}
       {!run && st.last && st.last.status !== "DONE" && login?.status !== "EXPIRED" && (
-        <p className="flex items-center gap-1.5 rounded-lg bg-red-50 px-3 py-1.5 text-xs text-red-700">
+        <p className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs ${c.bad}`}>
           <AlertTriangle size={13} /> Last sync {st.last.status === "LOGIN_FAILED" ? "could not sign in to Rotary.org" : "failed"}{st.last.error ? `: ${st.last.error}` : ""}.
         </p>
       )}
       {!run && st.last?.status === "DONE" && (
-        <p className="flex items-center gap-1.5 text-xs text-slate-500"><CheckCircle2 size={13} className="text-green-700" /> Last sync finished {fmt(st.last.finishedAt)} · {st.last.clubs} clubs</p>
+        <p className={`flex items-center gap-1.5 text-xs ${c.muted}`}><CheckCircle2 size={13} className="text-green-500" /> Last sync finished {fmt(st.last.finishedAt)}{isClub ? "" : ` · ${st.last.clubs} clubs`}</p>
       )}
       {login && login.status !== "DISABLED" && !run && (
-        <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500">
+        <div className={`flex flex-wrap items-center gap-3 text-xs ${c.muted}`}>
           <span>Saved login: {login.email}</span>
           <label className="inline-flex items-center gap-1.5">
-            <input type="checkbox" checked={login.allowNightly} onChange={async (e) => { try { await setRotaryOrgSyncNightly(districtId, e.target.checked); await load(); } catch { /* ignore */ } }} />
+            <input type="checkbox" checked={login.allowNightly} onChange={async (e) => { try { await setRotaryOrgSyncNightly(dId, e.target.checked, cId); await load(); } catch { /* ignore */ } }} />
             Auto-sync every week
           </label>
-          <button type="button" className="underline" onClick={async () => { try { await removeRotaryOrgSyncLogin(districtId); await load(); } catch { /* ignore */ } }}>Remove saved login</button>
+          <button type="button" className="underline" onClick={async () => { try { await removeRotaryOrgSyncLogin(dId, cId); await load(); } catch { /* ignore */ } }}>Remove saved login</button>
         </div>
       )}
-      {err && !open && <p className="rounded-lg bg-red-50 px-3 py-1.5 text-xs text-red-700">{err}</p>}
+      {err && !open && <p className={`rounded-lg px-3 py-1.5 text-xs ${c.bad}`}>{err}</p>}
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader><DialogTitle>Sync from Rotary.org</DialogTitle></DialogHeader>
-          <p className="text-sm text-slate-600">Sign in with <strong>this district&apos;s District Governor My Rotary (Rotary.org) login</strong>. A login from another district is refused. We fetch the district&apos;s and all its clubs&apos; goals for this Rotary year in the background (about {st.estimateMinutes ?? 5} min).</p>
+          {isClub
+            ? <p className="text-sm text-slate-600">Sign in with <strong>your own My Rotary (Rotary.org) login</strong> - a login of a member of this club. A login of another club is refused. We fetch this club&apos;s goals for this Rotary year in the background (about {st.estimateMinutes ?? 2} min); this month&apos;s Foundation figure is updated, earlier months are never changed.</p>
+            : <p className="text-sm text-slate-600">Sign in with <strong>this district&apos;s District Governor My Rotary (Rotary.org) login</strong>. A login from another district is refused. We fetch the district&apos;s and all its clubs&apos; goals for this Rotary year in the background (about {st.estimateMinutes ?? 5} min).</p>}
           <label className="mt-3 block text-sm font-medium text-slate-800" htmlFor="ro-email">Rotary.org email</label>
           <input id="ro-email" type="email" autoComplete="off" value={email} onChange={(e) => setEmail(e.target.value)}
             className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm focus:border-blue-600 focus:outline-none" />

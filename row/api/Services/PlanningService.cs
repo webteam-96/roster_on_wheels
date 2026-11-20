@@ -393,6 +393,7 @@ public class PlanningService
         var outgoing = await PlanningAccess.YearBeforeAsync(conn, p);
 
         int rolesActivated, officers, vendor;
+        var adminsRefused = new List<(int Member, int Club)>();
         await using (var tx = await conn.BeginTransactionAsync())
         {
             // the row lock makes a second cut-over (the job and a DGE at once) wait, then find the district live
@@ -411,7 +412,9 @@ public class PlanningService
             {
                 if (club > 0)
                 {
-                    await ClubAdminAccessHelper.EnsureActiveClubAdminRoleAsync(conn, member, club, by, tx);
+                    // A club already at its Club Admin limit keeps its admins; the cut-over goes on for the rest.
+                    try { await ClubAdminAccessHelper.EnsureActiveClubAdminRoleAsync(conn, member, club, by, tx); }
+                    catch (ClubAdminLimitException) { adminsRefused.Add((member, club)); }
                     continue;
                 }
                 var has = await conn.ExecuteScalarAsync<int>(@"
@@ -449,7 +452,8 @@ public class PlanningService
                 VALUES ('reconciliation', @districtId, 0, @p, @by)", new { districtId, p, by }, tx);
             await tx.CommitAsync();
         }
-        var result = new { districtId, state = "live", planningYearId = p, archivedYearId = outgoing, rolesActivated, officersQueued = officers, primaryVendorQueued = vendor };
+        var result = new { districtId, state = "live", planningYearId = p, archivedYearId = outgoing, rolesActivated, officersQueued = officers, primaryVendorQueued = vendor,
+            clubAdminsRefused = adminsRefused.Select(x => new { memberId = x.Member, clubId = x.Club }).ToList() };
         await _audit.LogAsync(by, "CUTOVER", "planning", districtId, by == 0 ? "scheduled" : "manual", result, ctx);
         return result;
     }

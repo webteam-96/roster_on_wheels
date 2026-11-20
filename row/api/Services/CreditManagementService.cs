@@ -324,6 +324,205 @@ public class CreditManagementService : ICreditManagementService
             new { UserId = userId, Id = id });
     }
 
+    // ── Manual deduction + credit/debit history (user 2026-11-16) ──
+    // Super Admin takes credits off ONE pack for usage that happened outside ROW (e.g. emails the support
+    // team sent through a third-party app). Credited stays as given; Used goes up; one usage-history row
+    // (Source "Manual deduction", SourceId = the pack, SourceDetail = the reason) with the balance before/after.
+    public const string ManualDeductionSource = "Manual deduction";
+
+    public async Task<(int BalanceBefore, int BalanceAfter)> ManualDeductAsync(int creditId, int count, string reason, int userId)
+    {
+        if (count <= 0) throw new InvalidOperationException("Enter how many credits to deduct (1 or more).");
+        reason = (reason ?? "").Trim();
+        if (reason.Length == 0) throw new InvalidOperationException("Please give the reason for the deduction.");
+        if (reason.Length > 450) reason = reason[..450];
+
+        using var connection = CreateConnection();
+        await connection.OpenAsync();
+        using var tx = await connection.BeginTransactionAsync();
+
+        var row = await connection.QueryFirstOrDefaultAsync<dynamic>(
+            @"SELECT fk_district_id, fk_club_id, CreditType, CreditCount, UsedCount, ToDate, IsActive, isdeleted
+              FROM club_credits WHERE pk_credit_id = @Id FOR UPDATE", new { Id = creditId }, tx);
+        if (row == null || Convert.ToBoolean(row.isdeleted)) throw new InvalidOperationException("Credit entry not found.");
+        if (!Convert.ToBoolean(row.IsActive) || DateTime.UtcNow > (DateTime)row.ToDate)
+            throw new InvalidOperationException("This credit pack is expired or inactive - nothing can be deducted from it.");
+        int left = (int)row.CreditCount - (int)row.UsedCount;
+        if (count > left) throw new InvalidOperationException($"Only {left} credit(s) are left in this pack - cannot deduct {count}.");
+
+        int clubId = (int)row.fk_club_id, districtId = (int)row.fk_district_id;
+        string type = (string)row.CreditType;
+        // Same balance the automatic deductions record: the entity's active, unexpired packs of this type.
+        var before = await connection.ExecuteScalarAsync<int?>(clubId > 0
+            ? @"SELECT SUM(CreditCount - UsedCount) FROM club_credits WHERE fk_club_id = @C AND CreditType = @T
+                  AND IsActive = 1 AND isdeleted = 0 AND NOW() <= ToDate"
+            : @"SELECT SUM(CreditCount - UsedCount) FROM club_credits WHERE fk_club_id = 0 AND fk_district_id = @D AND CreditType = @T
+                  AND IsActive = 1 AND isdeleted = 0 AND NOW() <= ToDate",
+            new { C = clubId, D = districtId, T = type }, tx) ?? 0;
+
+        await connection.ExecuteAsync(
+            "UPDATE club_credits SET UsedCount = UsedCount + @N, modified_by = @U, modified_date = NOW() WHERE pk_credit_id = @Id",
+            new { N = count, U = userId, Id = creditId }, tx);
+        await connection.ExecuteAsync(
+            @"INSERT INTO club_credit_usage_history (fk_club_id, fk_district_id, CreditType, DeductedCount, Source, SourceId, SourceDetail, BalanceBefore, BalanceAfter, created_by, created_date)
+              VALUES (@C, @D, @T, @N, @S, @Id, @R, @B, @A, @U, NOW())",
+            new { C = clubId, D = districtId, T = type, N = count, S = ManualDeductionSource, Id = creditId, R = reason, B = before, A = before - count, U = userId }, tx);
+        await tx.CommitAsync();
+        return (before, before - count);
+    }
+
+    /// <summary>Credit tally of the pack's club (or district wallet) for its type, first day to today (user 2026-11-16):
+    /// every support-team action (credit / edit / minus) and online purchase is its own line; the ROW sends
+    /// between two of them are ONE line (count + what was sent); running balance after each line. Details = every
+    /// single entry (for the download).</summary>
+    public async Task<CreditHistoryDto> GetCreditHistoryAsync(int creditId)
+    {
+        using var connection = CreateConnection();
+        await connection.OpenAsync();
+        var row = await connection.QueryFirstOrDefaultAsync<dynamic>(
+            @"SELECT cc.fk_district_id, cc.fk_club_id, cc.CreditType, d.DistrictNumber, c.ClubName
+              FROM club_credits cc JOIN district_master d ON d.pk_district_id = cc.fk_district_id
+              LEFT JOIN club_master c ON c.pk_club_id = cc.fk_club_id WHERE cc.pk_credit_id = @Id", new { Id = creditId });
+        if (row == null) throw new InvalidOperationException("Credit entry not found.");
+        int clubId = (int)row.fk_club_id, districtId = (int)row.fk_district_id;
+        string type = (string)row.CreditType;
+        var p = new { C = clubId, D = districtId, T = type };
+        string packWhere = clubId > 0 ? "cc.fk_club_id = @C" : "cc.fk_club_id = 0 AND cc.fk_district_id = @D";
+
+        var packs = (await connection.QueryAsync<(int Id, int CreditCount, int UsedCount, DateTime ToDate, bool IsActive, DateTime Created, DateTime? Modified, string? Txn)>($@"
+            SELECT cc.pk_credit_id, cc.CreditCount, cc.UsedCount, cc.ToDate, cc.IsActive = 1, cc.created_date, cc.modified_date, cc.TransactionId
+            FROM club_credits cc WHERE {packWhere} AND cc.CreditType = @T AND cc.isdeleted = 0", p)).ToList();
+        var packIds = packs.Select(x => x.Id).ToList();
+        var ev = new List<CreditHistoryEntryDto>();   // Kind: Credit / Debit; Group: Support / Online / ROW / Expired
+        var explained = packIds.ToDictionary(x => x, _ => 0L);
+
+        if (packIds.Count > 0)
+        {
+            // Online purchases (paid and credited to one of these packs).
+            foreach (var o in await connection.QueryAsync<(int Pack, int Count, DateTime When, string? Pay, decimal Total)>(@"
+                SELECT fk_credit_id, CreditCount, COALESCE(CreditedDate, created_date), RazorpayPaymentId, TotalAmount
+                FROM wallet_topup_orders WHERE fk_credit_id IN @Ids AND PaymentStatus = 'PAID' AND IsCredited = 1 AND isdeleted = 0",
+                new { Ids = packIds }))
+            {
+                explained[o.Pack] += o.Count;
+                ev.Add(new CreditHistoryEntryDto { Date = o.When, Kind = "Credit", Group = "Online", Source = "Bought online",
+                    Count = o.Count, Detail = $"{o.Pay} · {Brand.Money(o.Total)}" });
+            }
+            // Offline credits and pack edits by the support team.
+            try
+            {
+                foreach (var l in await connection.QueryAsync<(int Pack, string Entry, int? Count, int? Before, int? After, DateTime When, string? Txn)>(@"
+                    SELECT fk_credit_id, EntryType, CreditCount, CountBefore, CountAfter, created_date, TransactionId
+                    FROM club_credit_offline_log WHERE fk_credit_id IN @Ids", new { Ids = packIds }))
+                {
+                    int n = l.Count ?? 0;
+                    explained[l.Pack] += n;
+                    ev.Add(l.Entry == "Edited"
+                        ? new CreditHistoryEntryDto { Date = l.When, Kind = n >= 0 ? "Credit" : "Debit", Group = "Support", Source = "Support team edited pack",
+                              Count = n, Detail = $"pack count {l.Before} -> {l.After}" }
+                        : new CreditHistoryEntryDto { Date = l.When, Kind = "Credit", Group = "Support", Source = "Support team credited",
+                              Count = n, Detail = string.IsNullOrWhiteSpace(l.Txn) ? null : $"Txn {l.Txn}" });
+                }
+            }
+            catch (Exception ex) { _logger.LogWarning(ex, "Credit history: offline log not read"); }
+        }
+        // Whatever a pack's count holds beyond the recorded credits / edits (entries from before the log, or a
+        // change with no record) - shown so the tally still adds up.
+        foreach (var pk in packs)
+        {
+            long gap = pk.CreditCount - explained[pk.Id];
+            if (gap == 0) continue;
+            ev.Add(new CreditHistoryEntryDto { Date = gap > 0 ? pk.Created : (pk.Modified ?? pk.Created), Kind = gap > 0 ? "Credit" : "Debit",
+                Group = "Support", Source = gap > 0 ? "Credit (no record of who added it)" : "Reduced (no record of who reduced it)",
+                Count = (int)gap, Detail = "Difference between the pack count and the recorded credits" });
+        }
+
+        // Usage: ROW sends (and refunds), support-team manual deductions.
+        var used = (await connection.QueryAsync<(DateTime When, int Count, string Source, string? Detail)>($@"
+            SELECT h.created_date, h.DeductedCount, h.Source, h.SourceDetail FROM club_credit_usage_history h
+            WHERE {(clubId > 0 ? "h.fk_club_id = @C" : "h.fk_club_id = 0 AND h.fk_district_id = @D")} AND h.CreditType = @T", p)).ToList();
+        foreach (var u in used)
+        {
+            bool manual = u.Source == ManualDeductionSource;
+            ev.Add(new CreditHistoryEntryDto { Date = u.When, Kind = u.Count < 0 ? "Credit" : "Debit", Group = manual ? "Support" : "ROW",
+                Source = manual ? "Support team deducted" : u.Count < 0 ? "Refund" : SendLabel(u.Source, u.Detail),
+                Count = -u.Count, Detail = u.Detail });
+        }
+        // Used from the packs but never recorded send by send.
+        long usedAll = packs.Sum(x => (long)x.UsedCount), logged = used.Sum(x => (long)x.Count);
+        if (usedAll - logged != 0 && packs.Count > 0)
+        {
+            var at = (used.Count > 0 ? used.Min(x => x.When) : packs.Min(x => x.Created)).AddSeconds(-1);
+            ev.Add(new CreditHistoryEntryDto { Date = at, Kind = usedAll > logged ? "Debit" : "Credit", Group = "ROW",
+                Source = "Sent (not recorded one by one)", Count = -(int)(usedAll - logged),
+                Detail = "Used from the packs before item-wise history was kept" });
+        }
+        // Expired packs: what was left in them is gone.
+        foreach (var pk in packs.Where(x => (!x.IsActive || x.ToDate < DateTime.UtcNow) && x.CreditCount - x.UsedCount > 0))
+            ev.Add(new CreditHistoryEntryDto { Date = pk.ToDate, Kind = "Debit", Group = "Expired", Source = "Expired unused",
+                Count = -(pk.CreditCount - pk.UsedCount), Detail = $"pack expired {pk.ToDate:dd/MM/yyyy}" });
+
+        // Oldest first, running balance; consecutive ROW sends become one line.
+        var ordered = ev.OrderBy(x => x.Date).ThenBy(x => x.Group == "ROW" ? 1 : 0).ToList();
+        var tally = new List<CreditHistoryEntryDto>();
+        long bal = 0;
+        foreach (var x in ordered)
+        {
+            bal += x.Count;
+            x.BalanceAfter = (int)bal;
+            var last = tally.Count > 0 ? tally[^1] : null;
+            if (x.Group == "ROW" && last != null && last.Group == "ROW")
+            {
+                last.Count += x.Count; last.DateTo = x.Date; last.BalanceAfter = (int)bal; last.Lines++;
+                last.Parts![x.Source] = last.Parts.GetValueOrDefault(x.Source) + x.Count;
+                continue;
+            }
+            var t = new CreditHistoryEntryDto { Date = x.Date, Kind = x.Kind, Group = x.Group, Source = x.Source, Count = x.Count,
+                Detail = x.Detail, BalanceAfter = (int)bal, Lines = 1 };
+            if (x.Group == "ROW") { t.Source = "Sent through ROW"; t.Parts = new Dictionary<string, int> { [x.Source] = x.Count }; }
+            tally.Add(t);
+        }
+        foreach (var t in tally.Where(t => t.Parts != null))
+        {
+            t.Kind = t.Count >= 0 ? "Credit" : "Debit";
+            t.Detail = string.Join(" · ", t.Parts!.OrderBy(kv => kv.Value).Select(kv => $"{kv.Key} {Math.Abs(kv.Value):N0}"));
+        }
+
+        var active = packs.Where(x => x.IsActive && x.ToDate >= DateTime.UtcNow).ToList();
+        return new CreditHistoryDto
+        {
+            DistrictNumber = (string)row.DistrictNumber, ClubName = (string?)row.ClubName, CreditType = type,
+            ActiveCredited = active.Sum(x => x.CreditCount), ActiveUsed = active.Sum(x => x.UsedCount),
+            CreditedBySupport = (int)ev.Where(x => x.Group == "Support" && x.Count > 0).Sum(x => (long)x.Count),
+            BoughtOnline = (int)ev.Where(x => x.Group == "Online").Sum(x => (long)x.Count),
+            SentThroughRow = (int)-ev.Where(x => x.Group == "ROW").Sum(x => (long)x.Count),
+            DeductedBySupport = (int)-ev.Where(x => x.Group == "Support" && x.Count < 0).Sum(x => (long)x.Count),
+            Expired = (int)-ev.Where(x => x.Group == "Expired").Sum(x => (long)x.Count),
+            Balance = (int)bal,
+            Tally = tally,
+            Entries = ordered,
+        };
+    }
+
+    // What a ROW send was, for the tally's breakdown ("Birthday email 30 · Upcoming event 12").
+    private static string SendLabel(string source, string? detail)
+    {
+        if (source == "greeting_send")
+        {
+            var d = detail ?? "";
+            return d.StartsWith("Birthday", StringComparison.OrdinalIgnoreCase) ? "Birthday greetings"
+                 : d.StartsWith("Anniversary", StringComparison.OrdinalIgnoreCase) ? "Anniversary greetings" : "Greetings";
+        }
+        return source switch
+        {
+            "UpcomingEvent" => "Upcoming events", "UpcomingEventReminder" => "Upcoming event reminders",
+            "Announcement" => "Announcements", "AnnouncementReminder" => "Announcement reminders",
+            "Project" => "Projects", "Newsletter" => "Newsletters", "MassEmail" => "Mass email",
+            "MonthlyReportReminder" => "Monthly report reminders", "ExpiryWarning" => "Credit expiry warnings",
+            _ => source,
+        };
+    }
+
     // One wallet only: a club wallet (fk_club_id = id) or a district wallet (fk_club_id = 0, fk_district_id = id).
     // Matching both let club 5 spend district 5's credits. Constant SQL fragments, never input.
     private static string WalletWhere(bool isDistrict) =>

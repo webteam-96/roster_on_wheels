@@ -43,20 +43,8 @@ public class RotaryOrgManualSyncController : ControllerBase
     // reused number doesn't trip UNIQUE(PrimaryMobileNumber) on INSERT / re-activation. Moves that
     // deleted row's Primary -> Secondary (only when Secondary is empty) and nulls its Primary.
     // ACTIVE rows are never touched — a live duplicate still fails, as it should.
-    private static async Task ReleaseSoftDeletedMobileAsync(MySqlConnection conn, string? mobile, int excludeId = 0)
-    {
-        if (string.IsNullOrWhiteSpace(mobile)) return;
-        await conn.ExecuteAsync(@"
-            UPDATE member_master_profile
-            SET SecondaryMobileNumber = CASE WHEN SecondaryMobileNumber IS NULL OR SecondaryMobileNumber = ''
-                                             THEN PrimaryMobileNumber ELSE SecondaryMobileNumber END,
-                PrimaryMobileNumber = NULL,
-                modified_date = NOW()
-            WHERE TRIM(PrimaryMobileNumber) = TRIM(@Mobile)
-              AND isdeleted = 1
-              AND pk_member_master_profile_id <> @ExcludeId",
-            new { Mobile = mobile.Trim(), ExcludeId = excludeId });
-    }
+    private static Task ReleaseSoftDeletedMobileAsync(MySqlConnection conn, string? mobile, int excludeId = 0) =>
+        RiMemberImport.ReleaseSoftDeletedMobileAsync(conn, mobile, excludeId);
     private bool IsSuperAdmin() => User.FindFirst("roles")?.Value?.Contains("SuperAdmin") == true;
     private int GetUserId() => int.TryParse(User.FindFirst("memberId")?.Value, out var id) ? id : 0;
 
@@ -754,121 +742,10 @@ public class RotaryOrgManualSyncController : ControllerBase
             dob = d;
 
         var gender = !string.IsNullOrWhiteSpace(ind?.Gender) ? ind!.Gender : ind?.GenderDescription;
-        var lang = ind?.PrimaryLanguage;
-        int isYouth = 0;
-        if (ind?.YouthFlag == true) isYouth = 1;
-        else if (dob.HasValue)
-        {
-            var age = DateTime.UtcNow.Date.Year - dob.Value.Year;
-            if (dob.Value.Date > DateTime.UtcNow.Date.AddYears(-age)) age--;
-            isYouth = (age >= 18 && age <= 40) ? 1 : 0;
-        }
-
-        // A Rotary ID, email or mobile that another ACTIVE member holds is refused with that member's name
-        // (build spec 3.12); it used to fail on the UNIQUE keys with a database error.
-        await MemberService.CheckDuplicatesAsync(conn, phone, email, rid);
-
-        // Find existing soft-deleted member (re-activation) by RotaryId/email/phone
-        var existingId = await conn.ExecuteScalarAsync<int?>(@"
-            SELECT pk_member_master_profile_id FROM member_master_profile
-            WHERE isdeleted = 1 AND (RotaryId = @Rid
-                OR (@Email IS NOT NULL AND @Email <> '' AND EmailId = @Email)
-                OR (@Phone IS NOT NULL AND @Phone <> '' AND PrimaryMobileNumber = @Phone))
-            ORDER BY pk_member_master_profile_id DESC LIMIT 1",
-            new { Rid = rid, Email = email ?? "", Phone = phone ?? "" });
-
-        int memberId;
-        if (existingId.HasValue && existingId.Value > 0)
-        {
-            memberId = existingId.Value;
-            // Free the number from any OTHER soft-deleted row so the COALESCE fill doesn't hit the unique key.
-            await ReleaseSoftDeletedMobileAsync(conn, phone, excludeId: memberId);
-            await conn.ExecuteAsync(@"
-                UPDATE member_master_profile SET
-                    isdeleted = 0, deleted_by = NULL, deleted_date = NULL,
-                    RotaryId = @Rid, MemberName = @Name,
-                    EmailId = COALESCE(@Email, EmailId),
-                    PrimaryMobileNumber = COALESCE(@Phone, PrimaryMobileNumber),
-                    BirthDate = COALESCE(@Dob, BirthDate),
-                    Gender = COALESCE(@Gender, Gender),
-                    PrimaryLanguage = COALESCE(@Lang, PrimaryLanguage),
-                    IsYouth = @IsYouth, modified_date = NOW()
-                WHERE pk_member_master_profile_id = @Id",
-                new { Id = memberId, Rid = rid, Name = name, Email = email, Phone = phone, Dob = dob, Gender = gender, Lang = lang, IsYouth = isYouth });
-        }
-        else
-        {
-            // Free the number from any soft-deleted row so the INSERT doesn't hit the unique key.
-            await ReleaseSoftDeletedMobileAsync(conn, phone, excludeId: 0);
-            memberId = await conn.ExecuteScalarAsync<int>(@"
-                INSERT INTO member_master_profile
-                    (MemberName, RotaryId, EmailId, PrimaryMobileNumber, BirthDate, Gender, PrimaryLanguage, IsYouth, IsPersonalDetailsVisible, created_date, isdeleted, ShowPhoneInAllClubs, ShowEmailInAllClubs)
-                VALUES (@Name, @Rid, @Email, @Phone, @Dob, @Gender, @Lang, @IsYouth, 1, NOW(), 0, 0, 0);
-                SELECT LAST_INSERT_ID();",
-                new
-                {
-                    Name = name,
-                    Rid = rid,
-                    Email = email,
-                    Phone = phone,
-                    Dob = dob,
-                    Gender = gender,
-                    Lang = lang,
-                    IsYouth = isYouth,
-                });
-        }
-        // Honorary status moved to club_members 2026-06-26 — applied per-club below
-        // when we upsert this member's club_members row.
-        var isHonForClub = string.Equals(api.MemberType, "Honorary Member", StringComparison.OrdinalIgnoreCase) ? 1 : 0;
-
-        // club_members upsert
-        var existingCm = await conn.QueryFirstOrDefaultAsync<(int pk_id, int isdeleted)>(@"
-            SELECT pk_club_member_id AS pk_id, isdeleted
-            FROM club_members
-            WHERE fk_club_id = @C AND fk_member_master_profile_id = @M
-            ORDER BY pk_club_member_id DESC LIMIT 1",
-            new { C = clubId, M = memberId });
-
-        var joined = api.AdmissionDate ?? DateTime.UtcNow.Date;
-        if (existingCm.pk_id == 0)
-        {
-            await conn.ExecuteAsync(@"
-                INSERT INTO club_members (fk_club_id, fk_member_master_profile_id, JoinedDate, IsActive, IsHonoraryMember, created_date, isdeleted)
-                VALUES (@C, @M, @J, 1, @IsHon, NOW(), 0)",
-                new { C = clubId, M = memberId, J = joined, IsHon = isHonForClub });
-        }
-        else if (existingCm.isdeleted == 1)
-        {
-            await conn.ExecuteAsync(@"
-                UPDATE club_members SET isdeleted = 0, IsActive = 1, JoinedDate = @J,
-                    IsHonoraryMember = @IsHon,
-                    TerminationDate = NULL, TerminationReason = NULL,
-                    deleted_by = NULL, deleted_date = NULL, modified_date = NOW()
-                WHERE pk_club_member_id = @Id",
-                new { Id = existingCm.pk_id, J = joined, IsHon = isHonForClub });
-        }
-        else
-        {
-            // Active club_members row — refresh honorary status; backfill Joining Date
-            // (AdmissionDate) when it's currently blank. COALESCE(JoinedDate, @J) keeps an
-            // existing date (never overwrites with the DateTime.UtcNow.Date fallback).
-            await conn.ExecuteAsync(@"
-                UPDATE club_members SET IsHonoraryMember = @IsHon,
-                    JoinedDate = COALESCE(JoinedDate, @J),
-                    modified_date = NOW()
-                WHERE pk_club_member_id = @Id",
-                new { Id = existingCm.pk_id, IsHon = isHonForClub, J = joined });
-        }
-
-        // Default Member role
-        await conn.ExecuteAsync(@"
-            INSERT INTO member_roles (fk_member_master_profile_id, fk_role_id, AssignedBy, IsActive, isdeleted, AssignedDate)
-            SELECT @M, 1, @M, 1, 0, NOW() FROM DUAL
-            WHERE NOT EXISTS (
-                SELECT 1 FROM member_roles
-                WHERE fk_member_master_profile_id = @M AND fk_role_id = 1 AND IsActive = 1 AND isdeleted = 0)",
-            new { M = memberId });
-
+        var person = new RiPerson(api.MemberId, name, email, phone, dob, gender, ind?.PrimaryLanguage,
+            RiMemberImport.YouthFlag(ind?.YouthFlag, dob, DateTime.UtcNow.Date), api.MemberType, api.AdmissionDate);
+        var memberId = await RiMemberImport.CreateProfileAsync(conn, person);
+        await RiMemberImport.JoinClubAsync(conn, clubId, memberId, api.MemberType, api.AdmissionDate);
         return true;
     }
 

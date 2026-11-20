@@ -54,6 +54,11 @@ public class MobileRequestOtpResponse
 
 public class MobileVerifyOtpResponse
 {
+    // Account security (gap agent): a right password with MFA due returns no Token, only this challenge.
+    public bool MfaRequired { get; set; }
+    public string? MfaToken { get; set; }
+    public bool MfaSetupRequired { get; set; }
+    public List<string>? RecoveryCodes { get; set; }
     public bool MustChangePassword { get; set; } // signed in with a temporary password: only the password change works
     public string Token { get; set; } = "";
     public DateTime ExpiresAt { get; set; }

@@ -12,6 +12,7 @@ export const STATUS_LABEL: Record<GrantStatus, string> = {
   rejected: "Rejected",
   paid: "Paid",
   report_submitted: "Report submitted",
+  report_accepted: "Report accepted",
   closed: "Closed",
   cancelled: "Cancelled",
 };
@@ -19,7 +20,7 @@ export const STATUS_LABEL: Record<GrantStatus, string> = {
 // The district's review order, used for the status counts on the dashboard.
 export const REVIEW_ORDER: GrantStatus[] = [
   "submitted", "information_requested", "information_provided", "adjustment_requested", "approved",
-  "paid", "report_submitted", "closed", "rejected", "cancelled",
+  "paid", "report_submitted", "report_accepted", "closed", "rejected", "cancelled",
 ];
 
 export const ARCHIVED: GrantStatus[] = ["rejected", "closed", "cancelled"];
@@ -34,6 +35,7 @@ export const STATUS_TONE: Record<GrantStatus, string> = {
   approved: "bg-emerald-100 text-emerald-800",
   paid: "bg-emerald-100 text-emerald-800",
   report_submitted: "bg-amber-100 text-amber-800",
+  report_accepted: "bg-emerald-100 text-emerald-800",
   closed: "bg-slate-200 text-slate-700",
   rejected: "bg-red-100 text-red-700",
   cancelled: "bg-slate-200 text-slate-600",
@@ -50,6 +52,7 @@ export const ACTION_LABEL: Record<string, string> = {
   approve: "Approve",
   reject: "Reject",
   return_report: "Return the report",
+  accept_report: "Accept final report",
   close: "Close grant",
 };
 
@@ -67,6 +70,22 @@ export const EVENT_LABEL: Record<string, string> = {
   close: "Closed the grant",
   comment: "Commented",
   payment: "Recorded a payment",
+  accept_report: "Accepted the final report",
+  interim_report: "Filed an interim report",
+  reminder: "Report reminder sent",
+};
+
+export const ATTACHMENT_KIND_LABEL: Record<string, string> = {
+  application: "Application",
+  interim: "Progress",
+  receipt: "Receipt",
+  report: "Final report",
+};
+
+/** Signature prompt for the actions that need a typed sign-off (the API refuses them without one). */
+export const SIGNATURE_LABEL: Record<string, string> = {
+  submit: "Club president's signature (type the full name)",
+  approve: "Your signature as district grants chair (type your full name)",
 };
 
 export const PAYMENT_METHODS: Record<string, string> = {

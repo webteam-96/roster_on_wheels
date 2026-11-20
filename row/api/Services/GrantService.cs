@@ -17,13 +17,13 @@ namespace RotaryApi.Services;
 /// "District on ROW" = the district has a tenant row (tenant_subscriptions, fk_club_id = 0). A club whose district
 /// is not on ROW is in light mode: it only records a grant amount and a report date on its own projects.
 /// </summary>
-public class GrantService
+public partial class GrantService
 {
     public const string ClubSide = "club", DistrictSide = "district";
     public const string NotOnRow = "This district is not on ROW yet (no tenant subscription). A SuperAdmin adds it in Settings > Tenants.";
     private static readonly string[] Archived = { "rejected", "closed", "cancelled" };
     private static readonly string[] EditableStates = { "draft", "information_requested", "adjustment_requested" };
-    private static readonly string[] CommittedStates = { "approved", "paid", "report_submitted", "closed" };
+    private static readonly string[] CommittedStates = { "approved", "paid", "report_submitted", "report_accepted", "closed" };
     private static readonly string[] PayableStates = { "approved", "paid", "report_submitted" };
     private static readonly string[] CycleStates = { "draft", "open", "closed" };
     private static readonly string[] LineKinds = { "income", "expense", "partner" };
@@ -48,7 +48,9 @@ public class GrantService
         new("approve", DistrictSide, new[] { "submitted", "information_provided" }, "approved", false),
         new("reject", DistrictSide, new[] { "submitted", "information_requested", "information_provided", "adjustment_requested" }, "rejected", true),
         new("return_report", DistrictSide, new[] { "report_submitted" }, "paid", true),
-        new("close", DistrictSide, new[] { "report_submitted" }, "closed", false),
+        new("accept_report", DistrictSide, new[] { "report_submitted" }, "report_accepted", false),
+        // Closing straight from report_submitted accepts the final report in the same step (grants from before 2026-11-19).
+        new("close", DistrictSide, new[] { "report_submitted", "report_accepted" }, "closed", false),
         new("cancel", DistrictSide, new[] { "approved" }, "cancelled", true),
     };
 
@@ -57,12 +59,13 @@ public class GrantService
         ["draft"] = "Draft", ["submitted"] = "Submitted", ["information_requested"] = "Information requested",
         ["information_provided"] = "Information provided", ["adjustment_requested"] = "Adjustment requested",
         ["approved"] = "Approved", ["rejected"] = "Rejected", ["paid"] = "Paid", ["report_submitted"] = "Report submitted",
+        ["report_accepted"] = "Report accepted",
         ["closed"] = "Closed", ["cancelled"] = "Cancelled",
     };
 
     private static readonly byte[] Zip = { 0x50, 0x4B, 0x03, 0x04 }, Ole = { 0xD0, 0xCF, 0x11, 0xE0 };
     // Allowed attachment types: the extension and the file's first bytes must agree.
-    private static readonly Dictionary<string, (byte[] Magic, string ContentType)> FileTypes = new()
+    internal static readonly Dictionary<string, (byte[] Magic, string ContentType)> FileTypes = new()
     {
         [".pdf"] = ("%PDF"u8.ToArray(), "application/pdf"),
         [".png"] = (new byte[] { 0x89, 0x50, 0x4E, 0x47 }, "image/png"),
@@ -92,6 +95,46 @@ public class GrantService
 
     public static string Label(string status) => StatusLabels.GetValueOrDefault(status, status);
 
+    // ===== Lifecycle rules (pure, unit tested in api.Tests/GrantLifecycleTests.cs) =====
+
+    /// <summary>Whether a side may take an action from a status.</summary>
+    public static bool CanTransition(string side, string from, string action) =>
+        Transitions.Any(t => t.Side == side && t.Action == action && t.From.Contains(from));
+
+    /// <summary>The budget total the grant must fund: expense lines minus other income lines (partners carry no money).</summary>
+    public static decimal BudgetTotal(IEnumerable<GrantLineDto> lines)
+    {
+        var list = lines.ToList();
+        return list.Where(l => l.Kind == "expense").Sum(l => l.Amount ?? 0) - list.Where(l => l.Kind == "income").Sum(l => l.Amount ?? 0);
+    }
+
+    /// <summary>Null when the request fits the budget, else the reason. On a first submit the request must equal the
+    /// budget total; after the district asks for an adjustment it may be lower (the district may fund less).</summary>
+    public static string? BudgetProblem(decimal requested, IEnumerable<GrantLineDto> lines, bool exact)
+    {
+        var list = lines.ToList();
+        if (!list.Any(l => l.Kind == "expense" && (l.Amount ?? 0) > 0)) return "Add the project's expenses to the budget.";
+        var total = BudgetTotal(list);
+        if (exact && requested != total)
+            return $"The amount requested must equal the budget total (expenses minus other income): {total:0.00}.";
+        if (requested > total)
+            return $"The amount requested cannot be more than expenses minus other income ({total:0.00}).";
+        return null;
+    }
+
+    /// <summary>Actual minus budget for a line (positive = overspent); null until the actual is reported.</summary>
+    public static decimal? Variance(decimal? budget, decimal? actual) => actual is { } a ? a - (budget ?? 0) : null;
+
+    /// <summary>Files the club may add or remove now: application papers while the form is editable, progress papers
+    /// and receipts once approved, the final report's papers while it is due.</summary>
+    public static List<string> AttachmentKinds(string status) =>
+        EditableStates.Contains(status) ? new() { "application" }
+        : status == "approved" ? new() { "interim", "receipt" }
+        : status == "paid" ? new() { "report", "interim", "receipt" }
+        : new();
+
+    private static readonly string[] InterimStates = { "approved", "paid" };
+
     // A district sees an application once it has been submitted (drafts, and drafts the club cancelled, stay private).
     private static string Scope(string side) => side == ClubSide
         ? "a.fk_club_id = @scopeId"
@@ -120,7 +163,7 @@ public class GrantService
         SELECT gc.pk_cycle_id AS Id, gc.fk_district_id AS DistrictId, gc.fk_year_id AS YearId, y.YearLabel,
                gc.status AS Status, gc.ddf_budget AS DdfBudget, gc.max_request AS MaxRequest,
                gc.min_qualified_members AS MinQualifiedMembers, gc.opens_on AS OpensOn, gc.closes_on AS ClosesOn,
-               gc.report_due_on AS ReportDueOn, gc.rules AS Rules
+               gc.report_due_on AS ReportDueOn, gc.interim_due_on AS InterimDueOn, gc.rules AS Rules
         FROM grant_cycles gc
         JOIN rotary_year_master y ON y.pk_year_id = gc.fk_year_id";
 
@@ -163,6 +206,7 @@ public class GrantService
         if (maxRequest is <= 0 or > MaxAmount) throw new InvalidOperationException("The largest grant per application must be more than 0.");
         if (dto.MinQualifiedMembers is < 0 or > 50) throw new InvalidOperationException("Qualified members must be between 0 and 50.");
         if (dto.OpensOn > dto.ClosesOn) throw new InvalidOperationException("Applications must close after they open.");
+        if (dto.InterimDueOn > dto.ReportDueOn) throw new InvalidOperationException("The interim report must be due before the final report.");
         var rules = Clean(dto.Rules, 4000, "The qualification rules");
 
         await using var c = RowDb.Connect(_cs);
@@ -193,7 +237,7 @@ public class GrantService
                 new { districtId }, tx) > 0)
             throw new InvalidOperationException("This district is in planning: the current year is read-only. Open the cycle for next year.");
 
-        var p = new { districtId, yearId, status, budget, maxRequest, dto.MinQualifiedMembers, dto.OpensOn, dto.ClosesOn, dto.ReportDueOn, rules, memberId, cycleId };
+        var p = new { districtId, yearId, status, budget, maxRequest, dto.MinQualifiedMembers, dto.OpensOn, dto.ClosesOn, dto.ReportDueOn, dto.InterimDueOn, rules, memberId, cycleId };
         var creating = cycleId == null;
         if (creating)
         {
@@ -201,9 +245,9 @@ public class GrantService
             {
                 cycleId = await c.ExecuteScalarAsync<int>(@"
                     INSERT INTO grant_cycles (fk_district_id, fk_year_id, status, ddf_budget, max_request, min_qualified_members,
-                        opens_on, closes_on, report_due_on, rules, created_by)
+                        opens_on, closes_on, report_due_on, interim_due_on, rules, created_by)
                     VALUES (@districtId, @yearId, @status, @budget, @maxRequest, @MinQualifiedMembers,
-                        @OpensOn, @ClosesOn, @ReportDueOn, @rules, @memberId);
+                        @OpensOn, @ClosesOn, @ReportDueOn, @InterimDueOn, @rules, @memberId);
                     SELECT LAST_INSERT_ID();", p, tx);
             }
             catch (MySqlException ex) when (ex.ErrorCode == MySqlErrorCode.DuplicateKeyEntry)
@@ -216,7 +260,7 @@ public class GrantService
             await c.ExecuteAsync(@"
                 UPDATE grant_cycles SET status = @status, ddf_budget = @budget, max_request = @maxRequest,
                     min_qualified_members = @MinQualifiedMembers, opens_on = @OpensOn, closes_on = @ClosesOn,
-                    report_due_on = @ReportDueOn, rules = @rules, modified_by = @memberId
+                    report_due_on = @ReportDueOn, interim_due_on = @InterimDueOn, rules = @rules, modified_by = @memberId
                 WHERE pk_cycle_id = @cycleId AND fk_district_id = @districtId", p, tx);
         }
         await tx.CommitAsync();
@@ -246,6 +290,27 @@ public class GrantService
             r.Balance = cycle.DdfBudget - running;
         }
         return new GrantCashFlowDto { Budget = cycle.DdfBudget, Committed = cycle.Committed, Paid = cycle.Paid, Rows = rows };
+    }
+
+    /// <summary>Per Rotary year (one cycle each): approved (committed grants), paid out, spent as reported in final
+    /// reports, and outstanding (approved but not yet paid).</summary>
+    public async Task<List<GrantYearSummaryDto>> GetYearSummaryAsync(int districtId)
+    {
+        await using var c = RowDb.Connect(_cs);
+        return (await c.QueryAsync<GrantYearSummaryDto>(@"
+            SELECT gc.pk_cycle_id AS CycleId, gc.fk_year_id AS YearId, y.YearLabel, gc.ddf_budget AS Budget,
+                   COALESCE(SUM(CASE WHEN a.status IN @CommittedStates THEN a.amount_approved END), 0) AS Approved,
+                   COALESCE(SUM(CASE WHEN a.status IN @CommittedStates THEN pay.paid END), 0) AS Paid,
+                   COALESCE(SUM(CASE WHEN a.status IN ('report_submitted', 'report_accepted', 'closed') THEN a.report_amount_spent END), 0) AS ReportedSpent
+            FROM grant_cycles gc
+            JOIN rotary_year_master y ON y.pk_year_id = gc.fk_year_id
+            LEFT JOIN grant_applications a ON a.fk_cycle_id = gc.pk_cycle_id AND a.submitted_at IS NOT NULL
+            LEFT JOIN (SELECT fk_application_id, SUM(amount) AS paid FROM grant_payments GROUP BY fk_application_id) pay
+                   ON pay.fk_application_id = a.pk_application_id
+            WHERE gc.fk_district_id = @districtId
+            GROUP BY gc.pk_cycle_id, gc.fk_year_id, y.YearLabel, gc.ddf_budget
+            ORDER BY y.YearLabel DESC", new { districtId, CommittedStates }))
+            .Select(r => { r.Outstanding = r.Approved - r.Paid; return r; }).ToList();
     }
 
     /// <summary>Every submitted application of a cycle as CSV (archived ones included).</summary>
@@ -318,6 +383,8 @@ public class GrantService
             Cycles = (await c.QueryAsync<GrantCycleDto>(
                 CycleSelect + " WHERE gc.fk_district_id = @districtId AND gc.status <> 'draft' ORDER BY y.StartDate DESC", new { districtId })).ToList(),
             Applications = await ListAsync(c, ClubSide, clubId, null, null, null),
+            Qualifications = await ClubQualificationsAsync(c, clubId),
+            RequireQualification = await RequiresQualificationAsync(c, null, districtId.Value),
         };
     }
 
@@ -333,7 +400,7 @@ public class GrantService
                    a.rules_accepted AS RulesAccepted, a.rejection_reason AS RejectionReason,
                    a.report_summary AS ReportSummary, a.report_amount_spent AS ReportAmountSpent,
                    a.report_beneficiaries AS ReportBeneficiaries, a.report_submitted_at AS ReportSubmittedAt,
-                   a.closed_at AS ClosedAt, m.MemberName AS CreatedByName
+                   a.closed_at AS ClosedAt, a.report_accepted_at AS ReportAcceptedAt, m.MemberName AS CreatedByName
             FROM grant_applications a
             JOIN grant_cycles gc ON gc.pk_cycle_id = a.fk_cycle_id
             JOIN rotary_year_master y ON y.pk_year_id = gc.fk_year_id
@@ -343,13 +410,16 @@ public class GrantService
         if (a == null) return null;
 
         using (var multi = await c.QueryMultipleAsync(CycleSelect + @" WHERE gc.pk_cycle_id = @cycleId;
-            SELECT kind AS Kind, description AS Description, detail AS Detail, amount AS Amount
+            SELECT pk_line_id AS Id, kind AS Kind, description AS Description, detail AS Detail, amount AS Amount,
+                   category AS Category, supplier AS Supplier, actual_amount AS ActualAmount
             FROM grant_application_lines WHERE fk_application_id = @id ORDER BY sort_order, pk_line_id;
             SELECT gm.fk_member_id AS MemberId, m.MemberName, gm.note AS Note
             FROM grant_application_members gm LEFT JOIN member_master_profile m ON m.pk_member_master_profile_id = gm.fk_member_id
             WHERE gm.fk_application_id = @id ORDER BY m.MemberName;
-            SELECT pk_attachment_id AS Id, kind AS Kind, original_name AS OriginalName, size_bytes AS SizeBytes, created_date AS CreatedDate
-            FROM grant_attachments WHERE fk_application_id = @id ORDER BY pk_attachment_id;
+            SELECT t.pk_attachment_id AS Id, t.kind AS Kind, t.original_name AS OriginalName, t.size_bytes AS SizeBytes,
+                   t.created_date AS CreatedDate, m.MemberName AS UploadedByName
+            FROM grant_attachments t LEFT JOIN member_master_profile m ON m.pk_member_master_profile_id = t.uploaded_by
+            WHERE t.fk_application_id = @id ORDER BY t.pk_attachment_id;
             SELECT e.pk_event_id AS Id, e.side AS Side, e.action AS Action, e.from_status AS FromStatus, e.to_status AS ToStatus,
                    e.comment AS Comment, m.MemberName, e.created_date AS CreatedDate
             FROM grant_events e LEFT JOIN member_master_profile m ON m.pk_member_master_profile_id = e.fk_member_id
@@ -357,7 +427,15 @@ public class GrantService
             SELECT p.pk_payment_id AS Id, p.amount AS Amount, p.paid_on AS PaidOn, p.method AS Method, p.reference AS Reference,
                    p.note AS Note, m.MemberName AS RecordedByName
             FROM grant_payments p LEFT JOIN member_master_profile m ON m.pk_member_master_profile_id = p.recorded_by
-            WHERE p.fk_application_id = @id ORDER BY p.paid_on, p.pk_payment_id;", new { id, cycleId = a.CycleId }))
+            WHERE p.fk_application_id = @id ORDER BY p.paid_on, p.pk_payment_id;
+            SELECT s.action AS Action, s.signer_role AS SignerRole, s.signature_name AS SignatureName, m.MemberName,
+                   s.signed_at_utc AS SignedAtUtc
+            FROM grant_signoffs s LEFT JOIN member_master_profile m ON m.pk_member_master_profile_id = s.fk_member_id
+            WHERE s.fk_application_id = @id ORDER BY s.pk_signoff_id;
+            SELECT r.pk_report_id AS Id, r.progress AS Progress, r.amount_spent AS AmountSpent, m.MemberName AS SubmittedByName,
+                   r.submitted_at_utc AS SubmittedAtUtc
+            FROM grant_interim_reports r LEFT JOIN member_master_profile m ON m.pk_member_master_profile_id = r.submitted_by
+            WHERE r.fk_application_id = @id ORDER BY r.pk_report_id;", new { id, cycleId = a.CycleId }))
         {
             a.Cycle = await multi.ReadFirstAsync<GrantCycleDto>();
             a.Lines = (await multi.ReadAsync<GrantLineDto>()).ToList();
@@ -365,12 +443,19 @@ public class GrantService
             a.Attachments = (await multi.ReadAsync<GrantAttachmentDto>()).ToList();
             a.Events = (await multi.ReadAsync<GrantEventDto>()).ToList();
             a.Payments = (await multi.ReadAsync<GrantPaymentDto>()).ToList();
+            a.SignOffs = (await multi.ReadAsync<GrantSignOffDto>()).ToList();
+            a.InterimReports = (await multi.ReadAsync<GrantInterimReportDto>()).ToList();
         }
+        foreach (var l in a.Lines) l.Variance = Variance(l.Amount, l.ActualAmount);
+        a.BudgetTotal = BudgetTotal(a.Lines);
         a.Paid = a.Payments.Sum(p => p.Amount);
         a.Actions = Transitions.Where(t => t.Side == side && t.From.Contains(a.Status))
             .Select(t => new GrantActionInfoDto { Action = t.Action, To = t.To, CommentRequired = t.CommentRequired }).ToList();
         a.Editable = side == ClubSide && EditableStates.Contains(a.Status);
         a.AttachmentKind = side == ClubSide ? AttachmentKind(a.Status) : null;
+        a.AttachmentKinds = side == ClubSide ? AttachmentKinds(a.Status) : new();
+        a.CanSubmitInterimReport = side == ClubSide && InterimStates.Contains(a.Status);
+        if (side == ClubSide) await FillQualificationWarningAsync(c, a);
         a.CanRecordPayment = side == DistrictSide && PayableStates.Contains(a.Status);
         return a;
     }
@@ -402,6 +487,8 @@ public class GrantService
             l.Description = (l.Description ?? "").Trim();
             if (l.Description.Length is 0 or > 300) throw new InvalidOperationException("Each budget line and partner needs a description (300 characters at most).");
             l.Detail = Clean(l.Detail, 300, "A line's detail");
+            l.Category = Clean(l.Category, 60, "A line's category");
+            l.Supplier = Clean(l.Supplier, 150, "A line's supplier");
             if (l.Kind != "partner" && l.Amount == null) throw new InvalidOperationException("Each income and expense line needs an amount.");
             l.Amount = l.Amount is { } a ? decimal.Round(a, 2) : null;
             if (l.Amount is < 0 or > MaxAmount) throw new InvalidOperationException("A line amount is out of range.");
@@ -426,9 +513,9 @@ public class GrantService
         await c.ExecuteAsync(@"DELETE FROM grant_application_lines WHERE fk_application_id = @id;
             DELETE FROM grant_application_members WHERE fk_application_id = @id;", new { id }, tx);
         if (d.Lines.Count > 0)
-            await c.ExecuteAsync(@"INSERT INTO grant_application_lines (fk_application_id, kind, description, detail, amount, sort_order)
-                VALUES (@id, @Kind, @Description, @Detail, @Amount, @Sort)",
-                d.Lines.Select((l, i) => new { id, l.Kind, l.Description, l.Detail, l.Amount, Sort = i }), tx);
+            await c.ExecuteAsync(@"INSERT INTO grant_application_lines (fk_application_id, kind, description, detail, amount, category, supplier, sort_order)
+                VALUES (@id, @Kind, @Description, @Detail, @Amount, @Category, @Supplier, @Sort)",
+                d.Lines.Select((l, i) => new { id, l.Kind, l.Description, l.Detail, l.Amount, l.Category, l.Supplier, Sort = i }), tx);
         if (d.Members.Count > 0)
             await c.ExecuteAsync("INSERT INTO grant_application_members (fk_application_id, fk_member_id, note) VALUES (@id, @MemberId, @Note)",
                 d.Members.Select(m => new { id, m.MemberId, m.Note }), tx);
@@ -551,17 +638,15 @@ public class GrantService
         if (app.AmountRequested <= 0) throw new InvalidOperationException("Enter the amount requested.");
         if (app.MaxRequest is { } max && app.AmountRequested > max)
             throw new InvalidOperationException($"This cycle funds at most {max:0.00} per application.");
-        var (income, expense) = await c.QueryFirstAsync<(decimal Income, decimal Expense)>(@"
-            SELECT COALESCE(SUM(CASE WHEN kind = 'income' THEN amount END), 0), COALESCE(SUM(CASE WHEN kind = 'expense' THEN amount END), 0)
-            FROM grant_application_lines WHERE fk_application_id = @Id", new { app.Id }, tx);
-        if (expense <= 0) throw new InvalidOperationException("Add the project's expenses to the budget.");
-        if (app.AmountRequested > expense - income)
-            throw new InvalidOperationException($"The amount requested cannot be more than expenses minus other income ({expense - income:0.00}).");
+        var lines = await c.QueryAsync<GrantLineDto>(
+            "SELECT kind AS Kind, amount AS Amount FROM grant_application_lines WHERE fk_application_id = @Id", new { app.Id }, tx);
+        if (BudgetProblem(app.AmountRequested, lines, exact: first) is { } problem) throw new InvalidOperationException(problem);
         var members = (await c.QueryAsync<int>("SELECT fk_member_id FROM grant_application_members WHERE fk_application_id = @Id", new { app.Id }, tx)).ToList();
         if (members.Count < app.MinQualifiedMembers)
             throw new InvalidOperationException($"This cycle needs at least {app.MinQualifiedMembers} qualified members on the application.");
         await CheckMembersAsync(c, tx, app.ClubId, members);
         if (!app.RulesAccepted) throw new InvalidOperationException("Confirm that the club meets the cycle's qualification rules.");
+        await CheckQualifiedAsync(c, tx, app);
     }
 
     public async Task<GrantApplicationDto?> TransitionAsync(string side, int scopeId, int id, string action, GrantActionDto dto, int memberId, HttpContext http)
@@ -569,6 +654,8 @@ public class GrantService
         var t = Transitions.FirstOrDefault(x => x.Action == action && x.Side == side)
             ?? throw new InvalidOperationException("This action is not available here.");
         var comment = Clean(dto.Comment, 4000, "The comment");
+        var signs = t.Action is "submit" or "approve";
+        var signature = Clean(dto.Signature, 150, "The signature");
         if (t.CommentRequired && comment == null)
             throw new InvalidOperationException(t.To == "rejected" ? "Give the reason for the rejection." : "Add a comment explaining what is needed.");
 
@@ -590,6 +677,9 @@ public class GrantService
             case "resubmit":
                 await CheckSubmittableAsync(c, tx, app, t.Action == "submit");
                 set = ", submitted_at = NOW()";
+                break;
+            case "accept_report":
+                set = ", report_accepted_at = UTC_TIMESTAMP(), report_accepted_by = @memberId";
                 break;
             case "approve":
                 amount = decimal.Round(dto.Amount ?? 0, 2);
@@ -618,16 +708,177 @@ public class GrantService
                 p.Add("summary", summary);
                 p.Add("spent", decimal.Round(spent, 2));
                 p.Add("beneficiaries", dto.ReportBeneficiaries);
+                await SaveLineActualsAsync(c, tx, id, dto.LineActuals, spent);
                 break;
             case "close":
-                set = ", closed_at = NOW()";
+                set = ", closed_at = NOW(), report_accepted_at = COALESCE(report_accepted_at, UTC_TIMESTAMP()), report_accepted_by = COALESCE(report_accepted_by, @memberId)";
                 break;
         }
+        // Checked after the state's own rules so their messages come first.
+        if (signs && signature == null)
+            throw new InvalidOperationException(t.Action == "submit"
+                ? "Sign the application: type the club president's full name."
+                : "Sign the approval: type your full name.");
         await c.ExecuteAsync($"UPDATE grant_applications SET status = @to, modified_by = @memberId{set} WHERE pk_application_id = @id AND status = @from", p, tx);
+        if (signs)
+            await c.ExecuteAsync(@"
+                INSERT INTO grant_signoffs (fk_application_id, fk_member_id, action, signer_role, signature_name, signed_at_utc)
+                VALUES (@id, @memberId, @action, @role, @signature, UTC_TIMESTAMP())",
+                new { id, memberId, action = t.Action, role = await SignerRoleAsync(c, tx, app, side, memberId), signature }, tx);
         await RecordEventAsync(c, tx, app, memberId, side, t.Action, app.Status, t.To, comment);
         await tx.CommitAsync();
-        await _audit.LogAsync(memberId, t.Action.ToUpperInvariant(), "grant_application", id, app.Title, new { from = app.Status, to = t.To, amount }, http);
+        await _audit.LogAsync(memberId, t.Action.ToUpperInvariant(), "grant_application", id, app.Title, new { from = app.Status, to = t.To, amount, signature }, http);
         return await GetApplicationAsync(side, scopeId, id);
+    }
+
+    /// <summary>The title the signer signs under. Club: "Club President" when the signer holds that office (board,
+    /// designation 1) for the cycle's year or the current year, else "Club admin". District: "District Grants Chair" when
+    /// the signer is on the district team with a grants title for that year, else "District officer".
+    /// shortcut: not enforced (a club whose president has no ROW login could not apply), enforce when districts ask.</summary>
+    private static async Task<string> SignerRoleAsync(MySqlConnection c, MySqlTransaction tx, AppRow app, string side, int memberId)
+    {
+        if (side == DistrictSide)
+        {
+            // District team titles are free text (district_committee_member.district_designation).
+            var chair = await c.ExecuteScalarAsync<int>(@"
+                SELECT COUNT(*) FROM district_committee_member d
+                WHERE d.fk_member_id = @memberId AND d.fk_district_id = @DistrictId AND d.district_designation LIKE '%grant%'
+                  AND COALESCE(d.isdeleted, 0) = 0 AND COALESCE(d.is_active, 1) = 1
+                  AND (d.fk_year_id = (SELECT fk_year_id FROM grant_cycles WHERE pk_cycle_id = @CycleId)
+                       OR d.fk_year_id = (SELECT pk_year_id FROM rotary_year_master WHERE IsCurrent = 1 AND COALESCE(isdeleted, 0) = 0 LIMIT 1))",
+                new { memberId, app.DistrictId, app.CycleId }, tx);
+            return chair > 0 ? "District Grants Chair" : "District officer";
+        }
+        var president = await c.ExecuteScalarAsync<int>(@"
+            SELECT COUNT(*) FROM board_of_directors b
+            WHERE b.fk_member_master_profile_id = @memberId AND b.fk_club_id = @ClubId AND b.fk_designation_id = @pres
+              AND COALESCE(b.isdeleted, 0) = 0
+              AND (b.fk_year_id = (SELECT fk_year_id FROM grant_cycles WHERE pk_cycle_id = @CycleId)
+                   OR b.fk_year_id = (SELECT pk_year_id FROM rotary_year_master WHERE IsCurrent = 1 AND COALESCE(isdeleted, 0) = 0 LIMIT 1))",
+            new { memberId, app.ClubId, app.CycleId, pres = AdminYearService.DesignationClubPresident }, tx);
+        return president > 0 ? "Club President" : "Club admin";
+    }
+
+    /// <summary>The final report's actual spend per expense line. Optional (older clients send only the total); when
+    /// given, each must be an expense line of this application and they must add up to the amount spent.</summary>
+    private static async Task SaveLineActualsAsync(MySqlConnection c, MySqlTransaction tx, int id, List<GrantLineActualDto>? actuals, decimal spent)
+    {
+        await c.ExecuteAsync("UPDATE grant_application_lines SET actual_amount = NULL WHERE fk_application_id = @id", new { id }, tx);
+        if (actuals == null || actuals.Count == 0) return;
+        var expenseIds = (await c.QueryAsync<int>(
+            "SELECT pk_line_id FROM grant_application_lines WHERE fk_application_id = @id AND kind = 'expense'", new { id }, tx)).ToHashSet();
+        if (actuals.Select(x => x.LineId).Distinct().Count() != actuals.Count || actuals.Any(x => !expenseIds.Contains(x.LineId)))
+            throw new InvalidOperationException("Report actual spend against this application's expense lines, once each.");
+        if (actuals.Any(x => x.Amount < 0 || x.Amount > MaxAmount)) throw new InvalidOperationException("An actual amount is out of range.");
+        if (decimal.Round(actuals.Sum(x => x.Amount), 2) != decimal.Round(spent, 2))
+            throw new InvalidOperationException("The actual spend per budget line must add up to the amount spent.");
+        await c.ExecuteAsync("UPDATE grant_application_lines SET actual_amount = @Amount WHERE pk_line_id = @LineId AND fk_application_id = @id",
+            actuals.Select(x => new { x.LineId, Amount = decimal.Round(x.Amount, 2), id }), tx);
+    }
+
+    /// <summary>A progress report while the grant runs (approved or paid). It does not change the status.</summary>
+    public async Task<GrantApplicationDto?> SubmitInterimReportAsync(int clubId, int id, SubmitGrantInterimReportDto dto, int memberId, HttpContext http)
+    {
+        var progress = Clean(dto.Progress, 8000, "The progress report") ?? throw new InvalidOperationException("Describe the progress so far.");
+        if (dto.AmountSpent is not { } spent || spent < 0 || spent > MaxAmount) throw new InvalidOperationException("Enter the amount spent so far.");
+        spent = decimal.Round(spent, 2);
+        await using var c = RowDb.Connect(_cs);
+        await c.OpenAsync();
+        await using var tx = await c.BeginTransactionAsync(IsolationLevel.ReadCommitted);
+        var app = await LockAsync(c, tx, ClubSide, clubId, id);
+        if (app == null) return null;
+        if (!InterimStates.Contains(app.Status)) throw new InvalidOperationException("Interim reports are for approved grants that are still running.");
+        await c.ExecuteAsync(@"
+            INSERT INTO grant_interim_reports (fk_application_id, progress, amount_spent, submitted_by, submitted_at_utc)
+            VALUES (@id, @progress, @spent, @memberId, UTC_TIMESTAMP())", new { id, progress, spent, memberId }, tx);
+        await RecordEventAsync(c, tx, app, memberId, ClubSide, "interim_report", null, null, $"Spent so far: {spent:0.00}. {Trunc(progress, 300)}");
+        await tx.CommitAsync();
+        await _audit.LogAsync(memberId, "INTERIM_REPORT", "grant_application", id, app.Title, new { spent }, http);
+        return await GetApplicationAsync(ClubSide, clubId, id);
+    }
+
+    // ===== Report reminders =====
+
+    public const int ReminderLeadDays = 7;
+
+    /// <summary>Which reminder a report due on <paramref name="due"/> needs on <paramref name="today"/> (UTC dates):
+    /// "due_soon" in the last 7 days before it, "overdue" from the day after; null otherwise.</summary>
+    public static string? ReminderStage(DateTime? due, DateTime today)
+    {
+        if (due is not { } d) return null;
+        var days = (d.Date - today.Date).TotalDays;
+        return days < 0 ? "overdue" : days <= ReminderLeadDays ? "due_soon" : null;
+    }
+
+    private sealed class ReminderRow
+    {
+        public int Id { get; set; }
+        public int ClubId { get; set; }
+        public int CreatedBy { get; set; }
+        public string Title { get; set; } = "";
+        public string ClubName { get; set; } = "";
+        public string YearLabel { get; set; } = "";
+        public DateTime? InterimDueOn { get; set; }
+        public DateTime? ReportDueOn { get; set; }
+        public int InterimCount { get; set; }
+    }
+
+    /// <summary>Queues in-app + email reminders (grant_notifications rows, emailed by
+    /// GrantNotificationEmailBackgroundService) for interim and final reports that are due within 7 days or overdue,
+    /// once per application, report and stage (grant_report_reminders). Interim: approved/paid grants with no interim
+    /// report yet. Final: approved/paid grants (the report is submitted from "paid"). Returns how many reminders went out.</summary>
+    public async Task<int> QueueReportRemindersAsync(int? districtId = null)
+    {
+        var today = DateTime.UtcNow.Date;
+        await using var c = RowDb.Connect(_cs);
+        await c.OpenAsync();
+        var apps = await c.QueryAsync<ReminderRow>(@"
+            SELECT a.pk_application_id AS Id, a.fk_club_id AS ClubId, a.created_by AS CreatedBy, a.title AS Title,
+                   COALESCE(cl.ClubName, '') AS ClubName, y.YearLabel, gc.interim_due_on AS InterimDueOn, gc.report_due_on AS ReportDueOn,
+                   (SELECT COUNT(*) FROM grant_interim_reports r WHERE r.fk_application_id = a.pk_application_id) AS InterimCount
+            FROM grant_applications a
+            JOIN grant_cycles gc ON gc.pk_cycle_id = a.fk_cycle_id
+            JOIN rotary_year_master y ON y.pk_year_id = gc.fk_year_id
+            LEFT JOIN club_master cl ON cl.pk_club_id = a.fk_club_id
+            WHERE a.status IN ('approved', 'paid') AND (@districtId IS NULL OR a.fk_district_id = @districtId)
+              AND (gc.interim_due_on IS NOT NULL OR gc.report_due_on IS NOT NULL)", new { districtId });
+        var sent = 0;
+        foreach (var a in apps)
+        {
+            var due = new List<(string Report, DateTime? On)> { ("final", a.ReportDueOn) };
+            if (a.InterimCount == 0) due.Add(("interim", a.InterimDueOn));
+            foreach (var (report, on) in due)
+            {
+                if (ReminderStage(on, today) is not { } stage) continue;
+                await using var tx = await c.BeginTransactionAsync(IsolationLevel.ReadCommitted);
+                // The unique key makes this the once-only claim; a second run (or a second API instance) inserts nothing.
+                if (await c.ExecuteAsync(@"INSERT IGNORE INTO grant_report_reminders (fk_application_id, report, stage, due_on, sent_at_utc)
+                        VALUES (@Id, @report, @stage, @on, UTC_TIMESTAMP())", new { a.Id, report, stage, on }, tx) == 0)
+                {
+                    await tx.RollbackAsync();
+                    continue;
+                }
+                var name = report == "final" ? "final report" : "interim report";
+                var title = Trunc(stage == "overdue" ? $"Grant {name} overdue: {a.Title}" : $"Grant {name} due {on:yyyy-MM-dd}: {a.Title}", 250);
+                var body = Trunc($"{a.ClubName}, {a.YearLabel}. The {name} {(stage == "overdue" ? "was" : "is")} due on {on:yyyy-MM-dd}.", 600);
+                // A system event (member 0) so the reminder shows in the application's history.
+                var eventId = await c.ExecuteScalarAsync<int>(@"
+                    INSERT INTO grant_events (fk_application_id, fk_member_id, side, action, comment)
+                    VALUES (@Id, 0, 'district', 'reminder', @title);
+                    SELECT LAST_INSERT_ID();", new { a.Id, title }, tx);
+                await c.ExecuteAsync(@"
+                    INSERT INTO grant_notifications (fk_member_id, fk_application_id, fk_event_id, side, title, body)
+                    SELECT DISTINCT r.MemberId, @Id, @eventId, 'club', @title, @body FROM (
+                        SELECT @CreatedBy AS MemberId
+                        UNION ALL
+                        SELECT fk_member_master_profile_id FROM member_roles
+                        WHERE fk_role_id = 2 AND fk_club_id = @ClubId AND IsActive = 1 AND isdeleted = 0) r",
+                    new { a.Id, a.CreatedBy, a.ClubId, eventId, title, body }, tx);
+                await tx.CommitAsync();
+                sent++;
+            }
+        }
+        return sent;
     }
 
     // shortcut: every comment is shared by the club and the district, add district-only notes if reviewers ask for them.
@@ -714,6 +965,7 @@ public class GrantService
         {
             "comment" => $"New comment on a grant application: {app.Title}",
             "payment" => $"Grant payment recorded: {app.Title}",
+            "interim_report" => $"Grant interim report: {app.Title}",
             _ => $"Grant application {Label(to ?? "").ToLowerInvariant()}: {app.Title}",
         }, 250);
         var body = Trunc($"{app.ClubName}, {app.YearLabel}." + (comment == null ? "" : " " + comment), 600);
@@ -725,7 +977,7 @@ public class GrantService
 
     // ===== Attachments =====
 
-    public async Task<GrantAttachmentDto?> AddAttachmentAsync(int clubId, int id, IFormFile file, int memberId, HttpContext http)
+    public async Task<GrantAttachmentDto?> AddAttachmentAsync(int clubId, int id, IFormFile file, int memberId, HttpContext http, string? kind = null)
     {
         if (file == null || file.Length == 0) throw new InvalidOperationException("Choose a file.");
         if (file.Length > MaxFileBytes) throw new InvalidOperationException("Files must be 20 MB or smaller.");
@@ -742,7 +994,9 @@ public class GrantService
         await using var tx = await c.BeginTransactionAsync(IsolationLevel.ReadCommitted);
         var app = await LockAsync(c, tx, ClubSide, clubId, id);
         if (app == null) return null;
-        var kind = AttachmentKind(app.Status) ?? throw new InvalidOperationException("Files cannot be added to this application now.");
+        var allowed = AttachmentKinds(app.Status);
+        kind = string.IsNullOrWhiteSpace(kind) ? AttachmentKind(app.Status) ?? allowed.FirstOrDefault() : kind.Trim().ToLowerInvariant();
+        if (kind == null || !allowed.Contains(kind)) throw new InvalidOperationException("Files of this kind cannot be added to this application now.");
         if (await c.ExecuteScalarAsync<int>("SELECT COUNT(*) FROM grant_attachments WHERE fk_application_id = @id", new { id }, tx) >= MaxAttachments)
             throw new InvalidOperationException($"An application holds at most {MaxAttachments} files.");
 
@@ -779,7 +1033,7 @@ public class GrantService
             "SELECT kind, stored_name FROM grant_attachments WHERE pk_attachment_id = @attachmentId AND fk_application_id = @id",
             new { attachmentId, id }, tx);
         if (att == null) return false;
-        if (AttachmentKind(app.Status) != att.Value.Kind) throw new InvalidOperationException("This file cannot be removed now.");
+        if (!AttachmentKinds(app.Status).Contains(att.Value.Kind)) throw new InvalidOperationException("This file cannot be removed now.");
         await c.ExecuteAsync("DELETE FROM grant_attachments WHERE pk_attachment_id = @attachmentId", new { attachmentId }, tx);
         await tx.CommitAsync();
         File.Delete(Path.Combine(_fileRoot, id.ToString(CultureInfo.InvariantCulture), att.Value.Stored));

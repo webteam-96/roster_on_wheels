@@ -13,7 +13,7 @@ import type { DistrictScopeDto, RoleScopeDto } from "@/types/scope";
 const SUPER_ADMIN_ONLY = /^\/(settings(?!\/membership-dues(\/|$))|goal-overviews)(\/|$)/;
 const DISTRICT_PAGE = /^\/districts\/(\d+)(\/|$)/;
 // Club pages only the club's managers use (an AG reads the other club pages).
-const CLUB_MANAGER_PAGE = /^\/clubs\/(\d+)\/(mass-emails|club-report)(\/|$)/;
+const CLUB_MANAGER_PAGE = /^\/clubs\/(\d+)\/(mass-emails|bulletins|club-report)(\/|$)/;
 
 export function mayOpen(
   path: string,

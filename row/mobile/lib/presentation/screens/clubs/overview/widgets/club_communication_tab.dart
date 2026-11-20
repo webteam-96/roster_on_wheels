@@ -5,6 +5,8 @@ import '../../../../../core/theme/app_colors.dart';
 import '../../../../../data/models/club_admin_dashboard_models.dart';
 import '../../modules/announcements/announcements_screen.dart';
 import '../../modules/newsletters/newsletters_screen.dart';
+import '../../modules/bulletins/club_bulletins_screen.dart';
+import '../../modules/bulletins/club_stories_screen.dart';
 import '../../modules/documents/documents_screen.dart';
 import '../../modules/upcoming_events/upcoming_events_screen.dart';
 import '../../../../widgets/common/dashboard_refresh.dart';
@@ -88,6 +90,8 @@ const List<({String key, String label})> _kCommSubTabs = [
   (key: 'greetings', label: 'Greetings'),
   (key: 'documents', label: 'Documents'),
   (key: 'newsletters', label: 'Newsletters'),
+  (key: 'bulletins', label: 'Bulletins'),
+  (key: 'stories', label: 'Stories'),
 ];
 
 class _CommunicationBody extends StatefulWidget {
@@ -165,6 +169,12 @@ class _CommunicationBodyState extends State<_CommunicationBody> {
             key: const ValueKey('comm-newsletters'),
             clubId: id,
             embedded: true);
+      case 'stories':
+        return ClubStoriesScreen(
+            key: const ValueKey('comm-stories'), clubId: id, embedded: true);
+      case 'bulletins':
+        return ClubBulletinsScreen(
+            key: const ValueKey('comm-bulletins'), clubId: id, embedded: true);
       case 'events':
       default:
         return UpcomingEventsScreen(

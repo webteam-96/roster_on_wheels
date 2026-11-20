@@ -9,6 +9,7 @@ import {
   getMemberDuesStatus, sendMembershipDuesOtp, verifyMembershipDuesOtp,
   createMembershipDuesPaymentOrder,
 } from "@/services/api";
+import { getCurrencySymbol } from "@/lib/currency";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -57,6 +58,7 @@ interface DuesInfo {
   fees2Text?: string;
   fees3Text?: string;
   modeOfPayment: number; // 1=Online, 2=Offline, 3=Both
+  currency?: string; // "INR" | "USD" — sign only, the charge stays INR (user 2026-11-09)
 }
 
 interface SearchMember {
@@ -118,6 +120,7 @@ export default function MembershipDuesPaymentPage() {
   const urlKey = searchParams?.get("k") ?? "";
 
   const [duesInfo, setDuesInfo] = useState<DuesInfo | null>(null);
+  const cur = getCurrencySymbol(duesInfo?.currency);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [linkOutOfDate, setLinkOutOfDate] = useState(false);
@@ -351,7 +354,7 @@ export default function MembershipDuesPaymentPage() {
           cashfree.checkout({
             paymentSessionId: result.paymentSessionId,
             redirectTarget: "_self",
-            returnUrl: `${window.location.origin}${BASE_PATH}/pay/dues/${duesId}/thank-you?orderId=${result.orderId}&paymentId=${result.paymentId}`,
+            returnUrl: `${window.location.origin}${BASE_PATH}/pay/dues/${duesId}/thank-you?orderId=${result.orderId}&paymentId=${result.paymentId}&currency=${encodeURIComponent(duesInfo?.currency || "")}`,
           });
         };
         document.head.appendChild(script);
@@ -649,7 +652,7 @@ export default function MembershipDuesPaymentPage() {
                             <div className="flex flex-wrap items-center justify-between gap-3">
                               <div>
                                 <p className="font-medium">{fee.label}</p>
-                                <p className="text-lg font-semibold">{currencySymbol()}{fee.offlineAmount}</p>
+                                <p className="text-lg font-semibold">{cur}{fee.offlineAmount}</p>
                               </div>
                               <div className="flex flex-col items-end gap-1">
                                 {fee.isPaid && (
@@ -733,7 +736,7 @@ export default function MembershipDuesPaymentPage() {
                           {submitting ? (
                             <><Loader2 className="h-4 w-4 animate-spin mr-2" />Processing...</>
                           ) : (
-                            `Pay Online - ${currencySymbol()}${selectedFee.offlineAmount} + Payment Gateway Charges`
+                            `Pay Online - ${cur}${selectedFee.offlineAmount} + Payment Gateway Charges`
                           )}
                         </Button>
                       )}
@@ -772,7 +775,7 @@ export default function MembershipDuesPaymentPage() {
                 <div className="p-3 bg-blue-50 rounded-lg border border-blue-200 space-y-1">
                   <p className="font-medium text-blue-800">Member: {selectedMember?.memberName}</p>
                   <p className="font-medium text-blue-800">Fee: {selectedFee.label}</p>
-                  <p className="text-lg font-semibold text-blue-800">Amount: {currencySymbol()}{selectedFee.offlineAmount}</p>
+                  <p className="text-lg font-semibold text-blue-800">Amount: {cur}{selectedFee.offlineAmount}</p>
                 </div>
               )}
 

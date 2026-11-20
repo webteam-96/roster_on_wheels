@@ -1,8 +1,10 @@
 ﻿"use client";
 
 import { useState, useCallback, useEffect, useMemo } from "react";
+import DuesDraftsCard from "@/components/dues/DuesDraftsCard";
 import { duesPayPath, getMembershipDuesList, deleteMembershipDues, toggleMembershipDuesActive, createMembershipDuesGoogleSheet, deleteMembershipDuesGoogleSheet, refreshMembershipDuesSettlements, getMembershipDuesSettlementReport, bulkMembershipDuesReminderEmail } from "@/services/api";
 import { useAuth } from "@/contexts/AuthContext";
+import { getCurrencySymbol } from "@/lib/currency";
 import { Button } from "@/components/ui/button";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
@@ -39,6 +41,9 @@ interface MembershipDuesItem {
   weblinkUrl?: string;
   googleSheetId?: string;
   createdDate: string;
+  currency?: string; // "INR" | "USD" — display sign only
+  notifyEmail?: boolean;    // Super Admin channel flags (missing = on)
+  notifyWhatsApp?: boolean;
 }
 
 export default function MembershipDuesPage() {
@@ -58,6 +63,7 @@ export default function MembershipDuesPage() {
   const [settlementReportOpen, setSettlementReportOpen] = useState(false);
   const [settlementReportLoading, setSettlementReportLoading] = useState(false);
   const [settlementReportData, setSettlementReportData] = useState<any[]>([]);
+  const [settlementCurrency, setSettlementCurrency] = useState<string | undefined>(undefined);
 
   // Bulk reminder
   const [bulkEmailRemarkOpen, setBulkEmailRemarkOpen] = useState(false);
@@ -129,6 +135,7 @@ export default function MembershipDuesPage() {
   const handleViewSettlementReport = async (id: number) => {
     setSettlementReportLoading(true);
     setSettlementReportData([]);
+    setSettlementCurrency(items.find(i => i.id === id)?.currency);
     setSettlementReportOpen(true);
     try {
       const data = await getMembershipDuesSettlementReport(id);
@@ -203,6 +210,8 @@ export default function MembershipDuesPage() {
             <Link href="/settings/membership-dues/create"><Plus className="h-4 w-4 mr-2" />Add</Link>
           </Button>
         </div>
+
+        <DuesDraftsCard kind="club" stepLabels={["Basic Info & Payment", "Fee Types & Amounts", "Vendor Splits", "Member List", "Images & Email"]} />
 
         {loading ? (
           <div className="flex justify-center py-10"><ListPageSkeleton /></div>
@@ -378,10 +387,12 @@ export default function MembershipDuesPage() {
 
                     <TableCell className="text-center">
                       <div className="flex gap-2 justify-center">
+                        {item.notifyEmail !== false && (
                         <button className="text-orange-600 hover:text-orange-800" title="Bulk Email Reminder"
                           onClick={() => { setBulkEmailRemarkDuesId(item.id); setBulkEmailRemark(""); setBulkEmailRemarkOpen(true); }}>
                           <Mail className="h-4 w-4" />
                         </button>
+                        )}
                       </div>
                     </TableCell>
                   </TableRow>
@@ -438,7 +449,7 @@ export default function MembershipDuesPage() {
                         <TableCell className="text-xs">{s.memberName || s.member_name || "-"}</TableCell>
                         <TableCell className="font-mono text-xs">{s.cfOrderId || s.orderId || s.order_id || "-"}</TableCell>
                         <TableCell>{s.vendorName || s.vendor_name || s.vendorId || s.vendor_id || "-"}</TableCell>
-                        <TableCell className="text-right">{s.amount != null ? `${currencySymbol()}${Number(s.amount).toLocaleString(appLocale(), { minimumFractionDigits: 2 })}` : "-"}</TableCell>
+                        <TableCell className="text-right">{s.amount != null ? `${getCurrencySymbol(settlementCurrency)}${Number(s.amount).toLocaleString(appLocale(), { minimumFractionDigits: 2 })}` : "-"}</TableCell>
                         <TableCell>
                           <span className={`text-xs font-medium px-2 py-0.5 rounded ${(s.settlementStatus || s.status) === "SETTLED" || (s.settlementStatus || s.status) === "SUCCESS" ? "bg-green-100 text-green-700" : (s.settlementStatus || s.status) === "PENDING" ? "bg-yellow-100 text-yellow-700" : "bg-gray-100 text-gray-700"}`}>
                             {s.settlementStatus || s.status || "-"}
@@ -477,7 +488,7 @@ export default function MembershipDuesPage() {
                   setSuccessMessage("Email reminders sent to unpaid members!");
                   setBulkEmailRemarkOpen(false);
                   setBulkEmailRemark("");
-                } catch { setErrorMessage("Failed to send email reminders."); }
+                } catch (err: any) { setErrorMessage(err?.response?.data?.message || "Failed to send email reminders."); }
               }} className="w-full">Send Reminders</Button>
             </div>
           </DialogContent>

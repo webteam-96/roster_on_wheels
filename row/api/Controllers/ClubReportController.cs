@@ -64,6 +64,10 @@ public class ClubReportController : ControllerBase
     public async Task<ActionResult<AttendanceMatrixDto>> GetAttendanceMatrix(int clubId, [FromQuery] int yearId)
     {
         if (!await RotaryApi.Services.KillSwitchHelper.IsClubDrillReachableAsync(_connectionString, clubId)) return StatusCode(403, new { message = "This club, its district, or its zone is inactive. Reactivate it first to access this data." });
+        // Member names per meeting: only the club's members, its or its district's managers, or a SuperAdmin (IDOR fix 2026-11-20).
+        if (!await ScopeWriteGuardMiddleware.ReadAllowedAsync(_connectionString,
+                int.TryParse(User.FindFirst("memberId")?.Value, out var me) ? me : 0, true, clubId))
+            return StatusCode(403, new { message = "You do not have access to this club." });
         if (yearId <= 0) return BadRequest(new { message = "yearId is required." });
 
         using var conn = CreateConnection();
@@ -606,9 +610,8 @@ public class ClubReportController : ControllerBase
             new { ClubId = clubId, YearId = yearId })).ToList();
 
         // Summary stats
-        var avgAttendance = attendance.Count > 0
-            ? attendance.Average(a => (double?)a.attendancePercent ?? 0)
-            : 0;
+        // Member attendance % with makeups, leave and exemptions (gap #5).
+        var avgAttendance = (double)(await AttendanceStandingService.ClubPercentAsync(conn, clubId, yearId, null) ?? 0);
         var totalTrf = trf.Sum(t => (decimal?)t.amountUsd ?? 0);
 
         return Ok(new

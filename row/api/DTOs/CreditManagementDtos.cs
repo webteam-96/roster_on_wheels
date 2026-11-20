@@ -73,3 +73,41 @@ public class CreditUsageHistoryDto
     public int BalanceAfter { get; set; }
     public DateTime CreatedDate { get; set; }
 }
+
+// Manual deduction + credit/debit history (Settings > Wallet, user 2026-11-16).
+public class ManualDeductDto
+{
+    public int Count { get; set; }
+    public string Reason { get; set; } = "";
+}
+
+public class CreditHistoryEntryDto
+{
+    public DateTime Date { get; set; }
+    public DateTime? DateTo { get; set; }        // a grouped ROW line: last send
+    public string Kind { get; set; } = "";      // Credit | Debit
+    public string Group { get; set; } = "";     // Support | Online | ROW | Expired
+    public string Source { get; set; } = "";
+    public int Count { get; set; }              // + credit, - debit
+    public string? Detail { get; set; }
+    public int? BalanceAfter { get; set; }
+    public int Lines { get; set; } = 1;          // single entries in a grouped line
+    [System.Text.Json.Serialization.JsonIgnore] public Dictionary<string, int>? Parts { get; set; }
+}
+
+public class CreditHistoryDto
+{
+    public string DistrictNumber { get; set; } = "";
+    public string? ClubName { get; set; }
+    public string CreditType { get; set; } = "";
+    public int ActiveCredited { get; set; }
+    public int ActiveUsed { get; set; }
+    public int CreditedBySupport { get; set; }
+    public int BoughtOnline { get; set; }
+    public int SentThroughRow { get; set; }
+    public int DeductedBySupport { get; set; }
+    public int Expired { get; set; }
+    public int Balance { get; set; }
+    public List<CreditHistoryEntryDto> Tally { get; set; } = new();     // grouped, oldest first
+    public List<CreditHistoryEntryDto> Entries { get; set; } = new();   // every single entry, oldest first
+}

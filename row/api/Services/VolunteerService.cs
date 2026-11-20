@@ -104,7 +104,7 @@ public partial class VolunteerService
         await using var c = RowDb.Connect(_cs);
         // shortcut: the 500 newest sheets, add paging if a club runs more.
         return (await c.QueryAsync<VolunteerSheetListItemDto>($@"
-            SELECT sh.pk_sheet_id AS Id, sh.title AS Title, sh.status AS Status, sh.is_public AS IsPublic,
+            SELECT sh.pk_sheet_id AS Id, sh.title AS Title, sh.status AS Status, sh.is_public AS IsPublic, sh.archived_at AS ArchivedAt,
                    (SELECT e.Title FROM upcoming_events e WHERE e.pk_upcoming_event_id = sh.fk_event_id) AS EventTitle,
                    sh.fk_project_id AS ProjectId, COUNT(sl.pk_slot_id) AS SlotCount,
                    COALESCE(SUM(sl.capacity), 0) AS Capacity, COALESCE(SUM(sl.filled), 0) AS Filled, MIN(sl.starts_at) AS FirstStart,

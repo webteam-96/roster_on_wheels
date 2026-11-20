@@ -19,6 +19,7 @@ import '../../../../widgets/common/pagination_widget.dart';
 import '../../../../widgets/common/rotary_year_bar.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
 import 'package:rotary_flutter_app/presentation/widgets/row/form_action_bar.dart';
+import 'my_attendance_screen.dart';
 
 // ---------------------------------------------------------------------------
 // Models
@@ -356,6 +357,20 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                 setState(() => _selectedYearId = v);
                 _fetch(reset: true);
               },
+            ),
+          if (_selectedYearId != null)
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: TextButton.icon(
+                  icon: const Icon(Icons.fact_check_outlined, size: 18),
+                  label: const Text('My attendance and makeups'),
+                  onPressed: () => Navigator.of(context).push(MaterialPageRoute(
+                    builder: (_) => MyAttendanceScreen(clubId: widget.clubId, yearId: _selectedYearId!),
+                  )),
+                ),
+              ),
             ),
           Expanded(
             child: _selectedYearId == null && _years.isEmpty && !_loading

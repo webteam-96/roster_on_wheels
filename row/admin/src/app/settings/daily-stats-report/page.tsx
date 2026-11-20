@@ -11,6 +11,7 @@ import {
   sendDailyStatsReportNow,
   type DailyStatsBreakdown,
 } from "@/services/api";
+import { useDownloadProgress } from "@/lib/downloadProgress";
 
 import { appLocale, appTimeZone, todayLocal } from "@/lib/appFormat";
 // SuperAdmin test/trigger page for the daily statistics report. Preview the counts, download the
@@ -22,7 +23,8 @@ export default function DailyStatsReportPage() {
   const [breakdowns, setBreakdowns] = useState<DailyStatsBreakdown[]>([]);
   const [subject, setSubject] = useState<string>("");
   const [loadingCounts, setLoadingCounts] = useState(false);
-  const [downloading, setDownloading] = useState(false);
+  // Report download: progress inside the clicked button.
+  const dl = useDownloadProgress();
   const [sending, setSending] = useState(false);
   const [msg, setMsg] = useState<{ kind: "ok" | "err"; text: string } | null>(null);
 
@@ -38,8 +40,8 @@ export default function DailyStatsReportPage() {
     } finally { setLoadingCounts(false); }
   };
 
-  const downloadExcel = async () => {
-    setDownloading(true); setMsg(null);
+  const downloadExcel = () => dl.run("daily-stats-excel", async () => {
+    setMsg(null);
     try {
       const blob = await downloadDailyStatsReportExcel();
       const url = URL.createObjectURL(blob);
@@ -50,8 +52,8 @@ export default function DailyStatsReportPage() {
       URL.revokeObjectURL(url);
     } catch (e: any) {
       setMsg({ kind: "err", text: e?.response?.data?.message || "Failed to download Excel." });
-    } finally { setDownloading(false); }
-  };
+    }
+  });
 
   const sendNow = async () => {
     if (!confirm("Send the daily statistics email now to the configured recipients?\n(On a dev machine no real email is sent. It only logs the counts.)")) return;
@@ -86,9 +88,8 @@ export default function DailyStatsReportPage() {
             {loadingCounts ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <RefreshCw className="mr-2 h-4 w-4" />}
             Preview Counts
           </Button>
-          <Button variant="outline" onClick={downloadExcel} disabled={downloading}>
-            {downloading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Download className="mr-2 h-4 w-4" />}
-            Download Excel
+          <Button variant="outline" onClick={downloadExcel} disabled={dl.busy}>
+            {dl.is("daily-stats-excel") ? dl.bar("daily-stats-excel") : <><Download className="mr-2 h-4 w-4" />Download Excel</>}
           </Button>
           <Button onClick={sendNow} disabled={sending} className="bg-[#17458F] hover:bg-[#123A78] text-white">
             {sending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Mail className="mr-2 h-4 w-4" />}

@@ -35,6 +35,8 @@ export interface SaveGoalEntriesRequest {
 }
 
 export interface GoalCategoryFormDto {
+  /** Rotary.org figures date (new goal layout, ROW). */
+  rotaryOrgUpdatedAt?: string | null;
   categoryId: number;
   categoryName: string;
   entityType: "Club" | "District";
@@ -44,6 +46,10 @@ export interface GoalCategoryFormDto {
   yearId: number;
   yearLabel: string;
   isEditable: boolean;
+  isLocked?: boolean;
+  lockedByName?: string | null;
+  lockedDate?: string | null;
+  canLock?: boolean;
   achievedAsOn?: string | null; // "31 Aug 2026" = latest month with month-wise data; null → "as on July 1st"
   fields: GoalFieldWithValueDto[];
 }
@@ -140,6 +146,10 @@ export interface GoalCommentDto {
   districtNumber?: string | null;
   // District Admin / DG messages (2026-10-09): the category they are about.
   categoryName?: string | null;
+  // One-to-one chat window: an older message merged in from the earlier message boxes (read only).
+  isEarlier?: boolean;
+  // District chat seen from above: the DG is shown as the writer; Super Admin gets who really typed it.
+  enteredByName?: string | null;
 }
 
 // District Admin / District Governor messages to the Super Admin (2026-10-09). Read-only above.
@@ -217,4 +227,66 @@ export interface GoalOverviewMatrixDto {
   yearLabel: string;
   districts: GoalOverviewDistrictDto[];
   rows: GoalOverviewRowDto[];
+}
+
+// ── Goal locks and messages (RIZones goal module, ported 2026-11-20) ──
+export interface GoalLockStatusDto {
+  isLocked: boolean;
+  lockedByName: string | null;
+  lockedDate: string | null;
+}
+
+export interface GoalMessageDistrictDto {
+  id: number;
+  number: string;
+}
+
+// One-to-one chats (2026-10-16).
+export interface GoalDirectContactDto {
+  memberId: number;
+  name: string;
+  roleLabel: string;        // full title - shown short (ARC / RMC …)
+  roleKind: string;         // RIDirector | ZoneCoordinator | DistrictAssistant | DistrictGovernor | DistrictAdmin | "" (former)
+  districts?: string | null;
+  canMessage: boolean;
+  messageCount: number;
+  unreadCount: number;
+  lastMessagePreview?: string | null;
+  lastMessageDate?: string | null;
+}
+
+// Group messages (user 2026-10-19). Kind: District (one district + category), Team (RRFC + ARRFCs …),
+// Broadcast (the sender's own "All my districts" box).
+export interface GoalGroupDto {
+  key: string;
+  kind: "District" | "Team" | "Broadcast";
+  name: string;
+  sub?: string | null;
+  categoryId: number;
+  categoryName?: string | null;
+  districtId: number;
+  districtNumber?: string | null;
+  memberCount: number;
+  messageCount: number;
+  unreadCount: number;
+  lastMessagePreview?: string | null;
+  lastMessageDate?: string | null;
+  canPost: boolean;
+}
+
+export interface GoalGroupMemberDto { memberId: number; name: string; role: string; }
+
+export interface GoalGroupConversationDto {
+  group: GoalGroupDto;
+  members: GoalGroupMemberDto[];
+  messages: GoalCommentDto[];
+}
+
+export interface GoalDirectConversationDto {
+  otherMemberId: number;
+  otherName: string;
+  otherRoleLabel: string;
+  canPost: boolean;
+  districts: GoalMessageDistrictDto[];
+  messages: GoalCommentDto[];
 }

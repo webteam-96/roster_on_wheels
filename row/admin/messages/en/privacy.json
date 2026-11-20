@@ -50,7 +50,52 @@
     "submit": "Submit request",
     "submitting": "Submitting…",
     "cancel": "Cancel",
-    "created": "Request submitted."
+    "created": "Request submitted.",
+    "review": "Review erasure"
+  },
+  "erase": {
+    "title": "Erase personal data",
+    "intro": "This replaces {name}'s personal data everywhere it is held and deletes their uploaded photos and documents. Attendance, payments and other counts stay, under an anonymous name. It cannot be undone.",
+    "loading": "Working out what will change…",
+    "alreadyErased": "This person has already been erased.",
+    "needsApproval": "Another District Admin must approve before the erasure runs.",
+    "changesTitle": "What will change",
+    "noChanges": "No stored rows were found for this person.",
+    "columns": {
+      "table": "Where",
+      "action": "Change",
+      "rows": "Rows"
+    },
+    "action": {
+      "delete": "Deleted",
+      "anonymise": "Anonymised",
+      "keep": "Kept for counts"
+    },
+    "files": "{count, plural, one {# uploaded file} other {# uploaded files}} will be deleted.",
+    "noFiles": "No uploaded files to delete.",
+    "reason": "Reason",
+    "reasonPlaceholder": "e.g. Written request from the person received on…",
+    "typeToConfirm": "Type {name} to confirm",
+    "submit": "Erase permanently",
+    "submitting": "Erasing…",
+    "cancel": "Cancel",
+    "done": "Personal data erased. An audit record of who did it and when was written.",
+    "awaiting": "Erasure requested. It runs once a second District Admin approves.",
+    "failed": "The erasure could not finish and nothing was changed. Try again, or contact support if it keeps failing."
+  },
+  "former": {
+    "title": "Former members",
+    "intro": "People who have left the club and hold no active membership anywhere. Erase their personal data when they ask for it. Each erasure is written to the audit log.",
+    "noClub": "Select a club to see its former members.",
+    "searchPlaceholder": "Search by name",
+    "empty": "No former members found.",
+    "columns": {
+      "name": "Name",
+      "leftOn": "Left on",
+      "actions": "Actions"
+    },
+    "unknownDate": "Not recorded",
+    "erase": "Erase"
   },
   "consent": {
     "title": "Your privacy",

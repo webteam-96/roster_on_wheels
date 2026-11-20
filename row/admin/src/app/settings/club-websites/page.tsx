@@ -684,9 +684,9 @@ export default function ClubWebsitesPage() {
         { key: "themeName", label: "Template", width: 20 },
         { key: "startDate", label: "Start Date", width: 15 },
         { key: "endDate", label: "End Date", width: 15 },
-        { key: "daysLeft", label: "Days Left", width: 10 },
+        { key: "daysLeft", label: "Days Left", width: 10, numeric: true },
         { key: "status", label: "Status", width: 12 },
-        { key: "amountPaid", label: "Amount", width: 12 },
+        { key: "amountPaid", label: "Amount", width: 12, numeric: true },
         { key: "transactionId", label: "Transaction ID", width: 20 },
         { key: "paymentDate", label: "Payment Date", width: 15 },
         { key: "presidentName", label: "President", width: 24 },
@@ -698,9 +698,9 @@ export default function ClubWebsitesPage() {
         // Current-year content + activity (user 2026-09-29): ACTIVE banners and advertisements,
         // and the club's projects counted the same way the public site and the daily report count
         // them - Club Service excluded, an ongoing project once, never its repeat entries.
-        { key: "bannerCount", label: "Banners", width: 10 },
-        { key: "advertisementCount", label: "Advertisements", width: 14 },
-        { key: "projectCount", label: "Projects", width: 10 },
+        { key: "bannerCount", label: "Banners", width: 10, numeric: true },
+        { key: "advertisementCount", label: "Advertisements", width: 14, numeric: true },
+        { key: "projectCount", label: "Projects", width: 10, numeric: true },
       ],
       { title: "Club Websites", subtitle: `Exported ${new Date().toLocaleDateString(appLocale())}` });
     // No success alert: the file lands in Downloads, which is confirmation enough (user 2026-09-29).
@@ -722,14 +722,14 @@ export default function ClubWebsitesPage() {
         { key: "clientDomain", label: "Third party Domain", width: 30 },
         { key: "startDate", label: "Start Date", width: 15 },
         { key: "endDate", label: "End Date", width: 15 },
-        { key: "daysLeft", label: "Days Left", width: 10 },
+        { key: "daysLeft", label: "Days Left", width: 10, numeric: true },
         { key: "status", label: "Status", width: 12 },
         // Current-year content + activity (user 2026-09-29): ACTIVE banners and advertisements,
         // and the club's projects counted the same way the public site and the daily report count
         // them - Club Service excluded, an ongoing project once, never its repeat entries.
-        { key: "bannerCount", label: "Banners", width: 10 },
-        { key: "advertisementCount", label: "Advertisements", width: 14 },
-        { key: "projectCount", label: "Projects", width: 10 },
+        { key: "bannerCount", label: "Banners", width: 10, numeric: true },
+        { key: "advertisementCount", label: "Advertisements", width: 14, numeric: true },
+        { key: "projectCount", label: "Projects", width: 10, numeric: true },
       ],
       { title: "Club Websites | Third party Domains", subtitle: `Exported ${new Date().toLocaleDateString(appLocale())}` });
     // No success alert here either - see the note in exportExcel.

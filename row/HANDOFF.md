@@ -111,6 +111,8 @@ First job tomorrow: commit + push to `feat/rizones-pull-2026-11-06` once the own
   district 0 (do not exist) and district 1 (5656). Only 15 belong to real clubs (Lake Shore 31764, club 31765).
   List: `_local/missing-media-2026-11-18.csv`.
 
+**20 Nov, deploy folder rebuilt:** `_local/deploy/` = `api/` (no appsettings / web.config / local test media), `admin/` (/admin, with `admin-app.web.config`), `root/` (website, with `root-site.web.config`), `club-website/` (static), `workers/`. Built from the working tree (includes uncommitted 19-20 Nov work). Admin + website smoke-tested locally (200); API not run (needs the DB).
+
 **19 Nov, OMS bugs (not committed, not deployed):** ROW-56/57/58/59 fixed (see `ROW-CHANGES.md` 2026-11-19);
 ROW-48/49/50/51/54/55 were already done (QA); ROW-3 is a task with no defect. Checks: admin tsc + 147 tests,
 API build + 116 tests, flutter analyze 0 errors. Not clicked through in a browser yet. Deploy needs admin + API +

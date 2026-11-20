@@ -20,7 +20,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useFormat, useToday } from "@/hooks/useFormat";
 import {
   addMeetingDuty, deleteMeetingDuty, deleteSpeaker, getClubMembersForAttendance, getMeetingDuties, getSpeakers, saveSpeaker,
-  uploadSpeakerPhoto,
+  shareSpeakerToBureau, uploadSpeakerPhoto,
 } from "@/services/api";
 import type { ClubMemberSimple } from "@/types/attendance";
 import type { MeetingDuty, SaveSpeaker, Speaker } from "@/types/volunteers";
@@ -112,6 +112,16 @@ function SpeakersSection({ clubId, onError }: { clubId: number; onError: (m: str
       load();
     } catch (err) {
       onError(message(err, "Could not remove the speaker."));
+    }
+  };
+
+  const share = async (s: Speaker) => {
+    if (!window.confirm(`Propose ${s.name} to your district's speaker bureau?`)) return;
+    try {
+      await shareSpeakerToBureau(clubId, s.id);
+      setNotice(`${s.name} is proposed to the district's speaker bureau.`);
+    } catch (err) {
+      onError(message(err, "Could not share the speaker."));
     }
   };
 
@@ -207,6 +217,7 @@ function SpeakersSection({ clubId, onError }: { clubId: number; onError: (m: str
                     <td className="p-3">{[s.email, s.phone].filter(Boolean).join(", ")}</td>
                     <td className="p-3">{s.showOnWebsite ? "Shown" : "Hidden"}</td>
                     <td className="p-3 whitespace-nowrap">
+                      <Button variant="ghost" size="sm" onClick={() => share(s)}>Share to bureau</Button>
                       <Button variant="ghost" size="sm" aria-label={`Edit ${s.name}`} onClick={() => edit(s)}><Pencil className="h-4 w-4" /></Button>
                       <Button variant="ghost" size="sm" aria-label={`Remove ${s.name}`} onClick={() => remove(s)}><Trash2 className="h-4 w-4" /></Button>
                     </td>

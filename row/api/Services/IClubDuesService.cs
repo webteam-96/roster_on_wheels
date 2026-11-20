@@ -40,6 +40,7 @@ public interface IClubDuesService
 
     // ── Receipts & reminders ────────────────────────────────────
     Task SendReceiptEmailAsync(int paymentId);
+    Task<bool> EmailOnAsync(int duesId);
     Task SendReminderEmailAsync(int duesId, int clubId, string? remark);
     Task BulkSendReminderEmailAsync(int duesId, string? remark);
     // Test send of the reminder/receipt email (sample values, current template) — FREE. An optional

@@ -17,6 +17,7 @@ import '../../../../../presentation/widgets/common/confirmation_dialog.dart';
 import '../../../../../presentation/widgets/detail/detail_widgets.dart';
 import 'package:rotary_flutter_app/core/brand/brand.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
+import 'mass_email_library_screen.dart';
 
 class MassEmailsScreen extends StatefulWidget {
   final int clubId;
@@ -268,8 +269,17 @@ class _MassEmailsScreenState extends State<MassEmailsScreen> {
     return Scaffold(
       appBar: widget.embedded
           ? null
-          : const CustomAppBar(
+          : CustomAppBar(
               title: 'Mass Emails',
+              actions: [
+                if (canManage)
+                  IconButton(
+                    tooltip: 'Templates and signature',
+                    icon: const Icon(Icons.description_outlined),
+                    onPressed: () => Navigator.of(context).push(MaterialPageRoute(
+                        builder: (_) => MassEmailLibraryScreen(scope: 'clubs', ownerId: widget.clubId, canManage: true))),
+                  ),
+              ],
             ),
       // Compact circular FAB to match the other list modules (announcements,
       // newsletters, documents) — the wide "Compose" extended FAB collided

@@ -18,7 +18,7 @@
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>ROW needs permission to save images and documents to your photo library.</string>
 	<key>NSCameraUsageDescription</key>
-	<string>ROW needs camera access so you can take and upload profile pictures and event photos.</string>
+	<string>ROW needs camera access so you can take and upload profile pictures and event photos, and scan another member's contact QR code.</string>
 	<key>NSContactsUsageDescription</key>
 	<string>ROW needs access to your contacts so you can save a Rotarian's details to your address book.</string>
 	<key>NSMicrophoneUsageDescription</key>

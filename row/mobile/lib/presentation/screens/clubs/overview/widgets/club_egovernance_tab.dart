@@ -159,11 +159,16 @@ class _EgovManagementGrid extends StatelessWidget {
     (label: 'Rotary Network', icon: Icons.hub_outlined, color: 0xFF4F46E5, route: 'rotary-network'),
     (label: 'Targets', icon: Icons.flag_outlined, color: 0xFF0F766E, route: 'targets'),
     (label: 'Grants', icon: Icons.savings_outlined, color: 0xFF1C5BAE, route: 'grants'),
+    (label: 'Accounts', icon: Icons.account_balance_outlined, color: 0xFF0D9488, route: 'accounts'),
     (label: 'Speakers', icon: Icons.record_voice_over_outlined, color: 0xFF9333EA, route: 'speakers'),
+    (label: 'Speaker Bureau', icon: Icons.groups_2_outlined, color: 0xFF0D9488, route: 'speaker-bureau'),
+    (label: 'Saved Reports', icon: Icons.table_chart_outlined, color: 0xFF0D9488, route: 'custom-reports'),
+    (label: 'Year-end Rollover', icon: Icons.event_repeat_outlined, color: 0xFF0F766E, route: 'rollover'),
+    (label: 'RI Officers', icon: Icons.compare_arrows_outlined, color: 0xFF0F766E, route: 'ri-officers'),
   ];
 
   /// Tiles whose app path differs from the admin's, so the switch is checked by key.
-  static const _tileFeature = {'targets': 'target_dashboard', 'grants': 'grants'};
+  static const _tileFeature = {'targets': 'target_dashboard', 'grants': 'grants', 'speaker-bureau': 'volunteers'};
 
   @override
   Widget build(BuildContext context) {

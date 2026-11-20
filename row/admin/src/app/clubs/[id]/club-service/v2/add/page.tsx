@@ -583,9 +583,10 @@ export default function ClubServiceV2AddPage() {
                     value={photo.description}
                     onChange={(e) => { const v = e.target.value; setPhotos((prev) => prev.map((p) => p.id === photo.id ? { ...p, description: v } : p)); }}
                     placeholder="Description (optional)"
-                    maxLength={200}
+                    maxLength={500}
                     className="w-full text-xs border border-slate-200 rounded px-1.5 py-1 focus:outline-none focus:ring-1 focus:ring-blue-400"
                   />
+                  <p className="text-[10px] text-slate-400 text-right">{photo.description.length}/500</p>
                 </div>
               ))}
               {photos.length < 5 && (

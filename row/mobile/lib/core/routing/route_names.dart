@@ -12,12 +12,31 @@ class RouteNames {
   // Member's own items (N3, N4): the paths match the admin's so the volunteers switch hides them
   static const String volunteers = '/volunteers';
   static const String myDuties = '/volunteers/duties';
+  // Time-limited access to other districts (cross-district grants)
+  static const String myDistrictAccess = '/my-district-access';
+  static const String youth = '/youth';
+  // Matches the admin's path so the service_hours switch hides it
+  static const String serviceHours = '/service-hours';
+  static const String myVolunteerSignups = '/volunteers/mine';
   static const String inviteGuest = '/invite-guest';
+  static const String surveys = '/surveys';
+  static const String donations = '/donations';
+  static const String anniversaries = '/anniversaries'; // gap agent
+  static const String prospectTasks = '/prospect-tasks';
+  static const String friends = '/friends-of-the-club';
+  // Member map + business directory (gap agent)
+  static const String memberMap = '/member-map';
+  static const String businessDirectory = '/business-directory';
+  static const String shareWebsite = '/share-website';
+  // Job postings and business offers (feature job_board); matches the admin's /job-board so the switch hides it
+  static const String jobBoard = '/job-board';
   static const String chat = '/chat';
   static const String nextYear = '/planning';
   static const String commsPreferences = '/settings/communication';
   static const String language = '/settings/language';
+  static const String help = '/help'; // help centre (gap agent); article: /help/<slug>
   static const String myDesignations = '/me/foundation-designations';
+  static const String myCommittees = '/me/committees'; // Enhanced committees (gap agent)
   static const String resetPassword = '/reset-password';
   static const String home = '/home';
 

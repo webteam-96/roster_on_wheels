@@ -18,9 +18,11 @@ public class OcvGovController : ControllerBase
     private readonly string? _sofficePath;
 
     private readonly AdminYearGuard _guard;
+    private readonly IGoalSettingService _goals;
 
-    public OcvGovController(AdminYearGuard guard, IOcvGovService service, IWebHostEnvironment env, IConfiguration configuration)
+    public OcvGovController(AdminYearGuard guard, IOcvGovService service, IWebHostEnvironment env, IConfiguration configuration, IGoalSettingService goals)
     {
+        _goals = goals;
         _guard = guard;
         _service = service;
         _env = env;
@@ -177,6 +179,7 @@ public class OcvGovController : ControllerBase
         try
         {
             var data = await _service.GetOcvWordReportDataAsync(clubId, yearId);
+            data.GoalScorecard = await ScorecardOrNullAsync(clubId, yearId);
 
             // Best-effort media load (disk-first, then the configured media host). Images embed as
             // pictures; PDFs are rasterised page-by-page and embedded inline. Anything unreadable
@@ -214,7 +217,8 @@ public class OcvGovController : ControllerBase
                 ? _mediaRedirectBase!
                 : $"{Request.Scheme}://{Request.Host}{Request.PathBase}";
 
-            var bytes = OcvReportWordBuilder.BuildReport(data, reportItems, mediaBase);
+            // New design (user 2026-11-13); the old BuildReport is kept for reference.
+            var bytes = OcvReportWordBuilder.BuildReportV2(data, reportItems, mediaBase);
             var fileName = $"OCV_Report_{data.ClubName}_{data.YearLabel}.docx"
                 .Replace(" ", "_").Replace("/", "-");
             return File(bytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", fileName);
@@ -225,8 +229,8 @@ public class OcvGovController : ControllerBase
         }
     }
 
-    // Excel (.xls) checklist — an HTML-table workbook that exactly matches the legacy
-    // example.org "OCVList….xls": header block, one row per document-type across ALL
+    // Excel (.xlsx) checklist — a real Excel workbook with the same layout as the legacy
+    // OCV list: header block, one row per document-type across ALL
     // categories with a "Download Here" hyperlink to the API download URL for uploaded docs,
     // then Live Documents and Newsletters sections. Full report — page filters do not narrow it.
     [HttpGet("report/excel")]
@@ -238,6 +242,7 @@ public class OcvGovController : ControllerBase
         try
         {
             var header = await _service.GetOcvWordReportDataAsync(clubId, yearId);
+            header.GoalScorecard = await ScorecardOrNullAsync(clubId, yearId);
             var items = await _service.GetOcvReportAsync(clubId, yearId, "all");
 
             // API base for the controller download route (documents/{id}/download).
@@ -247,14 +252,22 @@ public class OcvGovController : ControllerBase
             var frontendBase = _frontendUrl ?? "";
 
             var bytes = OcvReportExcelBuilder.Build(header, items, clubId, yearId, apiBase, mediaBase, frontendBase);
-            var fileName = $"OCV_Report_{header.ClubName}_{DateTime.UtcNow:yyyy-MM-dd_HH-mm-ss}.xls"
+            var fileName = $"OCV_Report_{header.ClubName}_{DateTime.UtcNow:yyyy-MM-dd_HH-mm-ss}.xlsx"
                 .Replace(" ", "_").Replace("/", "-");
-            return File(bytes, "application/vnd.ms-excel", fileName);
+            return File(bytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
         }
         catch (Exception ex) when (ex is InvalidOperationException or ArgumentException)
         {
             return StatusCode(500, new { message = $"Failed to generate Excel report: {ex.Message}" });
         }
+    }
+
+    // "Club Goals at a glance" for the Word / Excel report (user 2026-11-12). Best-effort: a goal-setting
+    // problem never stops the OCV report - the section is simply left out.
+    private async Task<RotaryApi.Services.ClubGoalScorecard?> ScorecardOrNullAsync(int clubId, int yearId)
+    {
+        try { return await _goals.GetClubGoalScorecardAsync(clubId, yearId); }
+        catch { return null; }
     }
 
     // Live Documents module snapshots as JSON — the SAME OcvWordModuleTable list the Word

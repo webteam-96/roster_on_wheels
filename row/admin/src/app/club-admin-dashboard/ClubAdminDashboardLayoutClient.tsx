@@ -19,7 +19,9 @@ import SubscriptionLock, { isLockedPath, useSubscriptionLevel } from "@/componen
 // Pages that list every rotary year at once — the global year selector has nothing
 // to act on there, so we hide it rather than leave a control that appears dead.
 // Matched exactly, never by prefix: sibling routes must opt in on their own.
-const HIDE_YEAR_SELECTOR_PATHS = new Set(["/club-admin-dashboard/dashboard/past-presidents"]);
+// District Dues: each dues has its own fixed year and the page lists them all, so a year picked here
+// would change nothing (user 2026-11-10, same as the Club Dues member list).
+const HIDE_YEAR_SELECTOR_PATHS = new Set(["/club-admin-dashboard/dashboard/past-presidents", "/club-admin-dashboard/club-dues"]);
 
 function getInitials(name = "") {
   return name

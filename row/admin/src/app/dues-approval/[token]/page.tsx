@@ -3,13 +3,14 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useParams, useSearchParams } from "next/navigation";
 import { getDuesApprovalSnapshot, applyDuesApproval } from "@/services/api";
+import { getCurrencySymbol } from "@/lib/currency";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { CheckCircle2, XCircle, Loader2, AlertTriangle, ShieldCheck, Mail, Building2, Calendar, IndianRupee, FileText, Receipt } from "@/components/icons";
+import { CheckCircle2, XCircle, Loader2, AlertTriangle, ShieldCheck, Mail, Building2, Calendar, IndianRupee, DollarSign, FileText, Receipt } from "@/components/icons";
 
 import { appLocale, currencySymbol } from "@/lib/appFormat";
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
@@ -21,11 +22,11 @@ function formatDate(d: string | null | undefined): string {
   return dt.toLocaleString(appLocale(), { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" });
 }
 
-function formatAmount(n: number | string | null | undefined): string {
+function formatAmount(n: number | string | null | undefined, currency?: string | null): string {
   if (n === null || n === undefined) return "–";
   const v = Number(n);
   if (isNaN(v)) return String(n);
-  return `${currencySymbol()}${v.toLocaleString(appLocale(), { maximumFractionDigits: 2 })}`;
+  return `${getCurrencySymbol(currency)}${v.toLocaleString(appLocale(), { maximumFractionDigits: 2 })}`;
 }
 
 export default function PublicDuesApprovalPage() {
@@ -263,8 +264,8 @@ export default function PublicDuesApprovalPage() {
                 <dd className="font-medium">{dues.feeLabel || "–"}</dd>
               </div>
               <div>
-                <dt className="text-xs text-slate-500 flex items-center gap-1"><IndianRupee className="h-3 w-3" /> Amount</dt>
-                <dd className="font-semibold text-base">{formatAmount(dues.amount)}</dd>
+                <dt className="text-xs text-slate-500 flex items-center gap-1">{String(dues.currency || "INR").toUpperCase() === "USD" ? <DollarSign className="h-3 w-3" /> : <IndianRupee className="h-3 w-3" />} Amount</dt>
+                <dd className="font-semibold text-base">{formatAmount(dues.amount, dues.currency)}</dd>
               </div>
               <div>
                 <dt className="text-xs text-slate-500 flex items-center gap-1"><Calendar className="h-3 w-3" /> Payment Date</dt>
@@ -377,7 +378,7 @@ export default function PublicDuesApprovalPage() {
           </DialogHeader>
           <div className="space-y-3">
             <p className="text-sm text-slate-600">
-              You're about to approve {formatAmount(dues.amount)} from <strong>{member.name}</strong> for <strong>{dues.feeLabel}</strong>.
+              You're about to approve {formatAmount(dues.amount, dues.currency)} from <strong>{member.name}</strong> for <strong>{dues.feeLabel}</strong>.
             </p>
             <div>
               <Label>Approval Remark <span className="text-xs text-muted-foreground">(optional)</span></Label>
@@ -408,7 +409,7 @@ export default function PublicDuesApprovalPage() {
           </DialogHeader>
           <div className="space-y-3">
             <p className="text-sm text-slate-600">
-              You're about to reject {formatAmount(dues.amount)} from <strong>{member.name}</strong> for <strong>{dues.feeLabel}</strong>.
+              You're about to reject {formatAmount(dues.amount, dues.currency)} from <strong>{member.name}</strong> for <strong>{dues.feeLabel}</strong>.
             </p>
             <div>
               <Label>Rejection Reason <span className="text-red-600">*</span></Label>

@@ -1,5 +1,6 @@
 "use client";
 
+import { getCurrencySymbol } from "@/lib/currency";
 import React, { useState, useEffect, useRef, Suspense } from "react";
 import dynamic from "next/dynamic";
 import { useParams, useRouter } from "next/navigation";
@@ -33,6 +34,7 @@ export default function ClubMembershipDuesEditPage() {
   const duesId = Number(params.duesId);
 
   const [loading, setLoading] = useState(true);
+  const [dueCur, setDueCur] = useState("₹"); // dues currency sign (Super Admin sets ₹ or $)
   const [saving, setSaving] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -77,6 +79,7 @@ export default function ClubMembershipDuesEditPage() {
     (async () => {
       try {
         const detail = await getMembershipDuesDetail(duesId);
+        if (detail) setDueCur(getCurrencySymbol((detail as { currency?: string }).currency));
         if (!detail) { setErrorMessage("Club dues not found."); setLoading(false); return; }
         setOriginalData(detail);
         setPurpose(detail.purpose || "");
@@ -224,7 +227,7 @@ export default function ClubMembershipDuesEditPage() {
 District Number : ****
 Club Name : **** **** **** ****
 Purpose of the payment : ****
-Amount received : ****/-
+Amount received : ${dueCur}****${dueCur === "$" ? "" : "/-"}
 Date and time : ****
 Method of payment : ****
 Transaction ID : ****`}</pre>
@@ -250,7 +253,7 @@ Transaction ID : ****`}</pre>
 District Number : ****
 Club Name : **** **** **** ****
 Purpose of the payment : ****
-Outstanding amount : ****/-
+Outstanding amount : ${dueCur}****${dueCur === "$" ? "" : "/-"}
 Status : ****
 Click on the link : ****`}</pre>
               </div>

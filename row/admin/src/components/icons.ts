@@ -73,6 +73,7 @@ export {
   EyeSlashIcon as EyeOff,
   ChartBarIcon as FileBarChart,
   FileTextIcon as FileCheck,
+  FileDashedIcon as FileClock,
   FileArrowDownIcon as FileDown,
   FilePlusIcon as FilePlus2,
   FileSearchIcon as FileSearch,
@@ -108,6 +109,7 @@ export {
   ImageIcon as ImageIcon,
   TrayIcon as Inbox,
   // shortcut: the old name is kept so 48 pages stay untouched, rename to Banknote when those pages are next edited.
+  MinusCircleIcon as MinusCircle,
   MoneyIcon as IndianRupee, // ROW is multi-currency: a neutral banknote, not the rupee sign
   InfoIcon as Info,
   KeyIcon as Key,

@@ -9,6 +9,9 @@ import { getGovernors, governorPhotoUrl } from "@/lib/districtGovernors";
 import { DGCard } from "./DGCard";
 import { DEFAULT_YEAR, GOVERNORS, type Governor } from "./data";
 
+// Districts not shown on the public governors list: 5656 is ROW's own test district.
+const HIDDEN_DISTRICTS = new Set(["5656"]);
+
 const ARCHIVE_URL = "https://club.example.org/";
 
 /** District number → zone, reusing the frozen website-directory data. */
@@ -67,10 +70,11 @@ export function DistrictGovernors() {
     const q = query.trim().toLowerCase();
     const list = roster.filter(
       (g) =>
-        !q ||
+        !HIDDEN_DISTRICTS.has(g.district) &&
+        (!q ||
         g.name.toLowerCase().includes(q) ||
         g.district.includes(q) ||
-        g.email.toLowerCase().includes(q)
+        g.email.toLowerCase().includes(q))
     );
     return [...list].sort((a, b) =>
       sort === "name" ? a.name.localeCompare(b.name) : a.district.localeCompare(b.district)
@@ -109,10 +113,10 @@ export function DistrictGovernors() {
           <div className="flex flex-col gap-6 border-l border-navy-950/10 pl-10">
             <div>
               <p
-                data-counter={roster.length}
+                data-counter={roster.filter((g) => !HIDDEN_DISTRICTS.has(g.district)).length}
                 className="figure text-6xl leading-none text-gold-deep"
               >
-                {roster.length}
+                {roster.filter((g) => !HIDDEN_DISTRICTS.has(g.district)).length}
               </p>
               <p className="microlabel mt-2.5">Districts</p>
             </div>
@@ -219,14 +223,6 @@ export function DistrictGovernors() {
             </div>
           )}
 
-          {filtered.length > 0 && isLive && (
-            <p className="microlabel mt-12 text-center">
-              <span className="microlabel-gold inline-flex items-center gap-1.5">
-                <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-gold" />
-                Live from the Rotary zones database
-              </span>
-            </p>
-          )}
         </div>
       </section>
 

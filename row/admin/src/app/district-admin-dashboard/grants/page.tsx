@@ -20,10 +20,12 @@ import { StatusBadge } from "@/components/grants/GrantParts";
 import { useAuth } from "@/contexts/AuthContext";
 import { useFormat } from "@/hooks/useFormat";
 import {
-  downloadGrantsCsv, getDistrictGrantApplications, getGrantCashFlow, getGrantCycles, getRotaryYears, saveGrantCycle,
+  downloadGrantsCsv, getDistrictGrantApplications, getGrantCashFlow, getGrantCycles, getGrantYearSummary, getRotaryYears,
+  saveGrantCycle, sendGrantReportReminders,
 } from "@/services/api";
 import { REVIEW_ORDER, STATUS_LABEL, dayInput, orNull } from "@/lib/grants";
-import type { GrantApplicationListItem, GrantCashFlow, GrantCycle, GrantStatus, SaveGrantCycle } from "@/types/grants";
+import { GrantEmailTemplates, MonthlyCashFlow, QualifiedClubs } from "@/components/grants/GrantExtras";
+import type { GrantApplicationListItem, GrantCashFlow, GrantCycle, GrantStatus, GrantYearSummary, SaveGrantCycle } from "@/types/grants";
 import type { RotaryYear } from "@/types/rotaryYear";
 
 const SELECT = "h-10 w-full rounded-md border border-input bg-background px-3 text-sm";
@@ -40,6 +42,10 @@ export default function DistrictGrantsPage() {
   const [apps, setApps] = useState<GrantApplicationListItem[] | null>(null);
   const [flow, setFlow] = useState<GrantCashFlow | null>(null);
   const [exporting, setExporting] = useState(false);
+  const [summary, setSummary] = useState<GrantYearSummary[] | null>(null);
+  const [summaryFailed, setSummaryFailed] = useState(false);
+  const [reminding, setReminding] = useState(false);
+  const [notice, setNotice] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const loadCycles = useCallback(async (select?: number) => {
@@ -70,6 +76,13 @@ export default function DistrictGrantsPage() {
     getGrantCashFlow(districtId, cycleId).then(setFlow).catch(() => setFlow({ budget: 0, committed: 0, paid: 0, rows: [] }));
   }, [districtId, cycleId, cycles]);
 
+  useEffect(() => {
+    if (!districtId) return;
+    setSummary(null);
+    setSummaryFailed(false);
+    getGrantYearSummary(districtId).then(setSummary).catch(() => setSummaryFailed(true));
+  }, [districtId, cycles]);
+
   if (!districtId) return <p className="p-6 text-sm text-muted-foreground">Choose a district first.</p>;
   const cycle = cycles?.find((c) => c.id === cycleId) ?? null;
 
@@ -82,6 +95,21 @@ export default function DistrictGrantsPage() {
       setError(message(err, "Could not export."));
     } finally {
       setExporting(false);
+    }
+  };
+
+  const remind = async () => {
+    setReminding(true);
+    setNotice(null);
+    try {
+      const { sent } = await sendGrantReportReminders(districtId);
+      setNotice(sent === 0
+        ? "No reminders were due. Each club gets one reminder a week before a report is due and one once it is overdue."
+        : `${sent} report reminder${sent === 1 ? "" : "s"} sent to the clubs (in the app and by email).`);
+    } catch (err) {
+      setError(message(err, "Could not send the reminders."));
+    } finally {
+      setReminding(false);
     }
   };
 
@@ -98,9 +126,15 @@ export default function DistrictGrantsPage() {
               {exporting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />} Export CSV
             </Button>
           )}
+          {cycles && cycles.length > 0 && (
+            <Button variant="outline" className="gap-1.5" onClick={remind} disabled={reminding}>
+              {reminding && <Loader2 className="h-4 w-4 animate-spin" />} Send report reminders
+            </Button>
+          )}
           <Button className="gap-1.5" onClick={() => setEditing("new")}><Plus className="h-4 w-4" /> New cycle</Button>
         </div>
       </div>
+      {notice && <p className="text-sm text-emerald-700" role="status">{notice}</p>}
 
       {editing && (
         <CycleForm districtId={districtId} cycle={editing === "new" ? null : editing} onError={setError}
@@ -202,6 +236,46 @@ export default function DistrictGrantsPage() {
             </section>
           )}
 
+          <section className="space-y-3">
+            <h3 className="text-lg font-semibold">By Rotary year</h3>
+            {summaryFailed ? (
+              <Card><CardContent className="p-5 text-sm text-red-700" role="alert">Could not load the yearly summary.</CardContent></Card>
+            ) : summary === null ? (
+              <TableSkeleton rows={3} />
+            ) : summary.length === 0 ? (
+              <Card><CardContent className="p-5 text-sm text-muted-foreground">No grant years yet.</CardContent></Card>
+            ) : (
+              <Card>
+                <CardContent className="overflow-x-auto p-0">
+                  <table className="w-full min-w-[720px] text-sm">
+                    <thead className="bg-[#EDF4FB] text-[13px] text-[#64748B]">
+                      <tr className="border-b text-left text-muted-foreground">
+                        <th className="p-3 font-medium">Year</th>
+                        <th className="p-3 text-right font-medium">DDF budget</th>
+                        <th className="p-3 text-right font-medium">Approved</th>
+                        <th className="p-3 text-right font-medium">Paid</th>
+                        <th className="p-3 text-right font-medium">Outstanding</th>
+                        <th className="p-3 text-right font-medium">Reported spent</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {summary.map((y) => (
+                        <tr key={y.cycleId} className="border-b last:border-0">
+                          <td className="p-3">{y.yearLabel}</td>
+                          <td className="p-3 text-right tabular-nums">{fmt.money(y.budget)}</td>
+                          <td className="p-3 text-right tabular-nums">{fmt.money(y.approved)}</td>
+                          <td className="p-3 text-right tabular-nums">{fmt.money(y.paid)}</td>
+                          <td className="p-3 text-right tabular-nums">{fmt.money(y.outstanding)}</td>
+                          <td className="p-3 text-right tabular-nums">{fmt.money(y.reportedSpent)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </CardContent>
+              </Card>
+            )}
+          </section>
+
           {cycle && (
             <section className="space-y-3">
               <h3 className="text-lg font-semibold">Cash flow</h3>
@@ -239,6 +313,13 @@ export default function DistrictGrantsPage() {
               )}
             </section>
           )}
+          {cycle && (
+            <>
+              <MonthlyCashFlow key={`flow-${cycle.id}`} districtId={districtId} cycleId={cycle.id} yearLabel={cycle.yearLabel} onError={setError} />
+              <QualifiedClubs key={`qual-${cycle.yearId}`} districtId={districtId} yearId={cycle.yearId} yearLabel={cycle.yearLabel} onError={setError} />
+            </>
+          )}
+          <GrantEmailTemplates districtId={districtId} onError={setError} />
         </>
       )}
 
@@ -265,6 +346,7 @@ function CycleForm({ districtId, cycle, onSaved, onClose, onError }: {
     opensOn: dayInput(cycle?.opensOn) || null,
     closesOn: dayInput(cycle?.closesOn) || null,
     reportDueOn: dayInput(cycle?.reportDueOn) || null,
+    interimDueOn: dayInput(cycle?.interimDueOn) || null,
     rules: cycle?.rules ?? null,
   }));
   const set = <K extends keyof SaveGrantCycle>(k: K, v: SaveGrantCycle[K]) => setForm((f) => ({ ...f, [k]: v }));
@@ -294,7 +376,7 @@ function CycleForm({ districtId, cycle, onSaved, onClose, onError }: {
     }
   };
 
-  const date = (k: "opensOn" | "closesOn" | "reportDueOn", label: string) => (
+  const date = (k: "opensOn" | "closesOn" | "interimDueOn" | "reportDueOn", label: string) => (
     <div className="space-y-1.5">
       <Label htmlFor={`cy-${k}`}>{label}</Label>
       <Input id={`cy-${k}`} type="date" value={form[k] ?? ""} onChange={(e) => set(k, orNull(e.target.value))} />
@@ -342,6 +424,7 @@ function CycleForm({ districtId, cycle, onSaved, onClose, onError }: {
             </div>
             {date("opensOn", "Applications open")}
             {date("closesOn", "Applications close")}
+            {date("interimDueOn", "Interim reports due")}
             {date("reportDueOn", "Final reports due")}
           </div>
           <div className="space-y-1.5">

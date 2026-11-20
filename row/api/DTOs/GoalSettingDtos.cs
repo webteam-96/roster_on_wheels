@@ -59,7 +59,11 @@ public class GoalCategoryFormDto
     public string EntityName { get; set; } = "";  // club or district display name
     public int YearId { get; set; }
     public string YearLabel { get; set; } = "";
-    public bool IsEditable { get; set; }          // year not yet ended
+    public bool IsEditable { get; set; }          // year not yet ended AND not locked
+    public bool IsLocked { get; set; }
+    public string? LockedByName { get; set; }
+    public string? LockedDate { get; set; }
+    public bool CanLock { get; set; }             // caller is authorised to lock/unlock this scope
     // "Achieved as on <date>" — last calendar day of the latest month that has month-wise data
     // imported for this entity+category+year (e.g. "31 Aug 2026"). Null when no month-wise data yet
     // (frontend then shows "as on July 1st").
@@ -177,6 +181,10 @@ public class GoalCommentDto
     public string? DistrictNumber { get; set; }
     // District Admin / DG messages (2026-10-09): the category they are about.
     public string? CategoryName { get; set; }
+    // One-to-one chat: true = an older message merged in from the earlier message boxes (read only).
+    public bool IsEarlier { get; set; }
+    // District chats seen from above show the DG as the writer; who really typed it is given to Super Admin only.
+    public string? EnteredByName { get; set; }
 }
 
 // District Admin / District Governor messages (user 2026-10-09). Read-only for the SuperAdmin;
@@ -432,4 +440,51 @@ public class GoalTargetSplitErrorDto
     public decimal AnnualTarget { get; set; }
     public decimal Entered { get; set; }
     public decimal Difference { get; set; }               // Entered - AnnualTarget
+}
+
+// ── One-to-one goal messages (RIZones 2026-10-16, ported 2026-11-20 for the RCC & District Goals pages) ──
+public class GoalMessageDistrictDto
+{
+    public int Id { get; set; }
+    public string Number { get; set; } = "";
+}
+
+public class GoalDirectContactDto
+{
+    public int MemberId { get; set; }
+    public string Name { get; set; } = "";
+    public string RoleLabel { get; set; } = "";      // full title: "Assistant Rotary Co-Ordinator (ARC)", "District Admin" …
+    public string RoleKind { get; set; } = "";       // RIDirector | ZoneCoordinator | DistrictAssistant | DistrictGovernor | DistrictAdmin
+    public string? Districts { get; set; }           // "3141, 3142" (DA) / "3142" (District Admin / DG); null for RI / ZC
+    public bool CanMessage { get; set; }             // false = no longer a contact (left the role) - history only
+    public int MessageCount { get; set; }
+    public int UnreadCount { get; set; }
+    public string? LastMessagePreview { get; set; }
+    public string? LastMessageDate { get; set; }     // "yyyy-MM-dd HH:mm"
+}
+
+public class GoalDirectConversationDto
+{
+    public int OtherMemberId { get; set; }
+    public string OtherName { get; set; } = "";
+    public string OtherRoleLabel { get; set; } = "";
+    public bool CanPost { get; set; }
+    // Districts a message here may be tagged to (0 / "All districts" is always allowed).
+    public List<GoalMessageDistrictDto> Districts { get; set; } = new();
+    public List<GoalCommentDto> Messages { get; set; } = new();
+}
+
+public class PostGoalDirectMessageRequest
+{
+    public string CommentText { get; set; } = "";
+    public int CategoryId { get; set; }
+    public int DistrictId { get; set; }              // 0 = all districts
+}
+
+// Per-category goal lock (RIZones goal module, restored 2026-11-20 on owner request).
+public class GoalLockStatusDto
+{
+    public bool IsLocked { get; set; }
+    public string? LockedByName { get; set; }
+    public string? LockedDate { get; set; }
 }

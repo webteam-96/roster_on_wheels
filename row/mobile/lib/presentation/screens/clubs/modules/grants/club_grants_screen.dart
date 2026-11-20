@@ -23,6 +23,8 @@ class _ClubGrantsScreenState extends State<ClubGrantsScreen> {
   final _api = ApiClient();
   List<Map<String, dynamic>>? _apps;
   List<Map<String, dynamic>> _openCycles = const [];
+  List<Map<String, dynamic>> _quals = const [];
+  bool _requireQual = false;
   String? _error;
 
   @override
@@ -41,6 +43,8 @@ class _ClubGrantsScreenState extends State<ClubGrantsScreen> {
         setState(() {
           _apps = apps;
           _openCycles = cycles.where((c) => c['status'] == 'open').toList();
+          _quals = ((res.data?['qualifications'] as List?) ?? const []).cast<Map<String, dynamic>>();
+          _requireQual = res.data?['requireQualification'] == true;
         });
       }
     } on ApiException catch (e) {
@@ -62,15 +66,49 @@ class _ClubGrantsScreenState extends State<ClubGrantsScreen> {
     if (saved == true) _load();
   }
 
+  /// The club's grant qualification for each open cycle's year: submitting needs a current one (the district records it).
+  Widget? _qualificationBanner(BuildContext context) {
+    if (_openCycles.isEmpty) return null;
+    final lines = <String>[];
+    var ok = true;
+    for (final c in _openCycles) {
+      final q = _quals.where((q) => q['yearId'] == c['yearId']).firstOrNull;
+      if (q != null && q['qualified'] == true) {
+        lines.add('${c['yearLabel']}: qualified'
+            '${q['expiresOn'] != null ? ' until ${DateFormatter.toDisplay(DateTime.tryParse(q['expiresOn'].toString()))}' : ''}');
+      } else {
+        ok = false;
+        lines.add('${c['yearLabel']}: not qualified. ${q?['problem'] ?? 'The district has not recorded the signed MOU and officer training.'}');
+      }
+    }
+    final scheme = Theme.of(context).colorScheme;
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(12),
+      color: ok ? scheme.secondaryContainer : scheme.errorContainer,
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        const Text('Grant qualification', style: TextStyle(fontWeight: FontWeight.w600)),
+        for (final l in lines) Text(l),
+        if (!ok)
+          Text(_requireQual
+              ? 'Applications cannot be submitted until the club is qualified.'
+              : 'You can still submit, but the district expects the club to be qualified.'),
+      ]),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final apps = _apps;
+    final banner = apps == null ? null : _qualificationBanner(context);
     return Scaffold(
       appBar: const CustomAppBar(title: 'Grants'),
       floatingActionButton: _openCycles.isEmpty
           ? null
           : FloatingActionButton.extended(onPressed: _new, icon: const Icon(Icons.add), label: const Text('New application')),
-      body: _error != null
+      body: Column(children: [
+        if (banner != null) banner,
+        Expanded(child: _error != null
           ? EmptyStateWidget(icon: Icons.savings_outlined, title: 'Not available', subtitle: _error!)
           : apps == null
               ? const LoadingWidget()
@@ -104,7 +142,8 @@ class _ClubGrantsScreenState extends State<ClubGrantsScreen> {
                           );
                         },
                       ),
-                    ),
+                    )),
+      ]),
     );
   }
 }

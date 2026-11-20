@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useParams, useSearchParams } from "next/navigation";
 import { getDistrictReportMonthDetail, sendReportReminder, getDistrict, getRotaryYears, getDistrictCreditBalance, getMonthlyReportPreview, downloadClubMonthlyReportWord } from "@/services/api";
 import { downloadPDF } from "@/utils/reportDownload";
+import { downloadCmrFile } from "@/lib/cmrFileDownload";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -98,10 +99,13 @@ export default function MonthDetailPage() {
   const filteredSubmitted = submitted.filter(byAg);
   const filteredNotSubmitted = notSubmitted.filter(byAg);
 
-  // Identical to the club-admin CMR download: fetch the same preview, render PDF with
-  // downloadPDF(preview), and the server-side Word via downloadClubMonthlyReportWord
-  // with the same filename base.
+  // Identical to the club's own CMR download (user 2026-11-13): the NEW Design B PDF / new Word, made from the
+  // club's saved report. The old server PDF / Word calls are kept below, not used.
   const downloadOneClub = async (clubId: number, _clubName: string, format: "pdf" | "word") => {
+    await downloadCmrFile(clubId, yearId, month, format);
+  };
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const downloadOneClubOld = async (clubId: number, format: "pdf" | "word") => {
     const preview = await getMonthlyReportPreview(clubId, yearId, month);
     if (format === "pdf") {
       downloadPDF(preview);
@@ -116,7 +120,7 @@ export default function MonthDetailPage() {
       setDownloading({ clubId, format });
       await downloadOneClub(clubId, clubName, format);
     } catch (err: any) {
-      setErrorMessage(err?.response?.data?.message || `Failed to download ${clubName}'s report.`);
+      setErrorMessage(err?.response?.data?.message || err?.message || `Failed to download ${clubName}'s report.`);
     } finally {
       setDownloading(null);
     }

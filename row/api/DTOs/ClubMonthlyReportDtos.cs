@@ -145,6 +145,51 @@ public class ReportYearDto
 }
 
 // Send report email request
+// New CMR Word (user 2026-11-13): the Foundation + Membership tables exactly as the CMR screen / PDF show them
+// (worked out in the browser), with their "Updated from …" dates. The rest of the Word is the saved report.
+public class CmrWordV2Request
+{
+    public CmrWordFoundation? Foundation { get; set; }
+    public List<CmrWordMembershipRow> Membership { get; set; } = new();
+    public string? RotaryOrgDate { get; set; }   // "12 Nov 2026"
+    public string? ImportDate { get; set; }
+    public string? MemberDate { get; set; }
+    public int? CalendarYear { get; set; }
+}
+public class CmrWordFoundation
+{
+    public bool Synced { get; set; }
+    public List<CmrWordFundRow> Rows { get; set; } = new();
+    public CmrWordFundRow? Total { get; set; }
+}
+public class CmrWordFundRow
+{
+    public string Name { get; set; } = "";
+    public decimal? Month { get; set; }
+    public decimal? MonthTarget { get; set; }
+    public decimal? Ytd { get; set; }
+    public decimal? YearTarget { get; set; }
+    public string? Source { get; set; }   // sync | import
+}
+public class CmrWordMembershipRow
+{
+    public string Label { get; set; } = "";
+    public string? Sub { get; set; }
+    public string? Month { get; set; }
+    public string? MonthTarget { get; set; }
+    public string? Ytd { get; set; }
+    public string? YearTarget { get; set; }
+    public bool Strong { get; set; }
+    public string? Group { get; set; }
+}
+
+// New CMR upload (user 2026-11-13): the Design B PDF made in the browser, emailed instead of the server-built one.
+// Optional - the old CMR sends no body and keeps the server PDF.
+public class CmrUploadToDistrictDto
+{
+    public string? PdfBase64 { get; set; }
+}
+
 public class SendReportEmailDto
 {
     public string PdfBase64 { get; set; } = "";

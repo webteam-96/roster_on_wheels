@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart' hide Text;
+import 'package:go_router/go_router.dart';
 import '../../../core/network/api_exceptions.dart';
+import '../../../core/routing/route_names.dart';
 import '../../../core/services/volunteer_api.dart';
 import '../../../core/utils/date_formatter.dart';
 import '../../../core/utils/snackbar_utils.dart';
@@ -57,7 +59,13 @@ class _VolunteersScreenState extends State<VolunteersScreen> {
   Widget build(BuildContext context) {
     final sheets = _sheets;
     return Scaffold(
-      appBar: const CustomAppBar(title: 'Volunteering'),
+      appBar: CustomAppBar(title: 'Volunteering', actions: [
+        IconButton(
+          tooltip: 'My sign-ups and reminders',
+          icon: const Icon(Icons.event_available_outlined),
+          onPressed: () => context.push(RouteNames.myVolunteerSignups),
+        ),
+      ]),
       body: sheets == null
           ? const LoadingWidget()
           : sheets.isEmpty

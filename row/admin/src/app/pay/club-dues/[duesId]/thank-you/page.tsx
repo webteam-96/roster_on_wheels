@@ -3,6 +3,7 @@
 import { Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { CheckCircle2, XCircle } from "@/components/icons";
+import { getCurrencySymbol } from "@/lib/currency";
 
 import { appLocale, currencySymbol } from "@/lib/appFormat";
 function ThankYouInner() {
@@ -10,6 +11,7 @@ function ThankYouInner() {
   const paid = query.get("paid") === "1";
   const amount = query.get("amount");
   const club = query.get("club");
+  const cur = getCurrencySymbol(query.get("currency"));
 
   return (
     <div className="min-h-screen bg-muted/30 flex items-center justify-center p-4">
@@ -18,7 +20,7 @@ function ThankYouInner() {
           <>
             <CheckCircle2 className="h-16 w-16 text-green-600 mx-auto" />
             <h1 className="text-xl font-bold">Payment successful</h1>
-            {amount && <p className="text-lg">{currencySymbol()}{Number(amount).toLocaleString(appLocale())}</p>}
+            {amount && <p className="text-lg">{cur}{Number(amount).toLocaleString(appLocale())}</p>}
             {club && <p className="text-muted-foreground">{club}</p>}
             <p className="text-sm text-muted-foreground">A receipt has been emailed to the club officer.</p>
           </>

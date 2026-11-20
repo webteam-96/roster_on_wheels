@@ -257,6 +257,10 @@ public class AdminController : ControllerBase
         {
             return NotFound(new { message = ex.Message });
         }
+        catch (ClubAdminLimitException ex)
+        {
+            return Conflict(new { message = ex.Message });
+        }
         catch (InvalidOperationException ex)
         {
             return BadRequest(new { message = ex.Message });

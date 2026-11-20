@@ -32,6 +32,7 @@ export default function SiteFooter() {
                 <Link className="link" href={item.href}>{item.label}</Link>
               </li>
             ))}
+            <li><Link className="link" href="/help">Help centre</Link></li>
           </ul>
         </nav>
         {/* Contact Us page details (V2 doc) */}

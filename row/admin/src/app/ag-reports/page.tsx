@@ -35,7 +35,7 @@ function stripYearFromBirthAnnivRows<T extends Record<string, unknown>>(rows: T[
   });
 }
 
-interface ReportColumn { key: string; label: string; width?: number; hyperlink?: boolean; linkText?: string }
+interface ReportColumn { key: string; label: string; width?: number; hyperlink?: boolean; linkText?: string; numeric?: boolean }
 interface ReportItem {
   id: string;
   title: string;
@@ -66,7 +66,7 @@ const sections: ReportSection[] = [
           { key: "meetingFromTime", label: "From", width: 10 },
           { key: "meetingToTime", label: "To", width: 10 },
           { key: "meetingAddress", label: "Meeting Address", width: 40 },
-          { key: "totalMembers", label: "Members", width: 10 },
+          { key: "totalMembers", label: "Members", width: 10, numeric: true },
           { key: "isActive", label: "Active", width: 10 },
           { key: "charterDate", label: "Charter Date", width: 16 },
         ] },
@@ -163,7 +163,7 @@ const sections: ReportSection[] = [
           { key: "mobile", label: "Mobile", width: 15 },
           { key: "email", label: "Email", width: 28 },
           { key: "lastDeviceName", label: "Device", width: 12 },
-          { key: "loginCount", label: "Logins", width: 10 },
+          { key: "loginCount", label: "Logins", width: 10, numeric: true },
           { key: "firstVisit", label: "First Visit", width: 20 },
           { key: "lastLogin", label: "Last Login", width: 20 },
           { key: "lastLogout", label: "Last Logout", width: 20 },
@@ -222,8 +222,8 @@ const sections: ReportSection[] = [
           { key: "yearLabel", label: "Year", width: 12 },
           { key: "meetingDate", label: "Meeting Date", width: 16 },
           { key: "meetingTopic", label: "Topic", width: 36 },
-          { key: "totalMembers", label: "Total", width: 10 },
-          { key: "presentMembers", label: "Present", width: 10 },
+          { key: "totalMembers", label: "Total", width: 10, numeric: true },
+          { key: "presentMembers", label: "Present", width: 10, numeric: true },
         ] },
       { id: "club-documents", title: "Documents", endpoint: "club-documents", fileName: "MyClubs_Documents", yearScoped: true,
         columns: [
@@ -260,9 +260,9 @@ const sections: ReportSection[] = [
           { key: "projectType", label: "Type", width: 16 },
           { key: "startDate", label: "Start", width: 14 },
           { key: "endDate", label: "End", width: 14 },
-          { key: "totalBeneficiaries", label: "Beneficiaries", width: 14 },
-          { key: "totalVolunteers", label: "Volunteers", width: 12 },
-          { key: "totalCost", label: "Cost", width: 14 },
+          { key: "totalBeneficiaries", label: "Beneficiaries", width: 14, numeric: true },
+          { key: "totalVolunteers", label: "Volunteers", width: 12, numeric: true },
+          { key: "totalCost", label: "Cost", width: 14, numeric: true },
         ] },
       { id: "trf-contributions", title: "TRF Contributions", endpoint: "trf-contributions", fileName: "MyClubs_TRF", yearScoped: true,
         columns: [
@@ -270,7 +270,7 @@ const sections: ReportSection[] = [
           { key: "yearLabel", label: "Year", width: 12 },
           { key: "memberName", label: "Member", width: 28 },
           { key: "fundName", label: "Fund", width: 24 },
-          { key: "amount", label: "Amount", width: 12 },
+          { key: "amount", label: "Amount", width: 12, numeric: true },
           { key: "recognition", label: "Recognition", width: 18 },
           { key: "contributionDate", label: "Date", width: 14 },
           { key: "remarks", label: "Remarks", width: 30 },

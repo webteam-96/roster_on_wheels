@@ -7,7 +7,7 @@
  */
 
 import { useEffect, useState } from "react";
-import { getProject, getPhotoUrl } from "@/services/api";
+import { getProject, getDistrictProjectDetail, getPhotoUrl } from "@/services/api";
 import { formatMoney } from "@/lib/currency";
 import type { ProjectDetail } from "@/types/project";
 import {
@@ -57,12 +57,15 @@ function Stat({ icon: Icon, label, value }: { icon: React.ElementType; label: st
 
 export default function ProjectDetailModal({
   clubId,
+  districtId,
   yearId,
   projectId,
   onClose,
   attendance,
 }: {
   clubId: number;
+  /** Set for a district project: loads it from the district projects API instead (ROW-67). */
+  districtId?: number;
   yearId: number;
   projectId: number | null;
   onClose: () => void;
@@ -82,7 +85,16 @@ export default function ProjectDetailModal({
     setLoading(true);
     setError(null);
     setDetail(null);
-    getProject(clubId, yearId, projectId)
+    const load: Promise<ProjectDetail> = districtId
+      ? getDistrictProjectDetail(districtId, yearId, projectId).then((res) => ({
+          ...res.project,
+          // District photos carry no id / primary flag; the first one is the cover.
+          photos: (res.photos ?? []).map((ph: { imagePath: string; description?: string | null }, i: number) => ({
+            ...ph, id: i, isPrimary: i === 0,
+          })),
+        }))
+      : getProject(clubId, yearId, projectId);
+    load
       .then((d) => { if (!cancelled) setDetail(d); })
       .catch((e: unknown) => {
         if (cancelled) return;
@@ -93,7 +105,7 @@ export default function ProjectDetailModal({
       })
       .finally(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };
-  }, [clubId, yearId, projectId]);
+  }, [clubId, districtId, yearId, projectId]);
 
   const areaOfFocus = detail?.areaOfFocusName || detail?.otherAreaOfFocus || "";
   const cost =

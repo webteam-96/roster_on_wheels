@@ -3,6 +3,9 @@
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { getMonthlyReportYears, getMonthlyReportMonths, getClub, getMonthlyReportPreview } from "@/services/api";
+import { downloadCmrFile } from "@/lib/cmrFileDownload";
+
+const NEW_CMR_FILES = true;   // the new Design B PDF / Word (RIZones 2026-11-13)
 import { MonthlyReportListItem, ReportYear } from "@/types/clubMonthlyReport";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -36,6 +39,8 @@ export default function ClubMonthlyReportPage() {
     if (!selectedYearId) return;
     try {
       setDownloadingMonth(month);
+      // NEW Design B PDF / new Word, same as everywhere else (user 2026-11-13). The old calls below are kept, not used.
+      if (NEW_CMR_FILES) { await downloadCmrFile(clubId, selectedYearId, month, format); return; }
       const preview = await getMonthlyReportPreview(clubId, selectedYearId, month);
       if (format === "pdf") {
         downloadPDF(preview);

@@ -70,7 +70,15 @@ public class PrivacyController : ControllerBase
 
     [HttpPost("members/{memberId:int}/erase")]
     public Task<IActionResult> Erase(int memberId, [FromBody] JsonElement? body) =>
-        Guarded(async () => await _svc.RequestErasureAsync(Caller, memberId, Field(body, "reason") ?? ""));
+        Guarded(async () => await _svc.RequestErasureAsync(Caller, memberId, Field(body, "reason") ?? "", Field(body, "confirm")));
+
+    /// <summary>What erasing this member would change, for the confirmation screen. Writes nothing.</summary>
+    [HttpGet("members/{memberId:int}/erase-preview")]
+    public Task<IActionResult> ErasePreview(int memberId) => Guarded(async () => await _svc.PreviewErasureAsync(Caller, memberId));
+
+    /// <summary>A club's former members (no active membership anywhere), whom its admins may erase.</summary>
+    [HttpGet("clubs/{clubId:int}/former-members")]
+    public Task<IActionResult> FormerMembers(int clubId, [FromQuery] string? q) => Guarded(async () => await _svc.FormerMembersAsync(Caller, clubId, q));
 
     [HttpPost("requests/{requestId:int}/approve")]
     public Task<IActionResult> Approve(int requestId) => Guarded(async () => await _svc.ApproveAsync(Caller, requestId));

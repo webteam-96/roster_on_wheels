@@ -66,7 +66,7 @@ sa = int(sql("SELECT fk_member_master_profile_id FROM member_roles WHERE fk_role
 _, mid = sql("INSERT INTO member_master_profile (MemberName, EmailId) VALUES ('E2E Erase Me', CONCAT('e2e.erase.', UUID_SHORT(), '@example.invalid')); SELECT LAST_INSERT_ID()")
 try:
     sql(f"INSERT INTO audit_log (fk_member_master_profile_id, member_name, action, entity_type, ip_address) VALUES ({mid}, 'E2E Erase Me', 'E2E', 'member', '10.0.0.2')")
-    s, b = call("POST", f"/api/privacy/members/{mid}/erase", {"reason": "e2e: audit immutability"}, token(sa, "SuperAdmin"))
+    s, b = call("POST", f"/api/privacy/members/{mid}/erase", {"reason": "e2e: audit immutability", "confirm": "E2E Erase Me"}, token(sa, "SuperAdmin"))
     check("privacy erasure still completes", s == 200 and b.get("status") == "completed", (s, b))
     _, left = sql(f"SELECT COUNT(*) FROM audit_log WHERE fk_member_master_profile_id={mid} AND member_name IS NOT NULL")
     check("erasure anonymised the member's audit rows", left == "0", left)

@@ -247,18 +247,20 @@ public class MobileClubAdminMembershipDuesController : ControllerBase
     }
 
     [HttpPost("{id}/members/{memberFeeId}/reminder-email")]
-    public ActionResult SendReminderEmail(int id, int memberFeeId, [FromBody] SendDuesReminderDto dto)
+    public async Task<ActionResult> SendReminderEmail(int id, int memberFeeId, [FromBody] SendDuesReminderDto dto)
     {
         if (!IsSuperAdminOrAdmin()) return StatusCode(403, new { message = "Access denied." });
+        if (!await _service.EmailOnAsync(id)) return BadRequest(new { message = "Email is switched off for this dues." });
         BackgroundWork.Run("SendReminderEmailAsync", () => _service.SendReminderEmailAsync(memberFeeId, dto.FeeType, dto.Remark));
         return Ok(new { message = "Reminder email is being sent." });
     }
 
     // Bulk reminders skip fully-paid members inside BulkSendReminderEmailAsync — only unpaid members get notified.
     [HttpPost("{id}/bulk-reminder-email")]
-    public ActionResult BulkSendReminderEmail(int id, [FromBody] BulkDuesReminderDto? dto = null)
+    public async Task<ActionResult> BulkSendReminderEmail(int id, [FromBody] BulkDuesReminderDto? dto = null)
     {
         if (!IsSuperAdminOrAdmin()) return StatusCode(403, new { message = "Access denied." });
+        if (!await _service.EmailOnAsync(id)) return BadRequest(new { message = "Email is switched off for this dues." });
         BackgroundWork.Run("BulkSendReminderEmailAsync", () => _service.BulkSendReminderEmailAsync(id, dto?.Remark));
         return Ok(new { message = "Bulk email reminders are being sent in background." });
     }

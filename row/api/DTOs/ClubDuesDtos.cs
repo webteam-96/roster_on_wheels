@@ -24,6 +24,7 @@ public class ClubDuesListDto
     public string? GoogleSheetId { get; set; }
     public string? GoogleSheetUrl { get; set; }
     public DateTime CreatedDate { get; set; }
+    public string? Currency { get; set; }   // ISO code; null = the instance default (DuesCurrency)
 }
 
 // ── Campaign detail ─────────────────────────────────────────────
@@ -65,6 +66,10 @@ public class ClubDuesDetailDto
     // Google Sheet
     public string? GoogleSheetId { get; set; }
     public string? GoogleSheetEmail { get; set; }
+    // Super Admin flags (RIZones 2026-11-09, ROW form): whether this dues emails members, and the
+    // currency (ISO code) its amounts show in; null = the instance default.
+    public bool NotifyEmail { get; set; } = true;
+    public string? Currency { get; set; }
     // Related
     public List<ClubDuesVendorDto>? Vendors { get; set; }
 }
@@ -100,6 +105,10 @@ public class CreateClubDuesDto
     public string? ReminderButtonText { get; set; }
     public string? GoogleSheetId { get; set; }
     public string? GoogleSheetEmail { get; set; }
+    // Super Admin flags (user 2026-11-09). Null = keep the stored value (the controller nulls them for
+    // anyone but Super Admin); a new dues defaults to email on + the district currency.
+    public bool? NotifyEmail { get; set; }
+    public string? Currency { get; set; }
     // Online vendor splits (JSON, parsed on backend) — LEGACY: the one shared split. INDEPENDENT: the online-only split.
     public string? VendorsJson { get; set; }
     // Offline vendor splits (JSON, parsed on backend) — INDEPENDENT mode only; ignored for legacy campaigns.
@@ -321,6 +330,7 @@ public class PublicClubDuesDto
     public string? OfflineBankName { get; set; }
     public string? OfflineAccountNumber { get; set; }
     public string? OfflineIfscCode { get; set; }
+    public string? Currency { get; set; }   // ISO code; null = the instance default (DuesCurrency)
 }
 
 // ── Public payment submit (online) ──────────────────────────────

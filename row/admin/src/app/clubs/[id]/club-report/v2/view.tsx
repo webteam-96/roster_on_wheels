@@ -149,6 +149,7 @@ import { exportAttendanceMatrix } from "@/utils/attendanceMatrixExport";
 import KpiCard from "@/components/dashboard/KpiCard";
 import SectionHeader from "@/components/dashboard/SectionHeader";
 import LoadingButton from "@/components/v2/LoadingButton";
+import { useDownloadProgress } from "@/lib/downloadProgress";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
@@ -166,6 +167,7 @@ type CsvCol = {
   linkText?: string;
   wrap?: boolean;
   index?: boolean;
+  numeric?: boolean;
 };
 
 type YearRow = { id: number; yearLabel: string; isCurrent?: boolean };
@@ -181,6 +183,8 @@ export function ClubReportV2PageImpl({ clubId: propClubId, embedded = false, yea
   const clubId = propClubId ?? Number(params.id);
   const showBloodGroup = useFeature("member.bloodGroup");
   const showFamily = useFeature("member.familyDetails");
+  // Report downloads: progress inside the clicked button, one at a time on this page.
+  const dl = useDownloadProgress();
 
   // ── ?returnTo= and ?yearId= ────────────────────────────────────────────
   const urlReturnTo = searchParams.get("returnTo") || "";
@@ -359,9 +363,9 @@ export function ClubReportV2PageImpl({ clubId: propClubId, embedded = false, yea
           { key: "title", label: "Title", width: 25 },
           { key: "projectDate", label: "Date", width: 15 },
           { key: "location", label: "Location", width: 20 },
-          { key: "projectCost", label: "Cost", width: 12 },
-          { key: "directBeneficiaries", label: "Beneficiaries", width: 14 },
-          { key: "manHours", label: "Man Hours", width: 12 },
+          { key: "projectCost", label: "Cost", width: 12, numeric: true },
+          { key: "directBeneficiaries", label: "Beneficiaries", width: 14, numeric: true },
+          { key: "manHours", label: "Man Hours", width: 12, numeric: true },
           { key: "funding", label: "Funding", width: 15 },
           { key: "publicPhotoUrl", label: "Photos", width: 12, hyperlink: true, linkText: "Photos" },
         ]
@@ -370,9 +374,9 @@ export function ClubReportV2PageImpl({ clubId: propClubId, embedded = false, yea
           { key: "projectDate", label: "Date", width: 15 },
           { key: "areaOfFocus", label: "Area of Focus", width: 20 },
           { key: "location", label: "Location", width: 20 },
-          { key: "projectCost", label: "Cost", width: 12 },
-          { key: "directBeneficiaries", label: "Beneficiaries", width: 14 },
-          { key: "manHours", label: "Man Hours", width: 12 },
+          { key: "projectCost", label: "Cost", width: 12, numeric: true },
+          { key: "directBeneficiaries", label: "Beneficiaries", width: 14, numeric: true },
+          { key: "manHours", label: "Man Hours", width: 12, numeric: true },
           { key: "funding", label: "Funding", width: 15 },
           { key: "publicPhotoUrl", label: "Photos", width: 12, hyperlink: true, linkText: "Photos" },
         ];
@@ -693,6 +697,8 @@ export function ClubReportV2PageImpl({ clubId: propClubId, embedded = false, yea
                   title="Club Analytics"
                   icon={BarChart3}
                   count={1}
+                  dl={dl}
+                  dlKey="club-analytics"
                   onExport={async () => {
                     const blob = await downloadClubAnalyticsClub(Number(selectedYearId) || undefined, clubId);
                     saveAs(blob, `Club_Analytics_${(clubName || "club").replace(/\s+/g, "-")}_${fileTimestamp()}.xlsx`);
@@ -705,6 +711,8 @@ export function ClubReportV2PageImpl({ clubId: propClubId, embedded = false, yea
                   icon={BarChart3}
                   count={1}
                   comingSoon={CLUB_GOAL_SETTING_COMING_SOON}
+                  dl={dl}
+                  dlKey="club-goal-excel"
                   onExport={async () => {
                     const blob = await downloadClubGoalExcel(Number(selectedYearId) || undefined, clubId);
                     saveAs(blob, `Goal_Setting_${(clubName || "club").replace(/\s+/g, "-")}_${fileTimestamp()}.xlsx`);
@@ -733,14 +741,14 @@ export function ClubReportV2PageImpl({ clubId: propClubId, embedded = false, yea
                           { key: "date",             label: "Date",             width: 14 },
                           { key: "title",            label: "Event Name",       width: 30 },
                           { key: "description",      label: "Description",      width: 35 },
-                          { key: "membersPresent",   label: "Members Present",  width: 16 },
-                          { key: "totalMembers",     label: "Total Members",    width: 14 },
-                          { key: "attendancePercent",label: "Attendance %",     width: 14 },
-                          { key: "anns",             label: "Anns",             width: 8  },
-                          { key: "annets",           label: "Annets",           width: 8  },
-                          { key: "visitors",         label: "Visitors",         width: 10 },
-                          { key: "rotarians",        label: "Rotarians",        width: 10 },
-                          { key: "delegates",        label: "Delegates",        width: 10 },
+                          { key: "membersPresent",   label: "Members Present",  width: 16, numeric: true },
+                          { key: "totalMembers",     label: "Total Members",    width: 14, numeric: true },
+                          { key: "attendancePercent",label: "Attendance %",     width: 14, numeric: true },
+                          { key: "anns",             label: "Anns",             width: 8, numeric: true },
+                          { key: "annets",           label: "Annets",           width: 8, numeric: true },
+                          { key: "visitors",         label: "Visitors",         width: 10, numeric: true },
+                          { key: "rotarians",        label: "Rotarians",        width: 10, numeric: true },
+                          { key: "delegates",        label: "Delegates",        width: 10, numeric: true },
                         ]);
                       }}
                     />
@@ -816,15 +824,15 @@ export function ClubReportV2PageImpl({ clubId: propClubId, embedded = false, yea
                     const data = rows.length > 0 ? [...rows, totals] : rows;
                     return exportSection(data, "Club_Monthly_Report", [
                       { key: "month",             label: "Month",              width: 18 },
-                      { key: "clubService",       label: "Club Service",       width: 12 },
-                      { key: "trf",               label: "TRF",                width: 14 },
-                      { key: "projects",          label: "Projects",           width: 12 },
-                      { key: "cost",              label: "Cost",               width: 14 },
-                      { key: "beneficiaries",     label: "Beneficiaries",      width: 14 },
-                      { key: "manHours",          label: "Man Hours",          width: 12 },
-                      { key: "rotariansInvolved", label: "Rotarians Involved", width: 18 },
-                      { key: "rotaractors",       label: "Rotaractors",        width: 14 },
-                      { key: "rcc",              label: "RCC",                width: 12 },
+                      { key: "clubService",       label: "Club Service",       width: 12, numeric: true },
+                      { key: "trf",               label: "TRF",                width: 14, numeric: true },
+                      { key: "projects",          label: "Projects",           width: 12, numeric: true },
+                      { key: "cost",              label: "Cost",               width: 14, numeric: true },
+                      { key: "beneficiaries",     label: "Beneficiaries",      width: 14, numeric: true },
+                      { key: "manHours",          label: "Man Hours",          width: 12, numeric: true },
+                      { key: "rotariansInvolved", label: "Rotarians Involved", width: 18, numeric: true },
+                      { key: "rotaractors",       label: "Rotaractors",        width: 14, numeric: true },
+                      { key: "rcc",              label: "RCC",                width: 12, numeric: true },
                     ]);
                   }}
                 />
@@ -843,6 +851,7 @@ export function ClubReportV2PageImpl({ clubId: propClubId, embedded = false, yea
                   title="Annual Report (Word)"
                   subtitle="Club Service + all avenues + membership · with photos"
                   icon={FileText}
+                  dl={dl}
                   onDownload={() =>
                     downloadClubReportWord(
                       clubId,
@@ -860,6 +869,7 @@ export function ClubReportV2PageImpl({ clubId: propClubId, embedded = false, yea
                   yearId={Number(selectedYearId)}
                   clubName={clubName}
                   yearLabel={yearLabel}
+                  dl={dl}
                 />
 
                 {/* Word .docx raw-data reports removed for now (will do later). */}
@@ -881,7 +891,7 @@ export function ClubReportV2PageImpl({ clubId: propClubId, embedded = false, yea
                       { key: "trfDate",   label: "Date",         width: 14 },
                       { key: "donorName", label: "Member Name",  width: 25 },
                       { key: "fundName",  label: "Fund",         width: 20 },
-                      { key: "amountUsd", label: "Amount (USD)", width: 15 },
+                      { key: "amountUsd", label: "Amount (USD)", width: 15, numeric: true },
                     ]);
                   }}
                 />
@@ -1037,11 +1047,11 @@ export function ClubReportV2PageImpl({ clubId: propClubId, embedded = false, yea
                     exportSection(report.attendance, "Attendance", [
                       { key: "eventName", label: "Event", width: 25 },
                       { key: "eventDateTime", label: "Date", width: 18 },
-                      { key: "membersPresent", label: "Members Present", width: 16 },
-                      { key: "visitors", label: "Visitors", width: 10 },
-                      { key: "rotarians", label: "Rotarians", width: 10 },
-                      { key: "totalMembers", label: "Total Active", width: 12 },
-                      { key: "attendancePercent", label: "Attendance %", width: 14 },
+                      { key: "membersPresent", label: "Members Present", width: 16, numeric: true },
+                      { key: "visitors", label: "Visitors", width: 10, numeric: true },
+                      { key: "rotarians", label: "Rotarians", width: 10, numeric: true },
+                      { key: "totalMembers", label: "Total Active", width: 12, numeric: true },
+                      { key: "attendancePercent", label: "Attendance %", width: 14, numeric: true },
                     ])
                   }
                 />
@@ -1078,11 +1088,13 @@ function WordReportRow({
   subtitle,
   icon: Icon,
   onDownload,
+  dl,
 }: {
   title: string;
   subtitle?: string;
   icon: LucideIcon;
   onDownload: () => Promise<void> | void;
+  dl: ReturnType<typeof useDownloadProgress>;
 }) {
   return (
     <li className="flex items-center justify-between gap-3 px-5 py-3 hover:bg-blue-50/40">
@@ -1095,20 +1107,23 @@ function WordReportRow({
           {subtitle && <p className="text-xs text-slate-500 truncate">{subtitle}</p>}
         </div>
       </div>
-      <LoadingButton
-        onAction={async () => { await onDownload(); }}
+      <button
+        type="button"
+        onClick={() => dl.run("annual-report-word", async () => { await onDownload(); }, true)}
+        disabled={dl.busy}
         className="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1.5 rounded-full border border-slate-200 text-slate-700 hover:bg-blue-50 hover:text-blue-700"
       >
-        <Download size={13} /> Word
-      </LoadingButton>
+        {dl.is("annual-report-word") ? dl.bar("annual-report-word") : <><Download size={13} /> Word</>}
+      </button>
     </li>
   );
 }
 
 // Governor's Official Visit (OCV/GOV) row — Excel + Word icons for THIS club. Uses the same
 // rich per-club report the district module downloads (documents/{...}/report/{excel|word}).
-function OcvClubReportRow({ clubId, yearId, clubName, yearLabel }: {
+function OcvClubReportRow({ clubId, yearId, clubName, yearLabel, dl }: {
   clubId: number; yearId: number; clubName: string; yearLabel: string;
+  dl: ReturnType<typeof useDownloadProgress>;
 }) {
   const base = `${(clubName || `Club_${clubId}`).replace(/\s+/g, "_")}_OCV_${yearLabel}`;
   return (
@@ -1123,18 +1138,22 @@ function OcvClubReportRow({ clubId, yearId, clubName, yearLabel }: {
         </div>
       </div>
       <div className="flex flex-wrap items-center gap-2">
-        <LoadingButton
-          onAction={async () => { await downloadOcvReportExcel(clubId, yearId, base); }}
+        <button
+          type="button"
+          onClick={() => dl.run("ocv-excel", async () => { await downloadOcvReportExcel(clubId, yearId, base); })}
+          disabled={dl.busy}
           className="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1.5 rounded-full border border-emerald-200 text-emerald-700 hover:bg-emerald-50"
         >
-          <FileSpreadsheet size={13} /> Excel
-        </LoadingButton>
-        <LoadingButton
-          onAction={async () => { await downloadOcvReportWord(clubId, yearId, base); }}
+          {dl.is("ocv-excel") ? dl.bar("ocv-excel", "bg-emerald-600") : <><FileSpreadsheet size={13} /> Excel</>}
+        </button>
+        <button
+          type="button"
+          onClick={() => dl.run("ocv-word", async () => { await downloadOcvReportWord(clubId, yearId, base); }, true)}
+          disabled={dl.busy}
           className="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1.5 rounded-full border border-blue-200 text-blue-700 hover:bg-blue-50"
         >
-          <FileText size={13} /> Word
-        </LoadingButton>
+          {dl.is("ocv-word") ? dl.bar("ocv-word") : <><FileText size={13} /> Word</>}
+        </button>
       </div>
     </li>
   );
@@ -1212,20 +1231,20 @@ function AvenueOfServiceRow({
   };
 
   // 10-col Club Service columns (meeting-style).
-  const clubServiceCols: { key: string; label: string; width?: number; hyperlink?: boolean; linkText?: string }[] = [
+  const clubServiceCols: { key: string; label: string; width?: number; hyperlink?: boolean; linkText?: string; numeric?: boolean }[] = [
     { key: "date",             label: "Date",            width: 14 },
     { key: "title",            label: "Title",           width: 30 },
     { key: "description",      label: "Description",     width: 40 },
     { key: "meeting",          label: "Meeting",         width: 14 },
-    { key: "membersPresent",   label: "Attendance",      width: 14 },
-    { key: "attendancePercent",label: "Attendance(%)",   width: 14 },
+    { key: "membersPresent",   label: "Attendance",      width: 14, numeric: true },
+    { key: "attendancePercent",label: "Attendance(%)",   width: 14, numeric: true },
     { key: "url",              label: "URL",             width: 16 },
     { key: "linkAgenda",       label: "Link Agenda",     width: 16 },
     { key: "linkMom",          label: "Link MOM",        width: 16 },
   ];
 
   // 24-col project columns (used for All + Community Service) — +Image hyperlink.
-  const projectColsWide: { key: string; label: string; width?: number; hyperlink?: boolean; linkText?: string }[] = [
+  const projectColsWide: { key: string; label: string; width?: number; hyperlink?: boolean; linkText?: string; numeric?: boolean }[] = [
     { key: "typeOfProject",        label: "Type of Project",          width: 18 },
     { key: "clubRole",             label: "Your Club Role",           width: 16 },
     { key: "coHostName",           label: "Co-host Name",             width: 18 },
@@ -1234,39 +1253,39 @@ function AvenueOfServiceRow({
     { key: "title",                label: "Title",                    width: 28 },
     { key: "description",          label: "Description",              width: 40 },
     { key: "location",             label: "Project Location",         width: 20 },
-    { key: "projectCost",          label: "Project Cost",             width: 14 },
+    { key: "projectCost",          label: "Project Cost",             width: 14, numeric: true },
     { key: "funding",              label: "Funding",                  width: 16 },
     { key: "globalGrantNumber",    label: "Global Grant Number",      width: 18 },
     { key: "csrCompanyName",       label: "Name of the CSR Company",  width: 22 },
-    { key: "amountSanctioned",     label: "Amount Sanctioned",        width: 16 },
-    { key: "amountReceived",       label: "Amount Received",          width: 16 },
-    { key: "amountSpent",          label: "Amount spent till date",   width: 18 },
+    { key: "amountSanctioned",     label: "Amount Sanctioned",        width: 16, numeric: true },
+    { key: "amountReceived",       label: "Amount Received",          width: 16, numeric: true },
+    { key: "amountSpent",          label: "Amount spent till date",   width: 18, numeric: true },
     { key: "hostClubsDistricts",   label: "Host Clubs/Districts",     width: 22 },
     { key: "globalPartners",       label: "Global Partner Clubs/Districts", width: 22 },
-    { key: "beneficiaries",        label: "Beneficiaries",            width: 14 },
-    { key: "manHours",             label: "Man Hours",                width: 12 },
-    { key: "rotariansInvolved",    label: "Rotarians Involved",       width: 18 },
+    { key: "beneficiaries",        label: "Beneficiaries",            width: 14, numeric: true },
+    { key: "manHours",             label: "Man Hours",                width: 12, numeric: true },
+    { key: "rotariansInvolved",    label: "Rotarians Involved",       width: 18, numeric: true },
     { key: "publicPhotoUrl",       label: "Image",                    width: 14, hyperlink: true, linkText: "Image" },
   ];
 
   // 20-col project columns (Int'l / Vocational / Public Image legacy layout) — +Image hyperlink.
-  const projectColsNarrow: { key: string; label: string; width?: number; hyperlink?: boolean; linkText?: string }[] = [
+  const projectColsNarrow: { key: string; label: string; width?: number; hyperlink?: boolean; linkText?: string; numeric?: boolean }[] = [
     { key: "projectDate",          label: "Date",                     width: 14 },
     { key: "title",                label: "Title",                    width: 28 },
     { key: "description",          label: "Description",              width: 40 },
     { key: "location",             label: "Project Location",         width: 20 },
-    { key: "projectCost",          label: "Project Cost",             width: 14 },
+    { key: "projectCost",          label: "Project Cost",             width: 14, numeric: true },
     { key: "funding",              label: "Funding",                  width: 16 },
     { key: "globalGrantNumber",    label: "Global Grant Number",      width: 18 },
     { key: "csrCompanyName",       label: "Name of the CSR Company",  width: 22 },
-    { key: "amountSanctioned",     label: "Amount Sanctioned",        width: 16 },
-    { key: "amountReceived",       label: "Amount Received",          width: 16 },
-    { key: "amountSpent",          label: "Amount spent till date",   width: 18 },
+    { key: "amountSanctioned",     label: "Amount Sanctioned",        width: 16, numeric: true },
+    { key: "amountReceived",       label: "Amount Received",          width: 16, numeric: true },
+    { key: "amountSpent",          label: "Amount spent till date",   width: 18, numeric: true },
     { key: "hostClubsDistricts",   label: "Host Clubs/Districts",     width: 22 },
     { key: "globalPartners",       label: "Global Partner Clubs/Districts", width: 22 },
-    { key: "beneficiaries",        label: "Beneficiaries",            width: 14 },
-    { key: "manHours",             label: "Man Hours",                width: 12 },
-    { key: "rotariansInvolved",    label: "Rotarians Involved",       width: 18 },
+    { key: "beneficiaries",        label: "Beneficiaries",            width: 14, numeric: true },
+    { key: "manHours",             label: "Man Hours",                width: 12, numeric: true },
+    { key: "rotariansInvolved",    label: "Rotarians Involved",       width: 18, numeric: true },
     { key: "publicPhotoUrl",       label: "Image",                    width: 14, hyperlink: true, linkText: "Image" },
   ];
 
@@ -1512,6 +1531,8 @@ function SectionRow({
   onExport,
   loading = false,
   comingSoon = false,
+  dl,
+  dlKey,
 }: {
   title: string;
   icon: LucideIcon;
@@ -1519,6 +1540,9 @@ function SectionRow({
   onExport: () => Promise<void> | void;
   loading?: boolean;
   comingSoon?: boolean;
+  /** Server file download: progress bar inside the button, one report at a time on the page. */
+  dl?: ReturnType<typeof useDownloadProgress>;
+  dlKey?: string;
 }) {
   const hasData = !loading && count > 0 && !comingSoon;
   return (
@@ -1540,6 +1564,15 @@ function SectionRow({
       </div>
       {comingSoon ? (
         <ClubGoalComingSoon compact />
+      ) : dl && dlKey ? (
+      <button
+        type="button"
+        onClick={() => dl.run(dlKey, async () => { await onExport(); })}
+        disabled={!hasData || dl.busy}
+        className="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1.5 rounded-lg border border-slate-200 text-slate-700 hover:bg-blue-50 hover:text-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+      >
+        {dl.is(dlKey) ? dl.bar(dlKey) : <><Download size={13} /> Excel</>}
+      </button>
       ) : (
       <LoadingButton
         onAction={async () => {

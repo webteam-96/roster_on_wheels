@@ -27,7 +27,8 @@ public interface IEmailService
     // reminders) keep using the default no-reply sender.
     // N5: optional verified tenant from-address and extra headers (List-Unsubscribe); returns Brevo's message id.
     Task<string?> SendMassEmailAsync(string toEmail, string subject, string htmlBody, string? fromName, string? replyName, string? replyEmail,
-        string? fromEmail = null, IReadOnlyDictionary<string, string>? headers = null);
+        string? fromEmail = null, IReadOnlyDictionary<string, string>? headers = null,
+        IReadOnlyList<(string Name, byte[] Content)>? attachments = null);
     Task SendSuperAdminWelcomeEmailAsync(string email, string memberName, string mobileNumber, string? tempPassword);
     Task SendSuperAdminRevokedEmailAsync(string email, string memberName);
     Task SendNewMemberWelcomeEmailAsync(string memberEmail, string memberName, string clubName, string? districtNumber, string? zoneName, IEnumerable<string>? ccEmails);

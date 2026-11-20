@@ -4838,7 +4838,7 @@ public class DistrictModulesController : ControllerBase
             ws.Cell(row, 2).Value = (string)e.categoryName;
             ws.Cell(row, 3).Value = (string)e.activityName;
             ws.Cell(row, 4).Value = (string?)e.subItemName ?? "-";
-            ws.Cell(row, 5).Value = (string?)e.count ?? "0";
+            ExcelFigure.Set(ws.Cell(row, 5), (string?)e.count ?? "0");   // count as a real number
             ws.Cell(row, 5).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
             decimal pts = (decimal)e.pointsEarned + (decimal)e.bonusEarned;
             ws.Cell(row, 6).Value = pts;
@@ -4891,7 +4891,11 @@ public class DistrictModulesController : ControllerBase
             ws.Cell(row, 1).Value = manualIdx++;
             ws.Cell(row, 2).Value = (string)ms.categoryName;
             ws.Cell(row, 3).Value = (string)ms.title;
-            ws.Cell(row, 4).Value = entry != null ? (string?)entry.answerValue ?? "0" : "0";
+            var answerText = entry != null ? (string?)entry.answerValue ?? "0" : "0";
+            // Number answers as real numbers; a choose-one answer is an option id, so it stays text.
+            var answerKind = ((string?)ms.answerType ?? "").Trim().ToLowerInvariant().Replace(" ", "").Replace("_", "").Replace("-", "");
+            if (answerKind is "chooseone" or "choose" or "select" or "option" or "options" or "radio" || !ExcelFigure.TrySet(ws.Cell(row, 4), answerText))
+                ws.Cell(row, 4).Value = answerText;
             ws.Cell(row, 4).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
             ws.Cell(row, 5).Value = (string)ms.answerType;
             decimal pts = entry != null ? (decimal)entry.pointsEarned + (decimal)entry.bonusEarned : 0;

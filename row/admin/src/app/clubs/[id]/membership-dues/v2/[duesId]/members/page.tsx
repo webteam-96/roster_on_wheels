@@ -26,6 +26,7 @@ import {
 import RotaryLoader from "@/components/RotaryLoader";
 import { getMembershipDuesMembers, getMembershipDuesDetail, recordMembershipDuesOffline, approveMembershipDuesPayment, getMembershipDuesOfflineDetails, updateMembershipDuesOffline, deleteMembershipDuesPayment, sendMembershipDuesReceipt, sendMembershipDuesReminder, bulkMembershipDuesReminderEmail } from "@/services/api";
 import { useAuth } from "@/contexts/AuthContext";
+import { getCurrencySymbol } from "@/lib/currency";
 import { clubYearRights, canEditYear, yearIdForLabel, heldYearLabels } from "@/lib/adminYears";
 import { useRotaryYears } from "@/hooks/useRotaryYears";
 import ViewOnlyBadge from "@/components/ViewOnlyBadge";
@@ -90,7 +91,7 @@ function isPendingMember(m: { hasPendingApproval?: boolean; HasPendingApproval?:
 
 // Read-only preview of the member's submitted offline payment, shown inside
 // the Approve / Reject dialogs.
-function PendingDetailsPanel({ details }: { details: any }) {
+function PendingDetailsPanel({ details, currency }: { details: any; currency?: string }) {
   if (!details) return null;
   const Row = ({ label, value }: { label: string; value: any }) => {
     if (value === null || value === undefined || value === "") return null;
@@ -105,7 +106,7 @@ function PendingDetailsPanel({ details }: { details: any }) {
     ? new Date(details.paymentDate).toLocaleDateString(appLocale(), { day: "2-digit", month: "short", year: "numeric" })
     : null;
   const amountStr = details.amount != null
-    ? `${currencySymbol()}${Number(details.amount).toLocaleString(appLocale(), { maximumFractionDigits: 2 })}`
+    ? `${getCurrencySymbol(currency)}${Number(details.amount).toLocaleString(appLocale(), { maximumFractionDigits: 2 })}`
     : null;
   const attachUrl = details.attachment
     ? (String(details.attachment).startsWith("/") ? `${API_BASE_URL}${details.attachment}` : `${API_BASE_URL}/${details.attachment}`)
@@ -272,6 +273,10 @@ export default function ClubMembershipDuesV2MembersPage() {
   }, [duesId, search, filter]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
+
+  // Super Admin settings (user 2026-11-09): currency sign + send channels. Old API = "INR" / on.
+  const cur = getCurrencySymbol(detail?.currency);
+  const emailOn = detail?.notifyEmail ?? true;
 
   // ── Fee type helpers — same as v1 ──
   const enabledFeeTypes: { type: number; label: string }[] = [];
@@ -733,6 +738,7 @@ export default function ClubMembershipDuesV2MembersPage() {
           pageTitle="Members – Dues"
           pageSubtitle="View and manage member payments"
           activeNavHref="/club-admin-dashboard/membership-dues"
+          hideYearSelector
         >
           <div className="flex flex-col items-center justify-center py-20">
             <h3 className="text-lg font-semibold text-slate-700">Access Denied</h3>
@@ -755,6 +761,7 @@ export default function ClubMembershipDuesV2MembersPage() {
         pageTitle={pageTitle}
         pageSubtitle={pageSubtitle || "View and manage member payments"}
         activeNavHref="/club-admin-dashboard/membership-dues"
+        hideYearSelector   // one dues = one fixed year; its year is in the subtitle (user 2026-11-10)
       >
         <div className="space-y-5">
           {/* Header */}
@@ -825,6 +832,7 @@ export default function ClubMembershipDuesV2MembersPage() {
                     </button>
                   )}
                 </div>
+                {emailOn && (
                 <button
                   type="button"
                   onClick={() => setBulkEmailConfirmOpen(true)}
@@ -833,6 +841,7 @@ export default function ClubMembershipDuesV2MembersPage() {
                 >
                   <Mail size={13} /> Click here to send Email reminders to all unpaid members
                 </button>
+                )}
               </div>
             </div>
 
@@ -915,7 +924,7 @@ export default function ClubMembershipDuesV2MembersPage() {
                                   <span className="text-slate-400">N/A</span>
                                 ) : (
                                   <div className="flex flex-col items-center gap-1">
-                                    <span className="text-slate-700">{currencySymbol()}{getDisplayFeeAmount(m, ft.type).toLocaleString(appLocale())}</span>
+                                    <span className="text-slate-700">{cur}{getDisplayFeeAmount(m, ft.type).toLocaleString(appLocale())}</span>
                                     {statusChip(st)}
                                     {st === "Paid" && getPaymentChannelIcon(m, ft.type)}
                                   </div>
@@ -946,6 +955,7 @@ export default function ClubMembershipDuesV2MembersPage() {
                           <td className="px-3 py-2 text-center">
                             {!isNew && getUnpaidFeeTypes(m).length > 0 && (
                               <div className="inline-flex items-center gap-2">
+                                {emailOn && (
                                 <button
                                   type="button"
                                   className="inline-flex items-center justify-center w-7 h-7 rounded-full text-amber-600 hover:bg-amber-50"
@@ -958,13 +968,14 @@ export default function ClubMembershipDuesV2MembersPage() {
                                 >
                                   <Mail size={14} />
                                 </button>
+                                )}
                               </div>
                             )}
                           </td>
 
                           {/* Receipt */}
                           <td className="px-3 py-2 text-center">
-                            {!isNew && hasAnyPaidFee(m) && (
+                            {!isNew && hasAnyPaidFee(m) && emailOn && (
                               receiptSendingId === m.memberFeeId ? (
                                 <RotaryLoader size="sm" label="Sending…" />
                               ) : (
@@ -1046,7 +1057,7 @@ export default function ClubMembershipDuesV2MembersPage() {
                   )}
                   {(offlineMember.pendingAmount || offlineMember.PendingAmount) && (
                     <p className="text-sm">
-                      <strong>Amount:</strong> {currencySymbol()}
+                      <strong>Amount:</strong> {cur}
                       {offlineMember.pendingAmount || offlineMember.PendingAmount}
                     </p>
                   )}
@@ -1127,7 +1138,7 @@ export default function ClubMembershipDuesV2MembersPage() {
                       <p className="text-sm"><strong>Transaction ID:</strong> {offlineOnlineView.txnId}</p>
                     )}
                     {offlineOnlineView.amount > 0 && (
-                      <p className="text-sm"><strong>Amount:</strong> {currencySymbol()}{offlineOnlineView.amount.toLocaleString(appLocale())}</p>
+                      <p className="text-sm"><strong>Amount:</strong> {cur}{offlineOnlineView.amount.toLocaleString(appLocale())}</p>
                     )}
                     {offlineOnlineView.date && (
                       <p className="text-sm"><strong>Date:</strong> {new Date(offlineOnlineView.date).toLocaleDateString(appLocale())}</p>
@@ -1233,7 +1244,7 @@ export default function ClubMembershipDuesV2MembersPage() {
                         />
                       </div>
                     )}
-                    {offlineUpdatePaymentId === 0 && (
+                    {offlineUpdatePaymentId === 0 && emailOn && (
                       <div className="flex flex-wrap items-center gap-2">
                         <Checkbox
                           checked={offlineSendEmail}
@@ -1243,7 +1254,7 @@ export default function ClubMembershipDuesV2MembersPage() {
                         <Label htmlFor="offlineSendEmail">Send Email Receipt</Label>
                       </div>
                     )}
-                    {offlineUpdatePaymentId > 0 && offlineUpdateIsApproved && (
+                    {offlineUpdatePaymentId > 0 && offlineUpdateIsApproved && emailOn && (
                       <div className="flex flex-wrap items-center gap-2">
                         <Checkbox
                           checked={offlineSendReceiptOnUpdate}
@@ -1287,7 +1298,7 @@ export default function ClubMembershipDuesV2MembersPage() {
                 <DialogTitle>Approve Payment</DialogTitle>
               </DialogHeader>
               <div className="space-y-3">
-                <PendingDetailsPanel details={pendingDetails} />
+                <PendingDetailsPanel details={pendingDetails} currency={detail?.currency} />
                 <div>
                   <Label>Approval Remark <span className="text-muted-foreground text-xs">(optional)</span></Label>
                   <Textarea
@@ -1310,7 +1321,7 @@ export default function ClubMembershipDuesV2MembersPage() {
                 <DialogTitle>Reject Payment</DialogTitle>
               </DialogHeader>
               <div className="space-y-3">
-                <PendingDetailsPanel details={pendingDetails} />
+                <PendingDetailsPanel details={pendingDetails} currency={detail?.currency} />
                 <div>
                   <Label>Rejection Reason <span className="text-red-600">*</span></Label>
                   <Textarea

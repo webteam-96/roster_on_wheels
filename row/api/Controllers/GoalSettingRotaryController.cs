@@ -77,7 +77,9 @@ public class GoalSettingRotaryController : ControllerBase
         // ROW: SuperAdmin, or a District Admin / this year's DG of the district (the same people who can run the sync).
         var scopeDistrict = (districtId ?? 0) > 0 ? districtId!.Value
             : await conn.ExecuteScalarAsync<int?>("SELECT fk_district_id FROM club_master WHERE pk_club_id = @C", new { C = clubId }) ?? 0;
-        if (!await ClubAdminAccessHelper.IsSuperAdminAsync(conn, GetMemberId())
+        // RIZones 2026-11-13 (new CMR goal panels): a club's own managers may read that club's figures too.
+        var clubReader = (clubId ?? 0) > 0 && await ScopeWriteGuardMiddleware.ReadAllowedAsync(_connectionString, GetMemberId(), true, clubId!.Value, members: false);
+        if (!clubReader && !await ClubAdminAccessHelper.IsSuperAdminAsync(conn, GetMemberId())
             && await conn.ExecuteScalarAsync<int>(@"
                 SELECT (SELECT COUNT(*) FROM member_roles WHERE fk_member_master_profile_id = @M AND fk_role_id = 2 AND fk_district_id = @D
                           AND (fk_club_id IS NULL OR fk_club_id = 0) AND IsActive = 1 AND isdeleted = 0)
@@ -206,12 +208,40 @@ public class GoalSettingRotaryController : ControllerBase
     //   imports       = per scope (Membership, Youth, District / Club = Foundation), the last day of the
     //                   latest month imported this rotary year (the month the data covers);
     //   lastSaved     = per category, when this district's / club's typed targets were last saved.
+    // RAG Analysis popup (RIZones goal module, restored 2026-11-20): the district's clubs with their Rotary.org member
+    // count ("Members now / 30 June"), the figures the RAG bands on the card are counted from.
+    [HttpGet("rag-clubs")]
+    public async Task<ActionResult> RagClubs([FromQuery] int yearId, [FromQuery] int districtId)
+    {
+        await using var conn = RowDb.Connect(_connectionString);
+        await conn.OpenAsync();
+        var m = GetMemberId();
+        if (!await ClubAdminAccessHelper.IsSuperAdminAsync(conn, m)
+            && !(districtId > 0 && await ScopeWriteGuardMiddleware.AllowedAsync(_connectionString, m, false, districtId)))
+            return Forbid();
+        if (yearId <= 0 || districtId <= 0) return BadRequest(new { message = "yearId and districtId are required." });
+        var rows = await conn.QueryAsync(@"
+            SELECT v.fk_club_id AS clubId, c.ClubName AS clubName, CAST(v.NumericValue AS SIGNED) AS members
+            FROM goal_rotary_org_values v
+            JOIN club_master c ON c.pk_club_id = v.fk_club_id
+            WHERE v.fk_year_id = @Y AND v.EntityType = 'Club' AND v.fk_district_id = @D
+              AND v.ItemName = 'Members now / 30 June' AND v.Kind = 'Value' AND v.isdeleted = 0
+            ORDER BY c.ClubName", new { Y = yearId, D = districtId });
+        return Ok(rows);
+    }
+
     [HttpGet("source-dates")]
     public async Task<ActionResult> SourceDates([FromQuery] int yearId, [FromQuery] int? districtId, [FromQuery] int? clubId)
     {
         await using var conn = RowDb.Connect(_connectionString);
         await conn.OpenAsync();
-        if (!await ClubAdminAccessHelper.IsSuperAdminAsync(conn, GetMemberId())) return Forbid();
+        // Read by the new CMR goal panels (RIZones 2026-11-13): SuperAdmin, the club's managers (club scope) or whoever
+        // manages the district (district scope). Was SuperAdmin only.
+        var m = GetMemberId();
+        var allowed = await ClubAdminAccessHelper.IsSuperAdminAsync(conn, m)
+            || ((clubId ?? 0) > 0 && await ScopeWriteGuardMiddleware.ReadAllowedAsync(_connectionString, m, true, clubId!.Value, members: false))
+            || ((districtId ?? 0) > 0 && await ScopeWriteGuardMiddleware.AllowedAsync(_connectionString, m, false, districtId!.Value));
+        if (!allowed) return Forbid();
         if (yearId <= 0) return BadRequest(new { message = "yearId is required." });
 
         var sync = await conn.ExecuteScalarAsync<DateTime?>(@"
@@ -286,25 +316,6 @@ public class GoalSettingRotaryController : ControllerBase
         }
         catch (MySqlException) { /* sync table not created yet = no syncs */ }
         return Ok(new { rotaryOrgSync = sync, memberSync, clubSync, dgSync, imports, lastSaved = saved, savedByField });
-    }
-
-    // RAG Analysis popup (user 2026-10-30): the district's clubs with their Rotary.org member count (RCC
-    // "Members now / 30 June"), the same figures the 5 Rotary.org bands on the card are counted from.
-    [HttpGet("rag-clubs")]
-    public async Task<ActionResult> RagClubs([FromQuery] int yearId, [FromQuery] int districtId)
-    {
-        await using var conn = RowDb.Connect(_connectionString);
-        await conn.OpenAsync();
-        if (!await ClubAdminAccessHelper.IsSuperAdminAsync(conn, GetMemberId())) return Forbid();
-        if (yearId <= 0 || districtId <= 0) return BadRequest(new { message = "yearId and districtId are required." });
-        var rows = await conn.QueryAsync(@"
-            SELECT v.fk_club_id AS clubId, c.ClubName AS clubName, CAST(v.NumericValue AS SIGNED) AS members
-            FROM goal_rotary_org_values v
-            JOIN club_master c ON c.pk_club_id = v.fk_club_id
-            WHERE v.fk_year_id = @Y AND v.EntityType = 'Club' AND v.fk_district_id = @D
-              AND v.ItemName = 'Members now / 30 June' AND v.Kind = 'Value' AND v.isdeleted = 0
-            ORDER BY c.ClubName", new { Y = yearId, D = districtId });
-        return Ok(rows);
     }
 
     // Year dropdown of the new Goal Overview (user 2026-10-30): only years that have goal data - typed

@@ -4,6 +4,30 @@ The NestJS backend is a faithful port of the RIZones API. These are places
 where ROW will probably want different behaviour. They are **not** made yet
 unless marked "done"; decide them when the area is worked on.
 
+## 2026-11-20: OMS ROW-60 to ROW-69 (not committed)
+
+- **ROW-61 (done):** `ui/button.tsx` icon-only branch now passes the `asChild` link's `href` to Astryx. Every
+  `<Button size="icon" asChild><Link>` (208 places, incl. all Settings back arrows) rendered a dead `<button>`;
+  reproduced on the test host.
+- **ROW-63 (done):** `ui/button.tsx` looks inside a single Fragment child for the leading icon, so
+  `{busy ? <Loader/> : <><Icon/>Text</>}` (~46 buttons) no longer stacks the icon above the text. Greetings "Save
+  Settings": default size, no shadow, no paper-plane icon.
+- **ROW-60 (done):** `DateField` passes the caller's width classes to its outer box; in flex rows (reminders, wallet
+  filters, 22 places) the calendar button sat far right of the input.
+- **ROW-62 (done):** Settings lists Email Credits (offline grants) while `modules.wallet` is off; Wallet hid it.
+- **ROW-65 (data, wording done):** club subscription has no price yet (Settings › Subscriptions). The panel now
+  says why Subscribe is greyed out and drops "per year" after "Price not set yet".
+- **ROW-66 (done):** role-assignment email joins the district from `member_roles.fk_district_id` first (District
+  Admin rows have no club), labels it "District Admin", and fills details for Member rows; club names HTML-encoded.
+- **ROW-67 (done):** district project add/edit get the club crop step (`useImageCropQueue`, 16:9, 1600 px); district
+  project list has a View icon for everyone, opening `ProjectDetailModal` (new optional `districtId`).
+- **ROW-68 (done):** every project form already had 1000 / 500 except Club Service image captions (200, now 500 with a
+  counter; column is varchar(500)).
+- **ROW-69 (done):** district communication add/edit/view-all return to their own `?tab=` (GML landed on events).
+- **Settings vs RIZones:** 8 RIZones-only cards are removed on purpose (WhatsApp x2, RI Director, Directory Data
+  Collection, Zonal Awards, Direct Beneficiaries Limit, Goal Setting Oversight Roles, India Donate); wording
+  differences are the no-dash rule and ROW naming.
+
 ## 2026-11-19: Member directory export, competitor-gap plan (not committed)
 
 - **Plan:** every gap from the ClubRunner/DACdb comparison is being built, area by area, on API + admin + app
@@ -35,6 +59,61 @@ unless marked "done"; decide them when the area is worked on.
   `/clubs/{id}/dashboard`.
 - **OMS ROW-48:** re-checked, still no code change: add-member (`MemberService`) and make-admin (`RoleService`) both
   send email; delivery needs a valid Brevo key on the server.
+
+## 2026-11-19: RIZones pull of 9-17 Nov ported (worktree `E:/row-lanes/rizones-1117`, branch `feat/rizones-pull-2026-11-17`, not committed)
+
+Upstream `9658c18b..be034332`, merged file by file (`git merge-file`, base 9658c18b), 279 conflicts resolved by hand
+toward ROW's rules. Skipped as agreed: Zonal Awards, the assistant's "club has not selected ROW as vendor" replies,
+WhatsApp. Files of modules ROW removed (RI Director, directory data collection, PPH, project Category) stay out.
+- **Dues (Club Dues + District Dues):** Super Admin email switch per dues (`NotifyEmail`; off = no reminders, receipts
+  or notices by email; the payment OTP still goes, it is the only channel) and a currency per dues (`Currency`, an ISO
+  code from the instance list shown with `Brand.Money`; NULL = instance default; new dues default to the district's
+  currency). RIZones' ₹/$ "sign only" flag and `NotifyWhatsApp` are not taken. Dues drafts (browser, per member),
+  offline-only dues skip the vendor split step, clearer save errors. Schema: `DatabaseInitializer.RizonesPull1117.cs`
+  (+ hand-run `database/maintenance/2026-11-19-rizones-pull-1117.sql` and its `-down.sql`).
+- **Wallet:** Super Admin deducts credits from one pack with a reason; per-pack credit/debit history (tally dialog).
+- **Reports:** new CMR (Design A-D components, Design B PDF from the page, Word V2, goal panels); the CMR submission
+  mail attaches the browser's Design B PDF when it fits. OCV Excel is a real .xlsx and has a Word V2; OCV hub header is
+  one line; "Club Goals at a glance" scorecard. Excel downloads write figures as numbers (`ExcelFigure`, ROW currency
+  symbols added). Download progress inside the button on the club report and goal panel.
+- **Goals / Rotary.org:** RCC + District Goals Excel report (`api/rcc-goals/report/{district|club}`; access = Super
+  Admin, the club's managers, whoever manages the district). A club can sync itself from Rotary.org (`fk_club_id` on the
+  sync tables); the worker adds month-end auto-sync and the club report mail. `ZoneDays` is empty by default in ROW
+  (RIZones' Indian zone days do not apply; every district uses `WeeklyDay`). Goal figures and source dates
+  (`api/goal-setting-rotary/rotary-org-values|source-dates`) are now readable by the club's and district's managers,
+  not only Super Admin (the new CMR panels need them). Still behind the `goal_setting_rotary` switch.
+- **RCC & District Goals pages + goal module (owner 2026-11-20: "yes for all", "do not skip anything"; scope answer
+  "Module, not roles")**: both pages (club and district, Super Admin only in the nav, behind `goal_setting_rotary`
+  with the RCC report) on RIZones' goal-entry module: `GoalSettingPanelRotary` (per-category lock state, source
+  dates, RAG popup), `GoalTargetSplitPanelRotary`, `lib/rccGoals.ts`, `GroupMessages` + `ChatUi`. API: per-category
+  goal locks are back (forms carry `isLocked / lockedByName / lockedDate / canLock`, locked = read only, every save
+  path refuses; `POST api/goal-setting/{clubs|districts}/{cat}/{lock|unlock}`; District Admin locks a club, Super
+  Admin anything). This reverses the 2026-10-22 Goal Lock removal for this module. One-to-one and group goal messages
+  (`api/goal-setting/direct/*`, `groups/*`; reverses the 2026-11-09 "group messages not built"). Goal Setting Roles
+  are NOT back (no RI Director / Zone Co-ordinator / District Assistant screen, logins or dashboards), so
+  `goal_role_assignments` stays empty and the live chats are: District group per category (DG + District Admins),
+  Super Admin with each district (one chat per district). As upstream, a District Admin and the DG do not chat
+  one-to-one. No "view as". Message times print in the viewer's zone. `rag-clubs` now open to the district's
+  managers (was Super Admin only). Schema: `goal_locks` / `goal_role_*` were never dropped (2026-10-23 script not
+  run); `EnsureGoalModuleSchemaAsync` + the 2026-11-19 maintenance SQL create them if missing, plus the three message
+  tables. `go-*` design tokens added (mapped to the Fellowship palette, no pure white, no shadows); RIZones' emoji
+  source markers replaced by text symbols (↻ ⇩ ✎ ∑).
+- **Before go-live**: run `SELECT * FROM goal_locks WHERE IsLocked = 1` on production. Any current-year row becomes a
+  real lock again (read only for that club / district and category).
+- **Checked (goal module)**: `kb/tools/goal_module_e2e.py` 31/31 twice on `row_prod_copy` (lock by District Admin,
+  refused for a club admin, locked save refused, unlock; Super Admin and DG chat both ways with unread dots; District
+  group post and read, closed to a club admin; RAG clubs access; RCC report); `dotnet test` 108 pass, 4 skipped;
+  admin `tsc` clean; both pages in a headless browser at 1440 and 375 with no script errors, failed API calls or
+  sideways scroll, Messages dialog opens. Known: at 375 the shared header's "Back to Search" covers the end of the
+  long "RCC & District Goals" title (shell header, all long titles).
+- **ROW rules applied:** UTC everywhere (`DateTime.UtcNow`), ROW icons (no Lucide), no em dashes, no gradients or
+  arbitrary shadows, `appLocale()` not en-IN, "ROW" not "RIZones" in user-facing text, test district 5656 hidden from
+  the public governors list. The CMR design palettes keep their fixed hex colours (report artwork).
+- **Checked:** API and RccGoalsFetcher build; `dotnet test row/api.Tests` 108 pass, 4 skipped; admin `tsc` clean;
+  `kb/tools/rizones_pull_1117_e2e.py` 12/12 on `row_prod_copy` (email switch refuses a send, credit history and
+  refusals, RCC reports .xlsx and closed to members, OCV .xlsx, CMR Word V2 .docx); headless browser on the dues
+  forms/lists, wallet, CMR list/editor/preview, OCV hub, club report at 1440 and 375: no script errors, no sideways
+  scroll. Admin lint: the new files add unescaped-quote warnings (lint is report-only in CI).
 
 ## 2026-11-18: Audit fixes, OMS ROW-54/55, app fixes, link previews, Madras Legacy removed (not committed)
 

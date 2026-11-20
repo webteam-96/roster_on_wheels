@@ -39,6 +39,23 @@ public class ClubDuesService : IClubDuesService
 
     private MySqlConnection GetConnection() => RowDb.Connect(_connStr);
 
+    // ── Super Admin flags (RIZones 2026-11-09, ROW form) ─────────────
+    // NotifyEmail decides whether this District Dues sends email (reminders, receipts, rejection; ROW has no
+    // WhatsApp); Currency is the ISO code every amount of this dues shows in (see DuesCurrency).
+    private static Task SaveDuesFlagsAsync(MySqlConnection conn, int duesId, bool? email, string? currency) =>
+        conn.ExecuteAsync(@"
+            UPDATE club_dues SET NotifyEmail=COALESCE(@E, NotifyEmail), Currency=COALESCE(@C, Currency)
+            WHERE pk_club_dues_id=@Id",
+            new { E = email, C = currency == null ? null : DuesCurrency.Normalize(currency), Id = duesId });
+
+    public async Task<bool> EmailOnAsync(int duesId)
+    {
+        using var conn = GetConnection();
+        var on = await conn.ExecuteScalarAsync<bool?>(
+            "SELECT NotifyEmail FROM club_dues WHERE pk_club_dues_id=@Id", new { Id = duesId });
+        return on ?? true;
+    }
+
     // ═══════════════════════════════════════════════════════════════
     //  Campaign CRUD
     // ═══════════════════════════════════════════════════════════════
@@ -53,7 +70,7 @@ public class ClubDuesService : IClubDuesService
                    (SELECT COUNT(*) FROM club_dues_members cm WHERE cm.fk_club_dues_id = cd.pk_club_dues_id AND cm.isdeleted = 0 AND cm.IsHonorary = 0 AND " + HierarchyScopeSql.ClubIdLive("cm.fk_club_id") + @") AS MemberCount,
                    (SELECT COUNT(*) FROM club_dues_members cm WHERE cm.fk_club_dues_id = cd.pk_club_dues_id AND cm.isdeleted = 0 AND cm.IsHonorary = 0 AND cm.IsPaid = 1 AND " + HierarchyScopeSql.ClubIdLive("cm.fk_club_id") + @") AS PaidMemberCount,
                    (SELECT COALESCE(SUM(p.Amount),0) FROM club_dues_payments p WHERE p.fk_club_dues_id = cd.pk_club_dues_id AND p.IsPaid = 1 AND p.isdeleted = 0) AS CollectedAmount,
-                   cd.IsActive, cd.WeblinkUrl, cd.GoogleSheetId, cd.GoogleSheetUrl, cd.created_date AS CreatedDate
+                   cd.IsActive, cd.WeblinkUrl, cd.GoogleSheetId, cd.GoogleSheetUrl, cd.created_date AS CreatedDate, cd.Currency
             FROM club_dues cd
             LEFT JOIN district_master d ON cd.fk_district_id = d.pk_district_id
             WHERE cd.isdeleted = 0 AND " + HierarchyScopeSql.DistrictIdLive("cd.fk_district_id") + @"
@@ -75,7 +92,7 @@ public class ClubDuesService : IClubDuesService
                    RateModel, OnlinePerMemberRate, OfflinePerMemberRate,
                    ModeOfPayment, IsShowBankInReceipt, OfflineBankName, OfflineAccountNumber, OfflineIfscCode,
                    ApproverEmail, EmailHeaderLogo, EmailCC, EmailSubject, EmailBody, EmailReminderSubject,
-                   EmailReminderBody, ReminderButtonText, GoogleSheetId, GoogleSheetEmail
+                   EmailReminderBody, ReminderButtonText, GoogleSheetId, GoogleSheetEmail, NotifyEmail, Currency
             FROM club_dues WHERE pk_club_dues_id = @Id AND isdeleted = 0", new { Id = duesId });
         if (dto == null) return null;
         // Both online (IsOnline=1) and offline (IsOnline=0) rows come back together — the frontend
@@ -128,6 +145,8 @@ public class ClubDuesService : IClubDuesService
                 dto.EmailCC, dto.EmailSubject, dto.EmailBody, dto.EmailReminderSubject, dto.EmailReminderBody, dto.ReminderButtonText,
                 dto.GoogleSheetId, dto.GoogleSheetEmail, UserId = userId
             });
+        var (fe, fc) = await DuesCurrency.CreateDefaultsAsync(conn, dto.FkDistrictId, dto.NotifyEmail, dto.Currency);
+        await SaveDuesFlagsAsync(conn, duesId, fe, fc);
 
         bool independent = dto.RateModel == 1;
         decimal onlineSaveRate = independent ? dto.OnlinePerMemberRate : dto.DefaultPerMemberRate;
@@ -176,6 +195,7 @@ public class ClubDuesService : IClubDuesService
                 dto.EmailCC, dto.EmailSubject, dto.EmailBody, dto.EmailReminderSubject, dto.EmailReminderBody, dto.ReminderButtonText,
                 dto.GoogleSheetEmail, UserId = userId, Id = duesId
             });
+        await SaveDuesFlagsAsync(conn, duesId, dto.NotifyEmail, dto.Currency);
 
         // Determine RateModel from the existing (immutable) row rather than trusting the submitted dto.
         var rateModel = await conn.ExecuteScalarAsync<int>("SELECT RateModel FROM club_dues WHERE pk_club_dues_id=@Id", new { Id = duesId });
@@ -963,7 +983,7 @@ public class ClubDuesService : IClubDuesService
     {
         using var conn = GetConnection();
         var info = await conn.QueryFirstOrDefaultAsync<dynamic>(@"
-            SELECT p.Amount, p.MemberCountCovered, cd.Purpose, cd.RotaryYear, cd.EmailCC,
+            SELECT p.Amount, p.MemberCountCovered, cd.Purpose, cd.RotaryYear, cd.EmailCC, cd.NotifyEmail, cd.Currency,
                    d.DistrictNumber, c.ClubName,
                    mm.EmailId AS OfficerEmail, mm.MemberName AS OfficerName,
                    ra.Name AS AccountName, ra.BankAccountLast4, ra.BankIfsc
@@ -974,7 +994,7 @@ public class ClubDuesService : IClubDuesService
             LEFT JOIN member_master_profile mm ON mm.pk_member_master_profile_id = p.PaidByMemberId
             LEFT JOIN razorpay_route_accounts ra ON p.FkRouteAccountId = ra.pk_id
             WHERE p.pk_club_dues_payment_id=@Id", new { Id = paymentId });
-        if (info == null) return;
+        if (info == null || !Convert.ToBoolean(info.NotifyEmail)) return;   // Email switched off for this dues
         var toEmail = (string?)info.OfficerEmail;
         if (string.IsNullOrWhiteSpace(toEmail)) return;
         var reasonText = string.IsNullOrWhiteSpace(reason) ? "No reason provided." : reason;
@@ -989,7 +1009,7 @@ public class ClubDuesService : IClubDuesService
 <tr><td style='padding:4px 10px'>Club</td><td style='padding:4px 10px'><b>{(string?)info.ClubName ?? "-"}</b></td></tr>
 <tr><td style='padding:4px 10px'>Members covered</td><td style='padding:4px 10px'><b>{(int)info.MemberCountCovered}</b></td></tr>
 <tr><td style='padding:4px 10px'>Account</td><td style='padding:4px 10px'><b>{accountLabel}</b></td></tr>
-<tr><td style='padding:4px 10px'>Amount</td><td style='padding:4px 10px'><b>{Brand.Money((decimal)info.Amount)}</b></td></tr>
+<tr><td style='padding:4px 10px'>Amount</td><td style='padding:4px 10px'><b>{DuesCurrency.Money((decimal)info.Amount, (string?)info.Currency)}</b></td></tr>
 <tr><td style='padding:4px 10px'>Year</td><td style='padding:4px 10px'>{(string?)info.RotaryYear}</td></tr>
 <tr><td style='padding:4px 10px'>Reason</td><td style='padding:4px 10px;color:#c53030'><b>{reasonText}</b></td></tr>
 </table>
@@ -1003,7 +1023,7 @@ public class ClubDuesService : IClubDuesService
     private async Task SendApprovalRequestEmailAsync(MySqlConnection conn, int duesId, int paymentId)
     {
         var info = await conn.QueryFirstOrDefaultAsync<dynamic>(@"
-            SELECT cd.ApproverEmail, cd.Purpose, cd.RotaryYear, d.DistrictNumber, c.ClubName, p.Amount, p.MemberCountCovered,
+            SELECT cd.ApproverEmail, cd.Purpose, cd.RotaryYear, cd.Currency, d.DistrictNumber, c.ClubName, p.Amount, p.MemberCountCovered,
                    ra.Name AS AccountName, ra.BankAccountLast4, ra.BankIfsc
             FROM club_dues_payments p
             JOIN club_dues cd ON cd.pk_club_dues_id = p.fk_club_dues_id
@@ -1030,7 +1050,7 @@ own separate approval request.</p>
 <tr><td style='padding:4px 10px'>Club</td><td style='padding:4px 10px'><b>{(string?)info.ClubName}</b></td></tr>
 <tr><td style='padding:4px 10px'>Members covered</td><td style='padding:4px 10px'><b>{(int)info.MemberCountCovered}</b></td></tr>
 <tr><td style='padding:4px 10px'>Account</td><td style='padding:4px 10px'><b>{accountLabel}</b></td></tr>
-<tr><td style='padding:4px 10px'>Amount for this account</td><td style='padding:4px 10px'><b>{Brand.Money((decimal)info.Amount)}</b></td></tr>
+<tr><td style='padding:4px 10px'>Amount for this account</td><td style='padding:4px 10px'><b>{DuesCurrency.Money((decimal)info.Amount, (string?)info.Currency)}</b></td></tr>
 </table>
 <p><a href='{url}' style='background:#17458F;color:#FCFDFE;padding:10px 18px;border-radius:6px;text-decoration:none'>Review &amp; Approve / Reject</a></p>
 <p style='color:#64748b;font-size:12px'>This link is unique to this payment.</p>
@@ -1281,7 +1301,7 @@ own separate approval request.</p>
         using var conn = GetConnection();
         var info = await conn.QueryFirstOrDefaultAsync<dynamic>(@"
             SELECT p.Amount, p.MemberCountCovered, p.PaymentDate, cd.Purpose, cd.RotaryYear, cd.EmailCC,
-                   cd.EmailSubject, cd.EmailBody, cd.EmailHeaderLogo, d.DistrictNumber, c.ClubName,
+                   cd.EmailSubject, cd.EmailBody, cd.EmailHeaderLogo, cd.NotifyEmail, cd.Currency, d.DistrictNumber, c.ClubName,
                    mm.EmailId AS OfficerEmail, mm.MemberName AS OfficerName
             FROM club_dues_payments p
             JOIN club_dues cd ON cd.pk_club_dues_id = p.fk_club_dues_id
@@ -1290,6 +1310,9 @@ own separate approval request.</p>
             LEFT JOIN member_master_profile mm ON mm.pk_member_master_profile_id = p.PaidByMemberId
             WHERE p.pk_club_dues_payment_id=@Id", new { Id = paymentId });
         if (info == null) return;
+        if (!Convert.ToBoolean(info.NotifyEmail))   // email switched off for this dues (RIZones 2026-11-09)
+            throw new InvalidOperationException("Email is switched off for this dues - receipt email not sent.");
+        var currency = (string?)info.Currency;
         var toEmail = (string?)info.OfficerEmail;
         if (string.IsNullOrWhiteSpace(toEmail)) return;
 
@@ -1308,6 +1331,7 @@ own separate approval request.</p>
             ["memberscovered"] = covered.ToString(),
             ["amountpaid"] = amount.ToString("0.00"),
             ["amount"] = amount.ToString("0.00"),
+            ["currency"] = DuesCurrency.Normalize(currency),
         };
 
         // The admin's configured Receipt subject/body drive the email; {{tokens}} are substituted.
@@ -1324,12 +1348,12 @@ own separate approval request.</p>
             // If the admin's copy referenced no amount/members token, append the standard summary
             // so the receipt always carries the key figures.
             if (!TemplateHasValueToken(cfgBody, "amountpaid", "amount", "memberscovered"))
-                inner += ReceiptSummaryHtml(clubName, covered, amount, year);
+                inner += ReceiptSummaryHtml(clubName, covered, amount, year, currency);
         }
         else
         {
             inner = $"<p>Dear {officerName},</p><p>Your club's dues payment has been received.</p>"
-                  + ReceiptSummaryHtml(clubName, covered, amount, year) + "<p>Thank you.</p>";
+                  + ReceiptSummaryHtml(clubName, covered, amount, year, currency) + "<p>Thank you.</p>";
         }
         var body = $"<div style='font-family:Figtree, Arial,sans-serif'>{EmailLogoHtml((string?)info.EmailHeaderLogo)}{inner}</div>";
 
@@ -1340,11 +1364,11 @@ own separate approval request.</p>
         await conn.ExecuteAsync("UPDATE club_dues_payments SET IsReceiptSent=1 WHERE pk_club_dues_payment_id=@Id", new { Id = paymentId });
     }
 
-    private static string ReceiptSummaryHtml(string clubName, int membersCovered, decimal amount, string year) => $@"
+    private static string ReceiptSummaryHtml(string clubName, int membersCovered, decimal amount, string year, string? currency = null) => $@"
 <table style='border-collapse:collapse'>
 <tr><td style='padding:4px 10px'>Club</td><td style='padding:4px 10px'><b>{clubName}</b></td></tr>
 <tr><td style='padding:4px 10px'>Members covered</td><td style='padding:4px 10px'><b>{membersCovered}</b></td></tr>
-<tr><td style='padding:4px 10px'>Amount</td><td style='padding:4px 10px'><b>{Brand.Money(amount)}</b></td></tr>
+<tr><td style='padding:4px 10px'>Amount</td><td style='padding:4px 10px'><b>{DuesCurrency.Money(amount, currency)}</b></td></tr>
 <tr><td style='padding:4px 10px'>Year</td><td style='padding:4px 10px'>{year}</td></tr>
 </table>";
 
@@ -1354,12 +1378,16 @@ own separate approval request.</p>
         var info = await conn.QueryFirstOrDefaultAsync<dynamic>(@"
             SELECT cd.EmailReminderSubject, cd.EmailReminderBody, cd.ReminderButtonText, cd.Purpose, cd.RotaryYear, cd.EmailHeaderLogo,
                    c.ClubName, cd.fk_district_id, d.DistrictNumber,
-                   cd.IsShowBankInReceipt, cd.OfflineBankName, cd.OfflineAccountNumber, cd.OfflineIfscCode
+                   cd.IsShowBankInReceipt, cd.OfflineBankName, cd.OfflineAccountNumber, cd.OfflineIfscCode,
+                   cd.NotifyEmail, cd.Currency
             FROM club_dues cd
             LEFT JOIN club_master c ON c.pk_club_id=@ClubId
             LEFT JOIN district_master d ON d.pk_district_id=cd.fk_district_id
             WHERE cd.pk_club_dues_id=@DuesId", new { DuesId = duesId, ClubId = clubId });
         if (info == null) return;
+        if (!Convert.ToBoolean(info.NotifyEmail))
+            throw new InvalidOperationException("Email is switched off for this dues.");
+        var currency = (string?)info.Currency;
         var rates = await GetClubRatesAsync(conn, duesId, clubId);
         if (rates.Unpaid <= 0) return;
         // Recipients: club President / Secretary / Treasurer for the campaign year (name + email).
@@ -1397,6 +1425,7 @@ own separate approval request.</p>
                 ["offlineratepermember"] = rates.OfflineRate.ToString("0.##"),
                 ["onlineamountdue"] = rates.OnlineOwed.ToString("0.00"),
                 ["offlineamountdue"] = rates.OfflineOwed.ToString("0.00"),
+                ["currency"] = DuesCurrency.Normalize(currency),
                 ["paylink"] = payUrl,
             };
             var subject = !string.IsNullOrWhiteSpace(cfgSubject)
@@ -1407,12 +1436,12 @@ own separate approval request.</p>
             {
                 inner = ApplyEmailTokens(cfgBody, tokens);
                 if (!TemplateHasValueToken(cfgBody, "amountdue", "amount", "unpaidcount", "membercount", "paidcount", "onlineamountdue", "offlineamountdue"))
-                    inner += ReminderSummaryHtml(rates.Unpaid, rates.OfflineOwed);
+                    inner += ReminderSummaryHtml(rates.Unpaid, rates.OfflineOwed, currency);
             }
             else
             {
                 inner = (string.IsNullOrWhiteSpace(r.Name) ? "" : $"<p>Dear {r.Name},</p>")
-                      + ReminderSummaryHtml(rates.Unpaid, rates.OfflineOwed);
+                      + ReminderSummaryHtml(rates.Unpaid, rates.OfflineOwed, currency);
             }
             // Pay Now button (always shown in the reminder) → the public pay page, not the portal.
             inner += PayButtonHtml(payUrl, (string?)info.ReminderButtonText);
@@ -1425,8 +1454,8 @@ own separate approval request.</p>
         }
     }
 
-    private static string ReminderSummaryHtml(int unpaid, decimal owed) =>
-        $"<p>Your club has <b>{unpaid}</b> unpaid member(s). Amount due: <b>{Brand.Money(owed)}</b>.</p>";
+    private static string ReminderSummaryHtml(int unpaid, decimal owed, string? currency = null) =>
+        $"<p>Your club has <b>{unpaid}</b> unpaid member(s). Amount due: <b>{DuesCurrency.Money(owed, currency)}</b>.</p>";
 
     // Absolute URL for the campaign's Email header logo (stored as a bare filename under
     // Documents/ClubDues). Emails are viewed off-site, so the URL must point at the prod API host.
@@ -1633,7 +1662,7 @@ own separate approval request.</p>
         var dto = await conn.QueryFirstOrDefaultAsync<PublicClubDuesDto>(@"
             SELECT cd.pk_club_dues_id AS Id, cd.Purpose, cd.PurposeDescription, cd.PurposeLogo, cd.BackgroundImage,
                    d.DistrictNumber, cd.ModeOfPayment, cd.OnlineSurchargePercent, @ClubId AS FkClubId, c.ClubName,
-                   cd.OfflineBankName, cd.OfflineAccountNumber, cd.OfflineIfscCode
+                   cd.OfflineBankName, cd.OfflineAccountNumber, cd.OfflineIfscCode, cd.Currency
             FROM club_dues cd
             LEFT JOIN district_master d ON cd.fk_district_id = d.pk_district_id
             LEFT JOIN club_master c ON c.pk_club_id = @ClubId
@@ -1924,7 +1953,8 @@ own separate approval request.</p>
         // camelCase aliases — returned as a Dapper `dynamic`, whose keys serialize verbatim, so they
         // must match the report page's camelCase reads (dues.purpose, dues.districtNumber…).
         var dues = await conn.QueryFirstOrDefaultAsync<dynamic>(@"
-            SELECT cd.pk_club_dues_id AS id, cd.Purpose AS purpose, cd.RotaryYear AS rotaryYear, d.DistrictNumber AS districtNumber
+            SELECT cd.pk_club_dues_id AS id, cd.Purpose AS purpose, cd.RotaryYear AS rotaryYear, d.DistrictNumber AS districtNumber,
+                   cd.Currency AS currency
             FROM club_dues cd LEFT JOIN district_master d ON cd.fk_district_id=d.pk_district_id
             WHERE cd.pk_club_dues_id=@Id AND cd.isdeleted=0 AND " + HierarchyScopeSql.DistrictIdLive("cd.fk_district_id"), new { Id = duesId });
         if (dues == null) return null;

@@ -27,7 +27,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   Wallet, Pencil, FileSpreadsheet, Users, Plus,
-  IndianRupee, BadgeCheck, AlertCircle, TrendingUp,
+  IndianRupee, DollarSign, BadgeCheck, AlertCircle, TrendingUp,
 } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import { useAuth } from "@/contexts/AuthContext";
@@ -55,6 +55,7 @@ interface DuesSetup {
   weblinkUrl?: string;
   googleSheetId?: string;
   createdDate: string;
+  currency?: string; // "INR" | "USD" — display sign only
 }
 
 interface RotaryYearOption {
@@ -219,6 +220,9 @@ export default function ClubAdminMembershipDuesPage() {
   // match: only paidCount, not partials (partial payments contribute to
   // neither this dollar figure nor this member count).
   const collectedByCount = paidCount;
+  // Currency sign (user 2026-11-09): $ only when every dues of the year is set to USD.
+  const isUsd = currentYearDues.length > 0 && currentYearDues.every((d) => (d.currency ?? "INR").toUpperCase() === "USD");
+  const fmtMoney = (n: number | null | undefined) => (isUsd ? fmtInr(n).replace(/^₹/, "$") : fmtInr(n));
   const collectionPct = totalDue > 0 ? Math.round((totalCollected / totalDue) * 100) : 0;
 
   return (
@@ -259,24 +263,24 @@ export default function ClubAdminMembershipDuesPage() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <KpiCard
           title="Total Amount"
-          value={fmtInr(totalDue)}
+          value={fmtMoney(totalDue)}
           subtitle={
             `from ${totalMembers} member${totalMembers === 1 ? "" : "s"}` +
             (honoraryCount > 0 ? ` (excludes ${honoraryCount} honorary)` : "")
           }
-          icon={IndianRupee}
+          icon={isUsd ? DollarSign : IndianRupee}
           color="gold"
         />
         <KpiCard
           title="Collected"
-          value={fmtInr(totalCollected)}
+          value={fmtMoney(totalCollected)}
           subtitle={`from ${collectedByCount} member${collectedByCount === 1 ? "" : "s"}`}
           icon={BadgeCheck}
           color="green"
         />
         <KpiCard
           title="Pending"
-          value={fmtInr(pendingAmount)}
+          value={fmtMoney(pendingAmount)}
           subtitle={`from ${pendingCount} member${pendingCount === 1 ? "" : "s"}`}
           icon={AlertCircle}
           color="red"

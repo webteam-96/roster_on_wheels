@@ -122,6 +122,19 @@ const config: Config = {
   			},
   			page: "#F7F9FC",
   			ink: "#1B2C42",
+  			// Goal Overview tokens (RIZones goal module, 2026-11-20): globals.css --go-*.
+  			go: {
+  				'navy-900': 'var(--go-navy-900)', 'navy-700': 'var(--go-navy-700)', 'navy-50': 'var(--go-navy-50)',
+  				'gold-500': 'var(--go-gold-500)', 'gold-50': 'var(--go-gold-50)',
+  				'text-primary': 'var(--go-text-primary)', 'text-secondary': 'var(--go-text-secondary)', 'text-muted': 'var(--go-text-muted)',
+  				surface: 'var(--go-surface)', sunken: 'var(--go-surface-sunken)',
+  				border: 'var(--go-border)', 'border-strong': 'var(--go-border-strong)',
+  				'success-600': 'var(--go-success-600)', 'success-50': 'var(--go-success-50)',
+  				'warning-600': 'var(--go-warning-600)', 'warning-50': 'var(--go-warning-50)',
+  				'danger-600': 'var(--go-danger-600)', 'danger-50': 'var(--go-danger-50)',
+  				'rag-red': 'var(--go-rag-red)', 'rag-yellow': 'var(--go-rag-yellow)', 'rag-orange': 'var(--go-rag-orange)',
+  				'rag-blue': 'var(--go-rag-blue)', 'rag-purple': 'var(--go-rag-purple)',
+  			},
   			// NOTE: `muted` intentionally NOT redefined here (see header comment)
   		},
   		borderRadius: {
@@ -129,7 +142,8 @@ const config: Config = {
   			'2xl': '20px',
   			lg: 'var(--radius)',
   			md: 'calc(var(--radius) - 2px)',
-  			sm: 'calc(var(--radius) - 4px)'
+  			sm: 'calc(var(--radius) - 4px)',
+  			'go-sm': 'var(--go-radius-sm)', 'go-md': 'var(--go-radius-md)', 'go-lg': 'var(--go-radius-lg)'
   		},
   		fontFamily: {
   			// Figtree body, Bricolage Grotesque display (design.md §2).
@@ -141,6 +155,13 @@ const config: Config = {
   			"display-2": ["clamp(2.4rem,5vw,4rem)", { lineHeight: "1.08" }],
   			heading: ["clamp(1.6rem,3vw,2.25rem)", { lineHeight: "1.15" }],
   			giant: ["clamp(4rem,9vw,7.5rem)", { lineHeight: "1" }],
+  			"go-meta": ["13px", { lineHeight: "18px" }],
+  			"go-label": ["15px", { lineHeight: "20px" }],
+  			"go-body": ["16px", { lineHeight: "24px" }],
+  			"go-value": ["17px", { lineHeight: "24px" }],
+  			"go-title": ["18px", { lineHeight: "26px" }],
+  			"go-heading": ["22px", { lineHeight: "30px" }],
+  			"go-kpi": ["26px", { lineHeight: "32px" }],
   		},
   		boxShadow: {
   			// FRONTEND-RULES #18: no drop shadows as separation. Every shadow utility draws nothing;
@@ -149,6 +170,7 @@ const config: Config = {
   			card: "none", "card-lg": "none", soft: "none", lift: "none", "card-pop": "none",
   			"glow-gold": "none", "glow-gold-sm": "none", "glow-royal": "none",
   			"ring-line": "0 0 0 1px rgba(27,44,66,.12)",
+  			"go-card": "0 0 0 1px rgba(27,44,66,.12)", "go-modal": "0 0 0 1px rgba(27,44,66,.12)",
   		},
   		backgroundImage: {
   			// FRONTEND-RULES #1/#15: no gradients or glow orbs. Old utility names kept so pages still compile.

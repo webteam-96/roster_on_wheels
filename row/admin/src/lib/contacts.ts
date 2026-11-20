@@ -1,11 +1,12 @@
 // Contacts and the prospect pipeline (N3, feature contacts_growth): shared lists, labels and the spreadsheet
 // column mapping used by the contact import. The API validates every value again.
 
-export const CONTACT_TYPES = ["guest", "speaker", "sponsor", "partner", "volunteer"] as const;
+// friend: Friends of the club, a non-member who gets club emails and event invites (never counted as a member)
+export const CONTACT_TYPES = ["guest", "speaker", "sponsor", "partner", "volunteer", "friend"] as const;
 export const PROSPECT_STAGES = ["inquiry", "contacted", "invited", "attended", "proposed", "approved", "inducted"] as const;
 export const CONTACTS_FEATURE = "contacts_growth";
 
-export const label = (s: string) => (s ? s.charAt(0).toUpperCase() + s.slice(1) : s);
+export const label = (s: string) => (s === "friend" ? "Friend of the club" : s ? s.charAt(0).toUpperCase() + s.slice(1) : s);
 
 /** The API's { message } for a failed call, or the fallback. */
 export const errorText = (e: unknown, fallback: string) =>

@@ -15,6 +15,9 @@ public interface IGoalSettingService
     // DistrictPerformanceReportService uses it; never expose it on a user-scoped endpoint.
     Task<DistrictPerformanceGoalData> GetDistrictPerformanceGoalDataAsync(int districtId, int yearId, bool includeWorkbooks);
 
+    // OCV report "Club Goals at a glance" (RIZones 2026-11-12) - READ-ONLY system call, no caller scope.
+    Task<ClubGoalScorecard> GetClubGoalScorecardAsync(int clubId, int yearId);
+
     // Club goal entry — memberId resolves to a club via their Club Admin role,
     // or requestedClubId lets a District Admin (or SuperAdmin) act on a specific club.
     Task<GoalCategoryFormDto?> GetClubGoalFormAsync(int memberId, int categoryId, int? yearId, int? requestedClubId);
@@ -92,4 +95,15 @@ public interface IGoalSettingService
     Task<byte[]?> BuildRotaryClubReportAsync(int memberId, int clubId, int? yearId);
     Task<byte[]?> BuildRotaryAllClubsReportAsync(int memberId, int districtId, int? yearId, bool oversight);
     Task<(int Changed, int Skipped)> SetDistrictClubsLockAsync(int memberId, int districtId, int yearId, IReadOnlyList<int> categoryIds, int clubId, bool locked);
+    // Goal module restored 2026-11-20 (owner): per-category locks, one-to-one and group goal messages.
+    Task<GoalLockStatusDto> SetClubLockAsync(int memberId, int categoryId, int yearId, int clubId, bool locked);
+    Task<GoalLockStatusDto> SetDistrictLockAsync(int memberId, int categoryId, int yearId, int districtId, bool locked);
+    Task<List<GoalDirectContactDto>> GetDirectContactsAsync(int memberId, int zoneId, int districtId, int yearId);
+    Task<bool> HasUnreadDirectAsync(int memberId, int zoneId, int districtId, int yearId);
+    Task<GoalDirectConversationDto> GetDirectConversationAsync(int memberId, int otherMemberId, int zoneId, int districtId, int yearId);
+    Task<GoalCommentDto> PostDirectMessageAsync(int memberId, int otherMemberId, int zoneId, int districtId, int yearId, PostGoalDirectMessageRequest request);
+    Task<List<GoalGroupDto>> GetGoalGroupsAsync(int memberId, int zoneId, int districtId, int yearId);
+    Task<bool> HasUnreadGoalGroupsAsync(int memberId, int zoneId, int districtId, int yearId);
+    Task<GoalGroupConversationDto> GetGoalGroupConversationAsync(int memberId, string key, int zoneId, int districtId, int yearId, bool markRead);
+    Task<GoalCommentDto> PostGoalGroupMessageAsync(int memberId, string key, int zoneId, int districtId, int yearId, string? commentText);
 }

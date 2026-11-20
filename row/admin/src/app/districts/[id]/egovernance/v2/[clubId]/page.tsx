@@ -354,7 +354,8 @@ function DistrictAdminEGovClubDetailInner() {
   const cmrDetailHref = (month: number) => {
     if (!selectedYearId) return "#";
     const self = `/districts/${districtId}/egovernance/v2/${clubId}${incomingReturnTo ? `?returnTo=${encodeURIComponent(incomingReturnTo)}` : ""}`;
-    return `/clubs/${clubId}/club-monthly-report/v2/${selectedYearId}/${month}?returnTo=${encodeURIComponent(self)}`;
+    // The club's NEW CMR report (Design B, PDF + Word), view only for the district (user 2026-11-13).
+    return `/clubs/${clubId}/club-monthly-report/v3/${selectedYearId}/${month}/preview?view=1&returnTo=${encodeURIComponent(self)}`;
   };
 
   /* ---------------------------------------------------------- shell wrap */

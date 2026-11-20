@@ -34,6 +34,32 @@ public sealed class PrivacyRequestDto
     public string? DownloadExpiresAt { get; set; }
 }
 
+/// <param name="Action">"delete", "anonymise" or "keep" (rows kept for counts and totals).</param>
+public sealed record ErasePreviewItem(string Table, string Action, int Rows);
+
+public sealed class ErasePreviewDto
+{
+    public int MemberId { get; set; }
+    public string MemberName { get; set; } = "";
+    public string? ClubName { get; set; }
+    public bool HasActiveMembership { get; set; }
+    public bool AlreadyErased { get; set; }
+    /// <summary>True for a District Admin: the erasure waits for a second admin.</summary>
+    public bool NeedsApproval { get; set; }
+    /// <summary>What the admin must type to confirm.</summary>
+    public string ConfirmText { get; set; } = "";
+    /// <summary>Uploaded photos and documents that will be deleted.</summary>
+    public int Files { get; set; }
+    public List<ErasePreviewItem> Changes { get; set; } = new();
+}
+
+public sealed class FormerMemberDto
+{
+    public int MemberId { get; set; }
+    public string Name { get; set; } = "";
+    public DateTime? LeftOn { get; set; }
+}
+
 /// <summary>
 /// Member privacy (master plan WS7): consent at first sign-in after a policy change, data export, erasure the
 /// Rotary.org sync honours (tombstone), the registry audit and log retention. Behind the flag privacy.enabled.
@@ -131,6 +157,10 @@ public class PrivacyService
         public int? ClubId;
         public List<int> DistrictIds = new();
         public List<string> PhotoPaths = new();
+        /// <summary>Every club the member was ever in, current memberships first.</summary>
+        public List<int> ClubIds = new();
+        public bool HasActiveMembership;
+        public bool AlreadyErased;
     }
 
     private static async Task<MemberFacts> FactsAsync(MySqlConnection conn, int memberId)
@@ -138,10 +168,18 @@ public class PrivacyService
         var p = (IDictionary<string, object?>?)await conn.QueryFirstOrDefaultAsync(
             "SELECT * FROM member_master_profile WHERE pk_member_master_profile_id = @Id", new { Id = memberId })
             ?? throw new PrivacyException(404, "Member not found.");
-        var clubs = (await conn.QueryAsync<(int ClubId, int? DistrictId)>(
-            @"SELECT c.pk_club_id, c.fk_district_id FROM club_members cm JOIN club_master c ON c.pk_club_id = cm.fk_club_id
-              WHERE cm.fk_member_master_profile_id = @Id AND cm.isdeleted = 0 ORDER BY cm.IsActive DESC, cm.pk_club_member_id", new { Id = memberId })).ToList();
-        var familyPhotos = await conn.QueryAsync<string?>("SELECT PhotoPath FROM member_family_details WHERE fk_member_master_profile_id = @Id", new { Id = memberId });
+        // Removed members keep only soft-deleted memberships, so those count too (after the current ones).
+        var clubs = (await conn.QueryAsync<(int ClubId, int? DistrictId, bool Active)>(
+            @"SELECT c.pk_club_id, c.fk_district_id, (IFNULL(cm.IsActive, 0) = 1 AND IFNULL(cm.isdeleted, 0) = 0) AS Active
+              FROM club_members cm JOIN club_master c ON c.pk_club_id = cm.fk_club_id
+              WHERE cm.fk_member_master_profile_id = @Id
+              ORDER BY IFNULL(cm.isdeleted, 0), cm.IsActive DESC, cm.pk_club_member_id", new { Id = memberId })).ToList();
+        var files = new List<string?>();
+        foreach (var q in PersonalDataRegistry.FileQueries)
+        {
+            try { files.AddRange(await conn.QueryAsync<string?>(q, new { Id = memberId })); }
+            catch (MySqlException ex) when (ex.ErrorCode is MySqlErrorCode.NoSuchTable or MySqlErrorCode.BadFieldError) { /* not in this schema */ }
+        }
         string? S(string key) => p.TryGetValue(key, out var v) && v is string s && s.Trim() != "" ? s.Trim() : null;
         return new MemberFacts
         {
@@ -152,9 +190,110 @@ public class PrivacyService
             Mobiles = new[] { S("PrimaryMobileNumber"), S("SecondaryMobileNumber") }.Where(v => v != null).Select(v => v!).ToList(),
             ClubId = clubs.FirstOrDefault().ClubId is var c && c > 0 ? c : null,
             DistrictIds = clubs.Select(x => x.DistrictId ?? 0).Where(d => d > 0).Distinct().ToList(),
-            PhotoPaths = new[] { S("ProfilePhotoPath"), S("FamilyPhotoPath") }.Concat(familyPhotos)
-                .Where(v => !string.IsNullOrWhiteSpace(v)).Select(v => v!.Trim()).ToList(),
+            PhotoPaths = files.Where(v => !string.IsNullOrWhiteSpace(v)).Select(v => v!.Trim()).Distinct().ToList(),
+            ClubIds = clubs.Select(x => x.ClubId).Distinct().ToList(),
+            HasActiveMembership = clubs.Any(x => x.Active),
+            AlreadyErased = S("MemberName") == PersonalDataRegistry.ErasedName && p.TryGetValue("isdeleted", out var del) && Convert.ToInt32(del ?? 0) == 1,
         };
+    }
+
+    public enum EraseMode { Denied, Immediate, NeedsApproval }
+
+    /// <summary>
+    /// Who may erase, and whether it runs at once (owner decision 2026-11-20). SuperAdmin: at once. A real Club Admin
+    /// role on a club the member was in, once the member has no active membership anywhere: at once only when the
+    /// caller holds no District Admin role at all; with one (any district, any scope) it waits for a second admin.
+    /// A District Admin of the member's district: waits for a second admin's approval.
+    /// </summary>
+    /// <param name="districtAdmin">District Admin of one of the member's districts.</param>
+    /// <param name="anyDistrictAdmin">Holds a District Admin role in any district.</param>
+    public static EraseMode DecideEraseMode(bool superAdmin, bool self, bool memberActive, bool directClubAdmin, bool districtAdmin, bool anyDistrictAdmin)
+    {
+        if (superAdmin) return EraseMode.Immediate;
+        if (self) return EraseMode.Denied;
+        var clubPath = directClubAdmin && !memberActive;
+        if (clubPath && !anyDistrictAdmin && !districtAdmin) return EraseMode.Immediate;
+        return clubPath || districtAdmin ? EraseMode.NeedsApproval : EraseMode.Denied;
+    }
+
+    private static async Task<EraseMode> EraseModeAsync(MySqlConnection conn, PrivacyCaller user, MemberFacts m)
+    {
+        if (user.SuperAdmin) return EraseMode.Immediate;
+        if (user.Id <= 0) return EraseMode.Denied;
+        // The caller's own Club Admin role row on one of the member's clubs; scope overrides do not count here.
+        var directClubAdmin = m.ClubIds.Count > 0 && await conn.ExecuteScalarAsync<int>(
+            @"SELECT COUNT(*) FROM member_roles WHERE fk_member_master_profile_id = @User AND fk_role_id = 2
+                AND fk_club_id IN @Clubs AND IsActive = 1 AND isdeleted = 0", new { User = user.Id, Clubs = m.ClubIds }) > 0;
+        var districtAdmin = await IsDistrictAdminAsync(conn, user.Id, m.DistrictIds);
+        var anyDistrictAdmin = districtAdmin || await conn.ExecuteScalarAsync<int>(
+            @"SELECT COUNT(*) FROM member_roles WHERE fk_member_master_profile_id = @User AND fk_role_id = 2
+                AND fk_district_id > 0 AND (fk_club_id IS NULL OR fk_club_id = 0) AND IsActive = 1 AND isdeleted = 0",
+            new { User = user.Id }) > 0;
+        return DecideEraseMode(false, user.Id == m.Id, m.HasActiveMembership, directClubAdmin, districtAdmin, anyDistrictAdmin);
+    }
+
+    private const string EraseDenied =
+        "Only a SuperAdmin, the member's District Admin, or an admin of a club the member has left (with no active membership) can erase this member.";
+
+    /// <summary>What an erasure would change, table by table, before anyone confirms it. Nothing is written.</summary>
+    public async Task<ErasePreviewDto> PreviewErasureAsync(PrivacyCaller user, int memberId)
+    {
+        await using var conn = await OpenAsync();
+        var m = await FactsAsync(conn, memberId);
+        var mode = await EraseModeAsync(conn, user, m);
+        if (mode == EraseMode.Denied) throw new PrivacyException(403, EraseDenied);
+        var schema = await SchemaAsync(conn);
+        var counts = new Dictionary<(string Table, string Action), int>();
+        foreach (var entry in PersonalDataRegistry.Tables)
+        {
+            var where = WhereFor(entry, schema, m);
+            if (where == null) continue;
+            var n = await conn.ExecuteScalarAsync<int>($"SELECT COUNT(*) FROM `{entry.Table}` WHERE {where.Value.Sql}", where.Value.Params);
+            if (n == 0) continue;
+            var action = entry.OnErase switch { EraseAction.DeleteRows => "delete", EraseAction.Anonymise => "anonymise", _ => "keep" };
+            counts[(entry.Table, action)] = counts.GetValueOrDefault((entry.Table, action)) + n;
+        }
+        var club = m.ClubIds.Count > 0
+            ? await conn.ExecuteScalarAsync<string?>("SELECT ClubName FROM club_master WHERE pk_club_id = @Id", new { Id = m.ClubIds[0] })
+            : null;
+        return new ErasePreviewDto
+        {
+            MemberId = m.Id,
+            MemberName = m.Name,
+            ClubName = club,
+            HasActiveMembership = m.HasActiveMembership,
+            AlreadyErased = m.AlreadyErased,
+            NeedsApproval = mode == EraseMode.NeedsApproval,
+            ConfirmText = string.IsNullOrWhiteSpace(m.Name) ? "ERASE" : m.Name,
+            Files = m.PhotoPaths.Count,
+            Changes = counts.Select(kv => new ErasePreviewItem(kv.Key.Table, kv.Key.Action, kv.Value))
+                .OrderBy(c => c.Action == "keep").ThenBy(c => c.Table).ToList(),
+        };
+    }
+
+    /// <summary>People who were in the club and have no active membership anywhere: whom its admins may erase.</summary>
+    public async Task<List<FormerMemberDto>> FormerMembersAsync(PrivacyCaller user, int clubId, string? search)
+    {
+        await using var conn = await OpenAsync();
+        if (!user.SuperAdmin)
+        {
+            try { await ClubAdminAccessHelper.EnsureClubAdminAsync(conn, user.Id, clubId); }
+            catch (UnauthorizedAccessException) { throw new PrivacyException(403, "Only this club's admins can see its former members."); }
+        }
+        var q = (search ?? "").Trim();
+        // shortcut: 200 rows, newest leavers first; the search narrows it for larger clubs.
+        var rows = await conn.QueryAsync<FormerMemberDto>(@"
+            SELECT m.pk_member_master_profile_id AS MemberId, m.MemberName AS Name, MAX(cm.TerminationDate) AS LeftOn
+            FROM club_members cm
+            JOIN member_master_profile m ON m.pk_member_master_profile_id = cm.fk_member_master_profile_id
+            WHERE cm.fk_club_id = @Club AND IFNULL(m.MemberName, '') <> @Erased
+              AND (@Q = '' OR m.MemberName LIKE CONCAT('%', @Q, '%'))
+              AND NOT EXISTS (SELECT 1 FROM club_members a WHERE a.fk_member_master_profile_id = m.pk_member_master_profile_id
+                              AND IFNULL(a.IsActive, 0) = 1 AND IFNULL(a.isdeleted, 0) = 0)
+            GROUP BY m.pk_member_master_profile_id, m.MemberName
+            ORDER BY LeftOn IS NULL, LeftOn DESC, m.MemberName
+            LIMIT 200", new { Club = clubId, Erased = PersonalDataRegistry.ErasedName, Q = q.Length > 100 ? q[..100] : q });
+        return rows.ToList();
     }
 
     private static async Task<bool> IsDistrictAdminAsync(MySqlConnection conn, int userId, IEnumerable<int> districtIds)
@@ -349,16 +488,20 @@ public class PrivacyService
 
     // ── Erasure (WS7-03) ─────────────────────────────────────────────────────────────────────
 
-    public async Task<PrivacyRequestDto> RequestErasureAsync(PrivacyCaller user, int memberId, string reason)
+    public async Task<PrivacyRequestDto> RequestErasureAsync(PrivacyCaller user, int memberId, string reason, string? confirm)
     {
         if (string.IsNullOrWhiteSpace(reason)) throw new PrivacyException(400, "A reason is required.");
         await using var conn = await OpenAsync();
         var m = await FactsAsync(conn, memberId);
-        if (!user.SuperAdmin && !await IsDistrictAdminAsync(conn, user.Id, m.DistrictIds))
-            throw new PrivacyException(403, "Only the member's District Admin or a SuperAdmin can erase a member.");
+        var mode = await EraseModeAsync(conn, user, m);
+        if (mode == EraseMode.Denied) throw new PrivacyException(403, EraseDenied);
+        if (m.AlreadyErased) throw new PrivacyException(400, "This member has already been erased.");
+        if (!PersonalDataRegistry.ConfirmMatches(m.Name, confirm))
+            throw new PrivacyException(400, "Type the member's name exactly to confirm the erasure.");
         // A District Admin's request waits for a second District Admin (or a SuperAdmin) to approve it.
-        var id = await InsertRequestAsync(conn, "erase", m, user.Id, user.SuperAdmin ? "processing" : "awaiting_approval", Trunc(reason.Trim(), 500));
-        if (user.SuperAdmin) await RunErasureAsync(conn, id, m, user.Id, reason.Trim());
+        var immediate = mode == EraseMode.Immediate;
+        var id = await InsertRequestAsync(conn, "erase", m, user.Id, immediate ? "processing" : "awaiting_approval", Trunc(reason.Trim(), 500));
+        if (immediate) await RunErasureAsync(conn, id, m, user.Id, reason.Trim());
         return await LoadRequestAsync(conn, id);
     }
 

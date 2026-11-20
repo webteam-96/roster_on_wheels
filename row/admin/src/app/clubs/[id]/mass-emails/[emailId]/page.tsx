@@ -4,7 +4,11 @@ import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import {
   getMassEmailDetail, sendMassEmail, getMassEmailRecipients, getClub,
+  getMassEmailNonOpeners, resendMassEmailToNonOpeners,
 } from "@/services/api";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { SkeletonRows } from "@/components/row/AppKit";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -52,6 +56,28 @@ export default function MassEmailViewPage() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const canManage = isSuperAdmin || isAdmin;
+  // Resend to members who did not open it (gap #6). null = still counting, -1 = count failed.
+  const [nonOpeners, setNonOpeners] = useState<number | null>(null);
+  const [resendSubject, setResendSubject] = useState("");
+  const [confirmResend, setConfirmResend] = useState(false);
+  const [resending, setResending] = useState(false);
+
+  useEffect(() => {
+    if (!canManage || detail?.status !== "Sent") return;
+    getMassEmailNonOpeners(clubId, emailId).then((r) => setNonOpeners(r.count)).catch(() => setNonOpeners(-1));
+  }, [canManage, detail?.status, clubId, emailId]);
+
+  const handleResend = async () => {
+    setConfirmResend(false);
+    setResending(true);
+    try {
+      const res = await resendMassEmailToNonOpeners(clubId, emailId, resendSubject.trim() || null);
+      router.push(`/clubs/${clubId}/mass-emails/${res.id}`);
+    } catch (err: any) {
+      setErrorMessage(err?.response?.data?.message || "The follow-up could not be sent.");
+    }
+    setResending(false);
+  };
 
   useEffect(() => {
     async function load() {
@@ -211,6 +237,37 @@ export default function MassEmailViewPage() {
 
         <CampaignTrackingCard scope="clubs" ownerId={clubId} emailId={emailId} />
 
+        {canManage && detail.status === "Sent" && (
+          <Card>
+            <CardHeader><CardTitle>Resend to members who did not open it</CardTitle></CardHeader>
+            <CardContent className="space-y-4">
+              {nonOpeners === null ? <SkeletonRows rows={2} /> : nonOpeners < 0 ? (
+                <p className="text-sm text-red-700">The number of members who did not open it could not be counted.</p>
+              ) : nonOpeners === 0 ? (
+                <p className="text-sm text-muted-foreground">
+                  Everyone it was delivered to has opened it, or nobody can be emailed again. Opens are counted only when open tracking is on.
+                </p>
+              ) : (
+                <>
+                  <p className="text-sm">
+                    {nonOpeners} {nonOpeners === 1 ? "member was" : "members were"} delivered this email and did not open it.
+                    Bounced, unsubscribed and blocked addresses are left out.
+                  </p>
+                  <div className="space-y-1.5 max-w-xl">
+                    <Label htmlFor="resend-subject">New subject (optional)</Label>
+                    <Input id="resend-subject" maxLength={500} value={resendSubject} placeholder={detail.subject}
+                      onChange={(e) => setResendSubject(e.target.value)} />
+                  </div>
+                  <Button onClick={() => setConfirmResend(true)} disabled={resending}>
+                    {resending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Send className="h-4 w-4 mr-2" />}
+                    Resend to {nonOpeners}
+                  </Button>
+                </>
+              )}
+            </CardContent>
+          </Card>
+        )}
+
         {/* Recipients Table */}
         <Card>
           <CardHeader><CardTitle>Recipients ({detail.recipients.length})</CardTitle></CardHeader>
@@ -268,6 +325,18 @@ export default function MassEmailViewPage() {
         cancelLabel="Cancel"
         onConfirm={handleRetry}
         onCancel={() => setConfirmRetry(false)}
+      />
+
+      <AlertModal
+        open={confirmResend}
+        icon={Send}
+        iconClassName="text-primary"
+        title="Resend to members who did not open it"
+        description="The same email goes out again as a new mass email to these members only. Credits are used as for any mass email."
+        confirmLabel="Resend"
+        cancelLabel="Cancel"
+        onConfirm={handleResend}
+        onCancel={() => setConfirmResend(false)}
       />
 
       <SuccessAlert open={!!successMessage} title="Success" description={successMessage || ""} onOk={() => setSuccessMessage(null)} />

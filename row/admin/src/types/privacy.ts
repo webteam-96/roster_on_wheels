@@ -21,6 +21,34 @@ export interface PrivacyRequest {
   downloadExpiresAt: string | null;
 }
 
+/** One table an erasure touches: rows deleted, anonymised, or kept for counts and totals. */
+export interface ErasePreviewItem {
+  table: string;
+  action: "delete" | "anonymise" | "keep";
+  rows: number;
+}
+
+export interface ErasePreview {
+  memberId: number;
+  memberName: string;
+  clubName: string | null;
+  hasActiveMembership: boolean;
+  alreadyErased: boolean;
+  /** District Admin erasures wait for a second admin. */
+  needsApproval: boolean;
+  /** What the admin must type to confirm (the member's name). */
+  confirmText: string;
+  /** Uploaded photos and documents that will be deleted. */
+  files: number;
+  changes: ErasePreviewItem[];
+}
+
+export interface FormerMember {
+  memberId: number;
+  name: string;
+  leftOn: string | null;
+}
+
 export interface ConsentStatus {
   required: boolean;
   policyVersion: string;

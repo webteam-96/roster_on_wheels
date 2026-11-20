@@ -179,6 +179,16 @@ const MGMT_CARDS: MgmtCard[] = [
     ring: "hover:ring-sky-200",
     gradient: "bg-sky-50/60",
   },
+  {
+    title: "Website extras",
+    description: "Social media feeds, Google Analytics, search engines and QR codes.",
+    href: (id, qs) => `/clubs/${id}/website-data/extras${qs}`,
+    icon: Share2,
+    accent: "text-emerald-600",
+    bg: "bg-emerald-50",
+    ring: "hover:ring-emerald-200",
+    gradient: "bg-emerald-50/60",
+  },
 ];
 
 // ───────────────────────────────────────────────────────────────────────────

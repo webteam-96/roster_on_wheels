@@ -9,6 +9,7 @@ import '../../../core/utils/validators.dart';
 import '../../providers/auth_provider.dart';
 import '../../widgets/common/custom_button.dart';
 import '../../widgets/common/custom_text_field.dart';
+import '../security/account_security_screens.dart';
 import 'package:rotary_flutter_app/core/brand/brand.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
 import 'package:rotary_flutter_app/core/i18n/live_translator.dart' show TranslationScope;
@@ -37,8 +38,17 @@ class _LoginScreenState extends State<LoginScreen> {
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
     final auth = context.read<AuthProvider>();
-    final success = await auth.login(email: _emailCtrl.text.trim(), password: _passwordCtrl.text);
+    var success = await auth.login(email: _emailCtrl.text.trim(), password: _passwordCtrl.text);
     if (!mounted) return;
+    // Account security: the password was right but the account needs its authenticator code next.
+    if (success && auth.mfaChallenge != null) {
+      success = await Navigator.push<bool>(context, MaterialPageRoute(builder: (_) => const MfaSignInScreen())) ?? false;
+      if (!mounted) return;
+      if (!success) {
+        auth.clearMfaChallenge();
+        return;
+      }
+    }
     if (success && auth.mustChangePassword) {
       await _changeTemporaryPassword(auth);
     } else if (success) {
@@ -46,6 +56,14 @@ class _LoginScreenState extends State<LoginScreen> {
     } else {
       SnackbarUtils.showError(context, auth.error ?? 'Sign-in failed.');
     }
+  }
+
+  Future<void> _signInWithCode() async {
+    final done = await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(builder: (_) => SignInCodeScreen(email: _emailCtrl.text.trim())),
+    );
+    if (done == true && mounted) context.go(RouteNames.welcome);
   }
 
   Future<void> _changeTemporaryPassword(AuthProvider auth) async {
@@ -152,6 +170,13 @@ class _LoginScreenState extends State<LoginScreen> {
                         fullWidth: true,
                         isLoading: auth.isLoading,
                         icon: Icons.login,
+                      ),
+                      const SizedBox(height: 8),
+                      Center(
+                        child: TextButton(
+                          onPressed: _signInWithCode,
+                          child: Text('Email me a sign-in code instead', style: AppTextStyles.link),
+                        ),
                       ),
                     ],
                   ),

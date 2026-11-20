@@ -339,7 +339,8 @@ public class RoleService : IRoleService
                    d.DistrictNumber
             FROM member_roles r
             LEFT JOIN club_master c ON r.fk_club_id = c.pk_club_id
-            LEFT JOIN district_master d ON c.fk_district_id = d.pk_district_id
+            -- A District Admin row has a district but no club (ROW-66).
+            LEFT JOIN district_master d ON d.pk_district_id = COALESCE(r.fk_district_id, c.fk_district_id)
             WHERE r.fk_member_master_profile_id = @MemberId AND r.IsActive = 1
             ORDER BY r.fk_role_id", new { MemberId = memberId });
 
@@ -353,24 +354,15 @@ public class RoleService : IRoleService
         {
             int roleId = (int)r.RoleId;
             string roleName = (string)r.RoleName;
-            string details = "";
+            var district = (string?)r.DistrictNumber ?? "";
+            var club = System.Net.WebUtility.HtmlEncode((string?)r.ClubName ?? "");
+            if (roleId == 2 && club == "") roleName = "District Admin";
 
-            if (roleId == 2) // Club Admin
-            {
-                var district = (string?)r.DistrictNumber ?? "";
-                var club = (string?)r.ClubName ?? "";
-                details = $"District {district} - {club}";
-            }
-            else if (roleId == 3) // SuperAdmin
-            {
-                details = "All Districts & Clubs";
-            }
-            else if (roleId == 6) // AG
-            {
-                var district = (string?)r.DistrictNumber ?? "";
-                var club = (string?)r.ClubName ?? "";
-                details = !string.IsNullOrEmpty(club) ? $"District {district} - {club}" : $"District {district}";
-            }
+            // Every role but SuperAdmin shows where it applies; Member rows were blank before (ROW-66).
+            string details = roleId == 3 ? "All Districts & Clubs"
+                : club != "" ? $"District {district} - {club}"
+                : district != "" ? $"District {district}"
+                : "";
 
             html += $"<tr><td style='padding: 8px 12px; border: 1px solid #D5DEE8; font-weight: bold;'>{roleName}</td>"
                   + $"<td style='padding: 8px 12px; border: 1px solid #D5DEE8;'>{details}</td></tr>";

@@ -103,6 +103,9 @@ export default function ClubMembershipDuesPage() {
             <h2 className="text-2xl font-bold tracking-tight text-primary">{clubName ? `${clubName} - ` : ""}Club Dues</h2>
             <p className="text-muted-foreground text-base">View club dues for this club</p>
           </div>
+          <Button variant="outline" asChild>
+            <Link href={`/clubs/${clubId}/invoices`}>Invoices and statements</Link>
+          </Button>
           <select
             value={yearFilter}
             onChange={(e) => setYearFilter(e.target.value)}

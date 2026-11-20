@@ -22,6 +22,7 @@ export default function VolunteerSheetsPage() {
   const fmt = useFormat();
   const [sheets, setSheets] = useState<VolunteerSheetListItem[] | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [archived, setArchived] = useState(false);
 
   useEffect(() => {
     if (!clubId) return;
@@ -32,6 +33,8 @@ export default function VolunteerSheetsPage() {
   }, [clubId]);
 
   if (!clubId) return <p className="p-6 text-sm text-muted-foreground">Choose a club first.</p>;
+  const shown = sheets?.filter((s) => !!s.archivedAt === archived) ?? null;
+  const archivedCount = sheets?.filter((s) => s.archivedAt).length ?? 0;
 
   return (
     <div className="space-y-6 p-6">
@@ -48,10 +51,21 @@ export default function VolunteerSheetsPage() {
         </Button>
       </div>
 
-      {!sheets ? (
+      {sheets && (archivedCount > 0 || archived) && (
+        <div className="flex gap-2" role="group" aria-label="Which sheets">
+          <Button size="sm" variant={archived ? "outline" : "default"} aria-pressed={!archived} onClick={() => setArchived(false)}>Current</Button>
+          <Button size="sm" variant={archived ? "default" : "outline"} aria-pressed={archived} onClick={() => setArchived(true)}>
+            Archived ({archivedCount})
+          </Button>
+        </div>
+      )}
+
+      {!shown ? (
         <div aria-busy="true"><TableSkeleton rows={4} /></div>
-      ) : sheets.length === 0 ? (
-        <Card><CardContent className="p-5 text-sm text-muted-foreground">The club has no sign-up sheets yet.</CardContent></Card>
+      ) : shown.length === 0 ? (
+        <Card><CardContent className="p-5 text-sm text-muted-foreground">
+          {archived ? "No archived sheets." : sheets?.length ? "Every sheet is archived. Start a new one or copy an archived sheet." : "The club has no sign-up sheets yet."}
+        </CardContent></Card>
       ) : (
         <Card>
           <CardContent className="overflow-x-auto p-0">
@@ -67,7 +81,7 @@ export default function VolunteerSheetsPage() {
                 </tr>
               </thead>
               <tbody>
-                {sheets.map((s) => (
+                {shown.map((s) => (
                   <tr key={s.id} className="border-b last:border-0">
                     <td className="p-3">
                       <Link href={`/club-admin-dashboard/volunteers/${s.id}`} className="font-medium text-primary hover:underline">{s.title}</Link>
@@ -76,7 +90,7 @@ export default function VolunteerSheetsPage() {
                     <td className="p-3">{s.firstStart ? fmt.dateTime(s.firstStart) : ""}</td>
                     <td className="p-3 text-right tabular-nums">{s.filled} of {s.capacity}</td>
                     <td className="p-3 text-right tabular-nums">{fmt.number(s.hours)}</td>
-                    <td className="p-3">{s.status === "open" ? (s.isPublic ? "Open, public link on" : "Open, members only") : "Closed"}</td>
+                    <td className="p-3">{s.archivedAt ? "Archived" : s.status === "open" ? (s.isPublic ? "Open, public link on" : "Open, members only") : "Closed"}</td>
                   </tr>
                 ))}
               </tbody>

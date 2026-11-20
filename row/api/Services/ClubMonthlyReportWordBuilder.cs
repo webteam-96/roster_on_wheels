@@ -16,7 +16,7 @@ namespace RotaryApi.Services;
 //                 Agenda / Minutes-of-Meeting download links, and its photos embedded inline.
 // Photo bytes are loaded by the controller (CmrWordPhotoDto.ImageBytes). `mediaBase` is the
 // absolute base URL used to build the Agenda/MoM hyperlinks.
-public static class ClubMonthlyReportWordBuilder
+public static partial class ClubMonthlyReportWordBuilder
 {
     private const string BrandBlueHex = "003DA5";
     private const string LabelHex = "44546A";
@@ -261,7 +261,7 @@ public static class ClubMonthlyReportWordBuilder
             {
                 var relId = main.AddHyperlinkRelationship(new Uri(url), true).Id;
                 para.Append(new Hyperlink(
-                    new Run(new RunProperties(new Color { Val = LinkHex }, new Underline { Val = UnderlineValues.Single }, new FontSize { Val = "19" }),
+                    new Run(new RunProperties(new Color { Val = LinkHex }, new FontSize { Val = "19" }, new Underline { Val = UnderlineValues.Single }),
                         new Text(label) { Space = SpaceProcessingModeValues.Preserve }))
                 { Id = relId });
             }
@@ -318,7 +318,7 @@ public static class ClubMonthlyReportWordBuilder
             ) { DistanceFromTop = 0U, DistanceFromBottom = 0U, DistanceFromLeft = 0U, DistanceFromRight = 0U });
 
         body.Append(new Paragraph(
-            new ParagraphProperties(new Justification { Val = JustificationValues.Center }, new SpacingBetweenLines { Before = "120", After = "40" }),
+            new ParagraphProperties(new SpacingBetweenLines { Before = "120", After = "40" }, new Justification { Val = JustificationValues.Center }),
             new Run(drawing)));
 
         if (!string.IsNullOrWhiteSpace(ph.Description))
@@ -462,7 +462,7 @@ public static class ClubMonthlyReportWordBuilder
             new Text(text) { Space = SpaceProcessingModeValues.Preserve }));
 
     private static Paragraph BodyPara(string text) => new(
-        new ParagraphProperties(new Justification { Val = JustificationValues.Both }, new SpacingBetweenLines { After = "80" }),
+        new ParagraphProperties(new SpacingBetweenLines { After = "80" }, new Justification { Val = JustificationValues.Both }),
         new Run(new RunProperties(new FontSize { Val = "21" }), new Text(text) { Space = SpaceProcessingModeValues.Preserve }));
 
     private static Paragraph PlainText(string text) => new(
@@ -473,7 +473,7 @@ public static class ClubMonthlyReportWordBuilder
             new Text(text) { Space = SpaceProcessingModeValues.Preserve }));
 
     private static Paragraph Caption(string text) => new(
-        new ParagraphProperties(new Justification { Val = JustificationValues.Center }, new SpacingBetweenLines { After = "140" }),
+        new ParagraphProperties(new SpacingBetweenLines { After = "140" }, new Justification { Val = JustificationValues.Center }),
         new Run(new RunProperties(new Italic(), new Color { Val = MutedHex }, new FontSize { Val = "18" }),
             new Text(text) { Space = SpaceProcessingModeValues.Preserve }));
 
@@ -483,7 +483,7 @@ public static class ClubMonthlyReportWordBuilder
         if (bold) rp.Append(new Bold());
         if (!string.IsNullOrEmpty(colorHex)) rp.Append(new Color { Val = colorHex });
         return new Paragraph(
-            new ParagraphProperties(new Justification { Val = JustificationValues.Center }, new SpacingBetweenLines { After = "60" }),
+            new ParagraphProperties(new SpacingBetweenLines { After = "60" }, new Justification { Val = JustificationValues.Center }),
             new Run(rp, new Text(text) { Space = SpaceProcessingModeValues.Preserve }));
     }
 

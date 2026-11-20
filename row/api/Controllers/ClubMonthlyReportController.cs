@@ -84,6 +84,35 @@ public class ClubMonthlyReportController : ControllerBase
 
     // Detailed Word (.docx): Summary + Meetings + each service avenue rendered in full,
     // with every project's photos embedded. Members stay at the analytics/summary level.
+    // NEW CMR Word (user 2026-11-13): the Design B layout. The browser sends the Foundation + Membership tables it
+    // shows (so Word = screen = PDF); everything else is the saved report. The GET below (old layout) is kept.
+    [HttpPost("word-v2/{yearId:int}/{month:int}")]
+    public async Task<IActionResult> DownloadWordV2(int clubId, int yearId, int month, [FromBody] CmrWordV2Request? body)
+    {
+        if (!await RotaryApi.Services.KillSwitchHelper.IsClubDrillReachableAsync(_connectionString, clubId)) return StatusCode(403, new { message = "This club, its district, or its zone is inactive. Reactivate it first to access this data." });
+        try
+        {
+            await _service.CreateOrGetReportAsync(clubId, yearId, month, GetUserId());
+            var summary = await _service.GetPreviewAsync(clubId, yearId, month, GetUserId());
+            var items = await _service.GetWordProjectsForMonthAsync(clubId, yearId, month);
+            foreach (var it in items)
+                foreach (var ph in it.Photos)
+                    await CmrMediaLoader.LoadAsync(_env, _mediaRedirectBase, ph);
+            var mediaBase = !string.IsNullOrWhiteSpace(_mediaRedirectBase)
+                ? _mediaRedirectBase!
+                : $"{Request.Scheme}://{Request.Host}{Request.PathBase}";
+
+            var bytes = ClubMonthlyReportWordBuilder.BuildReportV2(summary, items, mediaBase, body ?? new CmrWordV2Request(), body?.CalendarYear);
+            var fileName = $"{summary.ClubName}_Monthly_Report_{summary.MonthName}_{summary.YearLabel}.docx"
+                .Replace(" ", "_").Replace("/", "-");
+            return File(bytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", fileName);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { message = $"Failed to generate Word report: {ex.Message}", detail = ex.InnerException?.Message });
+        }
+    }
+
     [HttpGet("word/{yearId:int}/{month:int}")]
     public async Task<IActionResult> DownloadWord(int clubId, int yearId, int month)
     {
@@ -162,13 +191,30 @@ public class ClubMonthlyReportController : ControllerBase
     }
 
     [HttpPost("upload-to-district/{reportId:int}")]
-    public async Task<IActionResult> UploadToDistrict(int clubId, int reportId)
+    public async Task<IActionResult> UploadToDistrict(int clubId, int reportId,
+        [FromBody(EmptyBodyBehavior = Microsoft.AspNetCore.Mvc.ModelBinding.EmptyBodyBehavior.Allow)] CmrUploadToDistrictDto? body = null)
     {
         var denied = await _guard.ClubRecordYearAsync(
             User, clubId, "club_monthly_reports", "pk_report_id", reportId);
         if (denied != null) return denied;
 
         await _service.UploadToDistrictAsync(reportId, GetUserId());
+
+        // New CMR: its Design B PDF (made in the browser) is the one emailed. Anything that is not a real PDF
+        // is ignored and the server builds its own, as before.
+        byte[]? clientPdf = null;
+        if (!string.IsNullOrWhiteSpace(body?.PdfBase64))
+        {
+            try
+            {
+                var b64 = body!.PdfBase64!;
+                var comma = b64.IndexOf(',');
+                if (b64.StartsWith("data:", StringComparison.OrdinalIgnoreCase) && comma > 0) b64 = b64[(comma + 1)..];
+                var bytes = Convert.FromBase64String(b64);
+                if (bytes.Length > 5 && bytes[0] == '%' && bytes[1] == 'P' && bytes[2] == 'D' && bytes[3] == 'F') clientPdf = bytes;
+            }
+            catch (FormatException) { /* not base64 - use the server PDF */ }
+        }
 
         // Fire-and-forget: build the detailed PDF and email it to DG / AG / President / Secretary.
         // Runs in the background (own DI scope) so the submit returns immediately and survives the
@@ -178,7 +224,7 @@ public class ClubMonthlyReportController : ControllerBase
         {
             using var scope = _scopeFactory.CreateScope();
             var mailer = scope.ServiceProvider.GetRequiredService<ICmrSubmissionMailer>();
-            await mailer.SendSubmissionEmailsAsync(clubId, reportId, userId);
+            await mailer.SendSubmissionEmailsAsync(clubId, reportId, userId, clientPdf);
         });
 
         return Ok(new { message = "Report uploaded to district. The report PDF is being emailed to the DG, AG, President and Secretary." });

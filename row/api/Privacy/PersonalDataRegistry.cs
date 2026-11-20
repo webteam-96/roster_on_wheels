@@ -80,8 +80,15 @@ public static class PersonalDataRegistry
         Anon("event_payment_members", "fk_member_profile_id", new()
         {
             ["MemberName"] = ErasedName, ["Mobile"] = null, ["Email"] = null, ["PartnerName"] = null,
-            ["PartnerMobile"] = null, ["PartnerEmail"] = null, ["PartnerGender"] = null,
+            ["PartnerMobile"] = null, ["PartnerEmail"] = null, ["PartnerGender"] = null, ["Attachment"] = null,
+            ["OfflineRemark"] = null, ["Remark1"] = null, ["Remark2"] = null, ["Remark3"] = null,
         }),
+        // Dues: amounts and paid flags stay for the club's totals; the uploaded proof and free-text note go.
+        Anon("membership_dues_payments", "fk_member_profile_id", new() { ["Attachment"] = null, ["OfflineRemark"] = null }),
+        Keep("membership_dues_member_fees", "fk_member_profile_id"),
+        Keep("club_dues_members", "fk_member_profile_id"),
+        Keep("member_admin_years"),
+        Del("whatsapp_log", "fk_member_profile_id"),
         new("event_payment_otp", MatchBy.Email, "Email", EraseAction.DeleteRows, null, false),
         new("event_payment_otp", MatchBy.Mobile, "Mobile", EraseAction.DeleteRows, null, false),
         Anon("potential_members", "fk_member_master_profile_id_as_referrer", new() { ["fk_member_master_profile_id_as_referrer"] = null }),
@@ -155,6 +162,11 @@ public static class PersonalDataRegistry
         Anon("volunteer_signups", "fk_member_id", new() { ["fk_member_id"] = null, ["name"] = ErasedName, ["email"] = null }),
         Anon("volunteer_signups", "email", new() { ["name"] = ErasedName, ["email"] = null }, MatchBy.Email),
         Del("meeting_duties", "fk_member_id"),
+
+        // ── Surveys (Services/SurveyService.cs): the survey stays with the club; the member's answers and bell rows go ──
+        Keep("surveys", "created_by"),
+        Del("survey_responses", "fk_member_id"),
+        Del("survey_notifications", "fk_member_id"),
         Anon("club_speakers", "email", new()
         {
             ["name"] = ErasedName, ["email"] = null, ["phone"] = null, ["bio"] = null, ["photo_path"] = null, ["show_on_website"] = 0,
@@ -163,7 +175,40 @@ public static class PersonalDataRegistry
         // ── Planning mode (Services/PlanningService.cs): the member's elect roles and queued RI officer pushes go ──
         Del("planning_roles", "fk_member_id"),
         Del("ri_outbound_queue", "fk_member_id"),
+
+        // Last: triggers (trg_mcl_*) copy old and new profile, address and family values into this log on every
+        // update, including the erasure's own updates above, so it is cleared after them.
+        Del("member_change_log"),
     };
+
+    /// <summary>
+    /// Uploaded files tied to a member, deleted after erasure (paths as stored; relative ones resolved under the web
+    /// root). Each query takes @Id and returns paths; a table or column missing from this schema is skipped.
+    /// </summary>
+    public static readonly IReadOnlyList<string> FileQueries = new[]
+    {
+        "SELECT ProfilePhotoPath FROM member_master_profile WHERE pk_member_master_profile_id = @Id",
+        "SELECT FamilyPhotoPath FROM member_master_profile WHERE pk_member_master_profile_id = @Id",
+        "SELECT PhotoPath FROM member_family_details WHERE fk_member_master_profile_id = @Id",
+        "SELECT profile_photo FROM district_committee_member WHERE fk_member_id = @Id",
+        "SELECT profile_photo FROM district_committee_group_member WHERE fk_member_id = @Id",
+        "SELECT profile_photo FROM district_committee_sub_group_member WHERE fk_member_id = @Id",
+        "SELECT profile_photo FROM district_governors WHERE fk_member_id = @Id",
+        "SELECT Attachment FROM membership_dues_payments WHERE fk_member_profile_id = @Id",
+        // Event payment proofs keep only the file name; the folder is the link's club (EventPaymentLinkService).
+        @"SELECT CASE WHEN pm.Attachment LIKE '/%' THEN pm.Attachment
+                      ELSE CONCAT('/Documents/OlineEvnetPaymentlink', l.fk_club_id, '/', pm.Attachment) END
+          FROM event_payment_members pm JOIN event_payment_links l ON l.pk_id = pm.fk_payment_link_id
+          WHERE pm.fk_member_profile_id = @Id AND pm.Attachment IS NOT NULL AND pm.Attachment <> ''",
+    };
+
+    /// <summary>The typed confirmation: the member's current name, ignoring case and extra spaces ("ERASE" when nameless).</summary>
+    public static bool ConfirmMatches(string memberName, string? typed)
+    {
+        static string Norm(string v) => Regex.Replace(v.Trim(), @"\s+", " ");
+        var expected = string.IsNullOrWhiteSpace(memberName) ? "ERASE" : Norm(memberName);
+        return typed != null && string.Equals(Norm(typed), expected, StringComparison.OrdinalIgnoreCase);
+    }
 
     /// <summary>Column names that look personal (WS7-01 audit).</summary>
     public static readonly Regex PersonalColumn = new(@"email|mobile|phone|birth|anniv|blood|address|photo|(^|_)ip(_|$)|ipaddress|device|fcm|password|spouse|gender|recipient|member_?name", RegexOptions.IgnoreCase);

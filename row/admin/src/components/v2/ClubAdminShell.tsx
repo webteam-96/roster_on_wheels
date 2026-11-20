@@ -83,6 +83,9 @@ export interface ClubAdminShellProps {
    *  /club-admin-dashboard/*. Omit on regular dashboard pages to fall back to
    *  the original pathname-prefix rule. */
   activeNavHref?: string;
+  /** Hide the global year selector - for pages that show ONE record whose year is fixed (e.g. one
+   *  dues' member list): a year picked there would change nothing (user 2026-11-10). */
+  hideYearSelector?: boolean;
   children: ReactNode;
 }
 
@@ -99,6 +102,7 @@ export default function ClubAdminShell({
   pageTitle,
   pageSubtitle,
   activeNavHref,
+  hideYearSelector,
   children,
 }: ClubAdminShellProps) {
   return (
@@ -107,6 +111,7 @@ export default function ClubAdminShell({
         pageTitle={pageTitle}
         pageSubtitle={pageSubtitle}
         activeNavHref={activeNavHref}
+        hideYearSelector={hideYearSelector}
       >
         {children}
       </ClubAdminShellInner>
@@ -118,6 +123,7 @@ function ClubAdminShellInner({
   pageTitle,
   pageSubtitle,
   activeNavHref,
+  hideYearSelector,
   children,
 }: ClubAdminShellProps) {
   const pathname = usePathname();
@@ -336,9 +342,11 @@ function ClubAdminShellInner({
             {/* Global year selector — same component the /club-admin-dashboard
                 topbar uses, so a year change here writes ?yearId= to the URL
                 and every listing on this V2 page refetches through it. */}
-            <Suspense fallback={null}>
-              <DashboardYearSelector />
-            </Suspense>
+            {!hideYearSelector && (
+              <Suspense fallback={null}>
+                <DashboardYearSelector />
+              </Suspense>
+            )}
             {/* Wave 9C: current-club indicator / quick switcher. Shown only when
                 the user actually has a club-scoped Admin assignment (clubAdminClubs).
                 SuperAdmins drilling into a club fall back to selectedClub via

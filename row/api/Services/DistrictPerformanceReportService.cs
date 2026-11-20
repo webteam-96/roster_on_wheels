@@ -1549,7 +1549,7 @@ public class DistrictPerformanceReportService : IDistrictPerformanceReportServic
             {
                 ws.Cell(row, 1).Value = label.Trim();
                 if (label.StartsWith(" ")) ws.Cell(row, 1).Style.Alignment.Indent = 2;
-                ws.Cell(row, 2).Value = value;
+                if (ExcelFigure.IsIdLike(label) || !ExcelFigure.TrySet(ws.Cell(row, 2), value)) ws.Cell(row, 2).Value = value;
                 ws.Cell(row, 2).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
                 ws.Cell(row, 2).Style.Font.Bold = true;
                 LinkCell(ws.Cell(row, 2), url);
@@ -1596,7 +1596,7 @@ public class DistrictPerformanceReportService : IDistrictPerformanceReportServic
                         for (int c = 0; c < cols && c < tr.Count; c++)
                         {
                             var dc = ws.Cell(row, c + 1);
-                            dc.Value = tr[c];
+                            if (c == 0 || ExcelFigure.IsIdLike(s.TableHeaders[c]) || !ExcelFigure.TrySet(dc, tr[c])) dc.Value = tr[c];
                             if (c >= 1) dc.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
                             StyleFigureCell(dc, s.TableHeaders[c], tr[c], c);
                         }
@@ -1997,7 +1997,7 @@ public class DistrictPerformanceReportService : IDistrictPerformanceReportServic
                 }
                 var k = ws.Cell(row, 1); k.Value = h.Label;
                 k.Style.Font.Bold = true; k.Style.Fill.BackgroundColor = labelBg; k.Style.Font.FontColor = XLColor.FromHtml("#334155");
-                var v = ws.Cell(row, 2); v.Value = h.Value;
+                var v = ws.Cell(row, 2); if (ExcelFigure.IsIdLike(h.Label) || !ExcelFigure.TrySet(v, h.Value)) v.Value = h.Value;
                 v.Style.Font.Bold = true; v.Style.Font.FontSize = 13;
                 v.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
                 v.Style.Font.FontColor = h.Percent.HasValue ? XLColor.FromHtml(RagColor(h.Percent.Value)) : navy;
@@ -2064,7 +2064,7 @@ public class DistrictPerformanceReportService : IDistrictPerformanceReportServic
             {
                 var k = ws.Cell(row, 1); k.Value = it.Label;
                 k.Style.Font.Bold = true; k.Style.Font.FontColor = XLColor.FromHtml("#334155"); k.Style.Fill.BackgroundColor = labelBg;
-                var v = ws.Cell(row, 2); v.Value = it.Value;
+                var v = ws.Cell(row, 2); if (ExcelFigure.IsIdLike(it.Label) || !ExcelFigure.TrySet(v, it.Value)) v.Value = it.Value;
                 v.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
                 LinkCell(v, it.Url);
                 var rng = ws.Range(row, 1, row, 2);
@@ -2093,7 +2093,7 @@ public class DistrictPerformanceReportService : IDistrictPerformanceReportServic
                     for (int c = 0; c < tcols && c < tr.Count; c++)
                     {
                         var dc = ws.Cell(row, c + 1);
-                        dc.Value = tr[c];
+                        if (c == 0 || ExcelFigure.IsIdLike(s.TableHeaders[c]) || !ExcelFigure.TrySet(dc, tr[c])) dc.Value = tr[c];
                         dc.Style.Alignment.WrapText = true;
                         dc.Style.Alignment.Vertical = XLAlignmentVerticalValues.Top;
                         bool rankTable = s.TableHeaders[0] == "#";

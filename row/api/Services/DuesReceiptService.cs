@@ -50,7 +50,7 @@ public class DuesReceiptService : IDuesReceiptService
                    m.MemberName,
                    mf.MemberName AS FeeMemberName,
                    md.pk_membership_dues_id AS DuesId, md.Purpose,
-                   md.Fees1Text, md.Fees2Text, md.Fees3Text, md.OnlineSurchargePercent,
+                   md.Fees1Text, md.Fees2Text, md.Fees3Text, md.OnlineSurchargePercent, md.Currency,
                    d.DistrictNumber, c.ClubName
             FROM membership_dues_payments p
             LEFT JOIN membership_dues_member_fees f ON p.fk_member_fee_id = f.pk_id
@@ -119,6 +119,7 @@ public class DuesReceiptService : IDuesReceiptService
         if (string.IsNullOrWhiteSpace(memberName)) memberName = "Rotarian";
 
         int memberFeeId = Convert.ToInt32(p.fk_member_fee_id ?? 0);
+        var currency = DuesCurrency.Normalize((string?)p.Currency);
 
         // ── Fee lines ────────────────────────────────────────────────────
         // Exactly the e-mail's query: EVERY paid payment under this member's
@@ -156,7 +157,7 @@ public class DuesReceiptService : IDuesReceiptService
                 decimal g = Math.Round(total - baseEquivalent, 2, MidpointRounding.AwayFromZero);
                 netAmount = (int)Math.Round(total - g, 0, MidpointRounding.AwayFromZero);
                 gateway = g;
-                gatewayText = Brand.Money(g);
+                gatewayText = DuesCurrency.Money(g, currency);
             }
             else
             {
@@ -177,7 +178,7 @@ public class DuesReceiptService : IDuesReceiptService
                 FeeType = ft,
                 FeeTypeLabel = FeeTypeLabel(ft),
                 Amount = netAmount,
-                AmountText = Brand.Money(netAmount, decimals: 0),
+                AmountText = Brand.Money(netAmount, DuesCurrency.Normalize(currency), 0),
                 IsOnline = ppIsOnline,
                 Mode = ppIsOnline ? "Online" : "Offline",
                 GatewayCharges = gateway,
@@ -207,6 +208,7 @@ public class DuesReceiptService : IDuesReceiptService
             ApproverRemark = (string?)p.ApprovalRemark,
 
             Fees = lines,
+            Currency = currency,
             TotalAmount = totalAmount,
             TotalGatewayCharges = totalGateway,
             GrandTotal = totalAmount + totalGateway,

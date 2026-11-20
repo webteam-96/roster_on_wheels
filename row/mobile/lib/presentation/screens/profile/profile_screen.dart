@@ -13,6 +13,7 @@ import '../../widgets/common/empty_state_widget.dart';
 import '../../widgets/common/full_screen_image_view.dart';
 import '../../widgets/common/loading_widget.dart';
 import 'profile_edit_screen.dart';
+import 'club_profile_fields_section.dart';
 import 'package:rotary_flutter_app/core/theme/app_fonts.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
 
@@ -114,6 +115,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 ],
                               ),
                               const SizedBox(height: AppSpacing.lg),
+
+                              // Club profile fields (member flexibility): answers to the clubs' own questions.
+                              ClubProfileFieldsSection(
+                                memberId: context.read<AuthProvider>().memberId,
+                                clubIds: context.read<AuthProvider>().memberClubIds,
+                              ),
 
                               ..._buildBusinessCard(_member!),
 

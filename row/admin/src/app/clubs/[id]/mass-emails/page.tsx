@@ -151,10 +151,15 @@ export default function MassEmailsPage() {
             </div>
           </div>
           {canManage && (
-            <Button onClick={() => router.push(`/clubs/${clubId}/mass-emails/compose`)}>
-              <MailPlus className="h-4 w-4 mr-2" />
-              Compose Email
-            </Button>
+            <div className="flex flex-wrap gap-2">
+              <Button variant="outline" onClick={() => router.push(`/clubs/${clubId}/bulletins`)}>
+                Bulletins
+              </Button>
+              <Button onClick={() => router.push(`/clubs/${clubId}/mass-emails/compose`)}>
+                <MailPlus className="h-4 w-4 mr-2" />
+                Compose Email
+              </Button>
+            </div>
           )}
         </div>
 

@@ -36,6 +36,8 @@ import DistrictFoundationTabBar from "@/components/dashboard/DistrictFoundationT
 import RotaryLoader from "@/components/RotaryLoader";
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
+import ImageCropDialog from "@/components/ImageCropDialog";
+import { useImageCropQueue } from "@/hooks/useImageCropQueue";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -139,6 +141,8 @@ export default function DistrictProjectsV2AddPage() {
 
   const [photos, setPhotos] = useState<{ path: string; preview: string; description: string }[]>([]);
   const [uploading, setUploading] = useState(false);
+  // Same crop step as the club project forms (ROW-67): nothing uploads until the photo is confirmed.
+  const photoCrop = useImageCropQueue();
   const photoInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -194,20 +198,26 @@ export default function DistrictProjectsV2AddPage() {
 
   const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file || photos.length >= 5) return;
-    setUploading(true);
-    try {
-      // Add mode: strict=true — enforce dimension/size rules for newly-added photos.
-      const res = await uploadDistrictProjectPhoto(districtId, file, true);
-      setPhotos((prev) => [...prev, { path: res.path, preview: URL.createObjectURL(file), description: "" }]);
-    } catch (err: unknown) {
-      const e2 = err as { message?: string; response?: { data?: { message?: string } } };
-      setErrorMessage(e2?.message || e2?.response?.data?.message || "Failed to upload photo.");
-    } finally {
-      setUploading(false);
-      e.target.value = "";
-    }
+    e.target.value = "";
+    if (!file || photos.length + photoCrop.pending >= 5) return;
+    const queueErrors = await photoCrop.enqueue([file]);
+    if (queueErrors.length > 0) setErrorMessage(queueErrors[0]);
   };
+
+  const handleCropSave = (blob: Blob) =>
+    photoCrop.commit(async () => {
+      const file = new File([blob], `project-photo-${Date.now()}.png`, { type: "image/png" });
+      setUploading(true);
+      try {
+        const res = await uploadDistrictProjectPhoto(districtId, file, true);
+        setPhotos((prev) => [...prev, { path: res.path, preview: URL.createObjectURL(blob), description: "" }]);
+      } catch (err: unknown) {
+        const e2 = err as { message?: string; response?: { data?: { message?: string } } };
+        setErrorMessage(e2?.message || e2?.response?.data?.message || "Failed to upload photo.");
+      } finally {
+        setUploading(false);
+      }
+    });
 
   const removePhoto = (idx: number) => setPhotos((prev) => prev.filter((_, i) => i !== idx));
 
@@ -647,6 +657,17 @@ export default function DistrictProjectsV2AddPage() {
               setSuccessMessage(null);
               navigateAfterSave();
             }}
+          />
+          <ImageCropDialog
+            open={photoCrop.open}
+            imageSrc={photoCrop.current?.dataUrl ?? null}
+            aspect={16 / 9}
+            allowOrientation
+            maxOutputWidth={1600}
+            title="Crop Photo"
+            saving={photoCrop.saving}
+            onCancel={photoCrop.skip}
+            onSave={handleCropSave}
           />
           <ErrorAlert
             open={!!errorMessage}

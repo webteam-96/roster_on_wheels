@@ -12,6 +12,7 @@ import { useSearchParams, useRouter } from "next/navigation";
 const ReactQuill = dynamic(() => import("react-quill-new"), { ssr: false });
 import { createMembershipDues, updateMembershipDues, getMembershipDuesDetail, getClubMembers, getDistricts, getClubs, getCashfreeKycList, getRotaryYears, getMembershipDuesMembers, recordMembershipDuesOffline, approveMembershipDuesPayment, sendMembershipDuesReceipt, sendMembershipDuesReminder, bulkMembershipDuesReminderEmail, getMembershipDuesList, updateMembershipDuesMemberFee, allocateMembershipDuesFees } from "@/services/api";
 import { useAuth } from "@/contexts/AuthContext";
+import { getCurrencySymbol, duesDefaultsForDistrict, currencyOptions } from "@/lib/currency";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -36,8 +37,9 @@ import { Badge } from "@/components/ui/badge";
 import RotaryLoader from "@/components/RotaryLoader";
 import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import { getDuesDraft, saveDuesDraft, deleteDuesDraft, newDuesDraftId, formatDraftTime } from "@/lib/duesDraft";
 
-import { appLocale, currencySymbol } from "@/lib/appFormat";
+import { appLocale, currencySymbol, defaultCurrency } from "@/lib/appFormat";
 import { ListPageSkeleton } from "@/components/row/AppKit";
 import Pagination from "@/components/Pagination";
 interface KycItem {
@@ -51,7 +53,9 @@ interface KycItem {
   accountNumber?: string;
   ifsc?: string;
 }
-interface DistrictItem { id: number; districtNumber: string; }
+interface DistrictItem { id: number; districtNumber: string; country?: string | null; zoneName?: string | null; defaultCurrency?: string | null; }
+// Zone 0 (test / own districts e.g. 5656) has no Rotary.org-synced clubs but is always offered (user 2026-11-16).
+const isZone0 = (zoneName?: string | null) => (zoneName || "").trim().toLowerCase() === "zone 0";
 interface ClubItem { id: number; clubName: string; }
 interface VendorSplit {
   fkFeeType: number; // 1=Annual, 2=Semi1, 3=Semi2
@@ -164,11 +168,16 @@ export default function CreateEditMembershipDuesPageWrapper() {
 }
 
 function CreateEditMembershipDuesPage() {
-  const { isSuperAdmin, isAdmin } = useAuth();
+  const { isSuperAdmin, isAdmin, user } = useAuth();
   const searchParams = useSearchParams();
   const router = useRouter();
   const editId = searchParams.get("editId");
   const isEdit = !!editId;
+  // Browser draft (new dues only): ?draft=<id> continues a saved draft; otherwise a new id is made.
+  const draftParam = searchParams.get("draft");
+  const draftIdRef = useRef<string>(draftParam || newDuesDraftId());
+  const [draftSavedAt, setDraftSavedAt] = useState<string | null>(null);
+  const draftDistrictRef = useRef<string | null>(null); // restored district: keep its saved channels/currency
 
   // Wizard state
   const [currentStep, setCurrentStep] = useState(0);
@@ -203,6 +212,9 @@ function CreateEditMembershipDuesPage() {
 
   // Section 2: Payment Settings
   const [modeOfPayment, setModeOfPayment] = useState("3"); // 1=Online, 2=Offline, 3=Both
+  // Offline only = money is collected by hand, nothing is split (user 2026-11-13): no Vendor Splits step, no vendor /
+  // balance columns, no vendors saved. Online / Both keep the split and it stays mandatory.
+  const isOfflineOnly = modeOfPayment === "2";
   const [sendBankDetails, setSendBankDetails] = useState(false);
   const [bankName, setBankName] = useState("");
   const [accountNumber, setAccountNumber] = useState("");
@@ -224,6 +236,9 @@ function CreateEditMembershipDuesPage() {
   const [feeType2Amount, setFeeType2Amount] = useState("");
   const [feeType3Amount, setFeeType3Amount] = useState("");
   const [onlineSurchargePercent, setOnlineSurchargePercent] = useState("2.95");
+  // Vendor splits use the surcharge only when online payment is possible: Offline-only
+  // dues split the BASE amount (user 2026-11-09) - offline members never pay the surcharge.
+  const splitSurchargePercent = modeOfPayment === "2" ? 0 : (Number(onlineSurchargePercent) || 0);
 
   // Section 5: Vendor Splits
   const [amountType, setAmountType] = useState(SPLITS_ON ? "" : "1"); // 1=Amount, 2=Percentage
@@ -255,6 +270,21 @@ function CreateEditMembershipDuesPage() {
   // Section 8: Google Sheet Email
   const [googleSheetEmail, setGoogleSheetEmail] = useState("support@example.org");
 
+  // Section 9 (Super Admin only, RIZones 2026-11-09, ROW form): whether this dues emails members, and the
+  // currency its amounts show in. ROW has no WhatsApp. savedNotify = what the server has now, so the
+  // reminder/receipt buttons below match what it will actually allow.
+  const [notifyEmail, setNotifyEmail] = useState(true);
+  const [currency, setCurrency] = useState<string>(defaultCurrency());
+  // New dues: pre-fill from the district's default currency.
+  useEffect(() => {
+    if (isEdit || !selectedDistrictId || draftDistrictRef.current === selectedDistrictId) return;
+    const d = duesDefaultsForDistrict(allDistricts.find((x) => String(x.id) === selectedDistrictId)?.defaultCurrency);
+    setNotifyEmail(d.notifyEmail); setCurrency(d.currency);
+  }, [isEdit, selectedDistrictId, allDistricts]);
+  const [savedNotify, setSavedNotify] = useState({ email: true });
+  const cur = getCurrencySymbol(currency);
+  const curSuffix = "";
+
   // Edit mode: track original values for freeze/lock rules
   const [originalFees, setOriginalFees] = useState({ isFees1: false, isFees2: false, isFees3: false });
   const [originalMode, setOriginalMode] = useState("");
@@ -263,6 +293,8 @@ function CreateEditMembershipDuesPage() {
   const [rotaryYears, setRotaryYears] = useState<string[]>([]);
   const isAdminEdit = isAdmin && !isSuperAdmin && isEdit;
   const activeStepLabels = isAdminEdit ? ADMIN_STEP_LABELS : STEP_LABELS;
+  // Offline only: the Vendor Splits step (index 2 of the full wizard) is skipped and not shown.
+  const skipsVendorStep = !isAdminEdit && (!SPLITS_ON || isOfflineOnly);
   const totalSteps = activeStepLabels.length;
 
   // Step 4: Club Members Preview
@@ -314,6 +346,74 @@ function CreateEditMembershipDuesPage() {
   const [memberVendorOverrides, setMemberVendorOverrides] = useState<Record<string, number>>({});
   const [memberCategoryOverrides, setMemberCategoryOverrides] = useState<Record<string, string>>({});
 
+  // -- Browser draft: what is kept on every Next, and put back when the draft is continued --
+  const draftSnapshot = () => ({
+    selectedDistrictId, selectedClubId, rotaryYear, purpose, description,
+    modeOfPayment, sendBankDetails, bankName, accountNumber, ifscCode,
+    feeType1Enabled, feeType1Label, feeType2Enabled, feeType2Label, feeType3Enabled, feeType3Label,
+    defaultCategoryType, feeType1Amount, feeType2Amount, feeType3Amount, onlineSurchargePercent,
+    amountType, defaultPercentage, vendorSplits,
+    memberFeeOverrides, memberVendorOverrides, memberCategoryOverrides,
+    emailCc, emailSubject, emailBody, emailReminderSubject, emailReminderBody, googleSheetEmail,
+    notifyEmail, currency,
+  });
+  const saveDraft = (step: number) => {
+    if (isEdit || !user?.memberId) return;
+    const club = districtClubs.find((c) => String(c.id) === selectedClubId)?.clubName;
+    const dist = allDistricts.find((d) => String(d.id) === selectedDistrictId)?.districtNumber;
+    const title = [club || (dist ? `District ${dist}` : "New Club Dues"), rotaryYear, purpose].filter(Boolean).join(" · ");
+    saveDuesDraft({ id: draftIdRef.current, kind: "club", memberId: user.memberId, step, title, data: draftSnapshot() });
+    setDraftSavedAt(new Date().toISOString());
+    if (draftParam !== draftIdRef.current) router.replace(`/settings/membership-dues/create?draft=${draftIdRef.current}`, { scroll: false });
+  };
+  const restoredRef = useRef(false);
+  useEffect(() => {
+    if (isEdit || restoredRef.current || !draftParam || !user?.memberId) return;
+    restoredRef.current = true;
+    const dr = getDuesDraft(draftParam, user.memberId);
+    if (!dr) return;
+    const d = dr.data || {};
+    draftDistrictRef.current = d.selectedDistrictId || null;
+    if (d.selectedDistrictId != null) setSelectedDistrictId(d.selectedDistrictId);
+    if (d.selectedClubId != null) setSelectedClubId(d.selectedClubId);
+    if (d.rotaryYear) setRotaryYear(d.rotaryYear);
+    if (d.purpose != null) setPurpose(d.purpose);
+    if (d.description != null) setDescription(d.description);
+    if (d.modeOfPayment) setModeOfPayment(d.modeOfPayment);
+    if (d.sendBankDetails != null) setSendBankDetails(d.sendBankDetails);
+    if (d.bankName != null) setBankName(d.bankName);
+    if (d.accountNumber != null) setAccountNumber(d.accountNumber);
+    if (d.ifscCode != null) setIfscCode(d.ifscCode);
+    if (d.feeType1Enabled != null) setFeeType1Enabled(d.feeType1Enabled);
+    if (d.feeType1Label != null) setFeeType1Label(d.feeType1Label);
+    if (d.feeType2Enabled != null) setFeeType2Enabled(d.feeType2Enabled);
+    if (d.feeType2Label != null) setFeeType2Label(d.feeType2Label);
+    if (d.feeType3Enabled != null) setFeeType3Enabled(d.feeType3Enabled);
+    if (d.feeType3Label != null) setFeeType3Label(d.feeType3Label);
+    if (d.defaultCategoryType != null) setDefaultCategoryType(d.defaultCategoryType);
+    if (d.feeType1Amount != null) setFeeType1Amount(d.feeType1Amount);
+    if (d.feeType2Amount != null) setFeeType2Amount(d.feeType2Amount);
+    if (d.feeType3Amount != null) setFeeType3Amount(d.feeType3Amount);
+    if (d.onlineSurchargePercent != null) setOnlineSurchargePercent(d.onlineSurchargePercent);
+    if (d.amountType != null) setAmountType(d.amountType);
+    if (d.defaultPercentage != null) setDefaultPercentage(d.defaultPercentage);
+    if (Array.isArray(d.vendorSplits)) setVendorSplits(d.vendorSplits);
+    if (d.memberFeeOverrides) setMemberFeeOverrides(d.memberFeeOverrides);
+    if (d.memberVendorOverrides) setMemberVendorOverrides(d.memberVendorOverrides);
+    if (d.memberCategoryOverrides) setMemberCategoryOverrides(d.memberCategoryOverrides);
+    if (d.emailCc != null) setEmailCc(d.emailCc);
+    if (d.emailSubject != null) setEmailSubject(d.emailSubject);
+    if (d.emailBody != null) setEmailBody(d.emailBody);
+    if (d.emailReminderSubject != null) setEmailReminderSubject(d.emailReminderSubject);
+    if (d.emailReminderBody != null) setEmailReminderBody(d.emailReminderBody);
+    if (d.googleSheetEmail != null) setGoogleSheetEmail(d.googleSheetEmail);
+    if (d.notifyEmail != null) setNotifyEmail(d.notifyEmail);
+    if (typeof d.currency === "string" && d.currency) setCurrency(d.currency);
+    setCurrentStep(Number(dr.step) || 0);
+    setDraftSavedAt(dr.savedAt);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isEdit, draftParam, user?.memberId]);
+
   // Get enabled fee types for iteration
   const enabledFeeTypes = [
     ...(feeType1Enabled ? [{ type: 1, label: feeType1Label }] : []),
@@ -325,8 +425,16 @@ function CreateEditMembershipDuesPage() {
   useEffect(() => {
     (async () => {
       try {
-        const result = await getDistricts(1, 1000);
-        const items = result.items.map((d: any) => ({ id: d.id, districtNumber: d.districtNumber }));
+        // New dues: only districts that have Rotary.org-synced clubs, plus Zone 0 (user 2026-11-16).
+        // Edit keeps the full list so an existing dues always shows its own district.
+        const [result, synced] = await Promise.all([
+          getDistricts(1, 1000),
+          isEdit ? Promise.resolve(null) : getDistricts(1, 1000, undefined, undefined, undefined, undefined, undefined, true),
+        ]);
+        const syncedIds = new Set((synced?.items ?? []).map((d: any) => d.id));
+        const items = result.items
+          .filter((d: any) => isEdit || syncedIds.has(d.id) || isZone0(d.zoneName))
+          .map((d: any) => ({ id: d.id, districtNumber: d.districtNumber, zoneName: d.zoneName, defaultCurrency: d.defaultCurrency }));
         items.sort((a: DistrictItem, b: DistrictItem) =>
           (a.districtNumber || "").localeCompare(b.districtNumber || "", undefined, { numeric: true, sensitivity: "base" })
         );
@@ -339,7 +447,7 @@ function CreateEditMembershipDuesPage() {
         setRotaryYears(years.map((y: any) => y.yearLabel));
         if (!isEdit) {
           const current = years.find((y: any) => y.isCurrent);
-          if (current) setRotaryYear(current.yearLabel);
+          if (current) setRotaryYear((prev) => prev || current.yearLabel); // keep a restored draft's year
         }
       } catch {}
     })();
@@ -351,14 +459,20 @@ function CreateEditMembershipDuesPage() {
     (async () => {
       try {
         const result = await getClubs(1, 1000, undefined, Number(selectedDistrictId));
-        const items = result.items.map((c: any) => ({ id: c.id, clubName: c.clubName }));
+        // New dues: only Rotary.org-synced clubs, every club in a Zone 0 district (user 2026-11-16);
+        // edit keeps every club so the saved one shows.
+        const zone0 = isZone0(allDistricts.find((d) => String(d.id) === selectedDistrictId)?.zoneName);
+        const items = result.items
+          .filter((c: any) => isEdit || zone0 || c.isSyncedFromRotaryOrg)
+          .map((c: any) => ({ id: c.id, clubName: c.clubName }));
         items.sort((a: ClubItem, b: ClubItem) =>
           (a.clubName || "").localeCompare(b.clubName || "", undefined, { sensitivity: "base" })
         );
         setDistrictClubs(items);
       } catch { setDistrictClubs([]); }
     })();
-  }, [selectedDistrictId]);
+    // allDistricts: a restored draft can pick its district before the district list (zone) has loaded
+  }, [selectedDistrictId, allDistricts]);
 
   // Fetch KYC vendors on mount
   useEffect(() => {
@@ -452,6 +566,9 @@ function CreateEditMembershipDuesPage() {
         setEmailReminderSubject(detail.emailReminderSubject || "Payment Reminder");
         setEmailReminderBody(detail.emailReminderBody || "");
         setGoogleSheetEmail(detail.googleSheetEmail || "support@example.org");
+        setNotifyEmail(detail.notifyEmail ?? true);
+        setCurrency(detail.currency || defaultCurrency());
+        setSavedNotify({ email: detail.notifyEmail ?? true });
       } catch { setErrorMessage("Failed to load Club Dues details."); }
       finally { setLoading(false); }
     })();
@@ -557,22 +674,22 @@ function CreateEditMembershipDuesPage() {
       }
       case 2: // Vendor Splits — validated against the ONLINE (surcharge-inflated) total
       {
-        if (!SPLITS_ON) return null;
+        if (!SPLITS_ON || isOfflineOnly) return null;   // splits off, or offline only: no split
         if (!amountType) return "Please select an Amount Type.";
         for (const ft of enabledFeeTypes) {
           const assigned = vendorSplits.filter(s => s.fkFeeType === ft.type).reduce((sum, s) => sum + s.splitAmount, 0);
           const feeAmount = ft.type === 1 ? Number(feeType1Amount || 0) : ft.type === 2 ? Number(feeType2Amount || 0) : Number(feeType3Amount || 0);
-          const onlineTotal = feeAmount * (1 + Number(onlineSurchargePercent || 0) / 100);
+          const onlineTotal = feeAmount * (1 + splitSurchargePercent / 100);
           const total = amountType === "1" ? onlineTotal : 100;
           if (Math.abs(assigned - total) > 0.01) {
-            return `${ft.label}: Vendor split ${amountType === "1" ? `${currencySymbol()}${assigned.toFixed(2)}` : `${assigned.toFixed(2)}%`} does not match ${amountType === "1" ? `${currencySymbol()}${total.toFixed(2)}` : `${total.toFixed(2)}%`}. Please adjust vendor amounts.`;
+            return `${ft.label}: Vendor split ${amountType === "1" ? `${cur}${assigned.toFixed(2)}` : `${assigned.toFixed(2)}%`} does not match ${amountType === "1" ? `${cur}${total.toFixed(2)}` : `${total.toFixed(2)}%`}. Please adjust vendor amounts.`;
           }
         }
         return null;
       }
       case 3: // Member List - validate balances
       {
-        if (!SPLITS_ON) return null;
+        if (!SPLITS_ON || isOfflineOnly) return null;   // no vendor split, so no balance to match
         if (isEdit) {
           const balErr = validateEditMemberBalances();
           if (balErr) return balErr;
@@ -627,9 +744,11 @@ function CreateEditMembershipDuesPage() {
     fd.append("defaultSemi1Amount", feeType2Amount || "0");
     fd.append("defaultSemi2Amount", feeType3Amount || "0");
     fd.append("onlineSurchargePercent", onlineSurchargePercent || "0");
-    fd.append("amountType", amountType);
+    // Offline only skips the Vendor Splits step, so no Amount Type is picked; the API needs a number
+    // (blank failed with "AmountType: The value '' is invalid"). 1 = Amount, same default the API uses.
+    fd.append("amountType", amountType || "1");
     fd.append("defaultPercentage", defaultPercentage || "0");
-    fd.append("vendorsJson", JSON.stringify(vendorSplits.map(s => ({
+    fd.append("vendorsJson", JSON.stringify((isOfflineOnly ? [] : vendorSplits).map(s => ({
       fkFeeType: s.fkFeeType,
       fkKycId: s.fkKycId,
       vendorId: s.vendorId,
@@ -650,6 +769,11 @@ function CreateEditMembershipDuesPage() {
     fd.append("emailReminderSubject", emailReminderSubject);
     fd.append("emailReminderBody", emailReminderBody);
     fd.append("googleSheetEmail", googleSheetEmail);
+    // Server ignores these unless the caller is Super Admin; only send them from SA.
+    if (isSuperAdmin) {
+      fd.append("NotifyEmail", String(notifyEmail));
+      fd.append("Currency", currency);
+    }
     // Per-member overrides (category, fees, vendor costs)
     const overrides: any[] = [];
     clubMembers.forEach(m => {
@@ -754,15 +878,20 @@ function CreateEditMembershipDuesPage() {
       setSaving(false);
     }
 
-    if (currentStep < totalSteps - 1) setCurrentStep(!SPLITS_ON && !isAdminEdit && currentStep === SPLIT_STEP - 1 ? SPLIT_STEP + 1 : currentStep + 1);
+    if (currentStep < totalSteps - 1) {
+      const next = skipsVendorStep && currentStep === 1 ? 3 : currentStep + 1;
+      setCurrentStep(next);
+      saveDraft(next);
+    }
   };
 
   const handleBack = () => {
-    if (currentStep > 0) setCurrentStep(!SPLITS_ON && !isAdminEdit && currentStep === SPLIT_STEP + 1 ? SPLIT_STEP - 1 : currentStep - 1);
+    if (currentStep > 0) setCurrentStep(skipsVendorStep && currentStep === 3 ? 1 : currentStep - 1);
   };
 
   // Submit (final save from step 5)
   const handleSubmit = async () => {
+    saveDraft(currentStep); // keep everything typed even if the final save fails
     setSaving(true);
     try {
       const fd = buildFormData();
@@ -773,17 +902,25 @@ function CreateEditMembershipDuesPage() {
         setTimeout(() => router.push(redirectUrl), 1500);
       } else {
         const result = await createMembershipDues(fd);
+        deleteDuesDraft(draftIdRef.current);
         setSuccessMessage("Club Dues created successfully!");
         setTimeout(() => router.push(redirectUrl), 1500);
       }
     } catch (err: any) {
-      const data = err?.response?.data;
-      setErrorMessage(data?.message || (typeof data === "string" ? data : "Failed to save Club Dues."));
+      // The API can answer with a plain string, { message }, or a .NET validation object
+      // ({ title, errors: { field: [msg] } }). Always turn it into text - rendering the object crashed the page.
+      const d = err?.response?.data;
+      const fieldErrors = d && typeof d === "object" && d.errors && typeof d.errors === "object"
+        ? Object.entries(d.errors).map(([k, v]) => `${k.replace(/^\$\.?/, "")}: ${Array.isArray(v) ? v.join(" ") : String(v)}`).join("\n")
+        : "";
+      setErrorMessage(
+        (typeof d === "string" && d) || d?.message || (fieldErrors ? `${d?.title || "Some fields are not valid."}\n${fieldErrors}` : "") || d?.title || "Failed to save Club Dues.",
+      );
     } finally { setSaving(false); }
   };
 
   // Vendor split handlers
-  const addedVendorIds = Array.from(new Set(vendorSplits.map(s => s.fkKycId)));
+  const addedVendorIds = isOfflineOnly ? [] : Array.from(new Set(vendorSplits.map(s => s.fkKycId)));
   const getAccountLabel = (kycId: number) => `A/C${addedVendorIds.indexOf(kycId) + 1}`;
 
   // Platform/gateway rate applied to the DEFAULT settlement account. Read from the
@@ -830,7 +967,7 @@ function CreateEditMembershipDuesPage() {
 <p><strong>District Number</strong> : ****</p>
 <p><strong>Club Name</strong> : **** **** **** ****</p>
 <p><strong>Purpose of the payment</strong> : ****</p>
-<p><strong>Amount received</strong> : ****/-</p>
+<p><strong>Amount received</strong> : ${cur}****${curSuffix}</p>
 <p><strong>Date and time</strong> : ****</p>
 <p><strong>Method of payment</strong> : ****</p>
 <p><strong>Transaction ID</strong> : ****</p>`;
@@ -839,7 +976,7 @@ function CreateEditMembershipDuesPage() {
 <p><strong>District Number</strong> : ****</p>
 <p><strong>Club Name</strong> : **** **** **** ****</p>
 <p><strong>Purpose of the payment</strong> : ****</p>
-<p><strong>Outstanding amount</strong> : ****/-</p>
+<p><strong>Outstanding amount</strong> : ${cur}****${curSuffix}</p>
 <p><strong>Status</strong> : ****</p>
 <p><strong>Click on the link</strong> : ****</p>`;
 
@@ -874,7 +1011,7 @@ function CreateEditMembershipDuesPage() {
   const computeDefaultVendorSplits = (forAmountType: string): VendorSplit[] => {
     const defaultVendor = kycVendors.find(k => isDefaultSettlementVendorId(k.vendorId));
     if (!defaultVendor) return [];
-    const defaultPer = Number(onlineSurchargePercent) || 0;
+    const defaultPer = splitSurchargePercent;
     return enabledFeeTypes.map(ft => {
       let amount = defaultPer;
       if (forAmountType === "1") {
@@ -1036,6 +1173,31 @@ function CreateEditMembershipDuesPage() {
             )}
           </>
         )}
+
+        {/* Send via + Currency — Super Admin only (server ignores these for others) */}
+        {isSuperAdmin && (
+          <>
+            <hr className="my-2" />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label>Email to members</Label>
+                <label className="flex items-center gap-2 cursor-pointer mt-2">
+                  <Checkbox checked={notifyEmail} onCheckedChange={(c) => setNotifyEmail(!!c)} />
+                  <span>Send reminders, receipts and notices by email</span>
+                </label>
+              </div>
+              <div>
+                <Label>Currency</Label>
+                <Select value={currency} onValueChange={setCurrency}>
+                  <SelectTrigger className="mt-2"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {currencyOptions().map((o) => <SelectItem key={o.code} value={o.code}>{o.label}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </>
+        )}
       </CardContent>
     </Card>
   );
@@ -1106,7 +1268,7 @@ function CreateEditMembershipDuesPage() {
               return (
                 <div key={ft.type} className="grid grid-cols-1 md:grid-cols-2 gap-4 p-3 border rounded-lg bg-muted/30">
                   <div>
-                    <Label>Default {ft.label} Amount *</Label>
+                    <Label>Default {ft.label} Amount ({cur}) *</Label>
                     <Input type="number" step="0.01" value={amountVal} onChange={e => setAmount(e.target.value)} placeholder="Enter amount" />
                   </div>
                   {diverged && (
@@ -1159,7 +1321,7 @@ function CreateEditMembershipDuesPage() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Fee Type</TableHead>
-                    <TableHead>Total ({currencySymbol()})</TableHead>
+                    <TableHead>Total ({cur})</TableHead>
                     {addedVendorIds.map(kycId => {
                       const vendor = kycVendors.find(k => k.id === kycId);
                       const vendorName = vendor?.name || vendorSplits.find(s => s.fkKycId === kycId)?.vendorName || "";
@@ -1186,7 +1348,7 @@ function CreateEditMembershipDuesPage() {
                     // default vendor's own auto-added split already carries the surcharge
                     // share, so it's fully visible/adjustable here, not a hidden add-on
                     // at payment time.
-                    const onlineTotal = feeAmount * (1 + Number(onlineSurchargePercent || 0) / 100);
+                    const onlineTotal = feeAmount * (1 + splitSurchargePercent / 100);
                     const assigned = vendorSplits.filter(s => s.fkFeeType === ft.type).reduce((sum, s) => sum + s.splitAmount, 0);
                     const matchTotal = amountType === "1" ? onlineTotal : 100;
                     const balance = Number((matchTotal - assigned).toFixed(2));
@@ -1194,22 +1356,22 @@ function CreateEditMembershipDuesPage() {
                       <TableRow key={ft.type}>
                         <TableCell className="font-medium">{ft.label}</TableCell>
                         <TableCell>
-                          {currencySymbol()}{onlineTotal.toFixed(2)}
-                          <span className="block text-[10px] text-muted-foreground">Base: {currencySymbol()}{feeAmount.toFixed(2)}</span>
+                          {cur}{onlineTotal.toFixed(2)}
+                          <span className="block text-[10px] text-muted-foreground">Base: {cur}{feeAmount.toFixed(2)}</span>
                         </TableCell>
                         {addedVendorIds.map(kycId => {
                           const split = vendorSplits.find(s => s.fkFeeType === ft.type && s.fkKycId === kycId);
                           return (
                             <TableCell key={kycId}>
-                              {split ? (amountType === "1" ? `${currencySymbol()}${split.splitAmount.toFixed(2)}` : `${split.splitAmount.toFixed(2)}%`) : "-"}
+                              {split ? (amountType === "1" ? `${cur}${split.splitAmount.toFixed(2)}` : `${split.splitAmount.toFixed(2)}%`) : "-"}
                             </TableCell>
                           );
                         })}
                         <TableCell className="text-green-600 font-medium">
-                          {amountType === "1" ? `${currencySymbol()}${assigned.toFixed(2)}` : `${assigned.toFixed(2)}%`}
+                          {amountType === "1" ? `${cur}${assigned.toFixed(2)}` : `${assigned.toFixed(2)}%`}
                         </TableCell>
                         <TableCell className={`font-medium ${balance > 0 ? "text-red-600" : "text-green-600"}`}>
-                          {amountType === "1" ? `${currencySymbol()}${balance.toFixed(2)}` : `${balance.toFixed(2)}%`}
+                          {amountType === "1" ? `${cur}${balance.toFixed(2)}` : `${balance.toFixed(2)}%`}
                         </TableCell>
                       </TableRow>
                     );
@@ -1362,7 +1524,7 @@ function CreateEditMembershipDuesPage() {
                         <div key={idx} className={`text-sm px-3 py-1.5 rounded flex items-center gap-2 ${isDefaultVendor ? "bg-muted/70" : "bg-muted"}`}>
                           <span className="text-muted-foreground whitespace-nowrap">{ft?.label || `Fee Type ${split.fkFeeType}`}:</span>
                           {isDefaultVendor ? (
-                            <span className="font-medium">{amountType === "1" ? `${currencySymbol()}${split.splitAmount.toFixed(2)}` : `${split.splitAmount}%`}</span>
+                            <span className="font-medium">{amountType === "1" ? `${cur}${split.splitAmount.toFixed(2)}` : `${split.splitAmount}%`}</span>
                           ) : (
                             <Input
                               type="number" step="0.01" className="w-24 h-7 text-xs"
@@ -1411,7 +1573,7 @@ function CreateEditMembershipDuesPage() {
     const defaultKycIds = addedVendorIds.filter(kycId => isDefaultKyc(kycId));
     if (defaultKycIds.length === 0) return;
     const defaultAmount = computeDefaultAccountAmount(
-      val, Number(onlineSurchargePercent), defaultAccountRatePercent,
+      val, splitSurchargePercent, defaultAccountRatePercent,
     );
     setMemberVendorOverrides(prev => {
       const next = { ...prev };
@@ -1513,7 +1675,8 @@ function CreateEditMembershipDuesPage() {
     return mode;
   };
 
-  const getEditVendors = (m: any, ft: number): any[] => ft === 1 ? (m.annualVendors ?? []) : ft === 2 ? (m.semi1Vendors ?? []) : (m.semi2Vendors ?? []);
+  const getEditVendors = (m: any, ft: number): any[] => isOfflineOnly ? []
+    : ft === 1 ? (m.annualVendors ?? []) : ft === 2 ? (m.semi1Vendors ?? []) : (m.semi2Vendors ?? []);
 
   /**
    * Is this edit-mode vendor row the locked default settlement account?
@@ -1554,7 +1717,7 @@ function CreateEditMembershipDuesPage() {
     // does not apply, so only the fee itself is recorded there.
     const recomputeDefault = amountType !== "2";
     const defaultAmount = computeDefaultAccountAmount(
-      Number(raw), Number(onlineSurchargePercent), defaultAccountRatePercent,
+      Number(raw), splitSurchargePercent, defaultAccountRatePercent,
     );
     const vendors = getEditVendors(m, feeType);
     setEditMemberChanges(prev => {
@@ -1798,7 +1961,7 @@ function CreateEditMembershipDuesPage() {
                       {addedVendorIds.map(kycId => (
                         <TableHead key={kycId} className="text-primary-foreground" title={kycVendors.find(k => k.id === kycId)?.name || ""}>{getAccountLabel(kycId)}</TableHead>
                       ))}
-                      <TableHead>Balance</TableHead>
+                      {!isOfflineOnly && <TableHead>Balance</TableHead>}
                       <TableHead>Status</TableHead>
                       <TableHead>Payment Info</TableHead>
                     </React.Fragment>
@@ -1855,10 +2018,10 @@ function CreateEditMembershipDuesPage() {
                                 </TableCell>
                               );
                             })}
-                            {/* Balance */}
-                            <TableCell className={Math.abs(balance) > 0.01 ? "text-red-600 font-medium" : "text-green-600 font-medium"}>
-                              {amountType === "1" ? `${currencySymbol()}${balance.toFixed(2)}` : `${balance.toFixed(2)}%`}
-                            </TableCell>
+                            {/* Balance (no split for offline only) */}
+                            {!isOfflineOnly && <TableCell className={Math.abs(balance) > 0.01 ? "text-red-600 font-medium" : "text-green-600 font-medium"}>
+                              {amountType === "1" ? `${cur}${balance.toFixed(2)}` : `${balance.toFixed(2)}%`}
+                            </TableCell>}
                             {/* Status */}
                             <TableCell>
                               <Badge variant="destructive" className="text-xs">Unpaid</Badge>
@@ -1905,7 +2068,7 @@ function CreateEditMembershipDuesPage() {
                 <SearchIcon className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input placeholder="Search member..." value={editMemberSearch} onChange={e => { setEditMemberSearch(e.target.value); setEditMemberPage(1); }} className="pl-9 w-48 h-9" />
               </div>
-              <Button size="sm" variant="outline" onClick={() => setBulkRemarkDialogOpen(true)}><Mail className="h-4 w-4 mr-1" />Bulk Email</Button>
+              {savedNotify.email && <Button size="sm" variant="outline" onClick={() => setBulkRemarkDialogOpen(true)}><Mail className="h-4 w-4 mr-1" />Bulk Email</Button>}
             </div>
           </div>
         </CardHeader>
@@ -1929,7 +2092,7 @@ function CreateEditMembershipDuesPage() {
                           {(getEditVendors(paged[0] || {}, ft.type)).map((v: any, i: number) => (
                             <TableHead key={i} className="text-primary-foreground" title={v.vendorName || v.VendorName || ""}>{v.accountLabel || `A/C${i+1}`}</TableHead>
                           ))}
-                          <TableHead>Balance</TableHead>
+                          {!isOfflineOnly && <TableHead>Balance</TableHead>}
                           <TableHead>Status</TableHead>
                           <TableHead>Payment</TableHead>
                         </React.Fragment>
@@ -1979,7 +2142,7 @@ function CreateEditMembershipDuesPage() {
                               <React.Fragment key={ft.type}>
                                 <TableCell className={frozen ? "bg-gray-100" : ""}>
                                   {frozen ? (
-                                    <span className="text-sm font-medium text-green-600">{currencySymbol()}{feeAmt.toFixed(2)}</span>
+                                    <span className="text-sm font-medium text-green-600">{cur}{feeAmt.toFixed(2)}</span>
                                   ) : (
                                     <Input type="number" step="0.01" className="w-24 h-8 text-xs"
                                       value={editMemberChanges[`${m.memberFeeId}_fee_${ft.type}`] ?? (feeAmt || "")}
@@ -1995,7 +2158,7 @@ function CreateEditMembershipDuesPage() {
                                     <TableCell key={i} className={`text-xs ${frozen ? "bg-gray-100" : ""}`}>
                                       {frozen || isDefVendor ? (
                                         <div className="flex items-center gap-0.5">
-                                          <span>{currencySymbol()}{vAmt.toFixed(2)}</span>
+                                          <span>{cur}{vAmt.toFixed(2)}</span>
                                           {isDefVendor && <Lock className="h-3 w-3 text-muted-foreground" />}
                                         </div>
                                       ) : (
@@ -2010,9 +2173,9 @@ function CreateEditMembershipDuesPage() {
                                 {/* Frozen rows (Paid / Pending / N/A) are shown neutrally: their
                                     mismatch is deliberately not validated, so the alarming red
                                     would be misleading. Unpaid rows keep red/green as before. */}
-                                <TableCell className={`font-medium ${frozen ? "text-muted-foreground bg-gray-100" : Math.abs(balance) > 0.01 ? "text-red-600" : "text-green-600"}`}>
-                                  {currencySymbol()}{balance.toFixed(2)}
-                                </TableCell>
+                                {!isOfflineOnly && <TableCell className={`font-medium ${frozen ? "text-muted-foreground bg-gray-100" : Math.abs(balance) > 0.01 ? "text-red-600" : "text-green-600"}`}>
+                                  {cur}{balance.toFixed(2)}
+                                </TableCell>}
                                 <TableCell>
                                   <Badge variant={status === "Paid" ? "default" : status === "Pending" ? "secondary" : status === "N/A" ? "outline" : "destructive"}
                                     className={`text-xs ${status === "Paid" ? "bg-green-600" : status === "Pending" ? "bg-yellow-500" : status === "N/A" ? "bg-gray-400 text-white" : "bg-red-600"}`}>
@@ -2046,15 +2209,17 @@ function CreateEditMembershipDuesPage() {
                           <TableCell>
                             {!isNew && getUnpaidFeeTypes(m).length > 0 && (
                               <div className="flex flex-wrap gap-2">
+                                {savedNotify.email && (
                                 <button className="text-orange-600 hover:text-orange-800" title="Send Email Reminder" onClick={() => { setEmailRemarkMemberFeeId(m.memberFeeId); setEmailRemark(""); setEmailRemarkDialogOpen(true); }}>
                                   <Mail className="h-4 w-4" />
                                 </button>
+                                )}
                               </div>
                             )}
                           </TableCell>
                           {/* Receipt — email only */}
                           <TableCell>
-                            {!isNew && hasAnyPaidFee(m) && (
+                            {!isNew && hasAnyPaidFee(m) && savedNotify.email && (
                               <button className="text-xs text-slate-600 hover:underline whitespace-nowrap" onClick={() => handleReceipt(m.memberFeeId)}>Send</button>
                             )}
                           </TableCell>
@@ -2099,7 +2264,7 @@ function CreateEditMembershipDuesPage() {
                         }</p>
                       )}
                       {(offlineMember?.pendingAmount ?? offlineMember?.PendingAmount) != null && (
-                        <p className="text-sm"><strong>Amount:</strong> {currencySymbol()}{Number(offlineMember.pendingAmount ?? offlineMember.PendingAmount).toFixed(2)}</p>
+                        <p className="text-sm"><strong>Amount:</strong> {cur}{Number(offlineMember.pendingAmount ?? offlineMember.PendingAmount).toFixed(2)}</p>
                       )}
                       {(offlineMember?.pendingTransactionType || offlineMember?.PendingTransactionType) && (
                         <p className="text-sm"><strong>Payment Mode:</strong> {offlineMember.pendingTransactionType || offlineMember.PendingTransactionType}</p>
@@ -2175,10 +2340,12 @@ function CreateEditMembershipDuesPage() {
                         target="_blank" className="text-xs text-blue-600 hover:underline mt-1 inline-block">View existing attachment</a>
                     )}
                   </div>
+                  {savedNotify.email && (
                   <div className="flex flex-wrap items-center gap-2">
                     <Checkbox checked={offlineSendEmail} onCheckedChange={c => setOfflineSendEmail(!!c)} id="offlineSendEmail" />
                     <Label htmlFor="offlineSendEmail">Send Email Receipt</Label>
                   </div>
+                  )}
                   <Button onClick={handleOfflineSave} disabled={offlineSaving} className="w-full">
                     {offlineSaving ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : null}Save
                   </Button>
@@ -2309,7 +2476,7 @@ function CreateEditMembershipDuesPage() {
             <p>District Number : ****</p>
             <p>Club Name : **** **** **** ****</p>
             <p>Purpose of the payment : ****</p>
-            <p>Amount received : ****/-</p>
+            <p>Amount received : {cur}****{curSuffix}</p>
             <p>Date and time : ****</p>
             <p>Method of payment : ****</p>
             <p>Transaction ID : ****</p>
@@ -2344,7 +2511,7 @@ function CreateEditMembershipDuesPage() {
             <p>District Number : ****</p>
             <p>Club Name : **** **** **** ****</p>
             <p>Purpose of the payment : ****</p>
-            <p>Outstanding amount : ****/-</p>
+            <p>Outstanding amount : {cur}****{curSuffix}</p>
             <p>Status : ****</p>
             <p>Click on the link : ****</p>
           </div>
@@ -2435,19 +2602,24 @@ function CreateEditMembershipDuesPage() {
               {isEdit ? "Edit Club Dues" : "Create Club Dues"}
             </h2>
             <p className="text-muted-foreground text-base">Step {currentStep + 1} of {totalSteps}</p>
+            {!isEdit && draftSavedAt && (
+              <p className="text-xs text-amber-700 mt-0.5">
+                Draft kept in this browser · {formatDraftTime(draftSavedAt)} · images must be picked again if you continue later
+              </p>
+            )}
           </div>
         </div>
 
         {/* Step Indicator */}
         <div className="flex items-center gap-2 mb-6 flex-wrap">
-          {activeStepLabels.map((s, i) => (
-            <div key={i} className={`flex flex-wrap items-center gap-2 ${!SPLITS_ON && s === "Vendor Splits" ? "hidden" : ""}`}>
+          {activeStepLabels.map((s, i) => (skipsVendorStep && i === SPLIT_STEP) ? null : (
+            <div key={i} className="flex flex-wrap items-center gap-2">
               <div className={`flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium ${
                 i < currentStep ? "bg-green-600 text-white" :
                 i === currentStep ? "bg-primary text-primary-foreground" :
                 "bg-muted text-muted-foreground"
               }`}>
-                {i < currentStep ? <Check className="h-4 w-4" /> : !SPLITS_ON && !isAdminEdit && i > SPLIT_STEP ? i : i + 1}
+                {i < currentStep ? <Check className="h-4 w-4" /> : (skipsVendorStep && i > SPLIT_STEP ? i : i + 1)}
               </div>
               <span className={`text-sm hidden md:inline ${i === currentStep ? "font-medium" : "text-muted-foreground"}`}>{s}</span>
               {i < activeStepLabels.length - 1 && <div className="w-8 h-[2px] bg-muted" />}

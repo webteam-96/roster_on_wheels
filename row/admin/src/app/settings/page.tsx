@@ -108,6 +108,12 @@ const settingsCards: SettingsCard[] = [
     href: "/settings/year-wise-admin-rights",
   },
   {
+    title: "Cross-district Access",
+    description: "Give a member time-limited access to another district for PETS, RLI or zone work, revoke it, see what expires soon",
+    icon: ShieldCheck,
+    href: "/settings/cross-district-access",
+  },
+  {
     title: "Club Leadership",
     description: "Add/Edit club Presidents & Secretaries across districts",
     icon: UserCog2,
@@ -232,10 +238,22 @@ const settingsCards: SettingsCard[] = [
     href: "/settings/ri-codes",
   },
   {
+    title: "Club admin limit",
+    description: "Most Club Admins one club may have, and the clubs already over it",
+    icon: UserCog2,
+    href: "/settings/club-admin-limit",
+  },
+  {
     title: "Booth sign-ups",
     description: "Governors-elect who signed up at the booth: mark paid to set the district up",
     icon: ClipboardList,
     href: "/settings/booth-signups",
+  },
+  {
+    title: "Help centre",
+    description: "Write and publish the public help articles shown on the website, in the app and behind the Help link",
+    icon: Megaphone,
+    href: "/settings/help-centre",
   },
   {
     title: "Rotary Years",
@@ -289,10 +307,9 @@ const settingsCards: SettingsCard[] = [
   },
 ];
 
-// Hidden cards (page still exists, just not listed). Email Credits: everything it
-// opened now lives in Settings › Wallet (Offline / Online buttons).
+// Hidden cards (page still exists, just not listed).
 // Never on ROW: Razorpay Route is an India-only payout provider.
-const HIDDEN_HREFS = new Set<string>(["/settings/email-credits", "/settings/razorpay-route-accounts"]);
+const HIDDEN_HREFS = new Set<string>(["/settings/razorpay-route-accounts"]);
 
 export default function SettingsPage() {
   const { isSuperAdmin } = useAuth();
@@ -304,7 +321,8 @@ export default function SettingsPage() {
   // Modules switched off for this instance are hidden as well.
   const hidden = new Set<string>([
     ...HIDDEN_HREFS,
-    ...(walletOn ? [] : ["/settings/wallet"]),
+    // Email Credits (offline grants) also lives inside Wallet; list it on its own only while Wallet is off.
+    ...(walletOn ? ["/settings/email-credits"] : ["/settings/wallet"]),
     ...settingsCards.map((c) => c.href).filter(isPathOff),
   ]);
 

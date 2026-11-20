@@ -1,10 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import DuesDraftsCard from "@/components/dues/DuesDraftsCard";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { getClubDuesList, deleteClubDues, toggleClubDuesActive, createClubDuesGoogleSheet, deleteClubDuesGoogleSheet } from "@/services/api";
+import { getCurrencySymbol } from "@/lib/currency";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import RotaryLoader from "@/components/RotaryLoader";
@@ -30,6 +32,7 @@ interface ClubDuesRow {
   isActive: boolean;
   createdDate: string;
   googleSheetId?: string;
+  currency?: string;
 }
 
 export default function ClubDuesListPage() {
@@ -83,6 +86,8 @@ export default function ClubDuesListPage() {
           )}
         </div>
 
+        {isSuperAdmin && <DuesDraftsCard kind="district" stepLabels={["Basic Info", "Payment & Split", "Club List", "Images & Email"]} />}
+
         <div className="flex gap-2 max-w-md">
           <Input placeholder="Search by district or purpose" value={search}
             onChange={(e) => setSearch(e.target.value)} onKeyDown={(e) => e.key === "Enter" && load()} />
@@ -115,7 +120,7 @@ export default function ClubDuesListPage() {
                     <td className={`px-4 py-3 font-medium ${faint}`}>District {r.districtNumber}</td>
                     <td className={`px-4 py-3 ${faint}`}>{r.rotaryYear}</td>
                     <td className={`px-4 py-3 text-muted-foreground ${faint}`}>{r.purpose || "District Dues"}</td>
-                    <td className={`px-4 py-3 text-right font-medium ${faint}`}>{currencySymbol()}{Number(r.collectedAmount).toLocaleString(appLocale())}</td>
+                    <td className={`px-4 py-3 text-right font-medium ${faint}`}>{getCurrencySymbol(r.currency)}{Number(r.collectedAmount).toLocaleString(appLocale())}</td>
                     <td className="px-4 py-3">
                       <span className={`text-xs rounded-full px-2 py-1 ${r.isActive ? "bg-green-100 text-green-700" : "bg-muted text-muted-foreground"}`}>
                         {r.isActive ? "Active" : "Inactive"}

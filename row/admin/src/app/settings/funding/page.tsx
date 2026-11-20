@@ -146,7 +146,7 @@ export default function FundingPage() {
           </div>
           <div className="flex flex-wrap gap-2">
             <Button variant="outline" onClick={() => exportToCSV(items, "funding", [
-              { key: "name", label: "Funding Name" }, { key: "sortOrder", label: "Sort Order" }, { key: "isActive", label: "Active" },
+              { key: "name", label: "Funding Name" }, { key: "sortOrder", label: "Sort Order", numeric: true }, { key: "isActive", label: "Active" },
             ])} disabled={items.length === 0}><Download className="mr-2 h-4 w-4" />Export CSV</Button>
             <Button onClick={openAddDialog}>
               <Plus className="mr-2 h-4 w-4" />Add Funding

@@ -6,7 +6,7 @@
 // browser cannot open a MySQL socket, so resolveWebsiteByHost() calls the API's
 // anonymous /public/club-website/by-host endpoint instead — which runs the same
 // JOIN + status derivation server-side and returns the same TenantDto shape.
-import { getOrNull, getOrEmpty } from '../lib/http.js'
+import { getOrNull, getOrEmpty, http } from '../lib/http.js'
 import { getOrAdd, getOrAddRequest } from '../lib/apiCache.js'
 
 // ── URL / cache-key helpers ─────────────────────────────────────────────────
@@ -58,6 +58,16 @@ export function getBanners(clubId, yearId) {
 export function getAdvertisements(clubId, yearId) {
   return getOrAdd(key(clubId, yearId, 'ads'),
     () => getOrEmpty(clubUrl(clubId, 'v2/advertisements', yearId)))
+}
+
+// ── Website extras (social feeds, analytics ID, site search) ─────────────────
+// Fresh per page view (no cross-request cache) so admin changes show at once; null when the site is off.
+export function getWebsiteExtras(clubId) {
+  return getOrAddRequest('api:' + clubId + ':extras', () => getOrNull('/public/website-extras/club/' + clubId))
+}
+
+export function searchSite(clubId, q) {
+  return getOrNull('/public/website-extras/club/' + clubId + '/search?q=' + encodeURIComponent(q))
 }
 
 export function getBod(clubId, yearId) {
@@ -152,6 +162,12 @@ export function getPastEvents(clubId, yearId, limit = 99) {
 export function getDirectory(clubId) {
   return getOrAdd('api:' + clubId + ':directory',
     () => getOrEmpty('/public/club/' + clubId + '/directory'))
+}
+
+// Member map + business directory (gap agent): approved listings of the club's district. Not cached: it is a search.
+export function getBusinessDirectory(clubId, q) {
+  const query = q && q.trim() ? '?q=' + encodeURIComponent(q.trim().slice(0, 100)) : ''
+  return getOrEmpty('/public/club/' + clubId + '/business-directory' + query)
 }
 
 export function getPastPresidents(clubId) {
@@ -263,5 +279,21 @@ async function mergeEventsIntoMonth(map, clubId, year, month) {
         registrationLink: ev.registrationLink,
       })
     }
+  }
+}
+
+// ── ROW gap #6: member stories and the bulletin sign-up ─────────────────────
+export function getStories(clubId) {
+  return getOrAddRequest('api:' + clubId + ':stories', () => getOrEmpty('/public/club/' + clubId + '/stories?limit=30'))
+}
+
+/** { ok, message }. The API answers the same whether or not the address was already subscribed. */
+export async function subscribeBulletin(clubId, body) {
+  try {
+    const res = await http.post('/public/club/' + clubId + '/bulletin/subscribe', body)
+    return { ok: true, message: res.data?.message || 'Check your inbox for a link to confirm.' }
+  } catch (e) {
+    const status = e?.response?.status
+    return { ok: false, message: status === 429 ? 'Too many tries. Please wait a few minutes.' : (e?.response?.data?.message || 'The sign-up failed. Please try again later.') }
   }
 }

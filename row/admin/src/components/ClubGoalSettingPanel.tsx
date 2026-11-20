@@ -8,6 +8,7 @@
 import { useEffect, useState, useCallback, useMemo } from "react";
 import { isAnnualOnlyCategory } from "@/lib/goalCategories";
 import { Building2, AlertCircle, Search, Table2, CalendarDays, Download, Loader2 } from "@/components/icons";
+import { useDownloadProgress } from "@/lib/downloadProgress";
 import { saveAs } from "file-saver";
 import RotaryLoader from "@/components/RotaryLoader";
 import { getGoalCategories, getScopedDistrictClubsGoalMatrix, getScopedDistrictClubsMonthlyMatrix, downloadScopedAllClubsGoalReport } from "@/services/api";
@@ -61,17 +62,16 @@ export default function ClubGoalSettingPanel(
   useEffect(() => { if (annualOnly) setView("goals"); }, [annualOnly]);
   const [monthly, setMonthly] = useState<GoalClubMonthlyMatrixDto | null>(null);
   const [metricKey, setMetricKey] = useState<string | null>(null);
-  const [dlBusy, setDlBusy] = useState(false);
+  const dl = useDownloadProgress();
 
   async function downloadReport() {
-    if (districtId <= 0 || dlBusy) return;
-    setDlBusy(true);
+    if (districtId <= 0) return;
     try {
       const blob = await downloadScopedAllClubsGoalReport(districtId, yearId);
       saveAs(blob, `Club_Goal_Setting_D${districtId}_${fileTimestamp()}.xlsx`);
     } catch (e: any) {
       setError(e?.response?.data?.message || "Could not download the report.");
-    } finally { setDlBusy(false); }
+    }
   }
 
   useEffect(() => {
@@ -183,12 +183,12 @@ export default function ClubGoalSettingPanel(
           </div>
           <button
             type="button"
-            onClick={downloadReport}
-            disabled={dlBusy}
+            onClick={() => dl.run("all-clubs", downloadReport)}
+            disabled={dl.busy}
             className="inline-flex items-center gap-1.5 h-9 rounded-full border border-blue-200 bg-blue-50 px-3 text-xs font-medium text-blue-700 hover:bg-blue-100 disabled:opacity-40"
             title="Download the Club Goal Setting report (all clubs of this district)"
           >
-            {dlBusy ? <Loader2 size={13} className="animate-spin" /> : <Download size={13} />} Download report
+            {dl.is("all-clubs") ? dl.bar("all-clubs") : <><Download size={13} /> Download report</>}
           </button>
         </div>
       </div>

@@ -1,0 +1,33 @@
+/* /help and /help/[slug]: search, language, category index, article column. Rings and tones, no drop shadows. */
+.tools { display: flex; flex-wrap: wrap; gap: 12px; align-items: end; margin-bottom: 40px; }
+.field { display: grid; gap: 6px; font-size: .9375rem; color: var(--ink-soft); }
+.search { flex: 1 1 320px; }
+.input {
+  height: 52px; padding: 0 18px; border: 0; border-radius: 14px; background: var(--cream); color: var(--ink);
+  font: inherit; font-size: 1rem; box-shadow: var(--shadow-soft); width: 100%;
+}
+.input:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+.cats { display: grid; gap: var(--panel-gap); grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); margin-bottom: 64px; }
+.cat {
+  display: grid; gap: 6px; padding: 24px 26px; border-radius: 24px; background: var(--cream-2);
+  color: var(--ink); text-decoration: none; transition: background var(--t-micro) var(--ease-out);
+}
+.cat:hover, .cat:focus-visible { background: var(--sky); }
+.cat strong { font: 600 1.25rem/1.25 var(--font-display); }
+.muted { color: var(--ink-soft); }
+.groupTitle { font: 600 var(--fs-h3)/1.2 var(--font-display); margin: 0 0 16px; }
+.group { margin-bottom: 56px; }
+.list { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--line); }
+.list li { border-bottom: 1px solid var(--line); }
+.list a { display: grid; gap: 4px; padding: 18px 4px; color: var(--ink); text-decoration: none; }
+.list a:hover strong, .list a:focus-visible strong { color: var(--azure); text-decoration: underline; text-underline-offset: 3px; }
+.empty { padding: 32px; border-radius: 24px; background: var(--cream-2); }
+.crumbs { display: flex; flex-wrap: wrap; gap: 8px 16px; margin-bottom: 24px; font-size: .9375rem; }
+.article { max-width: 72ch; }
+.article ol { margin: 0 0 16px; padding-left: 1.4em; }
+.article ol li, .article ul li { margin-bottom: 6px; }
+.article img { max-width: 100%; height: auto; border-radius: 12px; }
+.feedback { max-width: 72ch; margin-top: 48px; padding: 24px 26px; border-radius: 24px; background: var(--cream-2); }
+.feedback p { margin: 0 0 12px; }
+.feedbackButtons { display: flex; gap: 12px; }
+.related { max-width: 72ch; margin-top: 48px; }

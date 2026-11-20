@@ -273,7 +273,7 @@ public class DistrictAwardsConfigController : ControllerBase
                    COALESCE(acat.category_name, mcat.category_name) AS category,
                    COALESCE(aact.activity_name, mc.criteria_name) AS question,
                    COALESCE(asub.sub_item_name, msc.sub_criteria_title) AS subItem,
-                   e.answer_value AS answerValue,
+                   e.answer_value AS answerValue, msc.answer_type AS answerType,
                    e.points_earned AS points, e.bonus_earned AS bonus
             FROM district_citation_club_entry e
             JOIN club_master cm ON cm.pk_club_id = e.fk_club_id
@@ -311,7 +311,11 @@ public class DistrictAwardsConfigController : ControllerBase
             ws.Cell(r, 3).Value = (string?)row.category ?? "";
             ws.Cell(r, 4).Value = (string?)row.question ?? "";
             ws.Cell(r, 5).Value = (string?)row.subItem ?? "";
-            ws.Cell(r, 6).Value = (string?)row.answerValue ?? "";
+            // Counts / number answers go in as numbers; a choose-one answer is an option id, so it stays text.
+            var ansType = ((string?)row.answerType ?? "").Trim().ToLowerInvariant().Replace(" ", "").Replace("_", "").Replace("-", "");
+            if (ansType is "chooseone" or "choose" or "select" or "option" or "options" or "radio"
+                || !ExcelFigure.TrySet(ws.Cell(r, 6), (string?)row.answerValue))
+                ws.Cell(r, 6).Value = (string?)row.answerValue ?? "";
             ws.Cell(r, 7).Value = row.points == null ? 0m : (decimal)row.points;
             ws.Cell(r, 8).Value = row.bonus == null ? 0m : (decimal)row.bonus;
             r++;

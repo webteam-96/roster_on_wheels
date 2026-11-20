@@ -57,7 +57,8 @@ import type { DocumentListItem } from "@/types/document";
 import type { NewsletterListItem } from "@/types/newsletter";
 
 import { appLocale } from "@/lib/appFormat";
-const RETURN_TO_QS = `?returnTo=${encodeURIComponent("/district-admin-dashboard/communication")}`;
+// Back to the same tab after add / edit / view all (ROW-69: GML returned to Upcoming Events).
+const returnQs = (tab: string) => `?returnTo=${encodeURIComponent(`/district-admin-dashboard/communication?tab=${tab}`)}`;
 
 const STATUS_OPTIONS = [
   { value: "all", label: "All" },
@@ -422,7 +423,7 @@ export function UpcomingEventsSection({ districtId }: { districtId: number }) {
         onStatusChange={setStatus}
         search={search}
         onSearchChange={setSearch}
-        addHref={`/districts/${districtId}/upcoming-events/v2/add${RETURN_TO_QS}`}
+        addHref={`/districts/${districtId}/upcoming-events/v2/add${returnQs("events")}`}
         canAdd={canManage}
         editableYears={editableYears}
         currentYearOnly={currentYearLabel}
@@ -462,7 +463,7 @@ export function UpcomingEventsSection({ districtId }: { districtId: number }) {
                 </div>
                 <RowActions
                   onView={() => openView(e)}
-                  editHref={`/districts/${districtId}/upcoming-events/v2/${e.id}/edit${RETURN_TO_QS}`}
+                  editHref={`/districts/${districtId}/upcoming-events/v2/${e.id}/edit${returnQs("events")}`}
                   onDelete={() => setDeleteTarget(e)}
                   canEdit={canManage}
                   canDelete={canDelete}
@@ -472,7 +473,7 @@ export function UpcomingEventsSection({ districtId }: { districtId: number }) {
             {total > PAGE_SIZE_PREVIEW && (
               <li className="px-4 py-2 text-center">
                 <Link
-                  href={`/districts/${districtId}/upcoming-events${RETURN_TO_QS}`}
+                  href={`/districts/${districtId}/upcoming-events${returnQs("events")}`}
                   className="text-xs font-semibold text-blue-600 hover:text-blue-700"
                 >
                   View all {total} events →
@@ -613,7 +614,7 @@ export function AnnouncementsSection({ districtId }: { districtId: number }) {
         onStatusChange={setStatus}
         search={search}
         onSearchChange={setSearch}
-        addHref={`/districts/${districtId}/announcements/v2/add${RETURN_TO_QS}`}
+        addHref={`/districts/${districtId}/announcements/v2/add${returnQs("announcements")}`}
         canAdd={canManage}
         editableYears={editableYears}
         currentYearOnly={currentYearLabel}
@@ -667,7 +668,7 @@ export function AnnouncementsSection({ districtId }: { districtId: number }) {
                 </div>
                 <RowActions
                   onView={() => setViewItem(a)}
-                  editHref={`/districts/${districtId}/announcements/v2/${a.id}/edit${RETURN_TO_QS}`}
+                  editHref={`/districts/${districtId}/announcements/v2/${a.id}/edit${returnQs("announcements")}`}
                   onDelete={() => setDeleteTarget(a)}
                   canEdit={canManage}
                   canDelete={canDelete}
@@ -677,7 +678,7 @@ export function AnnouncementsSection({ districtId }: { districtId: number }) {
             {total > PAGE_SIZE_PREVIEW && (
               <li className="px-4 py-2 text-center">
                 <Link
-                  href={`/districts/${districtId}/announcements${RETURN_TO_QS}`}
+                  href={`/districts/${districtId}/announcements${returnQs("announcements")}`}
                   className="text-xs font-semibold text-blue-600 hover:text-blue-700"
                 >
                   View all {total} announcements →
@@ -800,7 +801,7 @@ export function DocumentsSection({ districtId }: { districtId: number }) {
         onStatusChange={setStatus}
         search={search}
         onSearchChange={setSearch}
-        addHref={`/districts/${districtId}/documents/v2/add${RETURN_TO_QS}`}
+        addHref={`/districts/${districtId}/documents/v2/add${returnQs("documents")}`}
         canAdd={canManage}
         editableYears={editableYears}
         currentYearOnly={currentYearLabel}
@@ -842,7 +843,7 @@ export function DocumentsSection({ districtId }: { districtId: number }) {
                 </div>
                 <RowActions
                   onView={() => setViewItem(d)}
-                  editHref={`/districts/${districtId}/documents/v2/${d.id}/edit${RETURN_TO_QS}`}
+                  editHref={`/districts/${districtId}/documents/v2/${d.id}/edit${returnQs("documents")}`}
                   onDelete={() => setDeleteTarget(d)}
                   canEdit={canManage}
                   canDelete={canDelete}
@@ -852,7 +853,7 @@ export function DocumentsSection({ districtId }: { districtId: number }) {
             {total > PAGE_SIZE_PREVIEW && (
               <li className="px-4 py-2 text-center">
                 <Link
-                  href={`/districts/${districtId}/documents${RETURN_TO_QS}`}
+                  href={`/districts/${districtId}/documents${returnQs("documents")}`}
                   className="text-xs font-semibold text-blue-600 hover:text-blue-700"
                 >
                   View all {total} documents →
@@ -971,7 +972,7 @@ export function NewslettersSection({ districtId }: { districtId: number }) {
         onStatusChange={setStatus}
         search={search}
         onSearchChange={setSearch}
-        addHref={`/districts/${districtId}/newsletters/v2/add${RETURN_TO_QS}`}
+        addHref={`/districts/${districtId}/newsletters/v2/add${returnQs("newsletters")}`}
         canAdd={canManage}
         editableYears={editableYears}
         loading={loading}
@@ -1016,7 +1017,7 @@ export function NewslettersSection({ districtId }: { districtId: number }) {
                 </div>
                 <RowActions
                   onView={() => setViewItem(n)}
-                  editHref={`/districts/${districtId}/newsletters/v2/${n.id}/edit${RETURN_TO_QS}`}
+                  editHref={`/districts/${districtId}/newsletters/v2/${n.id}/edit${returnQs("newsletters")}`}
                   onDelete={() => setDeleteTarget(n)}
                   canEdit={canManage}
                   canDelete={canDelete}
@@ -1026,7 +1027,7 @@ export function NewslettersSection({ districtId }: { districtId: number }) {
             {total > PAGE_SIZE_PREVIEW && (
               <li className="px-4 py-2 text-center">
                 <Link
-                  href={`/districts/${districtId}/newsletters${RETURN_TO_QS}`}
+                  href={`/districts/${districtId}/newsletters${returnQs("newsletters")}`}
                   className="text-xs font-semibold text-blue-600 hover:text-blue-700"
                 >
                   View all {total} newsletters →

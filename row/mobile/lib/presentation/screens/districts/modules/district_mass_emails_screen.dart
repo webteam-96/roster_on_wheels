@@ -15,6 +15,7 @@ import '../../../widgets/common/loading_widget.dart';
 import '../../../widgets/common/pagination_widget.dart';
 import '../../../widgets/detail/detail_widgets.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
+import '../../clubs/modules/mass_emails/mass_email_library_screen.dart';
 import 'package:rotary_flutter_app/presentation/widgets/row/skeleton_list.dart';
 
 // ---------------------------------------------------------------------------
@@ -518,6 +519,13 @@ class _DistrictMassEmailsScreenState extends State<DistrictMassEmailsScreen> {
       appBar: CustomAppBar(
         title: 'Mass Emails',
         actions: [
+          if (canManage)
+            IconButton(
+              tooltip: 'Templates and signature',
+              icon: const Icon(Icons.description_outlined),
+              onPressed: () => Navigator.of(context).push(MaterialPageRoute(
+                  builder: (_) => MassEmailLibraryScreen(scope: 'districts', ownerId: widget.districtId, canManage: true))),
+            ),
           if (canManage)
             IconButton(
               icon: const Icon(Icons.add),

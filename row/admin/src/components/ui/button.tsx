@@ -72,7 +72,13 @@ function textOf(node: React.ReactNode): string {
 
 /** Leading non-text elements (icons) become Astryx's icon slot; the rest stays the visible content. */
 function splitIcon(children: React.ReactNode): { icon?: React.ReactNode; rest: React.ReactNode } {
-  const parts = React.Children.toArray(children)
+  let parts = React.Children.toArray(children)
+  // `{busy ? <Loader /> : <><Icon />Save</>}` hands us one Fragment: look inside it, or the icon
+  // renders as a block above the text (ROW-63).
+  const only = parts[0]
+  if (parts.length === 1 && React.isValidElement<{ children?: React.ReactNode }>(only) && only.type === React.Fragment) {
+    parts = React.Children.toArray(only.props.children)
+  }
   const first = parts[0]
   if (parts.length > 1 && React.isValidElement(first) && textOf(first).trim() === "") {
     return { icon: first, rest: parts.slice(1) }
@@ -132,6 +138,8 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
           {...nativeDisabled}
           type={nativeType}
           tooltip={title}
+          // Without this every icon-only `asChild` <Link> (the back arrows) rendered a dead button (ROW-61).
+          href={linkChild ? (linkChild.props.href as string) : undefined}
           className={cls}
           {...props}
         />

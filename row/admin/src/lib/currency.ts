@@ -53,6 +53,15 @@ export function resolveDefaultCurrency(_districtCountry?: string | null): string
   return defaultCurrency();
 }
 
+// Club Dues / District Dues defaults for a NEW dues (RIZones 2026-11-09, ROW form): email on, and the
+// district's default currency when the instance offers it, else the instance default. ROW has no WhatsApp.
+// Super Admin can still change them on the form.
+export function duesDefaultsForDistrict(districtDefaultCurrency?: string | null): { notifyEmail: boolean; currency: string } {
+  const explicit = (districtDefaultCurrency ?? "").trim().toUpperCase();
+  const currency = explicit && getActiveBrand().locale.currencies.includes(explicit) ? explicit : defaultCurrency();
+  return { notifyEmail: true, currency };
+}
+
 // Pre-selects a project's currency from the district default (set by a
 // SuperAdmin); falls back to the instance default. The user can always change it.
 export function resolveClubDefaultCurrency(club: {

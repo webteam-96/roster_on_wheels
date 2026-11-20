@@ -185,6 +185,11 @@ public class AuthService : IAuthService
             new { p_CredId = credId },
             commandType: CommandType.StoredProcedure);
 
+        // Account security: MFA due → no JWT yet, only a short single-use challenge (POST api/auth/mfa/verify).
+        var mfa = await AccountSecurityService.LoginGateAsync(connection, memberId, AccountSecurityService.Web, isTemporary, _configuration);
+        if (mfa != null)
+            return new LoginResponseDto { MfaRequired = true, MfaToken = mfa.MfaToken, MfaSetupRequired = mfa.MfaSetupRequired, MemberName = memberName };
+
         // Log successful login
         await LogLoginAudit(connection, memberId, memberName, emailOrMobile, ipAddress, userAgent, "success", null);
 
@@ -217,7 +222,7 @@ public class AuthService : IAuthService
 
     // Build a full WEB session for a member without a password — for the mobile→web SSO handoff.
     // Reuses the exact same JWT + scope assembly as LoginAsync so the frontend routing works unchanged.
-    public async Task<LoginResponseDto?> BuildSessionForMemberAsync(int memberId)
+    public async Task<LoginResponseDto?> BuildSessionForMemberAsync(int memberId, bool isTemporary = false)
     {
         using var connection = CreateConnection();
         await connection.OpenAsync();
@@ -242,7 +247,7 @@ public class AuthService : IAuthService
         await TrialLock.RefuseIfLockedAsync(connection, memberId);
 
         var expiryMinutes = int.Parse(_configuration["JwtSettings:ExpiryMinutes"] ?? "480");
-        var token = GenerateJwtToken(memberId, memberName, email, roles);
+        var token = GenerateJwtToken(memberId, memberName, email, roles, isTemporary);
         var scopes = await MemberScopesHelper.BuildScopesAsync(connection, memberId, excludeSuperAdmin: false);
 
         return new LoginResponseDto
@@ -252,7 +257,7 @@ public class AuthService : IAuthService
             Email = email,
             MemberId = memberId,
             Roles = roles,
-            IsTemporaryPassword = false,
+            IsTemporaryPassword = isTemporary,
             LastLoginTime = null,
             SessionExpiryMinutes = expiryMinutes,
             ScopedRoles = scopes.Roles,
@@ -338,6 +343,27 @@ public class AuthService : IAuthService
             || string.IsNullOrWhiteSpace(memberEmail))
             return new { message = "If the account exists, a reset link has been sent to the registered email." };
 
+        await SendResetLinkAsync(connection, memberId, memberName, memberEmail);
+
+        return new { message = "If the account exists, a reset link has been sent to the registered email." };
+    }
+
+    // A club leader asks for a reset for a member of their club: the same link and email as Forgot Password, to the
+    // member's own address. Returns that address, or null when the member has none. The caller checks scope.
+    public async Task<string?> SendResetLinkToMemberAsync(int memberId)
+    {
+        using var connection = CreateConnection();
+        await connection.OpenAsync();
+        var member = await connection.QueryFirstOrDefaultAsync<(string? Name, string? Email)>(
+            "SELECT MemberName, EmailId FROM member_master_profile WHERE pk_member_master_profile_id = @Id AND isdeleted = 0",
+            new { Id = memberId });
+        if (string.IsNullOrWhiteSpace(member.Email)) return null;
+        await SendResetLinkAsync(connection, memberId, member.Name ?? "", member.Email.Trim());
+        return member.Email.Trim();
+    }
+
+    private async Task SendResetLinkAsync(MySqlConnection connection, int memberId, string memberName, string memberEmail)
+    {
         // Generate token
         var token = Convert.ToBase64String(RandomNumberGenerator.GetBytes(64));
         var expiry = DateTime.UtcNow.AddMinutes(480);
@@ -354,8 +380,6 @@ public class AuthService : IAuthService
 
         // Send email (fire and forget - don't throw on failure)
         await _emailService.SendPasswordResetEmailAsync(memberEmail, memberName, resetLink);
-
-        return new { message = "If the account exists, a reset link has been sent to the registered email." };
     }
 
     public async Task<object> ResetPasswordAsync(ResetPasswordRequestDto request)

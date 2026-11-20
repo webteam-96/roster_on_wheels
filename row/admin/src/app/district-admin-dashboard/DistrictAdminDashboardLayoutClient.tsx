@@ -16,6 +16,10 @@ import { useRotaryYears } from "@/hooks/useRotaryYears";
 import { DistrictAdminDashboardCacheProvider } from "@/contexts/DistrictAdminDashboardCacheContext";
 import { DISTRICT_ADMIN_NAV, DISTRICT_ADMIN_PAGE_TITLES } from "./nav";
 
+// District Dues: the dues is picked from its own dropdown and each dues has a fixed year, so the year
+// selector would change nothing there (user 2026-11-10, same as the Club Dues member list).
+const HIDE_YEAR_SELECTOR_PATHS = new Set(["/district-admin-dashboard/club-dues"]);
+
 function getInitials(name = "") {
   return name
     .split(" ")
@@ -68,7 +72,7 @@ export default function DistrictAdminDashboardLayoutClient({ children }: { child
             variant="dot"
             switcherKind="district-admin"
             topbarStart={<DistrictAdminTopbarStatus />}
-            topbarCenter={<DistrictAdminYearSelector />}
+            topbarCenter={HIDE_YEAR_SELECTOR_PATHS.has(pathname) ? undefined : <DistrictAdminYearSelector />}
           >
             <PlanningBanner districtId={selectedDistrictId} />
             <SubscriptionLock kind="district" level={subscription.level} loading={subscription.loading}>{children}</SubscriptionLock>

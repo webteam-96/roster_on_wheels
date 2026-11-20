@@ -17,6 +17,7 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import DistrictMembershipTabBar from "@/components/dashboard/DistrictMembershipTabBar";
 import { CommitteeMembersView } from "./committee/view";
 import { GroupCommitteeView } from "./groups/view";
+import OfficerProgressionPanel from "@/components/OfficerProgressionPanel";
 
 export default function DistrictAdminDashboardCommitteeLandingPage() {
   const { selectedDistrictId } = useAuth();
@@ -35,6 +36,11 @@ export default function DistrictAdminDashboardCommitteeLandingPage() {
         {/* 2. Group District Committee listing (its own Add + Search). Groups drill into sub-groups. */}
         <h2 className="text-lg font-bold tracking-tight text-ink">Group District Committee</h2>
         <GroupCommitteeView embedded />
+
+        <div className="border-t border-slate-200" />
+
+        {/* Officer progression (gap agent): DGN, DGE, DG, IPDG. The API enforces district admin rights per step. */}
+        <OfficerProgressionPanel scope="district" scopeId={selectedDistrictId} canManage />
       </div>
     </ProtectedRoute>
   );

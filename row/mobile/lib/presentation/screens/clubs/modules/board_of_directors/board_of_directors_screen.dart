@@ -16,6 +16,7 @@ import '../../../../../presentation/widgets/common/loading_widget.dart';
 import '../../../../../presentation/widgets/common/empty_state_widget.dart';
 import '../../../../../presentation/widgets/common/confirmation_dialog.dart';
 import 'bod_member_detail_screen.dart';
+import 'officer_progression_screen.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
 
 class BoardOfDirectorsScreen extends StatefulWidget {
@@ -258,7 +259,19 @@ class _BoardOfDirectorsScreenState extends State<BoardOfDirectorsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: widget.embedded ? null : const CustomAppBar(title: 'Board of Directors'),
+      appBar: widget.embedded
+          ? null
+          : CustomAppBar(
+              title: 'Board of Directors',
+              actions: [
+                IconButton(
+                  tooltip: 'Officer progression',
+                  icon: const Icon(Icons.timeline),
+                  onPressed: () => Navigator.of(context).push(MaterialPageRoute(
+                      builder: (_) => OfficerProgressionScreen(clubId: widget.clubId))),
+                ),
+              ],
+            ),
       floatingActionButton: !canManage
           ? null
           : FloatingActionButton(

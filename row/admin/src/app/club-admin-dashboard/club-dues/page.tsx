@@ -8,6 +8,7 @@ import {
   verifyClubDuesOfficer, getClubDuesOfficerPayLink, recordClubDuesOfficerOffline,
   getClubDuesOfficerOfflineAccounts, ClubDuesOfflineAccountOption,
 } from "@/services/api";
+import { getCurrencySymbol } from "@/lib/currency";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -79,6 +80,7 @@ export default function ClubAdminClubDuesPage() {
 
 function ClubDuesCard({ club, onSuccess, onError }: { club: OfficerClub; onSuccess: (m: string) => void; onError: (m: string) => void }) {
   const [data, setData] = useState<any>(null);
+  const cur = getCurrencySymbol(data?.currency); // sign only - the charge stays INR
   const [loading, setLoading] = useState(true);
   const [paying, setPaying] = useState(false);
   const [showOffline, setShowOffline] = useState(false);
@@ -163,14 +165,14 @@ function ClubDuesCard({ club, onSuccess, onError }: { club: OfficerClub; onSucce
               <div className="flex justify-between text-sm"><span>Members</span><span>{data.memberCount}</span></div>
               <div className="flex justify-between text-sm"><span>Paid</span><span className="text-green-600">{data.paidCount}</span></div>
               <div className="flex justify-between text-sm"><span>Unpaid</span><span className="text-red-600">{data.unpaidCount}</span></div>
-              <div className="flex justify-between text-sm"><span>Rate / member</span><span>{currencySymbol()}{data.perMemberRate}</span></div>
+              <div className="flex justify-between text-sm"><span>Rate / member</span><span>{cur}{data.perMemberRate}</span></div>
               {data.onlineAmountOwed !== data.amountOwed ? (
                 <>
-                  <div className="flex justify-between font-bold text-base border-t pt-2"><span>Offline amount</span><span>{currencySymbol()}{Number(data.amountOwed).toLocaleString(appLocale())}</span></div>
-                  <div className="flex justify-between text-sm font-semibold"><span>Online amount{data.onlineSurchargePercent > 0 ? <span className="font-normal text-muted-foreground"> (+{data.onlineSurchargePercent}%)</span> : null}</span><span>{currencySymbol()}{Number(data.onlineAmountOwed).toLocaleString(appLocale())}</span></div>
+                  <div className="flex justify-between font-bold text-base border-t pt-2"><span>Offline amount</span><span>{cur}{Number(data.amountOwed).toLocaleString(appLocale())}</span></div>
+                  <div className="flex justify-between text-sm font-semibold"><span>Online amount{data.onlineSurchargePercent > 0 ? <span className="font-normal text-muted-foreground"> (+{data.onlineSurchargePercent}%)</span> : null}</span><span>{cur}{Number(data.onlineAmountOwed).toLocaleString(appLocale())}</span></div>
                 </>
               ) : (
-                <div className="flex justify-between font-bold text-base border-t pt-2"><span>Amount due</span><span>{currencySymbol()}{Number(data.amountOwed).toLocaleString(appLocale())}</span></div>
+                <div className="flex justify-between font-bold text-base border-t pt-2"><span>Amount due</span><span>{cur}{Number(data.amountOwed).toLocaleString(appLocale())}</span></div>
               )}
             </div>
             {data.isPending && <p className="text-xs text-amber-600 text-center">An offline payment is already awaiting approval.</p>}
@@ -184,7 +186,7 @@ function ClubDuesCard({ club, onSuccess, onError }: { club: OfficerClub; onSucce
             <div className="flex flex-col gap-2">
               {(data.modeOfPayment === 1 || data.modeOfPayment === 3) && (
                 <Button onClick={payOnline} disabled={paying}>
-                  {paying && <RotaryLoader size="sm" />}Pay {currencySymbol()}{Number(data.onlineAmountOwed).toLocaleString(appLocale())} online
+                  {paying && <RotaryLoader size="sm" />}Pay {cur}{Number(data.onlineAmountOwed).toLocaleString(appLocale())} online
                 </Button>
               )}
               {(data.modeOfPayment === 2 || data.modeOfPayment === 3) && (
@@ -194,7 +196,7 @@ function ClubDuesCard({ club, onSuccess, onError }: { club: OfficerClub; onSucce
             </div>
 
             {showOffline && (
-              <OfflineForm duesId={club.duesId} clubId={club.clubId} amountOwed={data.amountOwed}
+              <OfflineForm cur={cur} duesId={club.duesId} clubId={club.clubId} amountOwed={data.amountOwed}
                 onDone={() => { setShowOffline(false); onSuccess("Submitted for approval. The district will review it."); load(); }}
                 onError={onError} />
             )}
@@ -205,7 +207,7 @@ function ClubDuesCard({ club, onSuccess, onError }: { club: OfficerClub; onSucce
   );
 }
 
-function OfflineForm({ duesId, clubId, amountOwed, onDone, onError }: { duesId: number; clubId: number; amountOwed: number; onDone: () => void; onError: (m: string) => void }) {
+function OfflineForm({ cur, duesId, clubId, amountOwed, onDone, onError }: { cur: string; duesId: number; clubId: number; amountOwed: number; onDone: () => void; onError: (m: string) => void }) {
   const [mode, setMode] = useState("1");
   const [ref, setRef] = useState("");
   const [remark, setRemark] = useState("");
@@ -248,7 +250,7 @@ function OfflineForm({ duesId, clubId, amountOwed, onDone, onError }: { duesId: 
       )}
       {(accounts.length === 0 || accountId) && (
         <p className="text-sm text-muted-foreground">
-          Amount: <b>{currencySymbol()}{Number(accounts.length === 0 ? amountOwed : selectedAccount?.amount ?? 0).toLocaleString(appLocale(), { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</b>.
+          Amount: <b>{cur}{Number(accounts.length === 0 ? amountOwed : selectedAccount?.amount ?? 0).toLocaleString(appLocale(), { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</b>.
         </p>
       )}
       <div className="space-y-1">

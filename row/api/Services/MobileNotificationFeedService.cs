@@ -56,7 +56,7 @@ public class MobileNotificationFeedService : IMobileNotificationFeedService
 
     private static readonly string[] AllTypes =
         { "greeting", "project", "announcement", "event", "newsletter", "document", "highlight", "grant", "volunteer", "meeting_duty", "invite", "meeting",
-          "escalation", "celebration" };
+          "escalation", "celebration", "survey", "profile_update", "prospect", "prospect_task" };
 
     public async Task<PagedResult<MobileNotificationDto>> GetFeedAsync(
         int memberId, int page, int pageSize, int days, string? types)
@@ -165,6 +165,11 @@ public class MobileNotificationFeedService : IMobileNotificationFeedService
         if (wanted.Contains("invite") && clubIds.Count > 0 && await FeatureGate.IsOnAsync("contacts_growth", _connectionString))
             legs.Add(InviteLeg());
 
+        // New-prospect notices and follow-up task notices addressed to this member (ProspectFollowUpService), while the feature is on.
+        if ((wanted.Contains("prospect") || wanted.Contains("prospect_task")) && clubIds.Count > 0
+            && await FeatureGate.IsOnAsync(ProspectFollowUpService.FeatureKey, _connectionString))
+            legs.Add(ProspectLeg(wanted.Contains("prospect"), wanted.Contains("prospect_task")));
+
         // Escalation alerts sent to this member as a club officer (EscalationService), while that module is on.
         if (wanted.Contains("escalation") && await FeatureGate.IsOnAsync(EscalationService.FeatureKey, _connectionString))
             legs.Add(EscalationLeg());
@@ -172,6 +177,13 @@ public class MobileNotificationFeedService : IMobileNotificationFeedService
         // Targets reached by the member's clubs (CelebrationService), while that module is on.
         if (wanted.Contains("celebration") && clubIds.Count > 0 && await FeatureGate.IsOnAsync(CelebrationService.FeatureKey, _connectionString))
             legs.Add(CelebrationLeg());
+
+        // Surveys published to this member (SurveyService), from the time each opens.
+        if (wanted.Contains("survey")) legs.Add(SurveyLeg());
+
+        // Open profile update requests from the member's clubs (ProfileUpdateService, gap agent): opens their profile editor.
+        if (wanted.Contains("profile_update") && clubIds.Count > 0)
+            legs.Add(ProfileUpdateLeg());
 
         if (legs.Count == 0) return empty;
 
@@ -515,6 +527,22 @@ public class MobileNotificationFeedService : IMobileNotificationFeedService
             JOIN volunteer_sheets sh ON sh.pk_sheet_id = sl.fk_sheet_id
             WHERE su.fk_member_id = @MemberId AND su.reminder_sent_at >= @From");
 
+    /// <summary>The member's survey notifications (one per published survey they are in the audience of).</summary>
+    private static Leg SurveyLeg() => new(
+        Cols: new[]
+        {
+            Str("'survey'"), "s.pk_survey_id", "0",
+            "s.fk_club_id", "s.fk_district_id", Str("IF(s.fk_club_id IS NULL, 'district', 'club')"),
+            Str("CONCAT('New survey: ', s.title)"), Str("s.description"),
+            Str("NULL"), Str("NULL"),
+            "n.notify_at",
+            Str("'survey'"), Str("NULL")
+        },
+        FromWhere: @"
+            FROM survey_notifications n
+            JOIN surveys s ON s.pk_survey_id = n.fk_survey_id AND s.status <> 'draft'
+            WHERE n.fk_member_id = @MemberId AND n.notify_at >= @From AND n.notify_at <= UTC_TIMESTAMP()");
+
     /// <summary>The member's meeting duty reminders.</summary>
     private static Leg MeetingDutyLeg() => new(
         Cols: new[]
@@ -685,6 +713,24 @@ public class MobileNotificationFeedService : IMobileNotificationFeedService
             JOIN club_master c ON c.pk_club_id = l.fk_club_id
             WHERE l.fk_member_id = @MemberId AND l.fk_club_id IN @ClubIds AND l.created_date >= @From");
 
+    /// <summary>Prospect notices addressed to the member: "prospect" (a new prospect) and "prospect_task" (a task
+    /// assigned or its reminder). Extra carries the task id, or the prospect id.</summary>
+    private static Leg ProspectLeg(bool news, bool tasks) => new(
+        Cols: new[]
+        {
+            Str("IF(pn.kind = 'new_prospect', 'prospect', 'prospect_task')"), "pn.pk_notification_id", "0",
+            "pn.fk_club_id", "c.fk_district_id", Str("'club'"),
+            Str("pn.title"), Str("pn.body"), Str("NULL"), Str("NULL"),
+            "pn.created_date",
+            Str("IF(pn.kind = 'new_prospect', 'prospect', 'prospect_task')"),
+            Str("CAST(COALESCE(pn.fk_task_id, pn.fk_potential_member_id) AS CHAR)")
+        },
+        FromWhere: $@"
+            FROM prospect_notifications pn
+            JOIN club_master c ON c.pk_club_id = pn.fk_club_id
+            WHERE pn.fk_member_id = @MemberId AND pn.in_app = 1 AND pn.fk_club_id IN @ClubIds AND pn.created_date >= @From
+              {(news && tasks ? "" : news ? "AND pn.kind = 'new_prospect'" : "AND pn.kind <> 'new_prospect'")}");
+
     /// <summary>Escalation alerts addressed to the member (one row per alert). Title holds the club's name and Extra the
     /// rule; <see cref="ToDto"/> builds the headline. The reason is the body.</summary>
     private static Leg EscalationLeg() => new(
@@ -715,6 +761,22 @@ public class MobileNotificationFeedService : IMobileNotificationFeedService
         FromWhere: @"
             FROM engagement_events e
             WHERE e.event_type = 'TARGET' AND e.fk_club_id IN @ClubIds AND e.created_date >= @From");
+
+    /// <summary>Open profile update requests addressed to the member (ProfileUpdateService); <see cref="ToDto"/> words it.</summary>
+    private static Leg ProfileUpdateLeg() => new(
+        Cols: new[]
+        {
+            Str("'profile_update'"), "r.pk_request_id", "0",
+            "r.fk_club_id", "c.fk_district_id", Str("'club'"),
+            Str("NULL"), Str("r.message"), Str("NULL"), Str("NULL"),
+            "r.requested_at",
+            Str("'profile_update'"), Str("NULL")
+        },
+        FromWhere: @"
+            FROM profile_update_requests r
+            JOIN club_master c ON c.pk_club_id = r.fk_club_id
+            WHERE r.fk_member_id = @MemberId AND r.fk_club_id IN @ClubIds AND r.completed_at IS NULL
+              AND r.expires_at > UTC_TIMESTAMP() AND r.requested_at >= @From");
 
     // ══════════════════════════════════════════════════════════════════════════════════════
     // Materialisation
@@ -907,6 +969,10 @@ public class MobileNotificationFeedService : IMobileNotificationFeedService
                 break;
             case "escalation":
                 dto.Title = EscalationService.Headline(r.Title, r.Extra);
+                break;
+            case "profile_update":
+                dto.Title = L["Please check your member profile"];
+                dto.Body ??= L["{0} asks you to check your profile and correct anything that has changed.", dto.SourceName];
                 break;
             case "celebration":
             {

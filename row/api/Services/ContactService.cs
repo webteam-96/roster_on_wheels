@@ -41,23 +41,27 @@ public class ContactService
 
     // ── Contacts ─────────────────────────────────────────────────────────────────────────
 
-    public async Task<PagedResult<ContactDto>> ListAsync(ContactOwner o, string? search, string? type, int? groupId, int page, int pageSize)
+    public async Task<PagedResult<ContactDto>> ListAsync(ContactOwner o, string? search, string? type, int? groupId, int page, int pageSize, int? tagId = null)
     {
         page = Math.Max(1, page);
         pageSize = Math.Clamp(pageSize, 1, 500);
         var where = "c.fk_club_id = @ClubId AND c.fk_district_id = @DistrictId"
             + (string.IsNullOrWhiteSpace(search) ? "" : " AND (c.name LIKE @Like OR c.email LIKE @Like OR c.mobile LIKE @Like OR c.organisation LIKE @Like)")
             + (string.IsNullOrWhiteSpace(type) ? "" : " AND c.contact_type = @Type")
-            + (groupId is > 0 ? " AND EXISTS (SELECT 1 FROM contact_group_members x WHERE x.fk_contact_id = c.pk_contact_id AND x.fk_contact_group_id = @GroupId)" : "");
+            + (groupId is > 0 ? " AND EXISTS (SELECT 1 FROM contact_group_members x WHERE x.fk_contact_id = c.pk_contact_id AND x.fk_contact_group_id = @GroupId)" : "")
+            // Club tags (member flexibility): only the club's own tags, so a district list never matches.
+            + (tagId is > 0 ? " AND EXISTS (SELECT 1 FROM club_tag_assignments ta JOIN club_tags t ON t.pk_club_tag_id = ta.fk_club_tag_id WHERE t.fk_club_id = @ClubId AND ta.entity_type = 'contact' AND ta.entity_id = c.pk_contact_id AND ta.fk_club_tag_id = @TagId)" : "");
         await using var conn = Open();
         using var multi = await conn.QueryMultipleAsync($@"
             SELECT c.pk_contact_id AS Id, c.name AS Name, c.email AS Email, c.mobile AS Mobile, c.contact_type AS ContactType,
                    c.organisation AS Organisation, c.notes AS Notes, c.source AS Source, c.created_date AS CreatedDate,
-                   (SELECT GROUP_CONCAT(gm.fk_contact_group_id) FROM contact_group_members gm WHERE gm.fk_contact_id = c.pk_contact_id) AS GroupIdsCsv
+                   (SELECT GROUP_CONCAT(gm.fk_contact_group_id) FROM contact_group_members gm WHERE gm.fk_contact_id = c.pk_contact_id) AS GroupIdsCsv,
+                   (SELECT GROUP_CONCAT(ta.fk_club_tag_id) FROM club_tag_assignments ta JOIN club_tags t ON t.pk_club_tag_id = ta.fk_club_tag_id
+                    WHERE t.fk_club_id = @ClubId AND ta.entity_type = 'contact' AND ta.entity_id = c.pk_contact_id) AS TagIdsCsv
             FROM contacts c WHERE {where}
             ORDER BY c.name, c.pk_contact_id LIMIT @Take OFFSET @Skip;
             SELECT COUNT(*) FROM contacts c WHERE {where};",
-            new { o.ClubId, o.DistrictId, Like = $"%{search?.Trim()}%", Type = type?.Trim().ToLowerInvariant(), GroupId = groupId,
+            new { o.ClubId, o.DistrictId, Like = $"%{search?.Trim()}%", Type = type?.Trim().ToLowerInvariant(), GroupId = groupId, TagId = tagId,
                   Take = pageSize, Skip = (page - 1) * pageSize });
         var items = (await multi.ReadAsync<ContactDto>()).ToList();
         return new PagedResult<ContactDto> { Items = items, TotalCount = await multi.ReadSingleAsync<int>(), Page = page, PageSize = pageSize };
@@ -76,6 +80,7 @@ public class ContactService
             SELECT LAST_INSERT_ID();",
             new { o.ClubId, o.DistrictId, v.Name, v.Email, v.Mobile, v.Type, v.Organisation, v.Notes, Source = source, By = by }, tx);
         if (dto.GroupIds != null) await SetGroupsAsync(conn, tx, o, id, dto.GroupIds);
+        await ContactToolsService.SyncFriendsGroupAsync(conn, tx, o);
         await tx.CommitAsync();
         return id;
     }
@@ -94,6 +99,7 @@ public class ContactService
             new { v.Name, v.Email, v.Mobile, v.Type, v.Organisation, v.Notes, By = by, Id = id, o.ClubId, o.DistrictId }, tx);
         if (n == 0) return false;
         if (dto.GroupIds != null) await SetGroupsAsync(conn, tx, o, id, dto.GroupIds);
+        await ContactToolsService.SyncFriendsGroupAsync(conn, tx, o);
         await tx.CommitAsync();
         return true;
     }
@@ -104,7 +110,9 @@ public class ContactService
         await conn.OpenAsync();
         await using var tx = await conn.BeginTransactionAsync();
         var n = await conn.ExecuteAsync($"DELETE FROM contacts WHERE pk_contact_id = @Id AND {OwnerWhere}", new { Id = id, o.ClubId, o.DistrictId }, tx);
-        if (n > 0) await conn.ExecuteAsync("DELETE FROM contact_group_members WHERE fk_contact_id = @Id", new { Id = id }, tx);
+        if (n > 0) await conn.ExecuteAsync(@"DELETE FROM contact_group_members WHERE fk_contact_id = @Id;
+            DELETE FROM contact_merge_log WHERE fk_survivor_contact_id = @Id;", new { Id = id }, tx);
+        if (n > 0) await conn.ExecuteAsync("DELETE FROM club_tag_assignments WHERE entity_type = 'contact' AND entity_id = @Id", new { Id = id }, tx);
         await tx.CommitAsync();
         return n > 0;
     }
@@ -137,11 +145,11 @@ public class ContactService
     {
         await using var conn = Open();
         return (await conn.QueryAsync<ContactGroupDto>(@"
-            SELECT g.pk_contact_group_id AS Id, g.name AS Name, COUNT(gm.fk_contact_id) AS ContactCount
+            SELECT g.pk_contact_group_id AS Id, g.name AS Name, g.system_key AS SystemKey, COUNT(gm.fk_contact_id) AS ContactCount
             FROM contact_groups g
             LEFT JOIN contact_group_members gm ON gm.fk_contact_group_id = g.pk_contact_group_id
             WHERE g.fk_club_id = @ClubId AND g.fk_district_id = @DistrictId
-            GROUP BY g.pk_contact_group_id, g.name ORDER BY g.name", new { o.ClubId, o.DistrictId })).ToList();
+            GROUP BY g.pk_contact_group_id, g.name, g.system_key ORDER BY g.name", new { o.ClubId, o.DistrictId })).ToList();
     }
 
     public async Task<int> CreateGroupAsync(ContactOwner o, string? name, int by)
@@ -272,6 +280,7 @@ public class ContactService
                 await conn.ExecuteAsync("INSERT IGNORE INTO contact_group_members (fk_contact_group_id, fk_contact_id) VALUES (@G, @C)",
                     new { G = req.GroupId, C = contactId }, tx);
         }
+        await ContactToolsService.SyncFriendsGroupAsync(conn, tx, o);
         await tx.CommitAsync();
         return result;
     }

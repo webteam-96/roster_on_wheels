@@ -6,6 +6,7 @@ import '../../../core/security/biometric_controller.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
 import '../../widgets/common/custom_app_bar.dart';
+import 'account_security_screens.dart';
 import 'package:rotary_flutter_app/core/theme/app_fonts.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
 
@@ -52,6 +53,17 @@ class SecuritySettingsScreen extends StatelessWidget {
             _buildModeCard(context, controller),
           const SizedBox(height: 16),
           _buildHowItWorks(),
+          const SizedBox(height: 16),
+          // Account security (gap agent): authenticator-app second step at sign-in.
+          Card(
+            child: ListTile(
+              leading: const Icon(Icons.verified_user_outlined, color: AppColors.primary),
+              title: const Text('Multi-factor sign-in'),
+              subtitle: const Text('A code from an authenticator app after your password'),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AccountSecurityScreen())),
+            ),
+          ),
         ],
       ),
     );

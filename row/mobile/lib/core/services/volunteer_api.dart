@@ -11,6 +11,13 @@ class VolunteerApi {
       ((await _api.get<List<dynamic>>('/api/mobile/volunteers', fromJson: (j) => j as List<dynamic>)).data ?? const [])
           .cast<Map<String, dynamic>>();
 
+  /// The member's own coming sign-ups, each with the sheet's confirmation text and its reminder and thank-you
+  /// emails (subject, text, when due, when sent).
+  Future<List<Map<String, dynamic>>> mySignups() async =>
+      ((await _api.get<List<dynamic>>('/api/mobile/volunteers/my-signups', fromJson: (j) => j as List<dynamic>)).data ??
+              const [])
+          .cast<Map<String, dynamic>>();
+
   Future<void> signUp(int slotId) => _api.post<dynamic>('/api/mobile/volunteers/slots/$slotId/signup');
 
   Future<void> cancel(int slotId) => _api.delete<dynamic>('/api/mobile/volunteers/slots/$slotId/signup');

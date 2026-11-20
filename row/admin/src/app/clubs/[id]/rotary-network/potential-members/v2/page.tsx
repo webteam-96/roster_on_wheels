@@ -252,6 +252,14 @@ export default function PotentialMembersV2Page() {
                   {PROSPECT_STAGES.map((s) => <option key={s} value={s}>{label(s)}</option>)}
                 </select>
               )}
+              {canManage && pipelineOn && (
+                <Link
+                  href={`/clubs/${clubId}/rotary-network/potential-members/v2/follow-ups`}
+                  className="inline-flex items-center gap-1.5 text-xs font-medium px-4 h-10 rounded-full border border-slate-200 text-slate-700 hover:bg-slate-50"
+                >
+                  Follow-ups and notifications
+                </Link>
+              )}
               {canManage && (
                 <Link
                   href={addUrl}

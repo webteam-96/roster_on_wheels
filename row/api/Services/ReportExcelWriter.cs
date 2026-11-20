@@ -99,6 +99,10 @@ public static class ReportExcelWriter
                         w.WriteElement(new CellValue(text));
                         w.WriteEndElement();
                     }
+                    else if (NumericValue(col.Key, raw) is string num)
+                    {
+                        WriteNumber(w, cellRef, num, odd ? SOdd : SEven);
+                    }
                     else
                     {
                         WriteText(w, cellRef, FormatValue(col.Key, raw), odd ? SOdd : SEven);
@@ -166,6 +170,34 @@ public static class ReportExcelWriter
         }
         if (v is IFormattable f) return f.ToString(null, System.Globalization.CultureInfo.InvariantCulture);
         return v.ToString() ?? "";
+    }
+
+    // Counts / amounts go out as real Excel numbers (Sum on selection, right-aligned). Columns that
+    // only look numeric — ids, phones, district numbers, pincodes, years, months, coordinates — stay text.
+    private static readonly System.Text.RegularExpressions.Regex NumericKeyExclude = new(
+        @"(id$|mobile|phone|number|pincode|pin$|year|month|otp|receipt|order|serial|grant|clubno|latitude|longitude|whatsapp|zip|code|imei|time|date)",
+        System.Text.RegularExpressions.RegexOptions.IgnoreCase | System.Text.RegularExpressions.RegexOptions.Compiled);
+    private static readonly System.Text.RegularExpressions.Regex PlainNumber = new(
+        @"^-?(0|[1-9]\d{0,14})(\.\d+)?$", System.Text.RegularExpressions.RegexOptions.Compiled);
+
+    private static string? NumericValue(string key, object? v)
+    {
+        if (v == null || v is DBNull || v is bool || NumericKeyExclude.IsMatch(key)) return null;
+        string? s = v switch
+        {
+            byte or sbyte or short or ushort or int or uint or long or ulong or float or double or decimal
+                => ((IFormattable)v).ToString(null, System.Globalization.CultureInfo.InvariantCulture),
+            string str => str.Trim(),   // JSON-number rows arrive as raw text
+            _ => null,
+        };
+        return s != null && PlainNumber.IsMatch(s) ? s : null;
+    }
+
+    private static void WriteNumber(OpenXmlWriter w, string cellRef, string invariantNumber, uint style)
+    {
+        w.WriteStartElement(new Cell(), new[] { new OpenXmlAttribute("r", "", cellRef), new OpenXmlAttribute("s", "", style.ToString()) });
+        w.WriteElement(new CellValue(invariantNumber));
+        w.WriteEndElement();
     }
 
     private static void WriteText(OpenXmlWriter w, string cellRef, string text, uint style)

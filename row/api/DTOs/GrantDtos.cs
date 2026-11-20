@@ -17,6 +17,8 @@ public class GrantCycleDto
     public DateTime? OpensOn { get; set; }
     public DateTime? ClosesOn { get; set; }
     public DateTime? ReportDueOn { get; set; }
+    /// <summary>When the interim (progress) report of an approved grant is due; reminders go out before and after.</summary>
+    public DateTime? InterimDueOn { get; set; }
     public string? Rules { get; set; }
     // District view only (clubs get 0 / empty).
     public decimal Committed { get; set; }
@@ -34,6 +36,8 @@ public class SaveGrantCycleDto
     public DateTime? OpensOn { get; set; }
     public DateTime? ClosesOn { get; set; }
     public DateTime? ReportDueOn { get; set; }
+    /// <summary>When the interim (progress) report of an approved grant is due; reminders go out before and after.</summary>
+    public DateTime? InterimDueOn { get; set; }
     public string? Rules { get; set; }
 }
 
@@ -55,10 +59,60 @@ public class GrantApplicationListItemDto
 
 public class GrantLineDto
 {
+    public int Id { get; set; }                      // read only: the final report's actuals refer to it
     public string Kind { get; set; } = "";          // income | expense | partner
     public string Description { get; set; } = "";
     public string? Detail { get; set; }
     public decimal? Amount { get; set; }
+    public string? Category { get; set; }
+    public string? Supplier { get; set; }
+    /// <summary>Actual spend from the final report (expense lines); read only here.</summary>
+    public decimal? ActualAmount { get; set; }
+    /// <summary>Actual minus budget, once the final report gives the actual.</summary>
+    public decimal? Variance { get; set; }
+}
+
+public class GrantSignOffDto
+{
+    public string Action { get; set; } = "";        // submit | approve
+    public string SignerRole { get; set; } = "";
+    public string SignatureName { get; set; } = "";
+    public string? MemberName { get; set; }
+    public DateTime SignedAtUtc { get; set; }
+}
+
+public class GrantInterimReportDto
+{
+    public int Id { get; set; }
+    public string Progress { get; set; } = "";
+    public decimal AmountSpent { get; set; }
+    public string? SubmittedByName { get; set; }
+    public DateTime SubmittedAtUtc { get; set; }
+}
+
+public class SubmitGrantInterimReportDto
+{
+    public string? Progress { get; set; }
+    public decimal? AmountSpent { get; set; }
+}
+
+public class GrantLineActualDto
+{
+    public int LineId { get; set; }
+    public decimal Amount { get; set; }
+}
+
+/// <summary>One Rotary year (grant cycle) of a district: approved, paid out, reported spent, outstanding.</summary>
+public class GrantYearSummaryDto
+{
+    public int CycleId { get; set; }
+    public int YearId { get; set; }
+    public string YearLabel { get; set; } = "";
+    public decimal Budget { get; set; }
+    public decimal Approved { get; set; }
+    public decimal Paid { get; set; }
+    public decimal ReportedSpent { get; set; }
+    public decimal Outstanding { get; set; }
 }
 
 public class GrantMemberDto
@@ -71,9 +125,10 @@ public class GrantMemberDto
 public class GrantAttachmentDto
 {
     public int Id { get; set; }
-    public string Kind { get; set; } = "";          // application | report
+    public string Kind { get; set; } = "";          // application | interim | receipt | report
     public string OriginalName { get; set; } = "";
     public int SizeBytes { get; set; }
+    public string? UploadedByName { get; set; }
     public DateTime CreatedDate { get; set; }
 }
 
@@ -122,7 +177,20 @@ public class GrantApplicationDto : GrantApplicationListItemDto
     public int? ReportBeneficiaries { get; set; }
     public DateTime? ReportSubmittedAt { get; set; }
     public DateTime? ClosedAt { get; set; }
+    public DateTime? ReportAcceptedAt { get; set; }
     public string? CreatedByName { get; set; }
+    /// <summary>Expenses minus other income: what the grant must fund, and what the request must equal on submit.</summary>
+    public decimal BudgetTotal { get; set; }
+    public List<GrantSignOffDto> SignOffs { get; set; } = new();
+    public List<GrantInterimReportDto> InterimReports { get; set; } = new();
+    /// <summary>Club side: an interim report may be submitted now.</summary>
+    public bool CanSubmitInterimReport { get; set; }
+    /// <summary>Club side: the kinds of file the club may add or remove now.</summary>
+    public List<string> AttachmentKinds { get; set; } = new();
+    /// <summary>Club side, while the club may still submit: why the club is not qualified for the cycle's year (null = qualified).</summary>
+    public string? QualificationWarning { get; set; }
+    /// <summary>Club side: with a warning, whether the district blocks the submit (true) or only warns (false).</summary>
+    public bool QualificationRequired { get; set; }
     public GrantCycleDto Cycle { get; set; } = new();
     public List<GrantLineDto> Lines { get; set; } = new();
     public List<GrantMemberDto> Members { get; set; } = new();
@@ -162,6 +230,10 @@ public class GrantActionDto
     public string? ReportSummary { get; set; }
     public decimal? ReportAmountSpent { get; set; }
     public int? ReportBeneficiaries { get; set; }
+    /// <summary>Typed full name: the club's sign-off on submit, the approving officer's on approve.</summary>
+    public string? Signature { get; set; }
+    /// <summary>Final report: actual spend per expense line.</summary>
+    public List<GrantLineActualDto>? LineActuals { get; set; }
 }
 
 public class GrantCommentDto
@@ -204,6 +276,17 @@ public class GrantClubOverviewDto
     public bool LightMode { get; set; }
     public List<GrantCycleDto> Cycles { get; set; } = new();
     public List<GrantApplicationListItemDto> Applications { get; set; } = new();
+    /// <summary>The club's grant qualification per Rotary year (newest first); submitting needs a current one.</summary>
+    public List<GrantClubQualificationDto> Qualifications { get; set; } = new();
+    /// <summary>The district refuses submits from unqualified clubs (else they are only warned).</summary>
+    public bool RequireQualification { get; set; }
+}
+
+/// <summary>District grant settings.</summary>
+public class GrantSettingsDto
+{
+    /// <summary>Require club qualification to submit. Off (default): unqualified clubs are warned but may submit.</summary>
+    public bool RequireQualification { get; set; }
 }
 
 public class GrantLightProjectDto
@@ -219,4 +302,102 @@ public class SaveGrantLightDto
 {
     public decimal? GrantAmount { get; set; }
     public DateTime? ReportDate { get; set; }
+}
+
+// ===== Grants extras (2026-11-20): club qualification, monthly cash flow with receipts, email templates =====
+
+public class GrantQualifiedMemberDto
+{
+    public int MemberId { get; set; }
+    public string? MemberName { get; set; }
+    public DateTime? TrainedOn { get; set; }
+}
+
+/// <summary>A club's grant qualification for one Rotary year: MOU signed and officer training attended.</summary>
+public class GrantClubQualificationDto
+{
+    public int ClubId { get; set; }
+    public string ClubName { get; set; } = "";
+    public int YearId { get; set; }
+    public string YearLabel { get; set; } = "";
+    public DateTime? MouSignedOn { get; set; }
+    public DateTime? TrainingOn { get; set; }
+    public DateTime? ExpiresOn { get; set; }
+    public string? Note { get; set; }
+    public DateTime? ModifiedAtUtc { get; set; }
+    /// <summary>Qualified now (both dates set, not expired).</summary>
+    public bool Qualified { get; set; }
+    /// <summary>Why not, when not qualified.</summary>
+    public string? Problem { get; set; }
+    public List<GrantQualifiedMemberDto> Members { get; set; } = new();
+}
+
+public class SaveGrantQualificationDto
+{
+    public DateTime? MouSignedOn { get; set; }
+    public DateTime? TrainingOn { get; set; }
+    public DateTime? ExpiresOn { get; set; }
+    public string? Note { get; set; }
+    public List<GrantQualifiedMemberDto> Members { get; set; } = new();
+}
+
+public class GrantReceiptDto
+{
+    public int Id { get; set; }
+    public decimal Amount { get; set; }
+    public DateTime ReceivedOn { get; set; }
+    public string Source { get; set; } = "";
+    public string? Reference { get; set; }
+    public string? RecordedByName { get; set; }
+}
+
+public class SaveGrantReceiptDto
+{
+    public decimal? Amount { get; set; }
+    public DateTime? ReceivedOn { get; set; }
+    public string? Source { get; set; }
+    public string? Reference { get; set; }
+}
+
+public class GrantMonthRowDto
+{
+    public string Month { get; set; } = "";          // yyyy-MM
+    public decimal Approved { get; set; }
+    public decimal PaidOut { get; set; }
+    public decimal Receipts { get; set; }
+    /// <summary>Receipts minus payments, cumulative to the end of the month.</summary>
+    public decimal Balance { get; set; }
+}
+
+public class GrantMonthlyCashFlowDto
+{
+    public int CycleId { get; set; }
+    public string YearLabel { get; set; } = "";
+    public decimal DdfBudget { get; set; }
+    public decimal Approved { get; set; }
+    public decimal PaidOut { get; set; }
+    public decimal Receipts { get; set; }
+    public decimal Balance { get; set; }
+    public List<GrantMonthRowDto> Months { get; set; } = new();
+    public List<GrantReceiptDto> ReceiptList { get; set; } = new();
+}
+
+public class GrantEmailTemplateDto
+{
+    public string Kind { get; set; } = "";           // status | reminder
+    public string Subject { get; set; } = "";
+    public string Body { get; set; } = "";
+    public bool IsDefault { get; set; }
+}
+
+public class SaveGrantEmailTemplateDto
+{
+    public string? Subject { get; set; }
+    public string? Body { get; set; }
+}
+
+public class GrantEmailPreviewDto
+{
+    public string Subject { get; set; } = "";
+    public string Html { get; set; } = "";
 }

@@ -15,6 +15,7 @@ public class VolunteerSheetListItemDto
     public int Filled { get; set; }
     public DateTime? FirstStart { get; set; }
     public decimal Hours { get; set; }
+    public DateTime? ArchivedAt { get; set; }         // set: archived (VolunteerExtrasService), closed to sign-ups
 }
 
 public class VolunteerSignupDto

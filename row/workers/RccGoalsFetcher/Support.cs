@@ -26,6 +26,13 @@ public sealed class Settings
     public int NightlyHour = 1, PollSeconds = 20;
     public DayOfWeek WeeklyDay = DayOfWeek.Sunday;   // weekly auto-sync day (user 2026-11-06: fixed day)
     public List<string> WeeklyReportTo = new();      // who gets the weekly sync report mail
+    public List<string> ClubReportTo = new();        // who gets the club sync report mail
+    public int MonthEndHour = 22;                    // last day of every month: every saved login is synced at this hour
+    public DayOfWeek ReportDay = DayOfWeek.Thursday; // weekly report day (after the Sat..Wed zone days)
+    // Auto-sync day per Rotary zone number (RIZones 2026-11-10 spread its Indian zones over Sat..Wed). ROW: empty by
+    // default, so every district uses WeeklyDay; set RotaryOrgSync:ZoneDays (e.g. { "4": "Saturday" }) to spread the load.
+    // A district whose zone is not listed uses WeeklyDay.
+    public Dictionary<int, DayOfWeek> ZoneDays = new();
 
     public static Settings Load(IConfiguration c) => new()
     {
@@ -57,6 +64,13 @@ public sealed class Settings
         PollSeconds = int.TryParse(c["RotaryOrgSync:PollSeconds"], out var ps) && ps >= 5 ? ps : 20,
         WeeklyDay = Enum.TryParse<DayOfWeek>(c["RotaryOrgSync:WeeklyDay"], true, out var wd) ? wd : DayOfWeek.Sunday,
         WeeklyReportTo = c.GetSection("RotaryOrgSync:WeeklyReportTo").GetChildren().Select(x => x.Value ?? "").Where(x => x != "").ToList(),
+        ClubReportTo = c.GetSection("RotaryOrgSync:ClubReportTo").GetChildren().Select(x => x.Value ?? "").Where(x => x != "").ToList(),
+        MonthEndHour = int.TryParse(c["RotaryOrgSync:MonthEndHour"], out var meh) && meh is >= 0 and <= 23 ? meh : 22,
+        ReportDay = Enum.TryParse<DayOfWeek>(c["RotaryOrgSync:ReportDay"], true, out var rd) ? rd : DayOfWeek.Thursday,
+        ZoneDays = c.GetSection("RotaryOrgSync:ZoneDays").GetChildren()
+            .Select(x => (Ok: int.TryParse(x.Key, out var z) && Enum.TryParse<DayOfWeek>(x.Value, true, out var _), Zone: int.TryParse(x.Key, out var z2) ? z2 : 0, Day: Enum.TryParse<DayOfWeek>(x.Value, true, out var d) ? d : DayOfWeek.Sunday))
+            .Where(x => x.Ok).ToDictionary(x => x.Zone, x => x.Day) is { Count: > 0 } zd ? zd
+            : new() { [4] = DayOfWeek.Saturday, [5] = DayOfWeek.Sunday, [6] = DayOfWeek.Monday, [7] = DayOfWeek.Tuesday, [8] = DayOfWeek.Wednesday },
     };
 }
 

@@ -39,7 +39,9 @@ import {
   updateClubMenu,
   updateClubSubMenu,
   uploadMenuDocument,
+  getWebsitePages,
 } from "@/services/api";
+import { customPageMenuOptions } from "@/lib/websiteBuilder";
 import { ClubMenu, ClubSubMenu, LINK_TYPES } from "@/types/menu";
 import V2FormShell, { useV2ReturnTo } from "@/components/v2/V2FormShell";
 import ClubAdminShell from "@/components/v2/ClubAdminShell";
@@ -382,20 +384,23 @@ export default function MenuListV2EditPage() {
     let cancelled = false;
     async function init() {
       try {
-        const [club, m, subs, allMenus] = await Promise.all([
+        const [club, m, subs, allMenus, sitePages] = await Promise.all([
           getClub(clubId),
           getClubMenu(clubId, menuId),
           getClubSubMenus(clubId, menuId),
           getClubMenus(clubId),
+          getWebsitePages("clubs", clubId).catch(() => []),
         ]);
         if (cancelled) return;
         setClubName(club.clubName);
         setMenu(m);
         setSubMenus(subs);
-        setPageOptions(
-          allMenus.filter((x) => x.isDefault && x.linkValue)
+        // Default pages plus published custom pages from Pages and Layout (website builder).
+        setPageOptions([
+          ...allMenus.filter((x) => x.isDefault && x.linkValue)
                   .map((x) => ({ value: x.linkValue, label: x.menuName })),
-        );
+          ...customPageMenuOptions(sitePages),
+        ]);
 
         setFormName(m.menuName);
         setFormLinkType(m.linkType);

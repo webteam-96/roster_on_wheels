@@ -158,5 +158,109 @@ public partial class DatabaseInitializer
                 UNIQUE KEY uk_grant_light (fk_year_id, fk_project_id),
                 INDEX idx_grant_light_club (fk_club_id, fk_year_id)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+
+        // Lifecycle (2026-11-19): budget category/supplier and the final report's actual spend per line, the
+        // district's acceptance of the final report, typed sign-offs and interim reports. Times are UTC.
+        await AddColumnIfNotExists(connection, "grant_application_lines", "category", "VARCHAR(60) NULL");
+        await AddColumnIfNotExists(connection, "grant_application_lines", "supplier", "VARCHAR(150) NULL");
+        await AddColumnIfNotExists(connection, "grant_application_lines", "actual_amount", "DECIMAL(12,2) NULL");
+        await AddColumnIfNotExists(connection, "grant_applications", "report_accepted_at", "DATETIME NULL");
+        await AddColumnIfNotExists(connection, "grant_applications", "report_accepted_by", "INT NULL");
+        await connection.ExecuteAsync(@"
+            CREATE TABLE IF NOT EXISTS grant_signoffs (
+                pk_signoff_id INT AUTO_INCREMENT PRIMARY KEY,
+                fk_application_id INT NOT NULL,
+                fk_member_id INT NOT NULL,
+                action VARCHAR(30) NOT NULL,
+                signer_role VARCHAR(40) NOT NULL,
+                signature_name VARCHAR(150) NOT NULL,
+                signed_at_utc DATETIME NOT NULL,
+                INDEX idx_grant_signoff_app (fk_application_id),
+                CONSTRAINT fk_grant_signoff_app FOREIGN KEY (fk_application_id) REFERENCES grant_applications (pk_application_id) ON DELETE CASCADE
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+        await connection.ExecuteAsync(@"
+            CREATE TABLE IF NOT EXISTS grant_interim_reports (
+                pk_report_id INT AUTO_INCREMENT PRIMARY KEY,
+                fk_application_id INT NOT NULL,
+                progress TEXT NOT NULL,
+                amount_spent DECIMAL(12,2) NOT NULL,
+                submitted_by INT NOT NULL,
+                submitted_at_utc DATETIME NOT NULL,
+                INDEX idx_grant_interim_app (fk_application_id),
+                CONSTRAINT fk_grant_interim_app FOREIGN KEY (fk_application_id) REFERENCES grant_applications (pk_application_id) ON DELETE CASCADE
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+
+        // Report due dates and reminders (2026-11-19): interim due date per cycle; one reminder per application,
+        // report (interim | final) and stage (due_soon | overdue).
+        await AddColumnIfNotExists(connection, "grant_cycles", "interim_due_on", "DATE NULL");
+        await connection.ExecuteAsync(@"
+            CREATE TABLE IF NOT EXISTS grant_report_reminders (
+                pk_reminder_id INT AUTO_INCREMENT PRIMARY KEY,
+                fk_application_id INT NOT NULL,
+                report VARCHAR(20) NOT NULL,
+                stage VARCHAR(20) NOT NULL,
+                due_on DATE NULL,
+                sent_at_utc DATETIME NOT NULL,
+                UNIQUE KEY uk_grant_reminder (fk_application_id, report, stage),
+                CONSTRAINT fk_grant_reminder_app FOREIGN KEY (fk_application_id) REFERENCES grant_applications (pk_application_id) ON DELETE CASCADE
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+    
+        // Extras (2026-11-20): club qualification per year with trained members, district receipts per cycle (for the
+        // monthly cash flow), and the district's editable notification email templates.
+        await connection.ExecuteAsync(@"
+            CREATE TABLE IF NOT EXISTS grant_club_qualifications (
+                pk_qualification_id INT AUTO_INCREMENT PRIMARY KEY,
+                fk_district_id INT NOT NULL,
+                fk_club_id INT NOT NULL,
+                fk_year_id INT NOT NULL,
+                mou_signed_on DATE NULL,
+                training_on DATE NULL,
+                expires_on DATE NULL,
+                note VARCHAR(500) NULL,
+                modified_by INT NOT NULL,
+                modified_at_utc DATETIME NOT NULL,
+                UNIQUE KEY uk_grant_qual (fk_club_id, fk_year_id),
+                INDEX idx_grant_qual_district (fk_district_id, fk_year_id)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+        await connection.ExecuteAsync(@"
+            CREATE TABLE IF NOT EXISTS grant_qualified_members (
+                fk_qualification_id INT NOT NULL,
+                fk_member_id INT NOT NULL,
+                trained_on DATE NULL,
+                PRIMARY KEY (fk_qualification_id, fk_member_id),
+                CONSTRAINT fk_grant_qual_member FOREIGN KEY (fk_qualification_id) REFERENCES grant_club_qualifications (pk_qualification_id) ON DELETE CASCADE
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+        await connection.ExecuteAsync(@"
+            CREATE TABLE IF NOT EXISTS grant_cycle_receipts (
+                pk_receipt_id INT AUTO_INCREMENT PRIMARY KEY,
+                fk_cycle_id INT NOT NULL,
+                amount DECIMAL(12,2) NOT NULL,
+                received_on DATE NOT NULL,
+                source VARCHAR(150) NOT NULL,
+                reference VARCHAR(100) NULL,
+                recorded_by INT NOT NULL,
+                created_at_utc DATETIME NOT NULL,
+                INDEX idx_grant_receipt_cycle (fk_cycle_id, received_on),
+                CONSTRAINT fk_grant_receipt_cycle FOREIGN KEY (fk_cycle_id) REFERENCES grant_cycles (pk_cycle_id) ON DELETE CASCADE
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+        // Per district: require club qualification to submit (default off: unqualified clubs are only warned).
+        await connection.ExecuteAsync(@"
+            CREATE TABLE IF NOT EXISTS grant_district_settings (
+                fk_district_id INT NOT NULL PRIMARY KEY,
+                require_qualification TINYINT(1) NOT NULL DEFAULT 0,
+                modified_by INT NOT NULL,
+                modified_at_utc DATETIME NOT NULL
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+        await connection.ExecuteAsync(@"
+            CREATE TABLE IF NOT EXISTS grant_email_templates (
+                pk_template_id INT AUTO_INCREMENT PRIMARY KEY,
+                fk_district_id INT NOT NULL,
+                kind VARCHAR(20) NOT NULL,
+                subject VARCHAR(250) NOT NULL,
+                body TEXT NOT NULL,
+                modified_by INT NOT NULL,
+                modified_at_utc DATETIME NOT NULL,
+                UNIQUE KEY uk_grant_template (fk_district_id, kind)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
     }
 }

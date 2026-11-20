@@ -30,6 +30,12 @@ public class LoginResponseDto
     public List<ClubScopeDto> AccessibleClubs { get; set; } = new();
     // Districts where this member is a District Admin with all-clubs access.
     public List<DistrictScopeDto> DistrictClubAccess { get; set; } = new();
+
+    // Account security (gap agent): a right password with MFA due returns no Token, only this challenge.
+    public bool MfaRequired { get; set; }
+    public string? MfaToken { get; set; }
+    public bool MfaSetupRequired { get; set; }
+    public List<string>? RecoveryCodes { get; set; }
 }
 
 public class LoginAuditLogDto

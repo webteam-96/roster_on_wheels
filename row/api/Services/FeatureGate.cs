@@ -52,8 +52,9 @@ public static class FeatureGate
         // New Goal Setting (Rotary.org) with DG Sync, ported from upstream 2026-11-09. One module (owner 2026-11-09):
         // off until a SuperAdmin turns it on.
         new("goal_setting_rotary", "Rotary.org goals and DG Sync", Kind.Flagged,
-            new[] { @"^/api/goal-setting-rotary(/|$)" },
-            new[] { @"/goal-setting-rotary(/|$)" }),
+            // RCC & District Goals pages and their Excel report (RIZones 9-17 Nov, ported 2026-11-20) belong to it too.
+            new[] { @"^/api/goal-setting-rotary(/|$)", @"^/api/rcc-goals(/|$)" },
+            new[] { @"/goal-setting-rotary(/|$)", @"/rcc-goals(/|$)" }),
         // AI Assistant, ported from upstream 2026-11-09: also needs Assistant:Enabled=true and its keys on the server.
         new("ai_assistant", "AI Assistant", Kind.Flagged,
             new[] { @"^/api/assistant(/|$)" },
@@ -74,8 +75,17 @@ public static class FeatureGate
             new[] { @"/grants(/|$)" }),
         new("volunteers", "Volunteers and speakers (sign-up sheets, speakers, meeting duties)", Kind.Flagged,
             new[] { @"^/api/clubs/\d+/(volunteer-sheets|speakers|meeting-duties)(/|$)", @"^/api/mobile/(volunteers|meeting-duties)(/|$)",
-                    @"^/api/public/volunteers(/|$)", @"^/api/public/club/\d+/speakers(/|$)" },
-            new[] { @"/volunteers(/|$)", @"/speakers(/|$)", @"^/public/volunteer(/|$)" }),
+                    @"^/api/public/volunteers(/|$)", @"^/api/public/club/\d+/speakers(/|$)",
+                    @"^/api/(clubs|districts)/\d+/speaker-bureau(/|$)" },
+            new[] { @"/volunteers(/|$)", @"/speakers(/|$)", @"/speaker-bureau(/|$)", @"^/public/volunteer(/|$)" }),
+        // Youth programs (gap #12, 2026-11-19): RYLA, RLI and the Youth Protection clearance register.
+        new("youth_programs", "Youth programs (RYLA, RLI, Youth Protection)", Kind.Flagged,
+            new[] { @"^/api/youth(/|$)" },
+            new[] { @"/youth-programs(/|$)" }),
+        // Service hours and contributions (gap agent): members log hours in the app, officers approve, reports per year.
+        new("service_hours", "Service hours: member hours, officer approval, contributions, reports", Kind.Flagged,
+            new[] { @"^/api/(clubs|districts)/\d+/service-hours(/|$)", @"^/api/mobile/service-hours(/|$)" },
+            new[] { @"/service-hours(/|$)" }),
         // N3 (2026-10-23). The existing potential-members list/add/edit stay on; the new parts switch with this.
         new("contacts_growth", "Contacts, prospect pipeline, join form, invite prompts and growth", Kind.Flagged,
             new[]
@@ -85,6 +95,8 @@ public static class FeatureGate
                 @"^/api/(clubs|districts)/\d+/growth(/|$)",
                 @"^/api/clubs/\d+/invite-(prompts|link)(/|$)",
                 @"^/api/public/(join|invite)(/|$)",
+                @"^/api/clubs/\d+/prospect-(tasks|notify-settings)(/|$)", // prospect follow-up (gap agent)
+                @"^/api/mobile/prospect-tasks(/|$)",
             },
             new[] { @"^/(club|district)-admin-dashboard/contacts(/|$)" }),
         // N10 (2026-10-23): read-only target against actual per club and district; targets come from goal setting and N3.
@@ -120,9 +132,17 @@ public static class FeatureGate
             new[] { @"/chat-moderation(/|$)" }),
         // N7 (build spec 3.1). Off: the Wave 1 planning guard alone, no elect access or elect sign-in, no scheduled
         // cut-over (the guards, sign-in and the cut-over job check this switch too).
-        new(PlanningAccess.FeatureKey, "Planning mode: elect access, launchpad, cut-over, trials", Kind.Flagged,
+        // Enhanced committees (gap agent): subcommittee tree, committee-private documents and committee email.
+        new("committees", "Enhanced committees: subcommittees, private documents, committee email", Kind.Flagged,
+            new[] { @"^/api/committees(/|$)" },
+            new[] { @"^/(club|district)-admin-dashboard/committees(/|$)" }),
+        new(PlanningAccess.FeatureKey,"Planning mode: elect access, launchpad, cut-over, trials", Kind.Flagged,
             new[] { @"^/api/planning(/|$)", @"^/api/tenants/\d+/(trial|convert-trial)$" },
             new[] { @"^/planning(/|$)" }),
+        // Job postings and B2B offers (gap agent): members post in the app, district admins approve in the admin.
+        new("job_board", "Job postings and business offers", Kind.Flagged,
+            new[] { @"^/api/mobile/job-board(/|$)", @"^/api/districts/\d+/job-board(/|$)" },
+            new[] { @"/job-board(/|$)" }),
     };
 
     private static readonly (Feature F, Regex Re, bool WritesOnly)[] Rules = All

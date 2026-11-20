@@ -51,19 +51,19 @@ interface ModuleItem {
   label: string;
   group: "ocv" | "club";
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  columns: { key: string; label: string; width?: number }[];
+  columns: { key: string; label: string; width?: number; numeric?: boolean }[];
 }
 
 const MODULES: ModuleItem[] = [
   // OCV/GOV
   { key: "static_documents", label: "Static Documents", group: "ocv", columns: [
     { key: "documentType", label: "Document Type", width: 25 }, { key: "fileName", label: "File Name", width: 30 },
-    { key: "amount", label: "Amount", width: 12 }, { key: "paidOn", label: "Paid On", width: 15 },
+    { key: "amount", label: "Amount", width: 12, numeric: true }, { key: "paidOn", label: "Paid On", width: 15 },
     { key: "customType", label: "Custom Type", width: 20 }, { key: "uploadDate", label: "Upload Date", width: 18 },
   ]},
   { key: "financial_documents", label: "Financial Documents", group: "ocv", columns: [
     { key: "documentType", label: "Document Type", width: 25 }, { key: "fileName", label: "File Name", width: 30 },
-    { key: "amount", label: "Amount", width: 12 }, { key: "paidOn", label: "Paid On", width: 15 },
+    { key: "amount", label: "Amount", width: 12, numeric: true }, { key: "paidOn", label: "Paid On", width: 15 },
     { key: "uploadDate", label: "Upload Date", width: 18 },
   ]},
   { key: "trust_documents", label: "Trust Documents", group: "ocv", columns: [
@@ -72,7 +72,7 @@ const MODULES: ModuleItem[] = [
   ]},
   { key: "grants", label: "Grants", group: "ocv", columns: [
     { key: "documentType", label: "Document Type", width: 25 }, { key: "fileName", label: "File Name", width: 30 },
-    { key: "amount", label: "Amount", width: 12 }, { key: "uploadDate", label: "Upload Date", width: 18 },
+    { key: "amount", label: "Amount", width: 12, numeric: true }, { key: "uploadDate", label: "Upload Date", width: 18 },
   ]},
   { key: "additional_documents", label: "Additional Documents", group: "ocv", columns: [
     { key: "documentType", label: "Document Type", width: 25 }, { key: "fileName", label: "File Name", width: 30 },
@@ -80,7 +80,7 @@ const MODULES: ModuleItem[] = [
   ]},
   { key: "dues", label: "Dues", group: "ocv", columns: [
     { key: "documentType", label: "Document Type", width: 25 }, { key: "fileName", label: "File Name", width: 30 },
-    { key: "amount", label: "Amount", width: 12 }, { key: "paidOn", label: "Paid On", width: 15 },
+    { key: "amount", label: "Amount", width: 12, numeric: true }, { key: "paidOn", label: "Paid On", width: 15 },
     { key: "uploadDate", label: "Upload Date", width: 18 },
   ]},
   // Club
@@ -88,38 +88,38 @@ const MODULES: ModuleItem[] = [
     { key: "title", label: "Title", width: 25 }, { key: "projectDate", label: "Date", width: 15 },
     { key: "areaOfFocus", label: "Area of Focus", width: 20 },
     { key: "location", label: "Location", width: 20 },
-    { key: "projectCost", label: "Cost", width: 12 }, { key: "directBeneficiaries", label: "Beneficiaries", width: 14 },
-    { key: "manHours", label: "Man Hours", width: 12 }, { key: "funding", label: "Funding", width: 15 },
+    { key: "projectCost", label: "Cost", width: 12, numeric: true }, { key: "directBeneficiaries", label: "Beneficiaries", width: 14, numeric: true },
+    { key: "manHours", label: "Man Hours", width: 12, numeric: true }, { key: "funding", label: "Funding", width: 15 },
   ]},
   { key: "vocational_service", label: "Vocational Service", group: "club", columns: [
     { key: "title", label: "Title", width: 25 }, { key: "projectDate", label: "Date", width: 15 },
     { key: "areaOfFocus", label: "Area of Focus", width: 20 },
-    { key: "location", label: "Location", width: 20 }, { key: "projectCost", label: "Cost", width: 12 },
-    { key: "directBeneficiaries", label: "Beneficiaries", width: 14 }, { key: "manHours", label: "Man Hours", width: 12 },
+    { key: "location", label: "Location", width: 20 }, { key: "projectCost", label: "Cost", width: 12, numeric: true },
+    { key: "directBeneficiaries", label: "Beneficiaries", width: 14, numeric: true }, { key: "manHours", label: "Man Hours", width: 12, numeric: true },
   ]},
   { key: "international_service", label: "International Service", group: "club", columns: [
     { key: "title", label: "Title", width: 25 }, { key: "projectDate", label: "Date", width: 15 },
     { key: "areaOfFocus", label: "Area of Focus", width: 20 },
-    { key: "location", label: "Location", width: 20 }, { key: "projectCost", label: "Cost", width: 12 },
-    { key: "directBeneficiaries", label: "Beneficiaries", width: 14 }, { key: "manHours", label: "Man Hours", width: 12 },
+    { key: "location", label: "Location", width: 20 }, { key: "projectCost", label: "Cost", width: 12, numeric: true },
+    { key: "directBeneficiaries", label: "Beneficiaries", width: 14, numeric: true }, { key: "manHours", label: "Man Hours", width: 12, numeric: true },
   ]},
   { key: "new_generation_service", label: "New Generation Service", group: "club", columns: [
     { key: "title", label: "Title", width: 25 }, { key: "projectDate", label: "Date", width: 15 },
     { key: "areaOfFocus", label: "Area of Focus", width: 20 },
-    { key: "location", label: "Location", width: 20 }, { key: "projectCost", label: "Cost", width: 12 },
-    { key: "directBeneficiaries", label: "Beneficiaries", width: 14 }, { key: "manHours", label: "Man Hours", width: 12 },
+    { key: "location", label: "Location", width: 20 }, { key: "projectCost", label: "Cost", width: 12, numeric: true },
+    { key: "directBeneficiaries", label: "Beneficiaries", width: 14, numeric: true }, { key: "manHours", label: "Man Hours", width: 12, numeric: true },
   ]},
   { key: "public_image_initiative", label: "Public Image Initiative", group: "club", columns: [
     { key: "title", label: "Title", width: 25 }, { key: "projectDate", label: "Date", width: 15 },
     { key: "areaOfFocus", label: "Area of Focus", width: 20 },
-    { key: "location", label: "Location", width: 20 }, { key: "projectCost", label: "Cost", width: 12 },
-    { key: "directBeneficiaries", label: "Beneficiaries", width: 14 }, { key: "manHours", label: "Man Hours", width: 12 },
+    { key: "location", label: "Location", width: 20 }, { key: "projectCost", label: "Cost", width: 12, numeric: true },
+    { key: "directBeneficiaries", label: "Beneficiaries", width: 14, numeric: true }, { key: "manHours", label: "Man Hours", width: 12, numeric: true },
   ]},
   { key: "club_service", label: "Club Service", group: "club", columns: [
     { key: "title", label: "Title", width: 25 }, { key: "projectDate", label: "Date", width: 15 },
     { key: "areaOfFocus", label: "Area of Focus", width: 20 },
-    { key: "location", label: "Location", width: 20 }, { key: "projectCost", label: "Cost", width: 12 },
-    { key: "directBeneficiaries", label: "Beneficiaries", width: 14 }, { key: "manHours", label: "Man Hours", width: 12 },
+    { key: "location", label: "Location", width: 20 }, { key: "projectCost", label: "Cost", width: 12, numeric: true },
+    { key: "directBeneficiaries", label: "Beneficiaries", width: 14, numeric: true }, { key: "manHours", label: "Man Hours", width: 12, numeric: true },
   ]},
   { key: "announcements", label: "Announcements", group: "club", columns: [
     { key: "title", label: "Title", width: 25 }, { key: "description", label: "Description", width: 30 },
@@ -141,9 +141,9 @@ const MODULES: ModuleItem[] = [
   ]},
   { key: "attendance", label: "Attendance", group: "club", columns: [
     { key: "eventName", label: "Event", width: 25 }, { key: "eventDateTime", label: "Date", width: 18 },
-    { key: "membersPresent", label: "Members Present", width: 16 }, { key: "visitors", label: "Visitors", width: 10 },
-    { key: "rotarians", label: "Rotarians", width: 10 }, { key: "totalMembers", label: "Total Active", width: 12 },
-    { key: "attendancePercent", label: "Attendance %", width: 14 },
+    { key: "membersPresent", label: "Members Present", width: 16, numeric: true }, { key: "visitors", label: "Visitors", width: 10, numeric: true },
+    { key: "rotarians", label: "Rotarians", width: 10, numeric: true }, { key: "totalMembers", label: "Total Active", width: 12, numeric: true },
+    { key: "attendancePercent", label: "Attendance %", width: 14, numeric: true },
   ]},
   { key: "board_of_directors", label: "Board of Directors", group: "club", columns: [
     { key: "designation", label: "Designation", width: 25 }, { key: "memberName", label: "Name", width: 25 },
@@ -158,7 +158,7 @@ const MODULES: ModuleItem[] = [
   ]},
   { key: "trf_contributions", label: "TRF Contributions", group: "club", columns: [
     { key: "donorName", label: "Donor", width: 25 }, { key: "fundName", label: "Fund Name", width: 20 },
-    { key: "fundType", label: "Type", width: 15 }, { key: "amountUsd", label: "Amount (USD)", width: 15 },
+    { key: "fundType", label: "Type", width: 15 }, { key: "amountUsd", label: "Amount (USD)", width: 15, numeric: true },
     { key: "trfDate", label: "Date", width: 18 },
   ]},
 ];

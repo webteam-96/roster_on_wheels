@@ -87,10 +87,23 @@ public class MobileAuthService : IMobileAuthService
         await conn.ExecuteAsync("sp_auth_update_success_login", new { p_CredId = credId }, commandType: CommandType.StoredProcedure);
 
         bool isTemporary = cred.IsTemporaryPassword != null && Convert.ToBoolean(cred.IsTemporaryPassword);
+        // Account security: MFA due → no JWT yet, only a short single-use challenge (POST api/mobile/auth/mfa/verify).
+        var mfa = await AccountSecurityService.LoginGateAsync(conn, memberId, AccountSecurityService.Mobile, isTemporary, _configuration);
+        if (mfa != null)
+            return new MobileVerifyOtpResponse { MfaRequired = true, MfaToken = mfa.MfaToken, MfaSetupRequired = mfa.MfaSetupRequired, MemberId = memberId };
         return await IssueSessionAsync(conn, memberId, null, "member", new MobileVerifyOtpDto
         {
             Imei = dto.Imei, DeviceToken = dto.DeviceToken, DeviceName = dto.DeviceName, AppVersion = dto.AppVersion,
         }, isTemporary);
+    }
+
+    /// <summary>Account security: the session after a second factor or an app sign-in code (all guards still run).</summary>
+    public async Task<MobileVerifyOtpResponse> IssueSessionForVerifiedMemberAsync(int memberId, MobileVerifyOtpDto dto, bool mustChangePassword)
+    {
+        using var conn = CreateConnection();
+        await conn.OpenAsync();
+        await TrialLock.RefuseIfLockedAsync(conn, memberId);
+        return await IssueSessionAsync(conn, memberId, null, "member", dto, mustChangePassword);
     }
 
     // Login guards, device session and the mobile JWT, shared by OTP and password sign-in.

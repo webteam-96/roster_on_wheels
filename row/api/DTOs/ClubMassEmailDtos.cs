@@ -52,7 +52,15 @@ public class MassEmailDetailDto
     public DateTime? SentDate { get; set; }
     public DateTime CreatedDate { get; set; }
     public string? TemplateKey { get; set; }
+    // Recipients who opened / clicked (from Brevo's webhook; 0 when open tracking is off).
+    public int OpenedCount { get; set; }
+    public int ClickedCount { get; set; }
     public List<MassEmailRecipientDto> Recipients { get; set; } = new();
+}
+
+public class ResendNonOpenersDto
+{
+    public string? Subject { get; set; }
 }
 
 public class MassEmailRecipientDto

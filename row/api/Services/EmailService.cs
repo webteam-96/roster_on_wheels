@@ -219,7 +219,8 @@ public class EmailService : IEmailService
     // fromEmail: a tenant address on a verified sender domain (N5), else the platform sender above.
     // headers: extra mail headers (N5: List-Unsubscribe). Returns Brevo's message id, which its webhook events carry.
     public async Task<string?> SendMassEmailAsync(string toEmail, string subject, string htmlBody,
-        string? fromName, string? replyName, string? replyEmail, string? fromEmail = null, IReadOnlyDictionary<string, string>? headers = null)
+        string? fromName, string? replyName, string? replyEmail, string? fromEmail = null, IReadOnlyDictionary<string, string>? headers = null,
+        IReadOnlyList<(string Name, byte[] Content)>? attachments = null)
     {
         var brevo = _configuration.GetSection("Brevo");
         var apiKey = brevo["ApiKey"] ?? throw new InvalidOperationException("Brevo:ApiKey is not configured.");
@@ -242,10 +243,12 @@ public class EmailService : IEmailService
                 : new { email = replyEmail!.Trim(), name = replyName!.Trim() };
         }
         if (headers is { Count: > 0 }) payload["headers"] = headers;
+        if (attachments is { Count: > 0 })
+            payload["attachment"] = attachments.Select(a => new { name = a.Name, content = Convert.ToBase64String(a.Content) }).ToArray();
 
         var json = JsonSerializer.Serialize(payload);
         using var http = _httpClientFactory.CreateClient();
-        http.Timeout = TimeSpan.FromSeconds(30);
+        http.Timeout = TimeSpan.FromSeconds(attachments is { Count: > 0 } ? 180 : 30);
         using var req = new HttpRequestMessage(HttpMethod.Post, apiUrl)
         {
             Content = new StringContent(json, Encoding.UTF8, "application/json"),

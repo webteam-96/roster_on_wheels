@@ -114,6 +114,8 @@ dependencies:
   smart_auth: ^3.2.0
   phone_numbers_parser: ^9.0.23
   flutter_contacts: ^2.1.0
+  # Contact exchange: scan another member's ROW QR (the app had no scanner, only qr_flutter to draw codes)
+  mobile_scanner: ^7.5.0
 
 dev_dependencies:
   flutter_test:

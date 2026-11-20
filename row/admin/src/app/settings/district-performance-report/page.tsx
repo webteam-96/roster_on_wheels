@@ -6,6 +6,7 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import { Button } from "@/components/ui/button";
 import { AlertTriangle, ArrowLeft, Download, Eye, FileBarChart, Loader2, Mail, Printer } from "@/components/icons";
 import { fileTimestamp } from "@/lib/dateUtils";
+import { useDownloadProgress } from "@/lib/downloadProgress";
 import {
   getDistrictPerformanceReportSettings,
   getDistrictPerformanceReportDistricts,
@@ -174,7 +175,8 @@ export default function DistrictPerformanceReportPage() {
   const [districtId, setDistrictId] = useState<number>(0);
   const [report, setReport] = useState<DistrictPerformanceReportView | null>(null);
   const [viewing, setViewing] = useState(false);
-  const [downloading, setDownloading] = useState(false);
+  // Report downloads: progress inside the clicked button, one at a time on this page.
+  const dl = useDownloadProgress();
   const [sending, setSending] = useState(false);
   const [printing, setPrinting] = useState(false);
   const [msg, setMsg] = useState<{ kind: "ok" | "err"; text: string } | null>(null);
@@ -232,9 +234,9 @@ export default function DistrictPerformanceReportPage() {
     } finally { setViewing(false); }
   };
 
-  const download = async () => {
+  const download = () => dl.run("district-excel", async () => {
     if (!districtId) return;
-    setDownloading(true); setMsg(null);
+    setMsg(null);
     try {
       const blob = await downloadDistrictPerformanceReportExcel(districtId);
       const url = URL.createObjectURL(blob);
@@ -245,8 +247,8 @@ export default function DistrictPerformanceReportPage() {
       URL.revokeObjectURL(url);
     } catch (e: any) {
       setMsg({ kind: "err", text: "Failed to download the Excel." });
-    } finally { setDownloading(false); }
-  };
+    }
+  });
 
   const sendTest = async () => {
     if (!districtId || !settings) return;
@@ -331,9 +333,8 @@ export default function DistrictPerformanceReportPage() {
             {viewing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Eye className="mr-2 h-4 w-4" />}
             View Report
           </Button>
-          <Button variant="outline" onClick={download} disabled={downloading || !districtId}>
-            {downloading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Download className="mr-2 h-4 w-4" />}
-            {downloading ? "Preparing Excel…" : "Download Excel"}
+          <Button variant="outline" onClick={download} disabled={dl.busy || !districtId}>
+            {dl.is("district-excel") ? dl.bar("district-excel") : <><Download className="mr-2 h-4 w-4" />Download Excel</>}
           </Button>
           <Button onClick={sendTest} disabled={sending || !districtId || !settings} className="bg-[#17458F] hover:bg-[#123A78] text-white">
             {sending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Mail className="mr-2 h-4 w-4" />}

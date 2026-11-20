@@ -971,6 +971,105 @@ public partial class GoalSettingService : IGoalSettingService
     private static async Task<bool> IsAnnualOnlyCategoryAsync(MySqlConnection conn, int categoryId)
         => categoryId > 0 && IsAnnualOnlyCategory(await GetCategoryNameAsync(conn, categoryId));
 
+    // ── Locking ───────────────────────────────────────────────────────────
+    private async Task<GoalLockStatusDto> GetLockAsync(
+        MySqlConnection conn, string entityType, int clubId, int districtId, int categoryId, int yearId)
+    {
+        var row = await conn.QueryFirstOrDefaultAsync<dynamic>(@"
+            SELECT l.IsLocked AS isLocked, m.MemberName AS lockedByName,
+                   DATE_FORMAT(l.LockedDate, '%Y-%m-%d %H:%i') AS lockedDate
+            FROM goal_locks l
+            LEFT JOIN member_master_profile m ON m.pk_member_master_profile_id = l.LockedBy
+            WHERE l.EntityType = @EntityType AND l.fk_club_id = @ClubId AND l.fk_district_id = @DistrictId
+              AND l.fk_category_id = @CategoryId AND l.fk_year_id = @YearId",
+            new { EntityType = entityType, ClubId = clubId, DistrictId = districtId, CategoryId = categoryId, YearId = yearId });
+        if (row == null) return new GoalLockStatusDto { IsLocked = false };
+        var isLocked = Convert.ToBoolean(row.isLocked);
+        return new GoalLockStatusDto
+        {
+            IsLocked = isLocked,
+            LockedByName = isLocked ? row.lockedByName as string : null,
+            LockedDate = isLocked ? row.lockedDate as string : null,
+        };
+    }
+
+    private async Task SetLockAsync(
+        MySqlConnection conn, string entityType, int clubId, int districtId, int categoryId, int yearId, bool locked, int memberId)
+    {
+        if (locked)
+        {
+            await conn.ExecuteAsync(@"
+                INSERT INTO goal_locks (EntityType, fk_club_id, fk_district_id, fk_category_id, fk_year_id, IsLocked, LockedBy, LockedDate)
+                VALUES (@EntityType, @ClubId, @DistrictId, @CategoryId, @YearId, 1, @MemberId, NOW())
+                ON DUPLICATE KEY UPDATE IsLocked = 1, LockedBy = @MemberId, LockedDate = NOW(), UnlockedBy = NULL, UnlockedDate = NULL",
+                new { EntityType = entityType, ClubId = clubId, DistrictId = districtId, CategoryId = categoryId, YearId = yearId, MemberId = memberId });
+        }
+        else
+        {
+            await conn.ExecuteAsync(@"
+                INSERT INTO goal_locks (EntityType, fk_club_id, fk_district_id, fk_category_id, fk_year_id, IsLocked, UnlockedBy, UnlockedDate)
+                VALUES (@EntityType, @ClubId, @DistrictId, @CategoryId, @YearId, 0, @MemberId, NOW())
+                ON DUPLICATE KEY UPDATE IsLocked = 0, UnlockedBy = @MemberId, UnlockedDate = NOW()",
+                new { EntityType = entityType, ClubId = clubId, DistrictId = districtId, CategoryId = categoryId, YearId = yearId, MemberId = memberId });
+        }
+    }
+
+    // A club's goals can be locked by a District Admin of that club's district, or SuperAdmin.
+    // The Club Admin who owns the goals can never lock/unlock their own — matches the spec's
+    // "District Admin sees/edit/locks club goals" language (locking is an oversight action).
+    private async Task<bool> CanLockClubAsync(MySqlConnection conn, int memberId, int clubId)
+    {
+        if (await ClubAdminAccessHelper.IsSuperAdminAsync(conn, memberId)) return true;
+        var isDistrictAdminForClub = await conn.ExecuteScalarAsync<int>(@"
+            SELECT COUNT(*) FROM member_roles mr
+            JOIN club_master c ON c.pk_club_id = @ClubId AND c.isdeleted = 0
+            WHERE mr.fk_member_master_profile_id = @MemberId AND mr.fk_role_id = 2
+              AND mr.fk_district_id = c.fk_district_id
+              AND (mr.fk_club_id IS NULL OR mr.fk_club_id = 0)
+              AND mr.IsActive = 1 AND mr.isdeleted = 0",
+            new { MemberId = memberId, ClubId = clubId });
+        return isDistrictAdminForClub > 0;
+    }
+
+    // A district's own goals can be locked by SuperAdmin, or by the Zonal Coordinator
+    // (role 4) of the zone that contains the district — the zone-level parallel to a
+    // District Admin locking a club's goals. (The Phase-3 All-Category-All-Districts-Few-Zones
+    // role calls SetLockAsync directly with its own zone-scoped authorisation, not here.)
+    private async Task<bool> CanLockDistrictAsync(MySqlConnection conn, int memberId, int districtId)
+    {
+        if (await ClubAdminAccessHelper.IsSuperAdminAsync(conn, memberId)) return true;
+        var isZonalCoord = await conn.ExecuteScalarAsync<int>(@"
+            SELECT COUNT(*) FROM member_roles mr
+            JOIN district_master d ON d.pk_district_id = @DistrictId AND d.isdeleted = 0
+            WHERE mr.fk_member_master_profile_id = @MemberId AND mr.fk_role_id = 4
+              AND mr.fk_zone_id = d.fk_zone_id
+              AND mr.IsActive = 1 AND mr.isdeleted = 0",
+            new { MemberId = memberId, DistrictId = districtId });
+        return isZonalCoord > 0;
+    }
+
+    public async Task<GoalLockStatusDto> SetClubLockAsync(int memberId, int categoryId, int yearId, int clubId, bool locked)
+    {
+        using var conn = CreateConnection();
+        await conn.OpenAsync();
+        await EnsureYearRightsAsync(conn, memberId, clubId, 0, yearId);
+        if (!await CanLockClubAsync(conn, memberId, clubId))
+            throw new UnauthorizedAccessException("You are not authorised to lock/unlock this club's goals.");
+        await SetLockAsync(conn, "Club", clubId, 0, categoryId, yearId, locked, memberId);
+        return await GetLockAsync(conn, "Club", clubId, 0, categoryId, yearId);
+    }
+
+    public async Task<GoalLockStatusDto> SetDistrictLockAsync(int memberId, int categoryId, int yearId, int districtId, bool locked)
+    {
+        using var conn = CreateConnection();
+        await conn.OpenAsync();
+        await EnsureYearRightsAsync(conn, memberId, 0, districtId, yearId);
+        if (!await CanLockDistrictAsync(conn, memberId, districtId))
+            throw new UnauthorizedAccessException("You are not authorised to lock/unlock this district's goals.");
+        await SetLockAsync(conn, "District", 0, districtId, categoryId, yearId, locked, memberId);
+        return await GetLockAsync(conn, "District", 0, districtId, categoryId, yearId);
+    }
+
     // ── Club goal form ───────────────────────────────────────────────────
     public async Task<GoalCategoryFormDto?> GetClubGoalFormAsync(int memberId, int categoryId, int? yearId, int? requestedClubId)
     {
@@ -986,12 +1085,15 @@ public partial class GoalSettingService : IGoalSettingService
             "SELECT ClubName FROM club_master WHERE pk_club_id = @Id AND isdeleted = 0", new { Id = clubId }) ?? "";
         var categoryName = await GetCategoryNameAsync(conn, categoryId);
         var fields = await LoadFieldsWithValuesAsync(conn, categoryId, resolvedYearId, "Club", clubId, 0, autoFillLive: isEditable);
+        var lock_ = await GetLockAsync(conn, "Club", clubId, 0, categoryId, resolvedYearId);
+        var canLock = await CanLockClubAsync(conn, memberId, clubId);
 
         return new GoalCategoryFormDto
         {
             CategoryId = categoryId, CategoryName = categoryName, EntityType = "Club", ClubId = clubId,
             EntityName = clubName, YearId = resolvedYearId, YearLabel = yearLabel,
-            IsEditable = isEditable,
+            IsEditable = isEditable && !lock_.IsLocked, IsLocked = lock_.IsLocked,
+            LockedByName = lock_.LockedByName, LockedDate = lock_.LockedDate, CanLock = canLock,
             AchievedAsOn = await AchievedAsOnAsync(conn, categoryId, resolvedYearId, "Club", clubId, 0),
             Fields = fields,
         };
@@ -1007,6 +1109,7 @@ public partial class GoalSettingService : IGoalSettingService
 
         var (_, _, isEditable) = await ResolveYearAsync(conn, request.YearId);
         if (!isEditable) throw new InvalidOperationException("Past years are read-only and cannot be edited.");
+        if ((await GetLockAsync(conn, "Club", clubId, 0, categoryId, request.YearId)).IsLocked) throw new InvalidOperationException("This category is locked and cannot be edited.");
 
         await ValidateTargetsVsBaselineAsync(conn, categoryId, request.YearId, "Club", clubId, 0, request.Entries);
         await SaveEntriesAsync(conn, categoryId, request.YearId, "Club", clubId, 0, request.Entries, memberId);
@@ -1018,18 +1121,21 @@ public partial class GoalSettingService : IGoalSettingService
     // ── District's own goal form ─────────────────────────────────────────
     // "One category's fields for one district" for the District Admin's own-goal form.
     private async Task<GoalCategoryFormDto> BuildDistrictFormDtoAsync(
-        MySqlConnection conn, int categoryId, int districtId, int yearId, string yearLabel, bool yearIsEditable)
+        MySqlConnection conn, int memberId, int categoryId, int districtId, int yearId, string yearLabel, bool yearIsEditable)
     {
         var districtName = await conn.ExecuteScalarAsync<string>(
             "SELECT DistrictNumber FROM district_master WHERE pk_district_id = @Id AND isdeleted = 0", new { Id = districtId }) ?? "";
         var categoryName = await GetCategoryNameAsync(conn, categoryId);
         var fields = await LoadFieldsWithValuesAsync(conn, categoryId, yearId, "District", 0, districtId, autoFillLive: yearIsEditable);
+        var lock_ = await GetLockAsync(conn, "District", 0, districtId, categoryId, yearId);
+        var canLock = await CanLockDistrictAsync(conn, memberId, districtId);
 
         return new GoalCategoryFormDto
         {
             CategoryId = categoryId, CategoryName = categoryName, EntityType = "District", DistrictId = districtId,
             EntityName = $"District {districtName}", YearId = yearId, YearLabel = yearLabel,
-            IsEditable = yearIsEditable,
+            IsEditable = yearIsEditable && !lock_.IsLocked, IsLocked = lock_.IsLocked,
+            LockedByName = lock_.LockedByName, LockedDate = lock_.LockedDate, CanLock = canLock,
             AchievedAsOn = await AchievedAsOnAsync(conn, categoryId, yearId, "District", 0, districtId),
             Fields = fields,
         };
@@ -1045,7 +1151,7 @@ public partial class GoalSettingService : IGoalSettingService
         var (resolvedYearId, yearLabel, isEditable) = await ResolveYearAsync(conn, yearId);
         if (resolvedYearId == 0) return null;
 
-        return await BuildDistrictFormDtoAsync(conn, categoryId, districtId, resolvedYearId, yearLabel, isEditable);
+        return await BuildDistrictFormDtoAsync(conn, memberId, categoryId, districtId, resolvedYearId, yearLabel, isEditable);
     }
 
     // ── The target floor (user 2026-09-29) ──────────────────────────────────────────────────────
@@ -1124,6 +1230,7 @@ public partial class GoalSettingService : IGoalSettingService
 
         var (_, _, isEditable) = await ResolveYearAsync(conn, request.YearId);
         if (!isEditable) throw new InvalidOperationException("Past years are read-only and cannot be edited.");
+        if ((await GetLockAsync(conn, "District", 0, districtId, categoryId, request.YearId)).IsLocked) throw new InvalidOperationException("This category is locked and cannot be edited.");
 
         await ValidateTargetsVsBaselineAsync(conn, categoryId, request.YearId, "District", 0, districtId, request.Entries);
         await SaveEntriesAsync(conn, categoryId, request.YearId, "District", 0, districtId, request.Entries, memberId);
@@ -2349,6 +2456,7 @@ public partial class GoalSettingService : IGoalSettingService
             throw new InvalidOperationException(GoalTargetSplitPilot.NotInPilotMessage);
         var (resolvedYearId, _, isEditable) = await ResolveYearAsync(conn, req.YearId);
         if (!isEditable) throw new InvalidOperationException("Past years are read-only and cannot be edited.");
+        if ((await GetLockAsync(conn, "District", 0, districtId, categoryId, resolvedYearId)).IsLocked) throw new InvalidOperationException("This category is locked and cannot be edited.");
 
         var form = await GetDistrictMonthlyGoalFormAsync(memberId, categoryId, resolvedYearId, districtId)
                    ?? throw new InvalidOperationException("No month-wise metrics for this category.");
@@ -2370,6 +2478,7 @@ public partial class GoalSettingService : IGoalSettingService
             throw new InvalidOperationException(GoalTargetSplitPilot.NotInPilotMessage);
         var (resolvedYearId, _, isEditable) = await ResolveYearAsync(conn, req.YearId);
         if (!isEditable) throw new InvalidOperationException("Past years are read-only and cannot be edited.");
+        if ((await GetLockAsync(conn, "Club", clubId, 0, categoryId, resolvedYearId)).IsLocked) throw new InvalidOperationException("This category is locked and cannot be edited.");
 
         var form = await GetClubMonthlyGoalFormAsync(memberId, categoryId, resolvedYearId, clubId)
                    ?? throw new InvalidOperationException("No month-wise metrics for this category.");
@@ -3041,7 +3150,7 @@ public partial class GoalSettingService : IGoalSettingService
                 if (allSingle)
                 {
                     // ONE value cell: the number, or Yes/No / the numbered Suggestions list.
-                    if (m.DisplayText != null) { var dc = s.Cell(r, cc); dc.Value = m.DisplayText; dc.Style.Alignment.WrapText = true; }
+                    if (m.DisplayText != null) { var dc = s.Cell(r, cc); ExcelFigure.Set(dc, m.DisplayText); dc.Style.Alignment.WrapText = true; }
                     else SetNumCell(s.Cell(r, cc), m.Target);
                     BorderRow(s, r, cols); r++;
                     continue;
@@ -3174,7 +3283,7 @@ public partial class GoalSettingService : IGoalSettingService
                     // Total Giving would otherwise print an empty row). Month cells stay empty and the
                     // "Achieved" / "Achievement(%)" rows below are skipped.
                     int valueCol = c;
-                    if (m.DisplayText != null) { var dc = s.Cell(r, valueCol); dc.Value = m.DisplayText; dc.Style.Alignment.WrapText = true; }
+                    if (m.DisplayText != null) { var dc = s.Cell(r, valueCol); ExcelFigure.Set(dc, m.DisplayText); dc.Style.Alignment.WrapText = true; }
                     else SetNumCell(s.Cell(r, valueCol), m.Target ?? m.Baseline);
                     c++;
                     if (hasBase) { SetNumCell(s.Cell(r, c), (decimal?)null); c++; }   // Target cell left blank
@@ -3297,7 +3406,7 @@ public partial class GoalSettingService : IGoalSettingService
                 s.Cell(r, 1).Value = QualifiedLabel(m, rows);
                 if (!m.MonthlyTracked)
                 {
-                    if (m.DisplayText != null) { var dc = s.Cell(r, 3); dc.Value = m.DisplayText; dc.Style.Alignment.WrapText = true; }
+                    if (m.DisplayText != null) { var dc = s.Cell(r, 3); ExcelFigure.Set(dc, m.DisplayText); dc.Style.Alignment.WrapText = true; }
                     else SetNumCell(s.Cell(r, 3), m.Target ?? m.Baseline);
                     BorderRow(s, r, blockCols); r++;
                     continue;
@@ -3582,7 +3691,7 @@ public partial class GoalSettingService : IGoalSettingService
                     if (lbls[i].Single)
                     {
                         // ONE cell: the number, or Yes/No / the numbered Suggestions list.
-                        if (m?.DisplayText != null) { var dc = s1.Cell(r, cc); dc.Value = m.DisplayText; dc.Style.Alignment.WrapText = true; }
+                        if (m?.DisplayText != null) { var dc = s1.Cell(r, cc); ExcelFigure.Set(dc, m.DisplayText); dc.Style.Alignment.WrapText = true; }
                         else SetNumCell(s1.Cell(r, cc), m?.Target);
                         col += cols;
                         continue;

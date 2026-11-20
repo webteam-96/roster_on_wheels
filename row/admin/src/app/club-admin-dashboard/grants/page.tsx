@@ -60,6 +60,7 @@ export default function ClubGrantsPage() {
         <LightMode clubId={clubId} onError={setError} />
       ) : (
         <>
+          <Qualification data={data} />
           <OpenCycles clubId={clubId} cycles={data.cycles.filter((c) => c.status === "open")} onError={setError} />
           <Applications data={data} />
         </>
@@ -271,5 +272,44 @@ function LightMode({ clubId, onError }: { clubId: number; onError: (m: string) =
         </Card>
       )}
     </section>
+  );
+}
+
+/** The club's grant qualification per Rotary year, recorded by the district. Submitting needs a current one. */
+function Qualification({ data }: { data: GrantClubOverview }) {
+  const fmt = useFormat();
+  const years = data.cycles.filter((c) => c.status === "open").map((c) => c.yearId);
+  const missing = years.filter((y) => !data.qualifications.some((q) => q.yearId === y));
+  if (data.qualifications.length === 0 && missing.length === 0) return null;
+  return (
+    <Card>
+      <CardContent className="space-y-2 p-5">
+        <h3 className="text-base font-semibold">Grant qualification</h3>
+        {missing.length > 0 && (
+          <p className="text-sm text-amber-800" role="status">
+            The club is not qualified for {data.cycles.filter((c) => missing.includes(c.yearId)).map((c) => c.yearLabel).join(", ")} yet.{" "}
+            {data.requireQualification
+              ? "Applications cannot be submitted until the district records the signed MOU and the officer training."
+              : "You can still submit, but the district expects the signed MOU and the officer training."}
+          </p>
+        )}
+        <ul className="divide-y text-sm">
+          {data.qualifications.map((q) => (
+            <li key={q.yearId} className="py-2">
+              <span className="font-medium">{q.yearLabel}: {q.qualified ? "Qualified" : "Not qualified"}</span>
+              <span className="block text-xs text-muted-foreground">
+                {[
+                  q.mouSignedOn && `MOU signed ${fmt.date(q.mouSignedOn)}`,
+                  q.trainingOn && `training ${fmt.date(q.trainingOn)}`,
+                  q.expiresOn && `expires ${fmt.date(q.expiresOn)}`,
+                  q.members.length > 0 && `${q.members.length} trained members: ${q.members.map((m) => m.memberName).filter(Boolean).join(", ")}`,
+                ].filter(Boolean).join(", ")}
+              </span>
+              {q.problem && <span className="block text-xs text-amber-800">{q.problem}</span>}
+            </li>
+          ))}
+        </ul>
+      </CardContent>
+    </Card>
   );
 }

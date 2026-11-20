@@ -40,7 +40,10 @@ import { useSyncClubIdFromUrl } from "@/hooks/useSyncClubIdFromUrl";
 import { useAuth } from "@/contexts/AuthContext";
 import { clubYearRights, canEditYear, heldYearLabels } from "@/lib/adminYears";
 import ViewOnlyBadge from "@/components/ViewOnlyBadge";
-import { Eye } from "@/components/icons";
+import { Eye, Upload } from "@/components/icons";
+
+// The old CMR wizard (v2) is hidden from the list since the new CMR saves + uploads (RIZones 2026-11-13). Kept, not removed.
+const SHOW_OLD_CMR = false;
 
 type RowStatus = "Submitted" | "In Progress" | "Not Started";
 
@@ -81,6 +84,23 @@ export function ClubMonthlyReportV2View({ clubId: propClubId, embedded = false, 
   const eGovReturnUrl = `/club-admin-dashboard/e-governance${globalYearId != null ? `?yearId=${globalYearId}` : ""}`;
   const monthReturnTarget = embedded ? eGovReturnUrl : myListingUrl;
   const returnToQuery = `?returnTo=${encodeURIComponent(monthReturnTarget)}`;
+
+  // Design B PDF from the list (user 2026-11-13): the month being drawn in the hidden frame (null = none).
+  const [pdfMonth, setPdfMonth] = useState<number | null>(null);
+  // Which file the hidden frame makes: Design B PDF or the new Word (user 2026-11-13).
+  const [pdfKind, setPdfKind] = useState<"pdf" | "word">("pdf");
+  const [pdfError, setPdfError] = useState<string | null>(null);
+  useEffect(() => {
+    if (pdfMonth == null) return;
+    const onMsg = (e: MessageEvent) => {
+      if (e.origin !== window.location.origin || e.data?.type !== "cmr-pdf") return;
+      if (!e.data.ok) setPdfError(e.data.message || "The PDF could not be made. Please try again.");
+      setPdfMonth(null);
+    };
+    window.addEventListener("message", onMsg);
+    const giveUp = setTimeout(() => { setPdfMonth(null); setPdfError("The download is taking too long. Please try again."); }, 300000);
+    return () => { window.removeEventListener("message", onMsg); clearTimeout(giveUp); };
+  }, [pdfMonth]);
 
   const [clubName, setClubName] = useState("");
   const [years, setYears] = useState<ReportYear[]>([]);
@@ -157,8 +177,11 @@ export function ClubMonthlyReportV2View({ clubId: propClubId, embedded = false, 
 
   const selectedYear = years.find((y) => y.id === selectedYearId);
 
+  // Old server PDF / Word - kept (not removed) but no longer used by the list (new Design B PDF + Word, 2026-11-13).
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handleDownload = async (month: number, format: "pdf" | "word") => {
     if (!selectedYearId) return;
+    if (downloadingMonth != null || pdfMonth != null) return;   // one download at a time (user 2026-11-13)
     try {
       setDownloadingMonth(month);
       setDownloadFormat(format);
@@ -296,6 +319,23 @@ export function ClubMonthlyReportV2View({ clubId: propClubId, embedded = false, 
         description={errorMessage || ""}
         onOk={() => setErrorMessage(null)}
       />
+      <ErrorAlert
+        open={!!pdfError}
+        title="PDF"
+        description={pdfError || ""}
+        onOk={() => setPdfError(null)}
+      />
+      {/* Hidden frame that draws the Design B report and downloads its PDF (PDF button, user 2026-11-13).
+          Off-screen, not display:none - the report must be laid out to be drawn. */}
+      {pdfMonth != null && selectedYearId && (
+        <iframe
+          title="CMR PDF"
+          aria-hidden
+          tabIndex={-1}
+          src={`/clubs/${clubId}/club-monthly-report/v3/${selectedYearId}/${pdfMonth}/preview?embed=1&${pdfKind === "word" ? "word" : "download"}=1`}
+          style={{ position: "fixed", left: -10000, top: 0, width: 1100, height: 1400, border: 0 }}
+        />
+      )}
 
       {/* Month table */}
       <div className="bg-card rounded-2xl border border-slate-200 overflow-hidden">
@@ -347,6 +387,10 @@ export function ClubMonthlyReportV2View({ clubId: propClubId, embedded = false, 
                   const s = rowStatus(item);
                   const detailHref = monthBase(item.month);
                   const isDownloading = downloadingMonth === item.month;
+                  // While ANY month's PDF or Word is being made, every Edit / PDF / Word / Create button on the
+                  // list is locked - stops repeated clicks (user 2026-11-13).
+                  const busy = pdfMonth != null || downloadingMonth != null;
+                  const lockCls = busy ? " pointer-events-none opacity-50" : "";
                   return (
                     <tr key={item.month} className="hover:bg-blue-50/40">
                       <td className="px-4 py-2.5 text-slate-500 tabular-nums">{index + 1}</td>
@@ -377,40 +421,59 @@ export function ClubMonthlyReportV2View({ clubId: propClubId, embedded = false, 
                             <>
                               {/* Same route either way — the month page IS the report.
                                   Only the promise changes, so a year you cannot edit
-                                  still opens, it just says View. */}
-                              <LoadingLink
+                                  still opens, it just says View.
+                                  User 2026-11-13: "Edit" below opens the NEW CMR for everyone, and the new CMR now
+                                  saves + uploads to district too, so this old one ("Submit CMR") is HIDDEN - not
+                                  removed. Set SHOW_OLD_CMR true to bring it back. */}
+                              {SHOW_OLD_CMR && !isSuperAdmin && canManage && <LoadingLink
                                 href={detailHref}
                                 className="inline-flex items-center gap-1 text-xs font-medium px-2.5 py-1 rounded-full border border-slate-200 text-slate-700 hover:bg-blue-50 hover:text-blue-700"
                               >
                                 {canManage
-                                  ? <><Pencil size={12} /> Edit</>
+                                  ? <><Upload size={12} /> Submit CMR</>
                                   : <><Eye size={12} /> View</>}
-                              </LoadingLink>
+                              </LoadingLink>}
+                              {/* NEW CMR (Foundation / Membership from Goal Setting) - for everyone since 2026-11-13. */}
+                              {(
+                                <LoadingLink
+                                  href={detailHref.replace("/club-monthly-report/v2/", "/club-monthly-report/v3/")}
+                                  aria-disabled={busy}
+                                  tabIndex={busy ? -1 : undefined}
+                                  className={`inline-flex items-center gap-1 text-xs font-medium px-2.5 py-1 rounded-lg border border-slate-200 text-slate-700 hover:bg-blue-50 hover:text-blue-700${lockCls}`}
+                                  title="Club Monthly Report - view, preview and download (Design B)"
+                                >
+                                  {/* Was "New CMR" (user 2026-11-13: rename to Edit). */}
+                                  {canManage || isSuperAdmin ? <><Pencil size={12} /> Edit</> : <><Eye size={12} /> View</>}
+                                </LoadingLink>
+                              )}
                               {/* PDF / Word download only after the report is uploaded to district.
                                   While "In Progress" the data is still live/unfrozen, so we hide the
                                   download to avoid handing out a not-yet-submitted copy. */}
                               {item.isUploadedToDistrict && (
                                 <>
+                                  {/* PDF = Design B, downloaded right here (user 2026-11-13): the new CMR preview is
+                                      drawn in a hidden frame which downloads it; the list stays. The old server PDF
+                                      (handleDownload "pdf") is kept, not used. */}
                                   <button
                                     type="button"
-                                    onClick={() => handleDownload(item.month, "pdf")}
-                                    disabled={isDownloading}
+                                    onClick={() => { setPdfKind("pdf"); setPdfMonth(item.month); }}
+                                    disabled={busy}
                                     className="inline-flex items-center gap-1 text-xs font-medium px-2.5 py-1 rounded-full border border-slate-200 text-slate-700 hover:bg-blue-50 hover:text-blue-700 disabled:opacity-50"
                                   >
-                                    {isDownloading && downloadFormat === "pdf" ? (
-                                      <Loader2 className="animate-spin" size={12} />
-                                    ) : (
-                                      <FileText size={12} className="text-rose-500" />
-                                    )}
+                                    {pdfMonth === item.month && pdfKind === "pdf"
+                                      ? <Loader2 className="animate-spin" size={12} />
+                                      : <FileText size={12} className="text-rose-500" />}
                                     PDF
                                   </button>
                                   <button
                                     type="button"
-                                    onClick={() => handleDownload(item.month, "word")}
-                                    disabled={isDownloading}
+                                    // New Word (Design B layout, user 2026-11-13) via the same hidden frame; the old
+                                    // server Word (handleDownload "word") is kept, not used.
+                                    onClick={() => { setPdfKind("word"); setPdfMonth(item.month); }}
+                                    disabled={busy}
                                     className="inline-flex items-center gap-1 text-xs font-medium px-2.5 py-1 rounded-full border border-slate-200 text-slate-700 hover:bg-blue-50 hover:text-blue-700 disabled:opacity-50"
                                   >
-                                    {isDownloading && downloadFormat === "word" ? (
+                                    {(pdfMonth === item.month && pdfKind === "word") || (isDownloading && downloadFormat === "word") ? (
                                       <Loader2 className="animate-spin" size={12} />
                                     ) : (
                                       <FileSpreadsheet size={12} className="text-blue-500" />
@@ -421,9 +484,12 @@ export function ClubMonthlyReportV2View({ clubId: propClubId, embedded = false, 
                               )}
                             </>
                           ) : canManage ? (
+                            // Create opens the NEW CMR (it creates the month like the old one) - user 2026-11-13.
                             <LoadingLink
-                              href={detailHref}
-                              className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full bg-[#17458F] text-white hover:bg-[#17458F]"
+                              href={SHOW_OLD_CMR ? detailHref : detailHref.replace("/club-monthly-report/v2/", "/club-monthly-report/v3/")}
+                              aria-disabled={busy}
+                              tabIndex={busy ? -1 : undefined}
+                              className={`inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full bg-[#17458F] text-white hover:bg-[#17458F]${lockCls}`}
                             >
                               <Plus size={12} /> Create
                             </LoadingLink>

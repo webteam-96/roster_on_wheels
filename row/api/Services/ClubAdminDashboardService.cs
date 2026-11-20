@@ -398,6 +398,8 @@ public class ClubAdminDashboardService : IClubAdminDashboardService
 
     private async Task<decimal> ComputeAvgAttendanceAsync(MySqlConnection conn, int clubId, int yearId)
     {
+        // Member attendance % with makeups, leave and exemptions (gap #5).
+        if (yearId > 0) return await AttendanceStandingService.ClubPercentAsync(conn, clubId, yearId, null) ?? 0;
         var rows = await conn.QueryAsync<(int total, int present)>(@"
             SELECT
                 (SELECT COUNT(*) FROM club_members cm JOIN member_master_profile m ON m.pk_member_master_profile_id = cm.fk_member_master_profile_id WHERE cm.fk_club_id = a.fk_club_id AND cm.IsActive = 1 AND cm.isdeleted = 0 AND m.isdeleted = 0) AS total,

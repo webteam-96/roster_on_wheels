@@ -43,5 +43,7 @@
   <ItemGroup>
     <!-- One MySQL connection factory for API and workers: every session runs in UTC. -->
     <Compile Include="..\..\api\Services\RowDb.cs" Link="Shared\RowDb.cs" />
+    <!-- Club Admin limit per club (same rule as the API). -->
+    <Compile Include="..\..\api\Services\ClubAdminLimit.cs" Link="Shared\ClubAdminLimit.cs" />
   </ItemGroup>
 </Project>

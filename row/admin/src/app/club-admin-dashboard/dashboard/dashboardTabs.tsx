@@ -14,6 +14,9 @@ const DASHBOARD_TABS: DashboardTab[] = [
   { href: "/club-admin-dashboard/dashboard/directory",           label: "Directory" },
   { href: "/club-admin-dashboard/dashboard/board-of-directors",  label: "Board of Directors" },
   { href: "/club-admin-dashboard/dashboard/past-presidents",     label: "Past Presidents" },
+  { href: "/club-admin-dashboard/dashboard/anniversaries",       label: "Anniversaries" },
+  { href: "/club-admin-dashboard/dashboard/profile-updates",     label: "Profile Updates" },
+  { href: "/club-admin-dashboard/dashboard/rollover",            label: "Year-end Rollover" },
   // Rotary Network moved into the E-Governance tab strip (after District Awards).
 ];
 

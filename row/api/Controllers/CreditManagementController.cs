@@ -144,6 +144,28 @@ public class CreditManagementController : ControllerBase
         return Ok(new { message = "Credit deleted successfully." });
     }
 
+    // Super Admin takes credits off one pack for usage outside ROW, with a reason (user 2026-11-16).
+    [HttpPost("{id}/deduct")]
+    public async Task<ActionResult> ManualDeduct(int id, [FromBody] ManualDeductDto dto)
+    {
+        if (!IsSuperAdmin()) return Forbid();
+        try
+        {
+            var (before, after) = await _service.ManualDeductAsync(id, dto.Count, dto.Reason, GetUserId());
+            return Ok(new { message = $"{dto.Count} credit(s) deducted.", balanceBefore = before, balanceAfter = after });
+        }
+        catch (InvalidOperationException ex) { return BadRequest(new { message = ex.Message }); }
+    }
+
+    // Credits + debits of the pack's club / district wallet for its type (user 2026-11-16).
+    [HttpGet("{id}/history")]
+    public async Task<ActionResult> CreditHistory(int id)
+    {
+        if (!IsSuperAdmin()) return Forbid();
+        try { return Ok(await _service.GetCreditHistoryAsync(id)); }
+        catch (InvalidOperationException ex) { return NotFound(new { message = ex.Message }); }
+    }
+
     [HttpGet("club/{clubId}/balance")]
     public async Task<ActionResult> GetClubBalance(int clubId)
     {

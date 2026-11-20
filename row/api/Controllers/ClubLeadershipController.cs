@@ -219,15 +219,7 @@ public class ClubLeadershipController : ControllerBase
             // DC auto-group hook: add the new Pres/Sec to the district group
             await _dcAutoGroups.OnBodAddedOrUpdatedAsync(conn, tx, req.ClubId, req.MemberId, designationId.Value, req.YearId, userId);
 
-            // BOD sub-group sync (fire-and-forget) — replaced members + new member
-            foreach (var rid in replacedMemberIds) FireBodSubGroupHook(req.ClubId, designationId.Value, req.YearId);
-            FireBodSubGroupHook(req.ClubId, designationId.Value, req.YearId);
-
-            // Ensure Club Admin role (role_id=2) for this member+club — self-healing (reactivate/
-            // undelete any existing rows, or insert one) so soft-deleted/inactive/duplicate rows
-            // can't leave the member without a usable (IsActive=1, isdeleted=0) admin row.
             const int ADMIN_ROLE_ID = 2;
-            await ClubAdminAccessHelper.EnsureActiveClubAdminRoleAsync(conn, req.MemberId, req.ClubId, userId, tx);
 
             // No credentials here (2026-11-02): a password made on save was never sent to anyone, and the
             // later "Make admin / Resend" then saw existing credentials and emailed no password, locking the
@@ -256,7 +248,18 @@ public class ClubLeadershipController : ControllerBase
                 }
             }
 
+            // Ensure Club Admin role (role_id=2) for this member+club — self-healing (reactivate/
+            // undelete any existing rows, or insert one) so soft-deleted/inactive/duplicate rows
+            // can't leave the member without a usable (IsActive=1, isdeleted=0) admin row.
+            // After the revocations above, so handing an office over frees its seat first (club admin
+            // limit); a refused grant (ClubAdminLimitException, 409) rolls the whole save back.
+            await ClubAdminAccessHelper.EnsureActiveClubAdminRoleAsync(conn, req.MemberId, req.ClubId, userId, tx);
+
             await tx.CommitAsync();
+
+            // BOD sub-group sync (fire-and-forget) after commit, so a rolled-back save triggers nothing.
+            foreach (var rid in replacedMemberIds) FireBodSubGroupHook(req.ClubId, designationId.Value, req.YearId);
+            FireBodSubGroupHook(req.ClubId, designationId.Value, req.YearId);
             return Ok(new { success = true, message = $"{designationName} saved.", replacedMembers = replacedMemberIds.Count });
         }
         catch

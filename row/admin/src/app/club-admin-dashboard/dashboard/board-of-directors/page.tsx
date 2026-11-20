@@ -19,6 +19,7 @@ import type {
 import KpiCard from "@/components/dashboard/KpiCard";
 import { fmtInt } from "@/components/dashboard/formatters";
 import { ListPageSkeleton } from "@/components/row/AppKit";
+import OfficerProgressionPanel from "@/components/OfficerProgressionPanel";
 
 function designationChipStyle(name: string): string {
   const n = (name || "").toLowerCase();
@@ -262,6 +263,10 @@ export default function DashboardBodPage() {
           {filtered.length} board position{filtered.length === 1 ? "" : "s"} · {data.selectedYearLabel}
         </div>
       </div>
+
+      {/* Officer progression (gap agent): naming the nominee needs current-year rights; the API checks every step. */}
+      <OfficerProgressionPanel scope="club" scopeId={clubId}
+        canManage={isBoardAdmin && canEditYear(boardYearRights, currentYearId, isSuperAdmin)} />
     </div>
   );
 }

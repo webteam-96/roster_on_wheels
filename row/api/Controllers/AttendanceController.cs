@@ -20,12 +20,32 @@ public class AttendanceController : ControllerBase
         _connectionString = configuration.GetConnectionString("DefaultConnection")!;
     }
 
+    // Reads: the club must be reachable and the caller a member of it, one of its managers, a manager of its district or
+    // a SuperAdmin. ScopeWriteGuardMiddleware checks the same for api/clubs/{id}; this keeps the rule next to the data
+    // so a route or middleware change cannot open the member list (IDOR report of 2026-11-20).
+    private async Task<ActionResult?> ReadDeniedAsync(int clubId)
+    {
+        if (!await RotaryApi.Services.KillSwitchHelper.IsClubDrillReachableAsync(_connectionString, clubId))
+            return StatusCode(403, new { message = "This club, its district, or its zone is inactive. Reactivate it first to access this data." });
+        return await ScopeWriteGuardMiddleware.ReadAllowedAsync(_connectionString, GetUserId(), true, clubId)
+            ? null
+            : StatusCode(403, new { message = "You do not have access to this club." });
+    }
+
+    // Closed meetings (gap #5 extras, AttendanceMakeupsController close/reopen) cannot be edited or deleted.
+    private async Task<bool> MeetingClosedAsync(int id)
+    {
+        await using var conn = new MySqlConnector.MySqlConnection(_connectionString);
+        await conn.OpenAsync();
+        return await AttendanceStandingService.IsMeetingClosedAsync(conn, id);
+    }
+
     private int GetUserId() => int.Parse(User.FindFirst("memberId")?.Value ?? "0");
 
     [HttpGet("api/clubs/{clubId}/attendance")]
     public async Task<ActionResult> GetAll(int clubId, [FromQuery] int yearId, [FromQuery] string search = "", [FromQuery] int page = 1, [FromQuery] int pageSize = 10)
     {
-        if (!await RotaryApi.Services.KillSwitchHelper.IsClubDrillReachableAsync(_connectionString, clubId)) return StatusCode(403, new { message = "This club, its district, or its zone is inactive. Reactivate it first to access this data." });
+        if (await ReadDeniedAsync(clubId) is { } denied) return denied;
         var (items, totalCount) = await _service.GetAllAsync(clubId, yearId, search, page, pageSize);
         return Ok(new { items, totalCount });
     }
@@ -33,9 +53,10 @@ public class AttendanceController : ControllerBase
     [HttpGet("api/clubs/{clubId}/attendance/{id}")]
     public async Task<ActionResult<AttendanceDetailDto>> GetById(int clubId, int id)
     {
-        if (!await RotaryApi.Services.KillSwitchHelper.IsClubDrillReachableAsync(_connectionString, clubId)) return StatusCode(403, new { message = "This club, its district, or its zone is inactive. Reactivate it first to access this data." });
+        if (await ReadDeniedAsync(clubId) is { } denied) return denied;
         var result = await _service.GetByIdAsync(id);
-        if (result == null) return NotFound(new { message = "Attendance record not found." });
+        // The record must belong to the club in the URL, or any reader of one club could open another club's meeting.
+        if (result == null || result.ClubId != clubId) return NotFound(new { message = "Attendance record not found." });
         return Ok(result);
     }
 
@@ -59,6 +80,7 @@ public class AttendanceController : ControllerBase
         var scope = await _guard.LoadClubRecordScopeAsync("club_attendance", "pk_attendance_id", id);
         if (scope == null) return NotFound(new { message = "Attendance record not found." });
         if (scope.Value.ClubId != clubId) return NotFound(new { message = "Attendance record not found." });
+        if (await MeetingClosedAsync(id)) return Conflict(new { message = "This meeting is closed. An officer must reopen it before it can be changed." });
 
         var deniedFrom = await _guard.ClubYearAsync(User, clubId, scope.Value.YearId);
         if (deniedFrom != null) return deniedFrom;
@@ -79,6 +101,7 @@ public class AttendanceController : ControllerBase
         var scope = await _guard.LoadClubRecordScopeAsync("club_attendance", "pk_attendance_id", id);
         if (scope == null) return NotFound(new { message = "Attendance record not found." });
         if (scope.Value.ClubId != clubId) return NotFound(new { message = "Attendance record not found." });
+        if (await MeetingClosedAsync(id)) return Conflict(new { message = "This meeting is closed. An officer must reopen it before it can be changed." });
 
         var denied = await _guard.ClubYearAsync(User, clubId, scope.Value.YearId);
         if (denied != null) return denied;
@@ -90,7 +113,7 @@ public class AttendanceController : ControllerBase
     [HttpGet("api/clubs/{clubId}/attendance/years")]
     public async Task<ActionResult> GetYears(int clubId)
     {
-        if (!await RotaryApi.Services.KillSwitchHelper.IsClubDrillReachableAsync(_connectionString, clubId)) return StatusCode(403, new { message = "This club, its district, or its zone is inactive. Reactivate it first to access this data." });
+        if (await ReadDeniedAsync(clubId) is { } denied) return denied;
         var result = await _service.GetYearsAsync(clubId);
         return Ok(result);
     }
@@ -98,7 +121,7 @@ public class AttendanceController : ControllerBase
     [HttpGet("api/clubs/{clubId}/attendance/members")]
     public async Task<ActionResult> GetClubMembers(int clubId)
     {
-        if (!await RotaryApi.Services.KillSwitchHelper.IsClubDrillReachableAsync(_connectionString, clubId)) return StatusCode(403, new { message = "This club, its district, or its zone is inactive. Reactivate it first to access this data." });
+        if (await ReadDeniedAsync(clubId) is { } denied) return denied;
         var result = await _service.GetClubMembersAsync(clubId);
         return Ok(result);
     }

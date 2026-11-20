@@ -5,6 +5,7 @@ import DateField from "@/components/DateField";
 import { useParams, useSearchParams, useRouter } from "next/navigation";
 import { getMembershipDuesMembers, getMembershipDuesDetail, recordMembershipDuesOffline, approveMembershipDuesPayment, getMembershipDuesOfflineDetails, updateMembershipDuesOffline, deleteMembershipDuesPayment, sendMembershipDuesReceipt, sendMembershipDuesReminder, bulkMembershipDuesReminderEmail } from "@/services/api";
 import { useAuth } from "@/contexts/AuthContext";
+import { getCurrencySymbol } from "@/lib/currency";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -40,7 +41,7 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 // the Approve / Reject dialogs so admin sees the data the member filled in
 // from /pay/dues/{id} before deciding. Hidden when no pending details exist
 // (e.g. legacy data without a row reference).
-function PendingDetailsPanel({ details }: { details: any }) {
+function PendingDetailsPanel({ details, currency }: { details: any; currency?: string }) {
   if (!details) return null;
   const Row = ({ label, value }: { label: string; value: any }) => {
     if (value === null || value === undefined || value === "") return null;
@@ -55,7 +56,7 @@ function PendingDetailsPanel({ details }: { details: any }) {
     ? new Date(details.paymentDate).toLocaleDateString(appLocale(), { day: "2-digit", month: "short", year: "numeric" })
     : null;
   const amountStr = details.amount != null
-    ? `${currencySymbol()}${Number(details.amount).toLocaleString(appLocale(), { maximumFractionDigits: 2 })}`
+    ? `${getCurrencySymbol(currency)}${Number(details.amount).toLocaleString(appLocale(), { maximumFractionDigits: 2 })}`
     : null;
   const attachUrl = details.attachment
     ? (String(details.attachment).startsWith("/") ? `${API_BASE_URL}${details.attachment}` : `${API_BASE_URL}/${details.attachment}`)
@@ -170,6 +171,10 @@ export default function ClubMembershipDuesMembersPage() {
   }, [duesId, search, filter]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
+
+  // Super Admin settings (user 2026-11-09): currency sign + send channels. Old API = "INR" / on.
+  const cur = getCurrencySymbol(detail?.currency);
+  const emailOn = detail?.notifyEmail ?? true;
 
   // ── Fee type helpers — same as SuperAdmin ──
   const enabledFeeTypes: { type: number; label: string }[] = [];
@@ -675,9 +680,11 @@ export default function ClubMembershipDuesMembersPage() {
 
         {/* Bulk Actions — same as SuperAdmin */}
         <div className="flex flex-wrap items-center gap-2">
+          {emailOn && (
           <Button size="sm" variant="outline" onClick={() => { setBulkRemark(""); setBulkRemarkDialogOpen(true); }}>
             <Mail className="h-4 w-4 mr-1" />Bulk Email
           </Button>
+          )}
         </div>
 
         {/* Search + Filter */}
@@ -745,7 +752,7 @@ export default function ClubMembershipDuesMembersPage() {
                                 <span className="text-muted-foreground">N/A</span>
                               ) : (
                                 <div className="flex flex-col items-center gap-1">
-                                  <span>{currencySymbol()}{getDisplayFeeAmount(m, ft.type).toFixed(0)}</span>
+                                  <span>{cur}{getDisplayFeeAmount(m, ft.type).toFixed(0)}</span>
                                   {getStatusBadge(status)}
                                   {status === "Paid" && getPaymentChannelIcon(m, ft.type)}
                                 </div>
@@ -768,16 +775,18 @@ export default function ClubMembershipDuesMembersPage() {
                         <TableCell>
                           {!isNew && getUnpaidFeeTypes(m).length > 0 && (
                             <div className="flex flex-wrap gap-2">
+                              {emailOn && (
                               <button className="text-orange-600 hover:text-orange-800" title="Send Email Reminder" onClick={() => { setEmailRemarkMemberFeeId(m.memberFeeId); setEmailRemark(""); setEmailRemarkDialogOpen(true); }}>
                                 <Mail className="h-4 w-4" />
                               </button>
+                              )}
                             </div>
                           )}
                         </TableCell>
 
                         {/* Receipt — same as SuperAdmin */}
                         <TableCell>
-                          {!isNew && hasAnyPaidFee(m) && (
+                          {!isNew && hasAnyPaidFee(m) && emailOn && (
                             <button className="text-xs text-slate-600 hover:underline whitespace-nowrap" onClick={() => handleReceipt(m.memberFeeId)}>Send</button>
                           )}
                         </TableCell>
@@ -822,7 +831,7 @@ export default function ClubMembershipDuesMembersPage() {
                   <p className="text-sm"><strong>Mode:</strong> {offlineMember.pendingTransactionType || offlineMember.PendingTransactionType}</p>
                 )}
                 {(offlineMember.pendingAmount || offlineMember.PendingAmount) && (
-                  <p className="text-sm"><strong>Amount:</strong> {currencySymbol()}{offlineMember.pendingAmount || offlineMember.PendingAmount}</p>
+                  <p className="text-sm"><strong>Amount:</strong> {cur}{offlineMember.pendingAmount || offlineMember.PendingAmount}</p>
                 )}
                 {(offlineMember.pendingTransactionId || offlineMember.PendingTransactionId) && (
                   <p className="text-sm"><strong>Transaction ID:</strong> {offlineMember.pendingTransactionId || offlineMember.PendingTransactionId}</p>
@@ -879,7 +888,7 @@ export default function ClubMembershipDuesMembersPage() {
                     <p className="text-sm"><strong>Transaction ID:</strong> {offlineOnlineView.txnId}</p>
                   )}
                   {offlineOnlineView.amount > 0 && (
-                    <p className="text-sm"><strong>Amount:</strong> {currencySymbol()}{offlineOnlineView.amount.toLocaleString(appLocale())}</p>
+                    <p className="text-sm"><strong>Amount:</strong> {cur}{offlineOnlineView.amount.toLocaleString(appLocale())}</p>
                   )}
                   {offlineOnlineView.date && (
                     <p className="text-sm"><strong>Date:</strong> {new Date(offlineOnlineView.date).toLocaleDateString(appLocale())}</p>
@@ -930,14 +939,14 @@ export default function ClubMembershipDuesMembersPage() {
                     </div>
                   )}
                   {/* Send Email Receipt — only for new entries (not for updates) */}
-                  {offlineUpdatePaymentId === 0 && (
+                  {offlineUpdatePaymentId === 0 && emailOn && (
                     <div className="flex flex-wrap items-center gap-2">
                       <Checkbox checked={offlineSendEmail} onCheckedChange={c => setOfflineSendEmail(!!c)} id="offlineSendEmail" />
                       <Label htmlFor="offlineSendEmail">Send Email Receipt</Label>
                     </div>
                   )}
                   {/* Send updated receipt — only when updating an already-Approved row */}
-                  {offlineUpdatePaymentId > 0 && offlineUpdateIsApproved && (
+                  {offlineUpdatePaymentId > 0 && offlineUpdateIsApproved && emailOn && (
                     <div className="flex flex-wrap items-center gap-2">
                       <Checkbox checked={offlineSendReceiptOnUpdate} onCheckedChange={c => setOfflineSendReceiptOnUpdate(!!c)} id="offlineSendReceiptOnUpdate" />
                       <Label htmlFor="offlineSendReceiptOnUpdate">Send updated receipt to member</Label>
@@ -971,7 +980,7 @@ export default function ClubMembershipDuesMembersPage() {
           <DialogContent className="max-w-lg">
             <DialogHeader><DialogTitle>Approve Payment</DialogTitle></DialogHeader>
             <div className="space-y-3">
-              <PendingDetailsPanel details={pendingDetails} />
+              <PendingDetailsPanel details={pendingDetails} currency={detail?.currency} />
               <div>
                 <Label>Approval Remark <span className="text-muted-foreground text-xs">(optional)</span></Label>
                 <Textarea
@@ -990,7 +999,7 @@ export default function ClubMembershipDuesMembersPage() {
           <DialogContent className="max-w-lg">
             <DialogHeader><DialogTitle>Reject Payment</DialogTitle></DialogHeader>
             <div className="space-y-3">
-              <PendingDetailsPanel details={pendingDetails} />
+              <PendingDetailsPanel details={pendingDetails} currency={detail?.currency} />
               <div>
                 <Label>Rejection Reason <span className="text-red-600">*</span></Label>
                 <Textarea

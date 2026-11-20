@@ -75,7 +75,7 @@ public class PotentialMemberService : IPotentialMemberService
         await connection.OpenAsync();
         var v = await CleanAsync(connection, clubId, dto.Name, dto.Email, dto.MobileNumber, dto.ReferenceDetails, dto.Stage, dto.OwnerMemberId, dto.Notes);
         // fk_member_master_profile_id_as_referrer = the logged-in member who added this potential member.
-        return await connection.ExecuteScalarAsync<int>(@"
+        var id = await connection.ExecuteScalarAsync<int>(@"
             INSERT INTO potential_members
                 (fk_club_id, name, email, mobile_number, reference_details, stage, fk_owner_member_id, notes,
                  created_by, fk_member_master_profile_id_as_referrer)
@@ -83,6 +83,8 @@ public class PotentialMemberService : IPotentialMemberService
             SELECT LAST_INSERT_ID();",
             new { ClubId = clubId, v.Name, v.Email, v.Mobile, v.Reference, Stage = v.Stage ?? "inquiry",
                   Owner = dto.OwnerMemberId is > 0 ? dto.OwnerMemberId : null, v.Notes, CreatedBy = createdBy });
+        await ProspectFollowUpService.NewProspectAsync(_connectionString, clubId, id, v.Name, "manual", createdBy);
+        return id;
     }
 
     public async Task<bool> UpdateAsync(int clubId, int id, UpdatePotentialMemberDto dto, int modifiedBy)
@@ -166,12 +168,14 @@ public class PotentialMemberService : IPotentialMemberService
                 "SELECT COUNT(*) FROM potential_members WHERE fk_club_id = @ClubId AND email = @Email AND isdeleted = 0",
                 new { ClubId = clubId, Email = email }) > 0)
             return false;
-        await connection.ExecuteAsync(@"
+        var id = await connection.ExecuteScalarAsync<int>(@"
             INSERT INTO potential_members
                 (fk_club_id, name, email, mobile_number, notes, stage, source, consent_date,
                  fk_member_master_profile_id_as_referrer, fk_owner_member_id)
-            VALUES (@ClubId, @Name, @Email, @Phone, @Notes, @Stage, @Source, NOW(), @Referrer, @Referrer)",
+            VALUES (@ClubId, @Name, @Email, @Phone, @Notes, @Stage, @Source, NOW(), @Referrer, @Referrer);
+            SELECT LAST_INSERT_ID();",
             new { ClubId = clubId, Name = name, Email = email, Phone = phone, Notes = notes, Stage = stage, Source = source, Referrer = referrerMemberId });
+        await ProspectFollowUpService.NewProspectAsync(_connectionString, clubId, id, name, source, null);
         return true;
     }
 }

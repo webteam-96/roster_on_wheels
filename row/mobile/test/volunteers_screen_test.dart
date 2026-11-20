@@ -5,6 +5,8 @@ import 'package:rotary_flutter_app/core/services/volunteer_api.dart';
 import 'package:rotary_flutter_app/presentation/screens/volunteers/volunteers_screen.dart';
 
 class _FakeVolunteers implements VolunteerApi {
+  @override
+  Future<List<Map<String, dynamic>>> mySignups() async => const [];
   final signedUp = <int>{};
 
   @override

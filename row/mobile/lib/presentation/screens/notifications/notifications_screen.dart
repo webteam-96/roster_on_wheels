@@ -103,15 +103,23 @@ final List<_TypeSpec> _kTypes = [
   const _TypeSpec('meeting', 'Meetings', Icons.groups_rounded, Colors.indigo),
   const _TypeSpec('meeting_duty', 'Meeting duties', Icons.assignment_ind_rounded, Colors.indigo),
   const _TypeSpec('volunteer', 'Volunteering', Icons.handshake_rounded, Colors.green),
+  const _TypeSpec('survey', 'Surveys', Icons.poll_rounded, AppColors.primaryPrime),
   const _TypeSpec('grant', 'Grants', Icons.savings_rounded, Colors.teal),
   const _TypeSpec('invite', 'Invites', Icons.group_add_rounded, AppColors.primaryPrime),
   const _TypeSpec('escalation', 'Follow-ups', Icons.report_rounded, Colors.redAccent),
+  const _TypeSpec('profile_update', 'Profile updates', Icons.manage_accounts_rounded, AppColors.primaryPrime),
+  const _TypeSpec('prospect', 'Prospects', Icons.person_add_alt_rounded, AppColors.primaryPrime),
+  const _TypeSpec('prospect_task', 'Prospect tasks', Icons.checklist_rounded, AppColors.primaryPrime),
 ];
 
 /// Feed types whose tap opens one of the member's own screens.
 const Map<String, String> _kTypeRoutes = {
   'volunteer': RouteNames.volunteers,
   'meeting_duty': RouteNames.myDuties,
+  'survey': RouteNames.surveys,
+  // The club asked the member to check their profile: open their own profile editor.
+  'profile_update': RouteNames.profileEdit,
+  'prospect_task': RouteNames.prospectTasks,
 };
 
 _TypeSpec _specFor(String type) => _kTypes.firstWhere(

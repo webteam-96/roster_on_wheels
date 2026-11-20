@@ -18,6 +18,8 @@ public class MembershipDuesListDto
     public string? GoogleSheetId { get; set; }
     public string? GoogleSheetUrl { get; set; }
     public DateTime CreatedDate { get; set; }
+    public string? Currency { get; set; }   // ISO code; null = the instance default (DuesCurrency)
+    public bool NotifyEmail { get; set; } = true;
 }
 
 // ── Membership Dues Detail ──────────────────────────────────────
@@ -65,6 +67,10 @@ public class MembershipDuesDetailDto
     // Google Sheet
     public string? GoogleSheetId { get; set; }
     public string? GoogleSheetEmail { get; set; }
+    // Super Admin flags (RIZones 2026-11-09, ROW form): whether this dues emails members, and the
+    // currency (ISO code) its amounts show in; null = the instance default.
+    public bool NotifyEmail { get; set; } = true;
+    public string? Currency { get; set; }
     // Related data
     public List<MembershipDuesVendorDto>? Vendors { get; set; }
 }
@@ -113,6 +119,10 @@ public class CreateMembershipDuesDto
     // Google Sheet
     public string? GoogleSheetId { get; set; }
     public string? GoogleSheetEmail { get; set; }
+    // Super Admin flags (user 2026-11-09). Null = keep the stored value (the controller nulls them for
+    // anyone but Super Admin); a new dues defaults to email on + the district currency.
+    public bool? NotifyEmail { get; set; }
+    public string? Currency { get; set; }
     // Vendor splits (JSON string, parsed on backend)
     public string? VendorsJson { get; set; }
     // Per-member overrides (JSON string, parsed on backend)
@@ -269,6 +279,7 @@ public class PublicMembershipDuesDto
     public string? Fees2Text { get; set; }
     public string? Fees3Text { get; set; }
     public int ModeOfPayment { get; set; }
+    public string? Currency { get; set; }   // ISO code; null = the instance default (DuesCurrency)
     public List<PublicDuesFeeOption>? AvailableFees { get; set; }
 }
 

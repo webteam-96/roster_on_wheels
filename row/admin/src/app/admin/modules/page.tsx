@@ -206,7 +206,7 @@ export default function ModulesPage() {
             <Button variant="outline" onClick={() => exportToCSV(modules, "modules", [
               { key: "moduleName", label: "Module Name" }, { key: "moduleKey", label: "Key" },
               { key: "categoryName", label: "Category" }, { key: "moduleLevel", label: "Level" },
-              { key: "sortOrder", label: "Sort Order" }, { key: "isActive", label: "Active" },
+              { key: "sortOrder", label: "Sort Order", numeric: true }, { key: "isActive", label: "Active" },
             ])}><Download className="mr-2 h-4 w-4" />Export CSV</Button>
             <Button asChild>
               <Link href="/admin/modules/new"><Plus className="mr-2 h-4 w-4" />Add Module</Link>

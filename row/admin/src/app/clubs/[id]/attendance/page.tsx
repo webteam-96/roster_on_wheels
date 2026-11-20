@@ -174,11 +174,16 @@ export default function AttendancePage() {
               <p className="text-muted-foreground text-base">Manage attendance</p>
             </div>
           </div>
+          <div className="flex flex-wrap gap-2">
+          <Button variant="outline" asChild>
+            <Link href={`/clubs/${clubId}/attendance/standing`}>Makeups and standing</Link>
+          </Button>
           {canManage && (
             <Button onClick={handleAddClick}>
               <Plus className="mr-2 h-4 w-4" />Add Attendance
             </Button>
           )}
+          </div>
         </div>
 
         {isClubAdmin && !canManage && selectedYearId && (

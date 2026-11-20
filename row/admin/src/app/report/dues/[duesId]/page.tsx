@@ -39,11 +39,12 @@ interface ReportData {
   fees1Text: string | null;
   fees2Text: string | null;
   fees3Text: string | null;
+  currency?: string | null; // ISO code of the dues (null = instance default)
   members: ReportMember[];
 }
 
-function fmtAmt(val: number): string {
-  return formatMoney(val);
+function fmtAmt(val: number, currency?: string | null): string {
+  return formatMoney(val, currency);
 }
 
 // Renders the 5 columns (Amt, Settled, Mode, Date, Status) of a fee-type
@@ -144,6 +145,8 @@ export default function PublicDuesReportPage() {
   const fees1Label = data.fees1Text || "Annual";
   const fees2Label = data.fees2Text || "Semi-Annual 1";
   const fees3Label = data.fees3Text || "Semi-Annual 2";
+  // Every amount in the dues currency (RIZones 2026-11-09, ROW form: a real currency code).
+  const money = (v: number) => fmtAmt(v, data.currency);
 
   const totalPaid = members.filter((m) => {
     if (data.isFees1 && m.annualAmount - m.annualPaid > 0) return false;
@@ -185,7 +188,7 @@ export default function PublicDuesReportPage() {
             )}
             <span>Total Members: <strong>{members.length}</strong></span>
             <span>Fully Paid: <strong>{totalPaid}</strong></span>
-            <span>Total Collected: <strong>{fmtAmt(totalCollected)}</strong></span>
+            <span>Total Collected: <strong>{money(totalCollected)}</strong></span>
           </div>
         </div>
       </div>
@@ -273,8 +276,8 @@ export default function PublicDuesReportPage() {
                       {data.isFees1 && (
                         blankAnnual ? <NaCells /> : (
                         <>
-                          <td className="px-3 py-2.5 whitespace-nowrap text-right">{fmtAmt(m.annualAmount)}</td>
-                          <td className="px-3 py-2.5 whitespace-nowrap text-right">{m.annualSettled != null ? fmtAmt(m.annualSettled) : "-"}</td>
+                          <td className="px-3 py-2.5 whitespace-nowrap text-right">{money(m.annualAmount)}</td>
+                          <td className="px-3 py-2.5 whitespace-nowrap text-right">{m.annualSettled != null ? money(m.annualSettled) : "-"}</td>
                           <td className="px-3 py-2.5 whitespace-nowrap">{m.annualPaymentMode || "-"}</td>
                           <td className="px-3 py-2.5 whitespace-nowrap">{fmtDate(m.annualPaymentDate) || "-"}</td>
                           <td className="px-3 py-2.5 whitespace-nowrap text-center">
@@ -288,8 +291,8 @@ export default function PublicDuesReportPage() {
                       {data.isFees2 && (
                         blankSemis ? <NaCells /> : (
                         <>
-                          <td className="px-3 py-2.5 whitespace-nowrap text-right">{fmtAmt(m.semi1Amount)}</td>
-                          <td className="px-3 py-2.5 whitespace-nowrap text-right">{m.semi1Settled != null ? fmtAmt(m.semi1Settled) : "-"}</td>
+                          <td className="px-3 py-2.5 whitespace-nowrap text-right">{money(m.semi1Amount)}</td>
+                          <td className="px-3 py-2.5 whitespace-nowrap text-right">{m.semi1Settled != null ? money(m.semi1Settled) : "-"}</td>
                           <td className="px-3 py-2.5 whitespace-nowrap">{m.semi1PaymentMode || "-"}</td>
                           <td className="px-3 py-2.5 whitespace-nowrap">{fmtDate(m.semi1PaymentDate) || "-"}</td>
                           <td className="px-3 py-2.5 whitespace-nowrap text-center">
@@ -303,8 +306,8 @@ export default function PublicDuesReportPage() {
                       {data.isFees3 && (
                         blankSemis ? <NaCells /> : (
                         <>
-                          <td className="px-3 py-2.5 whitespace-nowrap text-right">{fmtAmt(m.semi2Amount)}</td>
-                          <td className="px-3 py-2.5 whitespace-nowrap text-right">{m.semi2Settled != null ? fmtAmt(m.semi2Settled) : "-"}</td>
+                          <td className="px-3 py-2.5 whitespace-nowrap text-right">{money(m.semi2Amount)}</td>
+                          <td className="px-3 py-2.5 whitespace-nowrap text-right">{m.semi2Settled != null ? money(m.semi2Settled) : "-"}</td>
                           <td className="px-3 py-2.5 whitespace-nowrap">{m.semi2PaymentMode || "-"}</td>
                           <td className="px-3 py-2.5 whitespace-nowrap">{fmtDate(m.semi2PaymentDate) || "-"}</td>
                           <td className="px-3 py-2.5 whitespace-nowrap text-center">
@@ -325,7 +328,7 @@ export default function PublicDuesReportPage() {
 
         {members.length > 0 && (
           <div className="mt-4 text-right text-sm text-gray-600">
-            Showing {members.length} member{members.length !== 1 ? "s" : ""} | Fully Paid: {totalPaid} | Total Collected: {fmtAmt(totalCollected)}
+            Showing {members.length} member{members.length !== 1 ? "s" : ""} | Fully Paid: {totalPaid} | Total Collected: {money(totalCollected)}
           </div>
         )}
       </div>

@@ -74,7 +74,8 @@ export default function GrantForm({ app, clubId, busy, onChange, onSave }: {
         </Button>
       </div>
       {form.lines.map((l, i) => l.kind !== kind ? null : (
-        <div key={i} className="grid gap-2 sm:grid-cols-[1fr_1fr_9rem_auto]">
+        <div key={i} className="space-y-2">
+        <div className="grid gap-2 sm:grid-cols-[1fr_1fr_9rem_auto]">
           <Input aria-label={`${title} description`} maxLength={300} value={l.description} placeholder={kind === "partner" ? "Organisation" : "Description"}
             onChange={(e) => setLine(i, { description: e.target.value })} />
           <Input aria-label={`${title} detail`} maxLength={300} value={l.detail ?? ""} placeholder={kind === "partner" ? "Role in the project" : "Note (optional)"}
@@ -84,6 +85,15 @@ export default function GrantForm({ app, clubId, busy, onChange, onSave }: {
           <Button type="button" variant="ghost" aria-label="Remove line" onClick={() => set("lines", form.lines.filter((_, j) => j !== i))}>
             <Trash2 className="h-4 w-4" />
           </Button>
+        </div>
+        {kind === "expense" && (
+          <div className="grid gap-2 sm:grid-cols-[1fr_1fr_9rem_auto]">
+            <Input aria-label="Expense category" maxLength={60} value={l.category ?? ""} placeholder="Category, e.g. Equipment"
+              onChange={(e) => setLine(i, { category: orNull(e.target.value) })} />
+            <Input aria-label="Expense supplier" maxLength={150} value={l.supplier ?? ""} placeholder="Supplier or vendor (optional)"
+              onChange={(e) => setLine(i, { supplier: orNull(e.target.value) })} />
+          </div>
+        )}
         </div>
       ))}
     </div>

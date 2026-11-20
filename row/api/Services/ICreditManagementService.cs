@@ -8,6 +8,9 @@ public interface ICreditManagementService
     Task<int> AddCreditAsync(AddCreditDto dto, IFormFile? proofDocument, int userId, IWebHostEnvironment env);
     Task UpdateCreditAsync(int id, UpdateCreditDto dto, IFormFile? proofDocument, int userId, IWebHostEnvironment env);
     Task DeleteCreditAsync(int id, int userId);
+    // Manual deduction + credit/debit history (Settings > Wallet, RIZones 2026-11-16).
+    Task<(int BalanceBefore, int BalanceAfter)> ManualDeductAsync(int creditId, int count, string reason, int userId);
+    Task<CreditHistoryDto> GetCreditHistoryAsync(int creditId);
     Task<CreditBalanceDto> GetClubCreditBalanceAsync(int clubId, bool isDistrict = false);
     Task DeductCreditAsync(int clubId, string creditType, int count, bool isDistrict = false);
     Task<List<CreditNotificationDto>> CheckExpiringCreditsAsync(int clubId);

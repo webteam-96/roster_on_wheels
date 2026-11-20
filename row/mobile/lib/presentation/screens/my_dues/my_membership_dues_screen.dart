@@ -7,6 +7,7 @@ import '../../../core/network/api_client.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../data/models/my_dues_model.dart';
 import 'dues_receipt_screen.dart';
+import 'my_invoices_screen.dart';
 import '../../widgets/common/custom_app_bar.dart';
 import '../../widgets/common/empty_state_widget.dart';
 import '../../widgets/common/loading_widget.dart';
@@ -120,7 +121,14 @@ class _MyMembershipDuesScreenState extends State<MyMembershipDuesScreen> {
     if (widget.embedded) return _buildBody();
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: const CustomAppBar(title: 'My Dues'),
+      appBar: CustomAppBar(title: 'My Dues', actions: [
+        IconButton(
+          tooltip: 'My invoices',
+          icon: const Icon(Icons.receipt_long_rounded),
+          onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const MyInvoicesScreen())),
+        ),
+      ]),
       body: _buildBody(),
     );
   }

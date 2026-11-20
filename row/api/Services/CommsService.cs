@@ -322,6 +322,15 @@ public class CommsService
 
     public static string MonthKey(DateTime d) => d.ToString("yyyy-MM", System.Globalization.CultureInfo.InvariantCulture);
 
+    /// <summary>Gap #6: bulletin copies to a club's non-member subscribers use the club's monthly allowance too.
+    /// False when they would go over it; nothing is reserved then.</summary>
+    public static async Task<bool> ReserveClubSendsAsync(MySqlConnection conn, int clubId, int count)
+    {
+        var t = new Tenant(clubId, 0);
+        var (_, perMember, members) = await AllowanceAsync(conn, t);
+        return await ReserveAsync(conn, t, MonthKey(DateTime.UtcNow), count, perMember * members);
+    }
+
     /// <summary>Edition, emails per member per month (null: not limited) and active members of the tenant.</summary>
     private static async Task<(string Edition, int? PerMember, int Members)> AllowanceAsync(MySqlConnection conn, Tenant t)
     {

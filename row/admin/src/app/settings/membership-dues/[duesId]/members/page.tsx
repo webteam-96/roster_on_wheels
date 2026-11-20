@@ -5,6 +5,7 @@ import DateField from "@/components/DateField";
 import { useParams } from "next/navigation";
 import { getMembershipDuesMembers, getMembershipDuesDetail, allocateMembershipDuesFees, updateMembershipDuesMemberFee, recordMembershipDuesOffline, approveMembershipDuesPayment, getMembershipDuesOfflineDetails, updateMembershipDuesOffline, sendMembershipDuesReceipt, sendMembershipDuesReminder, bulkMembershipDuesReminderEmail, revertMembershipDuesPayment } from "@/services/api";
 import { useAuth } from "@/contexts/AuthContext";
+import { getCurrencySymbol } from "@/lib/currency";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -46,7 +47,7 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
 // Read-only preview of the member's submitted offline payment, shown inside
 // the Approve / Reject dialog so admin sees what they're approving.
-function PendingDetailsPanel({ details }: { details: any }) {
+function PendingDetailsPanel({ details, currency }: { details: any; currency?: string }) {
   if (!details) return null;
   const Row = ({ label, value }: { label: string; value: any }) => {
     if (value === null || value === undefined || value === "") return null;
@@ -61,7 +62,7 @@ function PendingDetailsPanel({ details }: { details: any }) {
     ? new Date(details.paymentDate).toLocaleDateString(appLocale(), { day: "2-digit", month: "short", year: "numeric" })
     : null;
   const amountStr = details.amount != null
-    ? `${currencySymbol()}${Number(details.amount).toLocaleString(appLocale(), { maximumFractionDigits: 2 })}`
+    ? `${getCurrencySymbol(currency)}${Number(details.amount).toLocaleString(appLocale(), { maximumFractionDigits: 2 })}`
     : null;
   const attachUrl = details.attachment
     ? (String(details.attachment).startsWith("/") ? `${API_BASE_URL}${details.attachment}` : `${API_BASE_URL}/${details.attachment}`)
@@ -89,6 +90,7 @@ function PendingDetailsPanel({ details }: { details: any }) {
 
 interface DuesDetail {
   id: number;
+  modeOfPayment?: number;   // 1 = Online, 2 = Offline only, 3 = Both
   purpose?: string;
   districtNumber?: string;
   clubName?: string;
@@ -99,6 +101,10 @@ interface DuesDetail {
   fees1Text?: string;
   fees2Text?: string;
   fees3Text?: string;
+  // Super Admin settings (user 2026-11-09). Missing (old API) = true / "INR".
+  notifyEmail?: boolean;
+  notifyWhatsApp?: boolean;
+  currency?: string;
 }
 
 interface VendorSplit {
@@ -146,6 +152,8 @@ export default function MembershipDuesMembersPage() {
   const duesId = Number(params.duesId);
 
   const [duesDetail, setDuesDetail] = useState<DuesDetail | null>(null);
+  // Offline only = collected by hand, nothing split (user 2026-11-13): no vendor "Accounts" columns / vendor boxes.
+  const offlineOnly = duesDetail?.modeOfPayment === 2;
   const [members, setMembers] = useState<DuesMember[]>([]);
   const [loading, setLoading] = useState(true);
   const [detailLoading, setDetailLoading] = useState(true);
@@ -304,9 +312,12 @@ export default function MembershipDuesMembersPage() {
     return balance > 0 ? "text-red-600 font-semibold" : "text-green-600 font-semibold";
   };
 
+  const cur = getCurrencySymbol(duesDetail?.currency);
+  const emailOn = duesDetail?.notifyEmail ?? true;
+
   const formatCurrency = (val: number | undefined) => {
     if (val === undefined || val === null) return "-";
-    return `${currencySymbol()}${val.toLocaleString(appLocale(), { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    return `${cur}${val.toLocaleString(appLocale(), { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   };
 
   const rowBgClass = (m: DuesMember) => {
@@ -319,7 +330,7 @@ export default function MembershipDuesMembersPage() {
     if (!vendors || vendors.length === 0) return "-";
     return vendors.map(v => {
       const name = v.vendorName || (v.vendorId?.length > 10 ? v.vendorId.substring(0, 10) + "..." : v.vendorId);
-      return `${name}: ${currencySymbol()}${v.amount}`;
+      return `${name}: ${cur}${v.amount}`;
     }).join(", ");
   };
 
@@ -327,7 +338,7 @@ export default function MembershipDuesMembersPage() {
     if (!vendors || vendors.length === 0) return <span className="text-muted-foreground">-</span>;
     const displayText = vendors.map(v => {
       const name = v.vendorName || (v.vendorId?.length > 10 ? v.vendorId.substring(0, 10) + "..." : v.vendorId);
-      return `${name}: ${currencySymbol()}${v.amount}`;
+      return `${name}: ${cur}${v.amount}`;
     }).join(", ");
 
     if (vendors.length <= 2 && displayText.length <= 30) {
@@ -347,7 +358,7 @@ export default function MembershipDuesMembersPage() {
               {vendors.map((v, i) => (
                 <div key={i} className="flex justify-between gap-3">
                   <span>{v.vendorName || v.vendorId}{v.isDefault ? " (Default)" : ""}</span>
-                  <span className="font-medium">{`${currencySymbol()}${v.amount}`}</span>
+                  <span className="font-medium">{`${cur}${v.amount}`}</span>
                 </div>
               ))}
             </div>
@@ -929,9 +940,11 @@ export default function MembershipDuesMembersPage() {
             <UserPlus className="h-4 w-4 mr-1" />
             {allocating ? "Allocating..." : "Allocate to New Members"}
           </Button>
+          {emailOn && (
           <Button variant="outline" size="sm" onClick={openBulkEmailDialog}>
             <Mail className="h-4 w-4 mr-1" />Bulk Email Reminder
           </Button>
+          )}
         </div>
 
         {/* Search */}
@@ -961,21 +974,21 @@ export default function MembershipDuesMembersPage() {
                         {duesDetail?.isFees1 && (
                           <>
                             <TableHead className="text-right">{fees1Label} Amount</TableHead>
-                            <TableHead className="text-center">{fees1Label} Accounts</TableHead>
+                            {!offlineOnly && <TableHead className="text-center">{fees1Label} Accounts</TableHead>}
                             <TableHead className="text-right">{fees1Label} Balance</TableHead>
                           </>
                         )}
                         {duesDetail?.isFees2 && (
                           <>
                             <TableHead className="text-right">{fees2Label} Amount</TableHead>
-                            <TableHead className="text-center">{fees2Label} Accounts</TableHead>
+                            {!offlineOnly && <TableHead className="text-center">{fees2Label} Accounts</TableHead>}
                             <TableHead className="text-right">{fees2Label} Balance</TableHead>
                           </>
                         )}
                         {duesDetail?.isFees3 && (
                           <>
                             <TableHead className="text-right">{fees3Label} Amount</TableHead>
-                            <TableHead className="text-center">{fees3Label} Accounts</TableHead>
+                            {!offlineOnly && <TableHead className="text-center">{fees3Label} Accounts</TableHead>}
                             <TableHead className="text-right">{fees3Label} Balance</TableHead>
                           </>
                         )}
@@ -1001,7 +1014,7 @@ export default function MembershipDuesMembersPage() {
                           {duesDetail?.isFees1 && (
                             <>
                               <TableCell className="text-right">{formatCurrency(m.fees1Amount)}</TableCell>
-                              <TableCell className="text-center">{renderVendorCell(m.annualVendors)}</TableCell>
+                              {!offlineOnly && <TableCell className="text-center">{renderVendorCell(m.annualVendors)}</TableCell>}
                               <TableCell className={`text-right ${balanceClass(m.fees1Balance)}`}>
                                 <div className="flex flex-col items-end">
                                   <span>{formatCurrency(m.fees1Balance)}</span>
@@ -1013,7 +1026,7 @@ export default function MembershipDuesMembersPage() {
                           {duesDetail?.isFees2 && (
                             <>
                               <TableCell className="text-right">{formatCurrency(m.fees2Amount)}</TableCell>
-                              <TableCell className="text-center">{renderVendorCell(m.semi1Vendors)}</TableCell>
+                              {!offlineOnly && <TableCell className="text-center">{renderVendorCell(m.semi1Vendors)}</TableCell>}
                               <TableCell className={`text-right ${balanceClass(m.fees2Balance)}`}>
                                 <div className="flex flex-col items-end">
                                   <span>{formatCurrency(m.fees2Balance)}</span>
@@ -1025,7 +1038,7 @@ export default function MembershipDuesMembersPage() {
                           {duesDetail?.isFees3 && (
                             <>
                               <TableCell className="text-right">{formatCurrency(m.fees3Amount)}</TableCell>
-                              <TableCell className="text-center">{renderVendorCell(m.semi2Vendors)}</TableCell>
+                              {!offlineOnly && <TableCell className="text-center">{renderVendorCell(m.semi2Vendors)}</TableCell>}
                               <TableCell className={`text-right ${balanceClass(m.fees3Balance)}`}>
                                 <div className="flex flex-col items-end">
                                   <span>{formatCurrency(m.fees3Balance)}</span>
@@ -1066,7 +1079,7 @@ export default function MembershipDuesMembersPage() {
                                       <CreditCard className="h-4 w-4 mr-2" />Offline Entry
                                     </DropdownMenuItem>
                                     {/* Reminder sub-items: one per unpaid fee type */}
-                                    {getUnpaidFeeTypes(m).map(ft => (
+                                    {emailOn && getUnpaidFeeTypes(m).map(ft => (
                                       <DropdownMenuItem
                                         key={`email-${ft.value}`}
                                         onClick={() => {
@@ -1078,7 +1091,7 @@ export default function MembershipDuesMembersPage() {
                                         <Mail className="h-4 w-4 mr-2" />Email Reminder ({ft.label})
                                       </DropdownMenuItem>
                                     ))}
-                                    {isFullyPaid(m) && (
+                                    {emailOn && isFullyPaid(m) && (
                                       <DropdownMenuItem
                                         onClick={() => {
                                           if (window.confirm(`Send receipt to ${m.memberName || "this member"}?`)) {
@@ -1201,7 +1214,7 @@ export default function MembershipDuesMembersPage() {
                     <p className="text-sm"><strong>Transaction ID:</strong> {offlineOnlineView.txnId}</p>
                   )}
                   {offlineOnlineView.amount > 0 && (
-                    <p className="text-sm"><strong>Amount:</strong> {currencySymbol()}{offlineOnlineView.amount.toLocaleString(appLocale())}</p>
+                    <p className="text-sm"><strong>Amount:</strong> {cur}{offlineOnlineView.amount.toLocaleString(appLocale())}</p>
                   )}
                   {offlineOnlineView.date && (
                     <p className="text-sm"><strong>Date:</strong> {new Date(offlineOnlineView.date).toLocaleDateString(appLocale())}</p>
@@ -1286,7 +1299,7 @@ export default function MembershipDuesMembersPage() {
                       />
                     </div>
                   )}
-                  {offlineUpdatePaymentId === 0 && (
+                  {offlineUpdatePaymentId === 0 && emailOn && (
                     <div className="flex flex-wrap items-center gap-2">
                       <Checkbox
                         id="sendReceiptCheckbox"
@@ -1296,7 +1309,7 @@ export default function MembershipDuesMembersPage() {
                       <Label htmlFor="sendReceiptCheckbox" className="cursor-pointer">Send receipt email</Label>
                     </div>
                   )}
-                  {offlineUpdatePaymentId > 0 && offlineUpdateIsApproved && (
+                  {offlineUpdatePaymentId > 0 && offlineUpdateIsApproved && emailOn && (
                     <div className="flex flex-wrap items-center gap-2">
                       <Checkbox
                         id="sendReceiptOnUpdateCheckbox"
@@ -1355,7 +1368,7 @@ export default function MembershipDuesMembersPage() {
                       <Input type="number" value={editOfflineFees1} onChange={e => setEditOfflineFees1(e.target.value)} />
                     </div>
                   </div>
-                  {editMember?.annualVendors && editMember.annualVendors.length > 0 && (
+                  {!offlineOnly && editMember?.annualVendors && editMember.annualVendors.length > 0 && (
                     <div className="border rounded-md p-3 bg-muted/30 space-y-2">
                       <Label className="text-xs font-semibold text-muted-foreground">{fees1Label} Vendor Accounts</Label>
                       {editMember.annualVendors.map(v => (
@@ -1395,7 +1408,7 @@ export default function MembershipDuesMembersPage() {
                       <Input type="number" value={editOfflineFees2} onChange={e => setEditOfflineFees2(e.target.value)} />
                     </div>
                   </div>
-                  {editMember?.semi1Vendors && editMember.semi1Vendors.length > 0 && (
+                  {!offlineOnly && editMember?.semi1Vendors && editMember.semi1Vendors.length > 0 && (
                     <div className="border rounded-md p-3 bg-muted/30 space-y-2">
                       <Label className="text-xs font-semibold text-muted-foreground">{fees2Label} Vendor Accounts</Label>
                       {editMember.semi1Vendors.map(v => (
@@ -1435,7 +1448,7 @@ export default function MembershipDuesMembersPage() {
                       <Input type="number" value={editOfflineFees3} onChange={e => setEditOfflineFees3(e.target.value)} />
                     </div>
                   </div>
-                  {editMember?.semi2Vendors && editMember.semi2Vendors.length > 0 && (
+                  {!offlineOnly && editMember?.semi2Vendors && editMember.semi2Vendors.length > 0 && (
                     <div className="border rounded-md p-3 bg-muted/30 space-y-2">
                       <Label className="text-xs font-semibold text-muted-foreground">{fees3Label} Vendor Accounts</Label>
                       {editMember.semi2Vendors.map(v => (
@@ -1481,7 +1494,7 @@ export default function MembershipDuesMembersPage() {
               <DialogTitle>{approveAction === "approve" ? "Approve Payment" : "Reject Payment"}</DialogTitle>
             </DialogHeader>
             <div className="space-y-3">
-              <PendingDetailsPanel details={pendingDetails} />
+              <PendingDetailsPanel details={pendingDetails} currency={duesDetail?.currency} />
               {approveAction === "approve" ? (
                 <>
                   <p className="text-sm text-muted-foreground">Are you sure you want to approve this payment?</p>

@@ -128,15 +128,37 @@ import '../../presentation/screens/clubs/modules/website_purchase/website_purcha
 import '../../presentation/screens/privacy/my_data_screen.dart';
 import '../../presentation/screens/chat/chat_screens.dart';
 import '../../presentation/screens/clubs/modules/grants/club_grants_screen.dart';
+import '../../presentation/screens/clubs/modules/accounts/club_accounts_screen.dart';
 import '../../presentation/screens/clubs/modules/speakers/club_speakers_screen.dart';
+import '../../presentation/screens/clubs/modules/bulletins/club_bulletins_screen.dart';
+import '../../presentation/screens/clubs/modules/bulletins/club_stories_screen.dart';
+import '../../presentation/screens/clubs/modules/speakers/speaker_bureau_screen.dart';
+import '../../presentation/screens/member_map/business_directory_screen.dart';
+import '../../presentation/screens/member_map/member_map_screen.dart';
 import '../../presentation/screens/goal_setting/district_goal_messages_screen.dart';
 import '../../presentation/screens/planning/next_year_screen.dart';
 import '../../presentation/screens/settings/comms_preferences_screen.dart';
 import '../../presentation/screens/settings/language_screen.dart';
+import '../../presentation/screens/help/help_screen.dart';
 import '../../presentation/screens/targets/targets_screen.dart';
+import '../../presentation/screens/anniversaries/anniversaries_screen.dart';
+import '../../presentation/screens/custom_reports/custom_reports_screen.dart';
+import '../../presentation/screens/rollover/rollover_screen.dart';
+import '../../presentation/screens/clubs/ri_officers_screen.dart';
 import '../../presentation/screens/profile/my_designations_screen.dart';
+import '../../presentation/screens/committees/my_committees_screen.dart';
 import '../../presentation/screens/volunteers/invite_guest_screen.dart';
+import '../../presentation/screens/prospects/my_prospect_tasks_screen.dart';
+import '../../presentation/screens/friends/friends_screen.dart';
+import '../../presentation/screens/volunteers/my_signups_screen.dart';
 import '../../presentation/screens/volunteers/volunteers_screen.dart';
+import '../../presentation/screens/districts/my_district_access_screen.dart';
+import '../../presentation/screens/surveys/surveys_screen.dart';
+import '../../presentation/screens/donations/donations_screen.dart';
+import '../../presentation/screens/youth/youth_screen.dart';
+import '../../presentation/screens/clubs/club_website_share_screen.dart';
+import '../../presentation/screens/service_hours/service_hours_screen.dart';
+import '../../presentation/screens/job_board/job_board_screen.dart';
 import 'package:rotary_flutter_app/presentation/widgets/common/empty_state_widget.dart';
 
 /// The live [GoRouter], exposed so non-widget code — specifically the push
@@ -239,18 +261,44 @@ class AppRouter {
         GoRoute(path: RouteNames.forgotPassword, builder: (_, __) => const ForgotPasswordScreen()),
         GoRoute(path: RouteNames.myData, builder: (_, __) => const MyDataScreen()),
         GoRoute(path: RouteNames.volunteers, builder: (_, __) => const VolunteersScreen()),
+        GoRoute(path: RouteNames.donations, builder: (_, __) => const DonationsScreen()),
         GoRoute(path: RouteNames.myDuties, builder: (_, __) => const MyDutiesScreen()),
+        GoRoute(path: RouteNames.myDistrictAccess, builder: (_, __) => const MyDistrictAccessScreen()),
+        GoRoute(path: RouteNames.surveys, builder: (_, __) => const SurveysScreen()),
+        GoRoute(path: RouteNames.youth, builder: (_, __) => const YouthScreen()),
+        GoRoute(path: RouteNames.serviceHours, builder: (_, __) => const ServiceHoursScreen()),
+        GoRoute(path: RouteNames.myVolunteerSignups, builder: (_, __) => const MyVolunteerSignupsScreen()),
         GoRoute(path: RouteNames.inviteGuest, builder: (_, __) => const InviteGuestScreen()),
+        GoRoute(path: RouteNames.anniversaries, builder: (_, __) => const AnniversariesScreen()),
+        GoRoute(path: RouteNames.prospectTasks, builder: (_, __) => const MyProspectTasksScreen()),
+        GoRoute(path: RouteNames.friends, builder: (_, __) => const FriendsScreen()),
+        GoRoute(path: RouteNames.memberMap, builder: (_, __) => const MemberMapScreen()),
+        GoRoute(path: RouteNames.businessDirectory, builder: (_, __) => const BusinessDirectoryScreen()),
+        GoRoute(path: RouteNames.shareWebsite, builder: (_, __) => const ClubWebsiteShareScreen()),
+        GoRoute(path: RouteNames.jobBoard, builder: (_, __) => const JobBoardScreen()),
         GoRoute(path: RouteNames.chat, builder: (_, __) => const ChatListScreen()),
         GoRoute(path: RouteNames.nextYear, builder: (_, __) => const NextYearScreen()),
         GoRoute(path: RouteNames.commsPreferences, builder: (_, __) => const CommsPreferencesScreen()),
         GoRoute(path: RouteNames.language, builder: (_, __) => const LanguageScreen()),
+        GoRoute(path: RouteNames.help, builder: (_, __) => const HelpScreen()),
+        GoRoute(path: '/help/:slug', builder: (_, state) => HelpArticleScreen(slug: state.pathParameters['slug']!)),
         GoRoute(path: '/clubs/:id/targets', builder: (_, state) => TargetsScreen(isDistrict: false, id: int.parse(state.pathParameters['id']!))),
+        GoRoute(path: '/clubs/:id/ri-officers', builder: (_, state) => RiOfficersScreen(clubId: int.parse(state.pathParameters['id']!))),
         GoRoute(path: '/districts/:id/targets', builder: (_, state) => TargetsScreen(isDistrict: true, id: int.parse(state.pathParameters['id']!))),
+        GoRoute(path: '/clubs/:id/custom-reports', builder: (_, state) => CustomReportsScreen(isDistrict: false, id: int.parse(state.pathParameters['id']!))),
+        GoRoute(path: '/districts/:id/custom-reports', builder: (_, state) => CustomReportsScreen(isDistrict: true, id: int.parse(state.pathParameters['id']!))),
+        // Year-end rollover preview (gap agent)
+        GoRoute(path: '/clubs/:id/rollover', builder: (_, state) => RolloverScreen(isDistrict: false, id: int.parse(state.pathParameters['id']!))),
+        GoRoute(path: '/districts/:id/rollover', builder: (_, state) => RolloverScreen(isDistrict: true, id: int.parse(state.pathParameters['id']!))),
         GoRoute(path: '/districts/:id/goal-messages', builder: (_, state) => DistrictGoalMessagesScreen(districtId: int.parse(state.pathParameters['id']!))),
         GoRoute(path: '/clubs/:id/speakers', builder: (_, state) => ClubSpeakersScreen(clubId: int.parse(state.pathParameters['id']!))),
+        GoRoute(path: '/clubs/:id/bulletins', builder: (_, state) => ClubBulletinsScreen(clubId: int.parse(state.pathParameters['id']!))),
+        GoRoute(path: '/clubs/:id/stories', builder: (_, state) => ClubStoriesScreen(clubId: int.parse(state.pathParameters['id']!))),
+        GoRoute(path: '/clubs/:id/speaker-bureau', builder: (_, state) => SpeakerBureauScreen(clubId: int.parse(state.pathParameters['id']!))),
         GoRoute(path: '/clubs/:id/grants', builder: (_, state) => ClubGrantsScreen(clubId: int.parse(state.pathParameters['id']!))),
+        GoRoute(path: '/clubs/:id/accounts', builder: (_, state) => ClubAccountsScreen(clubId: int.parse(state.pathParameters['id']!))),
         GoRoute(path: RouteNames.myDesignations, builder: (_, __) => const MyDesignationsScreen()),
+        GoRoute(path: RouteNames.myCommittees, builder: (_, __) => const MyCommitteesScreen()),
         GoRoute(
           path: '/reset-password',
           builder: (_, state) => ResetPasswordScreen(token: state.uri.queryParameters['token']),

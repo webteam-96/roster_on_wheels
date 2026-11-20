@@ -42,7 +42,8 @@ public class PublicClubDuesApprovalController : ControllerBase
             SELECT p.pk_club_dues_payment_id AS paymentId, p.Amount AS amount, p.MemberCountCovered AS memberCountCovered, p.OfflineStatus AS offlineStatus,
                    p.OfflineTransactionType AS offlineTransactionType, p.OfflineTransactionId AS offlineTransactionId, p.OfflineGivenTo AS offlineGivenTo, p.OfflineBankName AS offlineBankName,
                    p.OfflineChequeNumber AS offlineChequeNumber, p.OfflineRemark AS offlineRemark, p.Attachment AS attachment, p.PaymentDate AS paymentDate,
-                   cd.Purpose AS purpose, cd.RotaryYear AS rotaryYear, d.DistrictNumber AS districtNumber, c.ClubName AS clubName
+                   cd.Purpose AS purpose, cd.RotaryYear AS rotaryYear, d.DistrictNumber AS districtNumber, c.ClubName AS clubName,
+                   cd.Currency AS currency
             FROM club_dues_payments p
             JOIN club_dues cd ON cd.pk_club_dues_id = p.fk_club_dues_id
             LEFT JOIN district_master d ON cd.fk_district_id = d.pk_district_id

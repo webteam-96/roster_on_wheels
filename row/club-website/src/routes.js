@@ -20,8 +20,11 @@ export const PAGES = {
   'allspecialdates.aspx': '/calendar',
   'directors.aspx': '/directors',
   'directory.aspx': '/directory',
+  'donate.aspx': '/donate',
   'pastpresidents.aspx': '/past-presidents',
   'newsletter.aspx': '/newsletters',
+  'stories.aspx': '/stories',
+  'bulletin.aspx': '/bulletin',
   'gallery.aspx': '/gallery',
   'upcomingevent.aspx': '/events',
   'eventdetail.aspx': '/event',
@@ -34,6 +37,8 @@ export const PAGES = {
   'homecivicbold.aspx': '/home-civic-bold',
   'homeverdigrisledger.aspx': '/home-verdigris-ledger',
   'homehandloom.aspx': '/home-handloom',
+  // ROW only (gap agent): the district's business directory.
+  'businessdirectory.aspx': '/business-directory',
 }
 
 /** The dashboard stores many menu links as its own Next.js route slugs. */
@@ -42,11 +47,14 @@ const SLUGS = {
   about: '/about',
   directors: '/directors',
   directory: '/directory',
+  donate: '/donate',
   calendar: '/calendar',
   projects: '/projects',
   events: '/events',
   newsletters: '/newsletters',
   newsletter: '/newsletters',
+  stories: '/stories',
+  bulletin: '/bulletin',
   gallery: '/gallery',
   'past-presidents': '/past-presidents',
   past_presidents: '/past-presidents',
@@ -62,6 +70,9 @@ const SLUGS = {
   'new-generation-service': '/projects?pr=NGS',
   public_image_initiative: '/projects?pr=PII',
   'public-image-initiative': '/projects?pr=PII',
+  // Website extras: a menu item with link value "search" or "social".
+  search: '/search',
+  social: '/social',
 }
 
 /**

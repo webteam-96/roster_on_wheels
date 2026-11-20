@@ -175,6 +175,7 @@ public sealed class PaymentSettlementService
     public const string FlowMembershipDues = "membership_dues";
     public const string FlowEventLink = "event_link";
     public const string FlowSubscription = "subscription";
+    public const string FlowDonation = "donation";
 
     private readonly PaymentCheckoutService _checkout;
     private readonly IWalletService _wallet;
@@ -183,11 +184,13 @@ public sealed class PaymentSettlementService
     private readonly IMembershipDuesService _membershipDues;
     private readonly IEventPaymentLinkService _eventLinks;
     private readonly SubscriptionBillingService _subscriptions;
+    private readonly DonationService _donations;
 
     public PaymentSettlementService(PaymentCheckoutService checkout, IWalletService wallet, IWebsiteBillingService website,
         IClubDuesService clubDues, IMembershipDuesService membershipDues, IEventPaymentLinkService eventLinks,
-        SubscriptionBillingService subscriptions)
+        SubscriptionBillingService subscriptions, DonationService donations)
     {
+        _donations = donations;
         _checkout = checkout;
         _wallet = wallet;
         _website = website;
@@ -207,6 +210,7 @@ public sealed class PaymentSettlementService
             case FlowMembershipDues: await _membershipDues.MarkOnlineDuesPaymentPaidAsync((int)flowRef, "Page", false, false); break;
             case FlowEventLink: await _eventLinks.SettleOnlineAsync((int)flowRef, gatewayPaymentId); break;
             case FlowSubscription: await _subscriptions.SettleOnlineAsync(flowRef, gatewayPaymentId); break;
+            case FlowDonation: await _donations.SettleOnlineAsync(flowRef, gatewayPaymentId); break;
             default: throw new InvalidOperationException($"Unknown payment flow '{flow}'.");
         }
     }

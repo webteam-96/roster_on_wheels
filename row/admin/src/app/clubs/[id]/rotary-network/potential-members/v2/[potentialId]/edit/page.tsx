@@ -28,6 +28,7 @@ import ErrorAlert from "@/components/ErrorAlert";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { useSyncClubIdFromUrl } from "@/hooks/useSyncClubIdFromUrl";
 import ProspectPipelineFields, { type PipelineValue } from "@/components/contacts/ProspectPipelineFields";
+import ProspectTasksPanel from "@/components/contacts/ProspectTasksPanel";
 import { ListPageSkeleton } from "@/components/row/AppKit";
 
 const TOP_MESSAGE = "Update prospective member information. Provide as much contact information as possible so the club can follow up.";
@@ -231,6 +232,9 @@ export default function PotentialMembersV2EditPage() {
 
         {/* 4. Pipeline (feature contacts_growth) */}
         <ProspectPipelineFields clubId={clubId} number={4} value={pipeline} onChange={setPipeline} />
+
+        {/* 5. Follow-up tasks (feature contacts_growth); saved on their own, not with the form */}
+        <ProspectTasksPanel clubId={clubId} prospectId={potentialId} canManage />
 
         <SuccessAlert
           open={showSuccessDialog}

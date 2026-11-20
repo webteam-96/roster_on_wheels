@@ -11,7 +11,7 @@
  * `?returnTo=` honored on the back arrow; defaults to /clubs/[id]/ocv-gov/v2.
  */
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useParams, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import {
@@ -59,6 +59,37 @@ export default function OcvReportV2Page() {
   const [downloadingWord, setDownloadingWord] = useState(false);
   // The Excel is generated server-side (report/excel) — gate the button while it downloads.
   const [downloadingExcel, setDownloadingExcel] = useState(false);
+  // Download progress (user 2026-11-13). The server first builds the whole file - that time cannot be measured,
+  // so the bar moves on an estimate up to 85% ("Preparing…"), then shows the real download of the file.
+  const [progress, setProgress] = useState<{ kind: "word" | "excel"; pct: number; phase: "prepare" | "download" | "done" } | null>(null);
+  const progressTimer = useRef<ReturnType<typeof setInterval> | null>(null);
+  const startProgress = (kind: "word" | "excel") => {
+    setProgress({ kind, pct: 3, phase: "prepare" });
+    if (progressTimer.current) clearInterval(progressTimer.current);
+    progressTimer.current = setInterval(() => setProgress((p) => p && p.phase === "prepare"
+      ? { ...p, pct: p.pct + (85 - p.pct) * (kind === "word" ? 0.02 : 0.06) } : p), 500);
+  };
+  const onFileProgress = (f: number) => setProgress((p) => p ? { ...p, phase: "download", pct: Math.max(p.pct, 85 + 15 * f) } : p);
+  const endProgress = (ok: boolean) => {
+    if (progressTimer.current) { clearInterval(progressTimer.current); progressTimer.current = null; }
+    if (!ok) { setProgress(null); return; }
+    setProgress((p) => p ? { ...p, pct: 100, phase: "done" } : p);
+    setTimeout(() => setProgress(null), 1200);
+  };
+  useEffect(() => () => { if (progressTimer.current) clearInterval(progressTimer.current); }, []);
+  const anyDownload = downloadingWord || downloadingExcel;   // one report at a time
+  // Progress shown INSIDE the clicked button (user 2026-11-13): the label hides while it runs and comes back when done.
+  const btnProgress = (kind: "word" | "excel") => {
+    const pct = progress?.kind === kind ? Math.min(100, Math.round(progress.pct)) : 0;
+    return (
+      <span className="flex w-full items-center gap-2" role="status" aria-live="polite">
+        <span className="h-1.5 flex-1 overflow-hidden rounded-full bg-white">
+          <span className={`block h-full rounded-full transition-all duration-500 ${kind === "word" ? "bg-blue-600" : "bg-emerald-600"}`} style={{ width: `${pct}%` }} />
+        </span>
+        <span className="tabular-nums">{pct}%</span>
+      </span>
+    );
+  };
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   // Initial: club + years
@@ -169,18 +200,23 @@ export default function OcvReportV2Page() {
     }
   }
 
-  // Server-generated HTML-table .xls — an exact match of the legacy OCVList….xls: header block,
+  // Server-generated real .xlsx (same layout as the legacy OCV list): header block,
   // one row per document-type across all categories with "Download Here" hyperlinks, plus Live
   // Documents and Newsletters sections. Full report — the page's status/module filters don't narrow it.
   async function handleExcelDownload() {
     if (!selectedYearId) return;
+    if (anyDownload) return;
     setDownloadingExcel(true);
+    startProgress("excel");
+    let ok = false;
     try {
       await downloadOcvReportExcel(
         clubId,
         selectedYearId,
         `OCV_Report_${clubName}_${fileTimestamp()}`,
+        onFileProgress,
       );
+      ok = true;
     } catch (err: unknown) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const data = (err as any)?.response?.data;
@@ -197,6 +233,7 @@ export default function OcvReportV2Page() {
       setErrorMessage(message || "Failed to generate the Excel report.");
     } finally {
       setDownloadingExcel(false);
+      endProgress(ok);
     }
   }
 
@@ -204,9 +241,13 @@ export default function OcvReportV2Page() {
   // filters don't narrow it, so it stays available regardless of the current view.
   async function handleWordDownload() {
     if (!selectedYearId) return;
+    if (anyDownload) return;
     setDownloadingWord(true);
+    startProgress("word");
+    let ok = false;
     try {
-      await downloadOcvReportWord(clubId, selectedYearId, `OCV_Report_${clubName}_${yearLabel}`);
+      await downloadOcvReportWord(clubId, selectedYearId, `OCV_Report_${clubName}_${yearLabel}`, onFileProgress);
+      ok = true;
     } catch (err: unknown) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const data = (err as any)?.response?.data;
@@ -225,6 +266,7 @@ export default function OcvReportV2Page() {
       setErrorMessage(message || "Failed to generate the Word report.");
     } finally {
       setDownloadingWord(false);
+      endProgress(ok);
     }
   }
 
@@ -312,13 +354,13 @@ export default function OcvReportV2Page() {
 
             {/* Module */}
             <div className="space-y-1">
-              <label className="text-xs font-medium text-slate-600">Module</label>
+              <label className="text-xs font-medium text-slate-600">Particulars</label>
               <select
                 value={categoryFilter}
                 onChange={(e) => setCategoryFilter(e.target.value)}
                 className="w-full px-2 h-10 py-0 text-sm border border-slate-200 rounded-[12px] bg-card focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
               >
-                <option value="all">All Modules</option>
+                <option value="all">All Particulars</option>
                 {categories.map((c) => (
                   <option key={c} value={c}>{c}</option>
                 ))}
@@ -346,15 +388,11 @@ export default function OcvReportV2Page() {
                 <button
                   type="button"
                   onClick={handleExcelDownload}
-                  disabled={!selectedYearId || downloadingExcel}
+                  disabled={!selectedYearId || anyDownload}
                   title="Full OCV checklist with document download links (matches the official OCV Excel)"
                   className="w-full inline-flex items-center justify-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full border border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 disabled:opacity-50"
                 >
-                  {downloadingExcel ? (
-                    <>
-                      <Loader2 className="animate-spin" size={13} /> Preparing…
-                    </>
-                  ) : (
+                  {downloadingExcel || progress?.kind === "excel" ? btnProgress("excel") : (
                     <>
                       <FileSpreadsheet size={13} /> Download All as Excel
                     </>
@@ -363,15 +401,11 @@ export default function OcvReportV2Page() {
                 <button
                   type="button"
                   onClick={handleWordDownload}
-                  disabled={!selectedYearId || downloadingWord}
+                  disabled={!selectedYearId || anyDownload}
                   title="Documents, photos and live module data in one Word file"
                   className="w-full inline-flex items-center justify-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full border border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100 disabled:opacity-50"
                 >
-                  {downloadingWord ? (
-                    <>
-                      <Loader2 className="animate-spin" size={13} /> Generating…
-                    </>
-                  ) : (
+                  {downloadingWord || progress?.kind === "word" ? btnProgress("word") : (
                     <>
                       <FileText size={13} /> Download in Word Document
                     </>
@@ -430,14 +464,22 @@ export default function OcvReportV2Page() {
                   </span>
                 </div>
                 <div className="overflow-x-auto">
-                  <table className="w-full min-w-[640px] md:min-w-full text-sm">
+                  {/* Fixed column widths - Status / File Name / Actions line up in every category table. */}
+                  <table className="w-full min-w-[720px] table-fixed text-sm">
+                    <colgroup>
+                      <col className="w-14" />
+                      <col />
+                      <col className="w-36" />
+                      <col className="w-[30%]" />
+                      <col className="w-32" />
+                    </colgroup>
                     <thead className="bg-[#EDF4FB] text-[13px] text-[#64748B]">
                       <tr>
-                        <th className="px-3 py-2.5 text-left w-12">Sr</th>
+                        <th className="px-3 py-2.5 text-left">Sr</th>
                         <th className="px-3 py-2.5 text-left">Document Type</th>
-                        <th className="px-3 py-2.5 text-center w-32">Status</th>
+                        <th className="px-3 py-2.5 text-center">Status</th>
                         <th className="px-3 py-2.5 text-left">File Name</th>
-                        <th className="px-3 py-2.5 text-right w-32">Actions</th>
+                        <th className="px-3 py-2.5 text-right">Actions</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100">
@@ -458,7 +500,7 @@ export default function OcvReportV2Page() {
                                 </span>
                               )}
                             </td>
-                            <td className="px-3 py-2 text-sm text-slate-600 max-w-[260px] truncate" title={it.originalFileName || ""}>
+                            <td className="px-3 py-2 text-sm text-slate-600 truncate" title={it.originalFileName || ""}>
                               {it.originalFileName || "–"}
                             </td>
                             <td className="px-3 py-2 text-right">

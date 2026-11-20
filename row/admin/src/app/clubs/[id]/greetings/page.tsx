@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
-import { ArrowLeft, MessageSquare, Mail, Send, Info } from "@/components/icons";
+import { ArrowLeft, MessageSquare, Mail, Info } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import Link from "next/link";
 import ClubAdminShell from "@/components/v2/ClubAdminShell";
@@ -361,8 +361,8 @@ export default function GreetingsSettingsPage() {
         {/* Save Button */}
         {canManage && (
           <div className="flex justify-end pb-8">
-            <Button onClick={handleSave} disabled={saving} size="lg" className="shadow-md">
-              {saving ? <RotaryLoader size="sm" /> : <><Send className="mr-2 h-4 w-4" />Save Settings</>}
+            <Button onClick={handleSave} disabled={saving}>
+              {saving ? <RotaryLoader size="sm" /> : "Save Settings"}
             </Button>
           </div>
         )}

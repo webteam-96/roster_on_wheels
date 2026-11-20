@@ -771,6 +771,49 @@ class AuthProvider extends ChangeNotifier {
     return login(email: temp.email, password: newPassword);
   }
 
+  // ── Account security (gap agent): a second sign-in step (MFA) and emailed sign-in codes ──
+  ({String token, bool setupRequired, String email, String? password})? _mfaChallenge;
+  /// Set when the password or emailed code was right but the account needs its authenticator code next.
+  ({String token, bool setupRequired, String email, String? password})? get mfaChallenge => _mfaChallenge;
+  List<String>? lastRecoveryCodes;
+
+  /// Any sign-in reply: a challenge (MFA due), a temporary-password session, or the normal session.
+  Future<void> acceptSignInResponse(Map<String, dynamic> data, {required String email, String? password}) async {
+    if (data['mfaRequired'] == true) {
+      _mfaChallenge = (
+        token: data['mfaToken']?.toString() ?? '',
+        setupRequired: data['mfaSetupRequired'] == true,
+        email: email,
+        password: password,
+      );
+      return;
+    }
+    _mfaChallenge = null;
+    final codes = data['recoveryCodes'];
+    lastRecoveryCodes = codes is List ? codes.map((c) => c.toString()).toList() : null;
+    final result = MobileVerifyOtpResult.fromJson(data);
+    if (result.mustChangePassword && password != null) {
+      // Temporary password: no saved session until it is changed.
+      _temporarySession = (token: result.token, email: email, password: password);
+    } else {
+      _temporarySession = null;
+      await _saveSession(result);
+    }
+  }
+
+  /// The device fields every sign-in endpoint takes.
+  Future<Map<String, dynamic>> signInDeviceFields() async => {
+        'imei': await _getOrCreateDeviceId(),
+        'deviceName': Platform.isIOS ? 'iOS' : 'Android',
+        'deviceToken': await PushService.instance.ensureToken() ?? '',
+        'appVersion': '1.0.0',
+      };
+
+  void clearMfaChallenge() {
+    _mfaChallenge = null;
+    notifyListeners();
+  }
+
   Future<bool> login({required String email, required String password}) async {
     _isLoading = true;
     _error = null;
@@ -792,14 +835,7 @@ class AuthProvider extends ChangeNotifier {
         requiresAuth: false,
       );
       if (response.isSuccess && response.data != null) {
-        final result = MobileVerifyOtpResult.fromJson(response.data!);
-        if (result.mustChangePassword) {
-          // Temporary password: no saved session until it is changed.
-          _temporarySession = (token: result.token, email: email, password: password);
-        } else {
-          _temporarySession = null;
-          await _saveSession(result);
-        }
+        await acceptSignInResponse(response.data!, email: email, password: password);
         _isLoading = false;
         notifyListeners();
         return true;

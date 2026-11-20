@@ -50,7 +50,52 @@
     "submit": "⟦Sübmít réqüést~~~~~~⟧",
     "submitting": "⟦Sübmíttíng…~~~~⟧",
     "cancel": "⟦Cáncél~~⟧",
-    "created": "⟦Réqüést sübmíttéd.~~~~~~~⟧"
+    "created": "⟦Réqüést sübmíttéd.~~~~~~~⟧",
+    "review": "⟦Révíéw érásüré~~~~~~⟧"
+  },
+  "erase": {
+    "title": "⟦Érásé pérsönál dátá~~~~~~~~⟧",
+    "intro": "⟦Thís réplácés {name}'s personal data everywhere it is held and deletes their uploaded photos and documents. Attendance, payments and other counts stay, under an anonymous name. It cannot be undone.~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~⟧",
+    "loading": "⟦Wörkíng öüt whát wíll chángé…~~~~~~~~~~~~⟧",
+    "alreadyErased": "⟦Thís pérsön hás álréádý béén éráséd.~~~~~~~~~~~~~~⟧",
+    "needsApproval": "⟦Ánöthér Dístríct Ádmín müst ápprövé béföré thé érásüré rüns.~~~~~~~~~~~~~~~~~~~~~~~~⟧",
+    "changesTitle": "⟦Whát wíll chángé~~~~~~⟧",
+    "noChanges": "⟦Nö störéd röws wéré föünd för thís pérsön.~~~~~~~~~~~~~~~~~⟧",
+    "columns": {
+      "table": "⟦Whéré~~⟧",
+      "action": "⟦Chángé~~⟧",
+      "rows": "⟦Röws~~⟧"
+    },
+    "action": {
+      "delete": "⟦Délétéd~~~⟧",
+      "anonymise": "⟦Ánönýmíséd~~~~⟧",
+      "keep": "⟦Képt för cöünts~~~~~~⟧"
+    },
+    "files": "⟦{count, plural, one {# üplöádéd fílé} other {# üplöádéd fílés}} wíll bé délétéd.~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~⟧",
+    "noFiles": "⟦Nö üplöádéd fílés tö délété.~~~~~~~~~~~⟧",
+    "reason": "⟦Réásön~~⟧",
+    "reasonPlaceholder": "⟦é.g. Wríttén réqüést fröm thé pérsön récéívéd ön…~~~~~~~~~~~~~~~~~~~~⟧",
+    "typeToConfirm": "⟦Týpé {name} tö cönfírm~~~~~~~~~⟧",
+    "submit": "⟦Érásé pérmánéntlý~~~~~~~⟧",
+    "submitting": "⟦Érásíng…~~~⟧",
+    "cancel": "⟦Cáncél~~⟧",
+    "done": "⟦Pérsönál dátá éráséd. Án áüdít récörd öf whö díd ít ánd whén wás wríttén.~~~~~~~~~~~~~~~~~~~~~~~~~~~~~⟧",
+    "awaiting": "⟦Érásüré réqüéstéd. Ít rüns öncé á sécönd Dístríct Ádmín ápprövés.~~~~~~~~~~~~~~~~~~~~~~~~~~⟧",
+    "failed": "⟦Thé érásüré cöüld nöt fínísh ánd nöthíng wás chángéd. Trý ágáín, ör cöntáct süppört íf ít kééps fáílíng.~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~⟧"
+  },
+  "former": {
+    "title": "⟦Förmér mémbérs~~~~~~⟧",
+    "intro": "⟦Péöplé whö hávé léft thé clüb ánd höld nö áctívé mémbérshíp ánýwhéré. Érásé théír pérsönál dátá whén théý ásk för ít. Éách érásüré ís wríttén tö thé áüdít lög.~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~⟧",
+    "noClub": "⟦Séléct á clüb tö séé íts förmér mémbérs.~~~~~~~~~~~~~~~~⟧",
+    "searchPlaceholder": "⟦Séárch bý námé~~~~~~⟧",
+    "empty": "⟦Nö förmér mémbérs föünd.~~~~~~~~~~⟧",
+    "columns": {
+      "name": "⟦Námé~~⟧",
+      "leftOn": "⟦Léft ön~~~⟧",
+      "actions": "⟦Áctíöns~~~⟧"
+    },
+    "unknownDate": "⟦Nöt récördéd~~~~~⟧",
+    "erase": "⟦Érásé~~⟧"
   },
   "consent": {
     "title": "⟦Ýöür prívácý~~~~~⟧",

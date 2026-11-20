@@ -34,6 +34,7 @@ import { CONTACTS_FEATURE } from "@/lib/contacts";
 import { useFeatureLoadedOn } from "@/components/FeatureGate";
 import ComposeComms from "@/components/comms/ComposeComms";
 import { SkeletonRows } from "@/components/row/AppKit";
+import ComposeTools, { uploadPendingAttachments } from "@/components/massEmail/ComposeTools";
 
 interface SubGroupOption { id: number; groupName: string; memberCount: number; }
 interface MemberOption { memberId: number; memberName: string; email: string; }
@@ -80,6 +81,7 @@ export default function ClubAdminComposeMassEmailPage() {
   const commsOn = useFeatureLoadedOn("communication"); // N5: allowance instead of credits, language versions
   const subGroupsOn = useFeatureLoadedOn("sub_groups"); // switched off: no Subgroup recipients, no sub-group calls
   const [templateKey, setTemplateKey] = useState("");
+  const [pendingFiles, setPendingFiles] = useState<File[]>([]);
 
   const [rotaryYears, setRotaryYears] = useState<any[]>([]);
   const [selectedYearId, setSelectedYearId] = useState("");
@@ -167,6 +169,10 @@ export default function ClubAdminComposeMassEmailPage() {
       let createdId: number | null = null;
       if (editId) { await updateMassEmail(clubId, editId, data); createdId = editId; }
       else { createdId = (await createMassEmail(clubId, data)).id; }
+      if (createdId && pendingFiles.length > 0) {
+        try { await uploadPendingAttachments("clubs", clubId, createdId, pendingFiles); setPendingFiles([]); }
+        catch (upErr: any) { setErrorMessage(upErr?.response?.data?.message || "The email is saved, but a file could not be attached. Open the draft and attach it again."); setSaving(false); return; }
+      }
       if (!asDraft && createdId) {
         try { await sendMassEmail(clubId, createdId); setSuccessMessage("Email is being sent."); }
         catch (sendErr: any) { setErrorMessage(sendErr?.response?.data?.message || "Email saved but failed to send. Retry from the list."); setSaving(false); return; }
@@ -275,6 +281,8 @@ export default function ClubAdminComposeMassEmailPage() {
             </div>
             <div className="space-y-2"><Label>Subject *</Label><Input value={subject} onChange={(e) => setSubject(e.target.value)} placeholder="Email subject" /></div>
             <div className="space-y-2"><Label>Email Body *</Label><RichTextEditor value={emailBody} onChange={setEmailBody} placeholder="Write your email content here..." /></div>
+            <ComposeTools scope="clubs" ownerId={clubId} emailId={editId} subject={subject} body={emailBody}
+              onApply={(s, b) => { setSubject(s); setEmailBody(b); }} pendingFiles={pendingFiles} onPendingFiles={setPendingFiles} />
             {commsOn && <ComposeComms scope="clubs" ownerId={clubId} templateKey={templateKey} onTemplateKey={setTemplateKey} needed={recipientCount.membersWithEmail} />}
           </CardContent>
         </Card>

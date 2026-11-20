@@ -30,11 +30,24 @@ public class AdminYearGuard
 {
     private readonly IAdminYearService _years;
     private readonly IConfiguration _config;
+    private readonly IHttpContextAccessor? _http;
 
-    public AdminYearGuard(IAdminYearService years, IConfiguration config)
+    public AdminYearGuard(IAdminYearService years, IConfiguration config, IHttpContextAccessor? http = null)
     {
         _years = years;
         _config = config;
+        _http = http;
+    }
+
+    /// <summary>A cross-district write grant the scope guard accepted for THIS request (allow-listed path, live
+    /// grant, this member, this district) covers the years that overlap its window. Nothing else reaches here.</summary>
+    private async Task<bool> WriteGrantCoversAsync(MySqlConnection conn, int memberId, int districtId, int yearId)
+    {
+        if (_http?.HttpContext?.Items[CrossDistrictAccess.WriteItemKey] is not DistrictAccessGrant g
+            || g.MemberId != memberId || g.DistrictId != districtId || !g.CanWrite) return false;
+        var y = await conn.QueryFirstOrDefaultAsync<(DateTime Start, DateTime End)>(
+            "SELECT StartDate, EndDate FROM rotary_year_master WHERE pk_year_id = @Id", new { Id = yearId });
+        return y.Start != default && CrossDistrictAccess.CoversYear(g, y.Start, y.End);
     }
 
     private static int MemberId(ClaimsPrincipal user) =>
@@ -175,6 +188,7 @@ public class AdminYearGuard
 
         await using var conn = await OpenAsync();
         var rights = await _years.GetDistrictRightsAsync(conn, memberId, districtId);
+        if (yearId > 0 && !rights.Covers(yearId) && await WriteGrantCoversAsync(conn, memberId, districtId, yearId)) return null;
         if (!rights.Any) return Denied("You are not an admin of this district.");
         if (yearId <= 0) return Denied("No Rotary year specified.");
         if (rights.Covers(yearId)) return null;

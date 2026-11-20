@@ -61,6 +61,8 @@ class _GrantApplicationScreenState extends State<GrantApplicationScreen> {
   Future<void> _action(Map<String, dynamic> a) async {
     final action = a['action'] as String;
     final report = action == 'submit_report';
+    final signs = action == 'submit';
+    final signature = TextEditingController();
     final comment = TextEditingController();
     final summary = TextEditingController();
     final spent = TextEditingController();
@@ -82,6 +84,11 @@ class _GrantApplicationScreenState extends State<GrantApplicationScreen> {
                   keyboardType: TextInputType.number,
                   decoration: const InputDecoration(labelText: 'People reached')),
             ],
+            if (signs)
+              TextField(
+                  controller: signature,
+                  maxLength: 150,
+                  decoration: const InputDecoration(labelText: "Club president's signature (full name)")),
             TextField(
                 controller: comment,
                 maxLines: 3,
@@ -96,15 +103,49 @@ class _GrantApplicationScreenState extends State<GrantApplicationScreen> {
     );
     final body = {
       'comment': comment.text.trim(),
+      if (signs) 'signature': signature.text.trim(),
       if (report) 'reportSummary': summary.text.trim(),
       if (report) 'reportAmountSpent': num.tryParse(spent.text.trim()),
       if (report) 'reportBeneficiaries': int.tryParse(reached.text.trim()),
     };
-    for (final c in [comment, summary, spent, reached]) {
+    for (final c in [comment, summary, spent, reached, signature]) {
       c.dispose();
     }
     if (ok != true || !mounted) return;
     await _run('Done', () => _api.post<dynamic>('$_path/actions/$action', body: body));
+  }
+
+  /// A progress report while the grant runs (approved or paid); the status does not change.
+  Future<void> _interimReport() async {
+    final progress = TextEditingController();
+    final spent = TextEditingController();
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Interim report'),
+        content: SingleChildScrollView(
+          child: Column(mainAxisSize: MainAxisSize.min, children: [
+            TextField(
+                controller: progress,
+                maxLines: 4,
+                decoration: const InputDecoration(labelText: 'Progress so far')),
+            TextField(
+                controller: spent,
+                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                decoration: const InputDecoration(labelText: 'Amount spent so far')),
+          ]),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+          FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Send')),
+        ],
+      ),
+    );
+    final body = {'progress': progress.text.trim(), 'amountSpent': num.tryParse(spent.text.trim())};
+    progress.dispose();
+    spent.dispose();
+    if (ok != true || !mounted) return;
+    await _run('Interim report filed', () => _api.post<dynamic>('$_path/interim-reports', body: body));
   }
 
   Future<void> _comment() async {
@@ -145,6 +186,16 @@ class _GrantApplicationScreenState extends State<GrantApplicationScreen> {
                     Chip(label: Text(grantStatusLabel(a['status'] as String?))),
                     Chip(label: Text(a['yearLabel'] as String? ?? '')),
                   ]),
+                  if ((a['qualificationWarning'] as String?)?.isNotEmpty == true)
+                    Card(
+                      color: Theme.of(context).colorScheme.errorContainer,
+                      child: Padding(
+                        padding: const EdgeInsets.all(12),
+                        child: Text('${a['qualificationWarning']} ${a['qualificationRequired'] == true
+                            ? 'Your district requires qualification, so this application cannot be submitted yet.'
+                            : 'You can still submit, but the district may ask about it.'}'),
+                      ),
+                    ),
                   if ((a['rejectionReason'] as String?)?.isNotEmpty == true)
                     ListTile(title: const Text('Reason given'), subtitle: Text(a['rejectionReason'] as String)),
                   ListTile(
@@ -177,11 +228,17 @@ class _GrantApplicationScreenState extends State<GrantApplicationScreen> {
                         onPressed: _busy ? null : () => _action(act),
                         child: Text(grantStatusLabel(act['action'] as String?)),
                       ),
+                    if (a['canSubmitInterimReport'] == true)
+                      OutlinedButton.icon(
+                          icon: const Icon(Icons.assignment_outlined),
+                          label: const Text('Interim report'),
+                          onPressed: _busy ? null : _interimReport),
                     OutlinedButton.icon(
                         icon: const Icon(Icons.comment_outlined),
                         label: const Text('Comment'),
                         onPressed: _busy ? null : _comment),
                   ]),
+                  ..._lifecycle(a, money),
                   const SizedBox(height: 16),
                   Text('History', style: Theme.of(context).textTheme.titleMedium),
                   for (final e in ((a['events'] as List?) ?? const []).cast<Map<String, dynamic>>().reversed)
@@ -198,6 +255,78 @@ class _GrantApplicationScreenState extends State<GrantApplicationScreen> {
             ),
     );
   }
+}
+
+String _day(Object? v) => DateFormatter.toDisplay(DateTime.tryParse(v?.toString() ?? ''));
+
+/// Due dates, budget against actual spend, sign-offs, interim reports and the document archive (read only here;
+/// files are added on the web).
+List<Widget> _lifecycle(Map<String, dynamic> a, String Function(Object?) money) {
+  List<Map<String, dynamic>> list(String k) => ((a[k] as List?) ?? const []).cast<Map<String, dynamic>>();
+  final cycle = (a['cycle'] as Map?)?.cast<String, dynamic>() ?? const {};
+  final expenses = list('lines').where((l) => l['kind'] == 'expense').toList();
+  final signOffs = list('signOffs');
+  final interims = list('interimReports');
+  final files = list('attachments');
+  return [
+    const SizedBox(height: 16),
+    const Text('Reports due', style: TextStyle(fontWeight: FontWeight.w600)),
+    ListTile(
+      dense: true,
+      title: const Text('Interim report'),
+      trailing: Text(cycle['interimDueOn'] == null ? 'Not set' : _day(cycle['interimDueOn'])),
+    ),
+    ListTile(
+      dense: true,
+      title: const Text('Final report'),
+      trailing: Text(cycle['reportDueOn'] == null ? 'Not set' : _day(cycle['reportDueOn'])),
+    ),
+    if (expenses.isNotEmpty) ...[
+      const SizedBox(height: 8),
+      const Text('Budget', style: TextStyle(fontWeight: FontWeight.w600)),
+      for (final l in expenses)
+        ListTile(
+          dense: true,
+          title: Text(l['description'] as String? ?? ''),
+          subtitle: Text([l['category'], l['supplier']].whereType<String>().join(', ')),
+          trailing: Text(l['actualAmount'] == null
+              ? money(l['amount'])
+              : '${money(l['amount'])} / ${money(l['actualAmount'])}'),
+        ),
+    ],
+    if (signOffs.isNotEmpty) ...[
+      const SizedBox(height: 8),
+      const Text('Sign-off', style: TextStyle(fontWeight: FontWeight.w600)),
+      for (final s in signOffs)
+        ListTile(
+          dense: true,
+          title: Text('${s['signatureName']}, ${s['signerRole']}'),
+          subtitle: Text(DateFormatter.toDisplayWithTime(DateTime.tryParse(s['signedAtUtc']?.toString() ?? '')?.toLocal())),
+        ),
+    ],
+    if (interims.isNotEmpty) ...[
+      const SizedBox(height: 8),
+      const Text('Interim reports', style: TextStyle(fontWeight: FontWeight.w600)),
+      for (final r in interims)
+        ListTile(
+          dense: true,
+          title: Text(r['progress'] as String? ?? ''),
+          subtitle: Text(_day(r['submittedAtUtc'])),
+          trailing: Text(money(r['amountSpent'])),
+        ),
+    ],
+    if (files.isNotEmpty) ...[
+      const SizedBox(height: 8),
+      const Text('Documents', style: TextStyle(fontWeight: FontWeight.w600)),
+      for (final f in files)
+        ListTile(
+          dense: true,
+          leading: const Icon(Icons.description_outlined),
+          title: Text(f['originalName'] as String? ?? ''),
+          subtitle: Text(grantStatusLabel(f['kind'] as String?)),
+        ),
+    ],
+  ];
 }
 
 /// New application (pick an open cycle) or edit one that is a draft or sent back.

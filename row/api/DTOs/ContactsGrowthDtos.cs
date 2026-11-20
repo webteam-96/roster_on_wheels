@@ -17,6 +17,8 @@ public class ContactDto
     public DateTime CreatedDate { get; set; }
     [JsonIgnore] public string? GroupIdsCsv { get; set; }
     public List<int> GroupIds => (GroupIdsCsv ?? "").Split(',', StringSplitOptions.RemoveEmptyEntries).Select(int.Parse).ToList();
+    [JsonIgnore] public string? TagIdsCsv { get; set; }
+    public List<int> TagIds => (TagIdsCsv ?? "").Split(',', StringSplitOptions.RemoveEmptyEntries).Select(int.Parse).ToList();
 }
 
 public class SaveContactDto
@@ -35,6 +37,8 @@ public class ContactGroupDto
     public int Id { get; set; }
     public string Name { get; set; } = "";
     public int ContactCount { get; set; }
+    /// <summary>"friends" for the list the API keeps equal to the Friends of the club; null for groups people made.</summary>
+    public string? SystemKey { get; set; }
 }
 
 public class SaveContactGroupDto

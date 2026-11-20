@@ -78,7 +78,10 @@ public class ScopeWriteGuardMiddleware
             var allowed = memberId > 0 && (write
                 ? await AllowedAsync(_connectionString, memberId, isClub, scopeId)
                   || await PlanningAccess.ElectMayWriteAsync(ctx, _connectionString, memberId, isClub, scopeId)
-                : await ReadAllowedAsync(_connectionString, memberId, isClub, scopeId));
+                : await ReadAllowedCoreAsync(_connectionString, memberId, isClub, scopeId, true));
+            // A live cross-district grant (time-limited, audited). Writes only on its allow-listed district paths.
+            if (!allowed && memberId > 0 && !(isClub && await ClosedBySubscriptionAsync(_connectionString, memberId, scopeId)))
+                allowed = await CrossDistrictAccess.TryUseAsync(_connectionString, memberId, isClub, scopeId, write, ctx, path);
             if (!allowed)
             {
                 ctx.Response.StatusCode = StatusCodes.Status403Forbidden;
@@ -109,6 +112,14 @@ public class ScopeWriteGuardMiddleware
     /// by controllers that read a club or district named outside api/clubs|districts/{id} (MobileCalendarController,
     /// the read review). members: false keeps the managers only (the club's managers and whoever manages its district).</summary>
     internal static async Task<bool> ReadAllowedAsync(string connectionString, int memberId, bool isClub, int scopeId, bool members = true)
+    {
+        if (await ReadAllowedCoreAsync(connectionString, memberId, isClub, scopeId, members)) return true;
+        // members: false is manager-only data, which a cross-district read grant never opens.
+        return members && !(isClub && await ClosedBySubscriptionAsync(connectionString, memberId, scopeId))
+            && await CrossDistrictAccess.TryUseAsync(connectionString, memberId, isClub, scopeId, false, null, null);
+    }
+
+    private static async Task<bool> ReadAllowedCoreAsync(string connectionString, int memberId, bool isClub, int scopeId, bool members)
     {
         if (isClub && await ClosedBySubscriptionAsync(connectionString, memberId, scopeId)) return false;
         await using (var conn = RowDb.Connect(connectionString))

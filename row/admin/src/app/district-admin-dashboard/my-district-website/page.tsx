@@ -26,13 +26,13 @@ import { useAuth } from "@/contexts/AuthContext";
 import { getDistrictWebsiteStatus } from "@/services/api";
 import {
   AlertCircle, ImageIcon, Megaphone, Share2, Phone, List, Info,
-  Globe, ExternalLink, Languages,
+  Globe, ExternalLink, Languages, LayoutGrid,
 } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import { useIsPathOff } from "@/components/FeatureGate";
 import { ListPageSkeleton } from "@/components/row/AppKit";
 
-type ModuleKey = "banners" | "advertisements" | "social-media-links" | "contact-details" | "menu-list" | "about" | "languages";
+type ModuleKey = "banners" | "advertisements" | "social-media-links" | "contact-details" | "menu-list" | "about" | "languages" | "pages" | "extras";
 
 interface Mod {
   key: ModuleKey;
@@ -51,6 +51,8 @@ const MODULES: Mod[] = [
   { key: "menu-list",          name: "Menu List",           description: "Top navigation & footer menu items",     icon: List,      accent: "bg-rose-50 text-rose-700",       ring: "hover:border-rose-300" },
   { key: "about",              name: "About",               description: "About-us content on the public site",    icon: Info,      accent: "bg-sky-50 text-sky-700",         ring: "hover:border-sky-300" },
   { key: "languages",          name: "Languages",           description: "The site in more languages, with machine translation", icon: Languages, accent: "bg-teal-50 text-teal-700", ring: "hover:border-teal-300" },
+  { key: "pages",              name: "Pages and Layout",    description: "Custom pages and the home page layout",  icon: LayoutGrid, accent: "bg-sky-50 text-sky-700",       ring: "hover:border-sky-300" },
+  { key: "extras",             name: "Website extras",      description: "Social feeds, Google Analytics and QR codes", icon: Share2, accent: "bg-emerald-50 text-emerald-700", ring: "hover:border-emerald-300" },
 ];
 
 export default function MyDistrictWebsitePage() {

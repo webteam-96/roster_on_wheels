@@ -3,6 +3,7 @@
 import { useEffect, useState, Suspense } from "react";
 import { useParams, useSearchParams } from "next/navigation";
 import { getPublicClubDues, payPublicClubDues, offlinePublicClubDues, verifyPublicClubDuesPayment, clubDuesAssetUrl, getPublicClubDuesOfflineAccounts, ClubDuesOfflineAccountOption } from "@/services/api";
+import { getCurrencySymbol } from "@/lib/currency";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -22,6 +23,7 @@ function PayInner() {
   const token = query.get("token") || "";
 
   const [data, setData] = useState<any>(null);
+  const cur = getCurrencySymbol(data?.currency); // sign only - the charge stays INR
   const [accounts, setAccounts] = useState<ClubDuesOfflineAccountOption[]>([]);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState<string | null>(null);
@@ -77,7 +79,7 @@ function PayInner() {
               razorpaySignature: r.razorpay_signature,
             });
             if (v.isSuccess) {
-              window.location.href = withBase(`/pay/club-dues/${duesId}/thank-you?paid=1&amount=${v.amount ?? ""}&club=${encodeURIComponent(v.memberName || data.clubName || "")}`);
+              window.location.href = withBase(`/pay/club-dues/${duesId}/thank-you?paid=1&amount=${v.amount ?? ""}&currency=${encodeURIComponent(data.currency || "")}&club=${encodeURIComponent(v.memberName || data.clubName || "")}`);
             } else { setErr("Payment could not be verified."); setPaying(false); }
           } catch { setErr("Payment verification failed."); setPaying(false); }
         },
@@ -126,14 +128,14 @@ function PayInner() {
           <>
             <div className="rounded-lg border p-4 space-y-2">
               <div className="flex justify-between text-sm"><span>Members</span><span>{data.memberCount}</span></div>
-              <div className="flex justify-between text-sm"><span>Rate / member</span><span>{currencySymbol()}{data.perMemberRate}</span></div>
+              <div className="flex justify-between text-sm"><span>Rate / member</span><span>{cur}{data.perMemberRate}</span></div>
               {data.onlineAmountOwed !== data.amountOwed ? (
                 <>
-                  <div className="flex justify-between font-bold text-lg border-t pt-2"><span>Offline amount</span><span>{currencySymbol()}{Number(data.amountOwed).toLocaleString(appLocale())}</span></div>
-                  <div className="flex justify-between text-sm font-semibold"><span>Online amount{data.onlineSurchargePercent > 0 ? <span className="font-normal text-muted-foreground"> (+{data.onlineSurchargePercent}%)</span> : null}</span><span>{currencySymbol()}{Number(data.onlineAmountOwed).toLocaleString(appLocale())}</span></div>
+                  <div className="flex justify-between font-bold text-lg border-t pt-2"><span>Offline amount</span><span>{cur}{Number(data.amountOwed).toLocaleString(appLocale())}</span></div>
+                  <div className="flex justify-between text-sm font-semibold"><span>Online amount{data.onlineSurchargePercent > 0 ? <span className="font-normal text-muted-foreground"> (+{data.onlineSurchargePercent}%)</span> : null}</span><span>{cur}{Number(data.onlineAmountOwed).toLocaleString(appLocale())}</span></div>
                 </>
               ) : (
-                <div className="flex justify-between font-bold text-lg border-t pt-2"><span>Amount due</span><span>{currencySymbol()}{Number(data.amountOwed).toLocaleString(appLocale())}</span></div>
+                <div className="flex justify-between font-bold text-lg border-t pt-2"><span>Amount due</span><span>{cur}{Number(data.amountOwed).toLocaleString(appLocale())}</span></div>
               )}
             </div>
             {data.isPending && (
@@ -154,7 +156,7 @@ function PayInner() {
 
             {(data.modeOfPayment === 1 || data.modeOfPayment === 3) && (
               <Button className="w-full" onClick={payOnline} disabled={paying}>
-                {paying && <RotaryLoader size="sm" />}Pay {currencySymbol()}{Number(data.onlineAmountOwed).toLocaleString(appLocale())} online
+                {paying && <RotaryLoader size="sm" />}Pay {cur}{Number(data.onlineAmountOwed).toLocaleString(appLocale())} online
               </Button>
             )}
             {(data.modeOfPayment === 2 || data.modeOfPayment === 3) && !offlineLocked && (
@@ -162,7 +164,7 @@ function PayInner() {
             )}
 
             {showOffline && !offlineLocked && (
-              <OfflineForm duesId={duesId} clubId={clubId} token={token} accounts={accounts}
+              <OfflineForm cur={cur} duesId={duesId} clubId={clubId} token={token} accounts={accounts}
                 onDone={() => setDone("Submitted for verification. The District Treasurer will review it.")} onError={setErr} />
             )}
           </>
@@ -172,7 +174,7 @@ function PayInner() {
   );
 }
 
-function OfflineForm({ duesId, clubId, token, accounts, onDone, onError }: { duesId: number; clubId: number; token: string; accounts: ClubDuesOfflineAccountOption[]; onDone: () => void; onError: (m: string) => void }) {
+function OfflineForm({ cur, duesId, clubId, token, accounts, onDone, onError }: { cur: string; duesId: number; clubId: number; token: string; accounts: ClubDuesOfflineAccountOption[]; onDone: () => void; onError: (m: string) => void }) {
   const [mode, setMode] = useState("1");
   const [ref, setRef] = useState("");
   const [remark, setRemark] = useState("");
@@ -210,7 +212,7 @@ function OfflineForm({ duesId, clubId, token, accounts, onDone, onError }: { due
       )}
       {accountId && selectedAccount && (
         <p className="text-sm text-muted-foreground">
-          Amount: <b>{currencySymbol()}{Number(selectedAccount.amount).toLocaleString(appLocale(), { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</b>.
+          Amount: <b>{cur}{Number(selectedAccount.amount).toLocaleString(appLocale(), { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</b>.
         </p>
       )}
       <div className="space-y-1">

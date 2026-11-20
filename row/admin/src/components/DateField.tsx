@@ -151,9 +151,12 @@ export default function DateField({
   ];
   const selectedIso = typedToIso(typed);
   const today = todayIso();
+  // A width the page sets (w-40, sm:max-w-xs…) must size the outer box too: otherwise the box
+  // stays full width in a flex row and the calendar button lands far from the input (ROW-60).
+  const widthClasses = className.split(/\s+/).filter((c) => /^([\w-]+:)*(min-|max-)?w-/.test(c)).join(" ");
 
   return (
-    <div className="w-full">
+    <div className={cn("w-full", widthClasses)}>
       <div className="relative">
         <input
           type="text"

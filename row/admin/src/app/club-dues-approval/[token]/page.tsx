@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import RotaryLoader from "@/components/RotaryLoader";
 import { CheckCircle2, XCircle } from "@/components/icons";
+import { getCurrencySymbol } from "@/lib/currency";
 
 import { appLocale, currencySymbol } from "@/lib/appFormat";
 import { ListPageSkeleton } from "@/components/row/AppKit";
@@ -68,7 +69,7 @@ export default function ClubDuesApprovalPage() {
               <div className="flex justify-between"><span>Mode</span><b>{MODES[String(info.offlineTransactionType)] || info.offlineTransactionType}</b></div>
               {info.offlineTransactionId && <div className="flex justify-between"><span>Reference</span><b>{info.offlineTransactionId}</b></div>}
               {info.offlineRemark && <div className="flex justify-between"><span>Remark</span><span>{info.offlineRemark}</span></div>}
-              <div className="flex justify-between text-base border-t pt-2"><span>Amount</span><b>{currencySymbol()}{Number(info.amount).toLocaleString(appLocale())}</b></div>
+              <div className="flex justify-between text-base border-t pt-2"><span>Amount</span><b>{getCurrencySymbol(info.currency)}{Number(info.amount).toLocaleString(appLocale())}</b></div>
               {info.offlineStatus && info.offlineStatus !== "Pending" && <p className="text-amber-600">Already {info.offlineStatus.toLowerCase()}.</p>}
             </div>
             <div className="space-y-1">

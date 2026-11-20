@@ -13,5 +13,8 @@ public interface IClubMassEmailService
     Task DeleteAsync(int id, int userId);
     Task SendAsync(int id, int userId);
     Task<List<MassEmailRecipientDto>> GetRecipientsAsync(int id);
+    // Gap #6: recipients of a sent club campaign that were delivered but never opened, and a follow-up send to them.
+    Task<int> CountNonOpenersAsync(int id, int clubId);
+    Task<int> ResendToNonOpenersAsync(int id, int clubId, string? subject, int userId);
     Task<RecipientCountDto> GetRecipientCountAsync(int clubId, int recipientType, List<int>? subgroupIds, List<int>? memberIds, int? districtId = null, List<int>? clubIds = null, List<int>? contactGroupIds = null);
 }

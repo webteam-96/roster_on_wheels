@@ -17,6 +17,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { RotaryYear } from "@/types/rotaryYear";
 import { getRotaryYears, fetchReport, downloadClubAnalyticsDistrict } from "@/services/api";
 import { formatBirthAnniversary, fileTimestamp } from "@/lib/dateUtils";
+import { useDownloadProgress } from "@/lib/downloadProgress";
 
 // Project rule: birthdays + anniversaries DISPLAY day-month only (year is stored
 // in the DB and visible only inside edit forms). This list is the set of column
@@ -622,7 +623,8 @@ export default function ReportsPage() {
   const [selectedYearId, setSelectedYearId] = useState<string>("all");
   const [selectedDistrictId, setSelectedDistrictId] = useState<string>("all");
   const [loading, setLoading] = useState(true);
-  const [busyId, setBusyId] = useState<string | null>(null);
+  // Report downloads: progress inside the clicked button, one at a time on this page.
+  const dl = useDownloadProgress();
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -647,8 +649,7 @@ export default function ReportsPage() {
   const selectedYearLabel = years.find(y => String(y.id) === selectedYearId)?.yearLabel || "AllYears";
   const selectedDistrictLabel = districts.find(d => String(d.id) === selectedDistrictId)?.districtNumber || "AllDistricts";
 
-  const downloadReport = async (section: ReportSection, item: ReportItem) => {
-    setBusyId(item.id);
+  const downloadReport = (section: ReportSection, item: ReportItem) => dl.run(`report-${item.id}`, async () => {
     try {
       const params: Record<string, any> = {};
       if (item.yearScoped && selectedYearId !== "all") params.yearId = Number(selectedYearId);
@@ -675,13 +676,12 @@ export default function ReportsPage() {
       setSuccessMessage(`${item.title} exported (${rows.length} rows).`);
     } catch (err: any) {
       setErrorMessage(err?.response?.data?.message || `Failed to export "${item.title}".`);
-    } finally { setBusyId(null); }
-  };
+    }
+  });
 
   // Club Analytics — a server-built .xlsx (one row per club with counts). Uses the same District +
   // Year pickers above: "All Districts" → every club in the system; a district → its clubs.
-  const downloadClubAnalytics = async () => {
-    setBusyId("club-analytics");
+  const downloadClubAnalytics = () => dl.run("club-analytics", async () => {
     try {
       const yr = selectedYearId !== "all" ? Number(selectedYearId) : undefined;
       const dist = selectedDistrictId !== "all" ? Number(selectedDistrictId) : undefined;
@@ -690,8 +690,8 @@ export default function ReportsPage() {
       setSuccessMessage("Club Analytics exported.");
     } catch (err: any) {
       setErrorMessage(err?.response?.data?.message || "Failed to export Club Analytics.");
-    } finally { setBusyId(null); }
-  };
+    }
+  });
 
   if (!isSuperAdmin) {
     return (
@@ -765,8 +765,8 @@ export default function ReportsPage() {
                       {selectedYearId !== "all" ? ` · ${selectedYearLabel}` : " · Current year"}
                     </p>
                   </div>
-                  <Button size="sm" variant="outline" onClick={downloadClubAnalytics} disabled={busyId === "club-analytics"}>
-                    {busyId === "club-analytics" ? <Loader2 className="h-3 w-3 animate-spin" /> : <Download className="h-3 w-3" />}
+                  <Button size="sm" variant="outline" onClick={downloadClubAnalytics} disabled={dl.busy}>
+                    {dl.is("club-analytics") ? dl.bar("club-analytics") : <Download className="h-3 w-3" />}
                   </Button>
                 </div>
               </CardContent>
@@ -782,7 +782,7 @@ export default function ReportsPage() {
                   <CardContent>
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                       {section.items.map((item) => {
-                        const busy = busyId === item.id;
+                        const dlKey = `report-${item.id}`;
                         const yearInfo = item.yearScoped
                           ? (selectedYearId === "all" ? " · All years" : ` · ${selectedYearLabel}`)
                           : "";
@@ -801,8 +801,8 @@ export default function ReportsPage() {
                                 {scopeLabel}{yearInfo}{districtInfo}
                               </p>
                             </div>
-                            <Button size="sm" variant="outline" onClick={() => downloadReport(section, item)} disabled={busy}>
-                              {busy ? <Loader2 className="h-3 w-3 animate-spin" /> : <Download className="h-3 w-3" />}
+                            <Button size="sm" variant="outline" onClick={() => downloadReport(section, item)} disabled={dl.busy}>
+                              {dl.is(dlKey) ? dl.bar(dlKey) : <Download className="h-3 w-3" />}
                             </Button>
                           </div>
                         );

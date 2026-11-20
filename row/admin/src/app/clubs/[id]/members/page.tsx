@@ -400,6 +400,9 @@ export default function ClubMembersPage() {
             </div>
           </div>
           <div className="flex flex-wrap items-center gap-2">
+            <Button variant="outline" size="sm" asChild>
+              <Link href={`/clubs/${clubId}/password-resets`}>Password resets</Link>
+            </Button>
             <Button variant="outline" size="sm" disabled={exporting !== null} onClick={() => handleExport("xlsx")}>
               <FileSpreadsheet className="mr-2 h-4 w-4" />{exporting === "xlsx" ? "Preparing..." : "Export to Excel"}
             </Button>

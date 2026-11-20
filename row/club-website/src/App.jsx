@@ -31,15 +31,27 @@ import AllSpecialDates from './pages/AllSpecialDates.jsx'
 import Diginitary from './pages/diginitary.jsx'
 import Directors from './pages/Directors.jsx'
 import Directory from './pages/Directory.jsx'
+import Donate from './pages/Donate.jsx'
 import EventDetail from './pages/EventDetail.jsx'
 import ExpiredWebsite from './pages/ExpiredWebsite.jsx'
 import Gallery from './pages/Gallery.jsx'
 import Newsletter from './pages/Newsletter.jsx'
+import Stories from './pages/Stories.jsx'
+import BulletinSignup from './pages/BulletinSignup.jsx'
 import PastPresidents from './pages/PastPresidents.jsx'
 import ProjectDetail from './pages/ProjectDetail.jsx'
 import SiteNotConfigured from './pages/SiteNotConfigured.jsx'
 import UnderMaintenance from './pages/under_maintenance.jsx'
 import UpcomingEvent from './pages/UpcomingEvent.jsx'
+import BusinessDirectory from './pages/BusinessDirectory.jsx' // Member map + business directory (gap agent)
+// Website builder (gap agent): custom pages at /p/<slug> and the published home layout.
+import CustomPage from './pages/CustomPage.jsx'
+import PageSections from './shared/PageSections.jsx'
+import Skeleton from './shared/Skeleton.jsx'
+import { useWebsitePage, isCustomPagePath } from './shared/websitePages.js'
+import Search from './pages/Search.jsx'
+import Social from './pages/Social.jsx'
+import SiteThirdParty from './shared/ThirdParty.jsx'
 
 // Gold ships its own design for every inner page — see src/pages/gold.
 import * as Gold from './pages/gold/index.js'
@@ -125,6 +137,11 @@ function ProjectPermalink() {
  */
 function HomeSwitch() {
   const { theme } = useTheme()
+  const { clubId } = useClub()
+  // Website builder: a published home layout replaces the theme's home content; the theme shell stays.
+  const [layout] = useWebsitePage(clubId, 'home')
+  if (layout === undefined) return <section className="py-12"><div className="container-x"><Skeleton label="Loading" /></div></section>
+  if (layout.status === 'ok') return <PageSections page={layout.page} />
   const t8 = THEME8[theme]
   if (t8 && t8.Home) return <Suspense fallback={null}><t8.Home /></Suspense>
   if (theme === 'warm-modern') return <HomeWarmModern />
@@ -159,7 +176,8 @@ function useAnchorInterceptor() {
       // Only same-origin links to a route this app serves. Uploaded PDFs and
       // images live under the same origin too and must keep their normal
       // browser behaviour.
-      if (!ALL_ROUTES.has(url.pathname.replace(/\/+$/, '') || '/')) return
+      const routePath = url.pathname.replace(/\/+$/, '') || '/'
+      if (!ALL_ROUTES.has(routePath) && !isCustomPagePath(routePath)) return
 
       // Carry the visitor's chosen Rotary year across the navigation. Without
       // this, picking 2025-26 on Projects and clicking Directors silently
@@ -215,7 +233,7 @@ export default function App() {
           onFinished={() => setBootDone(true)}
         />
       )}
-      {booting ? null : <AppRoutes />}
+      {booting ? null : <><AppRoutes /><SiteThirdParty /></>}
     </>
   )
 }
@@ -237,10 +255,14 @@ function AppRoutes() {
       <Route path="/calendar" element={<Page element={<Swap shared={<AllSpecialDates />} gold={<Gold.CalendarGold />} page="Calendar" />} />} />
       <Route path="/dignitary" element={<Page element={<Swap shared={<Diginitary />} gold={<Gold.DignitaryGold />} page="Dignitary" />} />} />
       <Route path="/directors" element={<Page element={<Swap shared={<Directors />} gold={<Gold.DirectorsGold />} page="Directors" />} />} />
+      <Route path="/donate" element={<Page element={<Donate />} />} />
       <Route path="/directory" element={<Page element={<Swap shared={<Directory />} gold={<Gold.DirectoryGold />} page="Directory" />} />} />
       <Route path="/event" element={<Page element={<Swap shared={<EventDetail />} gold={<Gold.EventDetailGold />} page="EventDetail" />} />} />
       <Route path="/gallery" element={<Page element={<Swap shared={<Gallery />} gold={<Gold.GalleryGold />} page="Gallery" />} />} />
       <Route path="/newsletters" element={<Page element={<Swap shared={<Newsletter />} gold={<Gold.NewslettersGold />} page="Newsletters" />} />} />
+      {/* ROW gap #6: approved member stories and the bulletin sign-up; one shared page for every theme. */}
+      <Route path="/stories" element={<Page element={<Stories />} />} />
+      <Route path="/bulletin" element={<Page element={<BulletinSignup />} />} />
       <Route path="/past-presidents" element={<Page element={<Swap shared={<PastPresidents />} gold={<Gold.PastPresidentsGold />} page="PastPresidents" />} />} />
       <Route path="/project" element={<Page element={<Swap shared={<ProjectDetail />} gold={<Gold.ProjectDetailGold />} page="ProjectDetail" />} />} />
       {/* The API's project SHARE endpoint builds every link as
@@ -250,7 +272,13 @@ function AppRoutes() {
           page, so every shared project link landed nowhere. */}
       <Route path="/projects/:pid" element={<ProjectPermalink />} />
       <Route path="/under-maintenance" element={<Page element={<UnderMaintenance />} />} />
+      <Route path="/business-directory" element={<Page element={<BusinessDirectory />} />} />
       <Route path="/events" element={<Page element={<Swap shared={<UpcomingEvent />} gold={<Gold.EventsGold />} page="Events" />} />} />
+      {/* Website builder custom pages (admin: Website Data, Pages and Layout). Same shell for every theme. */}
+      <Route path="/p/:slug" element={<Page element={<CustomPage />} />} />
+      {/* Website extras: site search and the social feeds, the shared page in every theme's shell. */}
+      <Route path="/search" element={<Page element={<Search />} />} />
+      <Route path="/social" element={<Page element={<Social />} />} />
 
       {/* Standalone pages: no master in the ASP.NET build, and both opt out of
           the gate (ExpiredWebsite via BypassExpiryGate). */}

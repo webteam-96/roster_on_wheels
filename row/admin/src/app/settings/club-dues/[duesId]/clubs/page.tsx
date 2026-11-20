@@ -4,7 +4,8 @@ import { useEffect, useState, useCallback, Fragment } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
-import { getClubDuesClubs, updateClubDuesRate, recordClubDuesOffline, approveClubDuesPayment, sendClubDuesReminder, bulkClubDuesReminder, sendClubDuesReceipt, getClubDuesOfflineDetails, updateClubDuesOffline, getClubDuesClubVendors, saveClubDuesClubVendors, getRazorpayRouteAccounts, RazorpayRouteAccount, getClubDuesOfflineAccounts, ClubDuesOfflineAccountOption, getClubDuesPayLink, getClubDuesExportUrl, syncClubDues } from "@/services/api";
+import { getClubDuesClubs, updateClubDuesRate, recordClubDuesOffline, approveClubDuesPayment, sendClubDuesReminder, bulkClubDuesReminder, sendClubDuesReceipt, getClubDuesOfflineDetails, updateClubDuesOffline, getClubDuesClubVendors, saveClubDuesClubVendors, getRazorpayRouteAccounts, RazorpayRouteAccount, getClubDuesOfflineAccounts, ClubDuesOfflineAccountOption, getClubDuesPayLink, getClubDuesExportUrl, syncClubDues, getClubDuesDetail } from "@/services/api";
+import { getCurrencySymbol } from "@/lib/currency";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -78,6 +79,16 @@ export default function ClubDuesClubsPage() {
   const [success, setSuccess] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [bulkConfirmChannel, setBulkConfirmChannel] = useState<"email" | null>(null);
+  // Super Admin's per-dues email switch + currency (RIZones 2026-11-09, ROW form; no WhatsApp).
+  const [notifyEmail, setNotifyEmail] = useState(true);
+  const [currency, setCurrency] = useState<string | null>(null);
+  const cur = getCurrencySymbol(currency);
+  useEffect(() => {
+    getClubDuesDetail(duesId).then((d: any) => {
+      setNotifyEmail(d?.notifyEmail !== false);
+      setCurrency(d?.currency || null);
+    }).catch(() => {});
+  }, [duesId]);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -179,7 +190,7 @@ export default function ClubDuesClubsPage() {
           </div>
           <div className="flex flex-wrap gap-2">
             <Button variant="outline" size="sm" onClick={async () => { setBusy(true); try { await syncClubDues(duesId); await load(); } finally { setBusy(false); } }} disabled={busy}><RefreshCw className="mr-2 h-4 w-4" />Sync members</Button>
-            <Button variant="outline" size="sm" onClick={() => setBulkConfirmChannel("email")}><Bell className="mr-2 h-4 w-4" />Email all</Button>
+            {notifyEmail && <Button variant="outline" size="sm" onClick={() => setBulkConfirmChannel("email")}><Bell className="mr-2 h-4 w-4" />Email all</Button>}
             <Button variant="outline" size="sm" onClick={copyReportLink} title="Copy public report link"><FileText className="mr-2 h-4 w-4" />Copy report link</Button>
             <a href={getClubDuesExportUrl(duesId)}><Button variant="outline" size="sm"><Download className="mr-2 h-4 w-4" />Export</Button></a>
           </div>
@@ -197,7 +208,7 @@ export default function ClubDuesClubsPage() {
             </CardContent></Card>
             <Card><CardContent className="p-4">
               <p className="text-xs text-muted-foreground">Collected</p>
-              <p className="text-2xl font-bold text-primary">{currencySymbol()}{summary.collected.toLocaleString(appLocale())}</p>
+              <p className="text-2xl font-bold text-primary">{cur}{summary.collected.toLocaleString(appLocale())}</p>
             </CardContent></Card>
           </div>
         )}
@@ -283,13 +294,13 @@ export default function ClubDuesClubsPage() {
                           )}
                         </div>
                       </td>
-                      <td className="p-3 text-right font-medium">{r.paidOnline === true ? "-" : `${currencySymbol()}${Number(r.offlineAmount).toLocaleString(appLocale(), { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}</td>
+                      <td className="p-3 text-right font-medium">{r.paidOnline === true ? "-" : `${cur}${Number(r.offlineAmount).toLocaleString(appLocale(), { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}</td>
                       {Array.from({ length: maxOfflineAccountCols }, (_, i) => {
                         const acc = r.paidOnline === true ? undefined : r.offlineAccountBreakdown?.[i];
                         return (
                           <Fragment key={`off-${i}`}>
                             <td className="p-3 text-right whitespace-nowrap">
-                              {acc ? `${currencySymbol()}${Number(acc.amount).toLocaleString(appLocale(), { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : "-"}
+                              {acc ? `${cur}${Number(acc.amount).toLocaleString(appLocale(), { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : "-"}
                             </td>
                             <td className="p-3 text-center whitespace-nowrap" title={acc?.accountLabel || ""}>
                               {acc ? (
@@ -301,7 +312,7 @@ export default function ClubDuesClubsPage() {
                           </Fragment>
                         );
                       })}
-                      <td className="p-3 text-right">{r.paidOnline === true ? "-" : `${currencySymbol()}${Number(r.offlinePaid).toLocaleString(appLocale(), { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}</td>
+                      <td className="p-3 text-right">{r.paidOnline === true ? "-" : `${cur}${Number(r.offlinePaid).toLocaleString(appLocale(), { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}</td>
                       <td className="p-3 text-right">
                         <div className="flex items-center justify-end gap-1">
                           <Input className="h-8 w-20" type="number" value={onlineRateEdits[r.clubDuesClubId] ?? String(r.onlinePerMemberRate)}
@@ -311,13 +322,13 @@ export default function ClubDuesClubsPage() {
                           )}
                         </div>
                       </td>
-                      <td className="p-3 text-right font-medium">{r.paidOnline === false ? "-" : `${currencySymbol()}${Number(r.onlineAmount).toLocaleString(appLocale(), { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}</td>
+                      <td className="p-3 text-right font-medium">{r.paidOnline === false ? "-" : `${cur}${Number(r.onlineAmount).toLocaleString(appLocale(), { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}</td>
                       {Array.from({ length: maxOnlineAccountCols }, (_, i) => {
                         const acc = r.paidOnline === false ? undefined : r.onlineAccountBreakdown?.[i];
                         return (
                           <Fragment key={`on-${i}`}>
                             <td className="p-3 text-right whitespace-nowrap">
-                              {acc ? `${currencySymbol()}${Number(acc.amount).toLocaleString(appLocale(), { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : "-"}
+                              {acc ? `${cur}${Number(acc.amount).toLocaleString(appLocale(), { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : "-"}
                             </td>
                             <td className="p-3 text-center whitespace-nowrap" title={acc?.accountLabel || ""}>
                               {acc ? (
@@ -329,8 +340,8 @@ export default function ClubDuesClubsPage() {
                           </Fragment>
                         );
                       })}
-                      <td className="p-3 text-right">{r.paidOnline === false ? "-" : `${currencySymbol()}${Number(r.onlinePaid).toLocaleString(appLocale(), { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}</td>
-                      <td className="p-3 text-right">{currencySymbol()}{Number(r.totalPaid).toLocaleString(appLocale(), { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                      <td className="p-3 text-right">{r.paidOnline === false ? "-" : `${cur}${Number(r.onlinePaid).toLocaleString(appLocale(), { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}</td>
+                      <td className="p-3 text-right">{cur}{Number(r.totalPaid).toLocaleString(appLocale(), { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
                       <td className="p-3 text-center">{r.paidOnline == null ? "-" : r.paidOnline ? "Online" : "Offline"}</td>
                       <td className="p-3">{r.status}</td>
                       <td className="p-3 whitespace-nowrap">
@@ -338,7 +349,7 @@ export default function ClubDuesClubsPage() {
                           <Button size="sm" variant="outline" disabled={r.unpaidCount === 0} onClick={() => setOfflineFor(r)}>Offline</Button>
                           {r.lastOfflinePaymentId && <Button size="sm" variant="ghost" onClick={() => setEditOffline({ club: r, paymentId: r.lastOfflinePaymentId! })} title="Edit offline payment"><Pencil className="h-4 w-4" /></Button>}
                           {r.hasPendingApproval && <Button size="sm" onClick={() => setApproveFor(r)}>Review</Button>}
-                          {r.lastPaidPaymentId && <Button size="sm" variant="ghost" onClick={() => receipt(r)} title="Send receipt"><Receipt className="h-4 w-4" /></Button>}
+                          {notifyEmail && r.lastPaidPaymentId && <Button size="sm" variant="ghost" onClick={() => receipt(r)} title="Send receipt"><Receipt className="h-4 w-4" /></Button>}
                           <Button size="sm" variant="ghost" className="hidden" onClick={() => setSplitFor({ club: r, isOnline: true })} title={r.hasClubVendorSplit ? "Per-club online split" : "Set per-club online split"}>
                             <Split className={`h-4 w-4 ${r.hasClubVendorSplit ? "text-primary" : ""}`} />
                           </Button>
@@ -352,7 +363,7 @@ export default function ClubDuesClubsPage() {
                             null
                           ) : (
                             <>
-                              <Button size="sm" variant="ghost" onClick={() => remind(r)} title="Send email reminder"><Bell className="h-4 w-4" /></Button>
+                              {notifyEmail && <Button size="sm" variant="ghost" onClick={() => remind(r)} title="Send email reminder"><Bell className="h-4 w-4" /></Button>}
                             </>
                           )}
                         </div>
@@ -371,19 +382,19 @@ export default function ClubDuesClubsPage() {
       </div>
 
       {offlineFor && (
-        <OfflineDialog duesId={duesId} club={offlineFor} onClose={() => setOfflineFor(null)}
+        <OfflineDialog cur={cur} duesId={duesId} club={offlineFor} onClose={() => setOfflineFor(null)}
           onDone={() => { setOfflineFor(null); setSuccess("Offline payment recorded."); load(); }} onError={setError} />
       )}
       {editOffline && (
-        <OfflineDialog duesId={duesId} club={editOffline.club} editPaymentId={editOffline.paymentId} onClose={() => setEditOffline(null)}
+        <OfflineDialog cur={cur} duesId={duesId} club={editOffline.club} editPaymentId={editOffline.paymentId} onClose={() => setEditOffline(null)}
           onDone={() => { setEditOffline(null); setSuccess("Offline payment updated."); load(); }} onError={setError} />
       )}
       {approveFor && approveFor.pendingPaymentId && (
-        <ApproveDialog club={approveFor} onClose={() => setApproveFor(null)}
+        <ApproveDialog cur={cur} club={approveFor} onClose={() => setApproveFor(null)}
           onDone={(msg) => { setApproveFor(null); setSuccess(msg); load(); }} onError={setError} />
       )}
       {splitFor && (
-        <SplitDialog duesId={duesId} club={splitFor.club} isOnline={splitFor.isOnline} routeAccounts={routeAccounts} onClose={() => setSplitFor(null)}
+        <SplitDialog cur={cur} duesId={duesId} club={splitFor.club} isOnline={splitFor.isOnline} routeAccounts={routeAccounts} onClose={() => setSplitFor(null)}
           onDone={() => { setSplitFor(null); setSuccess("Per-club split saved."); load(); }} onError={setError} />
       )}
 
@@ -423,7 +434,7 @@ function Modal({ title, children, onClose }: { title: string; children: React.Re
   );
 }
 
-function OfflineDialog({ duesId, club, editPaymentId, onClose, onDone, onError }: { duesId: number; club: ClubRow; editPaymentId?: number; onClose: () => void; onDone: () => void; onError: (m: string) => void }) {
+function OfflineDialog({ cur, duesId, club, editPaymentId, onClose, onDone, onError }: { cur: string; duesId: number; club: ClubRow; editPaymentId?: number; onClose: () => void; onDone: () => void; onError: (m: string) => void }) {
   const [transactionType, setType] = useState("1");
   const [transactionId, setTid] = useState("");
   const [remark, setRemark] = useState("");
@@ -481,7 +492,7 @@ function OfflineDialog({ duesId, club, editPaymentId, onClose, onDone, onError }
       )}
       {!isEdit && (accounts.length === 0 || accountId) && (
         <p className="text-sm text-muted-foreground">
-          Amount: <b>{currencySymbol()}{Number(accounts.length === 0 ? club.unpaidCount * club.offlinePerMemberRate : selectedAccount?.amount ?? 0).toLocaleString(appLocale(), { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</b>.
+          Amount: <b>{cur}{Number(accounts.length === 0 ? club.unpaidCount * club.offlinePerMemberRate : selectedAccount?.amount ?? 0).toLocaleString(appLocale(), { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</b>.
         </p>
       )}
       <div className="space-y-2">
@@ -500,7 +511,7 @@ function OfflineDialog({ duesId, club, editPaymentId, onClose, onDone, onError }
   );
 }
 
-function SplitDialog({ duesId, club, isOnline, routeAccounts, onClose, onDone, onError }: { duesId: number; club: ClubRow; isOnline: boolean; routeAccounts: RazorpayRouteAccount[]; onClose: () => void; onDone: () => void; onError: (m: string) => void }) {
+function SplitDialog({ cur, duesId, club, isOnline, routeAccounts, onClose, onDone, onError }: { cur: string; duesId: number; club: ClubRow; isOnline: boolean; routeAccounts: RazorpayRouteAccount[]; onClose: () => void; onDone: () => void; onError: (m: string) => void }) {
   const [amountType, setAmountType] = useState("2"); // 1=amount, 2=percentage
   const [rows, setRows] = useState<{ routeAccountId: string; value: string }[]>([{ routeAccountId: "", value: "" }]);
   const [busy, setBusy] = useState(false);
@@ -524,7 +535,7 @@ function SplitDialog({ duesId, club, isOnline, routeAccounts, onClose, onDone, o
   const update = (i: number, f: "routeAccountId" | "value", v: string) => setRows((p) => p.map((r, idx) => (idx === i ? { ...r, [f]: v } : r)));
 
   const save = async () => {
-    if (filled.length > 0 && !ok) { onError(amountType === "2" ? "Percentages must total 100%." : `Amounts must total ${currencySymbol()}${rate}.`); return; }
+    if (filled.length > 0 && !ok) { onError(amountType === "2" ? "Percentages must total 100%." : `Amounts must total ${cur}${rate}.`); return; }
     setBusy(true);
     try {
       const vendors = filled.map((r) => {
@@ -560,13 +571,13 @@ function SplitDialog({ duesId, club, isOnline, routeAccounts, onClose, onDone, o
               {routeAccounts.map((a) => <SelectItem key={a.id} value={String(a.id)}>••••{a.bankAccountLast4 || "----"} · Bank code {a.bankIfsc || "N/A"}: {a.name}</SelectItem>)}
             </SelectContent>
           </Select>
-          <div className="w-24"><Input type="number" value={row.value} onChange={(e) => update(i, "value", e.target.value)} placeholder={amountType === "2" ? "%" : currencySymbol()} /></div>
+          <div className="w-24"><Input type="number" value={row.value} onChange={(e) => update(i, "value", e.target.value)} placeholder={amountType === "2" ? "%" : cur} /></div>
           <Button variant="ghost" size="icon" onClick={() => setRows((p) => (p.length > 1 ? p.filter((_, idx) => idx !== i) : p))} disabled={rows.length === 1}><X className="h-4 w-4" /></Button>
         </div>
       ))}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <Button variant="outline" size="sm" onClick={() => setRows((p) => [...p, { routeAccountId: "", value: "" }])}><Plus className="mr-1 h-4 w-4" />Add</Button>
-        {filled.length > 0 && <span className={`text-sm ${ok ? "text-green-600" : "text-red-600"}`}>Total: {amountType === "2" ? `${total}% / 100%` : `${currencySymbol()}${total} / ${currencySymbol()}${rate}`}</span>}
+        {filled.length > 0 && <span className={`text-sm ${ok ? "text-green-600" : "text-red-600"}`}>Total: {amountType === "2" ? `${total}% / 100%` : `${cur}${total} / ${cur}${rate}`}</span>}
       </div>
       <div className="flex gap-2 justify-end">
         <Button variant="outline" onClick={onClose}>Cancel</Button>
@@ -576,7 +587,7 @@ function SplitDialog({ duesId, club, isOnline, routeAccounts, onClose, onDone, o
   );
 }
 
-function ApproveDialog({ club, onClose, onDone, onError }: { club: ClubRow; onClose: () => void; onDone: (m: string) => void; onError: (m: string) => void }) {
+function ApproveDialog({ cur, club, onClose, onDone, onError }: { cur: string; club: ClubRow; onClose: () => void; onDone: (m: string) => void; onError: (m: string) => void }) {
   const [reason, setReason] = useState("");
   const [reasonErr, setReasonErr] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -598,7 +609,7 @@ function ApproveDialog({ club, onClose, onDone, onError }: { club: ClubRow; onCl
   return (
     <Modal title={`Review offline payment: ${club.clubName}`} onClose={onClose}>
       <p className="text-sm text-muted-foreground">
-        Amount: <b>{currencySymbol()}{Number(detail?.amount ?? club.unpaidCount * club.offlinePerMemberRate).toLocaleString(appLocale(), { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</b>{" "}
+        Amount: <b>{cur}{Number(detail?.amount ?? club.unpaidCount * club.offlinePerMemberRate).toLocaleString(appLocale(), { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</b>{" "}
         for {detail?.memberCountCovered ?? club.unpaidCount} member(s).
       </p>
       <p className="text-sm text-muted-foreground">Account: <b>{detail?.accountLabel || "-"}</b></p>

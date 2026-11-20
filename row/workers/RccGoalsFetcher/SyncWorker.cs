@@ -40,7 +40,7 @@ public sealed class SyncWorker(Settings s) : BackgroundService
     private const string Ddl = @"
 CREATE TABLE IF NOT EXISTS rotary_org_sync_logins (
   pk_id INT AUTO_INCREMENT PRIMARY KEY,
-  fk_district_id INT NOT NULL, fk_year_id INT NOT NULL, fk_member_id INT NOT NULL,
+  fk_district_id INT NOT NULL, fk_club_id INT NOT NULL DEFAULT 0, fk_year_id INT NOT NULL, fk_member_id INT NOT NULL,
   RotaryEmail VARCHAR(200) NOT NULL, PasswordEnc VARCHAR(1000) NULL,
   AllowNightly TINYINT(1) NOT NULL DEFAULT 0,
   Status VARCHAR(20) NOT NULL DEFAULT 'NEW',
@@ -50,7 +50,7 @@ CREATE TABLE IF NOT EXISTS rotary_org_sync_logins (
   KEY ix_rosl_district (fk_district_id, isdeleted)) DEFAULT CHARSET=utf8mb4;
 CREATE TABLE IF NOT EXISTS rotary_org_sync_requests (
   pk_id BIGINT AUTO_INCREMENT PRIMARY KEY,
-  fk_district_id INT NOT NULL, DistrictNumber VARCHAR(20) NOT NULL, fk_year_id INT NOT NULL,
+  fk_district_id INT NOT NULL, fk_club_id INT NOT NULL DEFAULT 0, DistrictNumber VARCHAR(20) NOT NULL, fk_year_id INT NOT NULL,
   fk_member_id INT NULL, TriggerType VARCHAR(10) NOT NULL,
   fk_login_id INT NULL,
   OneTimeEmail VARCHAR(200) NULL, OneTimePasswordEnc VARCHAR(1000) NULL,
@@ -66,6 +66,7 @@ CREATE TABLE IF NOT EXISTS rotary_org_sync_requests (
     {
         public long pk_id { get; set; }
         public int fk_district_id { get; set; }
+        public int fk_club_id { get; set; }   // > 0 = one club's own sync (user 2026-11-10); 0 = the whole district
         public string DistrictNumber { get; set; } = "";
         public int fk_year_id { get; set; }
         public int? fk_member_id { get; set; }
@@ -81,6 +82,7 @@ CREATE TABLE IF NOT EXISTS rotary_org_sync_requests (
     {
         public int pk_id { get; set; }
         public int fk_district_id { get; set; }
+        public int fk_club_id { get; set; }
         public int fk_year_id { get; set; }
         public int fk_member_id { get; set; }
         public string RotaryEmail { get; set; } = "";
@@ -99,7 +101,8 @@ CREATE TABLE IF NOT EXISTS rotary_org_sync_requests (
 
     protected override async Task ExecuteAsync(CancellationToken ct)
     {
-        Log.Info($"Worker started (poll {s.PollSeconds} s, weekly auto-sync {s.WeeklyDay} {s.NightlyHour:00}:00, browser {(s.Headless ? "headless" : "visible")}).");
+        Log.Info($"Worker started (poll {s.PollSeconds} s, weekly auto-sync on zone days {string.Join(", ", s.ZoneDays.OrderBy(z => z.Key).Select(z => $"Z{z.Key} {z.Value}"))} " +
+                 $"at {s.NightlyHour:00}:00, month-end sync at {s.MonthEndHour:00}:00, reports {s.ReportDay}, browser {(s.Headless ? "headless" : "visible")}).");
         while (!ct.IsCancellationRequested)
         {
             try
@@ -121,8 +124,10 @@ CREATE TABLE IF NOT EXISTS rotary_org_sync_requests (
             {
                 await FailStaleAsync();
                 await MaybeNightlyAsync();
+                await MaybeMonthEndAsync();
                 while (!ct.IsCancellationRequested && await TakeNextAsync() is { } req) await ProcessAsync(req);
                 await MaybeWeeklyReportAsync();
+                await MaybeClubReportAsync();
             }
             catch (Exception ex) { Log.Error($"Worker loop: {Short(ex)}"); }
             try { await Task.Delay(TimeSpan.FromSeconds(s.PollSeconds), ct); } catch (OperationCanceledException) { break; }
@@ -150,7 +155,7 @@ CREATE TABLE IF NOT EXISTS rotary_org_sync_requests (
             var took = await db.ExecuteAsync(
                 "UPDATE rotary_org_sync_requests SET Status = 'RUNNING', StartedAt = NOW(), Stage = 'Starting' WHERE pk_id = @id AND Status = 'QUEUED'", new { id });
             if (took == 1)
-                return await db.QuerySingleAsync<Req>(@"SELECT pk_id, fk_district_id, TRIM(DistrictNumber) AS DistrictNumber, fk_year_id, fk_member_id, TriggerType,
+                return await db.QuerySingleAsync<Req>(@"SELECT pk_id, fk_district_id, fk_club_id, TRIM(DistrictNumber) AS DistrictNumber, fk_year_id, fk_member_id, TriggerType,
                     fk_login_id, OneTimeEmail, OneTimePasswordEnc, SaveOnSuccess, SaveAllowNightly FROM rotary_org_sync_requests WHERE pk_id = @id", new { id });
         }
         return null;
@@ -163,7 +168,7 @@ CREATE TABLE IF NOT EXISTS rotary_org_sync_requests (
     {
         var started = DateTime.UtcNow;
         var num = req.DistrictNumber.Trim();
-        Log.Info($"Request {req.pk_id}: district {num}, {req.TriggerType}, {(req.fk_login_id != null ? $"saved login {req.fk_login_id}" : "one-time login")}.");
+        Log.Info($"Request {req.pk_id}: district {num}{(req.fk_club_id > 0 ? $", club {req.fk_club_id}" : "")}, {req.TriggerType}, {(req.fk_login_id != null ? $"saved login {req.fk_login_id}" : "one-time login")}.");
         string? password = null;
         SavedLogin? login = null;
         try
@@ -180,17 +185,18 @@ CREATE TABLE IF NOT EXISTS rotary_org_sync_requests (
             string? email;
             if (req.fk_login_id is int lid)
             {
-                login = await db.QuerySingleOrDefaultAsync<SavedLogin>(@"SELECT pk_id, fk_district_id, fk_year_id, fk_member_id, RotaryEmail, PasswordEnc, Status,
+                login = await db.QuerySingleOrDefaultAsync<SavedLogin>(@"SELECT pk_id, fk_district_id, fk_club_id, fk_year_id, fk_member_id, RotaryEmail, PasswordEnc, Status,
                     ExpiredMailSentAt, isdeleted FROM rotary_org_sync_logins WHERE pk_id = @lid", new { lid });
                 var why = login == null || login.isdeleted ? "The saved Rotary.org login was removed."
                     : login.Status == "DISABLED" || login.fk_year_id != yearId ? "The saved Rotary.org login is for an earlier Rotary year - the District Governor must save it again."
-                    : login.fk_district_id != req.fk_district_id ? "The saved Rotary.org login belongs to another district."
+                    : login.fk_district_id != req.fk_district_id || login.fk_club_id != req.fk_club_id
+                        ? (req.fk_club_id > 0 ? "The saved Rotary.org login belongs to another club." : "The saved Rotary.org login belongs to another district.")
                     : null;
                 if (why != null) { login = null; await FinishAsync(req, "FAILED", "Failed", why); return; }
                 if (login!.Status == "EXPIRED")
                 {
                     // Never retry a password Rotary.org already refused - the DG must update it first.
-                    await FinishAsync(req, "LOGIN_FAILED", "Sign-in failed", "The saved Rotary.org password stopped working - update it on the RIZones Goal Setting page.");
+                    await FinishAsync(req, "LOGIN_FAILED", "Sign-in failed", "The saved Rotary.org password stopped working - update it on the ROW Goal Setting page.");
                     return;
                 }
                 email = login.RotaryEmail;
@@ -221,6 +227,12 @@ CREATE TABLE IF NOT EXISTS rotary_org_sync_requests (
             await StageAsync(req.pk_id, "Reading Rotary years");
             var fy = (await fetcher.GetFiscalYearsAsync()).FirstOrDefault(y => GoalsFetcher.YearLabel(y.Id) == yearLabel);
             if (fy.Id == 0) { await FinishAsync(req, "FAILED", "Failed", $"Rotary.org does not list the Rotary year {yearLabel}."); return; }
+
+            if (req.fk_club_id > 0)
+            {
+                await ProcessClubAsync(req, db, rcc, fetcher, fy.Id, fy.End, yearId, yearLabel, login, email!, password, started);
+                return;
+            }
 
             // The login must be THAT district's (user 2026-11-06): Rotary.org's "my hierarchy" gives the account's
             // own district. Anything else stops here, before any data is fetched; a saved login is switched off.
@@ -265,45 +277,25 @@ CREATE TABLE IF NOT EXISTS rotary_org_sync_requests (
                 return;
             }
 
-            await StageAsync(req.pk_id, "Saving to RIZones");
+            await StageAsync(req.pk_id, "Saving to ROW");
             var values = DbWriter.BuildRows(ExcelOut.BuildSheets(res), res.Label)
                 .Where(v => v.YearLabel == yearLabel && string.Equals(v.District, num, StringComparison.OrdinalIgnoreCase)).ToList();
             var resolved = await DbWriter.ResolveAsync(db, values);
             if (!resolved.DistrictIds.TryGetValue(num, out var did) || did != req.fk_district_id)
             {
-                await FinishAsync(req, "FAILED", "Failed", $"District {num} does not match this request's district in RIZones.");
+                await FinishAsync(req, "FAILED", "Failed", $"District {num} does not match this request's district in ROW.");
                 return;
             }
             var source = $"RCC sync {DateTime.UtcNow:yyyy-MM-dd}";
             var (written, kept) = await DbWriter.WriteAsync(db, resolved.Rows, source);
+            // The district sync covers its clubs (user 2026-11-10): their Foundation month-wise too.
+            var monthly = await ClubFoundationWriter.ApplyAsync(db, yearId, resolved.Rows, req.fk_member_id ?? 0, DateTime.UtcNow);
             Log.Info($"Request {req.pk_id}: district {num}: {res.Clubs.Count} clubs, {resolved.Rows.Count} values -> {written} rows written, " +
-                     $"{kept} existing targets left unchanged, {resolved.UnknownClubs.Count} clubs not in RIZones skipped" +
+                     $"{kept} existing targets left unchanged, {monthly} club Foundation month-wise values, {resolved.UnknownClubs.Count} clubs not in ROW skipped" +
                      (resolved.UnknownClubs.Count > 0 ? $" ({string.Join(", ", resolved.UnknownClubs.Take(20))})" : "") +
                      $", {res.Errors.Count} Rotary.org errors, {(DateTime.UtcNow - started).TotalMinutes:0.0} min.");
 
-            var note = res.Errors.Count > 0 ? $"Done with {res.Errors.Count} Rotary.org error(s); first: {res.Errors[0]}" : null;
-            await db.ExecuteAsync(@"UPDATE rotary_org_sync_requests SET Status = 'DONE', Stage = 'Done', FinishedAt = NOW(), RowsWritten = @written,
-                ClubsDone = GREATEST(ClubsDone, ClubsTotal), ErrorMessage = @note, OneTimeEmail = NULL, OneTimePasswordEnc = NULL WHERE pk_id = @id",
-                new { written, note = Trunc(note, 1000), id = req.pk_id });
-            if (login != null)
-                await db.ExecuteAsync(@"UPDATE rotary_org_sync_logins SET Status = 'OK', LastOkAt = NOW(), StatusMessage = NULL, ExpiredMailSentAt = NULL,
-                    modified_date = NOW() WHERE pk_id = @id", new { id = login.pk_id });
-            else if (req.SaveOnSuccess && !string.IsNullOrEmpty(password))
-            {
-                // "Save my login" (user 2026-11-06): saved ONLY now - after this login proved it is this district's
-                // (a wrong district's login never replaces the real DG's saved one).
-                var enc = CredentialCrypto.Encrypt(password, s.CredentialKey);
-                var existing = await db.ExecuteScalarAsync<int?>("SELECT pk_id FROM rotary_org_sync_logins WHERE fk_district_id = @D AND isdeleted = 0 ORDER BY pk_id DESC LIMIT 1", new { D = req.fk_district_id });
-                if (existing != null)
-                    await db.ExecuteAsync(@"UPDATE rotary_org_sync_logins SET fk_year_id = @Y, fk_member_id = @M, RotaryEmail = @E, PasswordEnc = @P, AllowNightly = @N,
-                        Status = 'OK', StatusMessage = NULL, LastOkAt = NOW(), ExpiredMailSentAt = NULL, modified_date = NOW() WHERE pk_id = @Id",
-                        new { Id = existing, Y = req.fk_year_id, M = req.fk_member_id ?? 0, E = email!.Trim(), P = enc, N = req.SaveAllowNightly });
-                else
-                    await db.ExecuteAsync(@"INSERT INTO rotary_org_sync_logins (fk_district_id, fk_year_id, fk_member_id, RotaryEmail, PasswordEnc, AllowNightly, Status, LastOkAt, created_date)
-                        VALUES (@D, @Y, @M, @E, @P, @N, 'OK', NOW(), NOW())",
-                        new { D = req.fk_district_id, Y = req.fk_year_id, M = req.fk_member_id ?? 0, E = email!.Trim(), P = enc, N = req.SaveAllowNightly });
-                Log.Info($"Request {req.pk_id}: login saved for district {num} (nightly {(req.SaveAllowNightly ? "on" : "off")}).");
-            }
+            await SucceededAsync(db, req, login, email, password, written, res.Errors);
         }
         catch (Exception ex)
         {
@@ -315,6 +307,97 @@ CREATE TABLE IF NOT EXISTS rotary_org_sync_requests (
         finally
         {
             try { await WipeOneTimeAsync(req.pk_id); } catch (Exception ex) { Log.Error($"Request {req.pk_id}: one-time login NOT wiped: {Short(ex)}"); }
+        }
+    }
+
+    // ONE club's own sync (user 2026-11-10): the login must be THAT club's (Rotary.org "MyClub" = the club's
+    // Rotary club id). Only that club's values are written - never a district figure - plus its Foundation
+    // month-wise for the current month (ClubFoundationWriter = the Excel import's rule).
+    private async Task ProcessClubAsync(Req req, MySqlConnection db, RccSession rcc, GoalsFetcher fetcher, int fyId, DateTime fyEnd,
+        int yearId, string yearLabel, SavedLogin? login, string email, string password, DateTime started)
+    {
+        var club = await db.QuerySingleOrDefaultAsync<(int Id, string? Rid, string? Name, int District)>(
+            "SELECT pk_club_id, TRIM(ClubRotaryId), ClubName, COALESCE(fk_district_id,0) FROM club_master WHERE pk_club_id = @C AND COALESCE(isdeleted,0) = 0",
+            new { C = req.fk_club_id });
+        if (club.Id == 0 || string.IsNullOrWhiteSpace(club.Rid))
+        {
+            await FinishAsync(req, "FAILED", "Failed", "This club has no Rotary club number in ROW, so it cannot be synced from Rotary.org.");
+            return;
+        }
+
+        await StageAsync(req.pk_id, "Checking the login's club", 0, 1);
+        System.Text.Json.JsonElement? myClub = null;
+        try
+        {
+            var h = await rcc.GetAsync($"/api/OrgNodes/GetMyOrgHierarchy/{fyId}");
+            if (h.ValueKind == System.Text.Json.JsonValueKind.Object && h.TryGetProperty("MyClub", out var mc) && mc.ValueKind == System.Text.Json.JsonValueKind.Object)
+                myClub = mc.Clone();
+        }
+        catch (Exception ex) { Log.Warn($"Request {req.pk_id}: my-hierarchy check failed: {ex.Message.Split((char)10)[0]}"); }
+        var myRid = myClub is { } m ? Json.Str(m, "RotaryOrganizationId")?.Trim() : null;
+        if (myClub == null || !string.Equals(myRid, club.Rid, StringComparison.OrdinalIgnoreCase))
+        {
+            var msg = myClub == null
+                ? $"Could not confirm that this Rotary.org login belongs to {club.Name}. Use the Rotary.org login of an officer of this club."
+                : $"This Rotary.org login belongs to {Json.Str(myClub.Value, "Name") ?? "another club"} (club {myRid}), not {club.Name} ({club.Rid}). Use your own club's Rotary.org login.";
+            if (login != null)
+                await db.ExecuteAsync("UPDATE rotary_org_sync_logins SET Status = 'DISABLED', StatusMessage = @M, AllowNightly = 0, modified_date = NOW() WHERE pk_id = @Id",
+                    new { Id = login.pk_id, M = Trunc(msg, 500) });
+            Log.Warn($"Request {req.pk_id}: club mismatch (login club {myRid ?? "unknown"}, requested {club.Rid}) - stopped.");
+            await FinishAsync(req, "FAILED", "Failed", msg);
+            return;
+        }
+
+        var progress = new ProgressWriter(this, req.pk_id);
+        YearResult res;
+        try { res = await fetcher.FetchClubAsync(fyId, fyEnd, req.DistrictNumber.Trim(), myClub.Value, progress.Report); }
+        finally { await progress.StopAsync(); }
+        if (res.ClubGoals.Count == 0 && res.Errors.Count > 0)
+        {
+            await FinishAsync(req, "FAILED", "Failed", "Rotary.org did not return this club's goals: " + res.Errors[0]);
+            return;
+        }
+
+        await StageAsync(req.pk_id, "Saving to ROW");
+        var values = DbWriter.BuildRows(ExcelOut.BuildSheets(res), res.Label)
+            .Where(v => v.YearLabel == yearLabel && v.EntityType == "Club" && string.Equals(v.RiClubId, club.Rid, StringComparison.OrdinalIgnoreCase)).ToList();
+        var resolved = await DbWriter.ResolveAsync(db, values);
+        var rows = resolved.Rows.Where(r => r.ClubId == club.Id).ToList();   // this club only, never another
+        var (written, kept) = await DbWriter.WriteAsync(db, rows, $"RCC club sync {DateTime.UtcNow:yyyy-MM-dd}");
+        var monthly = await ClubFoundationWriter.ApplyAsync(db, yearId, rows, req.fk_member_id ?? 0, DateTime.UtcNow);
+        Log.Info($"Request {req.pk_id}: club {club.Name} ({club.Rid}): {rows.Count} values -> {written} rows written, {kept} existing targets left unchanged, " +
+                 $"{monthly} Foundation month-wise values, {res.Errors.Count} Rotary.org errors, {(DateTime.UtcNow - started).TotalMinutes:0.0} min.");
+        await SucceededAsync(db, req, login, email, password, written, res.Errors);
+    }
+
+    // DONE + the saved login's state (district and club syncs alike).
+    private async Task SucceededAsync(MySqlConnection db, Req req, SavedLogin? login, string? email, string? password, int written, List<string> errors)
+    {
+        {
+            var note = errors.Count > 0 ? $"Done with {errors.Count} Rotary.org error(s); first: {errors[0]}" : null;
+            await db.ExecuteAsync(@"UPDATE rotary_org_sync_requests SET Status = 'DONE', Stage = 'Done', FinishedAt = NOW(), RowsWritten = @written,
+                ClubsDone = GREATEST(ClubsDone, ClubsTotal), ErrorMessage = @note, OneTimeEmail = NULL, OneTimePasswordEnc = NULL WHERE pk_id = @id",
+                new { written, note = Trunc(note, 1000), id = req.pk_id });
+            if (login != null)
+                await db.ExecuteAsync(@"UPDATE rotary_org_sync_logins SET Status = 'OK', LastOkAt = NOW(), StatusMessage = NULL, ExpiredMailSentAt = NULL,
+                    modified_date = NOW() WHERE pk_id = @id", new { id = login.pk_id });
+            else if (req.SaveOnSuccess && !string.IsNullOrEmpty(password))
+            {
+                // "Save my login" (user 2026-11-06): saved ONLY now - after this login proved it is this district's
+                // (a wrong district's login never replaces the real DG's saved one). Same for a club (fk_club_id).
+                var enc = CredentialCrypto.Encrypt(password, s.CredentialKey);
+                var existing = await db.ExecuteScalarAsync<int?>("SELECT pk_id FROM rotary_org_sync_logins WHERE fk_district_id = @D AND fk_club_id = @C AND isdeleted = 0 ORDER BY pk_id DESC LIMIT 1",
+                    new { D = req.fk_district_id, C = req.fk_club_id });
+                if (existing != null)
+                    await db.ExecuteAsync(@"UPDATE rotary_org_sync_logins SET fk_year_id = @Y, fk_member_id = @M, RotaryEmail = @E, PasswordEnc = @P, AllowNightly = @N,
+                        Status = 'OK', StatusMessage = NULL, LastOkAt = NOW(), ExpiredMailSentAt = NULL, modified_date = NOW() WHERE pk_id = @Id",
+                        new { Id = existing, Y = req.fk_year_id, M = req.fk_member_id ?? 0, E = email!.Trim(), P = enc, N = req.SaveAllowNightly });
+                else
+                    await db.ExecuteAsync(@"INSERT INTO rotary_org_sync_logins (fk_district_id, fk_club_id, fk_year_id, fk_member_id, RotaryEmail, PasswordEnc, AllowNightly, Status, LastOkAt, created_date)
+                        VALUES (@D, @C, @Y, @M, @E, @P, @N, 'OK', NOW(), NOW())",
+                        new { D = req.fk_district_id, C = req.fk_club_id, Y = req.fk_year_id, M = req.fk_member_id ?? 0, E = email!.Trim(), P = enc, N = req.SaveAllowNightly });
+                Log.Info($"Request {req.pk_id}: login saved for district {req.DistrictNumber}{(req.fk_club_id > 0 ? $" club {req.fk_club_id}" : "")} (auto-sync {(req.SaveAllowNightly ? "on" : "off")}).");
+            }
         }
     }
 
@@ -335,7 +418,7 @@ CREATE TABLE IF NOT EXISTS rotary_org_sync_requests (
         var bad = ex.Kind == LoginFailure.BadCredentials;
         Log.Warn($"Request {req.pk_id}: sign-in refused ({ex.Kind}): {ex.Message}");
         var msg = bad
-            ? "Rotary.org did not accept the email / password. " + (login != null ? "Update the saved Rotary.org password on the RIZones Goal Setting page." : "Check them and try again.")
+            ? "Rotary.org did not accept the email / password. " + (login != null ? "Update the saved Rotary.org password on the ROW Goal Setting page." : "Check them and try again.")
             : "Rotary.org asks for an extra verification step (code) for this login, so it cannot be used for automatic syncs.";
         await FinishAsync(req, "LOGIN_FAILED", "Sign-in failed", msg);
         if (login == null) return;
@@ -349,12 +432,12 @@ CREATE TABLE IF NOT EXISTS rotary_org_sync_requests (
             "SELECT EmailId, MemberName FROM member_master_profile WHERE pk_member_master_profile_id = @m", new { m = login.fk_member_id });
         if (string.IsNullOrWhiteSpace(to.Email)) { Log.Warn($"Request {req.pk_id}: member {login.fk_member_id} has no email - password mail not sent."); return; }
         var html = $"<p>Dear {WebUtility.HtmlEncode(to.Name ?? "Rotarian")},</p>" +
-                   $"<p>The Rotary.org (My Rotary) password saved in RIZones for District {WebUtility.HtmlEncode(req.DistrictNumber)} stopped working, " +
-                   "so the automatic sync of your district's goals from Rotary Club Central has stopped.</p>" +
-                   "<p>Please open the <b>Goal Setting</b> page in RIZones and update your Rotary.org password there. " +
+                   $"<p>The Rotary.org (My Rotary) password saved in ROW for {(req.fk_club_id > 0 ? "your club" : $"District {WebUtility.HtmlEncode(req.DistrictNumber)}")} stopped working, " +
+                   $"so the automatic sync of your {(req.fk_club_id > 0 ? "club's" : "district's")} goals from Rotary Club Central has stopped.</p>" +
+                   "<p>Please open the <b>Goal Setting</b> page in ROW and update your Rotary.org password there. " +
                    "If you changed your My Rotary password recently, enter the new one.</p>" +
                    "<p>This is an automatic message - you will not get it again until the password works and stops working once more.</p>";
-        if (await Mailer.SendToAsync(s, to.Email!, "RIZones: your Rotary.org password needs updating", html))
+        if (await Mailer.SendToAsync(s, to.Email!, "ROW: your Rotary.org password needs updating", html))
             await db.ExecuteAsync("UPDATE rotary_org_sync_logins SET ExpiredMailSentAt = NOW() WHERE pk_id = @id", new { id = login.pk_id });
     }
 
@@ -379,11 +462,32 @@ CREATE TABLE IF NOT EXISTS rotary_org_sync_requests (
             WHERE pk_id = @id", new { stage = Trunc(stage, 100), done, total, id });
     }
 
-    // Auto-sync is WEEKLY on a FIXED day (user 2026-11-06): every saved login that allows it is queued on
-    // WeeklyDay (default Sunday) in the hour NightlyHour (or the 2 hours after it, if a sync was running),
-    // unless that district synced in the last 12 h. Old-year logins are disabled every day. The day is
-    // remembered in a file so a restart does not queue again.
+    // AUTO-SYNC (user 2026-11-10). Every saved login that allows it (District Governor or club officer):
+    //   - WEEKLY on its zone's day (ZoneDays: Zone 4 Saturday, 5 Sunday, 6 Monday, 7 Tuesday, 8 Wednesday;
+    //     any other zone = WeeklyDay), in the hour NightlyHour (or the 2 hours after it);
+    //   - on the LAST DAY OF EVERY MONTH at MonthEndHour, so each month closes with its final figure.
+    // No duplicates: a club's own auto-sync is skipped when its district's DG auto-sync is on (that one covers
+    // every club of the district); a district / club already queued or synced in the last 12 h is skipped.
+    // Old-year logins are disabled every day. Each run is remembered in a file so a restart does not queue again.
     private string NightlyFile => Path.Combine(s.OutputFolder, "worker-nightly-last.txt");
+    private string MonthEndFile => Path.Combine(s.OutputFolder, "worker-monthend-last.txt");
+
+    private DayOfWeek ZoneDay(string? zoneName)
+    {
+        foreach (System.Text.RegularExpressions.Match m in System.Text.RegularExpressions.Regex.Matches(zoneName ?? "", @"\d+"))
+            if (int.TryParse(m.Value, out var z) && s.ZoneDays.TryGetValue(z, out var d)) return d;
+        return s.WeeklyDay;
+    }
+
+    private sealed class AutoLogin
+    {
+        public int Id { get; set; }
+        public int District { get; set; }
+        public int Club { get; set; }
+        public int Member { get; set; }
+        public string Num { get; set; } = "";
+        public string? Zone { get; set; }
+    }
 
     private async Task MaybeNightlyAsync()
     {
@@ -395,85 +499,154 @@ CREATE TABLE IF NOT EXISTS rotary_org_sync_requests (
         await using var db = await OpenAsync();
         var (yearId, _) = await CurrentYearAsync(db);
         var disabled = await db.ExecuteAsync(@"UPDATE rotary_org_sync_logins SET Status = 'DISABLED', modified_date = NOW(),
-            StatusMessage = 'New Rotary year - the District Governor must save their own Rotary.org login again.'
+            StatusMessage = 'New Rotary year - please save your own Rotary.org login again.'
             WHERE isdeleted = 0 AND fk_year_id <> @yearId AND Status <> 'DISABLED'", new { yearId });
-        if (now.DayOfWeek != s.WeeklyDay)
-        {
-            try { File.WriteAllText(NightlyFile, today); } catch { }
-            if (disabled > 0) Log.Info($"{disabled} old-year login(s) disabled.");
-            return;
-        }
-        var logins = (await db.QueryAsync<(int Id, int District, int Member, string Num)>(@"
-            SELECT l.pk_id, l.fk_district_id, l.fk_member_id, TRIM(d.DistrictNumber)
-            FROM rotary_org_sync_logins l
-            JOIN district_master d ON d.pk_district_id = l.fk_district_id AND d.isdeleted = 0
-            WHERE l.isdeleted = 0 AND l.AllowNightly = 1 AND l.Status IN ('OK', 'NEW') AND l.fk_year_id = @yearId
-            ORDER BY l.fk_district_id, (l.Status = 'OK') DESC, l.LastOkAt DESC, l.pk_id DESC", new { yearId })).ToList();
-        int queued = 0, skipped = 0;
-        foreach (var l in logins.GroupBy(x => x.District).Select(g => g.First()))
-        {
-            var busy = await db.ExecuteScalarAsync<long>(@"SELECT COUNT(*) FROM rotary_org_sync_requests WHERE fk_district_id = @d
-                AND (Status IN ('QUEUED', 'RUNNING') OR (Status = 'DONE' AND FinishedAt >= NOW() - INTERVAL 12 HOUR))", new { d = l.District });
-            if (busy > 0) { skipped++; continue; }
-            await db.ExecuteAsync(@"INSERT INTO rotary_org_sync_requests (fk_district_id, DistrictNumber, fk_year_id, fk_member_id, TriggerType, fk_login_id, Status)
-                VALUES (@d, @num, @yearId, @m, 'NIGHTLY', @lid, 'QUEUED')", new { d = l.District, num = l.Num, yearId, m = l.Member, lid = l.Id });
-            queued++;
-        }
+        var (queued, skipped, covered) = await QueueAutoAsync(db, yearId, "NIGHTLY", l => ZoneDay(l.Zone) == now.DayOfWeek);
         try { File.WriteAllText(NightlyFile, today); } catch (Exception ex) { Log.Warn($"Nightly marker not saved: {Short(ex)}"); }
-        Log.Info($"Nightly: {queued} request(s) queued, {skipped} district(s) skipped (already queued / synced in the last 12 h), {disabled} old-year login(s) disabled.");
+        Log.Info($"Weekly ({now.DayOfWeek}): {queued} request(s) queued, {skipped} skipped (already queued / synced in the last 12 h), " +
+                 $"{covered} club(s) covered by their district's auto-sync, {disabled} old-year login(s) disabled.");
     }
 
-    // Weekly report mail (user 2026-11-06): on WeeklyDay, once that day's auto-syncs have all finished, one
-    // mail to RotaryOrgSync:WeeklyReportTo listing every district whose DG ticked weekly auto-sync, with this
-    // run's result. Remembered in a file so it goes once per week.
+    private async Task MaybeMonthEndAsync()
+    {
+        var now = DateTime.UtcNow;
+        if (now.Day != DateTime.DaysInMonth(now.Year, now.Month) || now.Hour < s.MonthEndHour) return;
+        var today = now.ToString("yyyy-MM-dd");
+        try { if (File.Exists(MonthEndFile) && File.ReadAllText(MonthEndFile).Trim() == today) return; } catch { }
+
+        await using var db = await OpenAsync();
+        var (yearId, _) = await CurrentYearAsync(db);
+        var (queued, skipped, covered) = await QueueAutoAsync(db, yearId, "MONTHEND", _ => true, recentHours: 3);
+        try { File.WriteAllText(MonthEndFile, today); } catch (Exception ex) { Log.Warn($"Month-end marker not saved: {Short(ex)}"); }
+        Log.Info($"Month-end {now:MMM yyyy}: {queued} request(s) queued, {skipped} skipped (already queued / synced in the last 3 h), {covered} club(s) covered by their district's auto-sync.");
+    }
+
+    // Queues one auto-sync per saved login that is due (newest working login of each district / club).
+    private async Task<(int Queued, int Skipped, int Covered)> QueueAutoAsync(MySqlConnection db, int yearId, string trigger, Func<AutoLogin, bool> due, int recentHours = 12)
+    {
+        var logins = (await db.QueryAsync<AutoLogin>(@"
+            SELECT l.pk_id AS Id, l.fk_district_id AS District, l.fk_club_id AS Club, l.fk_member_id AS Member,
+                   TRIM(d.DistrictNumber) AS Num, z.ZoneName AS Zone
+            FROM rotary_org_sync_logins l
+            JOIN district_master d ON d.pk_district_id = l.fk_district_id AND d.isdeleted = 0
+            LEFT JOIN zone_master z ON z.pk_zone_id = d.fk_zone_id
+            WHERE l.isdeleted = 0 AND l.AllowNightly = 1 AND l.Status IN ('OK', 'NEW') AND l.fk_year_id = @yearId
+            ORDER BY l.fk_district_id, l.fk_club_id, (l.Status = 'OK') DESC, l.LastOkAt DESC, l.pk_id DESC", new { yearId }))
+            .GroupBy(x => (x.District, x.Club)).Select(g => g.First()).ToList();
+        var districtAuto = logins.Where(l => l.Club == 0).Select(l => l.District).ToHashSet();
+        int queued = 0, skipped = 0, covered = 0;
+        foreach (var l in logins.Where(due))
+        {
+            if (l.Club > 0 && districtAuto.Contains(l.District)) { covered++; continue; }   // the DG's sync covers this club
+            var busy = await db.ExecuteScalarAsync<long>(@"SELECT COUNT(*) FROM rotary_org_sync_requests WHERE fk_district_id = @d AND fk_club_id = @c
+                AND (Status IN ('QUEUED', 'RUNNING') OR (Status = 'DONE' AND FinishedAt >= NOW() - INTERVAL @h HOUR))", new { d = l.District, c = l.Club, h = recentHours });
+            if (busy > 0) { skipped++; continue; }
+            await db.ExecuteAsync(@"INSERT INTO rotary_org_sync_requests (fk_district_id, fk_club_id, DistrictNumber, fk_year_id, fk_member_id, TriggerType, fk_login_id, Status)
+                VALUES (@d, @c, @num, @yearId, @m, @t, @lid, 'QUEUED')", new { d = l.District, c = l.Club, num = l.Num, yearId, m = l.Member, t = trigger, lid = l.Id });
+            queued++;
+        }
+        return (queued, skipped, covered);
+    }
+
+    // Weekly report mails (user 2026-11-06 / 11-10): on ReportDay, once no auto-sync is waiting, one mail
+    // to WeeklyReportTo for the districts (each DG with weekly auto-sync ticked) and one to ClubReportTo for
+    // the clubs, each with its latest sync of the last 7 days. Remembered in a file so each goes once a week.
     private string WeeklyReportFile => Path.Combine(s.OutputFolder, "worker-weekly-report-last.txt");
+    private string ClubReportFile => Path.Combine(s.OutputFolder, "worker-club-report-last.txt");
+
+    private async Task<bool> ReportDueAsync(MySqlConnection db, string file, List<string> to)
+    {
+        var now = DateTime.UtcNow;
+        if (now.DayOfWeek != s.ReportDay || now.Hour < s.NightlyHour || to.Count == 0) return false;
+        try { if (File.Exists(file) && File.ReadAllText(file).Trim() == now.ToString("yyyy-MM-dd")) return false; } catch { }
+        return await db.ExecuteScalarAsync<long>("SELECT COUNT(*) FROM rotary_org_sync_requests WHERE TriggerType IN ('NIGHTLY','MONTHEND') AND Status IN ('QUEUED', 'RUNNING')") == 0;
+    }
+
+    private static string RunResult(WeeklyRow r) => r.LoginStatus is "EXPIRED" ? "Not synced - Rotary.org password changed (must be updated)"
+        : r.LoginStatus is "MFA" ? "Not synced - Rotary.org asks for extra verification"
+        : r.RunStatus == "DONE" ? (r.TriggerType is "NIGHTLY" ? "Synced (weekly)" : r.TriggerType is "MONTHEND" ? "Synced (month-end)" : "Synced (manual)")
+        : r.RunStatus == null ? "Not synced in the last 7 days" : $"Failed: {r.ErrorMessage}";
 
     private async Task MaybeWeeklyReportAsync()
     {
-        var now = DateTime.UtcNow;
-        var today = now.ToString("yyyy-MM-dd");
-        if (now.DayOfWeek != s.WeeklyDay || s.WeeklyReportTo.Count == 0) return;
-        try { if (!File.Exists(NightlyFile) || File.ReadAllText(NightlyFile).Trim() != today) return; } catch { return; }
-        try { if (File.Exists(WeeklyReportFile) && File.ReadAllText(WeeklyReportFile).Trim() == today) return; } catch { }
-
         await using var db = await OpenAsync();
-        if (await db.ExecuteScalarAsync<long>("SELECT COUNT(*) FROM rotary_org_sync_requests WHERE TriggerType = 'NIGHTLY' AND Status IN ('QUEUED', 'RUNNING')") > 0) return;
+        if (!await ReportDueAsync(db, WeeklyReportFile, s.WeeklyReportTo)) return;
+        var now = DateTime.UtcNow;
         var (yearId, yearLabel) = await CurrentYearAsync(db);
         var rows = (await db.QueryAsync<WeeklyRow>(@"
-            SELECT TRIM(d.DistrictNumber) AS District, m.MemberName AS Dg, l.RotaryEmail, l.Status AS LoginStatus,
+            SELECT TRIM(d.DistrictNumber) AS District, z.ZoneName AS Zone, m.MemberName AS Dg, l.RotaryEmail, l.Status AS LoginStatus,
                    r.Status AS RunStatus, r.TriggerType, r.ClubsTotal, r.RowsWritten, r.FinishedAt, r.ErrorMessage
             FROM rotary_org_sync_logins l
             JOIN district_master d ON d.pk_district_id = l.fk_district_id
+            LEFT JOIN zone_master z ON z.pk_zone_id = d.fk_zone_id
             LEFT JOIN member_master_profile m ON m.pk_member_master_profile_id = l.fk_member_id
             LEFT JOIN rotary_org_sync_requests r ON r.pk_id = (SELECT MAX(x.pk_id) FROM rotary_org_sync_requests x
-                 WHERE x.fk_district_id = l.fk_district_id AND x.created_date >= NOW() - INTERVAL 24 HOUR)
-            WHERE l.isdeleted = 0 AND l.AllowNightly = 1 AND l.fk_year_id = @yearId
+                 WHERE x.fk_district_id = l.fk_district_id AND x.fk_club_id = 0 AND x.created_date >= NOW() - INTERVAL 7 DAY)
+            WHERE l.isdeleted = 0 AND l.fk_club_id = 0 AND l.AllowNightly = 1 AND l.fk_year_id = @yearId
             ORDER BY CAST(d.DistrictNumber AS CHAR)", new { yearId })).ToList();
 
-        string Result(WeeklyRow r) => r.LoginStatus is "EXPIRED" ? "Not synced - Rotary.org password changed (DG must update it)"
-            : r.LoginStatus is "MFA" ? "Not synced - Rotary.org asks for extra verification"
-            : r.RunStatus == "DONE" ? (r.TriggerType == "NIGHTLY" ? "Synced" : "Synced (manual sync in the last 24 h)")
-            : r.RunStatus == null ? "Not synced" : $"Failed: {r.ErrorMessage}";
         var ok = rows.Count(r => r.RunStatus == "DONE" && r.LoginStatus is not ("EXPIRED" or "MFA"));
         var enc = (string? v) => WebUtility.HtmlEncode(v ?? "");
         var td = "style=\"border:1px solid #ccc;padding:4px 8px\"";
-        var html = $"<p>Weekly Rotary.org goal sync ({enc(yearLabel)}) - {now:dd MMM yyyy}.</p>" +
+        var html = $"<p>Weekly Rotary.org goal sync ({enc(yearLabel)}) - week to {now:dd MMM yyyy}. Each district syncs on its zone's day.</p>" +
                    $"<p><b>{rows.Count}</b> district(s) have weekly auto-sync ticked: <b>{ok}</b> synced, <b>{rows.Count - ok}</b> not synced.</p>" +
                    (rows.Count == 0 ? "<p>No District Governor has ticked weekly auto-sync yet.</p>" :
-                   $"<table style=\"border-collapse:collapse;font-family:Arial;font-size:13px\"><tr><th {td}>District</th><th {td}>DG (saved login)</th><th {td}>Result</th><th {td}>Clubs</th><th {td}>Rows written</th><th {td}>Finished</th></tr>" +
-                   string.Concat(rows.Select(r => $"<tr><td {td}>{enc(r.District)}</td><td {td}>{enc(r.Dg)}<br><small>{enc(r.RotaryEmail)}</small></td><td {td}>{enc(Result(r))}</td>" +
+                   $"<table style=\"border-collapse:collapse;font-family:Arial;font-size:13px\"><tr><th {td}>District</th><th {td}>Zone</th><th {td}>DG (saved login)</th><th {td}>Result</th><th {td}>Clubs</th><th {td}>Rows written</th><th {td}>Finished</th></tr>" +
+                   string.Concat(rows.Select(r => $"<tr><td {td}>{enc(r.District)}</td><td {td}>{enc(r.Zone)}</td><td {td}>{enc(r.Dg)}<br><small>{enc(r.RotaryEmail)}</small></td><td {td}>{enc(RunResult(r))}</td>" +
                        $"<td {td}>{(r.RunStatus == "DONE" ? r.ClubsTotal.ToString() : "")}</td><td {td}>{(r.RunStatus == "DONE" ? r.RowsWritten.ToString() : "")}</td><td {td}>{r.FinishedAt:dd MMM HH:mm}</td></tr>")) +
                    "</table>") +
-                   "<p>Automatic message from the RIZones Rotary.org sync worker.</p>";
-        var subject = $"RIZones: weekly Rotary.org sync - {ok} of {rows.Count} district(s) synced ({now:dd MMM yyyy})";
+                   "<p>Automatic message from the ROW Rotary.org sync worker.</p>";
+        var subject = $"ROW: weekly Rotary.org sync - {ok} of {rows.Count} district(s) synced ({now:dd MMM yyyy})";
         foreach (var to in s.WeeklyReportTo) await Mailer.SendToAsync(s, to, subject, html);
-        try { File.WriteAllText(WeeklyReportFile, today); } catch (Exception ex) { Log.Warn($"Weekly report marker not saved: {Short(ex)}"); }
-        Log.Info($"Weekly report: {rows.Count} district(s) ticked, {ok} synced.");
+        try { File.WriteAllText(WeeklyReportFile, now.ToString("yyyy-MM-dd")); } catch (Exception ex) { Log.Warn($"Weekly report marker not saved: {Short(ex)}"); }
+        Log.Info($"Weekly district report: {rows.Count} district(s) ticked, {ok} synced.");
+    }
+
+    private async Task MaybeClubReportAsync()
+    {
+        await using var db = await OpenAsync();
+        if (!await ReportDueAsync(db, ClubReportFile, s.ClubReportTo)) return;
+        var now = DateTime.UtcNow;
+        var (yearId, yearLabel) = await CurrentYearAsync(db);
+        var rows = (await db.QueryAsync<WeeklyRow>(@"
+            SELECT TRIM(d.DistrictNumber) AS District, z.ZoneName AS Zone, c.ClubName AS Club, m.MemberName AS Dg, l.RotaryEmail, l.Status AS LoginStatus,
+                   r.Status AS RunStatus, r.TriggerType, r.ClubsTotal, r.RowsWritten, r.FinishedAt, r.ErrorMessage,
+                   EXISTS (SELECT 1 FROM rotary_org_sync_logins dl WHERE dl.fk_district_id = l.fk_district_id AND dl.fk_club_id = 0 AND dl.isdeleted = 0
+                           AND dl.AllowNightly = 1 AND dl.Status IN ('OK','NEW') AND dl.fk_year_id = @yearId) AS CoveredByDistrict
+            FROM rotary_org_sync_logins l
+            JOIN district_master d ON d.pk_district_id = l.fk_district_id
+            JOIN club_master c ON c.pk_club_id = l.fk_club_id
+            LEFT JOIN zone_master z ON z.pk_zone_id = d.fk_zone_id
+            LEFT JOIN member_master_profile m ON m.pk_member_master_profile_id = l.fk_member_id
+            LEFT JOIN rotary_org_sync_requests r ON r.pk_id = (SELECT MAX(x.pk_id) FROM rotary_org_sync_requests x
+                 WHERE x.fk_club_id = l.fk_club_id AND x.created_date >= NOW() - INTERVAL 7 DAY)
+            WHERE l.isdeleted = 0 AND l.fk_club_id > 0 AND l.AllowNightly = 1 AND l.fk_year_id = @yearId
+            ORDER BY CAST(d.DistrictNumber AS CHAR), c.ClubName", new { yearId })).ToList();
+
+        string Result(WeeklyRow r) => r.RunStatus == null && r.CoveredByDistrict ? "Covered by the district's weekly sync" : RunResult(r);
+        var ok = rows.Count(r => (r.RunStatus == "DONE" || r.RunStatus == null && r.CoveredByDistrict) && r.LoginStatus is not ("EXPIRED" or "MFA"));
+        var enc = (string? v) => WebUtility.HtmlEncode(v ?? "");
+        var td = "style=\"border:1px solid #ccc;padding:4px 8px\"";
+        var html = $"<p>Weekly Rotary.org club goal sync ({enc(yearLabel)}) - week to {now:dd MMM yyyy}. Clubs whose District Governor's weekly sync is on are covered by it.</p>" +
+                   $"<p><b>{rows.Count}</b> club(s) have weekly auto-sync ticked: <b>{ok}</b> synced or covered, <b>{rows.Count - ok}</b> not synced.</p>" +
+                   (rows.Count == 0 ? "<p>No club officer has ticked weekly auto-sync yet.</p>" :
+                   $"<table style=\"border-collapse:collapse;font-family:Arial;font-size:13px\"><tr><th {td}>District</th><th {td}>Zone</th><th {td}>Club</th><th {td}>Saved by</th><th {td}>Result</th><th {td}>Rows written</th><th {td}>Finished</th></tr>" +
+                   string.Concat(rows.Select(r => $"<tr><td {td}>{enc(r.District)}</td><td {td}>{enc(r.Zone)}</td><td {td}>{enc(r.Club)}</td><td {td}>{enc(r.Dg)}<br><small>{enc(r.RotaryEmail)}</small></td><td {td}>{enc(Result(r))}</td>" +
+                       $"<td {td}>{(r.RunStatus == "DONE" ? r.RowsWritten.ToString() : "")}</td><td {td}>{r.FinishedAt:dd MMM HH:mm}</td></tr>")) +
+                   "</table>") +
+                   "<p>Automatic message from the ROW Rotary.org sync worker.</p>";
+        var subject = $"ROW: weekly Rotary.org club sync - {ok} of {rows.Count} club(s) ({now:dd MMM yyyy})";
+        foreach (var to in s.ClubReportTo) await Mailer.SendToAsync(s, to, subject, html);
+        try { File.WriteAllText(ClubReportFile, now.ToString("yyyy-MM-dd")); } catch (Exception ex) { Log.Warn($"Club report marker not saved: {Short(ex)}"); }
+        Log.Info($"Weekly club report: {rows.Count} club(s) ticked, {ok} synced or covered.");
     }
 
     private sealed class WeeklyRow
     {
         public string District { get; set; } = "";
+        public string? Zone { get; set; }
+        public string? Club { get; set; }
+        public bool CoveredByDistrict { get; set; }
         public string? Dg { get; set; }
         public string? RotaryEmail { get; set; }
         public string LoginStatus { get; set; } = "";

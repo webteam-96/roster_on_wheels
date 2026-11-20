@@ -24,7 +24,7 @@ export async function downloadAgOcvZip(opts: {
   if (clubs.length === 0) return { total: 0, added: 0 };
 
   const zip = new JSZip();
-  const ext = format === "word" ? "docx" : "xls";
+  const ext = format === "word" ? "docx" : "xlsx";
   let done = 0;
   let added = 0;
 

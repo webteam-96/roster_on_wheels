@@ -70,6 +70,30 @@
     --shadow-lift: 0 0 0 2px rgba(27,44,66,.22);
     --ease-out: cubic-bezier(.22,1,.36,1);
     --ease-spring: cubic-bezier(.34,1.56,.64,1);
+
+    /* Goal Overview tokens (RIZones goal module, ported 2026-11-20), mapped onto the Fellowship palette:
+       go-navy = azure / mint, surfaces = card / cream (no pure white), no drop shadows (rings). */
+    --go-navy-900: #17458F;
+    --go-navy-700: #0067C8;
+    --go-navy-50: #EDF4FB;
+    --go-gold-500: #F7A81B;
+    --go-gold-50: #FEF6E7;
+    --go-text-primary: #1B2C42;
+    --go-text-secondary: #475569;
+    --go-text-muted: #94A3B8;
+    --go-surface: #FCFDFE;
+    --go-surface-sunken: #F7F9FC;
+    --go-border: #E2E8F0;
+    --go-border-strong: #D5DEE8;
+    --go-success-600: #15803D; --go-success-50: #F0FDF4;
+    --go-warning-600: #B45309; --go-warning-50: #FFFBEB;
+    --go-danger-600: #DC2626; --go-danger-50: #FEF2F2;
+    --go-rag-red: #D9302C;
+    --go-rag-yellow: #F2C230;
+    --go-rag-orange: #F08A24;
+    --go-rag-blue: #2F6FD6;
+    --go-rag-purple: #7C3AED;
+    --go-radius-sm: 6px; --go-radius-md: 10px; --go-radius-lg: 14px;
   }
   .dark {
     --background: 222 47% 11%;

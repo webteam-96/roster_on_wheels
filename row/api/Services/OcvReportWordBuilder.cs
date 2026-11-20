@@ -105,6 +105,8 @@ public sealed class OcvWordReportData
     // Full per-project detail (fields + images) for the six project avenues, rendered in the
     // detailed "Live Documents" section. Populated by GetOcvWordReportDataAsync.
     public List<OcvWordProjectModule> ProjectModules { get; } = new();
+    // "Club Goals at a glance" from Club Goal Setting (user 2026-11-12). Null = section left out.
+    public ClubGoalScorecard? GoalScorecard { get; set; }
 }
 
 // Builds the OCV / GOV compliance report Word (.docx):
@@ -113,7 +115,7 @@ public sealed class OcvWordReportData
 //   • Live Documents      — each module's current rows re-rendered as a native Word table.
 //   • Newsletters         — listed with clickable links.
 // `mediaBase` is the absolute base URL used to build the document hyperlinks.
-public static class OcvReportWordBuilder
+public static partial class OcvReportWordBuilder
 {
     private const string BrandBlueHex = "003DA5";
     private const string LabelHex = "44546A";
@@ -201,6 +203,21 @@ public static class OcvReportWordBuilder
                 new[] { "Documents Uploaded", data.Documents.Count.ToString(), "Document Categories", categories.Count.ToString() },
                 new[] { "Live Document Modules", data.LiveTables.Count.ToString(), "Newsletters", data.Newsletters.Count.ToString() },
             });
+
+            // ── Club Goals at a glance (user 2026-11-12) - same rows as the OCV tab's scorecard ──
+            if (data.GoalScorecard is { } sc && (sc.Rows.Count > 0 || sc.Checklist.Count > 0))
+            {
+                SectionHeading(body, "Club Goals at a glance");
+                if (sc.AsOn.Count > 0) body.Append(MutedText(string.Join(" · ", sc.AsOn)));
+                if (sc.Rows.Count > 0)
+                    GridTable(body, new[] { "Goal", "Target", "Achieved", "% Achieved" }, sc.Rows.Select(r => new[]
+                    {
+                        r.Goal, GoalSettingService.ScorecardCell(r.Target, r.Money),
+                        GoalSettingService.ScorecardCell(r.Achieved, r.Money), GoalSettingService.ScorecardCell(r.Pct, pct: true),
+                    }).ToList());
+                if (sc.Checklist.Count > 0)
+                    body.Append(MutedText(string.Join("  ·  ", sc.Checklist.Select(c => $"{c.Label}: {(c.Yes == null ? "—" : c.Yes.Value ? "Yes" : "No")}"))));
+            }
 
             // ── Summary listing tables (the same tables the Excel report builds) ──
             // 1) Module / Document-Type checklist (every document type across all categories).
@@ -499,7 +516,7 @@ public static class OcvReportWordBuilder
     }
 
     private static Paragraph Caption(string text) => new(
-        new ParagraphProperties(new Justification { Val = JustificationValues.Center }, new SpacingBetweenLines { Before = "60", After = "20" }),
+        new ParagraphProperties(new SpacingBetweenLines { Before = "60", After = "20" }, new Justification { Val = JustificationValues.Center }),
         new Run(new RunProperties(new Bold(), new Color { Val = LabelHex }, new FontSize { Val = "17" }),
             T(text)));
 
@@ -590,7 +607,7 @@ public static class OcvReportWordBuilder
             ) { DistanceFromTop = 0U, DistanceFromBottom = 0U, DistanceFromLeft = 0U, DistanceFromRight = 0U });
 
         body.Append(new Paragraph(
-            new ParagraphProperties(new Justification { Val = JustificationValues.Center }, new SpacingBetweenLines { Before = "120", After = "40" }),
+            new ParagraphProperties(new SpacingBetweenLines { Before = "120", After = "40" }, new Justification { Val = JustificationValues.Center }),
             new Run(drawing)));
         return true;
     }
@@ -672,7 +689,7 @@ public static class OcvReportWordBuilder
         if (bold) rp.Append(new Bold());
         if (!string.IsNullOrEmpty(colorHex)) rp.Append(new Color { Val = colorHex });
         return new Paragraph(
-            new ParagraphProperties(new Justification { Val = JustificationValues.Center }, new SpacingBetweenLines { After = "60" }),
+            new ParagraphProperties(new SpacingBetweenLines { After = "60" }, new Justification { Val = JustificationValues.Center }),
             new Run(rp, T(text)));
     }
 

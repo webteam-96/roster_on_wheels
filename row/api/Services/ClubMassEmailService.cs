@@ -12,6 +12,7 @@ public class ClubMassEmailService : IClubMassEmailService
     private readonly ICreditManagementService _creditService;
     private readonly CommsService _comms;
     private readonly ILogger<ClubMassEmailService> _logger;
+    private readonly MassEmailComposeService _compose; // merge fields + attachments at send time
 
     public ClubMassEmailService(
         IConfiguration configuration,
@@ -19,8 +20,10 @@ public class ClubMassEmailService : IClubMassEmailService
         IServiceScopeFactory scopeFactory,
         ICreditManagementService creditService,
         CommsService comms,
-        ILogger<ClubMassEmailService> logger)
+        ILogger<ClubMassEmailService> logger,
+        MassEmailComposeService compose)
     {
+        _compose = compose;
         _connectionString = configuration.GetConnectionString("DefaultConnection")!;
         _emailService = emailService;
         _scopeFactory = scopeFactory;
@@ -141,7 +144,9 @@ public class ClubMassEmailService : IClubMassEmailService
                      me.fk_subgroup_id AS FkSubgroupId, sg.GroupName AS SubgroupName, me.ContactGroupIds AS ContactGroupIdsCsv,
                      me.FromName, me.ReplyName, me.ReplyEmail, me.Subject, me.EmailBody,
                      me.Status, me.TotalRecipients, me.SentCount, me.FailedCount,
-                     me.SentDate, me.created_date AS CreatedDate, me.TemplateKey
+                     me.SentDate, me.created_date AS CreatedDate, me.TemplateKey,
+                     (SELECT COUNT(*) FROM club_mass_email_recipients o WHERE o.fk_mass_email_id = me.pk_mass_email_id AND o.isdeleted = 0 AND o.OpenCount > 0) AS OpenedCount,
+                     (SELECT COUNT(*) FROM club_mass_email_recipients o WHERE o.fk_mass_email_id = me.pk_mass_email_id AND o.isdeleted = 0 AND o.ClickCount > 0) AS ClickedCount
               FROM club_mass_emails me
               LEFT JOIN sub_groups sg ON sg.pk_sub_group_id = me.fk_subgroup_id
               WHERE me.pk_mass_email_id = @Id AND me.isdeleted = 0",
@@ -310,6 +315,8 @@ public class ClubMassEmailService : IClubMassEmailService
 
         // N5 (module on): unsubscribed and suppressed members are skipped, the monthly allowance replaces credits,
         // each member gets the template version in their language with an unsubscribe link, Brevo's id is kept.
+        // Merge values and attachments load before anything is reserved, so a missing file fails the send cleanly.
+        var extras = await _compose.LoadSendExtrasAsync(connection, id, (int)email.ClubId, (int?)email.DistrictId, recipients);
         CommsService.CampaignPlan? plan = null;
         if (commsOn)
         {
@@ -390,7 +397,8 @@ public class ClubMassEmailService : IClubMassEmailService
                     {
                         if (plan == null)
                         {
-                            await emailSvc.SendMassEmailAsync(r.Email, subject, body, fromName, replyName, replyEmail);
+                            var (ms, mh) = extras.Merge(r, subject, body);
+                            await emailSvc.SendMassEmailAsync(r.Email, ms, mh, fromName, replyName, replyEmail, attachments: extras.AttachmentsOrNull);
                             await conn.ExecuteAsync(
                                 "UPDATE club_mass_email_recipients SET Status = 'Sent', SentDate = NOW() WHERE pk_id = @Id",
                                 new { r.Id });
@@ -398,7 +406,8 @@ public class ClubMassEmailService : IClubMassEmailService
                         else
                         {
                             var (s, html, language) = plan.Render(r, subject, body);
-                            var messageId = await emailSvc.SendMassEmailAsync(r.Email, s, html, fromName, replyName, replyEmail, plan.FromEmail, plan.Headers(r));
+                            (s, html) = extras.Merge(r, s, html);
+                            var messageId = await emailSvc.SendMassEmailAsync(r.Email, s, html, fromName, replyName, replyEmail, plan.FromEmail, plan.Headers(r), extras.AttachmentsOrNull);
                             await conn.ExecuteAsync(
                                 "UPDATE club_mass_email_recipients SET Status = 'Sent', SentDate = NOW(), MessageId = @MessageId, Language = @Language WHERE pk_id = @Id",
                                 new { r.Id, MessageId = messageId, Language = language });
@@ -436,6 +445,97 @@ public class ClubMassEmailService : IClubMassEmailService
                 catch { /* ignore */ }
             }
         });
+    }
+
+    // ── Resend to non-openers (gap #6) ───────────────────────────────────────────────────────
+
+    public sealed class ResendCandidate
+    {
+        public int? MemberId { get; set; }
+        public int? ContactId { get; set; }
+        public string? MemberName { get; set; }
+        public string? Email { get; set; }
+        public string? Status { get; set; }
+        public string? DeliveryStatus { get; set; }
+        public int OpenCount { get; set; }
+        public int ClickCount { get; set; }
+        public bool Suppressed { get; set; }
+        public bool OptedOut { get; set; }
+    }
+
+    /// <summary>A follow-up goes to a recipient whose copy was sent and reported delivered by Brevo, who never opened
+    /// or clicked it, and who has not since unsubscribed or had the address suppressed (bounce, block, complaint).
+    /// "Delivered" is the webhook's Delivered status, the same number the tracking card shows.</summary>
+    public static bool IsNonOpener(ResendCandidate r) =>
+        r.Status == "Sent" && r.DeliveryStatus == "Delivered" && r.OpenCount == 0 && r.ClickCount == 0
+        && !r.Suppressed && !r.OptedOut && !string.IsNullOrWhiteSpace(r.Email);
+
+    /// <summary>Non-openers of a sent club campaign, one per address; members who left the club are dropped.</summary>
+    private static async Task<List<ResendCandidate>> NonOpenersAsync(MySqlConnection connection, int id, int clubId)
+    {
+        var rows = await connection.QueryAsync<ResendCandidate>(@"
+            SELECT r.fk_member_id AS MemberId, r.fk_contact_id AS ContactId, r.MemberName, r.Email, r.Status, r.DeliveryStatus,
+                   IFNULL(r.OpenCount, 0) AS OpenCount, IFNULL(r.ClickCount, 0) AS ClickCount,
+                   EXISTS (SELECT 1 FROM comm_suppressions s WHERE s.email = LOWER(TRIM(r.Email))
+                           AND ((s.fk_club_id = @ClubId AND s.fk_district_id = 0) OR (s.fk_club_id = 0 AND s.fk_district_id = 0))) AS Suppressed,
+                   EXISTS (SELECT 1 FROM member_channel_consents c WHERE c.fk_member_id = r.fk_member_id
+                           AND c.channel = 'email' AND c.consented = 0) AS OptedOut
+            FROM club_mass_email_recipients r
+            JOIN club_mass_emails me ON me.pk_mass_email_id = r.fk_mass_email_id
+            WHERE r.fk_mass_email_id = @Id AND r.isdeleted = 0 AND me.fk_club_id = @ClubId AND me.fk_club_id > 0 AND me.isdeleted = 0
+              AND (IFNULL(r.fk_member_id, 0) = 0 OR EXISTS (SELECT 1 FROM club_members cm WHERE cm.fk_member_master_profile_id = r.fk_member_id
+                   AND cm.fk_club_id = @ClubId AND cm.IsActive = 1 AND cm.isdeleted = 0))",
+            new { Id = id, ClubId = clubId });
+        return rows.Where(IsNonOpener)
+            .GroupBy(r => r.Email!.Trim().ToLowerInvariant()).Select(g => g.First()).ToList();
+    }
+
+    public async Task<int> CountNonOpenersAsync(int id, int clubId)
+    {
+        using var connection = CreateConnection();
+        await connection.OpenAsync();
+        return (await NonOpenersAsync(connection, id, clubId)).Count;
+    }
+
+    /// <summary>Copies the campaign (content, sender, template) into a new campaign addressed to the non-openers and
+    /// sends it through <see cref="SendAsync"/>. Returns the new campaign id; it stays a Draft if the send is refused.</summary>
+    public async Task<int> ResendToNonOpenersAsync(int id, int clubId, string? subject, int userId)
+    {
+        subject = string.IsNullOrWhiteSpace(subject) ? null : subject.Trim();
+        if (subject?.Length > 500) throw new ArgumentException("The subject can be at most 500 characters.");
+        int newId;
+        using (var connection = CreateConnection())
+        {
+            await connection.OpenAsync();
+            var status = await connection.ExecuteScalarAsync<string?>(
+                "SELECT Status FROM club_mass_emails WHERE pk_mass_email_id = @Id AND fk_club_id = @ClubId AND fk_club_id > 0 AND isdeleted = 0",
+                new { Id = id, ClubId = clubId });
+            if (status != "Sent") throw new InvalidOperationException("Only a sent email can be resent to members who did not open it.");
+            var targets = await NonOpenersAsync(connection, id, clubId);
+            if (targets.Count == 0) throw new InvalidOperationException("Everyone who received this email has opened it, or cannot be emailed again.");
+
+            await using var tx = await connection.BeginTransactionAsync();
+            newId = await connection.ExecuteScalarAsync<int>(@"
+                INSERT INTO club_mass_emails (fk_club_id, fk_district_id, RecipientType, FromName, ReplyName, ReplyEmail, Subject, EmailBody,
+                    Status, TotalRecipients, TemplateKey, created_by, created_date, isdeleted)
+                SELECT fk_club_id, fk_district_id, 3, FromName, ReplyName, ReplyEmail, COALESCE(@Subject, Subject), EmailBody,
+                    'Draft', 0, TemplateKey, @UserId, NOW(), 0
+                FROM club_mass_emails WHERE pk_mass_email_id = @Id;
+                SELECT LAST_INSERT_ID();", new { Id = id, Subject = subject, UserId = userId }, tx);
+            foreach (var t in targets)
+                await connection.ExecuteAsync(@"
+                    INSERT INTO club_mass_email_recipients (fk_mass_email_id, fk_member_id, fk_contact_id, MemberName, Email, Status, isdeleted)
+                    VALUES (@NewId, @MemberId, @ContactId, @MemberName, @Email, 'Pending', 0)",
+                    new { NewId = newId, t.MemberId, t.ContactId, t.MemberName, t.Email }, tx);
+            await _compose.CopyAttachmentsAsync(connection, tx, id, newId, userId);
+            await tx.CommitAsync();
+        }
+        try { await SendAsync(newId, userId); }
+        catch (InvalidOperationException ex)
+        {
+            throw new InvalidOperationException(ex.Message + " The follow-up is saved as a draft in Mass Email.", ex);
+        }
+        return newId;
     }
 
     public async Task<List<MassEmailRecipientDto>> GetRecipientsAsync(int id)

@@ -7,7 +7,10 @@ namespace RotaryApi.Services;
 /// Validation failures throw <see cref="ArgumentException"/>, which the controllers answer with 400.</summary>
 public static class ContactRules
 {
-    public static readonly string[] ContactTypes = { "guest", "speaker", "sponsor", "partner", "volunteer" };
+    public static readonly string[] ContactTypes = { "guest", "speaker", "sponsor", "partner", "volunteer", Friend };
+    /// <summary>Friends of the club: a non-member who gets club emails and event invites. A contact, never a member,
+    /// so never in member counts, attendance or Rotary.org sync (those read member tables only).</summary>
+    public const string Friend = "friend";
     public static readonly string[] Stages = { "inquiry", "contacted", "invited", "attended", "proposed", "approved", "inducted" };
 
     private static readonly Regex PhoneChars = new(@"^\+?[0-9 ()\-.]{4,}$", RegexOptions.Compiled);
@@ -48,6 +51,7 @@ public static class ContactRules
     {
         var v = (value ?? "").Trim().ToLowerInvariant();
         if (v.Length == 0) return "guest";
+        if (v == "friend of the club") v = Friend; // the export's label, so an exported sheet imports again
         return ContactTypes.Contains(v) ? v : throw new ArgumentException($"Type must be one of: {string.Join(", ", ContactTypes)}.");
     }
 

@@ -155,12 +155,18 @@ export default function SubscriptionPanel({ kind, ownerId }: { kind: Kind; owner
             </div>
             <div className="flex shrink-0 flex-col items-start gap-2 md:items-end">
               <p className="font-display text-[24px] font-semibold text-[#1B2C42]">
-                {formatMoney(price)} <span className="text-[14px] font-normal text-[#64748B]">per year</span>
+                {formatMoney(price)} {price && <span className="text-[14px] font-normal text-[#64748B]">per year</span>}
               </p>
               <Button type="button" onClick={handleBuy} disabled={busy || !canBuy || !price}>
                 {busy ? "Opening checkout" : working ? "Renew for one year" : "Subscribe"}
               </Button>
-              {!canBuy && (
+              {/* Without this the greyed-out button reads as broken (ROW-65). */}
+              {!price && (
+                <p className="max-w-[36ch] text-[13px] text-[#64748B] md:text-right">
+                  Subscriptions open once this year&apos;s price is published.
+                </p>
+              )}
+              {price && !canBuy && (
                 <p className="max-w-[36ch] text-[13px] text-[#64748B] md:text-right">
                   {kind === "club"
                     ? "Only a current club executive on record with Rotary International can buy this."

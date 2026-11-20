@@ -36,6 +36,7 @@ public class DuesReceiptDto
     public List<DuesReceiptLineDto> Fees { get; set; } = new();
 
     // ── Totals (derived from Fees; convenience for native rendering) ──
+    public string? Currency { get; set; }      // dues currency (ISO code; null = instance default)
     public decimal TotalAmount { get; set; }
     public decimal TotalGatewayCharges { get; set; }
     public decimal GrandTotal { get; set; }

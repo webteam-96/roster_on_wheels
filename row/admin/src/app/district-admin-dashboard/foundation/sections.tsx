@@ -21,7 +21,7 @@
 import { useCallback, useEffect, useState, useMemo } from "react";
 import Link from "next/link";
 import {
-  FolderKanban, Calendar, Search, Plus, Edit3, Trash2, Loader2, AlertTriangle,
+  FolderKanban, Calendar, Search, Plus, Edit3, Trash2, Loader2, AlertTriangle, Eye,
 } from "@/components/icons";
 import {
   getDistrictProjects,
@@ -30,6 +30,7 @@ import {
   deleteDistrictEventItem,
 } from "@/services/api";
 import AlertModal from "@/components/AlertModal";
+import ProjectDetailModal from "@/components/ProjectDetailModal";
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
 import Pagination from "@/components/Pagination";
@@ -93,6 +94,7 @@ export function DistrictProjectsSection({
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
   const [deleteTarget, setDeleteTarget] = useState<ProjectItem | null>(null);
+  const [viewId, setViewId] = useState<number | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -189,7 +191,7 @@ export function DistrictProjectsSection({
                   <th className="px-3 py-2.5 text-right">Cost ({currencySymbol()})</th>
                   <th className="px-3 py-2.5 text-center">Beneficiaries</th>
                   <th className="px-3 py-2.5 text-left">Area of Focus</th>
-                  {canManage && <th className="px-3 py-2.5 text-right w-20 whitespace-nowrap">Actions</th>}
+                  <th className="px-3 py-2.5 text-right w-24 whitespace-nowrap">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -205,8 +207,19 @@ export function DistrictProjectsSection({
                     </td>
                     <td className="px-3 py-2 text-center text-slate-600">{item.directBeneficiaries ?? "–"}</td>
                     <td className="px-3 py-2 text-slate-600">{item.areaOfFocusName || "–"}</td>
-                    {canManage && (<>
-                      <td className="px-3 py-2 text-right">
+                    <td className="px-3 py-2">
+                      <div className="flex items-center justify-end gap-0.5">
+                        {/* View for everyone: a year you cannot edit is still one you can read (ROW-67). */}
+                        <button
+                          type="button"
+                          onClick={() => setViewId(item.id)}
+                          className="inline-flex items-center justify-center w-7 h-7 rounded text-slate-500 hover:text-teal-700 hover:bg-teal-50"
+                          aria-label="View project"
+                          title="View"
+                        >
+                          <Eye size={13} />
+                        </button>
+                        {canManage && (<>
                         <Link
                           href={`/districts/${districtId}/projects/v2/${item.id}/edit?yearId=${yearId}${returnTo ? `&returnTo=${encodeURIComponent(returnTo)}` : ""}`}
                           className="inline-flex items-center justify-center w-7 h-7 rounded text-slate-500 hover:text-blue-700 hover:bg-blue-50"
@@ -214,8 +227,6 @@ export function DistrictProjectsSection({
                         >
                           <Edit3 size={13} />
                         </Link>
-                      </td>
-                      <td className="px-3 py-2 text-right">
                         <button
                           type="button"
                           onClick={() => setDeleteTarget(item)}
@@ -224,14 +235,14 @@ export function DistrictProjectsSection({
                         >
                           <Trash2 size={13} />
                         </button>
-                      </td>
-
-                    </>)}
+                        </>)}
+                      </div>
+                    </td>
                   </tr>
                 ))}
                 {items.length === 0 && (
                   <tr>
-                    <td colSpan={canManage ? 7 : 6} className="px-4 py-10 text-center text-slate-400">
+                    <td colSpan={7} className="px-4 py-10 text-center text-slate-400">
                       {!yearId
                         ? "Waiting for year selection…"
                         : search
@@ -259,6 +270,14 @@ export function DistrictProjectsSection({
           onPageChange={setPage}
         />
       )}
+
+      <ProjectDetailModal
+        clubId={0}
+        districtId={districtId}
+        yearId={yearId}
+        projectId={viewId}
+        onClose={() => setViewId(null)}
+      />
 
       <AlertModal
         open={!!deleteTarget}

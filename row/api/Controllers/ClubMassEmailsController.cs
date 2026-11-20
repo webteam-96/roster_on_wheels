@@ -117,6 +117,34 @@ public class ClubMassEmailsController : ControllerBase
         }
     }
 
+    /// <summary>How many recipients a resend to non-openers would reach (shown before sending).</summary>
+    [HttpGet("{id}/non-openers")]
+    public async Task<ActionResult> GetNonOpeners(int clubId, int id)
+    {
+        if (await DenyReadAsync(clubId) is { } deny) return deny;
+        if (!await _service.BelongsToAsync(id, clubId, null)) return NotFound(new { message = "Mass email not found." });
+        return Ok(new { count = await _service.CountNonOpenersAsync(id, clubId) });
+    }
+
+    /// <summary>Sends the same content (optionally a new subject) to recipients who were delivered it but never
+    /// opened it, as a new campaign.</summary>
+    [HttpPost("{id}/resend-non-openers")]
+    public async Task<ActionResult> ResendNonOpeners(int clubId, int id, [FromBody] ResendNonOpenersDto? dto)
+    {
+        var denied = await _guard.ClubYearlessAsync(User, clubId);
+        if (denied != null) return denied;
+        if (!await _service.BelongsToAsync(id, clubId, null)) return NotFound(new { message = "Mass email not found." });
+        try
+        {
+            var newId = await _service.ResendToNonOpenersAsync(id, clubId, dto?.Subject, GetUserId());
+            return Ok(new { id = newId, message = "The follow-up email is being sent." });
+        }
+        catch (Exception ex) when (ex is InvalidOperationException or ArgumentException)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
+
     [HttpGet("{id}/recipients")]
     public async Task<ActionResult> GetRecipients(int clubId, int id)
     {

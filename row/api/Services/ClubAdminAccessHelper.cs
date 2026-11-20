@@ -138,6 +138,9 @@ public static class ClubAdminAccessHelper
 
     public static async Task EnsureActiveClubAdminRoleAsync(MySqlConnection conn, int memberId, int clubId, int assignedBy, MySqlTransaction? tx = null)
     {
+        // Every club Admin grant passes here: refuse a grant past the per-club limit before writing anything.
+        await ClubAdminLimit.EnsureCanGrantAsync(conn, memberId, clubId, tx);
+
         // Newest existing role-2 row for this member+club, whatever state it is in.
         var keepPk = await conn.ExecuteScalarAsync<int?>(@"
             SELECT MAX(pk_member_role_id) FROM member_roles

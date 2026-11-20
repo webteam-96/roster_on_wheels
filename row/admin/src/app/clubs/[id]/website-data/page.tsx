@@ -157,6 +157,27 @@ export default function ClubWebsiteDataPage() {
             })}
           </div>
         )}
+
+        {/* WordPress connector: works without a ROW club website, so it is never disabled. */}
+        {!loading && !error && (
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+            <Card
+              className={`cursor-pointer hover:shadow-md hover:border-primary/30 transition-all ${navigatingKey === "wordpress" ? "opacity-70 pointer-events-none" : ""}`}
+              onClick={() => {
+                setNavigatingKey("wordpress");
+                router.push(`/clubs/${clubId}/website-data/wordpress`);
+              }}
+            >
+              <CardContent className="flex flex-col items-center justify-center p-6 text-center gap-3">
+                {navigatingKey === "wordpress" ? <RotaryLoader size="sm" /> : <Globe className="h-10 w-10 text-primary" />}
+                <div>
+                  <p className="font-semibold text-sm">WordPress connector</p>
+                  <p className="text-xs text-muted-foreground">wordpress</p>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
       </div>
     </ProtectedRoute>
   );

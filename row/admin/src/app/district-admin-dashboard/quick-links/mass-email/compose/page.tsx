@@ -38,6 +38,7 @@ import RotaryLoader from "@/components/RotaryLoader";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { useFeatureLoadedOn } from "@/components/FeatureGate";
 import ComposeComms from "@/components/comms/ComposeComms";
+import ComposeTools, { uploadPendingAttachments } from "@/components/massEmail/ComposeTools";
 import { ArrowLeft, Save, Send, Loader2, Users } from "@/components/icons";
 import RichTextEditor from "@/components/RichTextEditor";
 import { useFeatureOn } from "@/components/FeatureGate";
@@ -107,6 +108,7 @@ export default function DistrictAdminMassEmailComposePage() {
   const commsOn = useFeatureLoadedOn("communication"); // N5: allowance instead of credits, language versions
   const subGroupsOn = useFeatureLoadedOn("sub_groups"); // switched off: no Subgroup recipients, no sub-group calls
   const [templateKey, setTemplateKey] = useState("");
+  const [pendingFiles, setPendingFiles] = useState<File[]>([]);
 
   // Lookups
   const [clubs, setClubs] = useState<ClubOption[]>([]);
@@ -267,6 +269,11 @@ export default function DistrictAdminMassEmailComposePage() {
       } else {
         const result = await createDistrictMassEmail(districtId, data);
         createdId = result.id;
+      }
+
+      if (createdId && pendingFiles.length > 0) {
+        try { await uploadPendingAttachments("districts", districtId, createdId, pendingFiles); setPendingFiles([]); }
+        catch (upErr: any) { setErrorMessage(upErr?.response?.data?.message || "The email is saved, but a file could not be attached. Open the draft and attach it again."); setSaving(false); return; }
       }
 
       if (!asDraft && createdId) {
@@ -454,6 +461,8 @@ export default function DistrictAdminMassEmailComposePage() {
               <Label className="text-slate-700 text-sm font-medium">Email Body *</Label>
               <RichTextEditor value={emailBody} onChange={setEmailBody} placeholder="Write your email content here..." />
             </div>
+            <ComposeTools scope="districts" ownerId={districtId} emailId={editId} subject={subject} body={emailBody}
+              onApply={(s, b) => { setSubject(s); setEmailBody(b); }} pendingFiles={pendingFiles} onPendingFiles={setPendingFiles} />
             {commsOn && <ComposeComms scope="districts" ownerId={districtId} templateKey={templateKey} onTemplateKey={setTemplateKey} needed={recipientCount.membersWithEmail} />}
           </div>
         </div>

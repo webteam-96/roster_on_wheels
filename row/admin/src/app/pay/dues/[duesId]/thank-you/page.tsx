@@ -4,6 +4,7 @@ import { currencySymbol } from "@/lib/appFormat";
 import { useState, useEffect } from "react";
 import { useParams, useSearchParams, useRouter } from "next/navigation";
 import { verifyMembershipDuesPayment } from "@/services/api";
+import { getCurrencySymbol } from "@/lib/currency";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { CheckCircle2, XCircle, Loader2 } from "@/components/icons";
@@ -15,6 +16,8 @@ export default function MembershipDuesThankYouPage() {
   const duesId = Number(params.duesId);
   const orderId = searchParams.get("orderId") || "";
   const paymentId = searchParams.get("paymentId") || "0";
+  // Dues currency sign, passed on the pay page's return URL (missing = INR).
+  const cur = getCurrencySymbol(searchParams.get("currency") || "INR");
 
   const [loading, setLoading] = useState(true);
   const [result, setResult] = useState<{
@@ -120,7 +123,7 @@ export default function MembershipDuesThankYouPage() {
                 {result.amount != null && (
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Amount</span>
-                    <span className="font-semibold text-green-700">{currencySymbol()}{result.amount.toFixed(2)}</span>
+                    <span className="font-semibold text-green-700">{cur}{result.amount.toFixed(2)}</span>
                   </div>
                 )}
                 {result.paymentDate && (

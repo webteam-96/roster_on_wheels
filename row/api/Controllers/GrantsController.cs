@@ -68,6 +68,113 @@ public class GrantsController : ControllerBase
         return flow == null ? NotFound(new { message = "Grant cycle not found." }) : Ok(flow);
     }
 
+    [HttpGet(District + "/summary")]
+    public async Task<IActionResult> YearSummary(int districtId)
+    {
+        if (!await ManagesAsync(false, districtId)) return NotDistrictAdmin();
+        return Ok(await _grants.GetYearSummaryAsync(districtId));
+    }
+
+    /// <summary>Queues the due and overdue report reminders of this district now (the hourly job does the same for all).</summary>
+    [HttpPost(District + "/reminders")]
+    public async Task<IActionResult> SendReminders(int districtId)
+    {
+        if (!await ManagesAsync(false, districtId)) return NotDistrictAdmin();
+        return Ok(new { sent = await _grants.QueueReportRemindersAsync(districtId) });
+    }
+
+    // ----- Qualified clubs, monthly cash flow and receipts, email templates (grants extras) -----
+
+    [HttpGet(District + "/settings")]
+    public async Task<IActionResult> Settings(int districtId)
+    {
+        if (!await ManagesAsync(false, districtId)) return NotDistrictAdmin();
+        return Ok(await _grants.GetSettingsAsync(districtId));
+    }
+
+    [HttpPut(District + "/settings")]
+    public async Task<IActionResult> SaveSettings(int districtId, [FromBody] GrantSettingsDto dto)
+    {
+        if (!await ManagesAsync(false, districtId)) return NotDistrictAdmin();
+        return Ok(await _grants.SaveSettingsAsync(districtId, dto, MemberId, HttpContext));
+    }
+
+    [HttpGet(District + "/qualifications")]
+    public async Task<IActionResult> Qualifications(int districtId, [FromQuery] int yearId)
+    {
+        if (!await ManagesAsync(false, districtId)) return NotDistrictAdmin();
+        return Ok(await _grants.ListQualificationsAsync(districtId, yearId));
+    }
+
+    [HttpPut(District + "/qualifications/{clubId:int}/{yearId:int}")]
+    public async Task<IActionResult> SaveQualification(int districtId, int clubId, int yearId, [FromBody] SaveGrantQualificationDto dto)
+    {
+        if (!await ManagesAsync(false, districtId)) return NotDistrictAdmin();
+        var q = await _grants.SaveQualificationAsync(districtId, clubId, yearId, dto, MemberId, HttpContext);
+        return q == null ? NotFound(new { message = "That club is not in this district." }) : Ok(q);
+    }
+
+    [HttpGet(District + "/cycles/{cycleId:int}/monthly")]
+    public async Task<IActionResult> Monthly(int districtId, int cycleId)
+    {
+        if (!await ManagesAsync(false, districtId)) return NotDistrictAdmin();
+        var f = await _grants.GetMonthlyCashFlowAsync(districtId, cycleId);
+        return f == null ? NotFound(new { message = "Grant cycle not found." }) : Ok(f);
+    }
+
+    [HttpGet(District + "/cycles/{cycleId:int}/monthly/export")]
+    public async Task<IActionResult> MonthlyExport(int districtId, int cycleId)
+    {
+        if (!await ManagesAsync(false, districtId)) return NotDistrictAdmin();
+        var bytes = await _grants.ExportMonthlyCashFlowAsync(districtId, cycleId);
+        return bytes == null ? NotFound(new { message = "Grant cycle not found." })
+            : File(bytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"grants-cash-flow-{cycleId}.xlsx");
+    }
+
+    [HttpPost(District + "/cycles/{cycleId:int}/receipts")]
+    public async Task<IActionResult> AddReceipt(int districtId, int cycleId, [FromBody] SaveGrantReceiptDto dto)
+    {
+        if (!await ManagesAsync(false, districtId)) return NotDistrictAdmin();
+        var f = await _grants.AddReceiptAsync(districtId, cycleId, dto, MemberId, HttpContext);
+        return f == null ? NotFound(new { message = "Grant cycle not found." }) : Ok(f);
+    }
+
+    [HttpDelete(District + "/cycles/{cycleId:int}/receipts/{receiptId:int}")]
+    public async Task<IActionResult> DeleteReceipt(int districtId, int cycleId, int receiptId)
+    {
+        if (!await ManagesAsync(false, districtId)) return NotDistrictAdmin();
+        return await _grants.DeleteReceiptAsync(districtId, cycleId, receiptId, MemberId, HttpContext)
+            ? NoContent() : NotFound(new { message = "Receipt not found." });
+    }
+
+    [HttpGet(District + "/email-templates")]
+    public async Task<IActionResult> EmailTemplates(int districtId)
+    {
+        if (!await ManagesAsync(false, districtId)) return NotDistrictAdmin();
+        return Ok(new { templates = await _grants.ListTemplatesAsync(districtId), placeholders = GrantService.TemplatePlaceholders });
+    }
+
+    [HttpPut(District + "/email-templates/{kind}")]
+    public async Task<IActionResult> SaveEmailTemplate(int districtId, string kind, [FromBody] SaveGrantEmailTemplateDto dto)
+    {
+        if (!await ManagesAsync(false, districtId)) return NotDistrictAdmin();
+        return Ok(await _grants.SaveTemplateAsync(districtId, kind, dto, MemberId, HttpContext));
+    }
+
+    [HttpDelete(District + "/email-templates/{kind}")]
+    public async Task<IActionResult> ResetEmailTemplate(int districtId, string kind)
+    {
+        if (!await ManagesAsync(false, districtId)) return NotDistrictAdmin();
+        return Ok(await _grants.ResetTemplateAsync(districtId, kind, MemberId, HttpContext));
+    }
+
+    [HttpPost(District + "/email-templates/{kind}/preview")]
+    public async Task<IActionResult> PreviewEmailTemplate(int districtId, string kind, [FromBody] SaveGrantEmailTemplateDto dto)
+    {
+        if (!await ManagesAsync(false, districtId)) return NotDistrictAdmin();
+        return Ok(GrantService.PreviewTemplate(kind, dto));
+    }
+
     [HttpGet(District + "/cycles/{cycleId:int}/export")]
     public async Task<IActionResult> Export(int districtId, int cycleId)
     {
@@ -172,12 +279,20 @@ public class GrantsController : ControllerBase
         return app == null ? Missing() : Ok(app);
     }
 
-    [HttpPost(Club + "/applications/{id:int}/attachments")]
-    [RequestSizeLimit(21 * 1024 * 1024)]
-    public async Task<IActionResult> Upload(int clubId, int id, IFormFile file)
+    [HttpPost(Club + "/applications/{id:int}/interim-reports")]
+    public async Task<IActionResult> InterimReport(int clubId, int id, [FromBody] SubmitGrantInterimReportDto dto)
     {
         if (!await ManagesAsync(true, clubId)) return NotClubAdmin();
-        var att = await _grants.AddAttachmentAsync(clubId, id, file, MemberId, HttpContext);
+        var app = await _grants.SubmitInterimReportAsync(clubId, id, dto, MemberId, HttpContext);
+        return app == null ? Missing() : Ok(app);
+    }
+
+    [HttpPost(Club + "/applications/{id:int}/attachments")]
+    [RequestSizeLimit(21 * 1024 * 1024)]
+    public async Task<IActionResult> Upload(int clubId, int id, IFormFile file, [FromQuery] string? kind)
+    {
+        if (!await ManagesAsync(true, clubId)) return NotClubAdmin();
+        var att = await _grants.AddAttachmentAsync(clubId, id, file, MemberId, HttpContext, kind);
         return att == null ? Missing() : Ok(att);
     }
 

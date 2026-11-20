@@ -228,6 +228,106 @@ public class GoalSettingController : ControllerBase
         catch (InvalidOperationException ex) { return BadRequest(new { message = ex.Message }); }
     }
 
+    // ── Locking ───────────────────────────────────────────────────────────
+    [HttpPost("clubs/{categoryId:int}/lock")]
+    public async Task<ActionResult<GoalLockStatusDto>> LockClubGoals(
+        [FromRoute] int categoryId, [FromQuery] int yearId, [FromQuery] int clubId)
+    {
+        if (!IsAuthorisedRole()) return Forbid();
+        try { return Ok(await _service.SetClubLockAsync(GetMemberId(), categoryId, yearId, clubId, true)); }
+        catch (UnauthorizedAccessException ex) { return ForbidWithMessage(ex.Message); }
+    }
+
+    [HttpPost("clubs/{categoryId:int}/unlock")]
+    public async Task<ActionResult<GoalLockStatusDto>> UnlockClubGoals(
+        [FromRoute] int categoryId, [FromQuery] int yearId, [FromQuery] int clubId)
+    {
+        if (!IsAuthorisedRole()) return Forbid();
+        try { return Ok(await _service.SetClubLockAsync(GetMemberId(), categoryId, yearId, clubId, false)); }
+        catch (UnauthorizedAccessException ex) { return ForbidWithMessage(ex.Message); }
+    }
+
+    [HttpPost("districts/{categoryId:int}/lock")]
+    public async Task<ActionResult<GoalLockStatusDto>> LockDistrictGoals(
+        [FromRoute] int categoryId, [FromQuery] int yearId, [FromQuery] int districtId)
+    {
+        if (!IsAuthorisedRole()) return Forbid();
+        try { return Ok(await _service.SetDistrictLockAsync(GetMemberId(), categoryId, yearId, districtId, true)); }
+        catch (UnauthorizedAccessException ex) { return ForbidWithMessage(ex.Message); }
+    }
+
+    [HttpPost("districts/{categoryId:int}/unlock")]
+    public async Task<ActionResult<GoalLockStatusDto>> UnlockDistrictGoals(
+        [FromRoute] int categoryId, [FromQuery] int yearId, [FromQuery] int districtId)
+    {
+        if (!IsAuthorisedRole()) return Forbid();
+        try { return Ok(await _service.SetDistrictLockAsync(GetMemberId(), categoryId, yearId, districtId, false)); }
+        catch (UnauthorizedAccessException ex) { return ForbidWithMessage(ex.Message); }
+    }
+
+    // ── One-to-one chats (user 2026-10-16): RI Director / ZC / DA / District Admin / DG, private to the
+    //    two people. zoneId, or districtId for a District Admin / DG login. Writing is never "view as". ──
+    [HttpGet("direct/contacts")]
+    public async Task<ActionResult<List<GoalDirectContactDto>>> GetDirectContacts(
+        [FromQuery] int yearId, [FromQuery] int zoneId = 0, [FromQuery] int districtId = 0)
+        => Ok(await _service.GetDirectContactsAsync(GetMemberId(), zoneId, districtId, yearId));
+
+    // Red dot for the District Admin / DG Messages button (unread one-to-one chats).
+    [HttpGet("direct/has-unread")]
+    public async Task<ActionResult<object>> GetDirectHasUnread(
+        [FromQuery] int yearId, [FromQuery] int zoneId = 0, [FromQuery] int districtId = 0)
+        => Ok(new { hasUnread = await _service.HasUnreadDirectAsync(GetMemberId(), zoneId, districtId, yearId) });
+
+    [HttpGet("direct/{otherMemberId:int}")]
+    public async Task<ActionResult<GoalDirectConversationDto>> GetDirectConversation(
+        [FromRoute] int otherMemberId, [FromQuery] int yearId, [FromQuery] int zoneId = 0, [FromQuery] int districtId = 0)
+    {
+        try { return Ok(await _service.GetDirectConversationAsync(GetMemberId(), otherMemberId, zoneId, districtId, yearId)); }
+        catch (UnauthorizedAccessException ex) { return ForbidWithMessage(ex.Message); }
+    }
+
+    [HttpPost("direct/{otherMemberId:int}")]
+    public async Task<ActionResult<GoalCommentDto>> PostDirectMessage(
+        [FromRoute] int otherMemberId, [FromQuery] int yearId, [FromBody] PostGoalDirectMessageRequest request,
+        [FromQuery] int zoneId = 0, [FromQuery] int districtId = 0)
+    {
+        try { return Ok(await _service.PostDirectMessageAsync(GetMemberId(), otherMemberId, zoneId, districtId, yearId, request)); }
+        catch (UnauthorizedAccessException ex) { return ForbidWithMessage(ex.Message); }
+        catch (InvalidOperationException ex) { return BadRequest(new { message = ex.Message }); }
+    }
+
+    // ── Group messages (user 2026-10-19): District / Team groups + "All my districts". The group key
+    //    goes in the query ("D:12:3", "T:3:E/MGA", "B:3") - it can hold a slash. Viewing as someone
+    //    never marks their messages read; writing is never "view as". ──
+    [HttpGet("groups")]
+    public async Task<ActionResult<List<GoalGroupDto>>> GetGoalGroups(
+        [FromQuery] int yearId, [FromQuery] int zoneId = 0, [FromQuery] int districtId = 0)
+        => Ok(await _service.GetGoalGroupsAsync(GetMemberId(), zoneId, districtId, yearId));
+
+    [HttpGet("groups/has-unread")]
+    public async Task<ActionResult<object>> GetGoalGroupsHasUnread(
+        [FromQuery] int yearId, [FromQuery] int zoneId = 0, [FromQuery] int districtId = 0)
+        => Ok(new { hasUnread = await _service.HasUnreadGoalGroupsAsync(GetMemberId(), zoneId, districtId, yearId) });
+
+    [HttpGet("groups/conversation")]
+    public async Task<ActionResult<GoalGroupConversationDto>> GetGoalGroupConversation(
+        [FromQuery] string key, [FromQuery] int yearId, [FromQuery] int zoneId = 0, [FromQuery] int districtId = 0)
+    {
+        var viewer = GetMemberId();
+        try { return Ok(await _service.GetGoalGroupConversationAsync(viewer, key ?? "", zoneId, districtId, yearId, true)); }
+        catch (UnauthorizedAccessException ex) { return ForbidWithMessage(ex.Message); }
+    }
+
+    [HttpPost("groups/conversation")]
+    public async Task<ActionResult<GoalCommentDto>> PostGoalGroupMessage(
+        [FromQuery] string key, [FromQuery] int yearId, [FromBody] PostGoalGroupMessageRequest request,
+        [FromQuery] int zoneId = 0, [FromQuery] int districtId = 0)
+    {
+        try { return Ok(await _service.PostGoalGroupMessageAsync(GetMemberId(), key ?? "", zoneId, districtId, yearId, request.CommentText)); }
+        catch (UnauthorizedAccessException ex) { return ForbidWithMessage(ex.Message); }
+        catch (InvalidOperationException ex) { return BadRequest(new { message = ex.Message }); }
+    }
+
     // ── District Admin's "all my clubs" overview ─────────────────────────
     [HttpGet("districts/{categoryId:int}/clubs")]
     public async Task<ActionResult<List<GoalClubSummaryDto>>> GetDistrictClubsGoalList(

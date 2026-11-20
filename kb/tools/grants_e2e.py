@@ -125,6 +125,7 @@ for cid in leftover:
     sql(f"DELETE FROM grant_applications WHERE fk_cycle_id={cid}; DELETE FROM grant_cycles WHERE pk_cycle_id={cid}")
 sql(f"DELETE FROM member_roles WHERE created_by=-4242")
 flag_before = sql("SELECT enabled FROM platform_features WHERE feature_key='grants'")
+settings_before = sql(f"SELECT require_qualification FROM grant_district_settings WHERE fk_district_id={district}")
 tenant_added = one(f"SELECT COUNT(*) FROM tenant_subscriptions WHERE fk_district_id={district} AND fk_club_id=0") == 0
 if tenant_added:
     sql(f"INSERT INTO tenant_subscriptions (fk_district_id, fk_club_id, edition_code, state) VALUES ({district}, 0, 'district', 'live')")
@@ -150,8 +151,12 @@ try:
     check("district admin lists cycles", call("GET", D + "/cycles", t_da)[0] == 200)
     check("club admin cannot read district grants", call("GET", D + "/cycles", t_a)[0] == 403)
     check("club member cannot read district grants", call("GET", D + "/applications", t_plain)[0] == 403)
+    day = lambda n: time.strftime("%Y-%m-%d", time.gmtime(time.time() + n * 86400))
+    # Interim report overdue (yesterday-1) and final report due soon (in 5 days): both reminders fire once approved.
     body = {"yearId": next_year, "status": "open", "ddfBudget": 10000, "maxRequest": 5000, "minQualifiedMembers": 1,
-            "rules": MARK}
+            "rules": MARK, "interimDueOn": day(-2), "reportDueOn": day(5)}
+    r = call("POST", D + "/cycles", t_da, dict(body, interimDueOn=day(9)))
+    check("interim report must be due before the final report", r[0] == 400, r)
     check("club admin cannot open a cycle", call("POST", D + "/cycles", t_a, body)[0] == 403)
     r = call("POST", D + "/cycles", t_da, body)
     check("district opens next year's cycle", r[0] == 200 and r[1]["status"] == "open", r)
@@ -186,7 +191,50 @@ try:
     check("a fake PDF is refused", upload(APP + "/attachments", t_a, "fake.pdf", b"<html>x</html>")[0] == 400)
 
     # ── Submit; isolation and role gating ──────────────────────────────────────────────────────────────────────
+    # ── Qualified clubs: per-district "require club qualification to submit" (default off = warning only) ───────
+    S = f"{D}/settings"
+    r = call("GET", S, t_da)
+    check("qualification is not required by default", r[0] == 200 and r[1]["requireQualification"] is False, r)
+    check("club admin cannot read district grant settings", call("GET", S, t_a)[0] == 403)
+    check("club admin cannot change district grant settings", call("PUT", S, t_a, {"requireQualification": True})[0] == 403)
+    r = call("GET", APP, t_a)
+    check("unqualified club is warned on its draft", r[0] == 200 and "not qualified" in str(r[1].get("qualificationWarning"))
+          and r[1]["qualificationRequired"] is False, r)
+    r = call("GET", A, t_a)
+    check("club overview says the district only warns", r[0] == 200 and r[1]["requireQualification"] is False, r)
+    r = call("PUT", S, t_da, {"requireQualification": True})
+    check("district turns on required qualification", r[0] == 200 and r[1]["requireQualification"] is True, r)
+    r = call("GET", APP, t_a)
+    check("club sees the submit will be blocked", r[0] == 200 and r[1]["qualificationRequired"] is True and r[1]["qualificationWarning"], r)
+    r = call("POST", APP + "/actions/submit", t_a, {"signature": "E2E Club President"})
+    check("required: an unqualified club cannot submit", r[0] == 400 and "not qualified" in str(msg(r)), r)
+    Q = f"{D}/qualifications"
+    qual = {"mouSignedOn": day(-30), "trainingOn": day(-20), "expiresOn": day(300), "note": MARK,
+            "members": [{"memberId": plain, "trainedOn": day(-20)}]}
+    check("club admin cannot record qualifications", call("PUT", f"{Q}/{club_a}/{next_year}", t_a, qual)[0] == 403)
+    check("club outside the district is refused", call("PUT", f"{Q}/{light_club}/{next_year}", t_da, qual)[0] == 404)
+    r = call("PUT", f"{Q}/{club_a}/{next_year}", t_da, dict(qual, members=[{"memberId": admin_b}]))
+    check("trained members must belong to the club", r[0] == 400, r)
+    r = call("PUT", f"{Q}/{club_a}/{next_year}", t_da, dict(qual, expiresOn=day(-1)))
+    check("expired qualification is recorded as not qualified", r[0] == 200 and r[1]["qualified"] is False and "expired" in r[1]["problem"], r)
+    r = call("POST", APP + "/actions/submit", t_a, {"signature": "E2E Club President"})
+    check("an expired qualification blocks the submit", r[0] == 400 and "expired" in str(msg(r)), r)
+    r = call("PUT", f"{Q}/{club_a}/{next_year}", t_da, qual)
+    check("district qualifies club A with a trained member", r[0] == 200 and r[1]["qualified"] is True
+          and [m["memberId"] for m in r[1]["members"]] == [plain], r)
+    r = call("GET", APP, t_a)
+    check("qualified club has no warning", r[0] == 200 and r[1]["qualificationWarning"] is None, r)
+    r = call("GET", f"{Q}?yearId={next_year}", t_da)
+    check("district list shows every club with its status", r[0] == 200 and any(q["clubId"] == club_a and q["qualified"] for q in r[1])
+          and any(q["clubId"] == club_b and not q["qualified"] for q in r[1]), r)
+    r = call("GET", A, t_a)
+    check("club sees its own qualification", r[0] == 200 and any(q["yearId"] == next_year and q["qualified"] for q in r[1]["qualifications"]), r)
+    r = call("GET", B, t_b)
+    check("club B sees no qualification of club A", r[0] == 200 and all(q["clubId"] == club_b for q in r[1]["qualifications"]), r)
+
     r = call("POST", APP + "/actions/submit", t_a, {})
+    check("submit needs the president's typed signature", r[0] == 400 and "Sign" in str(msg(r)), r)
+    r = call("POST", APP + "/actions/submit", t_a, {"signature": "E2E Club President"})
     check("club submits", r[0] == 200 and r[1]["status"] == "submitted", r)
     check("club B admin cannot open club A's application", call("GET", APP, t_b)[0] == 403)
     check("club B route does not find club A's application", call("GET", f"{B}/applications/{app}", t_b)[0] == 404)
@@ -219,8 +267,35 @@ try:
     check("district comments", r[0] == 200 and r[1]["events"][-1]["action"] == "comment", r)
     r = call("POST", DAPP + "/actions/approve", t_da, {"amount": 2500})
     check("approval above the request is refused", r[0] == 400, r)
-    r = call("POST", DAPP + "/actions/approve", t_da, {"amount": 2000})
+    r = call("POST", DAPP + "/actions/approve", t_da, {"amount": 2000, "signature": "E2E District Officer"})
     check("district approves", r[0] == 200 and r[1]["status"] == "approved" and r[1]["amountApproved"] == 2000, r)
+    so = r[1].get("signOffs", []) if r[0] == 200 else []
+    check("sign-off trail: club submit + district approval",
+          [(x["action"], x["signatureName"]) for x in so] == [("submit", "E2E Club President"), ("approve", "E2E District Officer")]
+          and so[0]["signerRole"] in ("Club President", "Club admin") and so[1]["signerRole"] in ("District officer", "District Grants Chair"), so)
+
+    # ── Report due dates, reminders, interim report, document archive ──────────────────────────────────────────
+    check("club B admin cannot send district reminders", call("POST", D + "/reminders", t_b)[0] == 403)
+    r = call("POST", D + "/reminders", t_da)
+    check("reminders queued for the due reports", r[0] == 200 and r[1]["sent"] >= 2, r)
+    rem = sql(f"SELECT CONCAT(report, ':', stage) FROM grant_report_reminders WHERE fk_application_id={app} ORDER BY 1").split()
+    check("interim overdue + final due-soon reminders", rem == ["final:due_soon", "interim:overdue"], rem)
+    check("reminders reach the club admin in-app", one(
+        f"SELECT COUNT(*) FROM grant_notifications WHERE fk_application_id={app} AND fk_member_id={admin_a} AND title LIKE 'Grant %report%'") >= 2)
+    call("POST", D + "/reminders", t_da)
+    check("each reminder goes out once", one(f"SELECT COUNT(*) FROM grant_report_reminders WHERE fk_application_id={app}") == 2)
+    r = call("POST", APP + "/interim-reports", t_a, {})
+    check("interim report needs progress", r[0] == 400, r)
+    r = call("POST", APP + "/interim-reports", t_a, {"progress": "Pump bought, digging started.", "amountSpent": 900})
+    check("club files an interim report", r[0] == 200 and len(r[1]["interimReports"]) == 1 and r[1]["interimReports"][0]["amountSpent"] == 900, r)
+    check("district cannot file club interim reports", call("POST", APP + "/interim-reports", t_da, {"progress": "x", "amountSpent": 1})[0] == 403)
+    r = upload(APP + "/attachments?kind=receipt", t_a, "receipt.pdf", b"%PDF-1.4\n% e2e receipt\n%%EOF\n")
+    check("club archives a receipt after approval", r[0] == 200 and r[1]["kind"] == "receipt", r)
+    r = upload(APP + "/attachments?kind=application", t_a, "late.pdf", b"%PDF-1.4\n%%EOF\n")
+    check("application papers are locked after approval", r[0] == 400, r)
+    r = call("GET", DAPP, t_da)
+    kinds = sorted(a["kind"] for a in r[1].get("attachments", [])) if r[0] == 200 else []
+    check("district sees the grant's document archive", kinds == ["application", "receipt"] and all(a.get("uploadedByName") for a in r[1]["attachments"]), r)
 
     # ── Disbursement, report, close ────────────────────────────────────────────────────────────────────────────
     pay = {"amount": 2500, "paidOn": time.strftime("%Y-%m-%d"), "method": "bank_transfer", "reference": "TRX-1"}
@@ -237,13 +312,22 @@ try:
     check("second payment recorded", r[0] == 200 and r[1]["paid"] == 2000 and r[1]["status"] == "paid", r)
     r = call("POST", APP + "/actions/submit_report", t_a, {})
     check("report needs a summary", r[0] == 400, r)
-    report = {"reportSummary": "Well dug, pump installed, 300 pupils served.", "reportAmountSpent": 2400, "reportBeneficiaries": 300}
+    expense = next(l["id"] for l in call("GET", APP, t_a)[1]["lines"] if l["kind"] == "expense")
+    report = {"reportSummary": "Well dug, pump installed, 300 pupils served.", "reportAmountSpent": 2400, "reportBeneficiaries": 300,
+              "lineActuals": [{"lineId": expense, "amount": 2300}]}
+    r = call("POST", APP + "/actions/submit_report", t_a, report)
+    check("actuals must add up to the amount spent", r[0] == 400, r)
+    report["lineActuals"][0]["amount"] = 2400
     r = call("POST", APP + "/actions/submit_report", t_a, report)
     check("club submits the final report", r[0] == 200 and r[1]["status"] == "report_submitted", r)
+    line = next((l for l in r[1].get("lines", []) if l["id"] == expense), {}) if r[0] == 200 else {}
+    check("budget vs actual per line", line.get("actualAmount") == 2400 and line.get("variance") == -600, line)
     r = call("POST", DAPP + "/actions/return_report", t_da, {"comment": "Add the photos, please."})
     check("district returns the report", r[0] == 200 and r[1]["status"] == "paid", r)
     r = call("POST", APP + "/actions/submit_report", t_a, report)
     check("club resubmits the report", r[0] == 200 and r[1]["status"] == "report_submitted", r)
+    r = call("POST", DAPP + "/actions/accept_report", t_da, {})
+    check("district accepts the final report", r[0] == 200 and r[1]["status"] == "report_accepted" and r[1]["reportAcceptedAt"], r)
     r = call("POST", DAPP + "/actions/close", t_da, {})
     check("district closes the grant", r[0] == 200 and r[1]["status"] == "closed" and r[1]["closedAt"], r)
     check("a closed grant cannot be reopened", call("POST", DAPP + "/actions/approve", t_da, {"amount": 1})[0] == 400)
@@ -261,7 +345,55 @@ try:
     r = call("GET", f"{D}/cycles/{cycle}/export", t_da)
     csv = r[1].decode("utf-8-sig") if isinstance(r[1], bytes) else ""
     check("CSV export", r[0] == 200 and f"{MARK} water well" in csv and '"Closed"' in csv, r[0])
+    r = call("GET", D + "/summary", t_da)
+    ys = next((y for y in r[1] if y["cycleId"] == cycle), {}) if r[0] == 200 else {}
+    check("year summary: approved, paid, spent, outstanding",
+          (ys.get("approved"), ys.get("paid"), ys.get("reportedSpent"), ys.get("outstanding")) == (2000, 2000, 2400, 0), ys)
+    check("club admin cannot read the year summary", call("GET", D + "/summary", t_a)[0] == 403)
     check("club admin cannot export", call("GET", f"{D}/cycles/{cycle}/export", t_a)[0] == 403)
+
+    # ── Monthly cash flow with receipts, Excel export ──────────────────────────────────────────────────────────
+    M = f"{D}/cycles/{cycle}"
+    check("club admin cannot add receipts", call("POST", M + "/receipts", t_a, {"amount": 1, "receivedOn": day(0), "source": "x"})[0] == 403)
+    check("receipt needs a source", call("POST", M + "/receipts", t_da, {"amount": 5000, "receivedOn": day(0)})[0] == 400)
+    check("receipt cannot be dated in the future", call("POST", M + "/receipts", t_da, {"amount": 5000, "receivedOn": day(30), "source": "TRF"})[0] == 400)
+    r = call("POST", M + "/receipts", t_da, {"amount": 5000, "receivedOn": day(0), "source": f"{MARK} DDF from TRF", "reference": "TRF-1"})
+    check("district records a receipt", r[0] == 200 and len(r[1]["receiptList"]) == 1, r)
+    receipt = r[1]["receiptList"][0]["id"] if r[0] == 200 else 0
+    r = call("GET", M + "/monthly", t_da)
+    f = r[1] if r[0] == 200 else {}
+    check("monthly totals: approved, paid out, receipts, balance",
+          (f.get("approved"), f.get("paidOut"), f.get("receipts"), f.get("balance")) == (2000, 2000, 5000, 3000), f)
+    check("months carry the running balance", f.get("months") and f["months"][-1]["balance"] == 3000
+          and [m["month"] for m in f["months"]] == sorted(m["month"] for m in f["months"]), f.get("months"))
+    r = call("GET", M + "/monthly/export", t_da)
+    check("Excel export", r[0] == 200 and isinstance(r[1], bytes) and r[1][:2] == b"PK", r[0])
+    check("club admin cannot read the monthly cash flow", call("GET", M + "/monthly", t_a)[0] == 403)
+    check("another district's admin route is refused", call("GET", f"/api/districts/{district}/grants/cycles/999999999/monthly", t_da)[0] == 404)
+    check("district deletes the receipt", call("DELETE", f"{M}/receipts/{receipt}", t_da)[0] == 204)
+    r = call("GET", M + "/monthly", t_da)
+    check("balance after deleting the receipt", r[0] == 200 and r[1]["balance"] == -2000, r)
+
+    # ── Editable email templates ───────────────────────────────────────────────────────────────────────────────
+    T = f"{D}/email-templates"
+    r = call("GET", T, t_da)
+    check("templates start as the built-in email", r[0] == 200 and {t["kind"] for t in r[1]["templates"]} == {"status", "reminder"}
+          and all(t["isDefault"] for t in r[1]["templates"]) and "club" in r[1]["placeholders"], r)
+    check("club admin cannot edit templates", call("PUT", T + "/reminder", t_a, {"subject": "x", "body": "y"})[0] == 403)
+    r = call("PUT", T + "/reminder", t_da, {"subject": "Due {{amount}}", "body": "x"})
+    check("unknown placeholder is refused", r[0] == 400 and "amount" in str(msg(r)), r)
+    check("unknown template kind is refused", call("PUT", T + "/other", t_da, {"subject": "x", "body": "y"})[0] == 400)
+    tpl = {"subject": f"{MARK} {{{{message}}}}", "body": "Dear {{recipient}},\n{{club}}: {{details}}\n{{link}}"}
+    r = call("PUT", T + "/reminder", t_da, tpl)
+    check("district saves the reminder template", r[0] == 200 and r[1]["subject"] == tpl["subject"], r)
+    r = call("GET", T, t_da)
+    rem_t = next((t for t in r[1]["templates"] if t["kind"] == "reminder"), {}) if r[0] == 200 else {}
+    check("saved template reads back", rem_t.get("isDefault") is False and rem_t.get("body") == tpl["body"], rem_t)
+    r = call("POST", T + "/reminder/preview", t_da, tpl)
+    check("preview fills the placeholders", r[0] == 200 and "Asha Perera" in r[1]["html"] and "Rotary Club of Example" in r[1]["html"]
+          and r[1]["subject"].startswith(MARK) and "{{" not in r[1]["subject"], r)
+    r = call("DELETE", T + "/reminder", t_da)
+    check("reset brings back the built-in email", r[0] == 200 and r[1]["isDefault"] is True, r)
 
     # ── Notifications and audit on every step ──────────────────────────────────────────────────────────────────
     events = one(f"SELECT COUNT(*) FROM grant_events WHERE fk_application_id={app}")
@@ -283,22 +415,25 @@ try:
     check("in-app feed shows grant notifications", any(i["type"] == "grant" and i["deepLink"]["entityId"] == app for i in items), r)
     audited = sql(f"SELECT DISTINCT action FROM audit_log WHERE entity_type='grant_application' AND entity_id={app}").split()
     want = {"CREATE", "SUBMIT", "REQUEST_INFORMATION", "PROVIDE_INFORMATION", "REQUEST_ADJUSTMENT", "RESUBMIT",
-            "APPROVE", "PAYMENT", "SUBMIT_REPORT", "RETURN_REPORT", "CLOSE", "COMMENT", "UPLOAD"}
+            "APPROVE", "PAYMENT", "SUBMIT_REPORT", "RETURN_REPORT", "CLOSE", "COMMENT", "UPLOAD", "INTERIM_REPORT", "ACCEPT_REPORT"}
     check("audit rows for every action", want <= set(audited), sorted(want - set(audited)))
 
     # ── Budget, reject, cancel ─────────────────────────────────────────────────────────────────────────────────
-    form_b = dict(form, title=f"{MARK} library books", members=[], cycleId=cycle)
+    form_b = dict(form, title=f"{MARK} library books", members=[], cycleId=cycle, amountRequested=2500)  # = budget total
     form_b["members"] = [{"memberId": one(f"SELECT cm.fk_member_master_profile_id FROM club_members cm WHERE cm.fk_club_id={club_b} "
                                           f"AND cm.IsActive=1 AND IFNULL(cm.isdeleted,0)=0 ORDER BY 1 LIMIT 1")}]
     r = call("POST", B + "/applications", t_b, form_b)
     check("club B creates its own draft", r[0] == 200, r)
     app2 = r[1]["id"]
-    check("club B submits", call("POST", f"{B}/applications/{app2}/actions/submit", t_b, {})[0] == 200)
+    check("district switches back to warning only", call("PUT", S, t_da, {"requireQualification": False})[0] == 200)
+    r = call("GET", f"{B}/applications/{app2}", t_b)
+    check("unqualified club B is warned, not blocked", r[0] == 200 and r[1]["qualificationWarning"] and r[1]["qualificationRequired"] is False, r)
+    check("warning only: unqualified club B can submit", call("POST", f"{B}/applications/{app2}/actions/submit", t_b, {"signature": "E2E Club B President"})[0] == 200)
     upd = dict(body, ddfBudget=1000)
     check("budget cannot drop below what is approved", call("PUT", f"{D}/cycles/{cycle}", t_da, upd)[0] == 400)
     upd["ddfBudget"] = 3000
     check("district lowers the budget", call("PUT", f"{D}/cycles/{cycle}", t_da, upd)[0] == 200)
-    r = call("POST", f"{D}/applications/{app2}/actions/approve", t_da, {"amount": 2000})
+    r = call("POST", f"{D}/applications/{app2}/actions/approve", t_da, {"amount": 2000, "signature": "E2E District Officer"})
     check("approval over the DDF budget is refused", r[0] == 400 and "budget" in str(msg(r)), r)
     r = call("POST", f"{D}/applications/{app2}/actions/reject", t_da, {})
     check("rejection needs a reason", r[0] == 400, r)
@@ -334,12 +469,20 @@ finally:
     sql(f"DELETE FROM grant_project_light WHERE fk_year_id={current_year} AND fk_project_id={light_project}")
     sql(f"DELETE FROM `{projects_table}` WHERE pk_project_id={light_project} AND title='{MARK} light project'")
     sql("DELETE FROM member_roles WHERE created_by=-4242")
+    sql(f"DELETE FROM grant_club_qualifications WHERE note='{MARK}'")
+    if settings_before == "":
+        sql(f"DELETE FROM grant_district_settings WHERE fk_district_id={district}")
+    else:
+        sql(f"UPDATE grant_district_settings SET require_qualification={int(settings_before)} WHERE fk_district_id={district}")
+    sql(f"DELETE FROM grant_email_templates WHERE fk_district_id={district} AND subject LIKE '{MARK}%'")
     if tenant_added:
         sql(f"DELETE FROM tenant_subscriptions WHERE fk_district_id={district} AND fk_club_id=0")
     call("PUT", "/api/features/grants", t_sa, {"enabled": flag_before == "1"})
     if flag_before == "":
         sql("DELETE FROM platform_features WHERE feature_key='grants'")
-    left = one(f"SELECT COUNT(*) FROM grant_applications WHERE title LIKE '{MARK}%'")
+    left = one(f"SELECT (SELECT COUNT(*) FROM grant_applications WHERE title LIKE '{MARK}%') + "
+               f"(SELECT COUNT(*) FROM grant_club_qualifications WHERE note='{MARK}') + "
+               f"(SELECT COUNT(*) FROM grant_cycle_receipts WHERE source LIKE '{MARK}%')")
     check("cleanup left no test rows", left == 0, left)
 
 print(f"{'ALL PASS' if not fails else f'{fails} FAILED'}")

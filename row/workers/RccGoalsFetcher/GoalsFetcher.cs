@@ -360,7 +360,7 @@ public sealed class GoalsFetcher
     // and every one is kept, "Fiscal Year Id" = the trend's own year: this year's rows feed the normal
     // sheets, the earlier ones the history sheets. Past years can't be fetched on their own - their
     // district nodes are not visible to this account (2026-10-28) - so this is the only way to them.
-    private async Task FetchWomenAsync(int fy, string label, DistrictPart part, string districtNodeId, List<ClubRef> clubs)
+    private async Task FetchWomenAsync(int fy, string label, DistrictPart part, string? districtNodeId, List<ClubRef> clubs)
     {
         async Task<List<(int Fy, Row Data)>> Trend(string nodeId, int clubType)
         {
@@ -397,7 +397,7 @@ public sealed class GoalsFetcher
             ["Club Group (AG)"] = group, ["Club"] = club, ["RI Club Id"] = riId,
         };
 
-        try
+        if (districtNodeId != null) try   // null = one club's own sync: no district rows
         {
             part.Women.AddRange(Years(Head("District", null, null, null), await Trend(districtNodeId, _s.TrendClubType), fy));
             // Rotaractors = the district's Trends figure with Club Type 4 = Rotaract (D3142 1,136 = Rotary's
@@ -516,6 +516,61 @@ public sealed class GoalsFetcher
         part.Raw.AddRange(raw.OrderBy(r => r.Order).Select(r => r.Item));
         part.FailedClubs.AddRange(failedClubs.OrderBy(r => r.Order).Select(r => r.Item));
     }
+    /// ONE club's own sync (user 2026-11-10): a Club Admin / President / Secretary's Rotary.org login sees only
+    /// its own club (Rotary's "MyClub"). Same calls as the district sync makes for each of its clubs - the
+    /// club's goals and its member / women trend - but no club tree, no district totals, no district rows.
+    public async Task<YearResult> FetchClubAsync(int fy, DateTime yearEnd, string districtNumber, JsonElement clubNode,
+        Action<FetchProgress>? progress = null)
+    {
+        _progress = progress;
+        _clubsDone = 0; _clubsTotal = 1;
+        var res = new YearResult { FiscalYearId = fy, Label = YearLabel(fy) };
+        Report("Reading Rotary.org goal list");
+        var win = $"EndDate%20ge%20{yearEnd.AddDays(-1):yyyy-MM-dd}T00:00:00Z%20and%20StartDate%20le%20{yearEnd:yyyy-MM-dd}T00:00:00Z";
+        var cats = await _rcc.GetListAsync($"/v1/GoalCategories?$filter={win}&$orderby=SortOrder");
+        var goals = await _rcc.GetListAsync($"/v1/Goals?$filter={win}&$orderby=ShouldPriorityGoals%20desc,SortOrder");
+        var catName = cats.ToDictionary(c => Json.Str(c, "GoalCategoryId", "Id") ?? "", c => Json.Str(c, "Name", "Title") ?? "");
+        var goalCat = goals.ToDictionary(g => Json.Str(g, "GoalId", "Id") ?? "", g => Json.Str(g, "GoalCategoryId") ?? "");
+        // The goal list is what turns the club's goals into columns / values (Output.GoalColumns) - without it
+        // nothing but the member counts is saved (bug fixed 2026-11-12). Same as FetchYearAsync.
+        res.Categories = cats.Select(c => Ctx(res.Label, fy, c)).ToList();
+        res.Goals = goals.Select(g =>
+        {
+            var row = Ctx(res.Label, fy, null);
+            row["Category Name"] = catName.GetValueOrDefault(Json.Str(g, "GoalCategoryId") ?? "");
+            Json.Flatten(g, "", row);
+            return row;
+        }).ToList();
+
+        var nodeId = Json.Str(clubNode, "OrgNodeId", "Id") ?? throw new InvalidOperationException("Rotary.org did not give this login's club.");
+        var part = new DistrictPart { District = districtNumber };
+        var club = new ClubRef(districtNumber, nodeId, null, clubNode);
+        var r = Ctx(res.Label, fy, null); r["District No"] = districtNumber; r["Club Group (AG)"] = null; r["Club Node Id"] = nodeId;
+        Json.Flatten(clubNode, "", r);
+        part.Clubs.Add(r);
+
+        Report("Reading club goals");
+        await FetchClubGoalsAsync(fy, res.Label, part, new List<ClubRef> { club }, catName, goalCat);
+        if (part.FailedClubs.Count > 0)
+        {
+            // Rotary's own HTTP 500s usually go away after a short wait - one more try.
+            Report("Retrying what Rotary.org did not answer");
+            await Task.Delay(TimeSpan.FromSeconds(30));
+            part.FailedClubs.Clear();
+            await FetchClubGoalsAsync(fy, res.Label, part, new List<ClubRef> { club }, catName, goalCat);
+        }
+        Report("Reading member counts (members, women)");
+        await FetchWomenAsync(fy, res.Label, part, null, new List<ClubRef> { club });
+
+        res.Clubs.AddRange(part.Clubs);
+        res.ClubGoals.AddRange(part.ClubGoals);
+        res.Contributions.AddRange(part.Contributions);
+        res.Women.AddRange(part.Women);
+        res.Raw.AddRange(part.Raw.Select(x => (x.District, x.ClubName, x.ClubId, x.Goals)));
+        res.Errors.AddRange(part.Errors);
+        return res;
+    }
+
     private async Task<List<JsonElement>> GetOrgNodesAsync(int fy)
     {
         var baseUrl = $"/v1/OrgNodes/RCC.GetOrgNodesByYear(FiscalYearId={fy})/";

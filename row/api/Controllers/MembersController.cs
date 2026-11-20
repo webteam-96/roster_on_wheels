@@ -377,6 +377,8 @@ public class MembersController : ControllerBase
         {
             await _memberService.UpdateAsync(id, dto);
             await _auditLog.LogAsync(GetCurrentMemberId(), "UPDATE", "member", id, dto.MemberName, dto, HttpContext);
+            // A member saving their own profile answers any open profile update request (gap agent).
+            if (isSelf) await ProfileUpdateService.MarkProfileSavedAsync(_connectionString, id);
             return NoContent();
         }
         catch (InvalidOperationException ex)

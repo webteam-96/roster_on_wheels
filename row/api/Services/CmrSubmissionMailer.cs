@@ -8,7 +8,9 @@ public interface ICmrSubmissionMailer
 {
     // Build the detailed PDF and email it to DG + AG + Club President + Club Secretary.
     // Best-effort: any failure is logged, never thrown (runs in the background after submit).
-    Task SendSubmissionEmailsAsync(int clubId, int reportId, int requestedBy);
+    // clientPdf (new CMR, user 2026-11-13): the Design B PDF from the browser - attached instead of the server
+    // build when it fits the mail limit. Null = the server builds the PDF (old CMR).
+    Task SendSubmissionEmailsAsync(int clubId, int reportId, int requestedBy, byte[]? clientPdf = null);
 }
 
 public class CmrSubmissionMailer : ICmrSubmissionMailer
@@ -46,7 +48,7 @@ public class CmrSubmissionMailer : ICmrSubmissionMailer
         _logger = logger;
     }
 
-    public async Task SendSubmissionEmailsAsync(int clubId, int reportId, int requestedBy)
+    public async Task SendSubmissionEmailsAsync(int clubId, int reportId, int requestedBy, byte[]? clientPdf = null)
     {
         // Local-dev guard (option b): suppress real emails when running against a remote DB so
         // testing "upload to district" locally never spams real Rotarians. The freeze snapshot is
@@ -89,15 +91,9 @@ public class CmrSubmissionMailer : ICmrSubmissionMailer
             }
 
             var summary = await _cmr.GetPreviewAsync(clubId, yearId, month, requestedBy);
-            var items = await _cmr.GetWordProjectsForMonthAsync(clubId, yearId, month);
-            foreach (var it in items)
-                foreach (var ph in it.Photos)
-                    await CmrMediaLoader.LoadAsync(_env, _mediaRedirectBase, ph);
-
             // S5: one email to all the officers, so the report and the email are in the club's language
             using var culture = RotaryApi.Services.Localization.MessageCulture.Use(await CommsTemplates.DefaultLanguageAsync(conn, clubId, 0));
             var L = RotaryApi.Services.Localization.DbStringLocalizer.Instance;
-            var pdf = ClubMonthlyReportPdfBuilder.Build(summary, items, _mediaBaseForLinks);
 
             // Brevo rejects any message over 20 MB. Base64 inflates the attachment by ~37%, so the
             // raw PDF must stay under ~13 MB. If the photo-rich build is still too big (even after
@@ -105,6 +101,19 @@ public class CmrSubmissionMailer : ICmrSubmissionMailer
             // submission e-mail is delivered instead of failing outright.
             const int MaxAttachmentBytes = 13 * 1024 * 1024;
             bool photosDropped = false;
+            byte[] pdf;
+            if (clientPdf is { Length: > 0 } && clientPdf.Length <= MaxAttachmentBytes)
+            {
+                pdf = clientPdf;   // new CMR: the Design B PDF exactly as the club saw it
+            }
+            else
+            {
+            var items = await _cmr.GetWordProjectsForMonthAsync(clubId, yearId, month);
+            foreach (var it in items)
+                foreach (var ph in it.Photos)
+                    await CmrMediaLoader.LoadAsync(_env, _mediaRedirectBase, ph);
+
+            pdf = ClubMonthlyReportPdfBuilder.Build(summary, items, _mediaBaseForLinks);
             if (pdf.Length > MaxAttachmentBytes)
             {
                 var textOnly = ClubMonthlyReportPdfBuilder.Build(summary, items, _mediaBaseForLinks, includePhotos: false);
@@ -112,6 +121,7 @@ public class CmrSubmissionMailer : ICmrSubmissionMailer
                     pdf.Length, MaxAttachmentBytes, reportId, textOnly.Length);
                 pdf = textOnly;
                 photosDropped = true;
+            }
             }
 
             var fileName = $"{summary.ClubName}_Monthly_Report_{summary.MonthName}_{summary.YearLabel}.pdf"

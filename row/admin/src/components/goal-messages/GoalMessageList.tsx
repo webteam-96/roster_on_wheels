@@ -1,21 +1,31 @@
 "use client";
 
-// Shared read view for Goal Setting messages (user 2026-10-09: "message read screen not proper").
-// Every message reads the same everywhere - who wrote it (name + role), which district and category it
-// is about, and when - grouped under a date heading, newest at the bottom like a conversation.
+// Shared read view for Goal Setting messages. Chat style (user 2026-10-15): a date pill between
+// days, the writer's name in colour on top of each bubble, then their designation (ARC / RRFC / RPIC …),
+// the district and the CATEGORY the message is about, and the time in the bubble's corner. Your own
+// messages sit on the right in green.
 
 import type { GoalCommentDto } from "@/types/goalSetting";
+import { ddmmyyyy, hhmm, nameColour, shortRole } from "./ChatUi";
 
-const ROLE_STYLE: Record<string, string> = {
-  "District Governor": "bg-amber-50 text-amber-800 border-amber-200",
-  "District Admin": "bg-orange-50 text-orange-800 border-orange-200",
-};
+// Colour by what the role IS - designations are long titles ("Assistant Rotary Co-Ordinator (ARC)").
+function roleStyle(role: string): string {
+  const r = role.toLowerCase();
+  if (r.includes("governor")) return "bg-amber-50 text-amber-800 border-amber-200";
+  if (r.includes("district admin")) return "bg-orange-50 text-orange-800 border-orange-200";
+  if (r.includes("director")) return "bg-blue-50 text-blue-700 border-blue-200";
+  if (r.startsWith("former")) return "bg-slate-100 text-slate-500 border-slate-200";
+  if (r.includes("assistant")) return "bg-emerald-50 text-emerald-700 border-emerald-200";
+  if (r.includes("co-ordinator") || r.includes("coordinator")) return "bg-violet-50 text-violet-700 border-violet-200";
+  return "bg-slate-100 text-slate-600 border-slate-200";
+}
 
+// Shows the short form (ARC / ARRFC / RMC …); the full title is the tooltip.
 export function RoleChip({ role }: { role?: string | null }) {
   if (!role) return null;
   return (
-    <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded-full border whitespace-nowrap ${ROLE_STYLE[role] ?? "bg-slate-100 text-slate-600 border-slate-200"}`}>
-      {role}
+    <span title={role} className={`text-[10px] font-medium px-1.5 py-0.5 rounded-full border whitespace-nowrap ${roleStyle(role)}`}>
+      {shortRole(role)}
     </span>
   );
 }
@@ -27,56 +37,67 @@ export function Chip({ children, tone = "slate" }: { children: React.ReactNode; 
   return <span className={`text-[10px] px-1.5 py-0.5 rounded-full border whitespace-nowrap ${cls}`}>{children}</span>;
 }
 
-function initials(name: string) {
-  return name.split(/\s+/).filter(Boolean).slice(0, 2).map((p) => p[0]!.toUpperCase()).join("") || "?";
-}
-
-// "2026-10-09 14:05" -> date heading + time.
-function splitDate(d: string | null) {
-  if (!d) return { day: "", time: "" };
-  const dt = new Date(d.replace(" ", "T"));
-  if (Number.isNaN(dt.getTime())) return { day: d, time: "" };
-  return {
-    day: dt.toLocaleDateString("en-GB", { weekday: "short", day: "2-digit", month: "short", year: "numeric" }),
-    time: dt.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" }),
-  };
+function parse(d: string | null): Date | null {
+  if (!d) return null;
+  // The API prints "yyyy-MM-dd HH:mm" in the viewer's zone, with " UTC" added when that zone is UTC (ZoneTime.Print).
+  const dt = new Date(d.replace(/ UTC$/, "Z").replace(" ", "T"));
+  return Number.isNaN(dt.getTime()) ? null : dt;
 }
 
 export default function GoalMessageList({
-  messages, showCategory = false, emptyText = "No messages yet.", plainMine = false,
+  messages, showCategory = true, emptyText = "No messages yet.", plainMine = false,
 }: {
   messages: GoalCommentDto[];
-  showCategory?: boolean;     // inbox views that mix categories show the category chip on each message
+  showCategory?: boolean;     // every message names its category (user 2026-10-15)
   emptyText?: string;
   // The writer's own box (District Admin / DG, user 2026-10-09): their messages show just "You" -
-  // no role or district chip. Readers (SuperAdmin) keep the full labels.
+  // no role or district chip. Readers (RI / ZC / DA) keep the full labels.
   plainMine?: boolean;
 }) {
-  if (messages.length === 0) return <p className="text-sm text-slate-400 text-center py-10">{emptyText}</p>;
+  if (messages.length === 0) {
+    return (
+      <div className="flex justify-center py-10">
+        <span className="text-xs text-slate-600 bg-white/80 rounded-lg px-3 py-1.5 shadow-sm">{emptyText}</span>
+      </div>
+    );
+  }
   let lastDay = "";
+  let lastEarlier: boolean | null = null;
   return (
-    <div className="space-y-3">
+    <div className="space-y-1.5">
       {messages.map((m) => {
-        const { day, time } = splitDate(m.createdDate);
-        const header = day !== lastDay ? day : null;
+        const dt = parse(m.createdDate);
+        const day = dt ? ddmmyyyy(dt) : (m.createdDate ?? "");
+        // "Earlier messages" before the merged older ones, "Chat" where the one-to-one chat starts.
+        const earlier = !!m.isEarlier;
+        const runLabel = earlier !== lastEarlier && (earlier || lastEarlier === true)
+          ? (earlier ? "Earlier messages · read only" : "Chat") : null;
+        lastEarlier = earlier;
+        const header = day !== lastDay || runLabel ? day : null;
         lastDay = day;
+        const mine = !!m.isMine;
+        const showLabels = !(plainMine && mine);
         return (
           <div key={m.id}>
-            {header && (
-              <div className="flex items-center gap-2 my-2">
-                <span className="h-px flex-1 bg-slate-200" />
-                <span className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">{header}</span>
-                <span className="h-px flex-1 bg-slate-200" />
+            {runLabel && (
+              <div className="flex items-center gap-2 my-3">
+                <span className="h-px flex-1 bg-slate-300" />
+                <span className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">{runLabel}</span>
+                <span className="h-px flex-1 bg-slate-300" />
               </div>
             )}
-            <div className={`flex gap-3 ${m.isMine ? "flex-row-reverse" : ""}`}>
-              <span className={`h-8 w-8 shrink-0 rounded-full flex items-center justify-center text-[11px] font-bold ${m.isMine ? "bg-blue-600 text-white" : "bg-slate-200 text-slate-600"}`}>
-                {initials(m.postedByName)}
-              </span>
-              <div className={`min-w-0 max-w-[85%] rounded-2xl border px-3.5 py-2.5 ${m.isMine ? "bg-blue-50 border-blue-200 rounded-tr-sm" : "bg-card border-slate-200 rounded-tl-sm"}`}>
-                <div className="flex items-center gap-1.5 flex-wrap mb-1">
-                  <span className="text-sm font-semibold text-slate-800">{m.isMine ? "You" : m.postedByName}</span>
-                  {!(plainMine && m.isMine) && (
+            {header && (
+              <div className="flex justify-center my-3">
+                <span className="text-[11px] font-medium text-slate-600 bg-white rounded-lg px-3 py-1 shadow-sm">{header}</span>
+              </div>
+            )}
+            <div className={`flex ${mine ? "justify-end" : "justify-start"}`}>
+              <div className={`min-w-[140px] max-w-[80%] rounded-lg px-2.5 pt-1.5 pb-1 shadow-sm ${mine ? "bg-[#d9fdd3] rounded-tr-none" : "bg-white rounded-tl-none"}`}>
+                <div className="flex items-center gap-1.5 flex-wrap mb-0.5">
+                  <span className="text-[13px] font-semibold" style={{ color: mine ? "#047857" : nameColour(m.postedByName) }}>
+                    {mine ? "You" : m.postedByName}
+                  </span>
+                  {showLabels && (
                     <>
                       <RoleChip role={m.postedByRoleLabel} />
                       {m.districtId ? <Chip tone="green">District {m.districtNumber}</Chip>
@@ -84,9 +105,14 @@ export default function GoalMessageList({
                     </>
                   )}
                   {showCategory && m.categoryName && <Chip tone="blue">{m.categoryName}</Chip>}
-                  <span className="ml-auto text-[10px] text-slate-400 pl-2">{time}</span>
                 </div>
-                <div className="text-sm text-slate-700 whitespace-pre-wrap break-words">{m.commentText}</div>
+                {m.enteredByName && (
+                  <div className="text-[11px] text-slate-500 italic -mt-0.5 mb-0.5">entered by {m.enteredByName}</div>
+                )}
+                <div className="text-sm text-slate-800 whitespace-pre-wrap break-words">
+                  {m.commentText}
+                  <span className="float-right ml-3 mt-1.5 text-[10px] text-slate-500">{dt ? hhmm(dt) : ""}</span>
+                </div>
               </div>
             </div>
           </div>

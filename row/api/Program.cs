@@ -287,6 +287,8 @@ builder.Services.AddSingleton(sp => new RotaryApi.Services.Assistant.Tools.Assis
 builder.Services.AddScoped<RotaryApi.Services.Assistant.AssistantScopeBuilder>();
 builder.Services.AddScoped<RotaryApi.Services.Assistant.AssistantOrchestrator>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+// Account security (gap agent)
+builder.Services.AddScoped<AccountSecurityService>();
 builder.Services.AddScoped<IZoneService, ZoneService>();
 builder.Services.AddScoped<IDistrictService, DistrictService>();
 builder.Services.AddScoped<IClubService, ClubService>();
@@ -319,6 +321,8 @@ builder.Services.AddScoped<IBodSubGroupAutoService, BodSubGroupAutoService>();
 builder.Services.AddScoped<IWebsiteDataModuleService, WebsiteDataModuleService>();
 builder.Services.AddScoped<IThemeService, ThemeService>();
 builder.Services.AddScoped<IWebsiteLanguageService, WebsiteLanguageService>();
+// Website extras (gap agent)
+builder.Services.AddScoped<IWebsiteExtrasService, WebsiteExtrasService>();
 // Chat (build spec 3.10): REST in ChatController, real-time delivery through SignalR (shared framework, no package).
 // shortcut: SignalR delivers to clients connected to this API instance only; add a backplane (Redis) when the API
 // runs on more than one instance.
@@ -330,6 +334,9 @@ builder.Services.AddScoped<IClubBannerService, ClubBannerService>();
 builder.Services.AddScoped<IClubAdvertisementService, ClubAdvertisementService>();
 builder.Services.AddScoped<IClubSocialLinkService, ClubSocialLinkService>();
 builder.Services.AddScoped<IClubMenuService, ClubMenuService>();
+// Website builder (gap agent)
+builder.Services.AddScoped<WebsitePageService>();
+builder.Services.AddSingleton<WebsiteMemberSession>();
 builder.Services.AddScoped<IClubContactDetailService, ClubContactDetailService>();
 builder.Services.AddScoped<IClubAboutService, ClubAboutService>();
 builder.Services.AddScoped<IPotentialMemberService, PotentialMemberService>();
@@ -337,6 +344,15 @@ builder.Services.AddScoped<IPotentialMemberService, PotentialMemberService>();
 builder.Services.AddScoped<ContactService>();
 builder.Services.AddScoped<GrowthService>();
 builder.Services.AddScoped<InvitePromptService>();
+// Prospect follow-up (gap agent): tasks, notification settings; the job writes reminders and emails notices.
+// ProspectFollowUp:Job runs that job alone on a dev copy (BackgroundJobs:Enabled would start every job).
+builder.Services.AddScoped<ProspectFollowUpService>();
+if (builder.Configuration.GetValue("ProspectFollowUp:Job", builder.Configuration.GetValue<bool>("BackgroundJobs:Enabled", true)))
+    builder.Services.AddHostedService<ProspectFollowUpBackgroundService>();
+// Contacts export, merge and Friends of the club (gap agent)
+builder.Services.AddScoped<ContactToolsService>();
+// Member flexibility (gap agent): tags, custom profile fields, smart lists
+builder.Services.AddScoped<MemberFlexService>();
 // N10 live target dashboard (feature target_dashboard)
 builder.Services.AddScoped<TargetDashboardService>();
 // Escalation ladder (flag escalation) and target celebration (flag celebration); the daily passes are registered below.
@@ -356,6 +372,8 @@ builder.Services.AddScoped<IMobileNotificationFeedService, MobileNotificationFee
 // Engagement: milestones, PHF highlights, spotlight cards (flag engagement); the daily pass is registered below.
 builder.Services.AddScoped<EngagementService>();
 builder.Services.AddScoped<IAttendanceService, AttendanceService>();
+// Attendance rules: makeups, leave, exemptions, standing (gap agent)
+builder.Services.AddScoped<AttendanceStandingService>();
 // N8 Meetings: calendar feeds, compliance, reminder text (MeetingReminderBackgroundService sends the emails)
 builder.Services.AddScoped<MeetingsService>();
 // N5 Communication: templates, sender domains, allowances, suppressions, consent, tracking (CommsController)
@@ -379,10 +397,15 @@ builder.Services.AddScoped<RotaryApi.Services.SubscriptionOfficers>(); // KIS/RO
 builder.Services.AddScoped<RotaryApi.Services.SubscriptionBillingService>(); // KIS/ROW/SUB/01: buy / renew
 builder.Services.AddScoped<RotaryApi.Services.ExecutiveSignInService>(); // KIS/ROW/SUB/01: executive email-code sign-in
 builder.Services.AddScoped<RotaryApi.Services.SubscriptionDailyService>(); // KIS/ROW/SUB/01: renewal reminders, officer sync
+// RI data tools (gap agent)
+builder.Services.AddScoped<RotaryApi.Services.RiDataToolsService>();
 builder.Services.AddScoped<IWeblinkService, WeblinkService>();
 builder.Services.AddScoped<ISubGroupService, SubGroupService>();
 builder.Services.AddScoped<IEventPaymentLinkService, EventPaymentLinkService>();
 builder.Services.AddScoped<IMembershipDuesService, MembershipDuesService>();
+// Invoices and statements (gap agent)
+builder.Services.AddScoped<DuesInvoiceService>();
+// end Invoices and statements (gap agent)
 builder.Services.AddScoped<PayLinkRequestService>();
 builder.Services.AddScoped<IClubDuesService, ClubDuesService>();
 builder.Services.AddSingleton<IGoogleSheetsService, GoogleSheetsService>();
@@ -399,6 +422,12 @@ builder.Services.AddHostedService<WebsiteProvisioningBackgroundService>();
 builder.Services.AddSingleton<IZoomMeetingService, ZoomMeetingService>();
 builder.Services.AddScoped<ITrainingAppointmentService, TrainingAppointmentService>();
 builder.Services.AddScoped<IClubMassEmailService, ClubMassEmailService>();
+// Email bulletins (gap agent)
+builder.Services.AddScoped<BulletinService>();
+builder.Services.AddScoped<StoryService>();
+builder.Services.AddScoped<BulletinSubscriberService>();
+// Mass email compose (gap agent)
+builder.Services.AddScoped<MassEmailComposeService>();
 
 // Background jobs (email/push senders + auto-calc) run automatically on startup and act on
 // live DB data. Set "BackgroundJobs:Enabled": false in local appsettings so running against production
@@ -421,6 +450,8 @@ builder.Services.AddScoped<TenantRenewalService>(); // build spec 3.5 renewal re
 builder.Services.AddLocalization();
 builder.Services.AddSingleton<Microsoft.Extensions.Localization.IStringLocalizerFactory, RotaryApi.Services.Localization.DbStringLocalizerFactory>();
 builder.Services.AddSingleton<RotaryApi.Services.Localization.LocalizationService>();
+// Help centre (gap agent)
+builder.Services.AddScoped<HelpCentreService>();
 var translationProvider = RotaryApi.Services.Localization.StringTranslationBackgroundService.Provider(builder.Configuration);
 RotaryApi.Services.Localization.ServerStrings.QueueEnabled = translationProvider != "none";
 if (translationProvider != "none") builder.Services.AddHostedService<RotaryApi.Services.Localization.StringTranslationBackgroundService>();
@@ -455,22 +486,76 @@ if (enableBackgroundJobs)
     builder.Services.AddHostedService<RotaryApi.Services.Push.PushLogCleanupBackgroundService>();
 }
 
+// Club accounts (gap agent)
+builder.Services.AddScoped<ClubAccountsService>();
+builder.Services.AddScoped<IInvoicePaymentListener, ClubLedgerInvoiceListener>(); // items-invoice payments -> ledger
+
 // Grants (ROW build spec 3.8): service + the job that emails grant notifications.
 builder.Services.AddScoped<GrantService>();
+// Enhanced committees (gap agent)
+builder.Services.AddScoped<CommitteeService>();
 if (enableBackgroundJobs) builder.Services.AddHostedService<GrantNotificationEmailBackgroundService>();
+
+// Custom reports (gap agent): report builder service + the monthly email job (CustomReports:ScheduleJob runs it alone on a dev copy).
+builder.Services.AddScoped<CustomReportService>();
+if (builder.Configuration.GetValue("CustomReports:ScheduleJob", enableBackgroundJobs))
+    builder.Services.AddHostedService<CustomReportScheduleBackgroundService>();
 
 // Volunteers and speakers (ROW build spec 3.13). VolunteerReminders:Enabled runs the reminder job alone on a dev copy
 // (BackgroundJobs:Enabled would start every job against that data).
 builder.Services.AddScoped<VolunteerService>();
 builder.Services.AddScoped<SpeakerService>();
+// Donation campaigns (gap agent)
+builder.Services.AddScoped<DonationService>();
+
+// Member map + business directory (gap agent)
+builder.Services.AddScoped<MemberMapService>();
 if (enableBackgroundJobs || builder.Configuration.GetValue<bool>("VolunteerReminders:Enabled"))
     builder.Services.AddHostedService<VolunteerReminderBackgroundService>();
+// Surveys (gap agent)
+builder.Services.AddScoped<SurveyService>();
+// Speaker bureau (gap agent)
+builder.Services.AddScoped<SpeakerBureauService>();
+// Youth programs (gap agent): RYLA, RLI, Youth Protection. YouthReminders:Enabled runs its reminder job alone on a dev copy.
+builder.Services.AddScoped<YouthService>();
+if (enableBackgroundJobs || builder.Configuration.GetValue<bool>("YouthReminders:Enabled"))
+    builder.Services.AddHostedService<YouthReminderBackgroundService>();
+
+// Profile update requests + anniversaries report (gap agent)
+builder.Services.AddScoped<ProfileUpdateService>();
+
+// Service hours (gap agent)
+builder.Services.AddScoped<ServiceHoursService>();
+// Volunteer sheet extras (gap agent): confirmation text, follow-ups, archive, copy, coordinators.
+// VolunteerFollowups:Enabled runs the follow-up job alone on a dev copy.
+builder.Services.AddScoped<VolunteerExtrasService>();
+if (enableBackgroundJobs || builder.Configuration.GetValue<bool>("VolunteerFollowups:Enabled"))
+    builder.Services.AddHostedService<VolunteerFollowupBackgroundService>();
 
 // Planning mode and cut-over (ROW build spec 3.1): service + the job that runs scheduled cut-overs
 // (Planning:CutoverJob runs that job alone on a dev copy, like Meetings:ReminderJob).
 builder.Services.AddScoped<PlanningService>();
 if (builder.Configuration.GetValue("Planning:CutoverJob", enableBackgroundJobs))
     builder.Services.AddHostedService<PlanningCutoverBackgroundService>();
+
+// Officer progression (gap agent): PN to PE to P to IPP suggestions; GetPendingForYearAsync is the year-end rollover hook.
+builder.Services.AddScoped<IOfficerProgressionService, OfficerProgressionService>();
+
+// Year-end rollover (gap agent): preview, apply, undo. IRolloverProgressionSource: officer progression feeds it.
+builder.Services.AddScoped<YearRolloverService>();
+builder.Services.AddScoped<IRolloverProgressionSource, OfficerProgressionRolloverSource>();
+
+// WordPress connector (gap agent): website API keys + read-only connector endpoints and their rate limit.
+builder.Services.AddScoped<WebsiteConnectorService>();
+builder.Services.Configure<Microsoft.AspNetCore.RateLimiting.RateLimiterOptions>(o =>
+    o.AddPolicy(RotaryApi.Controllers.WebsiteConnectorRateLimit.Policy, ctx =>
+        System.Threading.RateLimiting.RateLimitPartition.GetFixedWindowLimiter(
+            RotaryApi.Controllers.WebsiteConnectorRateLimit.PartitionKey(ctx),
+            _ => new System.Threading.RateLimiting.FixedWindowRateLimiterOptions
+            { PermitLimit = RotaryApi.Controllers.WebsiteConnectorRateLimit.PermitPerMinute, Window = TimeSpan.FromMinutes(1) })));
+
+// Job board (gap agent): job postings and B2B offers, flag job_board.
+builder.Services.AddScoped<JobBoardService>();
 
 builder.Services.AddSingleton<PleskService>();
 builder.Services.AddSingleton<IDnsPointingChecker, DnsPointingChecker>();
@@ -773,7 +858,8 @@ app.Use(async (ctx, next) =>
     try { await next(); }
     catch (Exception ex) when (ex is InvalidOperationException or KeyNotFoundException or UnauthorizedAccessException)
     {
-        ctx.Response.StatusCode = ex is KeyNotFoundException ? 404 : ex is UnauthorizedAccessException ? 403 : 400;
+        ctx.Response.StatusCode = ex is KeyNotFoundException ? 404 : ex is UnauthorizedAccessException ? 403
+            : ex is RotaryApi.Services.ClubAdminLimitException ? 409 : 400;
         ctx.Response.ContentType = "application/json";
         await ctx.Response.WriteAsJsonAsync(new { message = ex.Message });
     }

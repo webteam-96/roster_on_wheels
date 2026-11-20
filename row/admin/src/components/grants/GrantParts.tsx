@@ -15,7 +15,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/dashboard/DashboardSkeleton";
 import { useFormat } from "@/hooks/useFormat";
 import { downloadGrantAttachment, type GrantSide } from "@/services/api";
-import { ACTION_LABEL, EVENT_LABEL, PAYMENT_METHODS, STATUS_LABEL, STATUS_TONE, budgetTotals } from "@/lib/grants";
+import {
+  ACTION_LABEL, ATTACHMENT_KIND_LABEL, EVENT_LABEL, PAYMENT_METHODS, SIGNATURE_LABEL, STATUS_LABEL, STATUS_TONE, budgetTotals,
+} from "@/lib/grants";
 import type { GrantActionBody, GrantActionInfo, GrantApplication, GrantStatus } from "@/types/grants";
 
 export function StatusBadge({ status }: { status: GrantStatus }) {
@@ -78,6 +80,7 @@ export function GrantSummary({ app }: { app: GrantApplication }) {
     );
   const lines = (kind: "income" | "expense") => app.lines.filter((l) => l.kind === kind);
   const partners = app.lines.filter((l) => l.kind === "partner");
+  const hasActuals = app.lines.some((l) => l.actualAmount != null);
 
   return (
     <>
@@ -102,11 +105,35 @@ export function GrantSummary({ app }: { app: GrantApplication }) {
                 <p className="text-sm text-muted-foreground">None listed.</p>
               ) : (
                 <table className="w-full text-sm">
+                  {kind === "expense" && hasActuals && (
+                    <thead>
+                      <tr className="border-b text-left text-xs text-muted-foreground">
+                        <th className="py-1 font-medium">Line</th>
+                        <th className="py-1 text-right font-medium">Budget</th>
+                        <th className="py-1 text-right font-medium">Actual</th>
+                        <th className="py-1 text-right font-medium">Variance</th>
+                      </tr>
+                    </thead>
+                  )}
                   <tbody>
                     {lines(kind).map((l, i) => (
                       <tr key={i} className="border-b last:border-0">
-                        <td className="py-1.5 pr-2">{l.description}{l.detail ? <span className="block text-xs text-muted-foreground">{l.detail}</span> : null}</td>
+                        <td className="py-1.5 pr-2">
+                          {l.description}
+                          {l.detail ? <span className="block text-xs text-muted-foreground">{l.detail}</span> : null}
+                          {l.category || l.supplier ? (
+                            <span className="block text-xs text-muted-foreground">{[l.category, l.supplier].filter(Boolean).join(", ")}</span>
+                          ) : null}
+                        </td>
                         <td className="py-1.5 text-right tabular-nums">{fmt.money(l.amount)}</td>
+                        {kind === "expense" && hasActuals && (
+                          <>
+                            <td className="py-1.5 pl-2 text-right tabular-nums">{l.actualAmount != null ? fmt.money(l.actualAmount) : ""}</td>
+                            <td className={`py-1.5 pl-2 text-right tabular-nums ${(l.variance ?? 0) > 0 ? "text-red-700" : ""}`}>
+                              {l.variance != null ? fmt.money(l.variance) : ""}
+                            </td>
+                          </>
+                        )}
                       </tr>
                     ))}
                   </tbody>
@@ -148,6 +175,43 @@ export function GrantSummary({ app }: { app: GrantApplication }) {
               </li>
             ))}
           </ul>
+        )}
+      </Section>
+
+      {app.signOffs.length > 0 && (
+        <Section title="Sign-off">
+          <ul className="space-y-1 text-sm">
+            {app.signOffs.map((s, i) => (
+              <li key={i}>
+                <span className="font-medium">{s.signatureName}</span>, {s.signerRole}
+                <span className="text-muted-foreground">
+                  {" "}{s.action === "submit" ? "signed the application" : "signed the approval"} on {fmt.dateTime(s.signedAtUtc)}
+                  {s.memberName && s.memberName !== s.signatureName ? ` (logged in as ${s.memberName})` : ""}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </Section>
+      )}
+
+      <Section title="Reports due">
+        <dl className="grid gap-3 sm:grid-cols-3">
+          {field("Interim report due", app.cycle.interimDueOn ? fmt.date(app.cycle.interimDueOn) : "Not set")}
+          {field("Final report due", app.cycle.reportDueOn ? fmt.date(app.cycle.reportDueOn) : "Not set")}
+          {field("Final report accepted", app.reportAcceptedAt && fmt.date(app.reportAcceptedAt))}
+        </dl>
+        {app.interimReports.length === 0 ? (
+          <p className="text-sm text-muted-foreground">No interim reports yet.</p>
+        ) : (
+          <ol className="space-y-3">
+            {app.interimReports.map((r) => (
+              <li key={r.id} className="border-b pb-3 text-sm last:border-0 last:pb-0">
+                <p className="font-medium">Interim report, spent so far {fmt.money(r.amountSpent)}</p>
+                <p className="mt-1 whitespace-pre-line">{r.progress}</p>
+                <p className="mt-1 text-xs text-muted-foreground">{r.submittedByName ?? "Club"}, {fmt.dateTime(r.submittedAtUtc)}</p>
+              </li>
+            ))}
+          </ol>
         )}
       </Section>
 
@@ -221,7 +285,7 @@ export function AttachmentList({ app, side, scopeId, onDelete, children }: {
     }
   };
   return (
-    <Section title="Files">
+    <Section title="Document archive">
       {app.attachments.length === 0 ? (
         <p className="text-sm text-muted-foreground">No files yet.</p>
       ) : (
@@ -231,14 +295,15 @@ export function AttachmentList({ app, side, scopeId, onDelete, children }: {
               <span className="min-w-0 break-all">
                 {a.originalName}
                 <span className="block text-xs text-muted-foreground">
-                  {a.kind === "report" ? "Report" : "Application"}, {Math.max(1, Math.round(a.sizeBytes / 1024))} KB, {fmt.date(a.createdDate)}
+                  {ATTACHMENT_KIND_LABEL[a.kind] ?? a.kind}, {Math.max(1, Math.round(a.sizeBytes / 1024))} KB, {fmt.date(a.createdDate)}
+                  {a.uploadedByName ? `, ${a.uploadedByName}` : ""}
                 </span>
               </span>
               <span className="flex flex-wrap gap-2">
                 <Button size="sm" variant="outline" className="gap-1.5" onClick={() => download(a.id)}>
                   <Download className="h-3.5 w-3.5" /> Download
                 </Button>
-                {onDelete && app.attachmentKind === a.kind && (
+                {onDelete && app.attachmentKinds.includes(a.kind) && (
                   <Button size="sm" variant="ghost" aria-label={`Remove ${a.originalName}`} onClick={() => onDelete(a.id)}>
                     <Trash2 className="h-3.5 w-3.5" />
                   </Button>
@@ -292,8 +357,13 @@ export function ActionPanel({ app, busy, onAct, onComment }: {
   const [summary, setSummary] = useState(app.reportSummary ?? "");
   const [spent, setSpent] = useState(app.reportAmountSpent?.toString() ?? "");
   const [reached, setReached] = useState(app.reportBeneficiaries?.toString() ?? "");
+  const [signature, setSignature] = useState("");
+  const expenses = app.lines.filter((l) => l.kind === "expense" && l.id != null);
+  const [actuals, setActuals] = useState<Record<number, string>>(() =>
+    Object.fromEntries(expenses.map((l) => [l.id!, l.actualAmount?.toString() ?? ""])));
   const [error, setError] = useState<string | null>(null);
   const has = (action: string) => app.actions.some((a) => a.action === action);
+  const signs = app.actions.find((a) => SIGNATURE_LABEL[a.action]);
   const num = (v: string) => (v.trim() === "" ? null : Number(v));
 
   const act = (a: GrantActionInfo) => {
@@ -303,11 +373,17 @@ export function ActionPanel({ app, busy, onAct, onComment }: {
     }
     // shortcut: the browser's own confirm box (LiveTranslate cannot reach it), use AlertModal when this page is localised.
     if (a.action === "cancel" && !window.confirm("Cancel this application? This cannot be undone.")) return;
+    if (SIGNATURE_LABEL[a.action] && !signature.trim()) {
+      setError("Type the full name to sign.");
+      return;
+    }
+    const lineActuals = expenses.filter((l) => actuals[l.id!]?.trim()).map((l) => ({ lineId: l.id!, amount: Number(actuals[l.id!]) }));
     setError(null);
     onAct(a.action, {
+      signature: SIGNATURE_LABEL[a.action] ? signature.trim() : null,
       comment: comment.trim() || null,
       amount: a.action === "approve" ? num(amount) : null,
-      ...(a.action === "submit_report" ? { reportSummary: summary, reportAmountSpent: num(spent), reportBeneficiaries: num(reached) } : {}),
+      ...(a.action === "submit_report" ? { reportSummary: summary, reportAmountSpent: num(spent), reportBeneficiaries: num(reached), lineActuals } : {}),
     });
   };
 
@@ -329,6 +405,20 @@ export function ActionPanel({ app, busy, onAct, onComment }: {
             <Label htmlFor="report-reached">Beneficiaries reached</Label>
             <Input id="report-reached" type="number" min={0} value={reached} onChange={(e) => setReached(e.target.value)} />
           </div>
+          {expenses.length > 0 && (
+            <div className="space-y-2 sm:col-span-2">
+              <p className="text-sm font-medium">Actual spend per budget line</p>
+              <p className="text-xs text-muted-foreground">Optional. When filled in, the lines must add up to the amount spent.</p>
+              {expenses.map((l) => (
+                <div key={l.id} className="grid items-center gap-2 sm:grid-cols-[1fr_9rem_9rem]">
+                  <span className="text-sm">{l.description}</span>
+                  <span className="text-sm tabular-nums text-muted-foreground">Budget {fmt.money(l.amount)}</span>
+                  <Input aria-label={`Actual spend for ${l.description}`} type="number" min={0} step="0.01" value={actuals[l.id!] ?? ""}
+                    onChange={(e) => setActuals((x) => ({ ...x, [l.id!]: e.target.value }))} />
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
       {has("approve") && (
@@ -338,6 +428,13 @@ export function ActionPanel({ app, busy, onAct, onComment }: {
           <p className="text-xs text-muted-foreground">
             Up to the {fmt.money(app.amountRequested)} requested, within the cycle&apos;s DDF budget.
           </p>
+        </div>
+      )}
+      {signs && (
+        <div className="max-w-md space-y-1.5">
+          <Label htmlFor="grant-signature">{SIGNATURE_LABEL[signs.action]}</Label>
+          <Input id="grant-signature" maxLength={150} autoComplete="name" value={signature} onChange={(e) => setSignature(e.target.value)} />
+          <p className="text-xs text-muted-foreground">Recorded with your login and the time (UTC) as the sign-off.</p>
         </div>
       )}
       <div className="space-y-1.5">

@@ -135,7 +135,7 @@ export default function GoalSettingRotaryPage() {
 
       <section className={panel}>
         <h3 className="mb-3 text-sm font-semibold text-slate-800">Sync from Rotary.org</h3>
-        <RotaryOrgSync districtId={selectedDistrictId} onSynced={loadValues} />
+        <RotaryOrgSync districtId={selectedDistrictId} tone="light" onSynced={loadValues} />
       </section>
 
       <section className={panel}>

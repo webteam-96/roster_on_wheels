@@ -742,6 +742,13 @@ public class BodSyncWorker
                 new { M = memberPkId, C = clubId });
             if (already > 0) return new AdminResult { Outcome = AdminOutcome.AlreadyAdmin };
 
+            // (1b) Club Admin limit: a club already at its limit gets no new admin from the sync.
+            if (await RotaryApi.Services.ClubAdminLimit.CanGrantAsync(conn, memberPkId, clubId) is int max)
+            {
+                _logger.LogWarning("[BOD] club {ClubId}: member {MemberId} not made Club Admin, limit {Max} reached", clubId, memberPkId, max);
+                return new AdminResult { Outcome = AdminOutcome.LimitReached };
+            }
+
             // (2) Ensure exactly ONE active Club Admin (role 2) row — mirrors
             // ClubAdminAccessHelper.EnsureActiveClubAdminRoleAsync (collapse duplicates, undelete keep).
             var keepPk = await conn.ExecuteScalarAsync<int?>(@"
@@ -1073,7 +1080,7 @@ public class BodSyncWorker
         ws.Columns().AdjustToContents();
     }
 
-    private enum AdminOutcome { MadeNew, AlreadyAdmin, Failed }
+    private enum AdminOutcome { MadeNew, AlreadyAdmin, Failed, LimitReached }
 
     private class AdminResult
     {

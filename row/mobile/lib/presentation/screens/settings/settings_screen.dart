@@ -173,6 +173,13 @@ class SettingsScreen extends StatelessWidget {
                   orElse: () => appLanguages.first).$2,
               onTap: () => context.push(RouteNames.language),
             ),
+            _PreferenceTile(
+              icon: Icons.menu_book_outlined,
+              color: AppColors.primaryPrime,
+              title: 'Help',
+              subtitle: 'Guides for using ROW',
+              onTap: () => context.push(RouteNames.help),
+            ),
             if (features.isOn('communication') || features.isOn('meetings'))
               _PreferenceTile(
                 icon: Icons.mark_email_read_outlined,

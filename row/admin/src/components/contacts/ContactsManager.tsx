@@ -10,8 +10,8 @@ import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import {
   getContacts, createContact, updateContact, deleteContact, getContactGroups, createContactGroup,
-  renameContactGroup, deleteContactGroup,
-  type Contact, type ContactGroup, type ContactScope, type SaveContact,
+  renameContactGroup, deleteContactGroup, exportContacts, getClubTags, setContactTags,
+  type ClubTag, type Contact, type ContactGroup, type ContactScope, type SaveContact,
 } from "@/services/api";
 import type { PagedResult } from "@/types/member";
 import { CONTACT_TYPES, errorText, label } from "@/lib/contacts";
@@ -26,22 +26,34 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { AlertTriangle, BookUser, Check, Loader2, Pencil, Plus, Search, Send, Trash2, Upload, UserPlus, X } from "@/components/icons";
+import { AlertTriangle, BookUser, Check, Copy, Download, HandHeart, Loader2, Pencil, Plus, Search, Send, Trash2, Upload, UserPlus, X } from "@/components/icons";
 import ContactImportDialog from "./ContactImportDialog";
+import DuplicatesDialog from "./DuplicatesDialog";
 import EventInviteDialog from "./EventInviteDialog";
 import InvitePromptsPanel from "./InvitePromptsPanel";
+import MergeHistory from "./MergeHistory";
+import TagChip from "@/components/member-flex/TagChip";
 
 const PAGE_SIZE = 25;
 const SELECT = "h-9 rounded-md border border-input bg-background px-3 text-sm";
 const EMPTY: SaveContact = { name: "", email: "", mobile: "", contactType: "guest", organisation: "", notes: "", groupIds: [] };
+const LINK = "inline-flex h-9 items-center gap-1.5 rounded-full border border-slate-200 px-3 text-sm font-medium text-slate-700 hover:bg-slate-50";
 
-export default function ContactsManager({ scope, ownerId }: { scope: ContactScope; ownerId: number }) {
+/** friendsOnly: the separate Friends of the club list (contacts of type friend). */
+export default function ContactsManager({ scope, ownerId, friendsOnly = false }: { scope: ContactScope; ownerId: number; friendsOnly?: boolean }) {
+  const base = scope === "clubs" ? "/club-admin-dashboard/contacts" : "/district-admin-dashboard/contacts";
   const [data, setData] = useState<PagedResult<Contact> | null>(null);
   const [groups, setGroups] = useState<ContactGroup[] | null>(null);
   const [searchInput, setSearchInput] = useState("");
   const [search, setSearch] = useState("");
-  const [type, setType] = useState("");
+  const [type, setType] = useState(friendsOnly ? "friend" : "");
+  const [dupesOpen, setDupesOpen] = useState(false);
+  const [exporting, setExporting] = useState(false);
   const [groupId, setGroupId] = useState(0);
+  // Club tags (member flexibility). Districts have no tags.
+  const [tags, setTags] = useState<ClubTag[]>([]);
+  const [tagId, setTagId] = useState(0);
+  const [editTags, setEditTags] = useState<number[]>([]);
   const [page, setPage] = useState(1);
   const [editing, setEditing] = useState<{ id: number | null; form: SaveContact } | null>(null);
   const [saving, setSaving] = useState(false);
@@ -56,18 +68,21 @@ export default function ContactsManager({ scope, ownerId }: { scope: ContactScop
 
   const loadContacts = useCallback(() => {
     setData(null);
-    getContacts(scope, ownerId, { search: search || undefined, type: type || undefined, groupId: groupId || undefined, page, pageSize: PAGE_SIZE })
+    getContacts(scope, ownerId, { search: search || undefined, type: type || undefined, groupId: groupId || undefined, tagId: tagId || undefined, page, pageSize: PAGE_SIZE })
       .then(setData)
       .catch((e) => {
         setData({ items: [], totalCount: 0, page: 1, pageSize: PAGE_SIZE, totalPages: 1 });
         setError(errorText(e, "Could not load the contacts."));
       });
-  }, [scope, ownerId, search, type, groupId, page]);
+  }, [scope, ownerId, search, type, groupId, tagId, page]);
   const loadGroups = useCallback(() => {
     getContactGroups(scope, ownerId).then(setGroups).catch(() => setGroups([]));
   }, [scope, ownerId]);
   useEffect(() => { loadContacts(); }, [loadContacts]);
   useEffect(() => { loadGroups(); }, [loadGroups]);
+  useEffect(() => {
+    if (scope === "clubs") getClubTags(ownerId).then(setTags).catch(() => setTags([]));
+  }, [scope, ownerId]);
 
   const refresh = (message: string) => { setSuccess(message); loadContacts(); loadGroups(); };
   const set = (patch: Partial<SaveContact>) => setEditing((e) => e && { ...e, form: { ...e.form, ...patch } });
@@ -81,12 +96,21 @@ export default function ContactsManager({ scope, ownerId }: { scope: ContactScop
     setSaving(true);
     const { id, form } = editing;
     await run(async () => {
+      const savedId = id ?? (await createContact(scope, ownerId, form)).id;
       if (id) await updateContact(scope, ownerId, id, form);
-      else await createContact(scope, ownerId, form);
+      if (scope === "clubs" && tags.length > 0) await setContactTags(ownerId, savedId, editTags);
       setEditing(null);
     }, id ? "Contact updated." : "Contact added.", "Could not save the contact.");
     setSaving(false);
   };
+
+  const download = async (format: "xlsx" | "csv") => {
+    setExporting(true);
+    try { await exportContacts(scope, ownerId, format, { search: search || undefined, type: type || undefined, groupId: groupId || undefined }); }
+    catch (e) { setError(errorText(e, "Could not export the contacts.")); }
+    setExporting(false);
+  };
+  const newContact = () => { setEditTags([]); setEditing({ id: null, form: { ...EMPTY, contactType: friendsOnly ? "friend" : "guest" } }); };
 
   const groupName = (id: number) => groups?.find((g) => g.id === id)?.name;
   const totalPages = data ? Math.max(1, Math.ceil(data.totalCount / PAGE_SIZE)) : 1;
@@ -94,22 +118,39 @@ export default function ContactsManager({ scope, ownerId }: { scope: ContactScop
   return (
     <div className="space-y-5">
       <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
-        <SectionHeader
-          title="Contacts"
-          subtitle="Guests, speakers, sponsors, partners and volunteers who are not members. Groups work as email and event invite lists."
-          icon={BookUser}
-        />
+        {friendsOnly ? (
+          <SectionHeader
+            title={scope === "clubs" ? "Friends of the club" : "Friends of the district"}
+            subtitle="People who are not members but get your emails and event invites. They are never counted as members, in attendance or in the Rotary.org sync. Pick the Friends list as the recipients in Mass Email or an event invite."
+            icon={HandHeart}
+          />
+        ) : (
+          <SectionHeader
+            title="Contacts"
+            subtitle="Guests, speakers, sponsors, partners, volunteers and friends who are not members. Groups work as email and event invite lists."
+            icon={BookUser}
+          />
+        )}
         <div className="flex flex-wrap gap-2">
-          {scope === "clubs" && (
-            <Link href={`/clubs/${ownerId}/rotary-network/potential-members/v2`}
-              className="inline-flex h-9 items-center gap-1.5 rounded-full border border-slate-200 px-3 text-sm font-medium text-slate-700 hover:bg-slate-50">
-              <UserPlus className="h-4 w-4" /> Prospects
-            </Link>
+          {friendsOnly ? (
+            <Link href={base} className={LINK}><BookUser className="h-4 w-4" /> All contacts</Link>
+          ) : (
+            <>
+              <Link href={`${base}/friends`} className={LINK}><HandHeart className="h-4 w-4" /> Friends of the {scope === "clubs" ? "club" : "district"}</Link>
+              {scope === "clubs" && (
+                <Link href={`/clubs/${ownerId}/rotary-network/potential-members/v2`} className={LINK}>
+                  <UserPlus className="h-4 w-4" /> Prospects
+                </Link>
+              )}
+            </>
           )}
           <Button variant="outline" size="sm" onClick={() => setInviteOpen(true)}><Send className="mr-1.5 h-4 w-4" />Invite to an event</Button>
-          <Button variant="outline" size="sm" onClick={() => setImportOpen(true)}><Upload className="mr-1.5 h-4 w-4" />Import</Button>
-          <Button size="sm" className="bg-azure text-white hover:bg-mint-ink" onClick={() => setEditing({ id: null, form: { ...EMPTY } })}>
-            <Plus className="mr-1.5 h-4 w-4" />Add contact
+          {!friendsOnly && <Button variant="outline" size="sm" onClick={() => setImportOpen(true)}><Upload className="mr-1.5 h-4 w-4" />Import</Button>}
+          <Button variant="outline" size="sm" disabled={exporting} onClick={() => download("xlsx")}><Download className="mr-1.5 h-4 w-4" />Excel</Button>
+          <Button variant="outline" size="sm" disabled={exporting} onClick={() => download("csv")}><Download className="mr-1.5 h-4 w-4" />CSV</Button>
+          <Button variant="outline" size="sm" onClick={() => setDupesOpen(true)}><Copy className="mr-1.5 h-4 w-4" />Find duplicates</Button>
+          <Button size="sm" className="bg-azure text-white hover:bg-mint-ink" onClick={newContact}>
+            <Plus className="mr-1.5 h-4 w-4" />{friendsOnly ? "Add friend" : "Add contact"}
           </Button>
         </div>
       </div>
@@ -122,14 +163,22 @@ export default function ContactsManager({ scope, ownerId }: { scope: ContactScop
               <Input value={searchInput} onChange={(e) => setSearchInput(e.target.value)} placeholder="Search name, email, phone, organisation"
                 onKeyDown={(e) => { if (e.key === "Enter") { setPage(1); setSearch(searchInput.trim()); } }} className="h-9 w-72 pl-8" />
             </div>
-            <select aria-label="Type" value={type} onChange={(e) => { setPage(1); setType(e.target.value); }} className={SELECT}>
-              <option value="">All types</option>
-              {CONTACT_TYPES.map((t) => <option key={t} value={t}>{label(t)}</option>)}
-            </select>
+            {!friendsOnly && (
+              <select aria-label="Type" value={type} onChange={(e) => { setPage(1); setType(e.target.value); }} className={SELECT}>
+                <option value="">All types</option>
+                {CONTACT_TYPES.map((t) => <option key={t} value={t}>{label(t)}</option>)}
+              </select>
+            )}
             <select aria-label="Group" value={groupId} onChange={(e) => { setPage(1); setGroupId(Number(e.target.value)); }} className={SELECT}>
               <option value={0}>All groups</option>
               {groups?.map((g) => <option key={g.id} value={g.id}>{g.name}</option>)}
             </select>
+            {tags.length > 0 && (
+              <select aria-label="Tag" value={tagId} onChange={(e) => { setPage(1); setTagId(Number(e.target.value)); }} className={SELECT}>
+                <option value={0}>All tags</option>
+                {tags.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
+              </select>
+            )}
           </div>
 
           {data === null ? <TableSkeleton rows={8} /> : (
@@ -156,11 +205,18 @@ export default function ContactsManager({ scope, ownerId }: { scope: ContactScop
                         <td className="px-3 py-2 text-slate-600">{label(c.contactType)}</td>
                         <td className="px-3 py-2 text-slate-600">{c.email || "-"}</td>
                         <td className="whitespace-nowrap px-3 py-2 text-slate-600">{c.mobile || "-"}</td>
-                        <td className="px-3 py-2 text-xs text-slate-600">{c.groupIds.map(groupName).filter(Boolean).join(", ") || "-"}</td>
+                        <td className="px-3 py-2 text-xs text-slate-600">
+                          {c.groupIds.map(groupName).filter(Boolean).join(", ") || "-"}
+                          {!!c.tagIds?.length && (
+                            <div className="mt-1 flex flex-wrap gap-1">
+                              {c.tagIds.map((t) => tags.find((x) => x.id === t)).filter((t): t is ClubTag => !!t).map((t) => <TagChip key={t.id} tag={t} />)}
+                            </div>
+                          )}
+                        </td>
                         <td className="px-3 py-2 text-right">
                           <button type="button" aria-label={`Edit ${c.name}`} className="inline-flex h-7 w-7 items-center justify-center rounded text-slate-500 hover:bg-slate-100"
-                            onClick={() => setEditing({ id: c.id, form: { name: c.name, email: c.email ?? "", mobile: c.mobile ?? "",
-                              contactType: c.contactType, organisation: c.organisation ?? "", notes: c.notes ?? "", groupIds: c.groupIds } })}>
+                            onClick={() => { setEditTags(c.tagIds ?? []); setEditing({ id: c.id, form: { name: c.name, email: c.email ?? "", mobile: c.mobile ?? "",
+                              contactType: c.contactType, organisation: c.organisation ?? "", notes: c.notes ?? "", groupIds: c.groupIds } }); }}>
                             <Pencil className="h-3.5 w-3.5" />
                           </button>
                           <button type="button" aria-label={`Delete ${c.name}`} className="inline-flex h-7 w-7 items-center justify-center rounded text-slate-400 hover:bg-rose-50 hover:text-rose-700"
@@ -172,7 +228,9 @@ export default function ContactsManager({ scope, ownerId }: { scope: ContactScop
                     ))}
                     {data.items.length === 0 && (
                       <tr><td colSpan={6} className="px-4 py-10 text-center text-slate-400">
-                        {search || type || groupId ? "No contacts match these filters." : "No contacts yet. Add one or import a spreadsheet."}
+                        {friendsOnly
+                          ? (search || groupId || tagId ? "No friends match these filters." : "No friends of the club yet. Add one, or set a contact's type to Friend of the club.")
+                          : search || type || groupId || tagId ? "No contacts match these filters." : "No contacts yet. Add one or import a spreadsheet."}
                       </td></tr>
                     )}
                   </tbody>
@@ -211,9 +269,12 @@ export default function ContactsManager({ scope, ownerId }: { scope: ContactScop
                     <button type="button" aria-label={`Rename ${g.name}`} className="p-1 text-slate-400 hover:text-slate-700" onClick={() => setRenaming({ id: g.id, name: g.name })}>
                       <Pencil className="h-3.5 w-3.5" />
                     </button>
-                    <button type="button" aria-label={`Delete ${g.name}`} className="p-1 text-slate-400 hover:text-rose-700" onClick={() => setGroupToDelete(g)}>
-                      <Trash2 className="h-3.5 w-3.5" />
-                    </button>
+                    {/* the friends list follows the contacts' type, so it is not deleted by hand */}
+                    {!g.systemKey && (
+                      <button type="button" aria-label={`Delete ${g.name}`} className="p-1 text-slate-400 hover:text-rose-700" onClick={() => setGroupToDelete(g)}>
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </button>
+                    )}
                   </>
                 )}
               </div>
@@ -230,7 +291,7 @@ export default function ContactsManager({ scope, ownerId }: { scope: ContactScop
         </aside>
       </div>
 
-      {scope === "clubs" && <InvitePromptsPanel clubId={ownerId} />}
+      {scope === "clubs" && !friendsOnly && <InvitePromptsPanel clubId={ownerId} />}
 
       <Dialog open={!!editing} onOpenChange={(o) => { if (!o) setEditing(null); }}>
         <DialogContent className="max-w-lg">
@@ -252,15 +313,30 @@ export default function ContactsManager({ scope, ownerId }: { scope: ContactScop
               <div className="space-y-1 sm:col-span-2"><Label htmlFor="c-notes">Notes</Label>
                 <textarea id="c-notes" rows={3} maxLength={1000} value={editing.form.notes ?? ""} onChange={(e) => set({ notes: e.target.value })}
                   className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm" /></div>
-              {!!groups?.length && (
+              {!!groups?.some((g) => !g.systemKey) && (
                 <div className="space-y-1 sm:col-span-2">
                   <Label>Groups</Label>
                   <div className="flex flex-wrap gap-x-4 gap-y-2">
-                    {groups.map((g) => (
+                    {groups.filter((g) => !g.systemKey).map((g) => (
                       <label key={g.id} className="flex items-center gap-2 text-sm">
                         <Checkbox checked={editing.form.groupIds?.includes(g.id) ?? false} onCheckedChange={(on) => set({
                           groupIds: on ? [...(editing.form.groupIds ?? []), g.id] : (editing.form.groupIds ?? []).filter((x) => x !== g.id) })} />
                         {g.name}
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {editing.id && <MergeHistory scope={scope} ownerId={ownerId} contactId={editing.id} />}
+              {scope === "clubs" && tags.length > 0 && (
+                <div className="space-y-1 sm:col-span-2">
+                  <Label>Tags</Label>
+                  <div className="flex flex-wrap gap-x-4 gap-y-2">
+                    {tags.map((t) => (
+                      <label key={t.id} className="flex items-center gap-2 text-sm">
+                        <Checkbox checked={editTags.includes(t.id)}
+                          onCheckedChange={(on) => setEditTags((p) => (on ? [...p, t.id] : p.filter((x) => x !== t.id)))} />
+                        <TagChip tag={t} />
                       </label>
                     ))}
                   </div>
@@ -281,6 +357,8 @@ export default function ContactsManager({ scope, ownerId }: { scope: ContactScop
         onDone={(message) => { setImportOpen(false); refresh(message); }} />
       <EventInviteDialog open={inviteOpen} onClose={() => setInviteOpen(false)} scope={scope} ownerId={ownerId} groups={groups ?? []}
         onDone={(message) => { setInviteOpen(false); setSuccess(message); }} />
+      <DuplicatesDialog open={dupesOpen} onClose={() => setDupesOpen(false)} scope={scope} ownerId={ownerId}
+        onMerged={() => { loadContacts(); loadGroups(); }} />
 
       <AlertModal open={!!toDelete} onOpenChange={(o) => { if (!o) setToDelete(null); }} icon={AlertTriangle} iconClassName="text-destructive"
         title="Delete contact" description={<>Delete <span className="font-semibold text-foreground">{toDelete?.name}</span>? This removes their details.</>}

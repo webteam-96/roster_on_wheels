@@ -52,6 +52,20 @@ class QuickLinksTab extends StatelessWidget {
           subtitle: 'Live progress of every club against its goals',
           route: '/districts/$districtId/targets',
         ),
+      _QuickLink(
+        icon: Icons.table_chart_outlined,
+        color: AppColors.accentBlue,
+        title: 'Saved Reports',
+        subtitle: 'Run the district\'s saved reports and email them to officers',
+        route: '/districts/$districtId/custom-reports',
+      ),
+      _QuickLink(
+        icon: Icons.event_repeat_outlined,
+        color: AppColors.accentBlue,
+        title: 'Year-end Rollover',
+        subtitle: 'What carries into the next Rotary year',
+        route: '/districts/$districtId/rollover',
+      ),
     ];
 
     return ListView.separated(

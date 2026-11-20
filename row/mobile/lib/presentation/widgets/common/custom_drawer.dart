@@ -38,9 +38,21 @@ const _meItems = [
   (feature: 'planning_mode', item: _DrawerItem('Next year', Icons.event_repeat_outlined, RouteNames.nextYear, push: true)),
   (feature: 'chat', item: _DrawerItem('Chat', Icons.chat_bubble_outline, RouteNames.chat, push: true)),
   (feature: 'membership_fields', item: _DrawerItem('My Foundation designations', Icons.workspace_premium_outlined, RouteNames.myDesignations, push: true)),
+  (feature: 'committees', item: _DrawerItem('My committees', Icons.groups_outlined, RouteNames.myCommittees, push: true)),
   (feature: 'volunteers', item: _DrawerItem('Volunteering', Icons.volunteer_activism_outlined, RouteNames.volunteers, push: true)),
   (feature: 'volunteers', item: _DrawerItem('My meeting duties', Icons.assignment_ind_outlined, RouteNames.myDuties, push: true)),
+  (feature: 'surveys', item: _DrawerItem('Surveys', Icons.poll_outlined, RouteNames.surveys, push: true)),
+  (feature: 'youth_programs', item: _DrawerItem('Youth programs', Icons.shield_outlined, RouteNames.youth, push: true)),
+  (feature: 'service_hours', item: _DrawerItem('My service hours', Icons.handshake_outlined, RouteNames.serviceHours, push: true)),
   (feature: 'contacts_growth', item: _DrawerItem('Invite a guest', Icons.group_add_outlined, RouteNames.inviteGuest, push: true)),
+  (feature: 'cross_district_access', item: _DrawerItem('Other districts', Icons.map_outlined, RouteNames.myDistrictAccess, push: true)),
+  (feature: 'donations', item: _DrawerItem('Donations', Icons.savings_outlined, RouteNames.donations, push: true)),
+  (feature: 'contacts_growth', item: _DrawerItem('My prospect follow-ups', Icons.checklist_rounded, RouteNames.prospectTasks, push: true)),
+  // Member map + business directory (gap agent): no platform switch, so the keys count as on.
+  (feature: 'member_map', item: _DrawerItem('Member map', Icons.map_outlined, RouteNames.memberMap, push: true)),
+  (feature: 'business_directory', item: _DrawerItem('Business directory', Icons.storefront_outlined, RouteNames.businessDirectory, push: true)),
+  (feature: 'website_extras', item: _DrawerItem('Share our website', Icons.qr_code_2_outlined, RouteNames.shareWebsite, push: true)),
+  (feature: 'job_board', item: _DrawerItem('Jobs and offers', Icons.work_outline, RouteNames.jobBoard, push: true)),
 ];
 
 const _supportItems = [
@@ -182,6 +194,14 @@ class CustomDrawer extends StatelessWidget {
                   _buildSectionLabel('Me'),
                   for (final m in _meItems)
                     if (features.isOn(m.feature)) _buildItem(context, m.item, currentRoute),
+                  // Friends of the club: the club's managers only (the API refuses everyone else)
+                  if (features.isOn('contacts_growth') && auth.isClubAdmin)
+                    _buildItem(context, const _DrawerItem('Friends of the club', Icons.volunteer_activism_outlined, RouteNames.friends, push: true), currentRoute),
+                ],
+                // Years of service and anniversaries of the member's clubs (gap agent).
+                if (auth.memberClubIds.isNotEmpty) ...[
+                  _buildSectionLabel('Club'),
+                  _buildItem(context, const _DrawerItem('Anniversaries', Icons.cake_outlined, RouteNames.anniversaries, push: true), currentRoute),
                 ],
                 _buildSectionLabel('Support'),
                 ..._supportItems

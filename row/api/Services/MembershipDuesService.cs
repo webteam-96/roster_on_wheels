@@ -63,6 +63,31 @@ public class MembershipDuesService : IMembershipDuesService
     //  CRUD
     // ═══════════════════════════════════════════════════════════════
 
+    // ── Super Admin flags (RIZones 2026-11-09, ROW form) ─────────────
+    // NotifyEmail decides whether this dues emails members (reminders, receipts, rejection; ROW has no WhatsApp);
+    // Currency is the ISO code its amounts show in (see DuesCurrency). Null = keep (non-SA save).
+    private static Task SaveDuesFlagsAsync(MySqlConnection conn, int duesId, bool? email, string? currency, System.Data.IDbTransaction? tx = null) =>
+        conn.ExecuteAsync(@"
+            UPDATE membership_dues SET NotifyEmail=COALESCE(@E, NotifyEmail), Currency=COALESCE(@C, Currency)
+            WHERE pk_membership_dues_id=@Id",
+            new { E = email, C = currency == null ? null : DuesCurrency.Normalize(currency), Id = duesId }, tx);
+
+    private sealed record DuesFlags(bool Email, string Currency);
+
+    private static async Task<DuesFlags> GetDuesFlagsAsync(MySqlConnection conn, int duesId)
+    {
+        var r = await conn.QueryFirstOrDefaultAsync<dynamic>(
+            "SELECT NotifyEmail, Currency FROM membership_dues WHERE pk_membership_dues_id=@Id", new { Id = duesId });
+        return r == null ? new DuesFlags(true, Brand.DefaultCurrency)
+            : new DuesFlags(Convert.ToBoolean((object?)r.NotifyEmail), DuesCurrency.Normalize((string?)r.Currency));
+    }
+
+    public async Task<bool> EmailOnAsync(int duesId)
+    {
+        using var conn = GetConnection();
+        return (await GetDuesFlagsAsync(conn, duesId)).Email;
+    }
+
     public async Task<IEnumerable<MembershipDuesListDto>> GetListAsync(int? clubId, int? districtId, string? search, string? year)
     {
         using var conn = GetConnection();
@@ -72,7 +97,7 @@ public class MembershipDuesService : IMembershipDuesService
         // to look wrong. Matches the dashboard KPI + member list treatment.
         var sql = new StringBuilder(@"
             SELECT md.pk_membership_dues_id AS Id, d.DistrictNumber, c.ClubName, md.RotaryYear, md.Purpose,
-                   md.IsActive, md.WeblinkUrl, md.GoogleSheetId, md.GoogleSheetUrl, md.created_date AS CreatedDate,
+                   md.IsActive, md.WeblinkUrl, md.GoogleSheetId, md.GoogleSheetUrl, md.created_date AS CreatedDate, md.Currency, md.NotifyEmail,
                    (SELECT COUNT(*) FROM membership_dues_member_fees f
                     INNER JOIN club_members cm ON cm.fk_member_master_profile_id = f.fk_member_profile_id
                         AND cm.fk_club_id = md.fk_club_id
@@ -124,7 +149,7 @@ public class MembershipDuesService : IMembershipDuesService
                    OfflineBankName, OfflineAccountNumber, OfflineIfscCode,
                    EmailHeaderLogo, EmailCC, EmailSubject, EmailBody,
                    EmailReminderSubject, EmailReminderBody,
-                   GoogleSheetId, GoogleSheetEmail
+                   GoogleSheetId, GoogleSheetEmail, NotifyEmail, Currency
             FROM membership_dues WHERE pk_membership_dues_id=@Id AND isdeleted=0", new { Id = duesId });
 
         if (dues == null) return null;
@@ -204,9 +229,12 @@ public class MembershipDuesService : IMembershipDuesService
                     dto.GoogleSheetEmail,
                     UserId = userId
                 }, tx);
+            var (fe, fc) = await DuesCurrency.CreateDefaultsAsync(conn, dto.FkDistrictId, dto.NotifyEmail, dto.Currency, tx);
+            await SaveDuesFlagsAsync(conn, duesId, fe, fc, tx);
 
-            // 2. Parse and insert vendors (frontend sends per-feeType rows, group by vendor)
-            if (!string.IsNullOrWhiteSpace(dto.VendorsJson))
+            // 2. Parse and insert vendors (frontend sends per-feeType rows, group by vendor).
+            // Offline only (ModeOfPayment 2) = collected by hand, nothing is split - no vendors saved (user 2026-11-13).
+            if (dto.ModeOfPayment != 2 && !string.IsNullOrWhiteSpace(dto.VendorsJson))
             {
                 var rawSplits = JsonSerializer.Deserialize<List<JsonElement>>(dto.VendorsJson);
                 if (rawSplits != null)
@@ -435,11 +463,12 @@ public class MembershipDuesService : IMembershipDuesService
                 dto.GoogleSheetEmail,
                 UserId = userId, Id = duesId
             });
+        await SaveDuesFlagsAsync(conn, duesId, dto.NotifyEmail, dto.Currency);
 
-        // 2. Delete old vendors, re-insert new ones
+        // 2. Delete old vendors, re-insert new ones (none for Offline only - nothing is split, user 2026-11-13)
         await conn.ExecuteAsync("UPDATE membership_dues_vendors SET isdeleted=1 WHERE fk_membership_dues_id=@Id", new { Id = duesId });
 
-        if (!string.IsNullOrWhiteSpace(dto.VendorsJson))
+        if (dto.ModeOfPayment != 2 && !string.IsNullOrWhiteSpace(dto.VendorsJson))
         {
             var rawSplits = JsonSerializer.Deserialize<List<JsonElement>>(dto.VendorsJson);
             if (rawSplits != null)
@@ -1298,7 +1327,9 @@ public class MembershipDuesService : IMembershipDuesService
             if (details != null)
             {
                 var feeLabel = dto.FeeType switch { 1 => (string?)details.Fees1Text ?? "Annual", 2 => (string?)details.Fees2Text ?? "Semi-Annual 1", 3 => (string?)details.Fees3Text ?? "Semi-Annual 2", _ => "Dues" };
-                var memberEmail = (string?)details.MemberEmail;
+                var flags = await GetDuesFlagsAsync(conn, duesId);
+                // Member-facing mail follows the dues Email flag; the approvers' Approve/Reject mail always goes.
+                var memberEmail = flags.Email ? (string?)details.MemberEmail : null;
                 _logger.LogInformation("Offline payment {Id}: notification block reached; memberEmail='{Me}'.", paymentId, memberEmail == null ? "(null)" : LogMask.Email(memberEmail));
 
                 // Approval recipients = Club President + Club Secretary for the rotary year
@@ -1414,7 +1445,7 @@ public class MembershipDuesService : IMembershipDuesService
                     <tr><td style='padding:8px;border:1px solid #D5DEE8;font-weight:bold;'>Club Name</td><td style='padding:8px;border:1px solid #D5DEE8;'>{(string?)details.ClubName ?? "-"}</td></tr>
                     <tr><td style='padding:8px;border:1px solid #D5DEE8;font-weight:bold;'>Purpose</td><td style='padding:8px;border:1px solid #D5DEE8;'>{(string?)details.Purpose}</td></tr>
                     <tr><td style='padding:8px;border:1px solid #D5DEE8;font-weight:bold;'>Fee Type</td><td style='padding:8px;border:1px solid #D5DEE8;'>{feeLabel}</td></tr>
-                    <tr><td style='padding:8px;border:1px solid #D5DEE8;font-weight:bold;'>Amount</td><td style='padding:8px;border:1px solid #D5DEE8;'>{Brand.Money(amount)}</td></tr>
+                    <tr><td style='padding:8px;border:1px solid #D5DEE8;font-weight:bold;'>Amount</td><td style='padding:8px;border:1px solid #D5DEE8;'>{DuesCurrency.Money(amount, flags.Currency)}</td></tr>
                     <tr><td style='padding:8px;border:1px solid #D5DEE8;font-weight:bold;'>Payment Mode</td><td style='padding:8px;border:1px solid #D5DEE8;'>{dto.TransactionType}</td></tr>
                     {remarkRow}
                     <tr><td style='padding:8px;border:1px solid #D5DEE8;font-weight:bold;'>Status</td><td style='padding:8px;border:1px solid #D5DEE8;color:#d69e2e;font-weight:bold;'>Pending Approval</td></tr>
@@ -1573,7 +1604,7 @@ public class MembershipDuesService : IMembershipDuesService
                 var payment = await conn.QueryFirstOrDefaultAsync<dynamic>(@"
                     SELECT p.FeeType, p.Amount, m.MemberName, m.EmailId,
                            md.Purpose, md.Fees1Text, md.Fees2Text, md.Fees3Text,
-                           d.DistrictNumber, c.ClubName
+                           d.DistrictNumber, c.ClubName, md.NotifyEmail, md.Currency
                     FROM membership_dues_payments p
                     JOIN membership_dues_member_fees f ON p.fk_member_fee_id = f.pk_id
                     JOIN member_master_profile m ON p.fk_member_profile_id = m.pk_member_master_profile_id
@@ -1581,7 +1612,7 @@ public class MembershipDuesService : IMembershipDuesService
                     LEFT JOIN district_master d ON md.fk_district_id = d.pk_district_id
                     LEFT JOIN club_master c ON md.fk_club_id = c.pk_club_id
                     WHERE p.pk_id=@Id", new { Id = paymentId });
-                if (payment != null && !string.IsNullOrWhiteSpace((string?)payment.EmailId))
+                if (payment != null && Convert.ToBoolean(payment.NotifyEmail) && !string.IsNullOrWhiteSpace((string?)payment.EmailId))
                 {
                     var feeLabel = (int)payment.FeeType switch
                     {
@@ -1601,7 +1632,7 @@ public class MembershipDuesService : IMembershipDuesService
                             <tr><td style='padding:8px;border:1px solid #D5DEE8;font-weight:bold;'>Club Name</td><td style='padding:8px;border:1px solid #D5DEE8;'>{(string?)payment.ClubName ?? "-"}</td></tr>
                             <tr><td style='padding:8px;border:1px solid #D5DEE8;font-weight:bold;'>Purpose</td><td style='padding:8px;border:1px solid #D5DEE8;'>{(string?)payment.Purpose}</td></tr>
                             <tr><td style='padding:8px;border:1px solid #D5DEE8;font-weight:bold;'>Fee Type</td><td style='padding:8px;border:1px solid #D5DEE8;'>{feeLabel}</td></tr>
-                            <tr><td style='padding:8px;border:1px solid #D5DEE8;font-weight:bold;'>Amount</td><td style='padding:8px;border:1px solid #D5DEE8;'>{Brand.Money(Convert.ToDecimal((object?)payment.Amount))}</td></tr>
+                            <tr><td style='padding:8px;border:1px solid #D5DEE8;font-weight:bold;'>Amount</td><td style='padding:8px;border:1px solid #D5DEE8;'>{DuesCurrency.Money(Convert.ToDecimal((object?)payment.Amount), (string?)payment.Currency)}</td></tr>
                             <tr><td style='padding:8px;border:1px solid #D5DEE8;font-weight:bold;'>Status</td><td style='padding:8px;border:1px solid #D5DEE8;color:#c53030;font-weight:bold;'>Rejected</td></tr>
                             <tr><td style='padding:8px;border:1px solid #D5DEE8;font-weight:bold;'>Reason</td><td style='padding:8px;border:1px solid #D5DEE8;'>{reasonText}</td></tr>
                         </table>
@@ -1742,6 +1773,7 @@ public class MembershipDuesService : IMembershipDuesService
                    md.Purpose, md.EmailSubject, md.EmailBody, md.EmailCC, md.EmailHeaderLogo, md.IsShowBankInReceipt,
                    md.OfflineBankName, md.OfflineAccountNumber, md.OfflineIfscCode,
                    md.Fees1Text, md.Fees2Text, md.Fees3Text, md.OnlineSurchargePercent,
+                   md.NotifyEmail, md.Currency,
                    d.DistrictNumber, c.ClubName,
                    CASE
                        WHEN c.ClubLogoPath IS NULL OR c.ClubLogoPath = '' THEN NULL
@@ -1760,6 +1792,10 @@ public class MembershipDuesService : IMembershipDuesService
             throw new KeyNotFoundException($"Payment row {paymentId} not found.");
         if (payment.DuesId == null)
             throw new InvalidOperationException("Club dues record for this payment is missing or deleted.");
+        // Super Admin Email flag (user 2026-11-09): no receipt email when Email is off for this dues.
+        if (!Convert.ToBoolean(payment.NotifyEmail))
+            throw new InvalidOperationException("Email is switched off for this dues - receipt email not sent.");
+        var currency = DuesCurrency.Normalize((string?)payment.Currency);
 
         // Member name/email come from the LEFT JOIN. If they're blank the FK on
         // the payment row may point at a missing/blank-named profile (e.g. from
@@ -1920,13 +1956,13 @@ public class MembershipDuesService : IMembershipDuesService
                 decimal baseEquivalent = surchargePercent > 0 ? total / (1 + surchargePercent / 100m) : total;
                 decimal gateway = Math.Round(total - baseEquivalent, 2, MidpointRounding.AwayFromZero);
                 int netAmount = (int)Math.Round(total - gateway, 0, MidpointRounding.AwayFromZero);
-                amountCell = Brand.Money(netAmount, decimals: 0);
-                gatewayCell = Brand.Money(gateway);
+                amountCell = Brand.Money(netAmount, currency, 0);
+                gatewayCell = Brand.Money(gateway, currency);
             }
             else
             {
                 int netAmount = (int)Math.Round(total, 0, MidpointRounding.AwayFromZero);
-                amountCell = Brand.Money(netAmount, decimals: 0);
+                amountCell = Brand.Money(netAmount, currency, 0);
                 gatewayCell = "N/A";
             }
 
@@ -2053,7 +2089,7 @@ public class MembershipDuesService : IMembershipDuesService
                    md.EmailReminderSubject, md.EmailReminderBody, md.EmailCC, md.EmailHeaderLogo,
                    md.OfflineBankName, md.OfflineAccountNumber, md.OfflineIfscCode, md.IsShowBankInReceipt,
                    md.Fees1Text, md.Fees2Text, md.Fees3Text,
-                   md.IsFees1, md.IsFees2, md.IsFees3,
+                   md.IsFees1, md.IsFees2, md.IsFees3, md.NotifyEmail, md.Currency,
                    d.DistrictNumber, c.ClubName,
                    CASE
                        WHEN c.ClubLogoPath IS NULL OR c.ClubLogoPath = '' THEN NULL
@@ -2076,6 +2112,9 @@ public class MembershipDuesService : IMembershipDuesService
         // or a future caller ever reaches here without going through the (already-filtered)
         // admin member list first.
         if (data == null || string.IsNullOrWhiteSpace((string?)data.EmailId)) return;
+        if (!Convert.ToBoolean(data.NotifyEmail))
+            throw new InvalidOperationException("Email is switched off for this dues.");
+        var currency = DuesCurrency.Normalize((string?)data.Currency);
 
         // Determine which fee types to send reminder for
         var feeTypes = new List<int>();
@@ -2115,7 +2154,7 @@ public class MembershipDuesService : IMembershipDuesService
 
             var label = ft switch { 1 => (string?)data.Fees1Text ?? "Annual", 2 => (string?)data.Fees2Text ?? "Semi-Annual 1", 3 => (string?)data.Fees3Text ?? "Semi-Annual 2", _ => "Dues" };
             decimal amt = ft switch { 1 => (decimal)data.AnnualAmount, 2 => (decimal)data.Semi1Amount, 3 => (decimal)data.Semi2Amount, _ => 0 };
-            unpaidRows.Append($"<tr><td style='padding:8px;border:1px solid #D5DEE8;'>{label}</td><td style='padding:8px;border:1px solid #D5DEE8;'>{Brand.Money(amt)}</td><td style='padding:8px;border:1px solid #D5DEE8;'>Unpaid</td></tr>");
+            unpaidRows.Append($"<tr><td style='padding:8px;border:1px solid #D5DEE8;'>{label}</td><td style='padding:8px;border:1px solid #D5DEE8;'>{Brand.Money(amt, currency)}</td><td style='padding:8px;border:1px solid #D5DEE8;'>Unpaid</td></tr>");
         }
         if (unpaidRows.Length == 0) return; // nothing to remind
 
@@ -2155,9 +2194,12 @@ public class MembershipDuesService : IMembershipDuesService
         var dues = await conn.QueryFirstOrDefaultAsync<dynamic>(@"
             SELECT pk_membership_dues_id, fk_club_id AS ClubId, Purpose, RotaryYear, IsFees1, IsFees2, IsFees3,
                    Fees1Text, Fees2Text, Fees3Text, EmailReminderSubject, EmailReminderBody, EmailCC, EmailHeaderLogo,
-                   OfflineBankName, OfflineAccountNumber, OfflineIfscCode, IsShowBankInReceipt
+                   OfflineBankName, OfflineAccountNumber, OfflineIfscCode, IsShowBankInReceipt, NotifyEmail, Currency
             FROM membership_dues WHERE pk_membership_dues_id=@Id AND isdeleted=0", new { Id = duesId });
         if (dues == null) return;
+        if (!Convert.ToBoolean(dues.NotifyEmail))
+            throw new InvalidOperationException("Email is switched off for this dues.");
+        var currency = DuesCurrency.Normalize((string?)dues.Currency);
 
         // Get all member fees that have at least one unpaid fee type. Honorary members never
         // owe dues (their fee row just sits unpaid forever, by design), so this must exclude
@@ -2245,7 +2287,7 @@ public class MembershipDuesService : IMembershipDuesService
                     var amt = ut == ((string?)dues.Fees1Text ?? "Annual") ? (decimal)f.AnnualAmount
                             : ut == ((string?)dues.Fees2Text ?? "Semi-Annual 1") ? (decimal)f.Semi1Amount
                             : (decimal)f.Semi2Amount;
-                    unpaidRowsHtml.Append($"<tr><td style='padding:8px;border:1px solid #D5DEE8;'>{ut}</td><td style='padding:8px;border:1px solid #D5DEE8;'>{Brand.Money(amt)}</td><td style='padding:8px;border:1px solid #D5DEE8;'>Unpaid</td></tr>");
+                    unpaidRowsHtml.Append($"<tr><td style='padding:8px;border:1px solid #D5DEE8;'>{ut}</td><td style='padding:8px;border:1px solid #D5DEE8;'>{Brand.Money(amt, currency)}</td><td style='padding:8px;border:1px solid #D5DEE8;'>Unpaid</td></tr>");
                 }
 
                 var bulkHeaderLogoUrl = ResolveEmailLogoUrl((string?)f.ClubLogoPath, (string?)dues.EmailHeaderLogo);
@@ -2342,7 +2384,7 @@ public class MembershipDuesService : IMembershipDuesService
             SELECT md.pk_membership_dues_id AS Id, md.Purpose, md.PurposeDescription, md.PurposeLogo, md.BackgroundImage,
                    d.DistrictNumber, c.ClubName,
                    md.IsFees1, md.IsFees2, md.IsFees3, md.Fees1Text, md.Fees2Text, md.Fees3Text,
-                   md.ModeOfPayment
+                   md.ModeOfPayment, md.Currency
             FROM membership_dues md
             LEFT JOIN district_master d ON md.fk_district_id = d.pk_district_id
             LEFT JOIN club_master c ON md.fk_club_id = c.pk_club_id
@@ -2537,6 +2579,7 @@ public class MembershipDuesService : IMembershipDuesService
 
         var emailSent = false;
 
+        // ROW: the OTP goes by email always (the only channel); the dues Email switch covers notifications, not this code.
         if (!string.IsNullOrWhiteSpace(email))
         {
             try
@@ -3003,7 +3046,7 @@ public class MembershipDuesService : IMembershipDuesService
             SELECT md.pk_membership_dues_id AS Id, md.Purpose, md.RotaryYear,
                    md.IsFees1, md.IsFees2, md.IsFees3, md.Fees1Text, md.Fees2Text, md.Fees3Text,
                    md.OnlineSurchargePercent,
-                   md.DefaultAnnualAmount, md.DefaultSemi1Amount, md.DefaultSemi2Amount,
+                   md.DefaultAnnualAmount, md.DefaultSemi1Amount, md.DefaultSemi2Amount, md.Currency,
                    d.DistrictNumber, c.ClubName
             FROM membership_dues md
             LEFT JOIN district_master d ON md.fk_district_id = d.pk_district_id
@@ -3105,6 +3148,7 @@ public class MembershipDuesService : IMembershipDuesService
             RotaryYear = (string?)dues.RotaryYear,
             DistrictNumber = (string?)dues.DistrictNumber,
             ClubName = (string?)dues.ClubName,
+            Currency = DuesCurrency.Normalize((string?)dues.Currency),
             IsFees1 = (bool)dues.IsFees1,
             IsFees2 = (bool)dues.IsFees2,
             IsFees3 = (bool)dues.IsFees3,
@@ -3145,7 +3189,7 @@ public class MembershipDuesService : IMembershipDuesService
             SELECT md.pk_membership_dues_id AS Id, md.Purpose, md.RotaryYear,
                    md.IsFees1, md.IsFees2, md.IsFees3, md.Fees1Text, md.Fees2Text, md.Fees3Text,
                    md.OnlineSurchargePercent,
-                   md.DefaultAnnualAmount, md.DefaultSemi1Amount, md.DefaultSemi2Amount,
+                   md.DefaultAnnualAmount, md.DefaultSemi1Amount, md.DefaultSemi2Amount, md.Currency,
                    d.DistrictNumber, c.ClubName
             FROM membership_dues md
             LEFT JOIN district_master d ON md.fk_district_id = d.pk_district_id
