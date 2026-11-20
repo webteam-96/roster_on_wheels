@@ -110,10 +110,10 @@ class _LoginScreenState extends State<LoginScreen> {
       backgroundColor: AppColors.background,
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
           child: Column(
             children: [
-              const SizedBox(height: 48),
+              const SizedBox(height: 32),
               Image.asset('assets/images/row-logo.png', width: 220, semanticLabel: Brand.current.productName),
               const SizedBox(height: 24),
               Text('Sign In', style: AppTextStyles.h1),
@@ -123,9 +123,9 @@ class _LoginScreenState extends State<LoginScreen> {
                 TranslationScope.of(context, 'Sign in to {app}').replaceAll('{app}', Brand.current.productName),
                 style: AppTextStyles.body.copyWith(color: AppColors.textSecondary),
               ),
-              const SizedBox(height: 40),
+              const SizedBox(height: 32),
               Container(
-                padding: const EdgeInsets.all(24),
+                padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
                   color: AppColors.surface,
                   borderRadius: BorderRadius.circular(20),
@@ -163,7 +163,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           child: Text('Forgot password?', style: AppTextStyles.link),
                         ),
                       ),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 8),
                       CustomButton(
                         label: 'Sign In',
                         onPressed: _submit,
@@ -171,20 +171,33 @@ class _LoginScreenState extends State<LoginScreen> {
                         isLoading: auth.isLoading,
                         icon: Icons.login,
                       ),
-                      const SizedBox(height: 8),
-                      Center(
-                        child: TextButton(
-                          onPressed: _signInWithCode,
-                          child: Text('Email me a sign-in code instead', style: AppTextStyles.link),
-                        ),
+                      const SizedBox(height: 16),
+                      Row(
+                        children: [
+                          const Expanded(child: Divider(color: AppColors.line)),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 12),
+                            child: Text('or', style: AppTextStyles.caption),
+                          ),
+                          const Expanded(child: Divider(color: AppColors.line)),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      // A full-width button, not a text link: the link wrapped to two ragged lines on 360 dp phones.
+                      CustomButton(
+                        label: 'Email me a code',
+                        onPressed: _signInWithCode,
+                        variant: ButtonVariant.outline,
+                        fullWidth: true,
+                        icon: Icons.mail_outline,
                       ),
                     ],
                   ),
                 ),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 20),
               Text(
-                'First time here? Use "Forgot password?" to set your password.',
+                'New here? Tap "Forgot password?" to set one.',
                 textAlign: TextAlign.center,
                 style: AppTextStyles.caption,
               ),

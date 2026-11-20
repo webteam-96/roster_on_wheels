@@ -126,7 +126,11 @@ outsider = one(
     "ORDER BY 1 LIMIT 1")[0]
 sa = one("SELECT fk_member_master_profile_id FROM member_roles WHERE fk_role_id = 3 AND IsActive = 1 AND isdeleted = 0 LIMIT 1")[0]
 year = one("SELECT pk_year_id FROM rotary_year_master WHERE IsCurrent = 1 AND isdeleted = 0 LIMIT 1")[0]
-past_year = one("SELECT pk_year_id FROM rotary_year_master WHERE EndDate < CURDATE() AND isdeleted = 0 ORDER BY EndDate DESC LIMIT 1")[0]
+# One past president per club and year (uk_club_year), and the copy has real ones: the latest past year still free.
+def free_past_year(c):
+    return one("SELECT y.pk_year_id FROM rotary_year_master y WHERE y.EndDate < CURDATE() AND y.isdeleted = 0 AND NOT EXISTS "
+               f"(SELECT 1 FROM past_presidents p WHERE p.fk_club_id = {c} AND p.fk_year_id = y.pk_year_id) "
+               "ORDER BY y.EndDate DESC LIMIT 1")[0]
 
 t_plain, t_admin, t_sa = token(plain, "Member"), token(admin, "Admin"), token(sa, "SuperAdmin")
 t_da, t_officer = token(outsider, "Admin"), token(officer, "Member")
@@ -147,7 +151,7 @@ try:
         made["pay"].append(insert("INSERT INTO membership_dues_payments (fk_membership_dues_id, fk_member_fee_id, "
                                   f"fk_member_profile_id, FeeType, Amount) VALUES ({dues}, 0, {target}, 1, 1)"))
         made["pp"].append(insert("INSERT INTO past_presidents (fk_club_id, fk_year_id, non_member_name) "
-                                 f"VALUES ({c}, {past_year}, '{TAG}')"))
+                                 f"VALUES ({c}, {free_past_year(c)}, '{TAG}')"))
     for d in (district, other_district):
         made["cdues"].append(insert(f"INSERT INTO club_dues (fk_district_id, RotaryYear, Purpose) VALUES ({d}, 'e2e', '{TAG}')"))
     (dues_c, dues_o), (pay_c, pay_o), (pp_c, pp_o), (cdues_c, cdues_o) = made["dues"], made["pay"], made["pp"], made["cdues"]

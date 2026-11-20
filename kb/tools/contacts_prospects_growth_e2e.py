@@ -60,11 +60,15 @@ def check(name, ok, detail=""):
 # ── Pick real ids: the smallest club with a club admin, a plain member, another club elsewhere, the SuperAdmin ──
 club, district = [int(x) for x in sql(
     "SELECT c.pk_club_id, c.fk_district_id FROM club_master c WHERE c.IsActive=1 AND c.isdeleted=0 AND EXISTS "
-    "(SELECT 1 FROM member_roles r WHERE r.fk_club_id=c.pk_club_id AND r.fk_role_id=2 AND r.IsActive=1 AND r.isdeleted=0) "
+    "(SELECT 1 FROM member_roles r WHERE r.fk_club_id=c.pk_club_id AND r.fk_role_id=2 AND r.IsActive=1 AND r.isdeleted=0 "
+    "AND NOT EXISTS (SELECT 1 FROM member_roles dr WHERE dr.fk_member_master_profile_id=r.fk_member_master_profile_id AND dr.IsActive=1 AND dr.isdeleted=0 AND (dr.fk_role_id=3 OR (dr.fk_role_id=2 AND IFNULL(dr.fk_club_id,0)=0)))) "
+    "AND EXISTS (SELECT 1 FROM club_members cm WHERE cm.fk_club_id=c.pk_club_id AND cm.IsActive=1 AND cm.isdeleted=0 "
+    "AND cm.fk_member_master_profile_id NOT IN (SELECT fk_member_master_profile_id FROM member_roles "
+    "WHERE fk_role_id<>1 AND IsActive=1 AND isdeleted=0)) "
     "ORDER BY (SELECT COUNT(*) FROM club_members cm WHERE cm.fk_club_id=c.pk_club_id AND cm.IsActive=1 AND cm.isdeleted=0), "
     "c.pk_club_id LIMIT 1").split()]
-admin = int(sql(f"SELECT fk_member_master_profile_id FROM member_roles WHERE fk_club_id={club} AND fk_role_id=2 "
-                "AND IsActive=1 AND isdeleted=0 LIMIT 1"))
+admin = int(sql(f"SELECT r.fk_member_master_profile_id FROM member_roles r WHERE r.fk_club_id={club} AND r.fk_role_id=2 "
+                "AND r.IsActive=1 AND r.isdeleted=0 AND NOT EXISTS (SELECT 1 FROM member_roles dr WHERE dr.fk_member_master_profile_id=r.fk_member_master_profile_id AND dr.IsActive=1 AND dr.isdeleted=0 AND (dr.fk_role_id=3 OR (dr.fk_role_id=2 AND IFNULL(dr.fk_club_id,0)=0))) LIMIT 1"))  # club-only admin
 plain = int(sql(f"SELECT cm.fk_member_master_profile_id FROM club_members cm WHERE cm.fk_club_id={club} AND cm.IsActive=1 "
                 "AND cm.isdeleted=0 AND cm.fk_member_master_profile_id NOT IN (SELECT fk_member_master_profile_id FROM "
                 "member_roles WHERE fk_role_id<>1 AND IsActive=1 AND isdeleted=0) ORDER BY 1 LIMIT 1"))

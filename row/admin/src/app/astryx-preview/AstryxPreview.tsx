@@ -142,24 +142,24 @@ function Gallery() {
 export default function AstryxPreview() {
   const [key, setKey] = useState<ThemeKey>("fellowship");
   return (
-    <div data-no-translate className="min-h-screen bg-[#F7F9FC] p-6">
+    <div data-no-translate className="min-h-screen bg-cream p-6">
       <div className="mx-auto max-w-5xl space-y-6">
         <div className="flex flex-wrap items-center gap-2">
-          <span className="mr-2 text-sm font-semibold text-[#1B2C42]">Theme:</span>
+          <span className="mr-2 text-sm font-semibold text-ink">Theme:</span>
           {(Object.keys(THEMES) as ThemeKey[]).map((k) => (
             <button
               key={k}
               type="button"
               onClick={() => setKey(k)}
-              className={`rounded-md border px-3 py-1.5 text-sm ${k === key ? "border-[#17458F] bg-[#17458F] text-[#FCFDFE]" : "border-[#DCE3EC] text-[#1B2C42]"}`}
+              className={`rounded-md border px-3 py-1.5 text-sm ${k === key ? "border-azure bg-azure text-cream" : "border-stone-tone text-ink"}`}
             >
               {NAMES[k]}
             </button>
           ))}
         </div>
 
-        <div className="rounded-lg border border-[#DCE3EC] p-4">
-          <p className="mb-3 text-sm font-semibold text-[#1B2C42]">Today in admin (current components, for comparison)</p>
+        <div className="rounded-lg border border-stone-tone p-4">
+          <p className="mb-3 text-sm font-semibold text-ink">Today in admin (current components, for comparison)</p>
           <div className="flex flex-wrap items-center gap-2">
             <RowButton>Add member</RowButton>
             <RowButton variant="outline">Export</RowButton>
@@ -173,7 +173,7 @@ export default function AstryxPreview() {
         </div>
 
         <Theme theme={THEMES[key]}>
-          <div className="rounded-lg border border-[#DCE3EC] p-6" style={{ background: "var(--color-background-body)" }}>
+          <div className="rounded-lg border border-stone-tone p-6" style={{ background: "var(--color-background-body)" }}>
             <Gallery />
           </div>
         </Theme>

@@ -76,11 +76,15 @@ def simulate(tok_session, outcome):
 sa = sql("SELECT mr.fk_member_master_profile_id FROM member_roles mr JOIN roles r ON r.pk_role_id=mr.fk_role_id "
          "WHERE r.RoleName='SuperAdmin' AND mr.IsActive=1 AND mr.isdeleted=0 LIMIT 1")
 SA = token(sa)
-club = sql("SELECT c.pk_club_id FROM club_master c WHERE c.isdeleted=0 AND c.fk_district_id>0 ORDER BY c.pk_club_id LIMIT 1")
+# Dues are one per club / district per year and the copy holds real 2026-27 dues: pick a club and district with none.
+club = sql("SELECT c.pk_club_id FROM club_master c WHERE c.isdeleted=0 AND c.fk_district_id>0 "
+           "AND NOT EXISTS (SELECT 1 FROM club_dues cd WHERE cd.fk_district_id=c.fk_district_id AND cd.RotaryYear='2026-27' AND cd.isdeleted=0) AND NOT EXISTS (SELECT 1 FROM membership_dues md WHERE md.fk_club_id=c.pk_club_id AND md.RotaryYear='2026-27' AND md.isdeleted=0) ORDER BY c.pk_club_id LIMIT 1")
 district = sql(f"SELECT fk_district_id FROM club_master WHERE pk_club_id={club}")
 stranger = sql(f"SELECT pk_member_master_profile_id FROM member_master_profile WHERE pk_member_master_profile_id<>{sa} "
                f"AND pk_member_master_profile_id NOT IN (SELECT fk_member_master_profile_id FROM member_roles WHERE IsActive=1 AND isdeleted=0 AND fk_role_id<>0) LIMIT 1")
 wallet_rows, website_rows, tokens, accounts = [], [], [], []
+
+site_price = None
 
 try:
     # Wallet: pay once, repeat changes nothing
@@ -227,6 +231,10 @@ try:
     check("wallet quote: no built-in tax", st == 200 and float(q["gstAmount"]) == 0 and float(q["totalAmount"]) == 1000, str(q)[:160])
     site_club = sql("SELECT c.pk_club_id FROM club_master c WHERE c.isdeleted=0 AND c.fk_district_id>0 "
                     "AND c.pk_club_id NOT IN (SELECT fk_club_id FROM club_websites) ORDER BY c.pk_club_id LIMIT 1")
+    # No ROW-wide club website price is set yet (owner, PENDING-WORK): a price for this club and year, removed after.
+    site_year = sql("SELECT pk_year_id FROM rotary_year_master WHERE IsCurrent=1 LIMIT 1")
+    site_price = sql(f"INSERT INTO club_website_pricing (fk_club_id, fk_year_id, BaseAmount, RenewalAmount, GstPercent, GatewayType) "
+                     f"VALUES ({site_club},{site_year},100,80,0,'normal'); SELECT LAST_INSERT_ID();")
     st, q = call("GET", f"/api/website-billing/quote?clubId={site_club}", SA)
     check("website quote: price with no built-in tax", st == 200 and float(q["gstAmount"]) == 0 and float(q["totalAmount"]) == float(q["baseAmount"]) > 0, str(q)[:200])
     st, o = call("POST", "/api/website-billing/create-order", SA, {"clubId": int(site_club), "subdomainInput": "e2epayreal", "reminderDays": 15, "returnPath": "/club-admin-dashboard/website-purchase"})
@@ -238,7 +246,7 @@ try:
         check("website order: session charges the quoted price", st == 200 and float(s2["amount"]) == float(q["totalAmount"]), str(s2)[:160])
         check("website order: paid", sql(f"SELECT PaymentStatus FROM club_website_orders WHERE pk_id={real_site_order}") == "PAID")
     dues_club = sql("SELECT m.fk_club_id FROM club_members m JOIN club_master c ON c.pk_club_id=m.fk_club_id "
-                    "WHERE m.isdeleted=0 AND c.isdeleted=0 AND c.fk_district_id>0 GROUP BY m.fk_club_id HAVING COUNT(*)>=5 ORDER BY m.fk_club_id LIMIT 1")
+                    "WHERE m.isdeleted=0 AND c.isdeleted=0 AND c.fk_district_id>0 AND NOT EXISTS (SELECT 1 FROM club_dues cd WHERE cd.fk_district_id=c.fk_district_id AND cd.RotaryYear='2026-27' AND cd.isdeleted=0) GROUP BY m.fk_club_id HAVING COUNT(*)>=5 ORDER BY m.fk_club_id LIMIT 1")
     dues_district = sql(f"SELECT fk_district_id FROM club_master WHERE pk_club_id={dues_club}")
     dues = sql(f"INSERT INTO club_dues (fk_district_id, RotaryYear, Purpose, DefaultPerMemberRate, OnlineSurchargePercent, RateModel, ModeOfPayment, IsActive, isdeleted) "
                f"VALUES ({dues_district},'2026-27','e2e-pay',5,10,0,1,1,0); SELECT LAST_INSERT_ID()")
@@ -261,6 +269,8 @@ finally:
             sql(q)
         except subprocess.CalledProcessError as e:
             print("cleanup problem:", e.stderr[:200])
+    if site_price:
+        quiet(f"DELETE FROM club_website_pricing WHERE pk_id={site_price}")
     if accounts:
         quiet(f"DELETE FROM payment_accounts WHERE pk_id IN ({','.join(map(str, accounts))})")
     if tokens:

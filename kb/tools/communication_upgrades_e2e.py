@@ -168,7 +168,10 @@ members_sql = (f"SELECT m.pk_member_master_profile_id FROM club_members cm JOIN 
 plain_only = "AND m.pk_member_master_profile_id NOT IN (SELECT fk_member_master_profile_id FROM member_roles WHERE fk_role_id <> 1 AND IsActive = 1) "
 m_en, m_third = [int(x) for x in sql(members_sql + plain_only + "AND m.PrimaryLanguage = 'English' ORDER BY 1 LIMIT 2").split()]
 m_loc = int(sql(members_sql + f"AND m.PrimaryLanguage IN ({names}) AND m.BirthDate IS NOT NULL ORDER BY 1 LIMIT 1"))
-loc_lang = CODES[sql(f"SELECT PrimaryLanguage FROM member_master_profile WHERE pk_member_master_profile_id = {m_loc}")]
+loc_orig = sql(f"SELECT PrimaryLanguage FROM member_master_profile WHERE pk_member_master_profile_id = {m_loc}")
+# ROW sends in 8 languages only (2026-11-12): run as French and put the member's own language back in `finally`.
+sql(f"UPDATE member_master_profile SET PrimaryLanguage = 'French' WHERE pk_member_master_profile_id = {m_loc}")
+loc_lang = "fr"
 other_club = int(sql(f"SELECT pk_club_id FROM club_master WHERE fk_district_id <> {district} AND IFNULL(isdeleted, 0) = 0 ORDER BY 1 LIMIT 1"))
 other_admin = sql(f"SELECT fk_member_master_profile_id FROM member_roles WHERE fk_club_id = {other_club} AND fk_role_id = 2 "
                   "AND IsActive = 1 AND isdeleted = 0 LIMIT 1")
@@ -462,6 +465,7 @@ try:
     s, b = call("GET", f"/api/public/comms/unsubscribe/{tok_en}")
     check("off: an unsubscribe link already sent still works", s == 200, (s, b))
 finally:
+    sql(f"UPDATE member_master_profile SET PrimaryLanguage = '{loc_orig}' WHERE pk_member_master_profile_id = {m_loc}")
     ids = ",".join(str(c) for c in campaigns) or "0"
     sql(f"DELETE FROM comm_webhook_events WHERE message_id IN (SELECT MessageId FROM club_mass_email_recipients WHERE fk_mass_email_id IN ({ids}))")
     sql(f"DELETE FROM club_mass_email_recipients WHERE fk_mass_email_id IN ({ids})")

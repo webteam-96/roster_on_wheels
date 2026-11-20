@@ -75,7 +75,11 @@ club, member = sql("""SELECT cm.fk_club_id, cm.fk_member_master_profile_id FROM 
     JOIN member_master_profile m ON m.pk_member_master_profile_id = cm.fk_member_master_profile_id
     JOIN club_master c ON c.pk_club_id = cm.fk_club_id AND c.isdeleted = 0
     WHERE cm.IsActive = 1 AND cm.isdeleted = 0 AND m.isdeleted = 0 AND COALESCE(cm.IsHonoraryMember, 0) = 0
-      AND m.EmailId LIKE '%@%' AND CHAR_LENGTH(m.MemberName) >= 4 LIMIT 1""").split()
+      AND m.EmailId LIKE '%@%' AND CHAR_LENGTH(m.MemberName) >= 4
+      -- dues are one per club / district per year: pick one with none yet (the copy holds real 2026-27 dues)
+      AND NOT EXISTS (SELECT 1 FROM club_dues d WHERE d.fk_district_id = c.fk_district_id AND d.RotaryYear = '2026-27' AND d.isdeleted = 0)
+      AND NOT EXISTS (SELECT 1 FROM membership_dues d WHERE d.fk_club_id = c.pk_club_id AND d.RotaryYear = '2026-27' AND d.isdeleted = 0)
+    LIMIT 1""").split()
 district = sql(f"SELECT fk_district_id FROM club_master WHERE pk_club_id = {club}")
 name, email = sql(f"SELECT MemberName, EmailId FROM member_master_profile WHERE pk_member_master_profile_id = {member}").split("\t")
 SA = token(1, "SuperAdmin")

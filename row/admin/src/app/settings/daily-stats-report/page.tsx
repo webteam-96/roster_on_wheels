@@ -91,7 +91,7 @@ export default function DailyStatsReportPage() {
           <Button variant="outline" onClick={downloadExcel} disabled={dl.busy}>
             {dl.is("daily-stats-excel") ? dl.bar("daily-stats-excel") : <><Download className="mr-2 h-4 w-4" />Download Excel</>}
           </Button>
-          <Button onClick={sendNow} disabled={sending} className="bg-[#17458F] hover:bg-[#123A78] text-white">
+          <Button onClick={sendNow} disabled={sending} className="bg-azure hover:bg-navy-900 text-white">
             {sending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Mail className="mr-2 h-4 w-4" />}
             Send Email Now
           </Button>
@@ -124,7 +124,7 @@ export default function DailyStatsReportPage() {
             <div className="px-4 py-2.5 border-b border-slate-100 text-sm font-medium text-slate-700">{b.title}: by Avenue</div>
             <div className="overflow-x-auto">
               <table className="w-full min-w-[640px] md:min-w-full text-sm">
-                <thead className="bg-[#EDF4FB] text-[13px] text-[#64748B]">
+                <thead className="bg-cream-2 text-[13px] text-ink-soft">
                   <tr className="bg-slate-50 text-slate-600">
                     <th className="px-4 py-2 text-left font-medium">Avenue</th>
                     <th className="px-4 py-2 text-right font-medium">One-Time</th>

@@ -85,8 +85,17 @@ try:
     for k in ("x-content-type-options", "x-frame-options", "referrer-policy", "content-security-policy"):
         check(f"header {k}", k in low, low)
 
-    club = sql("SELECT pk_club_id FROM club_master WHERE isdeleted=0 AND fk_district_id>0 ORDER BY pk_club_id LIMIT 1")
-    st, q, _ = call("GET", f"/api/website-billing/quote?clubId={club}", good)
+    # The signed-in admin's own club: another club's quote is (rightly) refused.
+    club = sql(f"SELECT r.fk_club_id FROM member_roles r JOIN club_master c ON c.pk_club_id = r.fk_club_id AND c.isdeleted=0 "
+               f"WHERE r.fk_member_master_profile_id={member} AND r.fk_role_id=2 AND r.IsActive=1 AND r.isdeleted=0 LIMIT 1")
+    # No club website price is set yet (owner): a price for this club and year for the one call, removed right after.
+    yr = sql("SELECT pk_year_id FROM rotary_year_master WHERE IsCurrent=1 LIMIT 1")
+    price = sql(f"INSERT INTO club_website_pricing (fk_club_id, fk_year_id, BaseAmount, RenewalAmount, GstPercent, GatewayType) "
+                f"VALUES ({club},{yr},100,80,0,'normal'); SELECT LAST_INSERT_ID();")
+    try:
+        st, q, _ = call("GET", f"/api/website-billing/quote?clubId={club}", good)
+    finally:
+        sql(f"DELETE FROM club_website_pricing WHERE pk_id={price}")
     check("website quote date has no server offset", st == 200 and "+" not in str(q["newEndDate"]) and not str(q["newEndDate"]).endswith("Z"), q)
 
     district = sql(f"SELECT fk_district_id FROM club_master WHERE pk_club_id={club}")

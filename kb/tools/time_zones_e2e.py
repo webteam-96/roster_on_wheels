@@ -279,7 +279,9 @@ try:
     check(f"iCal: the meeting starts {'in UTC' if stored_utc else 'in the district zone'}", want in event, (s, event[:120]))
 
     # ── Volunteer reminders (the real job): the same wall-clock slot time in both zones ──────────────────────
-    def signup(club, at, tag):
+    def signup(club, at, tag, zone):
+        # `at` is the district's wall-clock; slots are stored like meetings (UTC since the 17 Nov migration).
+        at = at - timedelta(hours=OFFSET[zone]) if stored_utc else at
         sheet = int(sql("INSERT INTO volunteer_sheets (fk_club_id, title, public_token, created_by) "
                         f"VALUES ({club}, 'e2e time zones', '{secrets.token_hex(16)}', {sa}); SELECT LAST_INSERT_ID();"))
         created["sheets"].append(sheet)
@@ -292,8 +294,8 @@ try:
         return sql(f"SELECT reminder_sent_at IS NOT NULL FROM volunteer_signups WHERE pk_signup_id={signup_id}") == "1"
 
     wall = (now_a + timedelta(hours=2)).replace(second=0, microsecond=0)        # due in A; 27 hours ahead in B
-    v_a, v_b_same = signup(CA, wall, "a"), signup(CB, wall, "b1")
-    v_b_own = signup(CB, (now_b + timedelta(hours=2)).replace(second=0, microsecond=0), "b2")   # due in B
+    v_a, v_b_same = signup(CA, wall, "a", KIRI), signup(CB, wall, "b1", PAGO)
+    v_b_own = signup(CB, (now_b + timedelta(hours=2)).replace(second=0, microsecond=0), "b2", PAGO)   # due in B
     deadline = time.time() + 100   # the job runs every minute
     while time.time() < deadline and not (reminded(v_a) and reminded(v_b_own)):
         time.sleep(5)

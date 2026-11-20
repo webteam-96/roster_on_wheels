@@ -132,6 +132,9 @@ TABLES = {"planning_roles": "pk_planning_role_id", "ri_outbound_queue": "pk_outb
           "membership_dues": "pk_membership_dues_id", "district_membership_goal": "pk_id"}
 before = {t: one(f"SELECT COALESCE(MAX({pk}),0) FROM {t}") for t, pk in TABLES.items()}
 flag_before = sql("SELECT enabled FROM platform_features WHERE feature_key='planning_mode'")
+# The cut-over makes the PE and SE club admins; the Club Admin limit (default 3, club_admin_limit_e2e.py) would refuse
+# one of them on a club that already has admins. Lifted for this run, put back in `finally`.
+limit_before = sql("SELECT SettingValue FROM system_settings WHERE SettingKey='ClubAdminMaxPerClub'")
 
 
 def untouched():
@@ -362,6 +365,8 @@ try:
         check(f"the {name} cannot run the cut-over", r[0] == 403, r)
     check("the current year is untouched by planning", untouched() == current_before, (untouched(), current_before))
     vendor_clubs = one(f"SELECT COUNT(*) FROM club_master WHERE fk_district_id={district} AND isdeleted=0 AND ROW_as_vendor_selected=1")
+    sql("DELETE FROM system_settings WHERE SettingKey='ClubAdminMaxPerClub'; "
+        "INSERT INTO system_settings (SettingKey, SettingValue) VALUES ('ClubAdminMaxPerClub','50')")
     r = call("POST", f"/api/planning/districts/{district}/cutover", t_dge)
     check("the DGE runs the cut-over", r[0] == 200 and r[1].get("state") == "live", r)
     check("four elect roles are activated", r[0] == 200 and r[1].get("rolesActivated") == 4, r)
@@ -411,11 +416,14 @@ try:
           sql(f"SELECT COUNT(*) FROM board_of_directors WHERE fk_club_id={club_a} AND fk_year_id={nxt} AND isdeleted=0") == officers_p
           and sql(f"SELECT state FROM tenant_subscriptions WHERE fk_district_id={district} AND fk_club_id=0") == "live")
 
-    n = one("SELECT COUNT(*) FROM audit_log WHERE entity_type='planning' AND created_date > NOW() - INTERVAL 30 MINUTE "
+    n = one("SELECT COUNT(*) FROM audit_log WHERE entity_type='planning' AND created_date > UTC_TIMESTAMP() - INTERVAL 30 MINUTE "
             f"AND entity_id={district}")
     check("planning actions are audited", (n or 0) >= 7, n)
 finally:
     time.sleep(2)  # the officer hooks run in the background
+    sql("DELETE FROM system_settings WHERE SettingKey='ClubAdminMaxPerClub'")
+    if limit_before:
+        sql(f"INSERT INTO system_settings (SettingKey, SettingValue) VALUES ('ClubAdminMaxPerClub','{limit_before}')")
     sql(f"UPDATE club_master SET ClubType={'NULL' if not club_b_type else repr(club_b_type)} WHERE pk_club_id={club_b}")
     call("PUT", "/api/features/planning_mode", t_sa, {"enabled": flag_before == "1"})
     if not flag_before:

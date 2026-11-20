@@ -73,8 +73,11 @@ club, district = [int(x) for x in sql(
     "ORDER BY c.pk_club_id LIMIT 1").split()]
 other = int(sql(f"SELECT pk_club_id FROM club_master WHERE fk_district_id <> {district} AND IFNULL(isdeleted, 0) = 0 "
                 "ORDER BY 1 LIMIT 1"))
-admin = int(sql(f"SELECT fk_member_master_profile_id FROM member_roles WHERE fk_club_id = {club} AND fk_role_id = 2 "
-                "AND IsActive = 1 AND isdeleted = 0 LIMIT 1"))
+# A club-only admin: one who also manages the district (or is SuperAdmin) may set the district rule.
+admin = int(sql(f"SELECT r.fk_member_master_profile_id FROM member_roles r WHERE r.fk_club_id = {club} AND r.fk_role_id = 2 "
+                "AND r.IsActive = 1 AND r.isdeleted = 0 AND NOT EXISTS (SELECT 1 FROM member_roles d "
+                "WHERE d.fk_member_master_profile_id = r.fk_member_master_profile_id AND d.IsActive = 1 AND d.isdeleted = 0 "
+                "AND (d.fk_role_id = 3 OR (d.fk_role_id = 2 AND IFNULL(d.fk_club_id, 0) = 0))) LIMIT 1"))
 plain = int(sql(f"SELECT cm.fk_member_master_profile_id FROM club_members cm "
                 f"JOIN member_master_profile m ON m.pk_member_master_profile_id = cm.fk_member_master_profile_id AND m.isdeleted = 0 "
                 f"WHERE cm.fk_club_id = {club} AND cm.IsActive = 1 AND cm.isdeleted = 0 AND cm.fk_member_master_profile_id "

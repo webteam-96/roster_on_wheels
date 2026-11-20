@@ -152,7 +152,8 @@ try:
         check("edit the application", s in (200, 204), s)
         s, _ = call("POST", f"{ga}/{app_id}/comments", sat, {"comment": "e2e comment"})
         check("comment on the application", s == 200, s)
-        s, sub = call("POST", f"{ga}/{app_id}/actions/submit", sat, {"comment": ""})
+        # The app sends the typed signature (grant_application_screen.dart).
+        s, sub = call("POST", f"{ga}/{app_id}/actions/submit", sat, {"comment": "", "signature": "E2E Club President"})
         r = call("GET", f"{ga}/{app_id}", sat)[1] or {}
         check("submit it; the history has dated events", s == 200 and r.get("status") == "submitted"
               and all(has(e, "action", "createdDate") for e in r.get("events", [])), (s, sub, r.get("status")))
@@ -185,7 +186,7 @@ try:
 finally:
     if cycle_id:
         apps = f"SELECT pk_application_id FROM grant_applications WHERE fk_cycle_id = {cycle_id}"
-        for t in ("grant_events", "grant_lines", "grant_members", "grant_attachments", "grant_payments"):
+        for t in ("grant_events", "grant_lines", "grant_members", "grant_attachments", "grant_payments", "grant_signoffs"):
             if sql(f"SHOW TABLES LIKE '{t}'"):
                 sql(f"DELETE FROM {t} WHERE fk_application_id IN ({apps})")
         sql(f"DELETE FROM grant_applications WHERE fk_cycle_id = {cycle_id}")

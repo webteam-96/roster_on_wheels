@@ -145,7 +145,7 @@ export function ChatPaneHeader({
 
 export function EmptyPane({ text }: { text: string }) {
   return (
-    <div className="h-full flex flex-col items-center justify-center text-slate-400 text-sm p-6 text-center bg-[#f0f2f5]">
+    <div className="h-full flex flex-col items-center justify-center text-slate-400 text-sm p-6 text-center bg-cream-2">
       <MessagesSquare size={40} className="mb-3 text-slate-300" />
       {text}
     </div>
@@ -153,7 +153,7 @@ export function EmptyPane({ text }: { text: string }) {
 }
 
 // The chat background (chat beige) that holds the bubbles.
-export const CHAT_BG = "bg-[#efeae2]";
+export const CHAT_BG = "bg-cream";
 
 // Two panes; on phones only one shows at a time.
 export function ChatShell({ list, pane, hasActive, className = "h-[66vh] min-h-[380px]" }: {

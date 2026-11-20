@@ -85,17 +85,17 @@ function ClubRcc() {
 
   return (
     <div>
-      <div className="rounded-[20px] bg-[#0B2A5E] text-white px-6 pt-5 pb-24 flex flex-wrap items-center justify-between gap-4">
+      <div className="rounded-[20px] bg-navy-950 text-white px-6 pt-5 pb-24 flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-extrabold text-white flex flex-wrap items-center gap-2.5">RCC <span className="rounded-full bg-[#F7A81B] px-2.5 py-0.5 text-xs font-bold text-[#0B2A5E]">Rotary.org</span></h2>
-          <p className="text-sm text-[#C9D6EE] mt-1">Goals come from Rotary.org; the boxes Rotary.org does not fill are typed here.</p>
+          <h2 className="text-2xl font-extrabold text-white flex flex-wrap items-center gap-2.5">RCC <span className="rounded-full bg-marigold px-2.5 py-0.5 text-xs font-bold text-navy-950">Rotary.org</span></h2>
+          <p className="text-sm text-navy-200 mt-1">Goals come from Rotary.org; the boxes Rotary.org does not fill are typed here.</p>
           {selectedClubId && viewingYearId === currentYearId && (
             <div className="mt-3"><RotaryOrgSync clubId={selectedClubId} onSynced={onSynced} /></div>
           )}
         </div>
         <button type="button" onClick={downloadReport} disabled={dl.busy || forms.length === 0}
           title="RCC & District Goals report - RCC and District Goals"
-          className="inline-flex items-center gap-2 text-sm font-bold min-h-11 px-4 rounded-xl border border-[#5873A6] text-white hover:bg-white/10 disabled:opacity-60">
+          className="inline-flex items-center gap-2 text-sm font-bold min-h-11 px-4 rounded-xl border border-navy-400 text-white hover:bg-white/10 disabled:opacity-60">
           {dl.is("report") ? dl.bar("report") : <><Download size={15} /> Report</>}
         </button>
       </div>

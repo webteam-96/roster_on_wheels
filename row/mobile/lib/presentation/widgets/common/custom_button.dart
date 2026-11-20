@@ -64,12 +64,17 @@ class _CustomButtonState extends State<CustomButton> with SingleTickerProviderSt
                 Icon(widget.icon, size: 18, color: _foregroundColor),
                 const SizedBox(width: 8),
               ],
-              Text(
-                widget.label,
-                style: AppFonts.body(
-                  color: _foregroundColor,
-                  fontWeight: FontWeight.w600,
-                  fontSize: 14,
+              // Flexible: a long label (translations, narrow phones) ends with "…" instead of overflowing.
+              Flexible(
+                child: Text(
+                  widget.label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: AppFonts.body(
+                    color: _foregroundColor,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 14,
+                  ),
                 ),
               ),
             ],

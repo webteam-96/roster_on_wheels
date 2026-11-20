@@ -25,6 +25,13 @@ const ALLOW = {
   "components/pages/projects/shared.tsx": "Rotary areas-of-focus brand colours",
   "components/pages/about/ImpactAreas.tsx": "Rotary areas-of-focus brand colours",
   "components/site/AreasOfFocus.tsx": "Rotary areas-of-focus brand colours",
+  "astryx/fellowshipTheme.tsx": "theme token definitions (the source of the tokens)",
+  "app/settings/district-performance-report/page.tsx": "HTML written into the print window, which has no app CSS variables",
+  "components/goal-messages/ChatUi.tsx": "one stable colour per chat sender (tells participants apart)",
+  "components/cmr/CmrReportDesignA.tsx": "CMR report design A: printable document palette (RIZones report layout)",
+  "components/cmr/CmrReportDesignB.tsx": "CMR report design B: printable document palette",
+  "components/cmr/CmrReportDesignC.tsx": "CMR report design C: printable document palette",
+  "components/cmr/CmrReportDesignD.tsx": "CMR report design D: printable document palette",
 };
 
 // Hex is fine when it is a Fellowship scale step, or a semantic red/green (left unmapped, like the Tailwind remap).

@@ -24,11 +24,11 @@ const actionColors: Record<string, string> = {
   Create: "bg-green-700 hover:bg-green-800",
   Update: "bg-blue-500 hover:bg-blue-600",
   Delete: "bg-red-500 hover:bg-red-600",
-  Upload: "bg-[#17458F] hover:bg-[#123A78]",
+  Upload: "bg-azure hover:bg-navy-900",
   Reorder: "bg-amber-700 hover:bg-amber-800",
   Approve: "bg-emerald-700 hover:bg-emerald-800",
   Reject: "bg-red-600 hover:bg-red-700",
-  Assign: "bg-[#17458F] hover:bg-[#123A78]",
+  Assign: "bg-azure hover:bg-navy-900",
   Remove: "bg-amber-700 hover:bg-amber-800",
 };
 

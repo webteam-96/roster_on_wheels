@@ -4,6 +4,27 @@ The NestJS backend is a faithful port of the RIZones API. These are places
 where ROW will probably want different behaviour. They are **not** made yet
 unless marked "done"; decide them when the area is worked on.
 
+## 2026-11-20: full test pass, two real bugs fixed (not committed)
+
+- **Chat with an emoji failed (done, SQL to run on production):** 26 ROW tables (chat, comm templates, translations,
+  tenant subscriptions, ...) were created without a charset and took the production database default `utf8mb3`, which
+  cannot store emoji ("Incorrect string value" 500). `database/maintenance/2026-11-20-utf8mb4-tables.sql` converts them
+  to `utf8mb4_unicode_ci` (the collation of the other 1,361 text columns) and sets the database default; rollback
+  `...-down.sql`. Both tested on the local copy (84 columns back and forth).
+- **AGs and elect officers refused every guarded write (done):** the scope guard lets an Assistant Governor (their
+  clubs, current year) and an elect officer (PE/SE, DGE/DS/DT, the planned year) through, but the year guard added
+  later (YWAR) counted only admin roles, offices and grants, so they got "You are not an admin of this club".
+  `AdminYearService` now adds the AG's started years and the elect officer's planning year (after the rule-off
+  widening: never All Years, never grantable); `PlanningAccess.ElectMayWriteAsync` marks the request so the year-less
+  guards (calendar events) accept the planned-year write it already proved.
+- **Design gate:** the RIZones-port pages used 136 raw hex colours; mapped to theme tokens, the CMR report designs
+  A-D, the chat sender palette, the theme token file and the print window's HTML are allow-listed with a reason.
+- **App sign-in screen:** "Email me a sign-in code instead" wrapped to two ragged lines on 360 dp phones; now a
+  full-width outline button under an "or" divider, shorter footer note, tighter padding. `CustomButton` labels end
+  with "…" instead of overflowing (long translations). Widget test `test/login_screen_layout_test.dart`.
+- **Tests:** first pass 65/90 e2e; the other failures were the scripts (UTC sessions vs `NOW()`, real production
+  data in the copy, API settings), fixed in the scripts. Notes: memory `e2e-on-prod-copy-gotchas`.
+
 ## 2026-11-20: OMS ROW-60 to ROW-69 (not committed)
 
 - **ROW-61 (done):** `ui/button.tsx` icon-only branch now passes the `asChild` link's `href` to Astryx. Every

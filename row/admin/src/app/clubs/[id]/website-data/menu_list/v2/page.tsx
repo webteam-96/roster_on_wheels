@@ -387,7 +387,7 @@ export default function MenuListV2Page() {
                   placeholder="Search menus…"
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  className="pl-7 pr-3 h-10 py-0 text-sm border border-slate-200 rounded-[12px] w-full sm:w-48 focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                  className="pl-7 pr-3 h-10 py-0 text-sm border border-slate-200 rounded-[12px] w-full sm:w-48 focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-ink"
                 />
               </div>
               {canManage && (
@@ -400,7 +400,7 @@ export default function MenuListV2Page() {
                   className={`inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg ${
                     addMenuDisabled
                       ? "bg-slate-200 text-slate-400 cursor-not-allowed"
-                      : "bg-[#17458F] text-white hover:bg-[#123A78]"
+                      : "bg-azure text-white hover:bg-navy-900"
                   }`}
                   aria-disabled={addMenuDisabled}
                 >
@@ -416,7 +416,7 @@ export default function MenuListV2Page() {
               <SkeletonRows />
             ) : (
               <table className="w-full min-w-[640px] md:min-w-full text-sm">
-                <thead className="bg-[#EDF4FB] text-[13px] text-[#64748B]">
+                <thead className="bg-cream-2 text-[13px] text-ink-soft">
                   <tr>
                     <th className="px-3 py-2.5 text-left w-10">Sr</th>
                     <th className="px-3 py-2.5 text-left">Menu Name</th>

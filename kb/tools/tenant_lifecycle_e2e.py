@@ -134,7 +134,7 @@ try:
     call("PUT", f"/api/tenants/{district}", {**sub, "state": "live"}, sa)
     s, b = call("PUT", f"/api/clubs/{club0}/projects/{current}/999999", {}, admin)
     check("live allows a current-year write", s != 409, (s, b))
-    n = sql(f"SELECT COUNT(*) FROM audit_log WHERE entity_type IN ('tenant_subscription','edition') AND created_date > NOW() - INTERVAL 5 MINUTE")
+    n = sql(f"SELECT COUNT(*) FROM audit_log WHERE entity_type IN ('tenant_subscription','edition') AND created_date > UTC_TIMESTAMP() - INTERVAL 5 MINUTE")
     check("tenant and edition changes are audited", int(n or 0) >= 4, n)
 finally:
     sql("START TRANSACTION; "

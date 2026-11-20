@@ -81,6 +81,8 @@ def seed_member(label, on_club, flags=(1, 1)):
 
 
 seeded, gov_row, site_row = [], None, None
+hidden_gov = ""
+
 try:
     # Decision 2: a new member, through the real add route.
     email = f"new.{TAG}@example.invalid"
@@ -127,8 +129,13 @@ try:
     gov = seed_member("Governor", club)
     seeded.append(gov)
     gov_email, gov_mobile = sql(f"SELECT EmailId, PrimaryMobileNumber FROM member_master_profile WHERE pk_member_master_profile_id={gov}").split()
-    existing_gov = sql(f"SELECT pk_id FROM district_governors WHERE fk_district_id={district} AND fk_year_id={year} AND isdeleted=0 LIMIT 1")
-    assert not existing_gov, "this test needs a district with no governor this year"
+    # Decision 4 seeds this year's governor. The copy has real governors: hide this district's for the run, back in cleanup.
+    hidden_gov = sql(f"SELECT GROUP_CONCAT(pk_id) FROM district_governors WHERE fk_district_id={district} AND fk_year_id={year} AND isdeleted=0")
+    hidden_gov = "" if hidden_gov == "NULL" else hidden_gov
+    if hidden_gov:  # uk_district_year ignores isdeleted: park the row on a year this district has no governor for
+        park_year = sql(f"SELECT y.pk_year_id FROM rotary_year_master y WHERE NOT EXISTS (SELECT 1 FROM district_governors g "
+                        f"WHERE g.fk_district_id={district} AND g.fk_year_id=y.pk_year_id) ORDER BY y.StartDate LIMIT 1")
+        sql(f"UPDATE district_governors SET fk_year_id = {park_year} WHERE pk_id IN ({hidden_gov})")
     gov_row = sql(f"INSERT INTO district_governors (fk_district_id, fk_year_id, fk_member_id, member_name, isdeleted) VALUES ({district},{year},{gov},'',0); SELECT LAST_INSERT_ID();")
     if not sql(f"SELECT 1 FROM district_websites WHERE fk_district_id={district} AND isdeleted=0 LIMIT 1"):
         site_row = sql(f"INSERT INTO district_websites (fk_district_id, Subdomain, isdeleted) VALUES ({district},'e2e{TAG}',0); SELECT LAST_INSERT_ID();")
@@ -155,6 +162,8 @@ try:
 finally:
     if gov_row:
         sql(f"DELETE FROM district_governors WHERE pk_id={gov_row}")
+    if hidden_gov:
+        sql(f"UPDATE district_governors SET fk_year_id = {year} WHERE pk_id IN ({hidden_gov})")
     if site_row:
         sql(f"DELETE FROM district_websites WHERE pk_id={site_row}")
     for m in seeded:

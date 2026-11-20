@@ -14,7 +14,10 @@ import 'package:provider/provider.dart';
 import 'package:rotary_flutter_app/main.dart' as app;
 import 'package:rotary_flutter_app/presentation/providers/auth_provider.dart';
 
-const _club = 143, _district = 3, _member = 84;
+// Defaults are the old demo data; pass --dart-define=TOUR_CLUB=.. TOUR_DISTRICT=.. TOUR_MEMBER=.. for another copy.
+const _club = int.fromEnvironment('TOUR_CLUB', defaultValue: 143);
+const _district = int.fromEnvironment('TOUR_DISTRICT', defaultValue: 3);
+const _member = int.fromEnvironment('TOUR_MEMBER', defaultValue: 84);
 
 // Every screen reachable by a plain path (route_names.dart), with local ids filled in. Payment flows, web
 // views, maintenance and the sign-in screens (checked separately) are left out.
@@ -28,6 +31,10 @@ final _routes = <String>[
   '/settings/event-masters', '/settings/credit-management', '/settings/themes', '/settings/website-data-modules',
   '/clubs', '/clubs/new', '/districts', '/districts/new', '/zones', '/zones/new', '/agdashboard', '/ag-reports',
   '/admin/login-logs', '/club-website-manage', '/unified/$_district',
+  // Modules added 2026-11-19/20 (competitor gaps).
+  '/anniversaries', '/app-lock', '/business-directory', '/donations', '/friends-of-the-club', '/help', '/job-board',
+  '/me/committees', '/member-map', '/my-district-access', '/my-dues', '/prospect-tasks', '/service-hours',
+  '/share-website', '/surveys', '/terms', '/volunteers/mine', '/youth',
   for (final m in [
     'dashboard', 'overview', 'edit', 'goal-setting', 'announcements', 'attendance', 'board-of-directors',
     'citation', 'club-monthly-report', 'club-service', 'documents', 'greetings', 'international-service',

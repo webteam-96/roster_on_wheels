@@ -172,7 +172,12 @@ public class AdminYearService : IAdminYearService
     // Whether the year rule applies to a given club / district at all. SuperAdmin
     // switches it per scope on Settings → Year-wise Admin Rights.
     private readonly YearRuleScopeHelper _scope;
-    public AdminYearService(YearRuleScopeHelper scope) => _scope = scope;
+    private readonly string _cs;
+    public AdminYearService(YearRuleScopeHelper scope, IConfiguration config)
+    {
+        _scope = scope;
+        _cs = config.GetConnectionString("DefaultConnection") ?? "";
+    }
 
     // Matched by ID, never by name. The designation table holds near-misses that
     // text matching gets wrong — "President Elect" (id 5) is not the President,
@@ -208,7 +213,11 @@ public class AdminYearService : IAdminYearService
     {
         var rights = await ClubRightsCoreAsync(conn, memberId, clubId);
         if (rights.AllYears) return rights;                              // nothing left to widen
-        if (await _scope.IsOnForClubAsync(conn, clubId)) return rights;  // rule applies — as before
+        if (await _scope.IsOnForClubAsync(conn, clubId))                 // rule applies — as before
+        {
+            await AddDelegatedClubYearsAsync(conn, memberId, clubId, rights);
+            return rights;
+        }
 
         // ── Year rule OFF for this club ─────────────────────────────────────
         // Behave as the API did before YWAR: an admin of this club edits ANY year.
@@ -229,8 +238,34 @@ public class AdminYearService : IAdminYearService
         {
             rights.AllYears = true;
             rights.Sources.Add("Year rule off for this club");
+            return rights;
         }
+        await AddDelegatedClubYearsAsync(conn, memberId, clubId, rights);
         return rights;
+    }
+
+    // An Assistant Governor and an elect officer (PE / SE, DGE / DS / DT) pass the scope guard
+    // (ScopeWriteGuardMiddleware, PlanningAccess) without an admin role, office or grant here, so without these
+    // years the year guard refused them every write (regression found 2026-11-20). Added AFTER the rule-off
+    // widening on purpose: they give exactly the year the role covers, never All Years, and are never grantable.
+    private async Task AddDelegatedClubYearsAsync(MySqlConnection conn, int memberId, int clubId, AdminYearRights rights)
+    {
+        // Same rows as the scope guard: an AG year that has not started yet gives nothing.
+        var agYears = await conn.QueryAsync<int>(@"
+            SELECT ag.fk_year_id FROM district_ag ag
+            JOIN rotary_year_master y ON y.pk_year_id = ag.fk_year_id
+            WHERE ag.fk_member_id = @memberId AND ag.fk_club_id = @clubId AND ag.is_active = 1 AND ag.isdeleted = 0
+              AND y.StartDate <= CURDATE()", new { memberId, clubId });
+        foreach (var y in agYears)
+            if (rights.YearIds.Add(y) && !rights.Sources.Contains("Assistant Governor")) rights.Sources.Add("Assistant Governor");
+        await AddElectYearAsync(conn, memberId, true, clubId, rights);
+    }
+
+    private async Task AddElectYearAsync(MySqlConnection conn, int memberId, bool isClub, int scopeId, AdminYearRights rights)
+    {
+        if (!await FeatureGate.IsOnAsync(PlanningAccess.FeatureKey, _cs)) return;
+        if (await PlanningAccess.ElectYearAsync(conn, memberId, isClub, scopeId) is int year && rights.YearIds.Add(year))
+            rights.Sources.Add("Elect officer (planning)");
     }
 
     /// <summary>
@@ -330,14 +365,15 @@ public class AdminYearService : IAdminYearService
     {
         var rights = await DistrictRightsCoreAsync(conn, memberId, districtId);
         if (rights.AllYears) return rights;
-        if (await _scope.IsOnForDistrictAsync(conn, districtId)) return rights;
-
-        // See GetClubRightsAsync for why standing must be proved before widening.
-        if (await HasDistrictAdminStandingAsync(conn, memberId, districtId, rights))
+        // See GetClubRightsAsync for why standing must be proved before widening, and why elect years come after.
+        if (!await _scope.IsOnForDistrictAsync(conn, districtId)
+            && await HasDistrictAdminStandingAsync(conn, memberId, districtId, rights))
         {
             rights.AllYears = true;
             rights.Sources.Add("Year rule off for this district");
+            return rights;
         }
+        await AddElectYearAsync(conn, memberId, false, districtId, rights);
         return rights;
     }
 

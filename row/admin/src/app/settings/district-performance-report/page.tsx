@@ -29,11 +29,11 @@ const isTextCol = (headers: string[] | null | undefined, i: number) =>
   i === 0 || (i === 1 && !!headers && headers[0] === "#");
 
 // Same progress colours as the email: under 30% red, under 60% amber, otherwise green.
-const ragColor = (pct: number) => (pct < 30 ? "#dc2626" : pct < 60 ? "#e59a10" : "#16a34a");
+const ragColor = (pct: number) => (pct < 30 ? "var(--go-danger-600)" : pct < 60 ? "var(--go-warning-600)" : "var(--go-success-600)");
 
 // RAG Analysis band rows ("RED (10 – 25)") in their own colour.
 const bandColor = (text: string) =>
-  text.startsWith("RED") ? "#dc2626" : text.startsWith("AMBER") ? "#e59a10" : text.startsWith("GREEN") ? "#16a34a" : null;
+  text.startsWith("RED") ? "var(--go-danger-600)" : text.startsWith("AMBER") ? "var(--go-warning-600)" : text.startsWith("GREEN") ? "var(--go-success-600)" : null;
 
 // % columns show the figure only (no bar), coloured red / amber / green.
 const isPctCol = (header: string | undefined) => !!header && (header === PCT_HEADER || header.endsWith("%"));
@@ -74,7 +74,7 @@ function ReportBody({ highlights, sections, scopeNote, tilesPerRow = 3 }: { high
                       {highlights.filter((h) => (h.group ?? "") === group).map((h, hi) => (
                         <div key={hi} className={`bg-card rounded-xl border border-slate-200 p-3 ${h.newRow ? "md:col-start-1" : ""}`}>
                           <div className="text-[10px] uppercase tracking-wide text-slate-500 whitespace-nowrap">{h.label}</div>
-                          <div className="text-2xl font-bold tabular-nums" style={{ color: h.percent != null ? ragColor(h.percent) : "#17458f" }}>{h.value}</div>
+                          <div className="text-2xl font-bold tabular-nums" style={{ color: h.percent != null ? ragColor(h.percent) : "var(--go-navy-900)" }}>{h.value}</div>
                           {h.sub && <div className="text-xs text-slate-500">{h.sub}</div>}
                         </div>
                       ))}

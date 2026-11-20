@@ -92,11 +92,13 @@ for method, path in ROUTES:
         check(f"{method} {path}, {label}: 404", code == 404, code)
 
 # The forged webhook replay: an unpaid row stays unpaid.
-_club, _member = sql("""SELECT cm.fk_club_id, cm.fk_member_master_profile_id FROM club_members cm JOIN club_master c ON c.pk_club_id=cm.fk_club_id AND c.isdeleted=0
-    JOIN member_master_profile m ON m.pk_member_master_profile_id=cm.fk_member_master_profile_id AND m.isdeleted=0
-    WHERE cm.IsActive=1 AND cm.isdeleted=0 LIMIT 1""").split()
-_district = sql(f"SELECT fk_district_id FROM club_master WHERE pk_club_id={_club}")
 _year = sql("SELECT YearLabel FROM rotary_year_master WHERE IsCurrent=1 LIMIT 1")
+# A club with no dues this year: creating dues below must not hit the one-per-club-per-year rule.
+_club, _member = sql(f"""SELECT cm.fk_club_id, cm.fk_member_master_profile_id FROM club_members cm JOIN club_master c ON c.pk_club_id=cm.fk_club_id AND c.isdeleted=0
+    JOIN member_master_profile m ON m.pk_member_master_profile_id=cm.fk_member_master_profile_id AND m.isdeleted=0
+    WHERE cm.IsActive=1 AND cm.isdeleted=0 AND NOT EXISTS (SELECT 1 FROM membership_dues d WHERE d.fk_club_id=cm.fk_club_id
+    AND d.RotaryYear='{_year}' AND d.isdeleted=0) LIMIT 1""").split()
+_district = sql(f"SELECT fk_district_id FROM club_master WHERE pk_club_id={_club}")
 _dues = sql(f"INSERT INTO membership_dues (fk_club_id,fk_district_id,RotaryYear,Purpose,OnlineSurchargePercent,ModeOfPayment,IsFees1,IsActive,isdeleted) VALUES ({_club},{_district},'{_year}','e2e-legacy',0,3,1,1,0); SELECT LAST_INSERT_ID();")
 _fee = sql(f"INSERT INTO membership_dues_member_fees (fk_membership_dues_id,fk_member_profile_id,AnnualAmount,Semi1Amount,Semi2Amount) VALUES ({_dues},{_member},100,0,0); SELECT LAST_INSERT_ID();")
 _oid = f"DUES{_dues}_12345678901234567890"

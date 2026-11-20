@@ -16,7 +16,7 @@ const MEMBERSHIP = 1, FOUNDATION = 210;
 interface Row { goal: string; target: number | null; achieved: number | null; pct: number | null; money?: boolean }
 
 // Same colour scale as Goal Setting's progress bars: 0-10 red, 11-25 yellow, 26-50 orange, 51-100 blue, 101+ purple.
-const ragColor = (p: number) => p <= 10 ? "#D9302C" : p <= 25 ? "#F2C230" : p <= 50 ? "#F08A24" : p <= 100 ? "#2F6FD6" : "#7C3AED";
+const ragColor = (p: number) => `var(--go-rag-${p <= 10 ? "red" : p <= 25 ? "yellow" : p <= 50 ? "orange" : p <= 100 ? "blue" : "purple"})`;
 const nz = (v: number | null | undefined) => (v == null || !Number.isFinite(v) || v === 0 ? null : v);
 const fmt = (v: number | null, money?: boolean) => {
   const n = nz(v);

@@ -203,7 +203,7 @@ export function CmrFoundationTable({ t, dates }: { t: FoundationTable; dates: Fo
   const groupRow = (label: string, note: string, noteCls: string) => (
     <tr className="bg-slate-50/80">
       <td colSpan={cols} className="px-4 py-2">
-        <span className="text-xs font-bold uppercase tracking-wider text-[#1e3a5f]">{label}</span>
+        <span className="text-xs font-bold uppercase tracking-wider text-navy-950">{label}</span>
         <span className={`ml-3 text-xs font-semibold ${noteCls}`}>{note}</span>
       </td>
     </tr>
@@ -239,7 +239,7 @@ export function CmrFoundationTable({ t, dates }: { t: FoundationTable; dates: Fo
             {importRows.map(line)}
           </> : t.rows.map(line)}
         </tbody>
-        <tfoot className="bg-[#1e3a5f]/[0.04] font-semibold">
+        <tfoot className="bg-navy-950/[0.04] font-semibold">
           <tr>
             <td className="px-4 py-3 text-slate-900">Total</td>
             <td className="px-4 py-3 text-right tabular-nums text-slate-900">{usd(t.total.month)}</td>
@@ -278,7 +278,7 @@ export function CmrMembershipPanel({ form, month, counts, monthLabel, clubId, ye
   const rows = membershipTable(form, month, counts, monthLabel);
   const dates = useFoundationSourceDates(clubId, yearId, tick);
   const Line = ({ r }: { r: MembershipRow }) => (
-    <tr className={r.strong ? "bg-[#1e3a5f]/[0.04]" : "hover:bg-slate-50/60"}>
+    <tr className={r.strong ? "bg-navy-950/[0.04]" : "hover:bg-slate-50/60"}>
       <td className="px-4 py-3">
         <div className={`flex items-center gap-2 ${r.strong ? "font-semibold text-slate-900" : "font-medium text-slate-800"}`}>
           {r.tone && <span className={`inline-flex h-5 w-5 items-center justify-center rounded-full text-[11px] font-bold ${r.tone === "plus" ? "bg-emerald-100 text-emerald-700" : "bg-rose-100 text-rose-700"}`}>{r.tone === "plus" ? "+" : "−"}</span>}
@@ -286,7 +286,7 @@ export function CmrMembershipPanel({ form, month, counts, monthLabel, clubId, ye
         </div>
         {r.sub && <div className="mt-0.5 text-[11px] text-slate-500">{r.sub}</div>}
       </td>
-      <td className={`px-4 py-3 text-right tabular-nums ${r.strong ? "text-lg font-bold text-[#1e3a5f]" : "font-semibold text-slate-900"}`}>{r.month}</td>
+      <td className={`px-4 py-3 text-right tabular-nums ${r.strong ? "text-lg font-bold text-navy-950" : "font-semibold text-slate-900"}`}>{r.month}</td>
       <td className="px-4 py-3 text-right tabular-nums text-slate-500">{r.monthTarget}</td>
       <td className={`px-4 py-3 text-right tabular-nums ${r.strong ? "font-bold text-slate-900" : "text-slate-800"}`}>{r.ytd}</td>
       <td className="px-4 py-3 text-right tabular-nums text-slate-500">{r.yearTarget}</td>
@@ -311,7 +311,7 @@ export function CmrMembershipPanel({ form, month, counts, monthLabel, clubId, ye
           <tbody className="divide-y divide-slate-100">
             <tr className="bg-slate-50/80">
               <td colSpan={5} className="px-4 py-2">
-                <span className="text-xs font-bold uppercase tracking-wider text-[#1e3a5f]">From Rotary.org</span>
+                <span className="text-xs font-bold uppercase tracking-wider text-navy-950">From Rotary.org</span>
                 <span className="ml-3 text-xs font-semibold text-emerald-700">{dates.member ? `Updated from Rotary.org on ${dates.member}` : "Updated from Rotary.org"}</span>
               </td>
             </tr>

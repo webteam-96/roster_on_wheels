@@ -37,10 +37,10 @@ export default function DistrictRccGoalsPage() {
   if (!isSuperAdmin) return <p className="p-6 text-sm text-slate-500">This page is not available yet.</p>;
 
   const tabCls = (on: boolean) => `px-4 py-2 rounded-lg text-sm font-semibold transition ${
-    on ? "bg-[#F7A81B] text-[#0B2A5E]" : "text-white hover:bg-white/10"}`;
+    on ? "bg-marigold text-navy-950" : "text-white hover:bg-white/10"}`;
   return (
     <div className="space-y-4">
-      <div className="inline-flex flex-wrap gap-1 rounded-xl bg-[#0B2A5E] p-1.5">
+      <div className="inline-flex flex-wrap gap-1 rounded-xl bg-navy-950 p-1.5">
         <button type="button" onClick={() => setTab("rcc")} className={tabCls(tab === "rcc")}>RCC</button>
         <button type="button" onClick={() => setTab("district")} className={tabCls(tab === "district")}>District Goals</button>
       </div>
@@ -123,13 +123,13 @@ function RccTab() {
     } catch { /* the button comes back so it can be tried again */ }
   });
 
-  const headBtn = "inline-flex items-center gap-2 text-sm font-bold min-h-11 px-4 rounded-xl border border-[#5873A6] text-white hover:bg-white/10 disabled:opacity-60";
+  const headBtn = "inline-flex items-center gap-2 text-sm font-bold min-h-11 px-4 rounded-xl border border-navy-400 text-white hover:bg-white/10 disabled:opacity-60";
   return (
     <div>
-      <div className="rounded-[20px] bg-[#0B2A5E] text-white px-6 pt-5 pb-24 flex flex-wrap items-center justify-between gap-4">
+      <div className="rounded-[20px] bg-navy-950 text-white px-6 pt-5 pb-24 flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-extrabold text-white flex flex-wrap items-center gap-2.5">Sync Club Goals Summary from Rotary.org <span className="rounded-full bg-[#F7A81B] px-2.5 py-0.5 text-xs font-bold text-[#0B2A5E]">Rotary.org</span></h2>
-          <p className="text-sm text-[#C9D6EE] mt-1">Goals come from Rotary.org; the boxes Rotary.org does not fill are typed here.</p>
+          <h2 className="text-2xl font-extrabold text-white flex flex-wrap items-center gap-2.5">Sync Club Goals Summary from Rotary.org <span className="rounded-full bg-marigold px-2.5 py-0.5 text-xs font-bold text-navy-950">Rotary.org</span></h2>
+          <p className="text-sm text-navy-200 mt-1">Goals come from Rotary.org; the boxes Rotary.org does not fill are typed here.</p>
           <div className="mt-3"><RotaryOrgSync districtId={districtId} onSynced={() => setSyncTick((t) => t + 1)} /></div>
         </div>
         <div className="flex flex-wrap items-center gap-2.5">
@@ -139,10 +139,10 @@ function RccTab() {
           </button>
           <button type="button" onClick={() => setMsgOpen(true)} disabled={!districtId || !formYearId} className={`relative ${headBtn}`}>
             <MessagesSquare size={16} /> Messages
-            {hasUnread && <span className="absolute -top-1 -right-1 h-3 w-3 rounded-full bg-red-500 ring-2 ring-[#0B2A5E]" title="New message" />}
+            {hasUnread && <span className="absolute -top-1 -right-1 h-3 w-3 rounded-full bg-red-500 ring-2 ring-navy-950" title="New message" />}
           </button>
           <Link href={clubGoalsHref}
-            className="inline-flex items-center gap-2 text-sm font-bold min-h-11 px-4 rounded-xl bg-[#F7A81B] text-[#0B2A5E] hover:bg-[#f9b740]">
+            className="inline-flex items-center gap-2 text-sm font-bold min-h-11 px-4 rounded-xl bg-marigold text-navy-950 hover:bg-gold-light">
             <Building2 size={15} /> View Club Goals
           </Link>
         </div>

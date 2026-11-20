@@ -84,6 +84,8 @@ ONLY_DISTRICT = """NOT EXISTS (SELECT 1 FROM club_members x JOIN club_master xc 
                                  AND xc.fk_district_id <> {d})"""
 
 year_id, year_label = row("SELECT pk_year_id, YearLabel FROM rotary_year_master WHERE IsCurrent = 1 LIMIT 1")
+# District dues are one per district and year, and the copy holds real ones: clubs A and B come from districts with none.
+NO_DUES = f"NOT EXISTS (SELECT 1 FROM club_dues xd WHERE xd.fk_district_id = c.fk_district_id AND xd.RotaryYear = '{year_label}' AND xd.isdeleted = 0)"
 sa = row("SELECT fk_member_master_profile_id FROM member_roles WHERE fk_role_id = 3 AND IsActive = 1 AND isdeleted = 0 LIMIT 1")[0]
 
 # Club A: has a club admin who is its member, and a President this year (the dues officer).
@@ -91,7 +93,7 @@ club_a, dist_a, officer = row(f"""
     SELECT c.pk_club_id, c.fk_district_id, b.fk_member_master_profile_id FROM club_master c
     JOIN board_of_directors b ON b.fk_club_id = c.pk_club_id AND b.isdeleted = 0 AND b.fk_year_id = {year_id}
     JOIN designation_master dm ON dm.pk_designation_id = b.fk_designation_id AND dm.designation_name = 'Club President'
-    WHERE {LIVE} AND EXISTS (SELECT 1 FROM member_roles r JOIN club_members cm ON cm.fk_member_master_profile_id = r.fk_member_master_profile_id
+    WHERE {LIVE} AND {NO_DUES} AND EXISTS (SELECT 1 FROM member_roles r JOIN club_members cm ON cm.fk_member_master_profile_id = r.fk_member_master_profile_id
                 AND cm.fk_club_id = r.fk_club_id AND cm.IsActive = 1 AND cm.isdeleted = 0
                 WHERE r.fk_club_id = c.pk_club_id AND r.fk_role_id = 2 AND r.IsActive = 1 AND r.isdeleted = 0)
     ORDER BY c.pk_club_id LIMIT 1""")
@@ -113,7 +115,7 @@ target, club_t, dist_t, orig_personal, orig_phone_all = row(f"""
            AND x.IsActive = 1 AND x.isdeleted = 0) = 1
     ORDER BY 1 LIMIT 1""")
 # Club B: another district with its own admin, where none of the club A people are members.
-club_b, dist_b = row(f"""SELECT c.pk_club_id, c.fk_district_id FROM club_master c WHERE {LIVE}
+club_b, dist_b = row(f"""SELECT c.pk_club_id, c.fk_district_id FROM club_master c WHERE {LIVE} AND {NO_DUES}
     AND c.fk_district_id NOT IN ({dist_a}, {dist_t})
     AND c.fk_district_id NOT IN (SELECT xc.fk_district_id FROM club_members x JOIN club_master xc ON xc.pk_club_id = x.fk_club_id
         WHERE x.fk_member_master_profile_id IN ({admin_a}, {officer}, {plain_a}) AND x.IsActive = 1 AND x.isdeleted = 0)
@@ -126,8 +128,16 @@ plain_b, da = [int(x) for x in sql(f"""SELECT cm.fk_member_master_profile_id FRO
 num_a = sql(f"SELECT DistrictNumber FROM district_master WHERE pk_district_id = {dist_a}")
 num_b = sql(f"SELECT DistrictNumber FROM district_master WHERE pk_district_id = {dist_b}")
 # A club with no numeric Rotary.org id, so the terminated-members call answers without calling Rotary.org.
-no_rid = row("""SELECT pk_club_id FROM club_master WHERE isdeleted = 0 AND pk_club_id NOT IN ({0})
-    AND (ClubRotaryId IS NULL OR ClubRotaryId NOT REGEXP '^[0-9]+$') ORDER BY 1 LIMIT 1""".format(f"{club_a},{club_b}"))[0]
+# None left in the copy (every club synced): give a third club a non-numeric id for the run, put back in `finally`.
+no_rid_orig = None
+_found = sql("""SELECT pk_club_id FROM club_master WHERE isdeleted = 0 AND pk_club_id NOT IN ({0})
+    AND (ClubRotaryId IS NULL OR ClubRotaryId NOT REGEXP '^[0-9]+$') ORDER BY 1 LIMIT 1""".format(f"{club_a},{club_b}"))
+if _found:
+    no_rid = int(_found)
+else:
+    no_rid = row(f"SELECT pk_club_id FROM club_master WHERE isdeleted = 0 AND pk_club_id NOT IN ({club_a},{club_b}) ORDER BY 1 LIMIT 1")[0]
+    no_rid_orig = sql(f"SELECT QUOTE(ClubRotaryId) FROM club_master WHERE pk_club_id = {no_rid}")
+    sql(f"UPDATE club_master SET ClubRotaryId = 'e2e-no-rid' WHERE pk_club_id = {no_rid}")
 projects = f"rotary_projects_{year_label.replace('-', '_')}"
 module = row("SELECT pk_module_id FROM module_master WHERE ModuleKey = 'community_service' AND isdeleted = 0 LIMIT 1")[0]
 
@@ -259,6 +269,8 @@ try:
     check("club-finder project: no creator email or mobile", "createdByEmail" not in body and "createdByMobile" not in body,
           "creator contact fields still sent")
 finally:
+    if no_rid_orig is not None:
+        sql(f"UPDATE club_master SET ClubRotaryId = {no_rid_orig} WHERE pk_club_id = {no_rid}")
     sql(f"""UPDATE member_master_profile SET IsPersonalDetailsVisible = {orig_personal}, ShowPhoneInAllClubs = {orig_phone_all}
             WHERE pk_member_master_profile_id = {target}""")
     sql(f"DELETE FROM member_change_log WHERE pk_change_id > {log_floor} AND fk_member_master_profile_id = {target}")

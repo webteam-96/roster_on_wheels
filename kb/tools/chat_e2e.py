@@ -70,9 +70,11 @@ PLAIN = ("cm.IsActive=1 AND IFNULL(cm.isdeleted,0)=0 AND cm.fk_member_master_pro
          "(SELECT fk_member_master_profile_id FROM member_roles WHERE fk_role_id<>1 AND IsActive=1 AND isdeleted=0)")
 club, district = [int(x) for x in sql(
     f"SELECT c.pk_club_id, c.fk_district_id FROM {JOINS} JOIN member_roles r ON r.fk_club_id=c.pk_club_id AND r.fk_role_id=2 "
-    f"AND r.IsActive=1 AND r.isdeleted=0 WHERE {ACTIVE} AND (SELECT COUNT(*) FROM club_members cm WHERE cm.fk_club_id=c.pk_club_id "
+    f"AND r.IsActive=1 AND r.isdeleted=0 WHERE {ACTIVE} AND NOT EXISTS (SELECT 1 FROM member_roles dr WHERE dr.fk_member_master_profile_id=r.fk_member_master_profile_id AND dr.IsActive=1 AND dr.isdeleted=0 AND (dr.fk_role_id=3 OR (dr.fk_role_id=2 AND IFNULL(dr.fk_club_id,0)=0))) AND (SELECT COUNT(*) FROM club_members cm WHERE cm.fk_club_id=c.pk_club_id "
     f"AND {PLAIN}) >= 3 ORDER BY 1 LIMIT 1").split()]
-admin = one(f"SELECT fk_member_master_profile_id FROM member_roles WHERE fk_club_id={club} AND fk_role_id=2 AND IsActive=1 AND isdeleted=0 LIMIT 1")
+# A club-only admin: a district admin may moderate the district.
+admin = one(f"SELECT r.fk_member_master_profile_id FROM member_roles r WHERE r.fk_club_id={club} AND r.fk_role_id=2 AND r.IsActive=1 AND r.isdeleted=0 "
+            "AND NOT EXISTS (SELECT 1 FROM member_roles dr WHERE dr.fk_member_master_profile_id=r.fk_member_master_profile_id AND dr.IsActive=1 AND dr.isdeleted=0 AND (dr.fk_role_id=3 OR (dr.fk_role_id=2 AND IFNULL(dr.fk_club_id,0)=0))) LIMIT 1")
 p1, p2, p3 = [int(x) for x in sql(f"SELECT cm.fk_member_master_profile_id FROM club_members cm WHERE cm.fk_club_id={club} AND {PLAIN} "
                                   "ORDER BY 1 LIMIT 3").split()]
 outsider, other_club = [int(x) for x in sql(
@@ -287,7 +289,7 @@ try:
     check("resolve a report of another club: 404", call("POST", f"/api/clubs/{other_club}/chat-moderation/reports/{rid}/resolve", t_sa, {})[0] == 404)
 
     audit = sql(f"SELECT COUNT(*), MIN(entity_type) FROM audit_log WHERE details LIKE 'POST /api/clubs/{club}/chat-moderation/%' "
-                "AND created_date >= NOW() - INTERVAL 10 MINUTE").split()
+                "AND created_date >= UTC_TIMESTAMP() - INTERVAL 10 MINUTE").split()  # audit times are UTC
     check("moderation actions are in the audit log", int(audit[0]) >= 6 and " ".join(audit[1:]) == "Chat Moderation", audit)
     check("members' chat writes are not in the audit log",
           one("SELECT COUNT(*) FROM audit_log WHERE details LIKE '% /api/chat/%'") == chat_audit_before)

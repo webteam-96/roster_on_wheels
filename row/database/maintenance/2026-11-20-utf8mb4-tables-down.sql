@@ -1,0 +1,31 @@
+-- Rollback of 2026-11-20-utf8mb4-tables.sql. Fails on rows that now hold emoji (utf8mb3 cannot store them).
+-- edition_modules.edition_code references edition_catalogue.code: both change together, checks off for this session only.
+SET FOREIGN_KEY_CHECKS = 0;
+ALTER DATABASE CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci;
+ALTER TABLE `booth_signups` CONVERT TO CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci;
+ALTER TABLE `chat_conversations` CONVERT TO CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci;
+ALTER TABLE `chat_messages` CONVERT TO CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci;
+ALTER TABLE `chat_reports` CONVERT TO CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci;
+ALTER TABLE `comm_sender_domains` CONVERT TO CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci;
+ALTER TABLE `comm_settings` CONVERT TO CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci;
+ALTER TABLE `comm_suppressions` CONVERT TO CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci;
+ALTER TABLE `comm_templates` CONVERT TO CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci;
+ALTER TABLE `comm_usage` CONVERT TO CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci;
+ALTER TABLE `comm_webhook_events` CONVERT TO CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci;
+ALTER TABLE `district_committee_documents` CONVERT TO CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci;
+ALTER TABLE `district_target_proposals` CONVERT TO CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci;
+ALTER TABLE `edition_catalogue` CONVERT TO CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci;
+ALTER TABLE `edition_modules` CONVERT TO CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci;
+ALTER TABLE `engagement_district_settings` CONVERT TO CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci;
+ALTER TABLE `engagement_events` CONVERT TO CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci;
+ALTER TABLE `i18n_strings` CONVERT TO CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci;
+ALTER TABLE `meeting_calendar_feeds` CONVERT TO CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci;
+ALTER TABLE `member_channel_consents` CONVERT TO CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci;
+ALTER TABLE `member_foundation_designations` CONVERT TO CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci;
+ALTER TABLE `platform_features` CONVERT TO CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci;
+ALTER TABLE `ri_codes` CONVERT TO CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci;
+ALTER TABLE `server_strings` CONVERT TO CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci;
+ALTER TABLE `tenant_subscriptions` CONVERT TO CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci;
+ALTER TABLE `website_languages` CONVERT TO CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci;
+ALTER TABLE `website_translations` CONVERT TO CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci;
+SET FOREIGN_KEY_CHECKS = 1;

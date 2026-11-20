@@ -70,13 +70,14 @@ JOINS = "club_master c JOIN district_master d ON d.pk_district_id=c.fk_district_
 # first club and the SuperAdmin. Picked by query, never hard-coded.
 club, district = [int(x) for x in sql(
     f"SELECT c.pk_club_id, c.fk_district_id FROM {JOINS} JOIN member_roles r ON r.fk_club_id=c.pk_club_id "
-    f"AND r.fk_role_id=2 AND r.IsActive=1 AND r.isdeleted=0 WHERE {ACTIVE} ORDER BY 1 LIMIT 1").split()]
+    f"AND r.fk_role_id=2 AND r.IsActive=1 AND r.isdeleted=0 WHERE {ACTIVE} AND NOT EXISTS (SELECT 1 FROM member_roles dr WHERE dr.fk_member_master_profile_id=r.fk_member_master_profile_id AND dr.IsActive=1 AND dr.isdeleted=0 AND (dr.fk_role_id=3 OR (dr.fk_role_id=2 AND IFNULL(dr.fk_club_id,0)=0))) ORDER BY 1 LIMIT 1").split()]
 other_club, other_district = [int(x) for x in sql(
     f"SELECT c.pk_club_id, c.fk_district_id FROM {JOINS} WHERE {ACTIVE} AND c.fk_district_id<>{district} "
     f"AND NOT EXISTS (SELECT 1 FROM district_websites w WHERE w.fk_district_id=c.fk_district_id AND w.isdeleted=0) "
     "ORDER BY 1 LIMIT 1").split()]
-admin = int(sql(f"SELECT fk_member_master_profile_id FROM member_roles WHERE fk_club_id={club} AND fk_role_id=2 "
-                "AND IsActive=1 AND isdeleted=0 LIMIT 1"))
+# A club-only admin: a district admin may change the district's languages.
+admin = int(sql(f"SELECT r.fk_member_master_profile_id FROM member_roles r WHERE r.fk_club_id={club} AND r.fk_role_id=2 "
+                "AND r.IsActive=1 AND r.isdeleted=0 AND NOT EXISTS (SELECT 1 FROM member_roles dr WHERE dr.fk_member_master_profile_id=r.fk_member_master_profile_id AND dr.IsActive=1 AND dr.isdeleted=0 AND (dr.fk_role_id=3 OR (dr.fk_role_id=2 AND IFNULL(dr.fk_club_id,0)=0))) LIMIT 1"))
 plain = int(sql(f"SELECT cm.fk_member_master_profile_id FROM club_members cm WHERE cm.fk_club_id={club} AND cm.IsActive=1 "
                 "AND IFNULL(cm.isdeleted,0)=0 AND cm.fk_member_master_profile_id NOT IN (SELECT fk_member_master_profile_id "
                 "FROM member_roles WHERE fk_role_id<>1 AND IsActive=1) LIMIT 1"))
@@ -136,9 +137,9 @@ try:
           call("GET", f"/api/districts/{other_district}/website-languages/en", t_admin)[0] == 403)
 
     # Translations.
-    s, _ = call("PUT", f"{D}/fr/about/0", t_sa, {"title": "A propos du district", "body": "<p>Bonjour</p><script>alert(1)</script>",
+    s, about_body = call("PUT", f"{D}/fr/about/0", t_sa, {"title": "A propos du district", "body": "<p>Bonjour</p><script>alert(1)</script>",
                                                 "seoTitle": "District FR", "seoDescription": "Description FR"})
-    check("about saved in French", s == 204, s)
+    check("about saved in French", s == 204, (s, about_body))
     check("page saved in French", call("PUT", f"{D}/fr/page/{page}", t_sa, {"title": "Page E2E FR", "body": "<p>Bonjour le monde</p>"})[0] == 204)
     check("menu label saved in French", call("PUT", f"{D}/fr/submenu/{sub}", t_sa, {"title": "Sous E2E"})[0] == 204)
     check("another district's page refused", call("PUT", f"{D}/fr/page/{foreign_page}", t_sa, {"title": "x"})[0] == 400)

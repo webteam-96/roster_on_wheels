@@ -51,7 +51,7 @@ function DesignSwitch({ value, onChange }: { value: Design; onChange: (v: Design
     <div className="inline-flex flex-wrap rounded-xl bg-slate-100 p-1">
       {DESIGNS.map((d) => (
         <button key={d} type="button" onClick={() => onChange(d)} title={DESIGN_NAMES[d]}
-          className={`rounded-lg px-3 py-1.5 text-xs font-bold transition-colors ${value === d ? "bg-white text-[#1e3a5f] shadow-sm" : "text-slate-500 hover:text-slate-800"}`}>
+          className={`rounded-lg px-3 py-1.5 text-xs font-bold transition-colors ${value === d ? "bg-white text-navy-950 shadow-sm" : "text-slate-500 hover:text-slate-800"}`}>
           Design {d.toUpperCase()} <span className="font-normal opacity-70">· {DESIGN_NAMES[d]}</span>
         </button>
       ))}
@@ -209,15 +209,15 @@ function PreviewInner() {
         <div className="flex flex-wrap items-center gap-2">
           {SHOW_DESIGN_SWITCH && <DesignSwitch value={design} onChange={setDesign} />}
           <button id="cmr-download-pdf" type="button" onClick={download} disabled={!ready || downloading}
-            className="inline-flex min-h-10 items-center gap-2 rounded-xl bg-[#F7A81B] px-4 text-sm font-bold text-[#1e3a5f] hover:bg-[#ffb935] disabled:opacity-60">
+            className="inline-flex min-h-10 items-center gap-2 rounded-xl bg-marigold px-4 text-sm font-bold text-navy-950 hover:bg-gold-light disabled:opacity-60">
             {downloading ? <Loader2 size={15} className="animate-spin" /> : <Download size={15} />} Download PDF
           </button>
           <button id="cmr-download-word" type="button" onClick={downloadWord} disabled={!ready || downloadingWord}
-            className="inline-flex min-h-10 items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-sm font-bold text-[#1e3a5f] hover:bg-slate-50 disabled:opacity-60">
+            className="inline-flex min-h-10 items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-sm font-bold text-navy-950 hover:bg-slate-50 disabled:opacity-60">
             {downloadingWord ? <Loader2 size={15} className="animate-spin" /> : <FileText size={15} />} Download Word
           </button>
           {!viewOnly && <button type="button" onClick={upload} disabled={!ready || uploading}
-            className="inline-flex min-h-10 items-center gap-2 rounded-xl bg-[#1e3a5f] px-4 text-sm font-bold text-white hover:bg-[#2a4d78] disabled:opacity-60">
+            className="inline-flex min-h-10 items-center gap-2 rounded-xl bg-navy-950 px-4 text-sm font-bold text-white hover:bg-navy-900 disabled:opacity-60">
             {uploading ? <Loader2 size={15} className="animate-spin" /> : <Upload size={15} />} {report.isUploadedToDistrict ? "Upload again" : "Upload to District"}
           </button>}
         </div>

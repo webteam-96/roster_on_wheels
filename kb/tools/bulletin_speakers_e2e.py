@@ -96,7 +96,7 @@ try:
         ({club}, CURDATE() + INTERVAL 3 DAY, 'E2E Speaker Soon', 'Clean water', 0, 0),
         ({club}, CURDATE() + INTERVAL 45 DAY, 'E2E Speaker Later', 'Too far ahead', 1, 0)""")
     nid = int(sql(f"""INSERT INTO newsletters (fk_club_id, Title, PublishDateTime, ExpiryDateTime, AttachmentType, LinkUrl,
-        Status, Scope, IsSendEmail) VALUES ({club}, '{TITLE}', NOW() - INTERVAL 1 MINUTE, NOW() + INTERVAL 30 DAY, 'link',
+        Status, Scope, IsSendEmail) VALUES ({club}, '{TITLE}', UTC_TIMESTAMP() - INTERVAL 1 MINUTE, UTC_TIMESTAMP() + INTERVAL 30 DAY, 'link',
         'https://example.org/bulletin.pdf', 'Published', 'club', 1); SELECT LAST_INSERT_ID();"""))
     mine = []
     for _ in range(40):

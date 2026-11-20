@@ -136,8 +136,15 @@ public static class PlanningAccess
         if (year == null) return false;
         if (Uploads.IsMatch(ctx.Request.Path.Value ?? "")) return true;
         var t = await ResolveTargetAsync(ctx, cs);
-        return t is { Unknown: false, Foreign: false } && t.IsClub == isClub && t.ScopeId == scopeId && t.Years.All(y => y == year);
+        var ok = t is { Unknown: false, Foreign: false } && t.IsClub == isClub && t.ScopeId == scopeId && t.Years.All(y => y == year);
+        // Tells AdminYearGuard's year-less checks (calendar events) that this write was proved to touch only the
+        // planned year; without it they demanded current-year rights an elect officer never holds.
+        if (ok) ctx.Items[ElectWriteItemKey] = (isClub, scopeId);
+        return ok;
     }
+
+    /// <summary>HttpContext item set by <see cref="ElectMayWriteAsync"/> for the scope it allowed.</summary>
+    public const string ElectWriteItemKey = "planning-elect-write";
 
     /// <summary>The year being planned when the member holds an active elect role for this club or district and
     /// the district is planning; otherwise null.</summary>

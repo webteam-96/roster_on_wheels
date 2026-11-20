@@ -207,7 +207,7 @@ try:
     check("plain member cannot read the sheet's sign-ups", call("GET", f"{A}/{sheet}", t_plain)[0] == 403)
     check("other club's admin gets nothing through their own club", call("GET", f"{B}/{sheet}", t_b)[0] == 404)
     audit = one(f"SELECT COUNT(*) FROM audit_log WHERE entity_type='Volunteer Sheet' AND fk_member_master_profile_id={admin_a} "
-                f"AND details='POST /api/clubs/{club_a}/volunteer-sheets' AND created_date >= NOW() - INTERVAL 5 MINUTE")
+                f"AND details='POST /api/clubs/{club_a}/volunteer-sheets' AND created_date >= UTC_TIMESTAMP() - INTERVAL 5 MINUTE")
     check("sheet creation is in the audit log", (audit or 0) >= 1, audit)
     r = call("POST", A, t_a, dict(form, title=f"{MARK} private", isPublic=False, eventId=None, yearId=None, projectId=None,
                                     slots=[{"task": f"{MARK} private task", "startsAt": at(timedelta(days=4)), "capacity": 3}]))

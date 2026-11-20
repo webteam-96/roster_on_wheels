@@ -138,7 +138,7 @@ function SectionCard({
     <section className="rounded-2xl bg-white ring-1 ring-slate-200 shadow-sm overflow-hidden">
       <div className="flex flex-wrap items-center justify-between gap-3 px-5 py-4 border-b border-slate-100">
         <div className="flex items-center gap-3">
-          <span className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-[#1e3a5f]/[0.07] text-[#1e3a5f]"><Icon size={18} /></span>
+          <span className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-navy-950/[0.07] text-navy-950"><Icon size={18} /></span>
           <div>
             <h3 className="text-base font-bold text-slate-900">{title}</h3>
             {subtitle && <p className="text-xs text-slate-500">{subtitle}</p>}
@@ -158,14 +158,14 @@ function Tile({ icon: Icon, label, value, hint, active, onClick }: {
 }) {
   return (
     <button type="button" onClick={onClick} aria-pressed={active}
-      className={`group text-left rounded-2xl px-4 py-3.5 shadow-sm ring-1 transition-all hover:-translate-y-0.5 hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-[#F7A81B] ${
-        active ? "bg-[#1e3a5f] ring-[#1e3a5f] text-white" : "bg-white ring-slate-200 text-slate-900"}`}>
+      className={`group text-left rounded-2xl px-4 py-3.5 shadow-sm ring-1 transition-all hover:-translate-y-0.5 hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-marigold ${
+        active ? "bg-navy-950 ring-navy-950 text-white" : "bg-white ring-slate-200 text-slate-900"}`}>
       {/* Step number removed, icon + heading bigger (user 2026-11-13). `step` stays optional for the call sites. */}
-      <div className={`flex items-center gap-2 text-sm font-semibold uppercase tracking-wider ${active ? "text-[#C9D6EE]" : "text-slate-500"}`}>
-        <Icon size={20} className={active ? "text-[#F7A81B]" : "text-[#1e3a5f]"} /> {label}
+      <div className={`flex items-center gap-2 text-sm font-semibold uppercase tracking-wider ${active ? "text-navy-200" : "text-slate-500"}`}>
+        <Icon size={20} className={active ? "text-marigold" : "text-navy-950"} /> {label}
       </div>
       <div className="mt-1.5 text-2xl font-extrabold tabular-nums">{value}</div>
-      {hint && <div className={`mt-0.5 truncate text-xs ${active ? "text-[#C9D6EE]" : "text-slate-500"}`}>{hint}</div>}
+      {hint && <div className={`mt-0.5 truncate text-xs ${active ? "text-navy-200" : "text-slate-500"}`}>{hint}</div>}
     </button>
   );
 }
@@ -478,13 +478,13 @@ function ClubMonthlyReportV2WizardInner() {
   return (
     <div className="space-y-5">
       {/* Hero */}
-      <div className="rounded-[20px] bg-[#1e3a5f] px-5 py-5 text-white sm:px-6">
+      <div className="rounded-[20px] bg-navy-950 px-5 py-5 text-white sm:px-6">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="flex items-start gap-3">
             <LoadingLink
               href={cmrLandingHref}
               onClick={leave}
-              className="mt-1 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-[#5873A6] text-white hover:bg-white/10"
+              className="mt-1 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-navy-400 text-white hover:bg-white/10"
               aria-label="Back to Monthly Reports"
             >
               <ArrowLeft size={16} />
@@ -492,12 +492,12 @@ function ClubMonthlyReportV2WizardInner() {
             <div>
               <div className="flex flex-wrap items-center gap-2">
                 <h1 className="text-2xl font-extrabold tracking-tight">{MONTH_NAMES[month] || `Month ${month}`} {cmrCalendarYear(yearLabel, month)} Report</h1>
-                <span className="rounded-full bg-[#F7A81B] px-2.5 py-0.5 text-[11px] font-bold text-[#1e3a5f]">New · Preview</span>
+                <span className="rounded-full bg-marigold px-2.5 py-0.5 text-[11px] font-bold text-navy-950">New · Preview</span>
               </div>
-              <p className="mt-1 text-sm text-[#C9D6EE]">
+              <p className="mt-1 text-sm text-navy-200">
                 {clubName || "–"}{yearLabel ? ` · RY ${yearLabel}` : ""}
               </p>
-              <p className="mt-2 inline-flex items-center gap-1.5 text-xs text-[#C9D6EE]">
+              <p className="mt-2 inline-flex items-center gap-1.5 text-xs text-navy-200">
                 <UserCircle2 size={14} /> Assistant Governor: <span className="font-semibold text-white">{reportDetail?.assistantGovernor || "N/A"}</span>
               </p>
               <div className="mt-2">
@@ -506,7 +506,7 @@ function ClubMonthlyReportV2WizardInner() {
                     <CheckCircle2 size={13} /> Uploaded to District{uploadedAt ? `: ${cmrUploadDate(uploadedAt)}` : ""}
                   </span>
                 ) : (
-                  <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1 text-xs font-semibold text-[#C9D6EE]">Not uploaded to District yet</span>
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1 text-xs font-semibold text-navy-200">Not uploaded to District yet</span>
                 )}
               </div>
             </div>
@@ -551,7 +551,7 @@ function ClubMonthlyReportV2WizardInner() {
           action={
             <LoadingLink
               href={addMeetingHref}
-              className="inline-flex items-center gap-1.5 text-sm font-semibold px-3.5 py-2 rounded-xl bg-[#1e3a5f] text-white hover:bg-[#2a4d78]"
+              className="inline-flex items-center gap-1.5 text-sm font-semibold px-3.5 py-2 rounded-xl bg-navy-950 text-white hover:bg-navy-900"
             >
               <Plus size={14} /> Add Meeting
             </LoadingLink>
@@ -643,7 +643,7 @@ function ClubMonthlyReportV2WizardInner() {
               <select
                 value={addProjectType}
                 onChange={(e) => setAddProjectType(e.target.value)}
-                className="px-3 py-2 text-sm border border-slate-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-[#F7A81B]"
+                className="px-3 py-2 text-sm border border-slate-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-marigold"
               >
                 <option value="">Select service type…</option>
                 {Object.entries(PROJECT_LABELS).map(([key, label]) => (
@@ -660,7 +660,7 @@ function ClubMonthlyReportV2WizardInner() {
                 }}
                 className={`inline-flex items-center gap-1.5 text-sm font-semibold px-3.5 py-2 rounded-xl ${
                   addProjectType
-                    ? "bg-[#1e3a5f] text-white hover:bg-[#2a4d78]"
+                    ? "bg-navy-950 text-white hover:bg-navy-900"
                     : "bg-slate-200 text-slate-500 cursor-not-allowed"
                 }`}
               >
@@ -814,7 +814,7 @@ function ClubMonthlyReportV2WizardInner() {
               value={additionalRemarks}
               onChange={(e) => setAdditionalRemarks(e.target.value)}
               placeholder="Participation / hosting of events or projects above club level, with date, a short description and the Rotarians who took part."
-              className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#F7A81B]"
+              className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-marigold"
             />
             <p className="mt-1 text-right text-[11px] tabular-nums text-slate-500">{additionalRemarks.length}/1000</p>
           </div>
@@ -856,7 +856,7 @@ function ClubMonthlyReportV2WizardInner() {
               type="button"
               onAction={handleNext}
               spinnerSize={14}
-              className="inline-flex items-center gap-1.5 text-sm font-semibold px-4 py-2 rounded-xl bg-[#1e3a5f] text-white hover:bg-[#2a4d78] disabled:opacity-50"
+              className="inline-flex items-center gap-1.5 text-sm font-semibold px-4 py-2 rounded-xl bg-navy-950 text-white hover:bg-navy-900 disabled:opacity-50"
             >
               Next: {STEPS[currentStep + 1]?.label} <ArrowRight size={14} />
             </LoadingButton>
@@ -865,7 +865,7 @@ function ClubMonthlyReportV2WizardInner() {
               type="button"
               onAction={handlePreview}
               spinnerSize={14}
-              className="inline-flex items-center gap-1.5 text-sm font-bold px-4 py-2 rounded-xl bg-[#F7A81B] text-[#1e3a5f] hover:bg-[#ffb935] disabled:opacity-50"
+              className="inline-flex items-center gap-1.5 text-sm font-bold px-4 py-2 rounded-xl bg-marigold text-navy-950 hover:bg-gold-light disabled:opacity-50"
             >
               <FileText size={14} /> Save &amp; Preview
             </LoadingButton>

@@ -92,9 +92,9 @@ export default function GoalMessageList({
               </div>
             )}
             <div className={`flex ${mine ? "justify-end" : "justify-start"}`}>
-              <div className={`min-w-[140px] max-w-[80%] rounded-lg px-2.5 pt-1.5 pb-1 shadow-sm ${mine ? "bg-[#d9fdd3] rounded-tr-none" : "bg-white rounded-tl-none"}`}>
+              <div className={`min-w-[140px] max-w-[80%] rounded-lg px-2.5 pt-1.5 pb-1 shadow-sm ${mine ? "bg-navy-100 rounded-tr-none" : "bg-cream rounded-tl-none"}`}>
                 <div className="flex items-center gap-1.5 flex-wrap mb-0.5">
-                  <span className="text-[13px] font-semibold" style={{ color: mine ? "#047857" : nameColour(m.postedByName) }}>
+                  <span className="text-[13px] font-semibold" style={{ color: mine ? "var(--go-navy-900)" : nameColour(m.postedByName) }}>
                     {mine ? "You" : m.postedByName}
                   </span>
                   {showLabels && (

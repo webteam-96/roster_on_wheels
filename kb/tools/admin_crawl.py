@@ -63,7 +63,8 @@ def wait_for_server(seconds=300):
 def crawl():
     results = []
     with sync_playwright() as p:
-        browser = p.chromium.launch()
+        browser = p.chromium.launch(headless=os.environ.get('ROW_CRAWL_HEADED') != '1')  # 1 = visible window
+        fails_dir = Path(out).with_name(Path(out).stem + '-problems')
         ctx = browser.new_context(viewport={'width': 1280, 'height': 800})
         lang = ids.get('lang')
         if lang:
@@ -82,9 +83,12 @@ def crawl():
             on_console = lambda m: m.type == 'error' and rec['console'].append(m.text[:300])
             on_error = lambda e: rec['pageerror'].append(str(e)[:300])
             on_resp = lambda r: r.status >= 400 and '/api/' in r.url and rec['api'].append(f'{r.status} {r.request.method} {r.url}')
+            # Files (photos, documents) that 404: kept apart, so a missing upload is not read as a broken page.
+            on_asset = lambda r: r.status >= 400 and '/api/' not in r.url and rec.setdefault('assets', []).append(f'{r.status} {r.url}')
             page.on('console', on_console)
             page.on('pageerror', on_error)
             page.on('response', on_resp)
+            page.on('response', on_asset)
             t = time.time()
             for attempt in (1, 2):
                 try:
@@ -116,11 +120,15 @@ def crawl():
             page.remove_listener('console', on_console)
             page.remove_listener('pageerror', on_error)
             page.remove_listener('response', on_resp)
+            page.remove_listener('response', on_asset)
             results.append(rec)
             bad = rec['console'] or rec['pageerror'] or rec['api'] or rec['screen']
             print(('FAIL ' if bad else 'ok   ') + url, flush=True)
             if bad:
-                print('     ' + json.dumps({k: rec[k] for k in ('final', 'screen', 'api', 'pageerror', 'console') if rec[k]})[:1500], flush=True)
+                fails_dir.mkdir(exist_ok=True)
+                page.screenshot(path=str(fails_dir / ((re.sub(r'\W+', '_', url).strip('_') or 'root') + '.png')))
+            if bad:
+                print('     ' + json.dumps({k: rec[k] for k in ('final', 'screen', 'api', 'assets', 'pageerror', 'console') if rec.get(k)})[:1500], flush=True)
         browser.close()
     Path(out).write_text(json.dumps(results, indent=1), encoding='utf-8')
     bad = [r for r in results if r['console'] or r['pageerror'] or r['api'] or r['screen']]

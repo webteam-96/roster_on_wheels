@@ -39,8 +39,8 @@ export default function RotaryOrgSync({ districtId, clubId, tone = "dark", onSyn
   const isClub = !!clubId && clubId > 0;
   const light = tone === "light";
   const c = light
-    ? { muted: "text-slate-500", btn: "border-[#0B2A5E] text-[#0B2A5E] hover:bg-slate-50", box: "bg-slate-100 text-slate-800", bar: "bg-slate-200", bad: "bg-red-50 text-red-700", soft: "bg-slate-100 text-slate-600" }
-    : { muted: "text-[#C9D6EE]", btn: "border-[#5873A6] text-white hover:bg-white/10", box: "bg-white/10 text-white", bar: "bg-white/20", bad: "bg-red-500/20 text-white", soft: "bg-white/10 text-[#C9D6EE]" };
+    ? { muted: "text-slate-500", btn: "border-navy-950 text-navy-950 hover:bg-slate-50", box: "bg-slate-100 text-slate-800", bar: "bg-slate-200", bad: "bg-red-50 text-red-700", soft: "bg-slate-100 text-slate-600" }
+    : { muted: "text-navy-200", btn: "border-navy-400 text-white hover:bg-white/10", box: "bg-white/10 text-white", bar: "bg-white/20", bad: "bg-red-500/20 text-white", soft: "bg-white/10 text-navy-200" };
   const [st, setSt] = useState<RotaryOrgSyncStatus | null>(null);
   const [open, setOpen] = useState(false);
   const [email, setEmail] = useState("");
@@ -111,7 +111,7 @@ export default function RotaryOrgSync({ districtId, clubId, tone = "dark", onSyn
           {run.status === "QUEUED"
             ? <>Waiting in queue{run.queuePosition > 1 ? ` (${run.queuePosition - 1} ahead)` : ""} · starts soon · done in {mins(run.etaSeconds)}</>
             : <>{run.stage || "Syncing"}{!isClub && run.clubsTotal > 0 ? ` · clubs ${run.clubsDone} of ${run.clubsTotal}` : ""} · {mins(run.etaSeconds)} left</>}
-          <div className={`mt-1.5 h-1.5 w-full rounded-full ${c.bar}`}><div className="h-1.5 rounded-full bg-[#F7A81B] transition-all" style={{ width: `${run.status === "QUEUED" ? 2 : Math.max(4, pct)}%` }} /></div>
+          <div className={`mt-1.5 h-1.5 w-full rounded-full ${c.bar}`}><div className="h-1.5 rounded-full bg-marigold transition-all" style={{ width: `${run.status === "QUEUED" ? 2 : Math.max(4, pct)}%` }} /></div>
           <p className={`mt-1 ${c.muted}`}>You can leave this page - the sync carries on in the background.</p>
         </div>
       )}

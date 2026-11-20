@@ -579,8 +579,14 @@ public class AdminYearGuard
         return await DistrictYearForDateAsync(user, districtId, newDate);
     }
 
+    /// <summary>The scope guard allowed this request through an elect role for exactly this scope, after checking
+    /// that every year it touches is the year being planned (PlanningAccess.ElectMayWriteAsync).</summary>
+    private bool ElectWriteFor(bool isClub, int scopeId) =>
+        _http?.HttpContext?.Items[PlanningAccess.ElectWriteItemKey] is (bool c, int s) && c == isClub && s == scopeId;
+
     public async Task<ObjectResult?> ClubYearlessAsync(ClaimsPrincipal user, int clubId)
     {
+        if (ElectWriteFor(true, clubId)) return null;
         await using var conn = await OpenAsync();
         var current = await AdminYearService.GetCurrentYearIdAsync(conn);
         // A missing current year is a server misconfiguration. Refuse rather than
@@ -592,6 +598,7 @@ public class AdminYearGuard
 
     public async Task<ObjectResult?> DistrictYearlessAsync(ClaimsPrincipal user, int districtId)
     {
+        if (ElectWriteFor(false, districtId)) return null;
         await using var conn = await OpenAsync();
         var current = await AdminYearService.GetCurrentYearIdAsync(conn);
         if (current is not int y)
