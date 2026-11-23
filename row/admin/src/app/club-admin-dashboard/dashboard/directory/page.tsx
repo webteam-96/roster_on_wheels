@@ -12,6 +12,7 @@ import RotaryLoader from "@/components/RotaryLoader";
 import type { LucideIcon } from "@/components/icons";
 import { useAuth } from "@/contexts/AuthContext";
 import { useFeature } from "@/contexts/BrandContext";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { getClubAdminDashboardDirectory, getMember, getPhotoUrl, assignRole, removeRole, setClubMemberHonorary } from "@/services/api";
 import { clubYearRights, canEditYearless, isCurrentYearSelected } from "@/lib/adminYears";
 import { useRotaryYears } from "@/hooks/useRotaryYears";
@@ -86,14 +87,11 @@ function MemberRow({
   return (
     <tr className="border-t border-slate-100 hover:bg-blue-50/40">
       <td className="px-4 py-2">
-        {row.photoPath ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={getPhotoUrl(row.photoPath)} alt={row.name} className="w-9 h-9 rounded-full object-cover border border-slate-200" />
-        ) : (
-          <div className="w-9 h-9 rounded-full bg-slate-200 text-slate-600 text-xs font-semibold flex items-center justify-center">
-            {initials(row.name) || "–"}
-          </div>
-        )}
+        {/* Avatar falls back to initials when the photo file is missing (OMS ROW-93: the broken image's name text spilled out). */}
+        <Avatar className="w-9 h-9 border border-slate-200">
+          {row.photoPath && <AvatarImage src={getPhotoUrl(row.photoPath)} alt={row.name} className="object-cover" />}
+          <AvatarFallback className="bg-slate-200 text-slate-600 text-xs font-semibold">{initials(row.name) || "–"}</AvatarFallback>
+        </Avatar>
       </td>
       <td className="px-4 py-2">
         <div className="flex items-center gap-1.5 flex-wrap">
@@ -617,18 +615,10 @@ function MemberDetailModal({
         {/* Header */}
         <div className="px-6 py-4 border-b border-slate-100 flex items-start justify-between gap-3">
           <div className="flex items-center gap-3 min-w-0">
-            {photoSrc ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={photoSrc}
-                alt={row.name}
-                className="w-14 h-14 rounded-full object-cover border-2 border-blue-100 flex-shrink-0"
-              />
-            ) : (
-              <div className="w-14 h-14 rounded-full bg-slate-100 text-slate-600 text-base font-semibold flex items-center justify-center border-2 border-blue-100 flex-shrink-0">
-                {initials(row.name) || "–"}
-              </div>
-            )}
+            <Avatar className="w-14 h-14 border-2 border-blue-100">
+              {photoSrc && <AvatarImage src={photoSrc} alt={row.name} className="object-cover" />}
+              <AvatarFallback className="bg-slate-100 text-slate-600 text-base font-semibold">{initials(row.name) || "–"}</AvatarFallback>
+            </Avatar>
             <div className="min-w-0">
               <h2 id="member-detail-title" className="text-base font-semibold text-slate-800 truncate">
                 {row.name}
@@ -768,12 +758,10 @@ function MemberDetailModal({
               <div className="space-y-2 pl-3">
                 {profile.familyMembers.map((f) => (
                   <div key={f.id} className="rounded-lg border border-slate-100 bg-slate-50/50 p-3 text-xs flex items-center gap-3">
-                    {f.photoPath ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img src={getPhotoUrl(f.photoPath)} alt={f.name} className="w-9 h-9 rounded-full object-cover border flex-shrink-0" />
-                    ) : (
-                      <div className="w-9 h-9 rounded-full bg-slate-100 text-slate-500 text-[10px] font-semibold flex items-center justify-center flex-shrink-0">{initials(f.name)}</div>
-                    )}
+                    <Avatar className="w-9 h-9 border">
+                      {f.photoPath && <AvatarImage src={getPhotoUrl(f.photoPath)} alt={f.name} className="object-cover" />}
+                      <AvatarFallback className="bg-slate-100 text-slate-500 text-[10px] font-semibold">{initials(f.name)}</AvatarFallback>
+                    </Avatar>
                     <div className="min-w-0 flex-1">
                       <p className="font-semibold text-slate-700 truncate">{f.name} <span className="font-normal text-slate-500">· {f.relation}</span></p>
                       <p className="text-slate-500 truncate">{[f.phoneNumber && `${f.countryPhoneCode ?? ""} ${f.phoneNumber}`.trim(), f.emailId].filter(Boolean).join(" · ") || "–"}</p>

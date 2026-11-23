@@ -21,7 +21,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useParams, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import {
-  ArrowLeft, Plus, Search, Edit3, Trash2, AlertTriangle, Loader2, FolderKanban,
+  ArrowLeft, Plus, Search, Edit3, Eye, Trash2, AlertTriangle, Loader2, FolderKanban,
 } from "@/components/icons";
 import {
   getDistrict,
@@ -34,6 +34,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import DistrictAdminShell from "@/components/v2/DistrictAdminShell";
 import AlertModal from "@/components/AlertModal";
+import ProjectDetailModal from "@/components/ProjectDetailModal";
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
 import Pagination from "@/components/Pagination";
@@ -92,6 +93,8 @@ export default function DistrictProjectsV2Page() {
   const [search, setSearch] = useState("");
   const [years, setYears] = useState<RotaryYear[]>([]);
   const [yearId, setYearId] = useState("");
+  // View icon opens the read-only project detail (OMS ROW-67: "in the project listing, add view project icon").
+  const [viewId, setViewId] = useState<number | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<ProjectItem | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -257,6 +260,7 @@ export default function DistrictProjectsV2Page() {
                       <th className="px-3 py-2.5 text-right">Cost ({currencySymbol()})</th>
                       <th className="px-3 py-2.5 text-center">Beneficiaries</th>
                       <th className="px-3 py-2.5 text-left">Area of Focus</th>
+                      <th className="px-3 py-2.5 text-right w-16">View</th>
                       <th className="px-3 py-2.5 text-right w-16">Edit</th>
                       <th className="px-3 py-2.5 text-right w-16">Delete</th>
                     </tr>
@@ -285,6 +289,16 @@ export default function DistrictProjectsV2Page() {
                           {item.areaOfFocusName || "–"}
                         </td>
                         <td className="px-3 py-2 text-right">
+                          <button
+                            type="button"
+                            onClick={() => setViewId(item.id)}
+                            className="inline-flex items-center justify-center w-7 h-7 rounded text-slate-500 hover:text-blue-700 hover:bg-blue-50"
+                            aria-label="View project"
+                          >
+                            <Eye size={13} />
+                          </button>
+                        </td>
+                        <td className="px-3 py-2 text-right">
                           <Link
                             href={`/districts/${districtId}/projects/v2/${item.id}/edit?yearId=${yearId}&returnTo=${childReturnTo}`}
                             className="inline-flex items-center justify-center w-7 h-7 rounded text-slate-500 hover:text-blue-700 hover:bg-blue-50"
@@ -307,7 +321,7 @@ export default function DistrictProjectsV2Page() {
                     ))}
                     {items.length === 0 && (
                       <tr>
-                        <td colSpan={8} className="px-4 py-10 text-center text-slate-400">
+                        <td colSpan={9} className="px-4 py-10 text-center text-slate-400">
                           {search
                             ? "No projects match your search."
                             : "No projects found. Click \"Add Project\" to create one."}
@@ -351,6 +365,7 @@ export default function DistrictProjectsV2Page() {
             onCancel={() => setDeleteTarget(null)}
           />
 
+          <ProjectDetailModal clubId={0} districtId={districtId} yearId={Number(yearId) || 0} projectId={viewId} onClose={() => setViewId(null)} />
           <SuccessAlert open={!!successMessage} title="Success" description={successMessage || ""} onOk={() => setSuccessMessage(null)} />
           <ErrorAlert open={!!errorMessage} title="Error" description={errorMessage || ""} onOk={() => setErrorMessage(null)} />
         </div>
