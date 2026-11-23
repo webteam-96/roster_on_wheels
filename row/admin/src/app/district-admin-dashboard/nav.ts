@@ -24,7 +24,7 @@ export const DISTRICT_ADMIN_NAV: NavItem[] = [
   // Job postings and B2B offers to approve or check (flag job_board: FeatureGate hides the link while it is off).
   { to: "/district-admin-dashboard/job-board",     label: "Job Board" },
   { to: "/district-admin-dashboard/egovernance",   label: "E-Governance",   moduleKey: "reports" },
-  { to: "/district-admin-dashboard/rcc-goals", label: "RCC & District Goals", moduleKey: "goal_setting", superAdminOnly: true },
+  { to: "/district-admin-dashboard/rcc-goals", label: "RCC & District Goals", moduleKey: "goal_setting" },
   { to: "/district-admin-dashboard/goal-setting",  label: "Goal Setting",   moduleKey: "goal_setting" },
   // Rotary.org figures + DG Sync. Hidden while the goal_setting_rotary module is off (Settings > Features).
   { to: "/district-admin-dashboard/goal-setting-rotary", label: "Rotary.org Goals" },

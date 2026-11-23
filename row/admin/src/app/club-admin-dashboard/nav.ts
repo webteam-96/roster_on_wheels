@@ -27,7 +27,7 @@ export const CLUB_ADMIN_NAV: NavItem[] = [
   { to: "/club-admin-dashboard/contacts",                            label: "Contacts" },
   { to: "/club-admin-dashboard/service-projects-and-public-image",   label: "Service Projects & Public Image",  moduleKey: "community_service" },
   { to: "/club-admin-dashboard/e-governance",                        label: "E-Governance",                     moduleKey: "reports" },
-  { to: "/club-admin-dashboard/rcc-goals",                           label: "RCC & District Goals",             moduleKey: "goal_setting", superAdminOnly: true },
+  { to: "/club-admin-dashboard/rcc-goals",                           label: "RCC & District Goals",             moduleKey: "goal_setting" },
   { to: "/club-admin-dashboard/goal-setting",                        label: "Goal Setting",                     moduleKey: "goal_setting" },
   { to: "/club-admin-dashboard/custom-reports",                      label: "Report Builder" },
   // Grants: platform switch "grants" (FeatureGate hides the link while it is off).

@@ -201,10 +201,15 @@ export default function ClubMembersPage() {
       if (kind === "labels" && withoutAddress > 0)
         setSuccessMessage(`Labels downloaded. ${withoutAddress} member(s) have no postal address and were left out.`);
     } catch (e: unknown) {
-      const status = (e as { response?: { status?: number } })?.response?.status;
-      setErrorMessage(status === 403
+      const res = (e as { response?: { status?: number; data?: unknown } })?.response;
+      // A blob request gets its error body as a Blob: read the server's message (e.g. "no postal address").
+      let message: string | undefined;
+      if (res?.status === 400 && res.data instanceof Blob) {
+        try { message = JSON.parse(await res.data.text())?.message; } catch { /* not JSON */ }
+      }
+      setErrorMessage(message ?? (res?.status === 403
         ? "Only the club's managers can print member labels and badges."
-        : "The file could not be downloaded. Please try again.");
+        : "The file could not be downloaded. Please try again."));
     } finally {
       setExporting(null);
     }

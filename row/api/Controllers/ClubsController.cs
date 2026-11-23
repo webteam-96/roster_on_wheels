@@ -211,6 +211,10 @@ public class ClubsController : ControllerBase
             addresses.GetValueOrDefault(m.Id) ?? [])).ToList();
 
         var letter = paper == "letter";
+        // No member has a postal address: say so instead of printing a blank sheet (QA 2026-11-23).
+        if (kind == "labels" && people.All(p => p.AddressLines.Count == 0))
+            return BadRequest(new { message = "None of these members has a postal address, so there are no labels to print. Add home or business addresses to member profiles first." });
+
         var bytes = kind switch
         {
             "labels" => MemberPrintBuilder.Labels(people, letter),

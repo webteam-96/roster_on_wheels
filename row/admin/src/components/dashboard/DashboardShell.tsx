@@ -21,6 +21,7 @@ import { useComingSoonModules } from "@/hooks/useComingSoonModules";
 import { useBrand } from "@/contexts/BrandContext";
 import { isFeatureOn } from "@/lib/brand";
 import { withBase } from "@/lib/basePath";
+import { getClub } from "@/services/api";
 
 export interface NavItem {
   to: string;
@@ -134,6 +135,17 @@ export default function DashboardShell({
     !!daActiveClub &&
     daActiveClub.id === selectedClubId &&
     !clubAdminClubs.some((c) => c.id === selectedClubId);
+
+  // A /clubs/{id}/... page opened by link names its own club; the header showed the session's selected club
+  // instead (QA 2026-11-23: "Thane City View" on ROW Test Club pages). Look the URL's club up when they differ.
+  const urlClubId = Number(/^\/clubs\/(\d+)(\/|$)/.exec(pathname ?? "")?.[1]) || null;
+  const [urlClub, setUrlClub] = useState<{ id: number; name: string } | null>(null);
+  useEffect(() => {
+    if (!urlClubId || urlClubId === selectedClubId) { setUrlClub(null); return; }
+    let cancelled = false;
+    getClub(urlClubId).then((c) => { if (!cancelled) setUrlClub({ id: urlClubId, name: c.clubName }); }).catch(() => {});
+    return () => { cancelled = true; };
+  }, [urlClubId, selectedClubId]);
 
   // Set when this club dashboard was opened from somewhere that wants a way back
   // (currently SuperAdmin's /settings/global-search "New Dashboard"). Only then do
@@ -304,7 +316,11 @@ export default function DashboardShell({
           {topbarStart}
           {switcherKind === "club-admin" ? (
             <>
-              {viewingDaClub ? (
+              {urlClub ? (
+                <span className="hidden sm:block text-xs font-semibold text-slate-700 truncate max-w-[260px]">
+                  {urlClub.name}
+                </span>
+              ) : viewingDaClub ? (
                 // District Admin viewing a district-access club — show that club's name.
                 <span className="hidden sm:block text-xs font-semibold text-slate-700 truncate max-w-[260px]">
                   {daActiveClub!.name}

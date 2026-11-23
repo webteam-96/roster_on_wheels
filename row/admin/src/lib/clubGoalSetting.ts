@@ -9,7 +9,7 @@
  * every screen comes back exactly as it was.
  */
 
-export const CLUB_GOAL_SETTING_COMING_SOON = true;
+export const CLUB_GOAL_SETTING_COMING_SOON = false; // owner 2026-11-23: on for go-live
 
 export const CLUB_GOAL_COMING_SOON_TITLE = "Coming soon";
 export const CLUB_GOAL_COMING_SOON_TEXT =

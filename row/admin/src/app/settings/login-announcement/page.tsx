@@ -188,6 +188,7 @@ export default function LoginAnnouncementPage() {
   // Dialog
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<any>(null);
+  const [showNow, setShowNow] = useState(true);
   const [saving, setSaving] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<any>(null);
   const editorRef = useRef<HTMLDivElement>(null);
@@ -314,6 +315,7 @@ export default function LoginAnnouncementPage() {
 
   const openAdd = () => {
     setEditing(null);
+    setShowNow(true);
     setTargetRoles([ALL_ROLES_KEY]);
     setTargetFilters({});
     clearLocations();
@@ -443,8 +445,8 @@ export default function LoginAnnouncementPage() {
         await updateLoginAnnouncement(editing.id, { ...payload, isActive: editing.isActive });
         setSuccessMessage("Announcement updated.");
       } else {
-        await createLoginAnnouncement({ ...payload, isActive: true });
-        setSuccessMessage("Announcement created.");
+        await createLoginAnnouncement({ ...payload, isActive: showNow });
+        setSuccessMessage(showNow ? "Announcement created." : "Announcement saved as inactive. Activate it when it should show.");
       }
       setDialogOpen(false);
       await fetchItems();
@@ -862,6 +864,13 @@ export default function LoginAnnouncementPage() {
             </div>
 
             <DialogFooter>
+              {!editing && (
+                // A new announcement could only be saved live; this lets an admin prepare it first.
+                <label className="mr-auto flex items-center gap-2 text-sm">
+                  <input type="checkbox" checked={showNow} onChange={(e) => setShowNow(e.target.checked)} className="h-4 w-4" />
+                  Show to users now
+                </label>
+              )}
               <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button>
               <Button onClick={handleSave} disabled={saving}>
                 {saving ? <RotaryLoader size="sm" /> : (editing ? "Update" : "Save")}

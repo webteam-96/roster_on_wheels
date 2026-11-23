@@ -137,7 +137,7 @@ export default function AuditLogPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
               <div>
                 <Label className="text-xs">Search</Label>
-                <Input placeholder="User, entity, IP..." value={search} onChange={e => setSearch(e.target.value)} />
+                <Input placeholder="User, entity, IP..." value={search} onChange={e => setSearch(e.target.value)} onKeyDown={e => { if (e.key === "Enter") fetchLogs(1); }} />
               </div>
               <div>
                 <Label className="text-xs">Action</Label>
@@ -189,7 +189,7 @@ export default function AuditLogPage() {
                 { key: "createdDate", label: "Date & Time" }, { key: "entityName", label: "Name / Title" },
                 { key: "details", label: "API Path" }, { key: "ipAddress", label: "IP Address" },
               ])} disabled={items.length === 0}><Download className="h-4 w-4 mr-2" />Export CSV</Button>
-              <Button onClick={() => fetchLogs(1)} disabled={loading}>
+              <Button onClick={() => fetchLogs(1)} disabled={loading} aria-label="Apply filters">
                 {loading ? <RotaryLoader size="sm" /> : <><Search className="h-4 w-4 mr-2" />Apply</>}
               </Button>
             </div>

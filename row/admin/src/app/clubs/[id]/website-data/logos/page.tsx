@@ -17,7 +17,8 @@
 import { useEffect, useRef, useState } from "react";
 import { useParams, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Image as ImageIcon, Upload } from "@/components/icons";
+import { AlertTriangle, ArrowLeft, Image as ImageIcon, Trash2, Upload } from "@/components/icons";
+import AlertModal from "@/components/AlertModal";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getClubLogos, setClubLogos, uploadClubLogoFile, uploadRotaryLogoFile, getPhotoUrl } from "@/services/api";
@@ -145,6 +146,21 @@ export default function ClubWebsiteLogosPage() {
     }
   };
 
+  // An empty path clears the logo (null would mean "leave unchanged"); there was no way to remove one.
+  const [removing, setRemoving] = useState<"club" | "rotary" | null>(null);
+  const handleRemove = async (which: "club" | "rotary") => {
+    setSaving(which);
+    try {
+      await setClubLogos(clubId, which === "club" ? { clubLogoPath: "" } : { rotaryLogoPath: "" });
+      await refreshLogos();
+      setSuccess(which === "club" ? "Club logo removed." : "Rotary logo removed.");
+    } catch (err: any) {
+      setError(err?.response?.data?.message || "Failed to remove the logo.");
+    } finally {
+      setSaving(null);
+    }
+  };
+
   if (!canManage) {
     return (
       <ProtectedRoute>
@@ -158,6 +174,10 @@ export default function ClubWebsiteLogosPage() {
       <div className="space-y-6">
         <SuccessAlert open={!!success} title="Success" description={success || ""} onOk={() => setSuccess(null)} />
         <ErrorAlert   open={!!error}   title="Error"   description={error   || ""} onOk={() => setError(null)} />
+        <AlertModal open={!!removing} onOpenChange={(o) => { if (!o) setRemoving(null); }} icon={AlertTriangle} iconClassName="text-destructive"
+          title="Remove logo" description="The club website stops showing this logo. You can upload a new one at any time."
+          confirmLabel="Remove" confirmClassName="bg-destructive text-destructive-foreground hover:bg-destructive/90" cancelLabel="Cancel"
+          onConfirm={() => { const w = removing; setRemoving(null); if (w) handleRemove(w); }} />
 
         <div className="flex items-center gap-3">
           <Button variant="outline" size="icon" asChild>
@@ -202,6 +222,11 @@ export default function ClubWebsiteLogosPage() {
                 <Button variant="outline" onClick={() => clubFileInputRef.current?.click()} disabled={saving !== null}>
                   <Upload className="h-4 w-4 mr-2" />{clubLogoUrl ? "Change" : "Upload"} Club Logo
                 </Button>
+                {clubLogoUrl && (
+                  <Button variant="ghost" className="text-destructive" onClick={() => setRemoving("club")} disabled={saving !== null}>
+                    <Trash2 className="h-4 w-4 mr-2" />Remove
+                  </Button>
+                )}
                 {clubCrop.error && <p className="text-xs text-destructive">{clubCrop.error}</p>}
               </CardContent>
             </Card>
@@ -236,6 +261,11 @@ export default function ClubWebsiteLogosPage() {
                 <Button variant="outline" onClick={() => rotaryFileInputRef.current?.click()} disabled={saving !== null}>
                   <Upload className="h-4 w-4 mr-2" />{rotaryLogoUrl ? "Change" : "Upload"} Rotary Logo
                 </Button>
+                {rotaryLogoUrl && (
+                  <Button variant="ghost" className="text-destructive" onClick={() => setRemoving("rotary")} disabled={saving !== null}>
+                    <Trash2 className="h-4 w-4 mr-2" />Remove
+                  </Button>
+                )}
                 {rotaryCrop.error && <p className="text-xs text-destructive">{rotaryCrop.error}</p>}
               </CardContent>
             </Card>

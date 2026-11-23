@@ -1,6 +1,6 @@
 "use client";
 
-// "RCC & District Goals" for a club (user 2026-11-16) - Super Admin only until go-live (menu item
+// "RCC & District Goals" for a club (user 2026-11-16; open to club admins from 2026-11-23, owner) (menu item
 // superAdminOnly). Club level has the RCC tab only (District Goals is set by the district).
 // = the New Goal Setting Club Goals page with the RCC changes of lib/rccGoals.ts, same design.
 // The existing Club Goals screen is not changed.
@@ -26,8 +26,6 @@ import type { GoalCategoryFormDto, SaveGoalEntriesRequest } from "@/types/goalSe
 const SPLIT_CATEGORIES = [1, 210];
 
 export default function ClubRccGoalsPage() {
-  const { isSuperAdmin } = useAuth();
-  if (!isSuperAdmin) return <p className="p-6 text-sm text-slate-500">This page is not available yet.</p>;
   return <ClubRcc />;
 }
 

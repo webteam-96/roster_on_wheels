@@ -98,7 +98,7 @@ function exportToCsv(rows: AttendanceListItem[], yearLabel: string, clubName: st
     ].join(",");
   });
   const csv = [header.join(","), ...lines].join("\n");
-  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+  const blob = new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8;" }) /* BOM: Excel reads UTF-8 */;
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
@@ -403,7 +403,7 @@ export function AttendanceV2View({ clubId: propClubId, embedded = false }: { clu
                 }}
                 className="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1.5 rounded-full border border-slate-200 text-slate-700 hover:bg-slate-50"
               >
-                <Download size={13} /> Export to Excel
+                <Download size={13} /> Export CSV
               </button>
               {canManage && (
                 <Link

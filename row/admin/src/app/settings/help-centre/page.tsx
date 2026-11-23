@@ -11,7 +11,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { TableSkeleton } from "@/components/dashboard/DashboardSkeleton";
 import ErrorAlert from "@/components/ErrorAlert";
-import { ArrowLeft, Plus, Pencil, Trash2 } from "@/components/icons";
+import AlertModal from "@/components/AlertModal";
+import { AlertTriangle, ArrowLeft, Plus, Pencil, Trash2 } from "@/components/icons";
 import { useFormat } from "@/hooks/useFormat";
 import {
   deleteHelpArticle, deleteHelpCategory, getHelpArticles, getHelpCategories, saveHelpCategory,
@@ -34,6 +35,8 @@ export default function HelpCentreSettingsPage() {
   const [status, setStatus] = useState("");
   const [draft, setDraft] = useState<CategoryDraft | null>(null);
   const [busy, setBusy] = useState(false);
+  // The app's own confirm dialog, like every other delete (was the browser's window.confirm).
+  const [deleting, setDeleting] = useState<HelpArticleRow | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const loadArticles = useCallback(() => {
@@ -108,7 +111,7 @@ export default function HelpCentreSettingsPage() {
                     )}
                     <Button variant="outline" size="sm" asChild><Link href={`/settings/help-centre/${a.id}`}><Pencil className="mr-1 h-4 w-4" />Edit</Link></Button>
                     <Button variant="outline" size="sm" disabled={busy} aria-label={`Delete ${a.title}`}
-                      onClick={() => { if (window.confirm(`Delete "${a.title}"? This cannot be undone.`)) act(() => deleteHelpArticle(a.id), loadArticles); }}>
+                      onClick={() => setDeleting(a)}>
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>
@@ -163,6 +166,10 @@ export default function HelpCentreSettingsPage() {
           )}
         </section>
         <ErrorAlert open={!!error} title="Error" description={error || ""} onOk={() => setError(null)} />
+        <AlertModal open={!!deleting} onOpenChange={(o) => { if (!o) setDeleting(null); }} icon={AlertTriangle} iconClassName="text-destructive"
+          title="Delete article" description={`Delete "${deleting?.title ?? ""}"? This cannot be undone.`} confirmLabel="Delete"
+          confirmClassName="bg-destructive text-destructive-foreground hover:bg-destructive/90" cancelLabel="Cancel"
+          onConfirm={() => { const a = deleting; setDeleting(null); if (a) act(() => deleteHelpArticle(a.id), loadArticles); }} />
       </div>
     </ProtectedRoute>
   );

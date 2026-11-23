@@ -575,6 +575,7 @@ public static partial class OcvReportWordBuilder
     private static bool EmbedImageBytes(MainDocumentPart main, Body body, byte[] bytes, PartTypeInfo partType, ref uint imgId,
         long maxWidthEmu = MaxPhotoWidthEmu, long maxHeightEmu = MaxPhotoHeightEmu)
     {
+        (bytes, partType) = ClubMonthlyReportWordBuilder.ShrinkForWord(bytes, partType);
         string relId;
         try
         {

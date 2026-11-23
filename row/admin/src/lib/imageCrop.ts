@@ -68,18 +68,3 @@ export function deriveOutputSize(
   return { width, height };
 }
 
-// Pre-loads a data URL so its natural pixel size is known before the crop
-// dialog opens, so an initial zoom can be chosen that shows the image at (or
-// near) its true size instead of an arbitrary default. Falls back to zoom=1
-// if the probe fails for any reason.
-export function probeNaturalZoom(dataUrl: string, canvasWidthPx: number): Promise<number> {
-  return new Promise((resolve) => {
-    const probe = new Image();
-    probe.onload = () => {
-      const naturalZoom = probe.naturalWidth / canvasWidthPx;
-      resolve(Math.max(0.5, Math.min(3, naturalZoom)));
-    };
-    probe.onerror = () => resolve(1);
-    probe.src = dataUrl;
-  });
-}

@@ -283,19 +283,20 @@ public static partial class ClubMonthlyReportWordBuilder
     // ── Image embedding ──
     private static void AppendImage(MainDocumentPart main, Body body, CmrWordPhotoDto ph, ref uint imgId)
     {
-        var partType = MapImageType(ph.ImageExtension);
-        if (partType == null) return;
+        var mapped = MapImageType(ph.ImageExtension);
+        if (mapped == null) return;
+        var (bytes, partType) = ShrinkForWord(ph.ImageBytes!, mapped.Value);
 
         string relId;
         try
         {
-            var imagePart = main.AddImagePart(partType.Value);
-            using (var stream = new MemoryStream(ph.ImageBytes!)) imagePart.FeedData(stream);
+            var imagePart = main.AddImagePart(partType);
+            using (var stream = new MemoryStream(bytes)) imagePart.FeedData(stream);
             relId = main.GetIdOfPart(imagePart);
         }
         catch { return; }
 
-        var (w, h) = ReadImageSize(ph.ImageBytes!);
+        var (w, h) = ReadImageSize(bytes);
         var (cx, cy) = FitEmu(w, h);
         uint id = imgId++;
 
@@ -344,7 +345,17 @@ public static partial class ClubMonthlyReportWordBuilder
                 p.SetValue(obj, XmlClean((string?)p.GetValue(obj)));
     }
 
-    internal static PartTypeInfo? MapImageType(string? ext) => (ext ?? "").ToLowerInvariant() switch
+    /// <summary>Print-size copy of an image for a Word report: longest side 1600 px, JPEG quality 80 (transparent PNGs
+    /// stay PNG). Phone photos and rasterised PDF pages made the Club / OCV reports ~16 MB and 30 s (QA 2026-11-23).
+    /// Returns the input unchanged when it is already small or cannot be decoded.</summary>
+    public static (byte[] Bytes, PartTypeInfo Type) ShrinkForWord(byte[] bytes, PartTypeInfo type)
+    {
+        var ext = type.ContentType.Split('/')[^1];
+        var enc = PhotoEncoder.Encode(bytes, ext, quality: 80, maxEdge: 1600);
+        return enc != null && MapImageType(enc.Extension.TrimStart('.')) is { } t ? (enc.Bytes, t) : (bytes, type);
+    }
+
+    public static PartTypeInfo? MapImageType(string? ext) => (ext ?? "").ToLowerInvariant() switch
     {
         "jpg" or "jpeg" => ImagePartType.Jpeg,
         "png" => ImagePartType.Png,
@@ -364,7 +375,7 @@ public static partial class ClubMonthlyReportWordBuilder
         return (Math.Max(cx, 1), Math.Max(cy, 1));
     }
 
-    internal static (int w, int h) ReadImageSize(byte[] b)
+    public static (int w, int h) ReadImageSize(byte[] b)
     {
         try
         {

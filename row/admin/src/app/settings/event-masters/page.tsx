@@ -129,11 +129,11 @@ export default function EventMastersPage() {
     try {
       if (activeTab === "tshirt") {
         await deleteEventTshirtSize(deleteItem.id);
-        setSuccessMessage("T-shirt size deleted.");
+        setSuccessMessage("T-shirt size deactivated: it is no longer offered, and members who already chose it keep it.");
         fetchTshirts();
       } else {
         await deleteEventFoodPreference(deleteItem.id);
-        setSuccessMessage("Food preference deleted.");
+        setSuccessMessage("Food preference deactivated: it is no longer offered.");
         fetchFoods();
       }
     } catch { setErrorMessage("Failed to delete."); }
@@ -171,7 +171,7 @@ export default function EventMastersPage() {
                   <DropdownMenuTrigger asChild><Button variant="ghost" size="icon"><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
                     <DropdownMenuItem onClick={() => openEdit(item)}><Pencil className="h-4 w-4 mr-2" />Edit</DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setDeleteItem(item)} className="text-destructive"><Trash2 className="h-4 w-4 mr-2" />Delete</DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setDeleteItem(item)} className="text-destructive"><Trash2 className="h-4 w-4 mr-2" />Deactivate</DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
               </TableCell>
@@ -248,9 +248,9 @@ export default function EventMastersPage() {
           open={!!deleteItem}
           icon={AlertTriangle}
           iconClassName="text-destructive"
-          title="Delete Item"
-          description={`Are you sure you want to delete "${deleteItem?.sizeName || deleteItem?.foodType}"?`}
-          confirmLabel="Delete"
+          title="Deactivate item"
+          description={`Deactivate "${deleteItem?.sizeName || deleteItem?.foodType}"? It is no longer offered; records that already use it keep it.`}
+          confirmLabel="Deactivate"
           confirmClassName="bg-destructive text-destructive-foreground hover:bg-destructive/90"
           onConfirm={handleDelete}
           cancelLabel="Cancel"

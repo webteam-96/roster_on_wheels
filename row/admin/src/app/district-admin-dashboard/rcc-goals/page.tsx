@@ -32,9 +32,8 @@ const SPLIT_CATEGORIES = [1, 210];
 type Tab = "rcc" | "district";
 
 export default function DistrictRccGoalsPage() {
-  const { isSuperAdmin, selectedDistrictId } = useAuth();
+  const { selectedDistrictId } = useAuth();
   const [tab, setTab] = useState<Tab>("rcc");
-  if (!isSuperAdmin) return <p className="p-6 text-sm text-slate-500">This page is not available yet.</p>;
 
   const tabCls = (on: boolean) => `px-4 py-2 rounded-lg text-sm font-semibold transition ${
     on ? "bg-marigold text-navy-950" : "text-white hover:bg-white/10"}`;

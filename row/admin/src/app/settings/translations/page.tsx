@@ -42,6 +42,8 @@ export default function TranslationsPage() {
   const [overrides, setOverrides] = useState<Override[] | null>(null);
   const [drafts, setDrafts] = useState<Record<string, string>>({});
   const [busyKey, setBusyKey] = useState<string | null>(null);
+  // Brief "Saved" next to the row that was just saved (the page gave no sign it worked).
+  const [savedKey, setSavedKey] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   useEffect(() => {
@@ -70,6 +72,8 @@ export default function TranslationsPage() {
     setBusyKey(key);
     try {
       replace(key, await saveI18nOverride(locale, namespace, key, text, reviewed));
+      setSavedKey(key);
+      setTimeout(() => setSavedKey((k) => (k === key ? null : k)), 2500);
     } catch (err: any) {
       setErrorMessage(err?.response?.data?.message || "Could not save the translation.");
     } finally {
@@ -174,6 +178,7 @@ export default function TranslationsPage() {
                       )}
                       <Button size="sm" disabled={busyKey === key || !changed || !draft.trim()} onClick={() => save(key, draft.trim(), false)}>Save</Button>
                       {override && <Button size="sm" variant="outline" disabled={busyKey === key} onClick={() => reset(key)}>Use English</Button>}
+                      <span role="status" className="text-xs font-medium text-emerald-700">{savedKey === key ? "Saved" : ""}</span>
                     </div>
                   </div>
                 );

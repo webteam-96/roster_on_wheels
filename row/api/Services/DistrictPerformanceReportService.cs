@@ -175,7 +175,7 @@ public class DistrictPerformanceReportService : IDistrictPerformanceReportServic
     // (user 2026-10-01, rotary-frontend/src/lib/clubGoalSetting.ts). The report follows: the
     // "Goals - Clubs" sheets carry the same notice instead of club figures. Set false to bring
     // them back - nothing else changes, the data is still collected.
-    private const bool ClubGoalsComingSoon = true;
+    private const bool ClubGoalsComingSoon = false; // owner 2026-11-23: club goal setting on for go-live (admin lib/clubGoalSetting.ts too)
 
     public int Hour => _hour;
     public bool ScheduleEnabled => _enabled;

@@ -28,6 +28,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
+import AlertModal from "@/components/AlertModal";
 import RotaryLoader from "@/components/RotaryLoader";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { ArrowLeft, CalendarClock, Plus, Trash2, Loader2, AlertTriangle, ShieldCheck, ShieldOff, Eye, RotateCcw } from "@/components/icons";
@@ -225,11 +226,15 @@ export default function YearWiseAdminRightsSettingsPage() {
     }
   };
 
-  const clearOverride = async (row: YearRuleScopeOverride) => {
+  // Confirmed in the app's own dialog (was the browser's window confirm box).
+  const [clearing, setClearing] = useState<YearRuleScopeOverride | null>(null);
+  const describe = (row: YearRuleScopeOverride) => {
     const isClub = row.clubId > 0;
     const label = isClub ? (row.clubName ?? `Club ${row.clubId}`) : `District ${row.districtNumber ?? row.districtId}`;
-    const falls = isClub ? "its district" : "the platform default";
-    if (!window.confirm(`Remove the setting for ${label}? It will follow ${falls} from now on.`)) return;
+    return `Remove the setting for ${label}? It will follow ${isClub ? "its district" : "the platform default"} from now on.`;
+  };
+  const clearOverride = async (row: YearRuleScopeOverride) => {
+    const isClub = row.clubId > 0;
     setSaving(true);
     try {
       const res = isClub ? await clearYearRuleClub(row.clubId) : await clearYearRuleDistrict(row.districtId);
@@ -300,7 +305,7 @@ export default function YearWiseAdminRightsSettingsPage() {
                   {r.modifiedByName ? <div className="text-xs text-slate-400">by {r.modifiedByName}</div> : null}
                 </td>
                 <td className="px-4 py-3 text-right">
-                  <Button variant="ghost" size="sm" disabled={saving} onClick={() => clearOverride(r)}>
+                  <Button variant="ghost" size="sm" disabled={saving} onClick={() => setClearing(r)}>
                     <Trash2 className="h-4 w-4 text-slate-500" />
                   </Button>
                 </td>
@@ -338,6 +343,9 @@ export default function YearWiseAdminRightsSettingsPage() {
 
         <SuccessAlert open={!!success} title="Saved" description={success ?? ""} onOk={() => setSuccess(null)} />
         <ErrorAlert open={!!error} title="Something went wrong" description={error ?? ""} onOk={() => setError(null)} />
+        <AlertModal open={!!clearing} onOpenChange={(o) => { if (!o) setClearing(null); }} icon={AlertTriangle} iconClassName="text-amber-600"
+          title="Remove setting" description={clearing ? describe(clearing) : ""} confirmLabel="Remove" cancelLabel="Cancel"
+          onConfirm={() => { const r = clearing; setClearing(null); if (r) clearOverride(r); }} />
 
         {/* ── Platform default ───────────────────────────────────────────── */}
         <Card>

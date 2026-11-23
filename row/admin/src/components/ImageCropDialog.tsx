@@ -21,7 +21,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import RotaryLoader from "@/components/RotaryLoader";
 import { Image as ImageIcon, RectangleHorizontal, RectangleVertical, Save, Square, X, ZoomIn, ZoomOut } from "@/components/icons";
-import { getCroppedImageBlob, deriveOutputSize, probeNaturalZoom } from "@/lib/imageCrop";
+import { getCroppedImageBlob, deriveOutputSize } from "@/lib/imageCrop";
 
 /** Shapes offered by the in-dialog selector when `allowOrientation` is on. */
 export type CropOrientation = "landscape" | "portrait" | "square" | "original";
@@ -107,16 +107,15 @@ export default function ImageCropDialog({
   const [busy, setBusy] = useState(false);
   const saving = savingProp || busy;
 
-  // Reset crop state and pick a natural-size initial zoom each time a new
-  // image is opened for cropping.
+  // Reset crop state each time a new image is opened. It starts fitted (zoom 1, the widest crop): the old
+  // "natural size" start zoomed a 2000 px banner to 278 %, so the crop came out too small and Save was disabled.
   useEffect(() => {
     if (!open || !imageSrc) return;
     setCrop({ x: 0, y: 0 });
     setCroppedAreaPixels(null);
     setOrientation("landscape");
     setNaturalAspect(null);
-    const canvasW = containerRef.current?.offsetWidth || 720;
-    probeNaturalZoom(imageSrc, canvasW).then((z) => setZoom(Math.max(minZoom, z)));
+    setZoom(minZoom);
   }, [open, imageSrc, minZoom]);
 
   // The shape actually handed to the cropper. Without the selector this is the

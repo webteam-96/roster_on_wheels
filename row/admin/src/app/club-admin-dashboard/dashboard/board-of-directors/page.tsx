@@ -45,7 +45,7 @@ function exportToCsv(rows: ClubAdminDashboardBodRow[], yearLabel: string) {
     r.email ?? "",
   ].join(","));
   const csv = [header.join(","), ...lines].join("\n");
-  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+  const blob = new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8;" }) /* BOM: Excel reads UTF-8 */;
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
@@ -175,7 +175,7 @@ export default function DashboardBodPage() {
               onClick={() => exportToCsv(filtered, data.selectedYearLabel)}
               className="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1.5 rounded-full border border-slate-200 text-slate-700 hover:bg-slate-50"
             >
-              <ExternalLink size={13} /> Export to Excel
+              <ExternalLink size={13} /> Export CSV
             </button>
             {canManage && (
               <Link
