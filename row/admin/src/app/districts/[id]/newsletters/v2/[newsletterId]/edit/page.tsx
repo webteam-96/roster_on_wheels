@@ -123,7 +123,7 @@ export default function DistrictNewslettersV2EditPage() {
   const newsletterId = Number(params.newsletterId);
   const urlYearId = searchParams.get("yearId");
   const yearId = urlYearId ? Number(urlYearId) : null;
-  const { navigateAfterSave } = useV2ReturnTo(`/districts/${districtId}/newsletters`);
+  const { navigateAfterSave } = useV2ReturnTo(`/district-admin-dashboard/communication?tab=newsletters`);
 
   const [districtName, setDistrictName] = useState("");
   const [loading, setLoading] = useState(true);

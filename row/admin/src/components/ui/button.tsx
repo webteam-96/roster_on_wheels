@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils"
 // Legacy Tailwind styles: still used for the `link` variant, for asChild on non-link children, and by
 // alert-dialog's buttonVariants() calls.
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-full text-sm font-semibold transition-[background-color,transform,box-shadow] duration-150 ease-out focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-go-md text-sm font-semibold transition-[background-color,transform,box-shadow] duration-150 ease-out focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
   {
     variants: {
       variant: {
@@ -53,7 +53,7 @@ const ASTRYX_VARIANT = {
   ghost: "ghost",
 } as const
 const ASTRYX_SIZE = { default: "md", sm: "sm", lg: "lg", icon: "md" } as const
-// ROW proportions on top of Astryx: 44px default, pill shape, semibold (user choice 2026-11-12).
+// ROW proportions on top of Astryx: 44px default, semibold (2026-11-12); 10px corners, not a pill (user, 2026-11-23).
 const ROW_SIZE = {
   default: "h-11 px-6 text-sm",
   sm: "h-9 px-4 text-xs",
@@ -70,8 +70,9 @@ function textOf(node: React.ReactNode): string {
   return ""
 }
 
-/** Leading non-text elements (icons) become Astryx's icon slot; the rest stays the visible content. */
-function splitIcon(children: React.ReactNode): { icon?: React.ReactNode; rest: React.ReactNode } {
+/** A leading icon becomes Astryx's icon slot and a trailing one (dropdown chevron) its endContent; inside the
+ *  content they wrapped onto a second line ("Tools" / "Export" menus). The rest stays the visible content. */
+function splitIcon(children: React.ReactNode): { icon?: React.ReactNode; rest: React.ReactNode; end?: React.ReactNode } {
   let parts = React.Children.toArray(children)
   // `{busy ? <Loader /> : <><Icon />Save</>}` hands us one Fragment: look inside it, or the icon
   // renders as a block above the text (ROW-63).
@@ -79,11 +80,13 @@ function splitIcon(children: React.ReactNode): { icon?: React.ReactNode; rest: R
   if (parts.length === 1 && React.isValidElement<{ children?: React.ReactNode }>(only) && only.type === React.Fragment) {
     parts = React.Children.toArray(only.props.children)
   }
-  const first = parts[0]
-  if (parts.length > 1 && React.isValidElement(first) && textOf(first).trim() === "") {
-    return { icon: first, rest: parts.slice(1) }
-  }
-  return { rest: children }
+  const isIcon = (n: React.ReactNode) => React.isValidElement(n) && textOf(n).trim() === ""
+  if (parts.length < 2) return { rest: children }
+  const icon = isIcon(parts[0]) ? parts[0] : undefined
+  const body = icon ? parts.slice(1) : parts
+  const end = body.length > 1 && isIcon(body[body.length - 1]) ? body[body.length - 1] : undefined
+  if (!icon && !end) return { rest: children }
+  return { icon, end, rest: end ? body.slice(0, -1) : body }
 }
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
@@ -93,9 +96,12 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     const astryxVariant = ASTRYX_VARIANT[v as keyof typeof ASTRYX_VARIANT]
 
     // asChild around a link: an Astryx link button. Any other asChild child keeps the legacy Slot rendering.
+    // A download or blob:/data: link stays a plain <a> (legacy Slot below): as an Astryx link the router prefetched
+    // the blob URL as a page (404 on the donation QR "download" button).
     const linkChild =
-      asChild && React.isValidElement<{ href?: unknown; children?: React.ReactNode }>(children) &&
-      typeof children.props.href === "string"
+      asChild && React.isValidElement<{ href?: unknown; download?: unknown; children?: React.ReactNode }>(children) &&
+      typeof children.props.href === "string" && children.props.download === undefined &&
+      !/^(blob|data):/i.test(children.props.href)
         ? children
         : null
 
@@ -123,7 +129,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     const label =
       textOf(content).trim() || (props["aria-label"] as string | undefined) || title || "Button"
     // Phosphor icons default to 24px app-wide; inside buttons they stay at the old 16px.
-    const cls = cn("rounded-full font-semibold [&_svg]:size-4 [&_svg]:shrink-0", ROW_SIZE[s as keyof typeof ROW_SIZE], className)
+    const cls = cn("rounded-go-md whitespace-nowrap font-semibold [&_svg]:size-4 [&_svg]:shrink-0", ROW_SIZE[s as keyof typeof ROW_SIZE], className)
 
     if (s === "icon") {
       return (
@@ -146,7 +152,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       )
     }
 
-    const { icon, rest } = splitIcon(content)
+    const { icon, rest, end } = splitIcon(content)
     return (
       <AstryxButton
         ref={ref}
@@ -154,6 +160,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         variant={astryxVariant}
         size={ASTRYX_SIZE[s as keyof typeof ASTRYX_SIZE] ?? "md"}
         icon={icon}
+        endContent={end}
         isDisabled={disabled}
           {...nativeDisabled}
         type={nativeType}

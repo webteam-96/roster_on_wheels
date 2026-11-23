@@ -4,6 +4,69 @@ The NestJS backend is a faithful port of the RIZones API. These are places
 where ROW will probably want different behaviour. They are **not** made yet
 unless marked "done"; decide them when the area is worked on.
 
+## 2026-11-23: admin UI fixes from the owner's live review (not committed)
+
+- **Buttons:** 10px corners (`rounded-go-md`) instead of a pill; a trailing icon (dropdown chevron on Tools / Export)
+  goes to Astryx's `endContent` instead of wrapping onto a second line (`ui/button.tsx`).
+- **Badges:** a leading icon goes to Astryx's `icon` slot; it stacked above the text ("Year rule ON") (`ui/badge.tsx`).
+  Test: `ui/button.test.ts`.
+- **Settings:** the pinned quick links share the full row width (was a 6-column grid with 5 links).
+- **Live QA pass (owner's request; log and recordings in `_local/qa/live-2026-11-23/`, tools `kb/tools/live_qa.py`,
+  `live_flows.py`):**
+  - Production schema was behind the API in more places than the hand scripts covered (dues columns from the 9-17 Nov
+    port, `club_documents.IsPublicOnWebsite`, ...): new `kb/tools/schema_catchup.py` writes one guarded script from
+    the local copy, `database/maintenance/2026-11-23-full-schema-catchup.sql` (adds missing tables, columns, indexes;
+    never drops or changes). Rehearsed: a damaged copy came back identical, second run and full-copy run are no-ops.
+    The 2026-11-19 RIZones script must NOT be run by hand any more (its bare ALTERs collide with today's catch-up).
+  - Text in coloured containers (navy KPI tiles) was dark: Astryx's reset sets `:where(p)` to the primary colour.
+    `app/layers.css` now makes `<p>` inherit in `tw-base` (same ink on the body).
+  - Terminate member: the date and notes inputs were never saved ("ignored by backend: pending API" on screen);
+    removed, the server stamps today. The placeholder edit page and its Edit column are gone (backlog: an API to
+    edit a termination).
+  - Admin site home: the RIZones "Sri Lanka Rotary Institute 2026" card is removed (its images 404'd on every older
+    page).
+- **Open, owner decides:** with the Communication module on, a mass email is limited by the monthly allowance
+  (edition per-member allowance) and email credits are not used (`ClubMassEmailService`, N5); credits added in
+  Settings show in the header but do not raise the allowance.
+
+## 2026-11-23: test-site sign-in fails with 500 (found; fix waits for the server)
+
+- **Cause:** the API on the server has the 20 Nov competitor-gap release (commit 1cd7341a) but production never got its
+  schema (production runs `Database__SkipInit=true`). Sign-in reads `member_mfa` after the password check:
+  `Table 'row_production.member_mfa' doesn't exist` (server stdout log 21 Nov). Background jobs fail the same way
+  (`custom_reports`, `grant_interim_reports`). A right password gives 500, a wrong one 401: the screen shows both as
+  "Invalid credentials".
+- **Fix (ready, not run):** `row/database/maintenance/2026-11-23-competitor-gap-schema-catchup.sql` (94 tables IF NOT
+  EXISTS, 13 guarded columns, 2 guarded indexes, help centre rows, website 'pages' module; undo `-down.sql`). Dry-run
+  twice on a copy of the local schema without those tables: both runs clean. Not run on production: from this PC the
+  DB login `Mysql_admin_User` now resolves to `@43.243.212.184`, which has rights only on another database.
+- **Rule:** every release that adds tables needs its production script before the API is uploaded.
+
+## 2026-11-23: district website = the 7 designed themes on ROW data (not committed)
+
+- **Source:** the themes from the owner and designer (Desktop folder "ROW District website", React 18 + Vite) are now
+  `row/district-website` (still gitignored, like the old Next.js district site it replaces). Plan and checks:
+  `docs/plans/2026-11-23-district-website-themes-wiring.md`.
+- **Data (done):** `source/src/shared/live.ts` was a RIZones client (admin and mobile routes through a token proxy;
+  member rosters, presidents' phones, birthdays). It now reads only ROW's anonymous `api/public/district/{id}/...`
+  routes. The district comes from the site's host (`by-host`), or `?district=<id>` on localhost. Times shown in the
+  visitor's zone. The token proxy, the saved RIZones District 3141 data, its photos and the theme previews are deleted;
+  decorative photo slots use the district's own project photos.
+- **API (done):** district project list takes `clubId` and returns beneficiaries, cost and hours; the public club list
+  returns each club's member count. No member names leave the API.
+- **Theme choice (done):** `district_websites.theme_key` (script `row/database/maintenance/2026-11-23-district-website-theme.sql`,
+  rollback `-down.sql`, also in DatabaseInitializer and schema.sql); `GET/PUT api/districts/{id}/website-data/theme`
+  (district Admin or SuperAdmin, allow-list of 7 keys); `by-host` returns `themeKey`; admin page
+  My District Website > Website Theme; `row/district-website/index.html` sends visitors to the chosen theme.
+- **Neutral content (done):** `shared/content.js` has page copy only (no 3141, Mumbai, India, rizones, people); money
+  in the brand's currency and number locale (`R.fmt.money`), no lakh/crore or rupee icons.
+- **Production, not done:** run the theme SQL script on `row_production` (needs the owner's OK); host the built
+  folders on IIS with `/api`, `/uploads`, `/Documents` reaching the API (or set `<meta name="row-api">`).
+- **Fonts self-hosted (done):** the themes no longer call Google Fonts or Fontshare. `shared/fonts/<theme>.css` +
+  `shared/fonts/files/*.woff2` (latin, latin-ext; 932 KB; Google fonts under the OFL, Clash Display and Satoshi under
+  the ITF Free Font License). Ether now really gets Satoshi (the original Fontshare URL only returned Clash Display).
+  The 91-page sweep shows no request to any outside host. Page titles no longer say 3141.
+
 ## 2026-11-20: full test pass, two real bugs fixed (not committed)
 
 - **Chat with an emoji failed (done, SQL to run on production):** 26 ROW tables (chat, comm templates, translations,

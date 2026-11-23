@@ -28,7 +28,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useParams, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import {
-  ArrowLeft, Loader2, Search, Plus, Edit3, Download,
+  ArrowLeft, Loader2, Search, Plus, Download,
 } from "@/components/icons";
 import { getClub, getTerminatedMembers } from "@/services/api";
 import { TerminatedMember } from "@/types/club";
@@ -258,7 +258,6 @@ export default function TerminatedMembersV2Page() {
                     <th className="px-3 py-2.5 text-left whitespace-nowrap">Admission Date</th>
                     <th className="px-3 py-2.5 text-left whitespace-nowrap">Termination Date</th>
                     <th className="px-3 py-2.5 text-left">Termination Reason</th>
-                    {canManage && <th className="px-3 py-2.5 text-right w-16">Edit</th>}
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
@@ -282,23 +281,12 @@ export default function TerminatedMembersV2Page() {
                             <span className="text-xs text-slate-400">–</span>
                           )}
                         </td>
-                        {canManage && (
-                          <td className="px-3 py-2 text-right">
-                            <Link
-                              href={`/clubs/${clubId}/rotary-network/terminated-members/v2/${r.id}/edit?returnTo=${returnTo}`}
-                              className="inline-flex items-center justify-center w-7 h-7 rounded text-slate-500 hover:text-blue-700 hover:bg-blue-50"
-                              aria-label="Edit termination"
-                            >
-                              <Edit3 size={13} />
-                            </Link>
-                          </td>
-                        )}
                       </tr>
                     );
                   })}
                   {records.length === 0 && (
                     <tr>
-                      <td colSpan={canManage ? 9 : 8} className="px-4 py-10 text-center text-slate-400">
+                      <td colSpan={8} className="px-4 py-10 text-center text-slate-400">
                         {search
                           ? "No terminated members match your search."
                           : "No terminated members recorded yet."}

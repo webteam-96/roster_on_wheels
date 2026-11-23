@@ -110,7 +110,7 @@ export default function DistrictAnnouncementsV2EditPage() {
   const params = useParams();
   const districtId = Number(params.id);
   const announcementId = Number(params.announcementId);
-  const { navigateAfterSave } = useV2ReturnTo(`/districts/${districtId}/announcements`);
+  const { navigateAfterSave } = useV2ReturnTo(`/district-admin-dashboard/communication?tab=announcements`);
 
   const [districtName, setDistrictName] = useState("");
   const [loading, setLoading] = useState(true);

@@ -370,14 +370,14 @@ export default function SettingsPage() {
 
         {/* Pinned quick-access modules — one row of small cards, always visible. */}
         {pinnedCards.length > 0 && (
-          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2">
+          <div className="flex flex-wrap gap-2">
             {pinnedCards.map((card) => (
               <button
                 key={card.href}
                 type="button"
                 onClick={() => { setNavigatingHref(card.href); router.push(card.href); }}
                 disabled={navigatingHref === card.href}
-                className={`flex flex-col items-center justify-center gap-1.5 rounded-lg border border-slate-200 bg-card p-2.5 text-center shadow-sm transition hover:border-primary/40 hover:shadow-md ${navigatingHref === card.href ? "opacity-70 pointer-events-none" : ""}`}
+                className={`flex min-w-[9rem] flex-1 flex-col items-center justify-center gap-1.5 rounded-lg border border-slate-200 bg-card p-2.5 text-center shadow-sm transition hover:border-primary/40 hover:shadow-md ${navigatingHref === card.href ? "opacity-70 pointer-events-none" : ""}`}
               >
                 <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-primary">
                   {navigatingHref === card.href ? <RotaryLoader size="sm" /> : <card.icon className="h-4 w-4" />}

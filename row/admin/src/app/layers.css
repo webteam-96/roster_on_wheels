@@ -2,3 +2,10 @@
    layout.tsx): the first file that names a layer fixes its rank, and Turbopack inlines globals.css's @imports
    above anything written in globals.css itself. */
 @layer reset, tw-base, astryx-base, astryx-theme, tw-components, tw-utilities;
+
+/* Astryx's reset gives every <p> the primary text colour (`:where(p)`), so a paragraph inside a coloured container
+   (white text on a navy tile, a tinted badge) ignored the container's colour and came out dark. Inherit instead: the
+   body colour is the same ink, so plain text does not change. */
+@layer tw-base {
+  :where(p) { color: inherit; }
+}

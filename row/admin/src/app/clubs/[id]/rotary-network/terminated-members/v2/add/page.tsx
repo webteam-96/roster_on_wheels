@@ -19,11 +19,10 @@
  */
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import DateField from "@/components/DateField";
 import { useParams } from "next/navigation";
 import Image from "next/image";
 import {
-  Info, User, Search, UserMinus, Calendar, MessageSquare, AlertTriangle,
+  Info, User, Search, UserMinus, Calendar, AlertTriangle,
 } from "@/components/icons";
 import {
   getClub,
@@ -47,8 +46,7 @@ import { ListPageSkeleton } from "@/components/row/AppKit";
 const TOP_MESSAGE =
   "Terminating a member soft-deletes their membership for THIS club only. " +
   "Their master profile, login, and other-club memberships are preserved. " +
-  "The backend stamps today's date and the reason you select below on the club_members row " +
-  "and cascades to BOD, district committee, and sub-group entries for this club.";
+  "Today's date and the reason you select are recorded on the membership, and the change cascades to BOD, district committee, and sub-group entries for this club.";
 
 // Standard reason list — chip colour-coded in the listing.
 const TERMINATION_REASONS = [
@@ -101,10 +99,7 @@ export default function TerminatedMembersV2AddPage() {
 
   // Form fields
   const [selectedMember, setSelectedMember] = useState<ClubMemberItem | null>(null);
-  const today = new Date().toISOString().split("T")[0];
-  const [terminationDate, setTerminationDate] = useState<string>(today);
   const [terminationReason, setTerminationReason] = useState<string>("");
-  const [notes, setNotes] = useState<string>("");
 
   // Member autocomplete
   const [memberSearch, setMemberSearch] = useState("");
@@ -172,10 +167,7 @@ export default function TerminatedMembersV2AddPage() {
 
   const validate = (): string | null => {
     if (!selectedMember) return "Please select a member to terminate.";
-    if (!terminationDate) return "Termination date is required.";
-    if (new Date(terminationDate) > new Date()) return "Termination date cannot be in the future.";
     if (!terminationReason) return "Please select a termination reason.";
-    if (notes.trim().length > 1000) return "Notes must be 1000 characters or less.";
     return null;
   };
 
@@ -372,15 +364,9 @@ export default function TerminatedMembersV2AddPage() {
           )}
         </SectionCard>
 
-        {/* 2. Termination Details */}
-        <SectionCard number={2} icon={Calendar} title="Termination Details (will be ignored by backend: pending API)" dot="bg-[#17458F]">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <FieldLabel dot="bg-[#17458F]">Termination Date <span className="text-slate-400 font-normal">(ignored by API)</span></FieldLabel>
-              <DateField value={terminationDate} onChange={setTerminationDate} max={today} className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]" />
-              <p className="text-xs text-slate-400 mt-0.5">Defaults to today. Backend stamps its own date.</p>
-            </div>
-            <div>
+        {/* 2. Reason (the server records today as the termination date) */}
+        <SectionCard number={2} icon={Calendar} title="Termination Reason" dot="bg-[#17458F]">
+          <div>
               <FieldLabel dot="bg-[#17458F]">Termination Reason</FieldLabel>
               <select
                 value={terminationReason}
@@ -394,21 +380,6 @@ export default function TerminatedMembersV2AddPage() {
               </select>
               <p className="text-xs text-slate-400 mt-0.5">Recorded on the member's termination record.</p>
             </div>
-          </div>
-        </SectionCard>
-
-        {/* 3. Notes */}
-        <SectionCard number={3} icon={MessageSquare} title="Notes (will be ignored by backend: pending API)" dot="bg-slate-600">
-          <FieldLabel dot="bg-slate-500" hint="(optional, max 1000 chars: ignored by API)" required={false}>Additional Context</FieldLabel>
-          <textarea
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-            placeholder="Any context to record alongside the termination… (not persisted)"
-            rows={4}
-            maxLength={1000}
-            className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
-          />
-          <p className="text-xs text-slate-400 text-right mt-0.5">{notes.length}/1000</p>
         </SectionCard>
 
         {/* Confirm dialog — same impact preview the v1 Members page shows. */}
@@ -433,7 +404,7 @@ export default function TerminatedMembersV2AddPage() {
                   Terminating <span className="font-semibold">{preview.memberName}</span>
                   {preview.emailId ? <span className="text-slate-500"> ({preview.emailId})</span> : null}
                   {" "}from <span className="font-semibold">{preview.clubName}</span>
-                  {" "}on <span className="font-semibold">{terminationDate}</span>
+                  {" "}today
                   {" "}({terminationReason}).
                 </p>
                 {preview.isLastClub && (

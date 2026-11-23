@@ -3008,6 +3008,48 @@ public class DistrictModulesController : ControllerBase
     // ── District Website Data: About ─────────────────────────────────────
     // ══════════════════════════════════════════════════════════════════════
 
+    // Which district website theme the public site uses (district_websites.theme_key, NULL = ether). Same guard as
+    // About: ScopeWriteGuardMiddleware lets only SuperAdmin or this district's Admin write under api/districts/{id}.
+    [HttpGet("api/districts/{districtId}/website-data/theme")]
+    public async Task<ActionResult> GetDistrictWebsiteTheme(int districtId)
+    {
+        if (!await RotaryApi.Services.KillSwitchHelper.IsDistrictDrillReachableAsync(_connectionString, districtId)) return StatusCode(403, new { message = "This district or its zone is inactive. Reactivate it first to access this data." });
+        using var conn = CreateConnection();
+        await conn.OpenAsync();
+        var site = await conn.QueryFirstOrDefaultAsync<dynamic>(@"
+            SELECT pk_id AS id, theme_key AS themeKey FROM district_websites
+            WHERE fk_district_id = @DistrictId AND isdeleted = 0
+            ORDER BY created_date DESC LIMIT 1",
+            new { DistrictId = districtId });
+        return Ok(new
+        {
+            hasWebsite = site != null,
+            themeKey = DistrictWebsiteThemes.Normalize((string?)site?.themeKey),
+            themes = DistrictWebsiteThemes.Keys,
+        });
+    }
+
+    public class DistrictWebsiteThemeDto { public string ThemeKey { get; set; } = ""; }
+
+    [HttpPut("api/districts/{districtId}/website-data/theme")]
+    public async Task<ActionResult> UpdateDistrictWebsiteTheme(int districtId, [FromBody] DistrictWebsiteThemeDto dto)
+    {
+        if (!DistrictWebsiteThemes.IsValid(dto?.ThemeKey)) return BadRequest(new { message = "Unknown theme." });
+        if (!await RotaryApi.Services.KillSwitchHelper.IsDistrictDrillReachableAsync(_connectionString, districtId)) return StatusCode(403, new { message = "This district or its zone is inactive. Reactivate it first to access this data." });
+        var key = DistrictWebsiteThemes.Normalize(dto!.ThemeKey);
+        using var conn = CreateConnection();
+        await conn.OpenAsync();
+        // Same row the public site resolves: the newest live website of this district.
+        var updated = await conn.ExecuteAsync(@"
+            UPDATE district_websites w
+            JOIN (SELECT pk_id FROM district_websites WHERE fk_district_id = @DistrictId AND isdeleted = 0
+                  ORDER BY created_date DESC LIMIT 1) t ON t.pk_id = w.pk_id
+            SET w.theme_key = @Key, w.modified_by = @UserId",
+            new { DistrictId = districtId, Key = key, UserId = GetUserId() });
+        if (updated == 0) return NotFound(new { message = "This district has no website yet." });
+        return Ok(new { themeKey = key, message = "Website theme saved." });
+    }
+
     // About is NOT year-wise — one About per district, persisting across years.
     [HttpGet("api/districts/{districtId}/website-data/about")]
     public async Task<ActionResult> GetDistrictAbout(int districtId)

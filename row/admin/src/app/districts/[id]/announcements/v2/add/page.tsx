@@ -104,7 +104,7 @@ export default function DistrictAnnouncementsV2AddPage() {
   useSyncDistrictIdFromUrl();
   const params = useParams();
   const districtId = Number(params.id);
-  const { navigateAfterSave } = useV2ReturnTo(`/districts/${districtId}/announcements`);
+  const { navigateAfterSave } = useV2ReturnTo(`/district-admin-dashboard/communication?tab=announcements`);
 
   const [districtName, setDistrictName] = useState("");
   const [loading, setLoading] = useState(true);

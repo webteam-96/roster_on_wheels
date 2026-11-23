@@ -4,6 +4,32 @@ Last session: **2026-11-17** (audit fixes, UTC storage, legal pages, translation
 below and `ROW-CHANGES.md`). A new session starts here, then continues with **"Next task"** below without
 re-reading whole codebases (use `kb/README.md` and the graphify commands in the root `CLAUDE.md`).
 
+**2026-11-23, district website:** the 7 designed themes now run on ROW data in `row/district-website` (gitignored).
+Run: API on :5000 (local DB data dir `_local/rowdb/data`, port 3317), then `cd row/district-website/source && npx vite`,
+open `http://localhost:5173/<theme>/?district=1` (5656). Build: `npx vite build --mode <theme> && node scripts/pages.mjs <theme>`.
+Checked: 91 pages (7 themes x 13) with no errors and no RIZones text, all 7 builds, admin theme save -> site follows,
+api.Tests 625 passed. Open: theme SQL on production (prod DB login from this PC now lacks rights on row_production), IIS hosting. Fonts self-hosted. See ROW-CHANGES 2026-11-23.
+
+**2026-11-23, live QA pass (owner asked; all modules on):** findings, recordings and the run order for fixes are in
+`_local/qa/live-2026-11-23/FINDINGS.md`. Tools: `kb/tools/live_qa.py` (recorded page crawl per login, 1440/768/375),
+`kb/tools/live_flows.py` (recorded add -> list -> delete on club forms), `kb/tools/schema_catchup.py` (guarded
+schema catch-up from the local copy). Production needs `_local/deploy/sql/2026-11-23-full-schema-catchup.sql`
+(dues 500s, WordPress documents 500) and the rebuilt api + admin. Super Admin was crawled inside the owner's Chrome
+(the extension blocks reading the session token, so it cannot be moved into Playwright).
+
+**2026-11-23, club website hosting fixed (http):** ConnectReseller DNS A `*.test.rosteronwheels.com` -> 163.128.34.90;
+Plesk wildcard subdomain `*.test.rosteronwheels.com` serving the club-site build. `http://rctcv.test.rosteronwheels.com`
+loads (200, deep links too). Open: wildcard SSL for `*.test` (Let's Encrypt via DNS TXT at ConnectReseller, manual renew
+every 90 days, or a bought cert). District site: rebuilt with `VITE_ROW_API=https://test.rosteronwheels.com` (live.ts falls back to it when the
+page has no `row-api` meta) + `web.config` (clean URLs -> .html); in `_local/deploy/district-website/`. Host: one named
+Plesk subdomain per district (5656 = `rid5656.test.rosteronwheels.com`, its live `district_websites.Subdomain`); named
+beats the `*.test` wildcard, same cert + CORS. Not yet uploaded.
+
+**2026-11-23, deploy folder:** `_local/deploy/` rebuilt for `api/` (no appsettings / web.config / wwwroot), `admin/`
+(/admin) and new `district-website/` (7 themes + `index.html` + `shared/`); `sql/` holds the 3 pending production scripts
+(run in order: competitor-gap catch-up, utf8mb4, district theme). root, club-website, workers unchanged since 20 Nov.
+The production scripts are NOT run: this PC's DB login has no rights on `row_production`.
+
 **2026-10-29, club website themes:** the club site's themes are now a port of the RIZones club site's 11 themes
 (`E:\websites\Club-Website-reactjs\Club-Website-reactjs`, copy-source only). Plan, how it works and progress:
 `docs/plans/2026-10-29-club-themes-rizones-port.md`; proof and open items: `docs/claude/STATUS.md`. Earlier club
@@ -287,7 +313,7 @@ git worktree + DB copy per lane; `integrate.sh <id>` then `resolve.py <id>` merg
   with `utf8mb4_unicode_ci`, then start the API once with `Database__SkipInit=false` to add tables the code has
   but prod lacks. Prod password hashes come with the copy; to log in locally, reset a hash in the copy only.
   Data dir (2026-10-21):
-  `C:\Users\USER\AppData\Local\Temp\claude\E--websites-row\90aa448c-26b5-4793-8f68-287ce64e72b4\scratchpad\rowdb\data`;
+  `E:/websites/row/_local/rowdb/data` (the 2026-10-21 Temp copy is gone; checked 2026-11-23);
   start: `mysqld --datadir=<that dir> --port=3317 --bind-address=127.0.0.1 --mysqlx=OFF --console`.
 - API: from `row/api`, set `ASPNETCORE_ENVIRONMENT=Development`, `ConnectionStrings__DefaultConnection` to the
   local database, a random `JwtSettings__Secret`, `Database__SkipInit=true`, then

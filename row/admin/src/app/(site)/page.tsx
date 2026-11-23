@@ -1,7 +1,6 @@
 import { Hero } from "@/components/site/Hero";
 import { AboutSection } from "@/components/site/AboutSection";
 import { AreasOfFocus, AREAS } from "@/components/site/AreasOfFocus";
-import { HighlightCards } from "@/components/site/HighlightCards";
 import { WebDirectories } from "@/components/site/WebDirectories";
 import { SiteFooter } from "@/components/site/SiteFooter";
 import { ScrubMarquee } from "@/components/motion/ScrubMarquee";
@@ -21,7 +20,6 @@ export default function HomePage() {
       <AboutSection />
       <AreasOfFocus />
       <ScrubMarquee text="Service Above Self" serif className="bg-paper" />
-      <HighlightCards />
       <WebDirectories />
       <SiteFooter />
     </>

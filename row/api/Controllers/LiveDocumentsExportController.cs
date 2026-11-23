@@ -39,12 +39,12 @@ public class LiveDocumentsExportController : ControllerBase
                 => await GetOcvDocumentsAsync(conn, clubId, yearId, module),
 
             // ── Club Modules ──
-            "projects" or "community_service" => await GetProjectsAsync(conn, clubId, yearId, null),
-            "vocational_service" => await GetProjectsAsync(conn, clubId, yearId, "vocational-service"),
-            "international_service" => await GetProjectsAsync(conn, clubId, yearId, "international-service"),
-            "new_generation_service" => await GetProjectsAsync(conn, clubId, yearId, "new-generation-service"),
-            "public_image_initiative" => await GetProjectsAsync(conn, clubId, yearId, "public-image-initiative"),
-            "club_service" => await GetProjectsAsync(conn, clubId, yearId, "club-service"),
+            "projects" => await GetProjectsAsync(conn, clubId, yearId, null),
+            // module_master.ModuleKey uses underscores; the hyphenated keys matched nothing (QA 2026-11-23: five avenues
+            // said "No data found" and Community Service listed every avenue).
+            "community_service" or "vocational_service" or "international_service" or "new_generation_service"
+                or "public_image_initiative" or "club_service"
+                => await GetProjectsAsync(conn, clubId, yearId, module.ToLowerInvariant()),
             "announcements" => await GetAnnouncementsAsync(conn, clubId, yearId),
             "upcoming_events" => await GetUpcomingEventsAsync(conn, clubId, yearId),
             "newsletters" => await GetNewslettersAsync(conn, clubId, yearId),

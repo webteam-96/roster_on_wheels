@@ -225,7 +225,10 @@ public class EmailService : IEmailService
         var brevo = _configuration.GetSection("Brevo");
         var apiKey = brevo["ApiKey"] ?? throw new InvalidOperationException("Brevo:ApiKey is not configured.");
         var apiUrl = brevo["ApiUrl"] ?? "https://api.brevo.com/v3/smtp/email";
-        var senderEmail = string.IsNullOrWhiteSpace(fromEmail) ? MASS_EMAIL_SENDER_EMAIL : fromEmail;
+        // No tenant sender and no Brand:CommunicationEmail set: use the transactional sender, or Brevo refuses the
+        // send with "sender email is missing" (found on the live test host 2026-11-23).
+        var senderEmail = new[] { fromEmail, MASS_EMAIL_SENDER_EMAIL, brevo["SenderEmail"], RotaryApi.Services.Brand.NoReplyEmail }
+            .FirstOrDefault(e => !string.IsNullOrWhiteSpace(e));
         var defaultSenderName = brevo["SenderName"] ?? "ROW";
         var effectiveFromName = !string.IsNullOrWhiteSpace(fromName) ? fromName!.Trim() : defaultSenderName;
 

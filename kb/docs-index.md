@@ -74,15 +74,16 @@ open the file for the text. Do not edit by hand.
   -   19. Gates
   - … 15 more headings
 
-## row (72 documents)
+## row (75 documents)
 
-- **row/HANDOFF.md** (18 KB)
+- **row/HANDOFF.md** (28 KB)
   - ROW: session handoff (read this first)
   -   Ground rules (from the user)
   -   Done on 2026-10-19
   -   Done on 2026-10-21
   -   Done on 2026-10-23
-  -   Resume here (stopped 2026-11-17 19:25, owner: "resume tomorrow")
+  -   Resume here (stopped 2026-11-18 evening, owner: "we work tomorrow")
+  -   Earlier: resume point (stopped 2026-11-17 19:25, owner: "resume tomorrow")
   -   Next task (2026-11-17)
   -   Still pending after Wave 1
   -   Known gaps and flags
@@ -112,8 +113,16 @@ open the file for the text. Do not edit by hand.
   -   Configuration (set per server as environment variables; never commit values)
   -   Checks
   -   Refreshing from a newer RIZones copy
-- **row/ROW-CHANGES.md** (97 KB)
+- **row/ROW-CHANGES.md** (119 KB)
   - ROW changes to consider later
+  -   2026-11-23: admin UI fixes from the owner's live review (not committed)
+  -   2026-11-23: test-site sign-in fails with 500 (found; fix waits for the server)
+  -   2026-11-23: district website = the 7 designed themes on ROW data (not committed)
+  -   2026-11-20: full test pass, two real bugs fixed (not committed)
+  -   2026-11-20: OMS ROW-60 to ROW-69 (not committed)
+  -   2026-11-19: Member directory export, competitor-gap plan (not committed)
+  -   2026-11-19: RIZones pull of 9-17 Nov ported (worktree `E:/row-lanes/rizones-1117`, branch `feat/rizones-pull-2026-11-17`, not committed)
+  -   2026-11-18: Audit fixes, OMS ROW-54/55, app fixes, link previews, Madras Legacy removed (not committed)
   -   Club website replaced (2026-11-17, done)
   -   Security and privacy
   -   Providers
@@ -130,15 +139,7 @@ open the file for the text. Do not edit by hand.
   -   Rotary.org group (ported 2026-10-10)
   -   Testing against the .NET API (2026-10-10)
   -   Background services (2026-10-10)
-  -   Upstream sync (2026-10-10, reference cb3e678)
-  -   Session 3 (2026-10-12)
-  -   2026-10-19 — WhatsApp and SMS removed (ROW is in-app + email only)
-  -   2026-10-21: Tenant lifecycle and editions (Wave 1 Task 5, build spec items 1 and 5)
-  -   2026-10-21: String catalogue (Wave 1 Task 6, build spec item 3)
-  -   2026-10-19: Fellowship design port (admin + mobile)
-  -   2026-10-23: Skipped modules removed, 10 new spec modules, security fixes
-  -   2026-10-23 (part 2): security and read review, time zones, planning mode, escalation, rebranding
-  - … 11 more headings
+  - … 19 more headings
 - **row/STATUS-REPORT.md** (6 KB)
   - ROW status report (updated 2026-10-23, evening)
   -   Done (verified on a local copy of production, `row_prod_copy`)
@@ -298,6 +299,21 @@ open the file for the text. Do not edit by hand.
   -   4. Site "row-club-websites"
   -   5. Before opening it to anyone
   -   6. Smoke test after copying
+- **row/deploy/workers/README.md** (3 KB)
+  - ROW background workers on the server
+  -   1. Build (dev PC)
+  -   2. Upload
+  -   3. Set up (server, elevated PowerShell, in the uploaded folder)
+  -   4. Rotary.org sync (owner decision)
+  -   5. RCC goals worker (optional)
+- **row/district-website/README.md** (2 KB)
+  - ROW District website — 7 React themes
+  -   Folders
+  -   Run (React dev server, no build)
+  -   Build
+  -   Data
+- **row/integrations/wordpress/row-connector/readme.txt** (1 KB)
+  - _=== ROW Connector ===_
 - **row/mobile/ANALYSIS.md** (7 KB)
   - Frontend Analysis Report — Rotary Zones 4,5,6,7 & 8 Admin
   -   1. PROJECT OVERVIEW
@@ -632,7 +648,7 @@ open the file for the text. Do not edit by hand.
   -   The normal scheduled run is separate
   -   Checking the database mapping (read-only)
 
-## reference (251 documents)
+## reference (255 documents)
 
 - **reference/RotaryIndia_Admin_API_Claude/Announcements.txt** (0 KB)
   - _Announcements:_
@@ -899,6 +915,12 @@ open the file for the text. Do not edit by hand.
   -   Build
   -   Deploy notes
   -   What's in Phase 1 (this commit)
+- **reference/RotaryIndia_Admin_API_Claude/MD_files/API_NOTE_District_Website_Theme_2026-11-20.md** (1 KB)
+  - District Website Theme API - note for the district website developer (2026-11-20)
+  -   1. Get the theme by district id (recommended)
+  -   2. Get the theme by the site's host name (if you don't have the district id)
+  -   Theme keys
+  -   Testing
 - **reference/RotaryIndia_Admin_API_Claude/MD_files/Admin_Role_Authentication_Module.md** (19 KB)
   - Admin Role & Authentication Module – Rotary Club Management Application
   -   Module Overview
@@ -972,6 +994,20 @@ open the file for the text. Do not edit by hand.
   -   The fix
   -   Web side
   -   What the app now does
+- **reference/RotaryIndia_Admin_API_Claude/MD_files/BACKEND_NOTE_ywar_make_admin_current_year_default_2026-11-18.md** (16 KB)
+  - Make Admin is unusable for a past-year admin — the current-year default poisons the grant
+  -   ✅ STATUS — IMPLEMENTED 2026-11-19, uncommitted
+  -   ⚠️ Read this first
+  -   What the user sees
+  -   Root cause
+  -   Why the year picker does not help
+  -   Why it has not been reported before
+  -   The fix
+  -   What must NOT change
+  -   Consequences to expect
+  -   Verification
+  -   Mobile
+  -   Files
 - **reference/RotaryIndia_Admin_API_Claude/MD_files/BACKEND_NOTE_ywar_project_photo_upload_yearless_2026-10-07.md** (6 KB)
   - Backend note — a past-year admin can add a project but not its photo
   -   What they hit
@@ -1209,6 +1245,15 @@ open the file for the text. Do not edit by hand.
   -   Where it shows on web (for reference)
 - **reference/RotaryIndia_Admin_API_Claude/MD_files/Members_list_add_Edit.md** (1 KB)
   - _Create members listing, add, edit, delete_
+- **reference/RotaryIndia_Admin_API_Claude/MD_files/PROJECTS_SEARCH_SPEC_2026-11-17.md** (12 KB)
+  - Public /projects page — search, filters, speed & redesign spec
+  -   1. Goal
+  -   2. What the live page does today (observed 2026-11-17)
+  -   3. Conditions catalogue (everything that can go wrong)
+  -   4. Speed — measured & target
+  -   5. Redesign proposal
+  -   6. Phasing
+  -   7. Decisions needed
 - **reference/RotaryIndia_Admin_API_Claude/MD_files/Pagination_LoadMore_Added_Log.md** (3 KB)
   - Load-More Pagination — Change Log
   -   ✅ Added
@@ -1254,9 +1299,10 @@ open the file for the text. Do not edit by hand.
   -   📄 OUTPUT FORMAT
   -   💡 TIPS FOR ACCURACY
   -   🏁 START COMMAND
-- **reference/RotaryIndia_Admin_API_Claude/MD_files/Rotary_AI_Assistant.md** (7 KB)
+- **reference/RotaryIndia_Admin_API_Claude/MD_files/Rotary_AI_Assistant.md** (9 KB)
   - Rotary AI Assistant
   -   How a question is answered
+  -   Several bots on one site
   -   What each role can see
   -   Where the code is
   -   Go-live checklist
@@ -1276,6 +1322,15 @@ open the file for the text. Do not edit by hand.
   -   Decisions to confirm
 - **reference/RotaryIndia_Admin_API_Claude/MD_files/Tech.txt** (6 KB)
   - _Plan to implement                                                                                                       _
+- **reference/RotaryIndia_Admin_API_Claude/MD_files/WEB_NOTE_ywar_all_clubs_district_admin_years_2026-11-19.md** (8 KB)
+  - All-clubs District Admin can open every club in the district and edit nothing in it
+  -   Symptom
+  -   Root cause — the server says yes, the payload never tells the client
+  -   Option considered and rejected
+  -   What was done instead — web only
+  -   Verification
+  -   Mobile — deliberately left as it is
+  -   Files
 - **reference/RotaryIndia_Admin_API_Claude/MD_files/WEB_NOTE_ywar_district_club_dues_2026-10-06.md** (3 KB)
   - Web note — District Club Dues shows buttons the server refuses
   -   The situation
@@ -2511,7 +2566,7 @@ open the file for the text. Do not edit by hand.
 - **reference/rotary_zones_45678_flutter/README.md** (0 KB)
   - rotary_flutter_app
   -   Getting Started
-- **reference/rotary_zones_45678_flutter/WORK_LOG.txt** (359 KB)
+- **reference/rotary_zones_45678_flutter/WORK_LOG.txt** (542 KB)
   - _========================================_
 - **reference/rotary_zones_45678_flutter/rotary_ui_redesign_prompt.md** (14 KB)
   - Rotary Zones 4,5,6,7 & 8 Admin — UI Redesign & Dynamic Theme System Prompt

@@ -4771,6 +4771,17 @@ export async function reorderDistrictSubMenusBulk(districtId: number, menuId: nu
   await api.put(`/api/districts/${districtId}/website-data/menus/${menuId}/submenus/reorder-bulk`, { orderedIds });
 }
 
+// ===== DISTRICT WEBSITE DATA: THEME =====
+export interface DistrictWebsiteTheme { hasWebsite: boolean; themeKey: string; themes: string[] }
+export async function getDistrictWebsiteTheme(districtId: number): Promise<DistrictWebsiteTheme> {
+  const res = await api.get(`/api/districts/${districtId}/website-data/theme`);
+  return res.data;
+}
+export async function updateDistrictWebsiteTheme(districtId: number, themeKey: string) {
+  const res = await api.put(`/api/districts/${districtId}/website-data/theme`, { themeKey });
+  return res.data;
+}
+
 // ===== DISTRICT WEBSITE DATA: ABOUT =====
 export async function getDistrictAbout(districtId: number) {
   const res = await api.get(`/api/districts/${districtId}/website-data/about`);

@@ -111,7 +111,7 @@ export default function DistrictUpcomingEventsV2AddPage() {
   useSyncDistrictIdFromUrl();
   const params = useParams();
   const districtId = Number(params.id);
-  const { navigateAfterSave } = useV2ReturnTo(`/districts/${districtId}/upcoming-events`);
+  const { navigateAfterSave } = useV2ReturnTo(`/district-admin-dashboard/communication?tab=events`);
 
   const [districtName, setDistrictName] = useState("");
   const [loading, setLoading] = useState(true);

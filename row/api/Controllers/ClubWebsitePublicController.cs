@@ -258,6 +258,16 @@ public class ClubWebsitePublicController : ControllerBase
         var clubName = (string)club.clubName;
         var title = PreviewPages.TryGetValue(segment, out var page) ? $"{page} | {clubName}" : clubName;
         var description = $"{clubName}, Rotary District {club.districtNumber}. Projects, events and news from the club.";
+        // The search title / description the club set under Website Data > Languages ("Home page and whole site", in
+        // the site's default language) replace the defaults; before this they were saved but never shown anywhere.
+        var seo = await conn.QueryFirstOrDefaultAsync<(string? SeoTitle, string? SeoDescription)>(@"
+            SELECT t.seo_title, t.seo_description FROM website_translations t
+            LEFT JOIN website_languages l ON l.scope = 'club' AND l.owner_id = t.owner_id
+            WHERE t.scope = 'club' AND t.owner_id = @id AND t.item_type = 'site' AND t.item_id = 0
+              AND t.language = COALESCE(NULLIF(l.default_language, ''), @lang)
+            LIMIT 1", new { id = (int)club.clubId, lang = RotaryApi.Services.Brand.DefaultLanguage });
+        if (segment.Length == 0 && !string.IsNullOrWhiteSpace(seo.SeoTitle)) title = seo.SeoTitle.Trim();
+        if (!string.IsNullOrWhiteSpace(seo.SeoDescription)) description = seo.SeoDescription.Trim();
         var origin = $"{Request.Scheme}://{Request.Host}{Request.PathBase}";
         string? Media(string? v, string folder) => string.IsNullOrWhiteSpace(v) ? null
             : v.StartsWith("http", StringComparison.OrdinalIgnoreCase) ? v

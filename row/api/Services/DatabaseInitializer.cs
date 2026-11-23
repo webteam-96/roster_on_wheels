@@ -4587,6 +4587,10 @@ public partial class DatabaseInitializer
                         FOREIGN KEY (fk_district_id) REFERENCES district_master(pk_district_id)
                     )");
 
+                // The district's public site theme (DistrictWebsiteThemes); NULL = ether.
+                // Prod (SkipInit=true) applies database/maintenance/2026-11-23-district-website-theme.sql (undo: -down.sql).
+                await AddColumnIfNotExists(connection, "district_websites", "theme_key", "VARCHAR(32) NULL AFTER Notes");
+
                 await connection.ExecuteAsync(@"
                     CREATE TABLE IF NOT EXISTS district_website_logs (
                         pk_id INT AUTO_INCREMENT PRIMARY KEY,

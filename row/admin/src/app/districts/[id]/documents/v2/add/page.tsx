@@ -110,7 +110,7 @@ export default function DistrictDocumentsV2AddPage() {
   useSyncDistrictIdFromUrl();
   const params = useParams();
   const districtId = Number(params.id);
-  const { navigateAfterSave } = useV2ReturnTo(`/districts/${districtId}/documents`);
+  const { navigateAfterSave } = useV2ReturnTo(`/district-admin-dashboard/communication?tab=documents`);
 
   const [districtName, setDistrictName] = useState("");
   const [loading, setLoading] = useState(true);

@@ -26,10 +26,10 @@ public class EventMastersController : ControllerBase
 
     // ── T-shirt Sizes ─────────────────────────────────────────────
 
+    // Any signed-in user may read the list: the member form a club admin fills uses it. Changes stay SuperAdmin only.
     [HttpGet("tshirt-sizes")]
     public async Task<ActionResult> GetTshirtSizes()
     {
-        if (!IsSuperAdmin()) return StatusCode(403, new { message = "SuperAdmin only." });
         var result = await _service.GetTshirtSizesAsync();
         return Ok(result);
     }

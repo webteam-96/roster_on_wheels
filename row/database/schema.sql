@@ -2040,6 +2040,7 @@ CREATE TABLE `district_websites` (
   `ClientDomain` varchar(200) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `Status` varchar(20) COLLATE utf8mb4_unicode_ci DEFAULT 'Inactive',
   `Notes` varchar(1000) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `theme_key` varchar(32) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `created_by` int DEFAULT NULL,
   `created_date` datetime DEFAULT CURRENT_TIMESTAMP,
   `modified_by` int DEFAULT NULL,

@@ -251,7 +251,7 @@ public class DistrictWebsitePublicDataController : ControllerBase
         using var conn = CreateConn();
         await conn.OpenAsync();
         var row = await conn.QueryFirstOrDefaultAsync<dynamic>($@"
-            SELECT w.fk_district_id AS districtId, d.DistrictNumber AS districtNumber
+            SELECT w.fk_district_id AS districtId, d.DistrictNumber AS districtNumber, w.theme_key AS themeKey
             FROM district_websites w
             JOIN district_master d ON d.pk_district_id = w.fk_district_id
             JOIN zone_master z     ON z.pk_zone_id     = d.fk_zone_id
@@ -260,7 +260,12 @@ public class DistrictWebsitePublicDataController : ControllerBase
             ORDER BY CASE WHEN {cd} = @host THEN 0 WHEN {sd} = @host THEN 1 ELSE 2 END, w.created_date DESC
             LIMIT 1",
             new { host = normalized, label = normalized.Split('.')[0] });
-        return row == null ? NotFound() : Ok(new { districtId = (int)row.districtId, districtNumber = (string?)row.districtNumber });
+        return row == null ? NotFound() : Ok(new
+        {
+            districtId = (int)row.districtId,
+            districtNumber = (string?)row.districtNumber,
+            themeKey = DistrictWebsiteThemes.Normalize((string?)row.themeKey),
+        });
     }
 
     // Header and footer data in one call: number, logo, current year, contacts and social links.
@@ -479,7 +484,7 @@ public class DistrictWebsitePublicDataController : ControllerBase
         }));
     }
 
-    // Club finder: the district's active clubs with their meeting details and club website, if any.
+    // Club finder: the district's active clubs with their meeting details, member count and club website, if any.
     [HttpGet("{districtId:int}/clubs")]
     public async Task<ActionResult> GetClubs(int districtId, [FromQuery] string? search)
     {
@@ -491,6 +496,8 @@ public class DistrictWebsitePublicDataController : ControllerBase
                    c.MeetingDay AS meetingDay,
                    TIME_FORMAT(c.MeetingFromTime, '%H:%i') AS meetingFrom, TIME_FORMAT(c.MeetingToTime, '%H:%i') AS meetingTo,
                    c.MeetingAddress AS meetingAddress,
+                   (SELECT COUNT(DISTINCT cm.fk_member_master_profile_id) FROM club_members cm
+                    WHERE cm.fk_club_id = c.pk_club_id AND cm.IsActive = 1 AND COALESCE(cm.isdeleted, 0) = 0) AS members,
                    (SELECT COALESCE(NULLIF(w.ClientDomain, ''), w.Subdomain) FROM club_websites w
                     WHERE w.fk_club_id = c.pk_club_id AND w.isdeleted = 0 ORDER BY w.created_date DESC LIMIT 1) AS website
             FROM club_master c

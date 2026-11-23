@@ -347,20 +347,20 @@ export default function AGPage() {
             {agList.map((ag) => (
               <Card key={ag.memberId} className="hover:shadow-md transition-all">
                 <CardContent className="p-5">
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-center gap-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex min-w-0 items-center gap-4">
                       {ag.profilePhoto ? (
                         <img src={getPhotoUrl(ag.profilePhoto)} alt={ag.memberName} className="w-12 h-12 rounded-full object-cover" />
                       ) : (
                         <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-lg font-bold text-primary">{ag.memberName?.charAt(0)}</div>
                       )}
-                      <div>
+                      <div className="min-w-0">
                         <p className="font-semibold text-base">{ag.memberName}</p>
-                        <p className="text-sm text-muted-foreground">{ag.mobile} | {ag.email}</p>
+                        <p className="text-sm text-muted-foreground [overflow-wrap:anywhere]">{ag.mobile} | {ag.email}</p>
                       </div>
                     </div>
                     {canManage && (
-                      <div className="flex items-center gap-1">
+                      <div className="flex shrink-0 items-center gap-1">
                         <Button variant="ghost" size="icon" onClick={() => openEditDialog(ag)}><Pencil className="h-4 w-4" /></Button>
                         <Button variant="ghost" size="icon" className="text-destructive" onClick={() => setDeleteTarget(ag)}><Trash2 className="h-4 w-4" /></Button>
                       </div>

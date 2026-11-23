@@ -647,6 +647,9 @@ public class ClubWebsitePublicDataController : ControllerBase
         public string? PrimaryPhotoPath { get; set; }
         public string? CreatedDate { get; set; }    // ISO datetime — used to pick the most-recently-uploaded project per avenue on the home page
         public string? ModifiedDate { get; set; }   // ISO datetime — latest edit timestamp
+        public int? DirectBeneficiaries { get; set; }
+        public decimal? ProjectCost { get; set; }
+        public int? ManHours { get; set; }
     }
 
     // Full project detail with every field + up to 5 photos. Used by /projects/[id] route.
@@ -754,16 +757,17 @@ public class ClubWebsitePublicDataController : ControllerBase
     // avenue: a project module key (community_service, …); empty = every avenue.
     [HttpGet("/api/public/district/{districtId:int}/projects")]
     public async Task<ActionResult<IEnumerable<PublicProjectDto>>> GetDistrictProjects(
-        int districtId, [FromQuery] int? yearId, [FromQuery] string? avenue, [FromQuery] int page = 1, [FromQuery] int pageSize = 24)
+        int districtId, [FromQuery] int? yearId, [FromQuery] string? avenue, [FromQuery] int page = 1, [FromQuery] int pageSize = 24,
+        [FromQuery] int? clubId = null)
     {
         using var conn = CreateConn();
         await conn.OpenAsync();
-        if (!await IsDistrictClubServiceableAsync(conn, districtId, null)) return NotFound();
+        if (!await IsDistrictClubServiceableAsync(conn, districtId, clubId)) return NotFound();
         if (!string.IsNullOrEmpty(avenue) && !ProjectModuleKeys.Contains(avenue)) return BadRequest(new { message = "Unknown avenue." });
         var keys = string.IsNullOrEmpty(avenue) ? ProjectModuleKeys : new[] { avenue };
         var year = yearId ?? await conn.ExecuteScalarAsync<int?>("SELECT pk_year_id FROM rotary_year_master WHERE IsCurrent = 1 AND isdeleted = 0 LIMIT 1");
         pageSize = Math.Clamp(pageSize, 1, 60);
-        return Ok(await QueryProjectsAsync(conn, 0, year, keys, includeMeetings: false,
+        return Ok(await QueryProjectsAsync(conn, clubId ?? 0, year, keys, includeMeetings: false,
             districtId: districtId, limit: pageSize, offset: (Math.Max(page, 1) - 1) * pageSize));
     }
 
@@ -1122,9 +1126,10 @@ public class ClubWebsitePublicDataController : ControllerBase
         MySqlConnection conn, int clubId, int? yearId, string[] moduleKeys, bool includeMeetings,
         int districtId = 0, int? limit = null, int offset = 0)
     {
-        // districtId > 0: every active club of that district instead of one club (district website)
+        // districtId > 0: every active club of that district instead of one club (district website); with clubId too, that one club
         var clubFilter = districtId > 0
             ? "p.fk_club_id IN (SELECT pk_club_id FROM club_master WHERE fk_district_id = @DistrictId AND isdeleted = 0 AND IsActive = 1)"
+              + (clubId > 0 ? " AND p.fk_club_id = @ClubId" : "")
             : "p.fk_club_id = @ClubId";
         // Year-wise: when yearId provided, hit that one year's tables; else UNION across all
         // existing year-wise tables. Primary photo is reconstructed via CONCAT — handles both
@@ -1167,7 +1172,10 @@ public class ClubWebsitePublicDataController : ControllerBase
                               ORDER BY ph.is_primary DESC, ph.sort_order, ph.pk_photo_id
                               LIMIT 1) AS PrimaryPhotoPath,
                              p.created_date  AS CreatedDate,
-                             p.modified_date AS ModifiedDate
+                             p.modified_date AS ModifiedDate,
+                             p.direct_beneficiaries AS DirectBeneficiaries,
+                             p.project_cost AS ProjectCost,
+                             p.man_hours AS ManHours
                       FROM `{t.ProjectsTable}` p
                       JOIN module_master mm ON mm.pk_module_id = p.fk_module_id
                       LEFT JOIN area_of_focus_master aof ON aof.pk_area_of_focus_id = p.fk_area_of_focus_id
@@ -1197,6 +1205,9 @@ public class ClubWebsitePublicDataController : ControllerBase
             PrimaryPhotoPath = (string?)r.PrimaryPhotoPath,
             CreatedDate      = r.CreatedDate is DateTime cd ? ZoneTime.Iso(cd) : null,
             ModifiedDate     = r.ModifiedDate is DateTime md ? ZoneTime.Iso(md) : null,
+            DirectBeneficiaries = r.DirectBeneficiaries is null ? null : Convert.ToInt32(r.DirectBeneficiaries),
+            ProjectCost      = r.ProjectCost is null ? null : Convert.ToDecimal(r.ProjectCost),
+            ManHours         = r.ManHours is null ? null : Convert.ToInt32(r.ManHours),
         }).ToList();
     }
 

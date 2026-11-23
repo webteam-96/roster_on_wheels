@@ -12,7 +12,7 @@ import { ArrowLeft } from "@/components/icons";
 import ProtectedRoute from "@/components/ProtectedRoute";
 
 // Super Admin > Features: platform-wide module switches (api/Services/FeatureGate.cs). Flagged modules are built
-// but off until switched on here; skipped modules are not part of ROW and are listed for reference only.
+// but off until switched on here. Skipped modules (not part of ROW) stay closed in the API and are not listed.
 export default function FeaturesPage() {
   const { isSuperAdmin } = useAuth();
   const [features, setFeatures] = useState<PlatformFeature[] | null>(null);
@@ -49,7 +49,6 @@ export default function FeaturesPage() {
   }
 
   const flagged = (features ?? []).filter((f) => f.kind === "flagged");
-  const skipped = (features ?? []).filter((f) => f.kind === "skipped");
 
   return (
     <ProtectedRoute>
@@ -81,15 +80,6 @@ export default function FeaturesPage() {
                       <span className="ml-auto text-muted-foreground">{f.enabled ? "On" : "Off"}</span>
                     </label>
                   ))}
-                </CardContent>
-              </Card>
-            </section>
-            <section className="space-y-2">
-              <h3 className="text-lg font-semibold">Not part of ROW</h3>
-              <p className="text-sm text-muted-foreground">These modules are hidden and their API is closed. Changing this needs a code change.</p>
-              <Card>
-                <CardContent className="divide-y p-0">
-                  {skipped.map((f) => <p key={f.key} className="p-4 text-sm">{f.label}</p>)}
                 </CardContent>
               </Card>
             </section>

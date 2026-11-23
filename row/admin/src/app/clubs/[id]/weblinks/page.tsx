@@ -465,7 +465,7 @@ export default function WeblinksPage() {
         {!loading && filteredWeblinks.length > 0 && (
           <Card>
             <CardContent className="p-0">
-              <Table>
+              <Table className="min-w-[640px]">
                 <TableHeader>
                   <TableRow className="bg-primary hover:bg-primary">
                     <TableHead className="w-12 text-base font-semibold">

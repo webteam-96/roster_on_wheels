@@ -114,7 +114,7 @@ export default function DistrictDocumentsV2EditPage() {
   const params = useParams();
   const districtId = Number(params.id);
   const documentId = Number(params.documentId);
-  const { navigateAfterSave } = useV2ReturnTo(`/districts/${districtId}/documents`);
+  const { navigateAfterSave } = useV2ReturnTo(`/district-admin-dashboard/communication?tab=documents`);
 
   const [districtName, setDistrictName] = useState("");
   const [loading, setLoading] = useState(true);
