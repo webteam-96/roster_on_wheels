@@ -93,21 +93,42 @@ unless marked "done"; decide them when the area is worked on.
 - **ROW-61 (done):** `ui/button.tsx` icon-only branch now passes the `asChild` link's `href` to Astryx. Every
   `<Button size="icon" asChild><Link>` (208 places, incl. all Settings back arrows) rendered a dead `<button>`;
   reproduced on the test host.
+  **2026-11-24 follow-up:** Settings > Payments and Dues > District Dues had no back arrow; added. Every Settings page's back
+  control was clicked in a browser under the `/admin` base path.
 - **ROW-63 (done):** `ui/button.tsx` looks inside a single Fragment child for the leading icon, so
   `{busy ? <Loader/> : <><Icon/>Text</>}` (~46 buttons) no longer stacks the icon above the text. Greetings "Save
   Settings": default size, no shadow, no paper-plane icon.
+  **2026-11-24 follow-up:** the district Greetings page gets the same Save button as the club page; while saving both read
+  "Saving…" (the button shrank to a near-blank box).
 - **ROW-60 (done):** `DateField` passes the caller's width classes to its outer box; in flex rows (reminders, wallet
   filters, 22 places) the calendar button sat far right of the input.
+  **2026-11-24 follow-up (app):** the Upcoming Events reminder date opened no calendar when the stored reminder was
+  already past (start date before the first allowed date); it now starts on today.
 - **ROW-62 (done):** Settings lists Email Credits (offline grants) while `modules.wallet` is off; Wallet hid it.
 - **ROW-65 (data, wording done):** club subscription has no price yet (Settings › Subscriptions). The panel now
   says why Subscribe is greyed out and drops "per year" after "Price not set yet".
+  **2026-11-24 follow-up:** after a checkout the panel shows "Payment received" / "did not go through" (the message was
+  lost when the club id loaded after it) and re-reads the status. Buy, renew and decline run through in a browser.
 - **ROW-66 (done):** role-assignment email joins the district from `member_roles.fk_district_id` first (District
   Admin rows have no club), labels it "District Admin", and fills details for Member rows; club names HTML-encoded.
+  **2026-11-24 follow-up (the 20 Nov fix did not work):** Member rows store no club, so their details stayed empty, and the
+  district Make Admin used a second copy of the table that printed "District  - ". Both now use
+  `Services/RoleAssignmentTable.cs` (member's club from `club_members`; deleted roles left out). Tests:
+  `api.Tests/RoleAssignmentTableTests.cs`.
 - **ROW-67 (done):** district project add/edit get the club crop step (`useImageCropQueue`, 16:9, 1600 px); district
   project list has a View icon for everyone, opening `ProjectDetailModal` (new optional `districtId`).
+  **2026-11-24 follow-up:** the old district dashboard's District Projects tile opens the v2 screens for district and super
+  admins (it opened the v1 ones, which have no crop step or View icon; admins of several districts land there).
 - **ROW-68 (done):** every project form already had 1000 / 500 except Club Service image captions (200, now 500 with a
   counter; column is varchar(500)).
+  **2026-11-24 follow-up (app):** the club project description had no limit (the save failed over 1000); now 1000, like the
+  district form.
 - **ROW-69 (done):** district communication add/edit/view-all return to their own `?tab=` (GML landed on events).
+  **2026-11-24 follow-up:** the way back also keeps the Rotary year picked in the selector.
+- **ROW-93 (2026-11-24):** the shared dashboard top bar (`DashboardShell`) wraps under the title instead of covering it (about
+  1024 px and narrower, or a laptop at 125% to 150% scaling). 23 Nov only fixed the avatars.
+- **District growth cards (owner, 2026-11-24):** on District Admin > Overview the "Membership growth by club" figures and stage
+  chips follow the club search. API: `ProspectsByStage` per club. `lib/growthTotals.ts` + test.
 - **Settings vs RIZones:** 8 RIZones-only cards are removed on purpose (WhatsApp x2, RI Director, Directory Data
   Collection, Zonal Awards, Direct Beneficiaries Limit, Goal Setting Oversight Roles, India Donate); wording
   differences are the no-dash rule and ROW naming.
@@ -132,15 +153,23 @@ unless marked "done"; decide them when the area is worked on.
   Area of Focus since categories were removed); admin `ClassificationAssist` + app `projects_screen`. A 501 from
   `/api/project-classification/suggest` (no `Gemini:ApiKey`) now shows "AI suggestions are not set up" instead of
   the red "AI unavailable". AI works only once a Gemini key is in the server's `api\web.config`.
+  **2026-11-24 follow-up (app):** `ApiClient` reported every 501/505+ as 500, so the app never reached its 501 check and
+  still showed "AI unavailable". It now keeps the real status. Test: `mobile/test/core/network/server_status_test.dart`.
 - **OMS ROW-57 (done):** the shared `ImageCropDialog` locks Save from the first click until the save ends. A second
   click while the crop was being drawn uploaded the same photo twice and also skipped the next queued photo.
+  **2026-11-24 follow-up:** X, Esc or a click outside no longer close the crop dialog while a photo is saving (Cancel was
+  already locked). Closing it then skipped the queue twice, so the next selected photo was lost without a message.
 - **OMS ROW-58 (done):** project emails hide Project Cost / Direct Beneficiaries / Man Hours when empty (Public Image
   has no beneficiaries field; it showed "-"). Email header logo now comes from the API,
   `GET api/public/brand/email-logo.png` (embedded badge); `{portal}/brand/...` was a 404 because the admin app lives
   under `/admin`.
+  **2026-11-24 follow-up:** membership dues emails had the same fault for a club's own logo (`{portal}/uploads/...`, a 404
+  under `/admin`); they now use the API address too. Tests for both emails: `api.Tests/EmailBrandingTests.cs`.
 - **OMS ROW-59 (done):** Attendance embedded in the club E-Governance tab sends Add/Edit back to that tab
   (`/club-admin-dashboard/e-governance?tab=attendance`), not the standalone listing whose Back led to the old
   `/clubs/{id}/dashboard`.
+  **2026-11-24 follow-up:** the standalone Attendance listing's Back also goes to the E-Governance tab (it still opened the
+  old dashboard), and the way back keeps the Rotary year picked in the selector.
 - **OMS ROW-48:** re-checked, still no code change: add-member (`MemberService`) and make-admin (`RoleService`) both
   send email; delivery needs a valid Brevo key on the server.
 

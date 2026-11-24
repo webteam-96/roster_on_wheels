@@ -11,7 +11,6 @@ import { Textarea } from "@/components/ui/textarea";
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
 import { ArrowLeft, MessageSquare, Mail, Info } from "@/components/icons";
-import RotaryLoader from "@/components/RotaryLoader";
 import Link from "next/link";
 import ClubAdminShell from "@/components/v2/ClubAdminShell";
 import { useSyncClubIdFromUrl } from "@/hooks/useSyncClubIdFromUrl";
@@ -362,7 +361,7 @@ export default function GreetingsSettingsPage() {
         {canManage && (
           <div className="flex justify-end pb-8">
             <Button onClick={handleSave} disabled={saving}>
-              {saving ? <RotaryLoader size="sm" /> : "Save Settings"}
+              {saving ? "Saving…" : "Save Settings"}
             </Button>
           </div>
         )}

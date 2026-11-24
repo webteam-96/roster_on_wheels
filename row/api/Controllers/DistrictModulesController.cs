@@ -1058,7 +1058,7 @@ public class DistrictModulesController : ControllerBase
         {
             if (member?.EmailId != null)
             {
-                var rolesHtml = await BuildAllRolesHtmlAsync(connection, memberId);
+                var rolesHtml = await RoleAssignmentTable.BuildAsync(connection, memberId);
                 await _emailService.SendRoleAssignmentEmailAsync((string)member.EmailId, (string)member.MemberName,
                     (string?)member.PrimaryMobileNumber, tempPassword, rolesHtml);
             }
@@ -1268,60 +1268,6 @@ public class DistrictModulesController : ControllerBase
             ORDER BY ClubName",
             new { DistrictId = districtId });
         return Ok(clubs);
-    }
-
-    private async Task<string> BuildAllRolesHtmlAsync(MySqlConnection connection, int memberId)
-    {
-        var roles = await connection.QueryAsync<dynamic>(@"
-            SELECT r.fk_role_id AS RoleId,
-                   CASE r.fk_role_id
-                       WHEN 2 THEN CASE WHEN r.fk_district_id IS NOT NULL THEN 'District Admin' ELSE 'Club Admin' END
-                       WHEN 3 THEN 'Super Admin'
-                       ELSE 'Member'
-                   END AS RoleName,
-                   c.ClubName,
-                   d.DistrictNumber,
-                   d2.DistrictNumber AS DirectDistrictNumber
-            FROM member_roles r
-            LEFT JOIN club_master c ON r.fk_club_id = c.pk_club_id
-            LEFT JOIN district_master d ON c.fk_district_id = d.pk_district_id
-            LEFT JOIN district_master d2 ON r.fk_district_id = d2.pk_district_id
-            WHERE r.fk_member_master_profile_id = @MemberId AND r.IsActive = 1 AND r.isdeleted = 0
-            ORDER BY r.fk_role_id", new { MemberId = memberId });
-
-        var html = "<table style='border-collapse: collapse; width: 100%; margin: 12px 0;'>"
-            + "<tr style='background-color: #17458F; color: white;'>"
-            + "<th style='padding: 8px 12px; text-align: left; border: 1px solid #D5DEE8;'>Role</th>"
-            + "<th style='padding: 8px 12px; text-align: left; border: 1px solid #D5DEE8;'>Details</th>"
-            + "</tr>";
-
-        foreach (var r in roles)
-        {
-            int roleId = (int)r.RoleId;
-            string roleName = (string)r.RoleName;
-            string details = "";
-
-            if (roleId == 2 && r.fk_district_id != null)
-            {
-                details = $"District {(string?)r.DirectDistrictNumber ?? ""}";
-            }
-            else if (roleId == 2)
-            {
-                var district = (string?)r.DistrictNumber ?? "";
-                var club = (string?)r.ClubName ?? "";
-                details = $"District {district} - {club}";
-            }
-            else if (roleId == 3)
-            {
-                details = "All Districts & Clubs";
-            }
-
-            html += $"<tr><td style='padding: 8px 12px; border: 1px solid #D5DEE8; font-weight: bold;'>{roleName}</td>"
-                  + $"<td style='padding: 8px 12px; border: 1px solid #D5DEE8;'>{details}</td></tr>";
-        }
-
-        html += "</table>";
-        return html;
     }
 
     private static string GenerateTempPassword()

@@ -129,6 +129,7 @@ public class DistrictGrowthClubDto
     public int NetGrowth => Joined - Terminated;
     public int? ProgressPercent => Target is > 0 ? (int)Math.Round(NetGrowth * 100.0 / Target.Value) : null;
     public int OpenProspects { get; set; }
+    public List<StageCountDto> ProspectsByStage { get; set; } = new();
 }
 
 public class DistrictGrowthDto

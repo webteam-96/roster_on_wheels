@@ -177,7 +177,7 @@ export default function ImageCropDialog({
   }, []);
 
   return (
-    <Dialog open={open} onOpenChange={(o) => !o && onCancel()}>
+    <Dialog open={open} onOpenChange={(o) => !o && !saving && onCancel()}>
       <DialogContent className="max-w-3xl">
         {/* ROW-54: Cancel / Save sit top right (pr-8 leaves room for the dialog's close X). */}
         <DialogHeader className="flex-row flex-wrap items-center justify-between gap-3 space-y-0 pr-8">

@@ -1025,7 +1025,9 @@ class _EventFormScreenState extends State<_EventFormScreen> {
                             onTap: () async {
                               final picked = await showDatePicker(
                                 context: context,
-                                initialDate: r.date ?? DateTime.now(),
+                                initialDate: r.date != null && r.date!.isAfter(DateTime.now())
+                                    ? r.date!
+                                    : DateTime.now(), // ROW-60: a past reminder opened no calendar
                                 firstDate: DateTime.now(),
                                 lastDate: DateTime(2100),
                               );

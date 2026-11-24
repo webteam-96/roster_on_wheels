@@ -7194,6 +7194,7 @@ export interface DistrictGrowthClub {
   netGrowth: number;
   progressPercent: number | null;
   openProspects: number;
+  prospectsByStage: StageCount[];
 }
 export interface DistrictGrowth {
   districtId: number;

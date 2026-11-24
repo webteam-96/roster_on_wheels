@@ -86,18 +86,19 @@ export default function SubscriptionPanel({ kind, ownerId }: { kind: Kind; owner
     }
   }, [kind, ownerId]);
 
-  // Back from the hosted checkout: the outcome comes from the server, then the status is read again.
+  // Back from the hosted checkout. Runs once: the token leaves the address on the first read, and the club id arrives
+  // later, so reading it together with load() lost the message (ROW-65).
   useEffect(() => {
-    let alive = true;
     readCheckoutReturn().then((outcome) => {
-      if (!alive || !outcome) return;
+      if (!outcome) return;
       setNotice(outcome === "paid" ? "Payment received. The subscription is active."
         : outcome === "pending" ? "The payment is being confirmed. This page updates once it is."
         : "The payment did not go through. Nothing has changed. You can try again.");
     });
-    load();
-    return () => { alive = false; };
-  }, [load]);
+  }, []);
+
+  // The status is read again once the outcome is known.
+  useEffect(() => { load(); }, [load, notice]);
 
   const term: SubscriptionTerm | null = kind === "club" ? club?.clubSubscription ?? null : district;
   const graceDays = (kind === "club" ? club?.graceDays : district?.graceDays) ?? 30;

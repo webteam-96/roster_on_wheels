@@ -134,7 +134,7 @@ public class RoleService : IRoleService
                 {
                     await using var emailConn = CreateConnection();
                     await emailConn.OpenAsync();
-                    var rolesHtml = await BuildAllRolesHtmlAsync(emailConn, request.MemberId);
+                    var rolesHtml = await RoleAssignmentTable.BuildAsync(emailConn, request.MemberId);
                     await _emailService.SendRoleAssignmentEmailAsync(emailToSend, memberNameToSend, mobileToSend, tempPassword, rolesHtml);
                 }
                 catch (Exception ex)
@@ -322,54 +322,6 @@ public class RoleService : IRoleService
             Page = page,
             PageSize = pageSize
         };
-    }
-
-    private async Task<string> BuildAllRolesHtmlAsync(MySqlConnection connection, int memberId)
-    {
-        // Get all active roles with details
-        var roles = await connection.QueryAsync<dynamic>(@"
-            SELECT r.fk_role_id AS RoleId,
-                   CASE r.fk_role_id
-                       WHEN 2 THEN 'Club Admin'
-                       WHEN 3 THEN 'Super Admin'
-                       WHEN 6 THEN 'AG'
-                       ELSE 'Member'
-                   END AS RoleName,
-                   c.ClubName,
-                   d.DistrictNumber
-            FROM member_roles r
-            LEFT JOIN club_master c ON r.fk_club_id = c.pk_club_id
-            -- A District Admin row has a district but no club (ROW-66).
-            LEFT JOIN district_master d ON d.pk_district_id = COALESCE(r.fk_district_id, c.fk_district_id)
-            WHERE r.fk_member_master_profile_id = @MemberId AND r.IsActive = 1
-            ORDER BY r.fk_role_id", new { MemberId = memberId });
-
-        var html = "<table style='border-collapse: collapse; width: 100%; margin: 12px 0;'>"
-            + "<tr style='background-color: #17458F; color: white;'>"
-            + "<th style='padding: 8px 12px; text-align: left; border: 1px solid #D5DEE8;'>Role</th>"
-            + "<th style='padding: 8px 12px; text-align: left; border: 1px solid #D5DEE8;'>Details</th>"
-            + "</tr>";
-
-        foreach (var r in roles)
-        {
-            int roleId = (int)r.RoleId;
-            string roleName = (string)r.RoleName;
-            var district = (string?)r.DistrictNumber ?? "";
-            var club = System.Net.WebUtility.HtmlEncode((string?)r.ClubName ?? "");
-            if (roleId == 2 && club == "") roleName = "District Admin";
-
-            // Every role but SuperAdmin shows where it applies; Member rows were blank before (ROW-66).
-            string details = roleId == 3 ? "All Districts & Clubs"
-                : club != "" ? $"District {district} - {club}"
-                : district != "" ? $"District {district}"
-                : "";
-
-            html += $"<tr><td style='padding: 8px 12px; border: 1px solid #D5DEE8; font-weight: bold;'>{roleName}</td>"
-                  + $"<td style='padding: 8px 12px; border: 1px solid #D5DEE8;'>{details}</td></tr>";
-        }
-
-        html += "</table>";
-        return html;
     }
 
     private static string GenerateTempPassword()

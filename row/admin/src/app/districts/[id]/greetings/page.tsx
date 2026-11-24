@@ -9,8 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
-import { ArrowLeft, MessageSquare, Mail, Send, Info } from "@/components/icons";
-import RotaryLoader from "@/components/RotaryLoader";
+import { ArrowLeft, MessageSquare, Mail, Info } from "@/components/icons";
 import Link from "next/link";
 import DistrictAdminShell from "@/components/v2/DistrictAdminShell";
 import { useSyncDistrictIdFromUrl } from "@/hooks/useSyncDistrictIdFromUrl";
@@ -278,8 +277,8 @@ export default function DistrictGreetingsSettingsPage() {
 
         {canManage && (
           <div className="flex justify-end pb-8">
-            <Button onClick={handleSave} disabled={saving} size="lg" className="shadow-md">
-              {saving ? <RotaryLoader size="sm" /> : <><Send className="mr-2 h-4 w-4" />Save Settings</>}
+            <Button onClick={handleSave} disabled={saving}>
+              {saving ? "Saving…" : "Save Settings"}
             </Button>
           </div>
         )}

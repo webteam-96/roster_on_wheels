@@ -7,6 +7,7 @@ import { useEffect, useMemo, useState } from "react";
 import { getDistrictGrowth, type DistrictGrowth } from "@/services/api";
 import { useFeatureOn } from "@/components/FeatureGate";
 import { CONTACTS_FEATURE } from "@/lib/contacts";
+import { growthTotals } from "@/lib/growthTotals";
 import { Skeleton } from "@/components/dashboard/DashboardSkeleton";
 import { Input } from "@/components/ui/input";
 import { Figure, ProgressBar, StageChips } from "./GrowthCard";
@@ -27,8 +28,12 @@ export default function DistrictGrowthCard({ districtId, yearId }: { districtId:
     return (growth?.clubs ?? []).filter((c) => !q || c.clubName.toLowerCase().includes(q));
   }, [growth, search]);
 
-  if (!on || growth === null) return null;
-  if (growth === undefined) {
+  // The figures follow the search; without one they are the district's own totals.
+  const searching = search.trim() !== "";
+  const totals = useMemo(() => (growth && searching ? growthTotals(clubs, growth.prospectsByStage) : growth), [growth, searching, clubs]);
+
+  if (!on || growth === null || totals === null) return null;
+  if (growth === undefined || totals === undefined) {
     return (
       <div className="space-y-3 rounded-[20px] border border-slate-200 bg-card p-5">
         <Skeleton className="h-4 w-56" />
@@ -49,16 +54,16 @@ export default function DistrictGrowthCard({ districtId, yearId }: { districtId:
       </div>
 
       <div className="mt-4 grid grid-cols-2 gap-3 md:grid-cols-5">
-        <Figure title="Targets set" value={`${growth.clubsWithTarget} clubs`} />
-        <Figure title="Target total" value={growth.targetTotal} />
-        <Figure title="Joined" value={growth.joined} />
-        <Figure title="Left" value={growth.terminated} />
-        <Figure title="Clubs at target" value={`${growth.clubsReached} of ${growth.clubsWithTarget}`} />
+        <Figure title="Targets set" value={`${totals.clubsWithTarget} clubs`} />
+        <Figure title="Target total" value={totals.targetTotal} />
+        <Figure title="Joined" value={totals.joined} />
+        <Figure title="Left" value={totals.terminated} />
+        <Figure title="Clubs at target" value={`${totals.clubsReached} of ${totals.clubsWithTarget}`} />
       </div>
 
       <div className="mt-4 space-y-2">
-        <p className="text-xs font-medium text-slate-500">Prospects by stage, all clubs</p>
-        <StageChips stages={growth.prospectsByStage} />
+        <p className="text-xs font-medium text-slate-500">{searching ? "Prospects by stage, matching clubs" : "Prospects by stage, all clubs"}</p>
+        <StageChips stages={totals.prospectsByStage} />
       </div>
 
       <div className="mt-4 max-h-96 overflow-auto rounded-lg border border-slate-200">

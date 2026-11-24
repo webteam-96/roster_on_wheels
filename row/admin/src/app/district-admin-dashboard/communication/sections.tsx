@@ -57,8 +57,9 @@ import type { DocumentListItem } from "@/types/document";
 import type { NewsletterListItem } from "@/types/newsletter";
 
 import { appLocale } from "@/lib/appFormat";
-// Back to the same tab after add / edit / view all (ROW-69: GML returned to Upcoming Events).
-const returnQs = (tab: string) => `?returnTo=${encodeURIComponent(`/district-admin-dashboard/communication?tab=${tab}`)}`;
+// Back to the same tab and Rotary year after add / edit / view all (ROW-69: GML returned to Upcoming Events).
+const returnQs = (tab: string, yearId?: string | null) =>
+  `?returnTo=${encodeURIComponent(`/district-admin-dashboard/communication?${yearId ? `yearId=${yearId}&` : ""}tab=${tab}`)}`;
 
 const STATUS_OPTIONS = [
   { value: "all", label: "All" },
@@ -423,7 +424,7 @@ export function UpcomingEventsSection({ districtId }: { districtId: number }) {
         onStatusChange={setStatus}
         search={search}
         onSearchChange={setSearch}
-        addHref={`/districts/${districtId}/upcoming-events/v2/add${returnQs("events")}`}
+        addHref={`/districts/${districtId}/upcoming-events/v2/add${returnQs("events", yearParams?.get("yearId"))}`}
         canAdd={canManage}
         editableYears={editableYears}
         currentYearOnly={currentYearLabel}
@@ -463,7 +464,7 @@ export function UpcomingEventsSection({ districtId }: { districtId: number }) {
                 </div>
                 <RowActions
                   onView={() => openView(e)}
-                  editHref={`/districts/${districtId}/upcoming-events/v2/${e.id}/edit${returnQs("events")}`}
+                  editHref={`/districts/${districtId}/upcoming-events/v2/${e.id}/edit${returnQs("events", yearParams?.get("yearId"))}`}
                   onDelete={() => setDeleteTarget(e)}
                   canEdit={canManage}
                   canDelete={canDelete}
@@ -473,7 +474,7 @@ export function UpcomingEventsSection({ districtId }: { districtId: number }) {
             {total > PAGE_SIZE_PREVIEW && (
               <li className="px-4 py-2 text-center">
                 <Link
-                  href={`/districts/${districtId}/upcoming-events${returnQs("events")}`}
+                  href={`/districts/${districtId}/upcoming-events${returnQs("events", yearParams?.get("yearId"))}`}
                   className="text-xs font-semibold text-blue-600 hover:text-blue-700"
                 >
                   View all {total} events →
@@ -614,7 +615,7 @@ export function AnnouncementsSection({ districtId }: { districtId: number }) {
         onStatusChange={setStatus}
         search={search}
         onSearchChange={setSearch}
-        addHref={`/districts/${districtId}/announcements/v2/add${returnQs("announcements")}`}
+        addHref={`/districts/${districtId}/announcements/v2/add${returnQs("announcements", yearParams?.get("yearId"))}`}
         canAdd={canManage}
         editableYears={editableYears}
         currentYearOnly={currentYearLabel}
@@ -668,7 +669,7 @@ export function AnnouncementsSection({ districtId }: { districtId: number }) {
                 </div>
                 <RowActions
                   onView={() => setViewItem(a)}
-                  editHref={`/districts/${districtId}/announcements/v2/${a.id}/edit${returnQs("announcements")}`}
+                  editHref={`/districts/${districtId}/announcements/v2/${a.id}/edit${returnQs("announcements", yearParams?.get("yearId"))}`}
                   onDelete={() => setDeleteTarget(a)}
                   canEdit={canManage}
                   canDelete={canDelete}
@@ -678,7 +679,7 @@ export function AnnouncementsSection({ districtId }: { districtId: number }) {
             {total > PAGE_SIZE_PREVIEW && (
               <li className="px-4 py-2 text-center">
                 <Link
-                  href={`/districts/${districtId}/announcements${returnQs("announcements")}`}
+                  href={`/districts/${districtId}/announcements${returnQs("announcements", yearParams?.get("yearId"))}`}
                   className="text-xs font-semibold text-blue-600 hover:text-blue-700"
                 >
                   View all {total} announcements →
@@ -801,7 +802,7 @@ export function DocumentsSection({ districtId }: { districtId: number }) {
         onStatusChange={setStatus}
         search={search}
         onSearchChange={setSearch}
-        addHref={`/districts/${districtId}/documents/v2/add${returnQs("documents")}`}
+        addHref={`/districts/${districtId}/documents/v2/add${returnQs("documents", yearParams?.get("yearId"))}`}
         canAdd={canManage}
         editableYears={editableYears}
         currentYearOnly={currentYearLabel}
@@ -843,7 +844,7 @@ export function DocumentsSection({ districtId }: { districtId: number }) {
                 </div>
                 <RowActions
                   onView={() => setViewItem(d)}
-                  editHref={`/districts/${districtId}/documents/v2/${d.id}/edit${returnQs("documents")}`}
+                  editHref={`/districts/${districtId}/documents/v2/${d.id}/edit${returnQs("documents", yearParams?.get("yearId"))}`}
                   onDelete={() => setDeleteTarget(d)}
                   canEdit={canManage}
                   canDelete={canDelete}
@@ -853,7 +854,7 @@ export function DocumentsSection({ districtId }: { districtId: number }) {
             {total > PAGE_SIZE_PREVIEW && (
               <li className="px-4 py-2 text-center">
                 <Link
-                  href={`/districts/${districtId}/documents${returnQs("documents")}`}
+                  href={`/districts/${districtId}/documents${returnQs("documents", yearParams?.get("yearId"))}`}
                   className="text-xs font-semibold text-blue-600 hover:text-blue-700"
                 >
                   View all {total} documents →
@@ -972,7 +973,7 @@ export function NewslettersSection({ districtId }: { districtId: number }) {
         onStatusChange={setStatus}
         search={search}
         onSearchChange={setSearch}
-        addHref={`/districts/${districtId}/newsletters/v2/add${returnQs("newsletters")}`}
+        addHref={`/districts/${districtId}/newsletters/v2/add${returnQs("newsletters", searchParams?.get("yearId"))}`}
         canAdd={canManage}
         editableYears={editableYears}
         loading={loading}
@@ -1017,7 +1018,7 @@ export function NewslettersSection({ districtId }: { districtId: number }) {
                 </div>
                 <RowActions
                   onView={() => setViewItem(n)}
-                  editHref={`/districts/${districtId}/newsletters/v2/${n.id}/edit${returnQs("newsletters")}`}
+                  editHref={`/districts/${districtId}/newsletters/v2/${n.id}/edit${returnQs("newsletters", searchParams?.get("yearId"))}`}
                   onDelete={() => setDeleteTarget(n)}
                   canEdit={canManage}
                   canDelete={canDelete}
@@ -1027,7 +1028,7 @@ export function NewslettersSection({ districtId }: { districtId: number }) {
             {total > PAGE_SIZE_PREVIEW && (
               <li className="px-4 py-2 text-center">
                 <Link
-                  href={`/districts/${districtId}/newsletters${returnQs("newsletters")}`}
+                  href={`/districts/${districtId}/newsletters${returnQs("newsletters", searchParams?.get("yearId"))}`}
                   className="text-xs font-semibold text-blue-600 hover:text-blue-700"
                 >
                   View all {total} newsletters →

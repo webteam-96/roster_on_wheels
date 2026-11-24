@@ -154,10 +154,11 @@ export function AttendanceV2View({ clubId: propClubId, embedded = false }: { clu
   // Child Add/Edit pages get returnTo = the listing URL (with the listing's own
   // returnTo nested inside). Save → back to listing. Back on listing → dashboard.
   const parentReturnTo = searchParams.get("returnTo") || "";
-  // ROW-59: embedded in the E-Governance tab, Add/Edit return to that tab (not the standalone listing,
-  // whose Back led to the old /clubs/[id]/dashboard).
+  // ROW-59: the way back is the E-Governance tab in the year being viewed, never the old /clubs/[id]/dashboard.
+  const yearParam = searchParams.get("yearId");
+  const eGovTabUrl = `/club-admin-dashboard/e-governance?${yearParam ? `yearId=${yearParam}&` : ""}tab=attendance`;
   const myListingUrl = embedded
-    ? "/club-admin-dashboard/e-governance?tab=attendance"
+    ? eGovTabUrl
     : `/clubs/${clubId}/attendance/v2${parentReturnTo ? `?returnTo=${encodeURIComponent(parentReturnTo)}` : ""}`;
   const childReturnTo = encodeURIComponent(myListingUrl);
 
@@ -165,8 +166,7 @@ export function AttendanceV2View({ clubId: propClubId, embedded = false }: { clu
 
   // Read the global yearId from URL — set by the dashboard topbar selector.
   // When absent (page opened directly), fall back to current rotary year.
-  const urlYearStr = searchParams.get("yearId");
-  const urlYearId = urlYearStr ? parseInt(urlYearStr, 10) || null : null;
+  const urlYearId = yearParam ? parseInt(yearParam, 10) || null : null;
 
   useEffect(() => {
     let cancelled = false;
@@ -328,7 +328,7 @@ export function AttendanceV2View({ clubId: propClubId, embedded = false }: { clu
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-start gap-2">
             <Link
-              href={parentReturnTo ? decodeURIComponent(parentReturnTo) : `/clubs/${clubId}/dashboard`}
+              href={parentReturnTo ? decodeURIComponent(parentReturnTo) : eGovTabUrl}
               className="mt-0.5 inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50"
               aria-label="Back"
             >

@@ -3309,6 +3309,7 @@ class _ProjectFormScreenState extends State<_ProjectFormScreen> {
                         controller: _descCtrl,
                         hint: 'Enter description',
                         maxLines: 3,
+                        maxLength: _kProjDescMaxChars,
                         // Multiline: Enter inserts a newline instead of jumping to
                         // the next field (default TextInputAction.next blocked it).
                         keyboardType: TextInputType.multiline,
@@ -4262,6 +4263,9 @@ class _RadioPill extends StatelessWidget {
 // The description rides along in the `photos[]` payload the form already sends
 // (`ProjectPhotoInput.Description`).
 // ---------------------------------------------------------------------------
+
+/// Max characters for a project description (web form and database column: 1000).
+const int _kProjDescMaxChars = 1000;
 
 /// Max characters for a per-photo description (web project form uses 500).
 const int _kProjPhotoDescMaxChars = 500;

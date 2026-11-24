@@ -113,6 +113,7 @@ public class GrowthService
             Joined = joined.GetValueOrDefault(c.Id),
             Terminated = left.GetValueOrDefault(c.Id),
             OpenProspects = stages.Where(s => s.Club == c.Id && s.Stage != "inducted").Sum(s => s.N),
+            ProspectsByStage = ByStage(stages.Where(s => s.Club == c.Id).Select(s => (s.Stage, s.N))),
         }).ToList();
         return new DistrictGrowthDto
         {

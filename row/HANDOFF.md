@@ -4,6 +4,11 @@ Last session: **2026-11-17** (audit fixes, UTC storage, legal pages, translation
 below and `ROW-CHANGES.md`). A new session starts here, then continues with **"Next task"** below without
 re-reading whole codebases (use `kb/README.md` and the graphify commands in the root `CLAUDE.md`).
 
+**2026-11-24, OMS ROW-56 to ROW-69, ROW-93 re-check (not deployed):** every ticket re-run in a browser on `row_prod_copy`; follow-up
+fixes in `ROW-CHANGES.md` (search "2026-11-24"). Deploy API and admin together (growth cards need both); app needs a build. Open,
+owner decides: Credit Management without the Wallet
+parts while `modules.wallet` is off, other Save buttons that show only a logo while saving. Subscription prices still unset.
+
 **2026-11-23, district website:** the 7 designed themes now run on ROW data in `row/district-website` (gitignored).
 Run: API on :5000 (local DB data dir `_local/rowdb/data`, port 3317), then `cd row/district-website/source && npx vite`,
 open `http://localhost:5173/<theme>/?district=1` (5656). Build: `npx vite build --mode <theme> && node scripts/pages.mjs <theme>`.

@@ -665,8 +665,9 @@ class ApiClient {
           'The server took too long to respond. Please try again.');
     }
     if (statusCode >= 500) {
-      throw ServerException(
-          bodyMessage ?? 'Something went wrong. Please try again.');
+      throw ApiException(
+          bodyMessage ?? 'Something went wrong. Please try again.',
+          statusCode: statusCode);
     }
 
     // ── Anything else ────────────────────────────────────────────────────

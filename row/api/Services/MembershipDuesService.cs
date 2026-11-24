@@ -1665,7 +1665,7 @@ public class MembershipDuesService : IMembershipDuesService
         return (uploadedPath!.StartsWith("http://", StringComparison.OrdinalIgnoreCase) ||
                 uploadedPath!.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
             ? uploadedPath!
-            : $"{Brand.PortalOrigin}/{uploadedPath!.TrimStart('/')}";
+            : $"{Brand.ApiOrigin}/{uploadedPath!.TrimStart('/')}"; // the API serves media; the portal may sit under /admin (ROW-58)
     }
 
     // The club's own logo (club_master.ClubLogoPath) takes priority over the

@@ -13,7 +13,7 @@ import RotaryLoader from "@/components/RotaryLoader";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
-import { Plus, Search, Power, PowerOff, FileSpreadsheet, Trash2 } from "@/components/icons";
+import { ArrowLeft, Plus, Search, Power, PowerOff, FileSpreadsheet, Trash2 } from "@/components/icons";
 
 import { appLocale, currencySymbol } from "@/lib/appFormat";
 import { ListPageSkeleton } from "@/components/row/AppKit";
@@ -75,9 +75,14 @@ export default function ClubDuesListPage() {
     <ProtectedRoute>
       <div className="space-y-6">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <h2 className="text-2xl font-bold tracking-tight text-primary">District Dues</h2>
-            <p className="text-muted-foreground text-base">District-wise dues collection</p>
+          <div className="flex items-center gap-3">
+            <Button variant="outline" size="icon" asChild aria-label="Back">
+              <Link href="/settings/payments-and-dues"><ArrowLeft className="h-4 w-4" /></Link>
+            </Button>
+            <div>
+              <h2 className="text-2xl font-bold tracking-tight text-primary">District Dues</h2>
+              <p className="text-muted-foreground text-base">District-wise dues collection</p>
+            </div>
           </div>
           {isSuperAdmin && (
             <Button asChild>

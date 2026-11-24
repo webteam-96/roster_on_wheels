@@ -95,7 +95,8 @@ export default function DistrictDashboardPage() {
     else if (moduleKey === "weblinks" || moduleKey === "web_links") router.push(`/districts/${districtId}/weblinks`);
     else if (moduleKey === "sub_groups") router.push(`/districts/${districtId}/sub-groups`);
     else if (moduleKey === "mass_email") router.push(`/districts/${districtId}/mass-emails`);
-    else if (moduleKey === "district_projects") router.push(`/districts/${districtId}/projects`);
+    // The v2 screens have the photo crop step and the View icon (ROW-67); its shell admits only district and super admins.
+    else if (moduleKey === "district_projects") router.push(`/districts/${districtId}/projects${isSuperAdmin || isAdmin ? "/v2" : ""}`);
     else if (moduleKey === "district_events") router.push(`/districts/${districtId}/district-events`);
     else if (moduleKey === "website_data") router.push(`/districts/${districtId}/website-data`);
     else if (moduleKey === "district_committee") router.push(`/districts/${districtId}/district-committee`);

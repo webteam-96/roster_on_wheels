@@ -284,7 +284,7 @@ export default function DashboardShell({
         <HelplineBar />
 
         <header
-          className="bg-[#F7F9FC] border-b border-[color:var(--row-line)] px-4 md:px-8 h-16 flex items-center justify-between flex-shrink-0 gap-3"
+          className="bg-[#F7F9FC] border-b border-[color:var(--row-line)] px-4 md:px-8 min-h-16 py-2 flex flex-wrap items-center justify-between flex-shrink-0 gap-x-3 gap-y-2"
         >
           <div className="flex items-center gap-3 min-w-0">
             <button
@@ -311,8 +311,9 @@ export default function DashboardShell({
                 • ag:              Year picker → District picker
                   (user request 2026-07-03 — "first rotary year then district")
               Hidden on mobile so the picker stays the prominent control. */}
-          <div className="flex items-center gap-3 flex-1 justify-end min-w-0">
-            <div className="hidden md:flex items-center gap-3">
+          {/* Wraps under the title when both do not fit: it used to cover it (ROW-93). */}
+          <div className="ml-auto flex flex-wrap items-center gap-3 justify-end min-w-0">
+            <div className="hidden md:flex flex-wrap items-center justify-end gap-3">
           {topbarStart}
           {switcherKind === "club-admin" ? (
             <>
