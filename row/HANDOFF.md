@@ -8,10 +8,10 @@ re-reading whole codebases (use `kb/README.md` and the graphify commands in the 
 `docs/plans/2026-11-27-admin-design-revert.md`. The mobile app design stays. Everything up to here is committed and on `main` (`d8220f89`).**
 
 **2026-11-27 (committed, d8220f89): RIZones 21-27 Nov port, new goal flow (Disha off), admin components plan DONE (all "Done when" lines, see ROW-CHANGES), OMS ROW-94 to
-ROW-97 and ROW2-1 / ROW2-2 fixed.** Details: `ROW-CHANGES.md` 2026-11-27. Proof: `_local/qa/wave2-2026-11-27/`, `_local/qa/wave3-2026-11-27/`
-(39 pages pixel-identical, requests identical before/after the splits), `_local/qa/oms-2026-11-27/`. api.Tests 664 passed, admin vitest
+ROW-97 and ROW2-1 / ROW2-2 fixed.** Details: `ROW-CHANGES.md` 2026-11-27. Proof (test output folders cleaned up 27 Nov; reusable scripts in `_local/qa/tools/`):
+39 pages pixel-identical, requests identical before/after the splits. api.Tests 664 passed, admin vitest
 225 passed, tsc 0, all 5 workers build (GreetingsWorker / RotaryOrgSyncWorker / AwardsAutoCalcWorker now link `CountryCurrency.cs`).
-- **Open, owner:** deploy API + admin together (package `_local/deploy-2026-11-27/`, README inside); production scripts
+- **Open, owner:** deploy API + admin together from `main` (rebuild the package: the 27 Nov one was stale and removed; SQL scripts are in `row/database/maintenance/`); production scripts
   `2026-11-27-attendance-qr.sql`, `2026-11-27-goal-flow.sql` and the pending 23 / 25 Nov ones; production probably runs
   `Database:SkipInit=true`, so new schema now also comes from always-run startup steps (dues columns, RI officer tables). Decide:
   Engagement catch-up of older milestones (ROW-96); upcoming events list defaults to "Published", so a new future event is not

@@ -53,15 +53,14 @@ unless marked "done"; decide them when the area is worked on.
   for (409 instead), and Cancel checks rights for the sync's own year. `rcc-goals/rotary-goals` lost RIZones' "Super Admin until
   tested" line (scope check decides; no caller yet). Startup warns when `AttendanceQr:Secret` is unset. `sortRows` treats NaN as
   empty. Not tested automatically: the goal-answer fix (database code inside the controller).
-- **Package:** `_local/deploy-2026-11-27/` (api + admin under /admin + sql, README). Smoke-tested: packaged admin and API start
-  and answer.
+- **Package:** built and smoke-tested on 27 Nov, then removed as stale after the live-test fixes; rebuild from `main` to deploy.
 - **Afternoon, finishing the components plan** (owner: the work was called done while plan items were open):
   - New shared parts: `UploadZone`, `TileButton`, `CalendarCell`, `RadioChips`, `MenuItemButton tone="dark"`,
     `Button variant="onDark"`; `DialogContent` returns focus to the opener on close. Hand-written `<button>` now 3 (sidebar nav
     item, CMR v2 step indicator, dev preview) and `<table>` 6 (CMR print sheets); guard lowered to match.
   - Accessible names: every crawled page has 0 unnamed controls (checkboxes the crawler flags have real `<label>`s).
-  - Every add / edit form run through save, list, edit, delete on the local copy (agents F1-F5, results in
-    `_local/qa/finish-2026-11-27/`). Real faults found and fixed: sub-group edit sent no year (403); payment links for a
+  - Every add / edit form run through save, list, edit, delete on the local copy (agents F1-F6; scripts kept in
+    `_local/qa/tools/forms/`). Real faults found and fixed: sub-group edit sent no year (403); payment links for a
     district could never be created ("No club specified": `EventPaymentLinksController` used the club-only year check for
     district links, now the district check). Not faults: one dues set per club and year, one custom menu per club, past
     president one per year, deleting an active payment link needs deactivating first (the API answers that with 500; should

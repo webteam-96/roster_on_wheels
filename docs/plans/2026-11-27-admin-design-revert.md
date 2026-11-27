@@ -45,7 +45,7 @@ Snapshots to compare against:
 - `git show dcfbb8fa:row/admin/src/<path>`: the target look.
 - `_local/backups/admin-src-2026-11-25-pre-layout/`: 25 Nov after "look" but before "fixed layout".
 - `_local/backups/admin-src-2026-11-26/src/`: 27 Nov morning (before today's swaps).
-- `_local/backups/admin-src-2026-11-27-before-revert/src/` and git `HEAD`: today's final state.
+- git `main` (`67e0d653`): today's final state.
 
 Size: 837 admin files changed since `dcfbb8fa` (668 changed, 166 added, 3 deleted). Per file:
 1. Diff `dcfbb8fa` against now. Drop DESIGN changes (class names, colours, spacing, shared-part swaps, header / layout rewrites,
@@ -68,8 +68,9 @@ members / public, R4 districts / AG / goal panels, R5 club dashboard + other com
 - The main pages look like `dcfbb8fa`: compare screenshots of the same pages (club dashboard overview, a club list page, a
   club form, district overview, settings home, District Dues, member edit) from a build of `dcfbb8fa` and from the new build.
 - Every feature above still works: `npx tsc --noEmit -p .` 0, `npx vitest run` all pass, `dotnet test row/api.Tests`, the
-  381-page crawl (`_local/qa/admin-tools/crawl_final.py all 1440` and `375`) clean, and the form checks
-  (`_local/qa/finish-2026-11-27/F1`..`F6` scripts, `_local/qa/final-2026-11-27/wiz_*.py` for the three payment wizards).
+  382-page crawl (`_local/qa/tools/crawl_final.py all 1440` and `375`, run from `_local/qa/admin-tools`) clean, and the form
+  checks (`_local/qa/tools/forms/`, `_local/qa/tools/wiz_*.py` for the three payment wizards; sign-in token helper
+  `_local/qa/tools/tok_source.py`).
 - `row/website/design.md` 8.7 to 8.9 marked as withdrawn for the admin; ROW-CHANGES and HANDOFF updated.
 
 ## Risks
