@@ -390,7 +390,7 @@ export default function BoardOfDirectorsPage() {
                         {canManage && (
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="icon" className="row-btn-sm">
+                              <Button aria-label="More actions" variant="ghost" size="icon" className="row-btn-sm">
                                 <MoreHorizontal className="h-4 w-4" />
                               </Button>
                             </DropdownMenuTrigger>
@@ -448,7 +448,7 @@ export default function BoardOfDirectorsPage() {
                           <TableCell>
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="icon" className="row-btn-sm">
+                                <Button aria-label="More actions" variant="ghost" size="icon" className="row-btn-sm">
                                   <MoreHorizontal className="h-4 w-4" />
                                 </Button>
                               </DropdownMenuTrigger>

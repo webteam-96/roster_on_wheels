@@ -419,8 +419,8 @@ export default function DistrictCitationPage() {
                     <Card key={c.id}><CardContent className="p-4 flex items-center justify-between">
                       <div><p className="font-semibold">{c.categoryName}</p><p className="text-xs text-muted-foreground">Sort: {c.sortOrder}</p></div>
                       {canManage && isCurrentYear && <div className="flex gap-1">
-                        <Button variant="ghost" size="icon" onClick={() => openEditCat(c)}><Pencil className="h-4 w-4" /></Button>
-                        <Button variant="ghost" size="icon" className="text-destructive" onClick={() => setDeleteCat(c)}><Trash2 className="h-4 w-4" /></Button>
+                        <Button aria-label="Edit" variant="ghost" size="icon" onClick={() => openEditCat(c)}><Pencil className="h-4 w-4" /></Button>
+                        <Button aria-label="Delete" variant="ghost" size="icon" className="text-destructive" onClick={() => setDeleteCat(c)}><Trash2 className="h-4 w-4" /></Button>
                       </div>}
                     </CardContent></Card>
                   ))}
@@ -509,8 +509,8 @@ export default function DistrictCitationPage() {
                           )}
                         </div>
                         {canManage && isCurrentYear && <div className="flex gap-1">
-                          <Button variant="ghost" size="icon" onClick={() => openEditAuto(q)}><Pencil className="h-4 w-4" /></Button>
-                          <Button variant="ghost" size="icon" className="text-destructive" onClick={() => setDeleteAuto(q)}><Trash2 className="h-4 w-4" /></Button>
+                          <Button aria-label="Edit" variant="ghost" size="icon" onClick={() => openEditAuto(q)}><Pencil className="h-4 w-4" /></Button>
+                          <Button aria-label="Delete" variant="ghost" size="icon" className="text-destructive" onClick={() => setDeleteAuto(q)}><Trash2 className="h-4 w-4" /></Button>
                         </div>}
                       </div>
                     </CardContent></Card>
@@ -553,8 +553,8 @@ export default function DistrictCitationPage() {
                           )}
                         </div>
                         {canManage && isCurrentYear && <div className="flex gap-1">
-                          <Button variant="ghost" size="icon" onClick={() => openEditManual(mc)}><Pencil className="h-4 w-4" /></Button>
-                          <Button variant="ghost" size="icon" className="text-destructive" onClick={() => setDeleteManual(mc)}><Trash2 className="h-4 w-4" /></Button>
+                          <Button aria-label="Edit" variant="ghost" size="icon" onClick={() => openEditManual(mc)}><Pencil className="h-4 w-4" /></Button>
+                          <Button aria-label="Delete" variant="ghost" size="icon" className="text-destructive" onClick={() => setDeleteManual(mc)}><Trash2 className="h-4 w-4" /></Button>
                         </div>}
                       </div>
                     </CardContent></Card>
@@ -599,13 +599,13 @@ export default function DistrictCitationPage() {
                           <TableCell className="text-center"><Badge variant={c.totalPoints > 0 ? "default" : "secondary"}>{c.totalPoints}</Badge></TableCell>
                           <TableCell className="text-center">
                             <div className="flex items-center justify-center gap-1">
-                              <Button variant="ghost" size="icon" title="View" disabled={viewingClubId === c.clubId} onClick={() => {
+                              <Button aria-label="View" variant="ghost" size="icon" title="View" disabled={viewingClubId === c.clubId} onClick={() => {
                                 setViewingClubId(c.clubId);
                                 router.push(`/clubs/${c.clubId}/citation?districtId=${districtId}&readOnly=true`);
                               }}>
                                 {viewingClubId === c.clubId ? <RotaryLoader size="sm" /> : <Eye className="h-4 w-4" />}
                               </Button>
-                              <Button variant="ghost" size="icon" title="Download Report" disabled={downloadingClubId === c.clubId} onClick={async () => {
+                              <Button aria-label="Download Report" variant="ghost" size="icon" title="Download Report" disabled={downloadingClubId === c.clubId} onClick={async () => {
                                 setDownloadingClubId(c.clubId);
                                 try {
                                   const blob = await downloadCitationSingleClubReport(districtId, c.clubId, selectedYearId!);
@@ -705,7 +705,7 @@ export default function DistrictCitationPage() {
                     <Card key={i}><CardContent className="p-3 space-y-2">
                       <div className="flex justify-between items-center">
                         <Label className="text-sm font-medium">#{i + 1}</Label>
-                        <Button variant="ghost" size="icon" className="w-6 text-destructive row-btn-sm" onClick={() => removeAutoSubItem(i)}><Trash2 className="h-3 w-3" /></Button>
+                        <Button aria-label="Delete" variant="ghost" size="icon" className="w-6 text-destructive row-btn-sm" onClick={() => removeAutoSubItem(i)}><Trash2 className="h-3 w-3" /></Button>
                       </div>
 
                       {isClubService ? (
@@ -793,7 +793,7 @@ export default function DistrictCitationPage() {
               <div className="flex flex-wrap items-center justify-between gap-3"><Label className="font-semibold">Sub Criteria</Label><Button size="sm" variant="outline" onClick={addManualSub}><Plus className="h-3 w-3 mr-1" />Add Sub Criteria</Button></div>
               {manualForm.subCriteria.map((sc: any, i: number) => (
                 <Card key={i}><CardContent className="p-3 space-y-2">
-                  <div className="flex justify-between items-center"><Label className="text-sm font-medium">Sub Criteria #{i + 1}</Label><Button variant="ghost" size="icon" className="w-6 text-destructive row-btn-sm" onClick={() => removeManualSub(i)}><Trash2 className="h-3 w-3" /></Button></div>
+                  <div className="flex justify-between items-center"><Label className="text-sm font-medium">Sub Criteria #{i + 1}</Label><Button aria-label="Delete" variant="ghost" size="icon" className="w-6 text-destructive row-btn-sm" onClick={() => removeManualSub(i)}><Trash2 className="h-3 w-3" /></Button></div>
                   <div><Label className="text-xs">Title</Label><Input value={sc.subCriteriaTitle} onChange={e => updateManualSub(i, "subCriteriaTitle", e.target.value)} /></div>
                   <div className="grid grid-cols-2 gap-2">
                     <div><Label className="text-xs">Answer Type</Label>
@@ -816,7 +816,7 @@ export default function DistrictCitationPage() {
                         <div key={j} className="flex gap-2 items-center">
                           <Input className="row-field-sm flex-1" value={o.optionText} onChange={e => updateManualOption(i, j, "optionText", e.target.value)} placeholder="Option text" />
                           <Input className="row-field-sm w-20" type="number" value={o.optionPoints} onChange={e => updateManualOption(i, j, "optionPoints", e.target.value)} placeholder="Points" />
-                          <Button variant="ghost" size="icon" className="w-6 text-destructive row-btn-sm" onClick={() => removeManualOption(i, j)}><Trash2 className="h-3 w-3" /></Button>
+                          <Button aria-label="Delete" variant="ghost" size="icon" className="w-6 text-destructive row-btn-sm" onClick={() => removeManualOption(i, j)}><Trash2 className="h-3 w-3" /></Button>
                         </div>
                       ))}
                     </div>

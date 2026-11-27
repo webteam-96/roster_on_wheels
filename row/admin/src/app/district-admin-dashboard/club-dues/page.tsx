@@ -466,7 +466,7 @@ function ClubsSection({ duesId, canManage, onSuccess, onError }: { duesId: numbe
           <Card><CardContent className="p-4">
             <p className="text-xs text-muted-foreground">Total via Offline</p>
             <p className="text-2xl font-bold text-primary">{cur}{summary.offlineAmount.toLocaleString(appLocale())}</p>
-            <p className="text-xs text-muted-foreground mt-0.5">{summary.totalMembers} member{summary.totalMembers === 1 ? "" : "s"} · {summary.fullyPaid}/{summary.totalClubs} clubs paid</p>
+            <p className="text-xs text-muted-foreground mt-0.5">{summary.totalMembers} member{summary.totalMembers === 1 ? "" : "s"} to bill</p>
           </CardContent></Card>
           <Card><CardContent className="p-4">
             <p className="text-xs text-muted-foreground">Total via Online</p>
@@ -475,7 +475,7 @@ function ClubsSection({ duesId, canManage, onSuccess, onError }: { duesId: numbe
           <Card><CardContent className="p-4">
             <p className="text-xs text-muted-foreground">Collected</p>
             <p className="text-2xl font-bold text-green-600">{cur}{summary.collectedAmount.toLocaleString(appLocale())}</p>
-            <p className="text-xs text-muted-foreground mt-0.5">{summary.paidMembers} member{summary.paidMembers === 1 ? "" : "s"} · {summary.fullyPaid}/{summary.totalClubs} clubs paid</p>
+            <p className="text-xs text-muted-foreground mt-0.5">{summary.paidMembers} member{summary.paidMembers === 1 ? "" : "s"} marked paid · {summary.fullyPaid} of {summary.totalClubs} clubs fully paid</p>
           </CardContent></Card>
           <Card><CardContent className="p-4">
             <p className="text-xs text-muted-foreground">Pending (Offline)</p>

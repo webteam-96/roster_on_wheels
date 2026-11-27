@@ -42,6 +42,8 @@ export default function DocumentsAddPage() {
   const [fileName, setFileName] = useState<string | null>(null);
   const [originalFileName, setOriginalFileName] = useState<string | null>(null);
   const [fileUploading, setFileUploading] = useState(false);
+  // The picked file is uploaded on Save, after every check passes, so a rejected save leaves no orphan file.
+  const [pendingFile, setPendingFile] = useState<File | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -87,23 +89,11 @@ export default function DocumentsAddPage() {
     }
 
     setFileName(file.name);
-    setFileUploading(true);
-    try {
-      const result = await uploadDocumentFile(clubId, file);
-      setFilePath(result.path);
-      setOriginalFileName(result.originalName || file.name);
-    } catch (err: unknown) {
-      setFileName(null);
-      setFilePath(null);
-      setOriginalFileName(null);
-      setErrorMessage(describeUploadError(err));
-    } finally {
-      setFileUploading(false);
-    }
+    setPendingFile(file);
   };
 
   const removeFile = () => {
-    setFilePath(null);
+    setPendingFile(null); setFilePath(null);
     setFileName(null);
     setOriginalFileName(null);
   };
@@ -111,7 +101,7 @@ export default function DocumentsAddPage() {
   const handleSave = async () => {
     if (!title.trim()) { setErrorMessage("Title is required."); return; }
     if (title.trim().length > 50) { setErrorMessage("Title must be 50 characters or less."); return; }
-    if (!filePath) { setErrorMessage("Please upload a file."); return; }
+    if (!filePath && !pendingFile) { setErrorMessage("Please upload a file."); return; }
     if (fileUploading) { setErrorMessage("Please wait for file to finish uploading."); return; }
     if (!publishDate || !publishTime) { setErrorMessage("Publish Date & Time is required."); return; }
     const publishDT = new Date(`${publishDate}T${publishTime}:00`);
@@ -123,11 +113,30 @@ export default function DocumentsAddPage() {
 
     setSaving(true);
     try {
+      let savedPath = filePath;
+      let savedOriginalName = originalFileName;
+      if (pendingFile) {
+        setFileUploading(true);
+        try {
+          const result = await uploadDocumentFile(clubId, pendingFile);
+          savedPath = result.path;
+          savedOriginalName = result.originalName || pendingFile.name;
+          // Keep the uploaded path so a retry after a failed save does not upload again.
+          setFilePath(savedPath);
+          setOriginalFileName(savedOriginalName);
+          setPendingFile(null);
+        } catch (err: unknown) {
+          setErrorMessage(describeUploadError(err));
+          return;
+        } finally {
+          setFileUploading(false);
+        }
+      }
       await createDocument(clubId, {
         title: title.trim(),
         accessType,
-        filePath: filePath!,
-        originalFileName: originalFileName,
+        filePath: savedPath!,
+        originalFileName: savedOriginalName,
         publishDateTime: `${publishDate}T${publishTime}:00`,
         expiryDateTime: `${expiryDate}T${expiryTime}:00`,
       });

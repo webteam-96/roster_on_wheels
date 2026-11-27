@@ -315,8 +315,8 @@ export default function AddWebLinkPage() {
             </div>
 
             <div className="flex items-center gap-3 pt-1">
-              <Switch checked={isActive} onCheckedChange={setIsActive} />
-              <Label className="text-slate-700 text-sm font-medium">Active</Label>
+              <Switch id="webLinkActive" checked={isActive} onCheckedChange={setIsActive} />
+              <Label htmlFor="webLinkActive" className="text-slate-700 text-sm font-medium">Active</Label>
             </div>
 
             <div className="flex flex-wrap justify-end gap-2 pt-2 border-t border-slate-100">

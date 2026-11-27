@@ -19,6 +19,7 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import { currencySymbol } from "@/lib/appFormat";
 import { TEXT_INPUT_REGEX } from "@/lib/textInput";
 import { PageHeader, ListPageSkeleton } from "@/components/row/AppKit";
+import { useYearIdParam } from "@/lib/useYearIdParam";
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
 export default function DistrictProjectEditPage() {
@@ -27,7 +28,7 @@ export default function DistrictProjectEditPage() {
   const searchParams = useSearchParams();
   const districtId = Number(params.id);
   const projectId = Number(params.projectId);
-  const yearId = Number(searchParams.get("yearId")) || 0;
+  const yearId = useYearIdParam();
   const [districtName, setDistrictName] = useState("");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -76,6 +77,7 @@ export default function DistrictProjectEditPage() {
   const isOthersAof = areaOfFocusId === "others" || areasOfFocus.find(a => String(a.id) === areaOfFocusId)?.name?.toLowerCase() === "others";
 
   useEffect(() => {
+    if (!yearId) return;
     async function load() {
       try {
         const res = await getDistrictProjectDetail(districtId, yearId, projectId);
@@ -105,7 +107,7 @@ export default function DistrictProjectEditPage() {
       finally { setLoading(false); }
     }
     load();
-  }, [districtId, projectId]);
+  }, [districtId, yearId, projectId]);
 
   // ── Funding classifier — matches funding name to "global_grant" / "csr" / "" ──
   const onlyDigits = (v: string) => v.replace(/[^0-9]/g, "");

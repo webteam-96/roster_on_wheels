@@ -24,7 +24,7 @@ const initialsOf = (name: string) => name.split(" ").filter(Boolean).slice(0, 2)
  *  menu of the role the user works in. */
 export default function AppFrame({ path, children }: { path: string; children: ReactNode }) {
   const { user, isSuperAdmin, isAuthenticated, logout } = useAuth();
-  const club = useSelectedClub();
+  const selectedClub = useSelectedClub();
   const district = useSelectedDistrict();
   const clubAdminClubs = useClubAdminClubs();
   const districtAdminDistricts = useDistrictAdminDistricts();
@@ -35,6 +35,10 @@ export default function AppFrame({ path, children }: { path: string; children: R
   const closeMenu = useCallback(() => setOpen(false), []);
 
   const isDistrictPath = path.startsWith("/districts");
+  // On /clubs/<id>/... the page is about that club: show it in the top bar when the user administers it, not the saved
+  // choice (live QA 27 Nov: a club admin who is also a member elsewhere saw the other club and a 403 on its balance).
+  const routeClubId = Number(path.match(/^\/clubs\/(\d+)/)?.[1]) || 0;
+  const club = clubAdminClubs.find((c) => c.id === routeClubId) ?? selectedClub;
   const role = isSuperAdmin
     ? { kind: "super-admin" as const, label: "Super Admin", nav: SUPER_ADMIN_NAV, scope: null }
     : districtAdminDistricts.length > 0 && (isDistrictPath || clubAdminClubs.length === 0)

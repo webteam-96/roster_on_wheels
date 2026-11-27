@@ -295,6 +295,7 @@ export default function DocumentsPage() {
                               variant="ghost"
                               size="icon"
                               className="row-btn-sm"
+                              aria-label={`Download ${doc.originalFileName || doc.title}`}
                               onClick={async () => {
                                 try {
                                   const res = await fetch(`${API_URL}${doc.filePath}`);
@@ -311,11 +312,11 @@ export default function DocumentsPage() {
                               <Download className="h-4 w-4" />
                             </Button>
                           ) : (
-                            <a href={`${API_URL}${doc.filePath}`} target="_blank" rel="noopener noreferrer">
-                              <Button variant="ghost" size="icon" className="row-btn-sm">
+                            <Button asChild variant="ghost" size="icon" className="row-btn-sm">
+                              <a href={`${API_URL}${doc.filePath}`} target="_blank" rel="noopener noreferrer" aria-label={`Open ${doc.originalFileName || doc.title}`}>
                                 <Download className="h-4 w-4" />
-                              </Button>
-                            </a>
+                              </a>
+                            </Button>
                           )
                         )}
                       </TableCell>
@@ -323,7 +324,7 @@ export default function DocumentsPage() {
                         <TableCell>
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="icon" className="row-btn-sm"><MoreHorizontal className="h-4 w-4" /></Button>
+                              <Button variant="ghost" size="icon" className="row-btn-sm" aria-label="More actions"><MoreHorizontal className="h-4 w-4" /></Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
                               <DropdownMenuItem onClick={() => router.push(`/clubs/${clubId}/documents/${doc.id}`)}>

@@ -365,6 +365,8 @@ class _DuesManagementViewState extends State<DuesManagementView> {
       // file must be .xlsx so it opens correctly in Excel/Sheets.
       final bytes = await _api.downloadBytes('/api/membership-dues/$id/export');
       await saveAndOpenBytes(bytes, 'membership-dues-$id.xlsx');
+    } on FileOpenException catch (e) {
+      if (mounted) SnackbarUtils.showError(context, e.message);
     } catch (e) {
       if (mounted) SnackbarUtils.showError(context, 'Export failed: $e');
     } finally {

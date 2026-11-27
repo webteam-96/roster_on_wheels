@@ -24,6 +24,16 @@ public class GoalSettingRotaryController : ControllerBase
 
     private int GetMemberId() => int.TryParse(User.FindFirst("memberId")?.Value, out var id) ? id : 0;
 
+    // SuperAdmin, or a District Admin / this year's DG of the district (the same people who can run the sync).
+    private async Task<bool> CanReadDistrictAsync(MySqlConnection conn, int districtId) =>
+        await ClubAdminAccessHelper.IsSuperAdminAsync(conn, GetMemberId())
+        || (districtId > 0 && await conn.ExecuteScalarAsync<int>(@"
+                SELECT (SELECT COUNT(*) FROM member_roles WHERE fk_member_master_profile_id = @M AND fk_role_id = 2 AND fk_district_id = @D
+                          AND (fk_club_id IS NULL OR fk_club_id = 0) AND IsActive = 1 AND isdeleted = 0)
+                     + (SELECT COUNT(*) FROM district_governors g JOIN rotary_year_master y ON y.pk_year_id = g.fk_year_id AND y.IsCurrent = 1
+                          WHERE g.fk_member_id = @M AND g.fk_district_id = @D AND COALESCE(g.isdeleted,0) = 0)",
+                new { M = GetMemberId(), D = districtId }) > 0);
+
     // RAG = Rotary.org's 5 club-size bands (my.rotary.org Clubs in District report colours, user
     // 2026-10-26/29): Red 0-10, Yellow 11-25, Orange 26-50, Blue 51-100, Purple 101+, Rotary clubs only.
     // Members are counted like the old RAG (active, not honorary) until the Rotary.org counts are
@@ -33,8 +43,9 @@ public class GoalSettingRotaryController : ControllerBase
     {
         await using var conn = RowDb.Connect(_connectionString);
         await conn.OpenAsync();
-        if (!await ClubAdminAccessHelper.IsSuperAdminAsync(conn, GetMemberId())) return Forbid();
         if (districtId <= 0) return BadRequest(new { message = "districtId is required." });
+        // Was SuperAdmin only; the district's own admins / DG read it on RCC Goals too (live test 2026-11-27).
+        if (!await CanReadDistrictAsync(conn, districtId)) return Forbid();
 
         var row = await conn.QueryFirstOrDefaultAsync<dynamic>(
             $@"SELECT
@@ -79,13 +90,7 @@ public class GoalSettingRotaryController : ControllerBase
             : await conn.ExecuteScalarAsync<int?>("SELECT fk_district_id FROM club_master WHERE pk_club_id = @C", new { C = clubId }) ?? 0;
         // RIZones 2026-11-13 (new CMR goal panels): a club's own managers may read that club's figures too.
         var clubReader = (clubId ?? 0) > 0 && await ScopeWriteGuardMiddleware.ReadAllowedAsync(_connectionString, GetMemberId(), true, clubId!.Value, members: false);
-        if (!clubReader && !await ClubAdminAccessHelper.IsSuperAdminAsync(conn, GetMemberId())
-            && await conn.ExecuteScalarAsync<int>(@"
-                SELECT (SELECT COUNT(*) FROM member_roles WHERE fk_member_master_profile_id = @M AND fk_role_id = 2 AND fk_district_id = @D
-                          AND (fk_club_id IS NULL OR fk_club_id = 0) AND IsActive = 1 AND isdeleted = 0)
-                     + (SELECT COUNT(*) FROM district_governors g JOIN rotary_year_master y ON y.pk_year_id = g.fk_year_id AND y.IsCurrent = 1
-                          WHERE g.fk_member_id = @M AND g.fk_district_id = @D AND COALESCE(g.isdeleted,0) = 0)",
-                new { M = GetMemberId(), D = scopeDistrict }) == 0)
+        if (!clubReader && !await CanReadDistrictAsync(conn, scopeDistrict))
             return Forbid();
 
         var isCurrent = await conn.ExecuteScalarAsync<int?>(

@@ -649,7 +649,11 @@ class _MemberFormScreenState extends State<MemberFormScreen>
   Widget _personalTab() {
     return _tabScroll([
       if (_lockOther) _lockedNotice(_adminLockText),
-      if (_lockSelf) _lockedNotice(_selfLockText),
+      if (_lockSelf)
+        _lockedNotice(widget.clubId != null &&
+                context.read<AuthProvider>().isClubAdminOf(widget.clubId!)
+            ? _selfAdminLockText
+            : _selfLockText),
       _photoCard(
         path: _profilePhotoPath,
         uploading: _uploadingProfile,
@@ -1037,6 +1041,12 @@ class _MemberFormScreenState extends State<MemberFormScreen>
   static const String _selfLockText =
       'Mobile number, email, Rotary ID and honorary status are managed by your '
       'club admin and can\'t be changed here. Contact your club admin to update them.';
+
+  // A club admin editing their own record: "contact your club admin" would point at themselves.
+  static const String _selfAdminLockText =
+      'Mobile number, email, Rotary ID and honorary status can\'t be changed '
+      'on your own record, even as club admin. Ask another admin of your club '
+      'to update your mobile number or email.';
 
   Widget _lockedNotice(String text) {
     return Padding(

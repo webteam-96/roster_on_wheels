@@ -407,6 +407,11 @@ class _ClubMembersScreenState extends State<ClubMembersScreen> {
       );
       await saveAndOpenBytes(
           bytes, isPrint ? 'Club $choice.pdf' : 'Club members.$choice');
+    } on FileOpenException catch (e) {
+      messenger.showSnackBar(SnackBar(
+        content: Text(e.message),
+        backgroundColor: AppColors.error,
+      ));
     } on ApiException catch (e) {
       messenger.showSnackBar(SnackBar(
         content: Text(e.statusCode == 403

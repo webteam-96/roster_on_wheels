@@ -1709,6 +1709,11 @@ class _ClubPointsTabState extends State<_ClubPointsTab> {
         bytes,
         'citation_report_${widget.districtId}.xlsx',
       );
+    } on FileOpenException catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(e.message)));
+      }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -1729,6 +1734,11 @@ class _ClubPointsTabState extends State<_ClubPointsTab> {
       );
       final safeName = c.clubName.replaceAll(RegExp(r'\s+'), '_');
       await saveAndOpenBytes(bytes, 'citation_$safeName.xlsx');
+    } on FileOpenException catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(e.message)));
+      }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

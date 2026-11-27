@@ -122,4 +122,38 @@ export const DISTRICT_ADMIN_PAGE_TITLES: Record<string, string> = {
   "/district-admin-dashboard/wallet":        "Wallet & Credits",
   "/district-admin-dashboard/payment-accounts": "Payment Accounts",
   "/district-admin-dashboard/privacy":       "Privacy Requests",
+  "/district-admin-dashboard/goal-setting-rotary": "Rotary.org Goals",
+  "/district-admin-dashboard/rcc/clubs": "RCC Goals · All Clubs",
+  "/district-admin-dashboard/rcc/clubs/goals": "RCC Club Goals",
+  "/district-admin-dashboard/ag": "Assistant Governors",
+  "/district-admin-dashboard/clubs": "Clubs",
+  "/district-admin-dashboard/district-committee": "District Committee",
+  "/district-admin-dashboard/district-committee/committee": "District Committee",
+  "/district-admin-dashboard/district-committee/groups": "Committee Groups",
+  "/district-admin-dashboard/district-committee/groups/add": "Add Group",
+  "/district-admin-dashboard/email-log": "Email Log",
+  "/district-admin-dashboard/contacts/friends": "Friends of Rotary",
+  "/district-admin-dashboard/donations/receipt-letter": "Receipt Letter",
+  "/district-admin-dashboard/my-district-website/about": "About Us",
+  "/district-admin-dashboard/my-district-website/advertisements": "Advertisements",
+  "/district-admin-dashboard/my-district-website/banners": "Banners",
+  "/district-admin-dashboard/my-district-website/contact-details": "Contact Details",
+  "/district-admin-dashboard/my-district-website/extras": "Website Extras",
+  "/district-admin-dashboard/my-district-website/languages": "Languages",
+  "/district-admin-dashboard/my-district-website/menu-list": "Menu List",
+  "/district-admin-dashboard/my-district-website/pages": "Pages",
+  "/district-admin-dashboard/my-district-website/social-media-links": "Social Media Links",
+  "/district-admin-dashboard/my-district-website/theme": "Website Theme",
+  "/district-admin-dashboard/quick-links/mass-email/compose": "Compose Mass Email",
+  "/district-admin-dashboard/quick-links/sub-groups/add": "Add Sub Group",
+  "/district-admin-dashboard/quick-links/web-links/add": "Add Web Link",
 };
+
+// Exact route first; a dynamic sub-page ([id], edit) takes its nearest mapped parent's title.
+export function districtPageTitle(pathname: string): string {
+  for (let p = pathname; p.startsWith("/district-admin-dashboard"); p = p.slice(0, p.lastIndexOf("/"))) {
+    const t = DISTRICT_ADMIN_PAGE_TITLES[p];
+    if (t) return t;
+  }
+  return "District Dashboard";
+}

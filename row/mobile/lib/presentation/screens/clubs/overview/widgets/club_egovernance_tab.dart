@@ -153,7 +153,7 @@ class _EgovManagementGrid extends StatelessWidget {
   static const _tiles =
       <({String label, IconData icon, int color, String route})>[
     (label: 'Club Monthly Report', icon: Icons.event_note_outlined, color: 0xFF9333EA, route: 'club-monthly-report'),
-    (label: 'OCV / gov', icon: Icons.folder_copy_outlined, color: 0xFF1C5BAE, route: 'ocv-gov'),
+    (label: 'OCV/GOV', icon: Icons.folder_copy_outlined, color: 0xFF1C5BAE, route: 'ocv-gov'),
     (label: 'Attendance', icon: Icons.how_to_reg_outlined, color: 0xFF0D9488, route: 'attendance'),
     (label: 'District Awards', icon: Icons.workspace_premium_outlined, color: 0xFFE97A10, route: 'citation'),
     (label: 'Reports', icon: Icons.assessment_outlined, color: 0xFF16A34A, route: 'reports'),

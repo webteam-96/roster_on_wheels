@@ -230,7 +230,7 @@ export default function MassEmailsPage() {
                           <TableCell className="text-right">
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="icon"><MoreHorizontal className="h-4 w-4" /></Button>
+                                <Button aria-label="More actions" variant="ghost" size="icon"><MoreHorizontal className="h-4 w-4" /></Button>
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end">
                                 <DropdownMenuItem onClick={() => router.push(`/clubs/${clubId}/mass-emails/${item.id}`)}>

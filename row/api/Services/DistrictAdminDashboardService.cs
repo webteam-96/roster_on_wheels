@@ -2438,6 +2438,31 @@ public class DistrictAdminDashboardService : IDistrictAdminDashboardService
         return saved;
     }
 
+    public Task<bool> ClearMembershipGoalAsync(int memberId, int districtId, int yearId)
+        => ClearGoalAsync("district_membership_goal", memberId, districtId, yearId);
+
+    public Task<bool> ClearFoundationGoalAsync(int memberId, int districtId, int yearId)
+        => ClearGoalAsync("district_foundation_goal", memberId, districtId, yearId);
+
+    // Soft-deletes the goal row; same access as the upsert. table is one of the two constants above, never user input.
+    private async Task<bool> ClearGoalAsync(string table, int memberId, int districtId, int yearId)
+    {
+        using var conn = CreateConnection();
+        await conn.OpenAsync();
+        if (!await PlanningAccess.ElectPlansYearAsync(conn, _connectionString, memberId, false, districtId, yearId))
+            await EnsureDistrictAdminAsync(conn, memberId, districtId);
+        if (yearId <= 0)
+            throw new ArgumentException("YearId is required.", nameof(yearId));
+        await PlanningAccess.EnsureYearWritableAsync(conn, _connectionString, districtId, yearId);
+
+        var rows = await conn.ExecuteAsync($@"
+            UPDATE {table}
+            SET isdeleted = 1, modified_by = @MemberId, modified_date = NOW()
+            WHERE fk_district_id = @DistrictId AND fk_year_id = @YearId AND isdeleted = 0",
+            new { DistrictId = districtId, YearId = yearId, MemberId = memberId });
+        return rows > 0;
+    }
+
     // ── Foundation goal ──
 
     public async Task<DistrictFoundationGoalDto?> GetFoundationGoalAsync(int memberId, int? yearId, int? requestedDistrictId = null)

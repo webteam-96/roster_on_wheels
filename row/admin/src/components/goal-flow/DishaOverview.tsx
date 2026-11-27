@@ -222,7 +222,8 @@ export default function DishaOverview({ yearId, yearLabel, zoneId, districtFilte
             <Button variant="outline" size="sm" type="button" onClick={() => setMonthOf({ id: one.districtId, number: one.districtNumber })}><CalendarDays size={14} /> Month wise</Button>
           </div>
         )}
-        <Table bare className="w-full table-fixed border-separate border-spacing-0 text-go-body">
+        <div className="overflow-x-auto">
+        <Table bare className="w-full min-w-[760px] table-fixed border-separate border-spacing-0 text-go-body">
           <colgroup><col className="w-[16%]" /><col /><col className="w-[13%]" /><col className="w-[13%]" /><col className="w-[10%]" /></colgroup>
           <thead className="sticky top-0 z-10">
             <tr>
@@ -281,6 +282,7 @@ export default function DishaOverview({ yearId, yearLabel, zoneId, districtFilte
             })}
           </tbody>
         </Table>
+        </div>
       </section>
     );
   })();

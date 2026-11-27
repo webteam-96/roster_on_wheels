@@ -9,6 +9,7 @@ import type {
   ClubScopeDto,
 } from "@/types/scope";
 import { withBase } from "@/lib/basePath";
+import { adminClubId, adminDistrictId, defaultIdFromList, reconcileSelected } from "@/lib/scopePick";
 
 interface SelectScopeArgs {
   clubId?: number | null;
@@ -146,27 +147,6 @@ function writeNumericLs(key: string, value: number | null) {
   }
 }
 
-// Given the user's accessible-scope arrays, pick a sensible default for a kind.
-// - If exactly one entry exists → return that id
-// - If multiple → return null (let the user choose; selectors fall back to first)
-function defaultIdFromList<T extends { id: number }>(list: T[] | undefined): number | null {
-  if (!list || list.length === 0) return null;
-  if (list.length === 1) return list[0].id;
-  return null;
-}
-
-// If the previously-selected id is no longer accessible, fall back to:
-//   (a) first entry if any are accessible
-//   (b) null otherwise
-function reconcileSelected<T extends { id: number }>(
-  previous: number | null,
-  list: T[] | undefined,
-): number | null {
-  if (!list || list.length === 0) return null;
-  if (previous !== null && list.some((x) => x.id === previous)) return previous;
-  return list[0].id;
-}
-
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [token, setToken] = useState<string | null>(null);
@@ -262,7 +242,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setSelectedClubId((prev) => {
         const hasDistrictClubAccess = (districtClubAccess ?? []).length > 0;
         const keepClub = isSuperAdminScope || hasDistrictClubAccess;
-        const next = keepClub ? prev : reconcileSelected(prev, accessibleClubs);
+        const next = keepClub ? prev : reconcileSelected(prev, accessibleClubs, adminClubId(scopedRoles, accessibleClubs));
         writeNumericLs(SELECTED_CLUB_ID_KEY, next);
         return next;
       });
@@ -270,7 +250,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // "New Dashboard"), and that district isn't in their accessibleDistricts — so never
       // reconcile their district selection away.
       setSelectedDistrictId((prev) => {
-        const next = isSuperAdminScope ? prev : reconcileSelected(prev, accessibleDistricts);
+        const next = isSuperAdminScope ? prev : reconcileSelected(prev, accessibleDistricts, adminDistrictId(scopedRoles, accessibleDistricts));
         writeNumericLs(SELECTED_DISTRICT_ID_KEY, next);
         return next;
       });
@@ -371,21 +351,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // scope, not mere membership. accessibleClubs mixes both (admin clubs AND clubs the user is just
     // a member of), so defaulting to accessibleClubs[0] could land on a membership-only club and 403
     // every club-admin endpoint. Fall back to the first accessible club only if they admin none.
-    const adminClubId = (newUser.scopedRoles ?? [])
-      .filter((r) => (r.roleName === "Admin" || r.roleName === "Club Admin") && r.scope === "club" && !!r.clubId)
-      .map((r) => r.clubId as number)
-      .find((id) => (newUser.accessibleClubs ?? []).some((c) => c.id === id));
-    const defaultClubId = adminClubId ?? defaultIdFromList(newUser.accessibleClubs);
+    const defaultClubId = adminClubId(newUser.scopedRoles, newUser.accessibleClubs) ?? defaultIdFromList(newUser.accessibleClubs);
     // Same rule for districts (was missing): prefer a district the user actually ADMINISTERS.
     // accessibleDistricts also includes districts the user only belongs to via club membership
     // — e.g. a District Admin who is also a member of the COG club lands district 548 (COG's
     // district) in the list. Defaulting to accessibleDistricts[0] could pick that member-only
     // district and 403 every district-admin endpoint. Fall back to the first only if they admin none.
-    const adminDistrictId = (newUser.scopedRoles ?? [])
-      .filter((r) => (r.roleName === "Admin" || r.roleName === "District Admin") && r.scope === "district" && !!r.districtId)
-      .map((r) => r.districtId as number)
-      .find((id) => (newUser.accessibleDistricts ?? []).some((d) => d.id === id));
-    const defaultDistrictId = adminDistrictId ?? defaultIdFromList(newUser.accessibleDistricts);
+    const defaultDistrictId = adminDistrictId(newUser.scopedRoles, newUser.accessibleDistricts) ?? defaultIdFromList(newUser.accessibleDistricts);
     const defaultZoneId = defaultIdFromList(newUser.accessibleZones);
     writeNumericLs(SELECTED_CLUB_ID_KEY, defaultClubId);
     writeNumericLs(SELECTED_DISTRICT_ID_KEY, defaultDistrictId);

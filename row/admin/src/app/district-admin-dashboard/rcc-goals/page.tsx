@@ -55,7 +55,8 @@ function RccTab() {
   const { selectedDistrictId, user, isSuperAdmin } = useAuth();
   const searchParams = useSearchParams();
   const yearId = searchParams.get("yearId") ? Number(searchParams.get("yearId")) : null;
-  const clubGoalsHref = `/district-admin-dashboard/goal-setting-rotary/clubs${yearId ? `?yearId=${yearId}` : ""}`;
+  // RIZones links goal-setting-rotary/clubs (club cards), not in ROW: the existing club goals view instead.
+  const clubGoalsHref = `/district-admin-dashboard/goal-setting/clubs${yearId ? `?yearId=${yearId}` : ""}`;
 
   const { years, currentYearId } = useRotaryYears();
   const yearRights = useMemo(

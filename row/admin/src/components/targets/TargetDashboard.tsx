@@ -60,6 +60,8 @@ export default function TargetDashboard({ districtId, yearId, clubPageHref }: {
     );
   }
 
+  if (data.clubs.length === 0) return <p className={`${panel} text-sm text-slate-600`}>No active clubs in this district yet, so there are no targets to show.</p>;
+
   const club = openClub === null ? undefined : data.clubs.find((c) => c.clubId === openClub);
   return (
     <div className="space-y-4">

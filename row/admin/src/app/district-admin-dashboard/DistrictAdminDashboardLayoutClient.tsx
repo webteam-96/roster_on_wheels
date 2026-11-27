@@ -14,7 +14,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { districtYearRights, canEditYear } from "@/lib/adminYears";
 import { useRotaryYears } from "@/hooks/useRotaryYears";
 import { DistrictAdminDashboardCacheProvider } from "@/contexts/DistrictAdminDashboardCacheContext";
-import { DISTRICT_ADMIN_NAV, DISTRICT_ADMIN_PAGE_TITLES } from "./nav";
+import { DISTRICT_ADMIN_NAV, districtPageTitle } from "./nav";
 
 // District Dues: the dues is picked from its own dropdown and each dues has a fixed year, so the year
 // selector would change nothing there (user 2026-11-10, same as the Club Dues member list).
@@ -34,7 +34,7 @@ export default function DistrictAdminDashboardLayoutClient({ children }: { child
   const { user, selectedDistrictId, isSuperAdmin } = useAuth();
   const name = user?.name ?? "District Admin";
   const initials = getInitials(name);
-  const title = DISTRICT_ADMIN_PAGE_TITLES[pathname] ?? "District Dashboard";
+  const title = districtPageTitle(pathname);
 
   // Wallet holds one balance, spent NOW — so it belongs to the current year's
   // admin, not to someone who only administers a past year.

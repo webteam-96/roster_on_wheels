@@ -278,6 +278,7 @@ export default function DistrictAdminAddSubGroupPage() {
                           >
                             <Checkbox
                               checked={selectedMemberIds.has(member.memberId)}
+                              aria-label={`Select ${member.memberName}`}
                               onCheckedChange={() => toggleMember(member.memberId)}
                               onClick={(e) => e.stopPropagation()}
                             />

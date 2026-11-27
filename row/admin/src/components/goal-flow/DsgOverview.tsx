@@ -130,7 +130,8 @@ export default function DsgOverview({ data, locks, canLock, lockBusy, onLock, on
             {onOpenClub && <Button variant="outline" size="sm" type="button" onClick={() => onOpenClub(one)}><Eye size={14} /> View details</Button>}
           </div>
         )}
-        <Table bare className="w-full table-fixed border-separate border-spacing-0 text-go-body">
+        <div className="overflow-x-auto">
+        <Table bare className="w-full min-w-[760px] table-fixed border-separate border-spacing-0 text-go-body">
           <colgroup><col className="w-[14%]" /><col /><col className="w-[11%]" /><col className="w-[12%]" /><col className="w-[11%]" /><col className="w-[8%]" /></colgroup>
           <thead className="sticky top-0 z-10">
             <tr>
@@ -170,6 +171,7 @@ export default function DsgOverview({ data, locks, canLock, lockBusy, onLock, on
             ))}
           </tbody>
         </Table>
+        </div>
       </section>
     </div>
   );

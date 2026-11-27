@@ -60,6 +60,9 @@ export default function RootShell({ children }: { children: React.ReactNode }) {
       <RoleGate>
         {isFramed ? (
           <AppFrame path={pathname}>{children}</AppFrame>
+        ) : OWN_SHELL.test(pathname) ? (
+          // The dashboard shell (ShellFrame) has the page's <main>; a second one around it nested two landmarks.
+          <div className="row-main px-4 py-4 md:px-8">{children}</div>
         ) : (
           <main className="row-main px-4 py-4 md:px-8">{children}</main>
         )}

@@ -420,7 +420,7 @@ export default function BannerPhotosPage() {
                         {canManage && (
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="icon" className="row-btn-sm">
+                              <Button aria-label="More actions" variant="ghost" size="icon" className="row-btn-sm">
                                 <MoreHorizontal className="h-4 w-4" />
                               </Button>
                             </DropdownMenuTrigger>
@@ -486,7 +486,7 @@ export default function BannerPhotosPage() {
                           <TableCell>
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="icon" className="row-btn-sm">
+                                <Button aria-label="More actions" variant="ghost" size="icon" className="row-btn-sm">
                                   <MoreHorizontal className="h-4 w-4" />
                                 </Button>
                               </DropdownMenuTrigger>
@@ -547,6 +547,7 @@ export default function BannerPhotosPage() {
                     <Button
                       variant="destructive"
                       size="icon"
+                      aria-label="Remove banner image"
                       className="absolute top-2 right-2 h-7 w-7"
                       onClick={() => setFormImagePath("")}
                     >

@@ -166,7 +166,7 @@ export default function ContactsManager({ scope, ownerId, friendsOnly = false }:
           <div className="flex flex-wrap items-center gap-2">
             <div className="relative">
               <Search className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-              <Input value={searchInput} onChange={(e) => setSearchInput(e.target.value)} placeholder="Search name, email, phone, organisation"
+              <Input value={searchInput} onChange={(e) => setSearchInput(e.target.value)} placeholder="Name, email, phone, organisation" aria-label="Search contacts by name, email, phone or organisation"
                 onKeyDown={(e) => { if (e.key === "Enter") { setPage(1); setSearch(searchInput.trim()); } }} className="w-72 pl-8" />
             </div>
             {!friendsOnly && (

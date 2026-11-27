@@ -58,8 +58,8 @@ export default function RccGoalsTable({ sections, headingExtras }: {
 
   if (sections.length === 0) return <p className="p-6 text-go-body text-go-text-muted">No RCC goals for this club.</p>;
   return (
-    <section className="bg-go-surface rounded-go-lg border border-go-border shadow-go-card overflow-hidden">
-      <Table bare className="w-full table-fixed border-separate border-spacing-0 text-go-body">
+    <section className="bg-go-surface rounded-go-lg border border-go-border shadow-go-card overflow-x-auto">
+      <Table bare className="w-full min-w-[760px] table-fixed border-separate border-spacing-0 text-go-body">
         <colgroup><col className="w-[17%]" /><col /><col className="w-[12%]" /><col className="w-[12%]" /><col className="w-[9%]" /></colgroup>
         <thead className="sticky top-0 z-10">
           <tr>

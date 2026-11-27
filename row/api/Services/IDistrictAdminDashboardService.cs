@@ -48,6 +48,8 @@ public interface IDistrictAdminDashboardService
 
     Task<DistrictFoundationGoalDto?> GetFoundationGoalAsync(int memberId, int? yearId, int? requestedDistrictId = null);
     Task<DistrictFoundationGoalDto> UpsertFoundationGoalAsync(int memberId, DistrictFoundationGoalDto dto);
+    Task<bool> ClearMembershipGoalAsync(int memberId, int districtId, int yearId);
+    Task<bool> ClearFoundationGoalAsync(int memberId, int districtId, int yearId);
 
     Task<List<DistrictProjectTargetDto>> GetProjectTargetsAsync(int memberId, int? yearId, int? requestedDistrictId = null);
     Task<List<DistrictProjectTargetDto>> UpsertProjectTargetsAsync(int memberId, DistrictProjectTargetsBulkRequest req);

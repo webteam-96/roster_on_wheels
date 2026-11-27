@@ -1386,7 +1386,7 @@ class _UpcomingEventDetailScreen extends StatefulWidget {
 class _UpcomingEventDetailScreenState
     extends State<_UpcomingEventDetailScreen> {
   final _api = ApiClient();
-  final _dtFmt = DateFormat('dd MMM yyyy, hh:mm a');
+  String? _zone;
   _UpcomingEvent? _event;
   bool _loading = true;
   String? _error;
@@ -1399,6 +1399,9 @@ class _UpcomingEventDetailScreenState
   @override
   void initState() {
     super.initState();
+    EventZones.club(widget.clubId).then((z) {
+      if (mounted) setState(() => _zone = z);
+    });
     _fetch();
   }
 
@@ -1511,7 +1514,7 @@ class _UpcomingEventDetailScreenState
       if (_canManage) DetailHeroStatusPill(label: status),
       if (e.eventDate != null)
         detailInfoChip(
-            Icons.event_outlined, _dtFmt.format(e.eventDate!.toLocal())),
+            Icons.event_outlined, DateFormatter.eventDateTime(e.eventRaw, _zone)),
       if (e.eventVenue != null && e.eventVenue!.trim().isNotEmpty)
         detailInfoChip(Icons.location_on_outlined, e.eventVenue!.trim()),
     ];

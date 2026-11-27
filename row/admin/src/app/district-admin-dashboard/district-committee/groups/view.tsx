@@ -207,7 +207,7 @@ export function GroupCommitteeView({ embedded = false }: { embedded?: boolean } 
                 onKeyDown={handleSearchKey}
               />
               {searchTerm && (
-                <Button variant="ghost" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 w-6 w-6 w-6 h-6 w-6" onClick={clearSearch} type="button">
+                <Button aria-label="Clear search" variant="ghost" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 w-6 w-6 w-6 h-6 w-6" onClick={clearSearch} type="button">
                   <X className="h-4 w-4" />
                 </Button>
               )}
@@ -304,10 +304,10 @@ export function GroupCommitteeView({ embedded = false }: { embedded?: boolean } 
                       <div className="flex items-center justify-end gap-1">
                         {canManage && !isAutoManagedGroup(g.groupName) && (
                           <>
-                            <Button variant="ghost" size="icon" className="row-btn-sm" onClick={() => { setNavigatingId(g.id); router.push(`/district-admin-dashboard/district-committee/groups/${g.id}${backQs ? `?${backQs}` : ""}`); }}>
+                            <Button aria-label="Edit" variant="ghost" size="icon" className="row-btn-sm" onClick={() => { setNavigatingId(g.id); router.push(`/district-admin-dashboard/district-committee/groups/${g.id}${backQs ? `?${backQs}` : ""}`); }}>
                               <Pencil className="h-4 w-4" />
                             </Button>
-                            <Button variant="ghost" size="icon" className="text-red-600 row-btn-sm" onClick={() => setDeleteTarget(g)}>
+                            <Button aria-label="Delete" variant="ghost" size="icon" className="text-red-600 row-btn-sm" onClick={() => setDeleteTarget(g)}>
                               <Trash2 className="h-4 w-4" />
                             </Button>
                           </>

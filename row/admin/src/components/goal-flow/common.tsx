@@ -246,7 +246,7 @@ export function Banner({ title, subtitle, children }: { title: string; subtitle:
   return (
     <div className="rounded-go-lg bg-[#0B2A5E] text-white px-6 py-5 flex flex-wrap items-center justify-between gap-4">
       <div>
-        <h2 className="text-2xl font-extrabold">{title}</h2>
+        <h2 className="text-2xl font-extrabold text-white">{title}</h2>
         <p className="text-sm text-[#C9D6EE] mt-1">{subtitle}</p>
       </div>
       <div className="flex flex-wrap items-center gap-2">{children}</div>

@@ -388,7 +388,7 @@ export function CommitteeMembersView({ embedded = false }: { embedded?: boolean 
                 onKeyDown={handleSearchKey}
               />
               {searchTerm && (
-                <Button variant="ghost" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 w-6 w-6 w-6 h-6 w-6" onClick={clearSearch} type="button">
+                <Button aria-label="Clear search" variant="ghost" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 w-6 w-6 w-6 h-6 w-6" onClick={clearSearch} type="button">
                   <X className="h-4 w-4" />
                 </Button>
               )}
@@ -487,8 +487,8 @@ export function CommitteeMembersView({ embedded = false }: { embedded?: boolean 
                     {canManage && (
                       <TableCell className="text-right">
                         <div className="flex items-center justify-end gap-1">
-                          <Button variant="ghost" size="icon" className="row-btn-sm" onClick={() => openEditDialog(m)}><Pencil className="h-4 w-4" /></Button>
-                          <Button variant="ghost" size="icon" className="text-red-600 row-btn-sm" onClick={() => setDeleteTarget(m)}><Trash2 className="h-4 w-4" /></Button>
+                          <Button aria-label="Edit" variant="ghost" size="icon" className="row-btn-sm" onClick={() => openEditDialog(m)}><Pencil className="h-4 w-4" /></Button>
+                          <Button aria-label="Delete" variant="ghost" size="icon" className="text-red-600 row-btn-sm" onClick={() => setDeleteTarget(m)}><Trash2 className="h-4 w-4" /></Button>
                         </div>
                       </TableCell>
                     )}

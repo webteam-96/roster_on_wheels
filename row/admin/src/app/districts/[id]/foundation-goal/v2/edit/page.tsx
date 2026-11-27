@@ -44,8 +44,11 @@ import SectionCard from "@/components/form/SectionCard";
 import { useEffect, useMemo, useState } from "react";
 import { useParams, useSearchParams } from "next/navigation";
 import {
-  Calendar, Target, IndianRupee, Heart, Sparkles, ClipboardList, Info,
+  Calendar, Target, IndianRupee, Heart, Sparkles, ClipboardList, Info, AlertTriangle,
 } from "@/components/icons";
+import { Button } from "@/components/ui/button";
+import AlertModal from "@/components/AlertModal";
+import { clearDistrictFoundationGoal } from "@/services/districtGoalsApi";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   getDistrictFoundationGoal,
@@ -158,6 +161,9 @@ export default function DistrictFoundationGoalV2EditPage() {
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
+  const [hasGoal, setHasGoal] = useState(false);
+  const [confirmClear, setConfirmClear] = useState(false);
+  const [cleared, setCleared] = useState(false);
 
   const [activeTab, setActiveTab] = useState<"goals" | "targets">("goals");
 
@@ -252,6 +258,7 @@ export default function DistrictFoundationGoalV2EditPage() {
         ]);
         if (cancelled) return;
 
+        setHasGoal(!!goal);
         if (goal) {
           setFundForm({
             annual:    goal.targetAnnualFundUsd > 0    ? String(goal.targetAnnualFundUsd)    : "",
@@ -374,6 +381,22 @@ export default function DistrictFoundationGoalV2EditPage() {
     }
   };
 
+  // ── Clear: soft-deletes the fund goal row for this RY, then shows the blank form ──
+  const handleClearGoals = async () => {
+    setConfirmClear(false);
+    setSaving(true);
+    try {
+      await clearDistrictFoundationGoal(districtId, selectedYearId);
+      setHasGoal(false);
+      setFundForm(EMPTY_FUND_FORM);
+      setCleared(true);
+    } catch (err: unknown) {
+      handleSaveError(err);
+    } finally {
+      setSaving(false);
+    }
+  };
+
   function handleSaveError(err: unknown) {
     const anyErr = err as {
       response?: { data?: { message?: string } | string; status?: number };
@@ -449,6 +472,11 @@ export default function DistrictFoundationGoalV2EditPage() {
           saving={saving}
           saveLabel={saveLabel}
           onSave={onSave}
+          footerStart={activeTab === "goals" && hasGoal ? (
+            <Button type="button" variant="outline" disabled={saving} onClick={() => setConfirmClear(true)}>
+              Clear goal
+            </Button>
+          ) : undefined}
         >
           {/* 1. Rotary year ── */}
           <SectionCard number={1} icon={Calendar} title="Rotary Year">
@@ -648,6 +676,25 @@ export default function DistrictFoundationGoalV2EditPage() {
           </SectionCard>
         </V2FormShell>
 
+        <AlertModal
+          open={confirmClear}
+          onOpenChange={(o) => !o && setConfirmClear(false)}
+          icon={AlertTriangle}
+          iconClassName="text-destructive"
+          title="Clear Foundation Goal"
+          description="Remove the foundation fund targets for this rotary year? Project targets are kept. You can set new goals later."
+          confirmLabel="Clear goal"
+          confirmClassName="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+          onConfirm={handleClearGoals}
+          cancelLabel="Cancel"
+          onCancel={() => setConfirmClear(false)}
+        />
+        <SuccessAlert
+          open={cleared}
+          title="Goal Cleared"
+          description="Foundation goal cleared."
+          onOk={() => setCleared(false)}
+        />
         <SuccessAlert
           open={showSuccessDialog}
           title="Saved"

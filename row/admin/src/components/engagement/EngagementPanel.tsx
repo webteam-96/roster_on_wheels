@@ -175,22 +175,21 @@ function SpotlightQueue({ scope, scopeId }: { scope: Scope; scopeId: number }) {
                   </TableCell>
                 </TableRow>
               ))}
-              {cards.length === 0 && (
-                <TableRow>
-                  <TableCell colSpan={scope === "districts" ? 6 : 5} className="py-8 text-center text-slate-500">
-                    <p className="font-medium text-slate-700">
-                      {status ? `No ${CARD_STATUS_LABELS[status].toLowerCase()} cards. Choose "All cards" to see the others.` : "No spotlight cards yet."}
-                    </p>
-                    <p className="mx-auto mt-1 max-w-2xl">
-                      Cards are made by an hourly check from 08:00 district time: a membership anniversary (1, 3, 5 or 10 years,
-                      or the district&apos;s milestone years) from a member&apos;s joined date in the last 7 days, a Paul Harris
-                      Fellow designation awarded in the last 90 days, or a club target reached. Earlier dates are not added.
-                    </p>
-                  </TableCell>
-                </TableRow>
-              )}
             </TableBody>
           </Table>
+          {/* Outside the table: inside a wide scrolling table the text ran past the card on a phone (live QA 27 Nov). */}
+          {cards.length === 0 && (
+            <div className="px-5 py-8 text-center text-sm text-slate-500">
+              <p className="font-medium text-slate-700">
+                {status ? `No cards in "${CARD_STATUS_LABELS[status]}". Choose "All cards" to see the others.` : "No spotlight cards yet."}
+              </p>
+              <p className="mx-auto mt-1 max-w-2xl">
+                Cards are made by an hourly check from 08:00 district time: a membership anniversary (1, 3, 5 or 10 years,
+                or the district&apos;s milestone years) from a member&apos;s joined date in the last 7 days, a Paul Harris
+                Fellow designation awarded in the last 90 days, or a club target reached. Earlier dates are not added.
+              </p>
+            </div>
+          )}
         </Card>
       )}
 

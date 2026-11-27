@@ -212,6 +212,33 @@ public class DistrictAdminDashboardController : ControllerBase
         catch (ArgumentException ex) { return BadRequest(new { message = ex.Message }); }
     }
 
+    // Clear (soft delete) a goal for a district + year: saving empty values is rejected by design.
+    [HttpDelete("membership-goal")]
+    public async Task<ActionResult> ClearMembershipGoal([FromQuery] int districtId, [FromQuery] int yearId)
+    {
+        if (!IsAuthorisedRole() && !IsElect()) return Forbid();
+        try
+        {
+            return await _service.ClearMembershipGoalAsync(GetMemberId(), districtId, yearId)
+                ? NoContent() : NotFound(new { message = "No membership goal to clear." });
+        }
+        catch (UnauthorizedAccessException ex) { return ForbidWithMessage(ex.Message); }
+        catch (ArgumentException ex) { return BadRequest(new { message = ex.Message }); }
+    }
+
+    [HttpDelete("foundation-goal")]
+    public async Task<ActionResult> ClearFoundationGoal([FromQuery] int districtId, [FromQuery] int yearId)
+    {
+        if (!IsAuthorisedRole() && !IsElect()) return Forbid();
+        try
+        {
+            return await _service.ClearFoundationGoalAsync(GetMemberId(), districtId, yearId)
+                ? NoContent() : NotFound(new { message = "No foundation goal to clear." });
+        }
+        catch (UnauthorizedAccessException ex) { return ForbidWithMessage(ex.Message); }
+        catch (ArgumentException ex) { return BadRequest(new { message = ex.Message }); }
+    }
+
     [HttpGet("project-targets")]
     public async Task<ActionResult<List<DistrictProjectTargetDto>>> GetProjectTargets([FromQuery] int? yearId = null, [FromQuery] int? districtId = null)
     {

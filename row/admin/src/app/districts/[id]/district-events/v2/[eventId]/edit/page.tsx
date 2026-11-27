@@ -49,6 +49,7 @@ import ImageCropDialog from "@/components/ImageCropDialog";
 import { useImageCropUpload } from "@/hooks/useImageCropUpload";
 import { TEXT_INPUT_REGEX } from "@/lib/textInput";
 import { ListPageSkeleton } from "@/components/row/AppKit";
+import { useYearIdParam } from "@/lib/useYearIdParam";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 const MAX_PHOTOS = 5;
@@ -89,7 +90,7 @@ export default function DistrictEventsV2EditPage() {
   const searchParams = useSearchParams();
   const districtId = Number(params.id);
   const eventId = Number(params.eventId);
-  const yearId = Number(searchParams.get("yearId")) || 0;
+  const yearId = useYearIdParam();
   const { navigateAfterSave } = useV2ReturnTo(`/districts/${districtId}/district-events/v2`);
 
   const [districtName, setDistrictName] = useState("");
@@ -116,6 +117,7 @@ export default function DistrictEventsV2EditPage() {
   }, [districtId]);
 
   useEffect(() => {
+    if (!yearId) return;
     async function load() {
       try {
         const res = await getDistrictEventDetail(districtId, yearId, eventId);

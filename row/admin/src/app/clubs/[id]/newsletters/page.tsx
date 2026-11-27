@@ -326,24 +326,24 @@ export default function NewslettersPage() {
                       </TableCell>
                       <TableCell className="text-center">
                         {nl.attachmentType === "file" && nl.filePath ? (
-                          <a href={`${API_URL}${nl.filePath}`} download target="_blank" rel="noopener noreferrer">
-                            <Button variant="ghost" size="icon" className="row-btn-sm">
+                          <Button asChild variant="ghost" size="icon" className="row-btn-sm">
+                            <a href={`${API_URL}${nl.filePath}`} download target="_blank" rel="noopener noreferrer" aria-label={`Open ${nl.title}`}>
                               <Download className="h-4 w-4" />
-                            </Button>
-                          </a>
+                            </a>
+                          </Button>
                         ) : nl.attachmentType === "link" && nl.linkUrl ? (
-                          <a href={nl.linkUrl} target="_blank" rel="noopener noreferrer">
-                            <Button variant="ghost" size="icon" className="row-btn-sm">
+                          <Button asChild variant="ghost" size="icon" className="row-btn-sm">
+                            <a href={nl.linkUrl} target="_blank" rel="noopener noreferrer" aria-label={`Open ${nl.title}`}>
                               <ExternalLink className="h-4 w-4" />
-                            </Button>
-                          </a>
+                            </a>
+                          </Button>
                         ) : "-"}
                       </TableCell>
                       {canView && (
                         <TableCell>
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="icon" className="row-btn-sm"><MoreHorizontal className="h-4 w-4" /></Button>
+                              <Button variant="ghost" size="icon" className="row-btn-sm" aria-label="More actions"><MoreHorizontal className="h-4 w-4" /></Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
                               <DropdownMenuItem onClick={() => router.push(`/clubs/${clubId}/newsletters/${nl.id}${fromParam}`)}>

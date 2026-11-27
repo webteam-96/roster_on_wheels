@@ -19,6 +19,7 @@ import ImageCropDialog from "@/components/ImageCropDialog";
 import { useImageCropUpload } from "@/hooks/useImageCropUpload";
 import { TEXT_INPUT_REGEX } from "@/lib/textInput";
 import { PageHeader, ListPageSkeleton } from "@/components/row/AppKit";
+import { useYearIdParam } from "@/lib/useYearIdParam";
 
 // Event photos render as landscape tiles here and in the district website
 // gallery — locked to 4:3 at 1200×900.
@@ -33,7 +34,7 @@ export default function DistrictEventEditPage() {
   const searchParams = useSearchParams();
   const districtId = Number(params.id);
   const eventId = Number(params.eventId);
-  const yearId = Number(searchParams.get("yearId")) || 0;
+  const yearId = useYearIdParam();
   const [districtName, setDistrictName] = useState("");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -49,6 +50,7 @@ export default function DistrictEventEditPage() {
   useEffect(() => { getDistrict(districtId).then(d => setDistrictName(`District ${d.districtNumber}`)).catch(() => {}); }, [districtId]);
 
   useEffect(() => {
+    if (!yearId) return;
     async function load() {
       try {
         const res = await getDistrictEventDetail(districtId, yearId, eventId);
@@ -61,7 +63,7 @@ export default function DistrictEventEditPage() {
       finally { setLoading(false); }
     }
     load();
-  }, [districtId, eventId]);
+  }, [districtId, yearId, eventId]);
 
   const photoCrop = useImageCropUpload();
 

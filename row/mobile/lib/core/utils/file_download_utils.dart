@@ -10,13 +10,33 @@ import '../network/api_client.dart';
 import '../network/api_exceptions.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
 
+/// The file was saved but the phone could not open it; [message] is for the user.
+class FileOpenException implements Exception {
+  const FileOpenException(this.message);
+  final String message;
+  @override
+  String toString() => message;
+}
+
+/// The user message for an [OpenFilex.open] result, or null when it opened.
+String? openFailureMessage(ResultType type) => switch (type) {
+      ResultType.done => null,
+      ResultType.noAppToOpen => 'No app on this phone can open this file.',
+      ResultType.fileNotFound ||
+      ResultType.permissionDenied ||
+      ResultType.error =>
+        'The file could not be opened on this phone.',
+    };
+
 /// Writes [bytes] to the temp directory under [filename] and opens it via
 /// the platform's default handler. Used for Excel/PDF report downloads.
+/// Throws [FileOpenException] when no app opens it.
 Future<void> saveAndOpenBytes(Uint8List bytes, String filename) async {
   final dir = await getTemporaryDirectory();
   final file = File('${dir.path}/$filename');
   await file.writeAsBytes(bytes, flush: true);
-  await OpenFilex.open(file.path);
+  final failure = openFailureMessage((await OpenFilex.open(file.path)).type);
+  if (failure != null) throw FileOpenException(failure);
 }
 
 /// Downloads a server-hosted file (a relative media path like
@@ -81,7 +101,9 @@ Future<void> downloadAndOpenServerFile(
     final msg = (e is ApiException && e.statusCode == 404)
         ? 'File not found on the server. It may have been moved or did not '
             'upload correctly.'
-        : 'Download failed: $e';
+        : e is FileOpenException
+            ? e.message
+            : 'Download failed: $e';
     messenger.showSnackBar(SnackBar(content: Text(msg)));
   }
 }

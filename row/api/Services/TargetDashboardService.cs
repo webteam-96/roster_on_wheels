@@ -86,7 +86,7 @@ public class TargetDashboardService
             DistrictId = districtId, YearId = y.Id, YearLabel = y.Label, WholeDistrict = whole,
             YearElapsedPercent = (int)Math.Round(elapsed * 100),
         };
-        if (clubIds.Count == 0) return dto;
+        if (clubIds.Count == 0) { dto.Totals = ZeroTotals(elapsed); return dto; }
 
         // Year tables only exist for years that have projects; the name comes from rotary_year_master, not the caller.
         var projectsTable = _yearTables.GetProjectsTableName(y.Label);
@@ -204,6 +204,11 @@ public class TargetDashboardService
             .OrderBy(g => g.Name).ToList();
         return dto;
     }
+
+    /// <summary>Totals for a viewer with no clubs: every metric at zero, so the client always gets the same keys.</summary>
+    public static Dictionary<string, TargetMetricDto> ZeroTotals(double elapsed) =>
+        new[] { "members", "growth", "newMembers", "dues", "attendance", "meetings", "projects", "foundation" }
+            .ToDictionary(k => k, _ => Metric(0, null, elapsed));
 
     private static decimal Percent(long part, long whole) => whole > 0 ? Math.Min(100m, Math.Round(100m * part / whole, 1)) : 0m;
 

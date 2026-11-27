@@ -35,7 +35,10 @@ import { NativeSelect } from "@/components/ui/native-select";
 import SectionCard from "@/components/form/SectionCard";
 import { useEffect, useState } from "react";
 import { useParams, useSearchParams } from "next/navigation";
-import { Target, Users, UserPlus, Percent, Calendar } from "@/components/icons";
+import { Target, Users, UserPlus, Percent, Calendar, AlertTriangle } from "@/components/icons";
+import { Button } from "@/components/ui/button";
+import AlertModal from "@/components/AlertModal";
+import { clearDistrictMembershipGoal } from "@/services/districtGoalsApi";
 import {
   getDistrictMembershipGoal,
   saveDistrictMembershipGoal,
@@ -81,6 +84,9 @@ export default function DistrictMembershipGoalV2EditPage() {
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
+  const [hasGoal, setHasGoal] = useState(false);
+  const [confirmClear, setConfirmClear] = useState(false);
+  const [cleared, setCleared] = useState(false);
 
   // ── Initial bootstrap: years + dashboard context ─────────────────────
   useEffect(() => {
@@ -141,6 +147,7 @@ export default function DistrictMembershipGoalV2EditPage() {
       try {
         const goal = await getDistrictMembershipGoal(districtId, selectedYearId);
         if (cancelled) return;
+        setHasGoal(!!goal);
         if (goal) {
           setTargetTotal(String(goal.targetTotal ?? ""));
           setTargetNewMembers(String(goal.targetNewMembers ?? ""));
@@ -224,6 +231,25 @@ export default function DistrictMembershipGoalV2EditPage() {
     }
   };
 
+  // ── Clear: soft-deletes the goal row for this RY, then shows the blank form ──
+  const handleClear = async () => {
+    setConfirmClear(false);
+    setSaving(true);
+    try {
+      await clearDistrictMembershipGoal(districtId, selectedYearId);
+      setHasGoal(false);
+      setTargetTotal("");
+      setTargetNewMembers("");
+      setTargetRetentionPercent("");
+      setCleared(true);
+    } catch (err: unknown) {
+      const e = err as { response?: { data?: { message?: string } }; message?: string };
+      setErrorMessage(e?.response?.data?.message || e?.message || "Failed to clear the goal.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
   if (loading) {
     return (
       <ProtectedRoute>
@@ -273,6 +299,11 @@ export default function DistrictMembershipGoalV2EditPage() {
           saving={saving}
           saveLabel="Save Goal"
           onSave={handleSave}
+          footerStart={hasGoal ? (
+            <Button type="button" variant="outline" disabled={saving} onClick={() => setConfirmClear(true)}>
+              Clear goal
+            </Button>
+          ) : undefined}
         >
           {/* 1. Rotary year ── */}
           <SectionCard number={1} icon={Calendar} title="Rotary Year">
@@ -364,6 +395,25 @@ export default function DistrictMembershipGoalV2EditPage() {
           </SectionCard>
         </V2FormShell>
 
+        <AlertModal
+          open={confirmClear}
+          onOpenChange={(o) => !o && setConfirmClear(false)}
+          icon={AlertTriangle}
+          iconClassName="text-destructive"
+          title="Clear Membership Goal"
+          description="Remove the membership goal for this rotary year? You can set a new one later."
+          confirmLabel="Clear goal"
+          confirmClassName="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+          onConfirm={handleClear}
+          cancelLabel="Cancel"
+          onCancel={() => setConfirmClear(false)}
+        />
+        <SuccessAlert
+          open={cleared}
+          title="Goal Cleared"
+          description="Membership goal cleared."
+          onOk={() => setCleared(false)}
+        />
         <SuccessAlert
           open={showSuccessDialog}
           title="Goal Saved"

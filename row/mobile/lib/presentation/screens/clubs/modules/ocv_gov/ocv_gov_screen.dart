@@ -375,7 +375,7 @@ class _OcvGovScreenState extends State<OcvGovScreen> {
       backgroundColor: AppColors.background,
       appBar: widget.embedded
           ? null
-          : const CustomAppBar(title: 'OCV / gov'),
+          : const CustomAppBar(title: 'OCV/GOV'),
       body: content,
     );
   }

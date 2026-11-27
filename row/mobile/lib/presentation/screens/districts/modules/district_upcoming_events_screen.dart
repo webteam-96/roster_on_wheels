@@ -3,6 +3,8 @@ import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../../../../core/constants/api_constants.dart';
+import '../../../../core/utils/date_formatter.dart';
+import '../../../../core/utils/event_zone.dart';
 import '../../../../core/utils/image_crop.dart';
 import '../../../../core/network/api_client.dart';
 import '../../../../core/network/api_exceptions.dart';
@@ -27,14 +29,6 @@ import 'package:rotary_flutter_app/presentation/widgets/row/roster_wheel.dart';
 // ---------------------------------------------------------------------------
 String _absUrl(String? path) => ApiConstants.mediaUrl(path);
 
-final _dtFmt = DateFormat('dd MMM yyyy, hh:mm a');
-
-String _formatDateTime(String? iso) {
-  if (iso == null || iso.isEmpty) return '–';
-  final dt = DateTime.tryParse(iso);
-  if (dt == null || dt.year <= 1) return '–'; // `0001-01-01` zero date => no value
-  return _dtFmt.format(dt.toLocal());
-}
 
 String _combineDateTime(DateTime? date, TimeOfDay? time) {
   if (date == null || time == null) return '';
@@ -144,10 +138,14 @@ class _DistrictUpcomingEventsScreenState
 
   String _status = 'All';
   static const _statuses = ['All', 'Published', 'Expired', 'Unpublished'];
+  String? _zone;
 
   @override
   void initState() {
     super.initState();
+    EventZones.district(widget.districtId).then((z) {
+      if (mounted) setState(() => _zone = z);
+    });
     _fetch(reset: true);
   }
 
@@ -422,6 +420,7 @@ class _DistrictUpcomingEventsScreenState
           final item = _items[i];
           return _UpcomingEventCard(
             item: item,
+            zone: _zone,
             canManage: canManage,
             statusColor: _statusColor(item.status),
             onTap: () => _openDetail(item),
@@ -439,6 +438,7 @@ class _DistrictUpcomingEventsScreenState
 // ---------------------------------------------------------------------------
 class _UpcomingEventCard extends StatelessWidget {
   final _UpcomingEvent item;
+  final String? zone;
   final bool canManage;
   final Color statusColor;
   final VoidCallback onTap;
@@ -447,6 +447,7 @@ class _UpcomingEventCard extends StatelessWidget {
 
   const _UpcomingEventCard({
     required this.item,
+    this.zone,
     required this.canManage,
     required this.statusColor,
     required this.onTap,
@@ -553,7 +554,7 @@ class _UpcomingEventCard extends StatelessWidget {
                 const SizedBox(width: 6),
                 Expanded(
                   child: Text(
-                    _formatDateTime(item.eventDateTime),
+                    DateFormatter.eventDateTime(item.eventDateTime, zone),
                     style: AppTextStyles.caption
                         .copyWith(color: AppColors.textSecondary),
                   ),
@@ -1223,7 +1224,7 @@ class _UpcomingEventDetailScreen extends StatefulWidget {
 class _UpcomingEventDetailScreenState
     extends State<_UpcomingEventDetailScreen> {
   final _api = ApiClient();
-  final _dtFmt = DateFormat('dd MMM yyyy, hh:mm a');
+  String? _zone;
   late _UpcomingEvent _event = widget.fallback; // seed so it never opens blank
   bool _loading = true;
   String? _error;
@@ -1231,6 +1232,9 @@ class _UpcomingEventDetailScreenState
   @override
   void initState() {
     super.initState();
+    EventZones.district(widget.districtId).then((z) {
+      if (mounted) setState(() => _zone = z);
+    });
     _fetch();
   }
 
@@ -1258,12 +1262,6 @@ class _UpcomingEventDetailScreenState
     }
   }
 
-  String _fmt(String? raw) {
-    if (raw == null || raw.isEmpty) return '';
-    final dt = DateTime.tryParse(raw);
-    return dt == null ? raw : _dtFmt.format(dt.toLocal());
-  }
-
   String _computeStatus(_UpcomingEvent e) {
     if (e.status.isNotEmpty) return e.status;
     final now = DateTime.now();
@@ -1288,7 +1286,7 @@ class _UpcomingEventDetailScreenState
         final canManage = Provider.of<AuthProvider>(context, listen: false)
             .canEditDistrict(widget.districtId);
         final imageUrl = detailMediaUrl(e.imagePath);
-        final eventDate = _fmt(e.eventDateTime);
+        final eventDate = DateFormatter.eventDateTime(e.eventDateTime, _zone);
         final hasReg = e.registrationLink != null &&
             e.registrationLink!.trim().isNotEmpty;
         return ListView(
@@ -1303,7 +1301,7 @@ class _UpcomingEventDetailScreenState
                   DetailHeroTitle(title: e.title),
                   DetailHeroChips(chips: [
                     if (canManage) DetailHeroStatusPill(label: _computeStatus(e)),
-                    if (eventDate.isNotEmpty)
+                    if (eventDate != '-')
                       detailInfoChip(Icons.event_outlined, eventDate),
                     if (e.eventVenue != null && e.eventVenue!.trim().isNotEmpty)
                       detailInfoChip(

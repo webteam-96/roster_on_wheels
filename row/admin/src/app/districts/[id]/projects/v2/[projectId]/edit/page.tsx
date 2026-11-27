@@ -55,6 +55,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { currencySymbol } from "@/lib/appFormat";
 import { TEXT_INPUT_REGEX } from "@/lib/textInput";
 import { ListPageSkeleton } from "@/components/row/AppKit";
+import { useYearIdParam } from "@/lib/useYearIdParam";
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
 const TOP_MESSAGE =
@@ -86,7 +87,7 @@ export default function DistrictProjectsV2EditPage() {
   const searchParams = useSearchParams();
   const districtId = Number(params.id);
   const projectId = Number(params.projectId);
-  const yearId = Number(searchParams.get("yearId")) || 0;
+  const yearId = useYearIdParam();
   const { navigateAfterSave } = useV2ReturnTo(`/districts/${districtId}/projects/v2`);
 
   const [districtName, setDistrictName] = useState("");
@@ -153,6 +154,7 @@ export default function DistrictProjectsV2EditPage() {
     areasOfFocus.find((a) => String(a.id) === areaOfFocusId)?.name?.toLowerCase() === "others";
 
   useEffect(() => {
+    if (!yearId) return;
     async function load() {
       try {
         const res = await getDistrictProjectDetail(districtId, yearId, projectId);
@@ -198,7 +200,7 @@ export default function DistrictProjectsV2EditPage() {
       }
     }
     load();
-  }, [districtId, projectId]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [districtId, yearId, projectId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Funding classifier — matches funding name to "global_grant" / "csr" / "" ──
   const onlyDigits = (v: string) => v.replace(/[^0-9]/g, "");
