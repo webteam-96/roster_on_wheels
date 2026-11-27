@@ -72,6 +72,7 @@ host means rebuilding them.
 | `Payments__TaxPercent` | tax added to wallet and default website prices; unset = 0 |
 | `ASPNETCORE_ENVIRONMENT` | `Staging` on this test host, `Production` on a live one. Staging allows the simulator; API docs and detailed errors stay off in both |
 | `Payments__Provider` | unset = off. `simulated` works with `ASPNETCORE_ENVIRONMENT=Staging` or `Development`; Production ignores it |
+| `Payments__SimulatedDistricts` | district numbers the simulator may be used for, e.g. `5656`; on Staging an empty list means none |
 | `Meetings__ReminderJob`, `DailyStatsReport__Enabled` | `false` for the test |
 | `ClubSite__PurgeSecret` | same random value as the club site's `PURGE_CACHE_SECRET` |
 

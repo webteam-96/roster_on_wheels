@@ -1,5 +1,8 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:rotary_flutter_app/presentation/widgets/view_only_notice.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/skeleton_list.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/bento.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/module_icons.dart';
 import 'package:flutter/material.dart' hide Text;
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -10,6 +13,7 @@ import '../../../core/constants/feature_flags.dart';
 import '../../../core/network/api_client.dart';
 import '../../../core/routing/route_names.dart';
 import '../../../data/models/wallet_models.dart';
+import '../../../core/network/api_exceptions.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../widgets/weblinks/weblinks_section.dart';
@@ -19,15 +23,16 @@ import '../../providers/auth_provider.dart';
 import '../../widgets/common/module_status_badge.dart';
 import '../../widgets/common/coming_soon_badge.dart';
 import '../../widgets/common/empty_state_widget.dart';
-import '../../widgets/common/loading_widget.dart';
 import 'overview/widgets/district_dashboard_async.dart';
 import 'package:rotary_flutter_app/core/theme/app_fonts.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/motion.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/roster_wheel.dart';
 
 /// Selectable visual layouts for the District dashboard.
 enum _DashboardVariant {
   list,     // Single-column grouped rows (most scannable)
-  featured, // First module per group is a hero tile, rest in 3-col grid
+  featured, // Bento grid per module group (the stored name predates it)
 }
 
 const String _kVariantPrefKey = 'district_dashboard_variant';
@@ -40,30 +45,19 @@ class DistrictDashboardScreen extends StatefulWidget {
   State<DistrictDashboardScreen> createState() => _DistrictDashboardScreenState();
 }
 
-class _DistrictDashboardScreenState extends State<DistrictDashboardScreen>
-    with SingleTickerProviderStateMixin {
+class _DistrictDashboardScreenState extends State<DistrictDashboardScreen> {
   final ApiClient _api = ApiClient();
   String _districtTitle = '';
   List<DashboardModuleGroup> _groups = [];
   bool _loading = true;
   String? _error;
   int? _emailRemaining;
-  _DashboardVariant _variant = _DashboardVariant.list;
+  _DashboardVariant _variant = _DashboardVariant.featured;
   ComingSoonRegistry _comingSoon = ComingSoonRegistry.empty();
-
-  late final AnimationController _adminFlashController;
-  late final Animation<double> _adminFlashAnim;
 
   @override
   void initState() {
     super.initState();
-    _adminFlashController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 850),
-    )..repeat(reverse: true);
-    _adminFlashAnim = Tween<double>(begin: 0.35, end: 1.0).animate(
-      CurvedAnimation(parent: _adminFlashController, curve: Curves.easeInOut),
-    );
     _fetchDashboard();
     _fetchCredits();
     _loadVariant();
@@ -77,12 +71,6 @@ class _DistrictDashboardScreenState extends State<DistrictDashboardScreen>
     });
   }
 
-  @override
-  void dispose() {
-    _adminFlashController.dispose();
-    super.dispose();
-  }
-
   Future<void> _loadVariant() async {
     final prefs = await SharedPreferences.getInstance();
     final storedVariant = prefs.getString(_kVariantPrefKey);
@@ -91,7 +79,7 @@ class _DistrictDashboardScreenState extends State<DistrictDashboardScreen>
       if (storedVariant != null) {
         _variant = _DashboardVariant.values.firstWhere(
           (v) => v.name == storedVariant,
-          orElse: () => _DashboardVariant.list,
+          orElse: () => _DashboardVariant.featured,
         );
       }
     });
@@ -172,7 +160,7 @@ class _DistrictDashboardScreenState extends State<DistrictDashboardScreen>
         });
       }
     } catch (e) {
-      if (mounted) setState(() { _error = e.toString(); _loading = false; });
+      if (mounted) setState(() { _error = friendlyErrorMessage(e); _loading = false; });
     }
   }
 
@@ -237,7 +225,7 @@ class _DistrictDashboardScreenState extends State<DistrictDashboardScreen>
       backgroundColor: AppColors.lightBg,
       body: Stack(
         children: [
-          RefreshIndicator(
+          RowRefresh(
             color: AppColors.primary,
             onRefresh: _fetchDashboard,
             child: CustomScrollView(
@@ -250,6 +238,7 @@ class _DistrictDashboardScreenState extends State<DistrictDashboardScreen>
             elevation: 0,
             centerTitle: false,
             leading: IconButton(
+              tooltip: MaterialLocalizations.of(context).backButtonTooltip,
               icon: const Icon(Icons.arrow_back_ios_new_rounded, color: AppColors.textPrimary),
               onPressed: () => context.pop(),
             ),
@@ -281,10 +270,7 @@ class _DistrictDashboardScreenState extends State<DistrictDashboardScreen>
              const SliverToBoxAdapter(child: ViewOnlyNotice()),
           SliverToBoxAdapter(
             child: _loading
-                ? const Padding(
-                    padding: EdgeInsets.only(top: 100),
-                    child: LoadingWidget(),
-                  )
+                ? const RowSkeletonList(rows: 9)
                 : _error != null
                     ? Padding(
                         padding: const EdgeInsets.only(top: 60),
@@ -310,8 +296,7 @@ class _DistrictDashboardScreenState extends State<DistrictDashboardScreen>
   }
 
   Widget _buildAdminPill({required VoidCallback onTap, bool elevated = false}) {
-    return FadeTransition(
-      opacity: _adminFlashAnim,
+    return RowPressable(
       child: Material(
         color: elevated ? AppColors.primaryPrime : AppColors.primaryPrime.withValues(alpha: 0.92),
         borderRadius: BorderRadius.circular(20),
@@ -390,7 +375,7 @@ class _DistrictDashboardScreenState extends State<DistrictDashboardScreen>
                   ),
                 ),
                 _variantOption(sheetContext, _DashboardVariant.list,     'List View',     'Single-column rows, scannable'),
-                _variantOption(sheetContext, _DashboardVariant.featured, 'Featured',      'First module per group stands out'),
+                _variantOption(sheetContext, _DashboardVariant.featured, 'Grid', 'Tiles in mixed sizes'),
                 const SizedBox(height: 8),
               ],
               ),
@@ -434,7 +419,7 @@ class _DistrictDashboardScreenState extends State<DistrictDashboardScreen>
       padding: const EdgeInsets.fromLTRB(AppSpacing.md, AppSpacing.lg, AppSpacing.md, AppSpacing.xxl),
       child: Column(
         children: [
-          ...groups.map(_buildListGroupSection),
+          ...revealAll(groups.map(_buildListGroupSection).toList()),
           WebLinksSection(
               baseEndpoint: '/api/mobile/districts/${widget.districtId}/weblinks'),
         ],
@@ -491,7 +476,7 @@ class _DistrictDashboardScreenState extends State<DistrictDashboardScreen>
     final iconPath = m.iconPath;
     final hasImage = iconPath != null && iconPath.isNotEmpty;
     final imageUrl = hasImage ? '${ApiConstants.mediaBaseUrl}$iconPath' : null;
-    final row = Material(
+    final row = RowPressable(morph: true, scale: .985, child: Material(
       color: Colors.transparent,
       child: InkWell(
         onTap: cs
@@ -515,10 +500,10 @@ class _DistrictDashboardScreenState extends State<DistrictDashboardScreen>
                     ? CachedNetworkImage(
                         imageUrl: imageUrl!,
                         fit: BoxFit.contain,
-                        placeholder: (_, __) => Icon(_ModuleTile.fallbackIcon(m.moduleKey), color: accent, size: 18),
-                        errorWidget: (_, __, ___) => Icon(_ModuleTile.fallbackIcon(m.moduleKey), color: accent, size: 18),
+                        placeholder: (_, __) => Icon(moduleIcon(m.moduleKey), color: accent, size: 18),
+                        errorWidget: (_, __, ___) => Icon(moduleIcon(m.moduleKey), color: accent, size: 18),
                       )
-                    : Icon(_ModuleTile.fallbackIcon(m.moduleKey), color: accent, size: 18),
+                    : Icon(moduleIcon(m.moduleKey), color: accent, size: 18),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -544,7 +529,7 @@ class _DistrictDashboardScreenState extends State<DistrictDashboardScreen>
           ),
         ),
       ),
-    );
+    ));
     if (!cs) return row;
     return Stack(
       children: [
@@ -570,7 +555,7 @@ class _DistrictDashboardScreenState extends State<DistrictDashboardScreen>
       padding: const EdgeInsets.fromLTRB(AppSpacing.md, AppSpacing.lg, AppSpacing.md, AppSpacing.xxl),
       child: Column(
         children: [
-          ...groups.map(_buildFeaturedGroupSection),
+          ...revealAll(groups.map(_buildFeaturedGroupSection).toList()),
           WebLinksSection(
               baseEndpoint: '/api/mobile/districts/${widget.districtId}/weblinks'),
         ],
@@ -579,126 +564,53 @@ class _DistrictDashboardScreenState extends State<DistrictDashboardScreen>
   }
 
   Widget _buildFeaturedGroupSection(DashboardModuleGroup group) {
-    final categoryColor = _categoryColor(group.categoryName, group.categoryId);
     final modules = group.modules;
-    if (modules.isEmpty) {
-      return const SizedBox.shrink();
-    }
-    // Groups whose tiles carry a status badge (Payments) need slightly taller
-    // grid cells so the inline badge under the name never overflows on narrow
-    // phones. Plain groups keep the tighter ratio.
-    final bool hasBadge = modules.any((m) => _badgeFor(m.moduleKey) != null);
-
-    // Small groups (2–3 modules) look unbalanced as a full-width hero over a
-    // partial row of small tiles ("one long + a couple small"). Render them as
-    // a uniform card grid that fills the row instead: 2-up for two modules,
-    // 3-up for three. A lone module (1) still gets the featured hero, and 4+
-    // keep hero + a full 3-col row below (which is already balanced).
-    if (modules.length == 2 || modules.length == 3) {
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _categoryCaption(group.categoryName, categoryColor, bottomGap: 12),
-          GridView.builder(
-            shrinkWrap: true,
-            padding: EdgeInsets.zero,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: modules.length,
-            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: modules.length,
-              crossAxisSpacing: 12,
-              mainAxisSpacing: 12,
-              // Fixed height so the 2-up and 3-up tiles stay a consistent
-              // height (matches the ~0.85 aspect ratio of the 3-col grid, with
-              // room for an inline status badge under the name).
-              mainAxisExtent: 132,
-            ),
-            itemBuilder: (_, i) {
-              final m = modules[i];
-              final route = _routeFor(m.moduleKey);
-              final cs = _comingSoon.isComingSoon(m.moduleKey);
-              return comingSoonOverlay(
-                isComingSoon: cs,
-                date: _comingSoon.dateFor(m.moduleKey),
-                child: _ModuleTile(
-                  module: m,
-                  accent: categoryColor,
-                  badge: _badgeFor(m.moduleKey),
-                  onTap: cs
-                      ? () => showComingSoonMessage(
-                          context, m.moduleName, _comingSoon.dateFor(m.moduleKey))
-                      : (route != null ? () => context.push(route) : null),
-                ),
-              );
-            },
-          ),
-          const SizedBox(height: 32),
-        ],
-      );
-    }
-
-    final featured = modules.first;
-    final rest = modules.skip(1).toList();
-    final featuredRoute = _routeFor(featured.moduleKey);
-    final featuredCs = _comingSoon.isComingSoon(featured.moduleKey);
-
+    if (modules.isEmpty) return const SizedBox.shrink();
+    final spans = RowBento.spans(modules.length);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _categoryCaption(group.categoryName, categoryColor, bottomGap: 12),
-        // First module: full-width tall tile
-        SizedBox(
-          height: 110,
-          child: comingSoonOverlay(
-            isComingSoon: featuredCs,
-            date: _comingSoon.dateFor(featured.moduleKey),
-            dense: false,
-            child: _BentoFeaturedTile(
-              module: featured,
-              accent: categoryColor,
-              badge: _badgeFor(featured.moduleKey),
-              onTap: featuredCs
-                  ? () => showComingSoonMessage(
-                      context, featured.moduleName, _comingSoon.dateFor(featured.moduleKey))
-                  : (featuredRoute != null ? () => context.push(featuredRoute) : null),
-            ),
-          ),
-        ),
-        if (rest.isNotEmpty) ...[
-          const SizedBox(height: 12),
-          GridView.builder(
-            shrinkWrap: true,
-            padding: EdgeInsets.zero,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: rest.length,
-            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 3,
-              crossAxisSpacing: 12,
-              mainAxisSpacing: 12,
-              childAspectRatio: hasBadge ? 0.72 : 0.85,
-            ),
-            itemBuilder: (_, i) {
-              final m = rest[i];
-              final route = _routeFor(m.moduleKey);
-              final cs = _comingSoon.isComingSoon(m.moduleKey);
-              return comingSoonOverlay(
-                isComingSoon: cs,
-                date: _comingSoon.dateFor(m.moduleKey),
-                child: _ModuleTile(
-                  module: m,
-                  accent: categoryColor,
-                  badge: _badgeFor(m.moduleKey),
-                  onTap: cs
-                      ? () => showComingSoonMessage(
-                          context, m.moduleName, _comingSoon.dateFor(m.moduleKey))
-                      : (route != null ? () => context.push(route) : null),
-                ),
-              );
-            },
-          ),
-        ],
-        const SizedBox(height: 32),
+        _categoryCaption(group.categoryName, _categoryColor(group.categoryName, group.categoryId), bottomGap: 12),
+        RowBento(items: [
+          for (final (i, m) in modules.indexed) BentoItem(spans[i].$1, spans[i].$2, _buildBentoTile(m, i, spans[i])),
+        ]),
+        const SizedBox(height: 28),
       ],
+    );
+  }
+
+  Widget _buildBentoTile(DashboardModuleModel m, int index, (int, int) span) {
+    final cs = _comingSoon.isComingSoon(m.moduleKey);
+    final route = _routeFor(m.moduleKey);
+    final onTap = cs
+        ? () => showComingSoonMessage(context, m.moduleName, _comingSoon.dateFor(m.moduleKey))
+        : (route != null ? () => context.push(route) : null);
+    final hasImage = m.iconPath != null && m.iconPath!.isNotEmpty;
+    final badge = cs ? null : _badgeFor(m.moduleKey);
+    return comingSoonOverlay(
+      isComingSoon: cs,
+      date: _comingSoon.dateFor(m.moduleKey),
+      child: RowBentoTile(
+        label: m.moduleName,
+        icon: hasImage
+            // Uploaded icons bring their own colours: give them a light ground on every tone.
+            ? Container(
+                width: 40,
+                height: 40,
+                padding: const EdgeInsets.all(8),
+                decoration: const BoxDecoration(color: AppColors.surface, shape: BoxShape.circle),
+                child: CachedNetworkImage(
+                  imageUrl: '${ApiConstants.mediaBaseUrl}${m.iconPath}',
+                  fit: BoxFit.contain,
+                  placeholder: (_, __) => Icon(moduleIcon(m.moduleKey), color: AppColors.primaryPrime, size: 22),
+                  errorWidget: (_, __, ___) => Icon(moduleIcon(m.moduleKey), color: AppColors.primaryPrime, size: 22),
+                ),
+              )
+            : Icon(moduleIcon(m.moduleKey)),
+        tone: RowBentoTile.toneFor(index, span),
+        badge: badge == null ? null : ModuleBadgeChip(badge: badge),
+        onTap: onTap,
+      ),
     );
   }
 
@@ -733,187 +645,3 @@ String _normKey(String k) =>
 
 // One brand colour for every module group (design.md 1: no rainbow colouring).
 Color _categoryColor(String categoryName, int categoryId) => AppColors.primaryPrime;
-
-// ---------------------------------------------------------------------------
-// Module tile
-// ---------------------------------------------------------------------------
-
-class _ModuleTile extends StatelessWidget {
-  final DashboardModuleModel module;
-  final Color accent;
-  final VoidCallback? onTap;
-  final ModuleBadge? badge;
-  const _ModuleTile(
-      {required this.module, required this.accent, this.onTap, this.badge});
-
-  static IconData fallbackIcon(String moduleKey) => _fallbackIcon(moduleKey);
-
-  static IconData _fallbackIcon(String moduleKey) {
-    final key = moduleKey.toLowerCase().replaceAll(' ', '');
-    if (key.contains('directory')) return Icons.people_rounded;
-    if (key.contains('calendar')) return Icons.calendar_month_rounded;
-    if (key.contains('event')) return Icons.event_rounded;
-    if (key.contains('announcement')) return Icons.campaign_rounded;
-    if (key.contains('newsletter')) return Icons.newspaper_rounded;
-    if (key.contains('document')) return Icons.folder_rounded;
-    if (key.contains('committee')) return Icons.groups_rounded;
-    if (key.contains('club')) return Icons.business_rounded;
-    if (key.contains('report') || key.contains('cmr')) return Icons.bar_chart_rounded;
-    if (key.contains('weblink') || key.contains('link')) return Icons.link_rounded;
-    if (key.contains('project')) return Icons.assignment_rounded;
-    return Icons.grid_view_rounded;
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final iconPath = module.iconPath;
-    final hasImage = iconPath != null && iconPath.isNotEmpty;
-    final imageUrl = hasImage ? '${ApiConstants.mediaBaseUrl}$iconPath' : null;
-
-    final card = Container(
-      decoration: BoxDecoration(
-        color: accent.withOpacity(0.06),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: accent.withOpacity(0.15), width: 1),
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(20),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                width: 52,
-                height: 52,
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: accent.withOpacity(0.18),
-                  shape: BoxShape.circle,
-                ),
-                child: hasImage
-                    ? CachedNetworkImage(
-                        imageUrl: imageUrl!,
-                        fit: BoxFit.contain,
-                        placeholder: (_, __) => Icon(_fallbackIcon(module.moduleKey), color: accent, size: 24),
-                        errorWidget: (_, __, ___) => Icon(_fallbackIcon(module.moduleKey), color: accent, size: 24),
-                      )
-                    : Icon(_fallbackIcon(module.moduleKey), size: 26, color: accent),
-              ),
-              const SizedBox(height: 10),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8),
-                child: Text(
-                  module.moduleName,
-                  style: AppFonts.body(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.textPrimary,
-                    height: 1.2,
-                  ),
-                  textAlign: TextAlign.center,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-              // Status/value badge sits inline under the name so it reads as
-              // part of the tile (a floating corner pill looked detached on the
-              // faint tile and overflowed the top edge of tall grid cells).
-              if (badge != null) ...[
-                const SizedBox(height: 8),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 6),
-                  child: ModuleBadgeChip(badge: badge!),
-                ),
-              ],
-            ],
-          ),
-        ),
-      ),
-    );
-    return card;
-  }
-}
-
-// ---------------------------------------------------------------------------
-// Featured tile — first module per group in the Featured layout
-// ---------------------------------------------------------------------------
-
-class _BentoFeaturedTile extends StatelessWidget {
-  final DashboardModuleModel module;
-  final Color accent;
-  final VoidCallback? onTap;
-  final ModuleBadge? badge;
-  const _BentoFeaturedTile(
-      {required this.module, required this.accent, this.onTap, this.badge});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: accent.withOpacity(0.10),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: accent.withOpacity(0.18), width: 1),
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(20),
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              children: [
-                Container(
-                  width: 64,
-                  height: 64,
-                  decoration: BoxDecoration(
-                    color: accent.withOpacity(0.22),
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: Icon(_ModuleTile.fallbackIcon(module.moduleKey), color: accent, size: 32),
-                ),
-                const SizedBox(width: 14),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        module.moduleName,
-                        style: AppFonts.body(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w800,
-                          color: AppColors.textPrimary,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        'Featured',
-                        style: AppFonts.body(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                          color: accent,
-                          letterSpacing: 0.4,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                if (badge != null) ...[
-                  ModuleBadgeChip(badge: badge!),
-                  const SizedBox(width: 10),
-                ],
-                Icon(Icons.arrow_forward_rounded, color: accent, size: 22),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-

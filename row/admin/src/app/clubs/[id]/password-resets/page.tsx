@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import Link from "next/link";
 import { useParams } from "next/navigation";
 import {
   getClub, getClubMembers, getClubPasswordResets, sendClubMemberPasswordReset, type ClubPasswordResetRow,
@@ -12,8 +11,8 @@ import SearchableCombo from "@/components/SearchableCombo";
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
 import ProtectedRoute from "@/components/ProtectedRoute";
-import { ErrorState, ListPageSkeleton, SkeletonRows } from "@/components/row/AppKit";
-import { ArrowLeft, KeyRound } from "@/components/icons";
+import { PageHeader, ErrorState, ListPageSkeleton, SkeletonRows } from "@/components/row/AppKit";
+import { KeyRound } from "@/components/icons";
 import { useSyncClubIdFromUrl } from "@/hooks/useSyncClubIdFromUrl";
 
 function apiMessage(err: unknown, fallback: string): string {
@@ -74,16 +73,8 @@ export default function ClubPasswordResetsPage() {
 
   return (
     <ProtectedRoute>
-      <div className="mx-auto max-w-4xl space-y-6">
-        <div className="flex items-center gap-3">
-          <Button variant="outline" size="icon" asChild>
-            <Link href={`/clubs/${clubId}/members`} aria-label="Back to members"><ArrowLeft className="h-4 w-4" /></Link>
-          </Button>
-          <div>
-            <h2 className="text-2xl font-bold tracking-tight text-primary">Password resets</h2>
-            <p className="text-base text-muted-foreground">{clubName}</p>
-          </div>
-        </div>
+      <div className="space-y-6 max-w-4xl">
+        <PageHeader title="Password resets" description={clubName} back={`/clubs/${clubId}/members`} />
 
         <SuccessAlert open={!!success} title="Reset link sent" description={success ?? ""} onOk={() => setSuccess(null)} />
         <ErrorAlert open={!!error} title="Not sent" description={error ?? ""} onOk={() => setError(null)} />
@@ -94,8 +85,8 @@ export default function ClubPasswordResetsPage() {
           <ListPageSkeleton tiles={0} rows={6} />
         ) : (
           <>
-            <section className="space-y-3 rounded-[20px] border border-[color:var(--row-line)] p-6">
-              <h3 className="text-lg font-semibold">Send a reset link</h3>
+            <section className="space-y-3 rounded-xl border border-[color:var(--row-line)] p-6">
+              <h3 className="row-h2">Send a reset link</h3>
               <p className="text-sm text-muted-foreground">
                 The member gets an email with a link to set a new password. You will not see their password.
                 A member can get 3 of these a day, and you can send 20 a day.
@@ -117,9 +108,9 @@ export default function ClubPasswordResetsPage() {
             </section>
 
             <section className="space-y-3">
-              <h3 className="text-lg font-semibold">Sent in this club</h3>
+              <h3 className="row-h2">Sent in this club</h3>
               {sending ? <SkeletonRows rows={3} /> : rows.length === 0 ? (
-                <p className="rounded-[20px] border border-[color:var(--row-line)] p-6 text-sm text-muted-foreground">
+                <p className="rounded-xl border border-[color:var(--row-line)] p-6 text-sm text-muted-foreground">
                   No reset links have been sent from this club yet.
                 </p>
               ) : (

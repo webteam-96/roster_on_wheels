@@ -17,13 +17,15 @@
  * v2 reads ONLY `?returnTo=` — never any other param name.
  */
 
+import { IconButton } from "@/components/ui/icon-button";
+import { Input } from "@/components/ui/input";
+import { NativeSelect } from "@/components/ui/native-select";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { PageHeader } from "@/components/row/AppKit";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
-import Link from "next/link";
-import {
-  ArrowLeft, Pencil, FileSpreadsheet, Users, Search,
-  Wallet, CheckCircle2, AlertCircle, ExternalLink, Copy, X,
-} from "@/components/icons";
+import { Pencil, FileSpreadsheet, Users, Search, Wallet, CheckCircle2, AlertCircle, ExternalLink, Copy, X } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import {
   getMembershipDuesList, exportMembershipDuesReport, getClub,
@@ -40,6 +42,8 @@ import ClubAdminShell from "@/components/v2/ClubAdminShell";
 import { useSyncClubIdFromUrl } from "@/hooks/useSyncClubIdFromUrl";
 import { withBase, BASE_PATH } from "@/lib/basePath";
 
+import { ClearButton, LinkButton } from "@/components/ui/text-buttons"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 interface MembershipDuesItem {
   id: number;
   districtNumber?: string;
@@ -170,7 +174,7 @@ export default function ClubMembershipDuesV2Page() {
           activeNavHref="/club-admin-dashboard/membership-dues"
         >
           <div className="flex flex-col items-center justify-center py-20">
-            <h3 className="text-lg font-semibold text-slate-700">Access Denied</h3>
+            <h3 className="row-h2">Access Denied</h3>
           </div>
         </ClubAdminShell>
       </ProtectedRoute>
@@ -186,23 +190,7 @@ export default function ClubMembershipDuesV2Page() {
       >
         <div className="space-y-5">
           {/* Header */}
-          <div className="flex items-start justify-between gap-3">
-            <div className="flex items-start gap-2">
-              <Link
-                href={`/clubs/${clubId}/dashboard`}
-                className="mt-0.5 inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50"
-                aria-label="Back"
-              >
-                <ArrowLeft size={15} />
-              </Link>
-              <div>
-                <h1 className="text-lg font-semibold text-slate-800">Club Dues</h1>
-                <p className="text-xs text-slate-500 mt-0.5">
-                  {clubName || "–"} · View &amp; manage member dues collection
-                </p>
-              </div>
-            </div>
-          </div>
+          <PageHeader title="Club Dues" description={<>{clubName || "–"} · View &amp; manage member dues collection</>} back={`/clubs/${clubId}/dashboard`} />
 
           {/* KPI row */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -214,9 +202,9 @@ export default function ClubMembershipDuesV2Page() {
 
           {/* Empty state (no dues at all) */}
           {!loading && items.length === 0 && (
-            <div className="bg-card rounded-2xl border border-slate-200 p-10 flex flex-col items-center justify-center space-y-5">
+            <Card className="p-10 flex flex-col items-center justify-center space-y-5">
               <div className="text-center max-w-lg space-y-3">
-                <h3 className="text-xl font-bold text-slate-800">
+                <h3 className="row-h2">
                   Collect 100% of Your Club Dues Without a Single Follow-up Call
                 </h3>
                 <p className="text-sm text-slate-500">
@@ -224,55 +212,51 @@ export default function ClubMembershipDuesV2Page() {
                   to learn more about our automated dues collection system.
                 </p>
               </div>
-              <button
+              <Button
                 type="button"
                 onClick={() => window.open("https://club.example.org/", "_blank")}
-                className="inline-flex items-center gap-2 text-sm font-semibold px-5 py-2.5 rounded-full bg-[#17458F] text-white hover:bg-[#17458F]"
+                
               >
                 Learn More
-              </button>
-            </div>
+              </Button>
+            </Card>
           )}
 
           {/* Table card */}
           {(loading || items.length > 0) && (
-            <div className="bg-card rounded-2xl border border-slate-200 overflow-hidden">
+            <Card className="overflow-hidden">
               <div className="px-5 py-3 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                 <div>
-                  <h3 className="text-sm font-semibold text-slate-800">Dues Records</h3>
+                  <h3 className="row-h3">Dues Records</h3>
                   <p className="text-xs text-slate-500 mt-0.5">
                     Manage dues per Rotary year · {filtered.length} record{filtered.length === 1 ? "" : "s"}
                   </p>
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
-                  <select
+                  <NativeSelect
                     value={yearFilter}
                     onChange={(e) => setYearFilter(e.target.value)}
-                    className="px-2 h-10 py-0 text-sm border border-slate-200 rounded-[12px] bg-card focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                    className="w-auto"
                   >
                     <option value="">All Years</option>
                     {availableYears.map((y) => (
                       <option key={y} value={y}>{y}</option>
                     ))}
-                  </select>
+                  </NativeSelect>
                   <div className="relative w-full sm:w-auto">
                     <Search size={14} className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-400" />
-                    <input
+                    <Input
                       type="text"
                       placeholder="Search title or year…"
                       value={searchInput}
                       onChange={(e) => setSearchInput(e.target.value)}
-                      className="pl-7 pr-7 h-10 py-0 text-sm border border-slate-200 rounded-[12px] w-full sm:w-56 focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                      className="pl-7 pr-7 sm:w-56"
                     />
                     {searchInput && (
-                      <button
+                      <ClearButton
                         type="button"
                         onClick={() => setSearchInput("")}
-                        aria-label="Clear search"
-                        className="absolute right-1.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700"
-                      >
-                        <X size={13} />
-                      </button>
+                        aria-label="Clear search" />
                     )}
                   </div>
                   {/*
@@ -288,116 +272,109 @@ export default function ClubMembershipDuesV2Page() {
                     <RotaryLoader size="md" label="Loading dues records…" />
                   </div>
                 ) : (
-                  <table className="min-w-full text-sm">
-                    <thead className="bg-[#EDF4FB] text-[13px] text-[#64748B]">
-                      <tr>
-                        <th className="px-3 py-2.5 text-left w-10">Sr</th>
-                        <th className="px-3 py-2.5 text-left">Year</th>
-                        <th className="px-3 py-2.5 text-left">Title</th>
-                        <th className="px-3 py-2.5 text-center">Paid</th>
-                        <th className="px-3 py-2.5 text-center">Unpaid</th>
-                        <th className="px-3 py-2.5 text-center">Members</th>
-                        <th className="px-3 py-2.5 text-center">Edit</th>
-                        <th className="px-3 py-2.5 text-center">Payment Page</th>
-                        <th className="px-3 py-2.5 text-center">Report</th>
-                        <th className="px-3 py-2.5 text-center">Report Link</th>
-                        <th className="px-3 py-2.5 text-center">Google Sheet</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100">
+                  <Table className="min-w-full">
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="text-left w-10">Sr</TableHead>
+                        <TableHead className="text-left">Year</TableHead>
+                        <TableHead className="text-left">Title</TableHead>
+                        <TableHead className="text-center">Paid</TableHead>
+                        <TableHead className="text-center">Unpaid</TableHead>
+                        <TableHead className="text-center">Members</TableHead>
+                        <TableHead className="text-center">Edit</TableHead>
+                        <TableHead className="text-center">Payment Page</TableHead>
+                        <TableHead className="text-center">Report</TableHead>
+                        <TableHead className="text-center">Report Link</TableHead>
+                        <TableHead className="text-center">Google Sheet</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
                       {filtered.length === 0 ? (
-                        <tr>
-                          <td colSpan={11} className="px-4 py-10 text-center text-slate-400">
+                        <TableRow>
+                          <TableCell colSpan={11} className="py-10 text-center text-muted-foreground">
                             No club dues match your filters.
-                          </td>
-                        </tr>
+                          </TableCell>
+                        </TableRow>
                       ) : filtered.map((item, idx) => (
-                        <tr key={item.id} className="hover:bg-blue-50/40">
-                          <td className="px-3 py-2 text-slate-500">{idx + 1}</td>
-                          <td className="px-3 py-2 text-slate-700 whitespace-nowrap">{item.rotaryYear || "–"}</td>
-                          <td className="px-3 py-2 font-medium text-slate-800">{item.purpose || "–"}</td>
-                          <td className="px-3 py-2 text-center">
-                            <span className="inline-flex items-center text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+                        <TableRow key={item.id}>
+                          <TableCell>{idx + 1}</TableCell>
+                          <TableCell className="whitespace-nowrap">{item.rotaryYear || "–"}</TableCell>
+                          <TableCell className="font-medium">{item.purpose || "–"}</TableCell>
+                          <TableCell className="text-center">
+                            <span className="inline-flex items-center text-xs font-semibold px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200">
                               {fmtInt(item.paidCount)}
                             </span>
-                          </td>
-                          <td className="px-3 py-2 text-center">
-                            <span className="inline-flex items-center text-xs font-semibold px-2 py-0.5 rounded-full bg-rose-50 text-rose-700 border border-rose-200">
+                          </TableCell>
+                          <TableCell className="text-center">
+                            <span className="inline-flex items-center text-xs font-semibold px-2 py-0.5 rounded bg-rose-50 text-rose-700 border border-rose-200">
                               {fmtInt(item.unpaidCount)}
                             </span>
-                          </td>
-                          <td className="px-3 py-2 text-center">
-                            <button
+                          </TableCell>
+                          <TableCell className="text-center">
+                            <IconButton
                               type="button"
                               onClick={() =>
                                 router.push(`/clubs/${clubId}/membership-dues/v2/${item.id}/members?returnTo=${returnTo}`)
                               }
-                              className="inline-flex items-center justify-center w-8 h-8 rounded-lg border border-slate-200 text-slate-500 hover:bg-blue-50 hover:text-blue-600 hover:border-blue-200"
-                              aria-label="View members"
+                               aria-label="View members"
                               title="View members"
                             >
                               <Users size={14} />
-                            </button>
-                          </td>
-                          <td className="px-3 py-2 text-center">
-                            <button
+                            </IconButton>
+                          </TableCell>
+                          <TableCell className="text-center">
+                            <IconButton
                               type="button"
                               onClick={() =>
                                 router.push(`/clubs/${clubId}/membership-dues/v2/edit/${item.id}?returnTo=${returnTo}`)
                               }
-                              className="inline-flex items-center justify-center w-8 h-8 rounded-lg border border-slate-200 text-slate-500 hover:bg-blue-50 hover:text-blue-600 hover:border-blue-200"
-                              aria-label="Edit dues record"
+                               aria-label="Edit dues record"
                               title="Edit"
                             >
                               <Pencil size={14} />
-                            </button>
-                          </td>
-                          <td className="px-3 py-2 text-center">
+                            </IconButton>
+                          </TableCell>
+                          <TableCell className="text-center">
                             <div className="inline-flex items-center gap-2 text-xs">
-                              <button
+                              <LinkButton
                                 type="button"
                                 onClick={() => window.open(withBase(duesPayPath(item)), "_blank")}
-                                className="inline-flex items-center gap-1 text-blue-600 hover:text-blue-800 hover:underline"
-                                title="Open payment page"
-                              >
+                                 title="Open payment page">
                                 <ExternalLink size={12} /> View
-                              </button>
+                              </LinkButton>
                               <span className="text-slate-300">|</span>
-                              <button
+                              <LinkButton
                                 type="button"
                                 onClick={() => handleCopyUrl(item)}
-                                className="inline-flex items-center gap-1 text-blue-600 hover:text-blue-800 hover:underline"
-                                title="Copy payment page URL"
-                              >
+                                 title="Copy payment page URL">
                                 <Copy size={12} /> Copy
-                              </button>
+                              </LinkButton>
                             </div>
-                          </td>
-                          <td className="px-3 py-2 text-center">
-                            <button
+                          </TableCell>
+                          <TableCell className="text-center">
+                            <IconButton
                               type="button"
                               onClick={() => handleDownloadReport(item)}
-                              className="inline-flex items-center justify-center w-8 h-8 rounded-lg border border-slate-200 text-rose-600 hover:bg-rose-50 hover:border-rose-200"
+                              className="hover:text-red-700"
                               aria-label="Download CSV report"
                               title="Download CSV"
                             >
                               <FileSpreadsheet size={14} />
-                            </button>
-                          </td>
-                          <td className="px-3 py-2 text-center">
-                            <button
+                            </IconButton>
+                          </TableCell>
+                          <TableCell className="text-center">
+                            <LinkButton
                               type="button"
                               onClick={() => handleCopyReportLink(item)}
-                              className="inline-flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 hover:underline"
-                              title="Copy report URL"
-                            >
+                               title="Copy report URL"
+                             size="sm">
                               <Copy size={12} /> Copy URL
-                            </button>
-                          </td>
-                          <td className="px-3 py-2 text-center">
+                            </LinkButton>
+                          </TableCell>
+                          <TableCell className="text-center">
                             {item.googleSheetId ? (
                               <div className="inline-flex flex-col items-center gap-0.5 text-xs">
-                                <button
+                                <LinkButton
                                   type="button"
                                   onClick={() =>
                                     window.open(
@@ -405,12 +382,10 @@ export default function ClubMembershipDuesV2Page() {
                                       "_blank"
                                     )
                                   }
-                                  className="inline-flex items-center gap-1 text-blue-600 hover:text-blue-800 hover:underline"
-                                  title="Open Google Sheet"
-                                >
+                                   title="Open Google Sheet">
                                   <ExternalLink size={12} /> Open
-                                </button>
-                                <button
+                                </LinkButton>
+                                <LinkButton
                                   type="button"
                                   onClick={() => {
                                     navigator.clipboard.writeText(
@@ -418,27 +393,25 @@ export default function ClubMembershipDuesV2Page() {
                                     );
                                     setSuccessMessage("Google Sheet URL copied.");
                                   }}
-                                  className="inline-flex items-center gap-1 text-blue-600 hover:text-blue-800 hover:underline"
-                                  title="Copy Google Sheet URL"
-                                >
+                                   title="Copy Google Sheet URL">
                                   <Copy size={12} /> Copy URL
-                                </button>
+                                </LinkButton>
                               </div>
                             ) : (
                               <span className="text-slate-300">–</span>
                             )}
-                          </td>
-                        </tr>
+                          </TableCell>
+                        </TableRow>
                       ))}
-                    </tbody>
-                  </table>
+                    </TableBody>
+                  </Table>
                 )}
               </div>
 
               <div className="px-5 py-2.5 border-t border-slate-100 text-xs text-slate-500">
                 {filtered.length} record{filtered.length === 1 ? "" : "s"}
               </div>
-            </div>
+            </Card>
           )}
 
           <SuccessAlert

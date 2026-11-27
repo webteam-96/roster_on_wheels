@@ -1,5 +1,9 @@
 "use client";
+import { RemoveBadgeButton, UploadZone } from "@/components/ui/text-buttons";
 
+import SectionCard from "@/components/form/SectionCard";
+import FieldLabel from "@/components/form/FieldLabel";
+import { Card } from "@/components/ui/card";
 import { useState, useEffect, useRef } from "react";
 import DateField from "@/components/DateField";
 import { useParams, useRouter } from "next/navigation";
@@ -11,22 +15,17 @@ import {
 } from "@/services/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
-import {
-  ArrowLeft, Upload, X,
-  FileText, Send, Bell, Plus, Trash2,
-} from "@/components/icons";
+import { Upload, X, FileText, Send, Bell, Plus, Trash2 } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
-import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import RecipientBadge from "@/components/RecipientBadge";
 import ImageCropDialog from "@/components/ImageCropDialog";
 import { useImageCropUpload } from "@/hooks/useImageCropUpload";
 import { TEXT_INPUT_REGEX } from "@/lib/textInput";
-import { ListPageSkeleton } from "@/components/row/AppKit";
+import { PageHeader, ListPageSkeleton } from "@/components/row/AppKit";
 
 // The attached image is shown as a landscape poster on the detail view and is
 // pushed out with email notifications — locked to 4:3 at 1200×900.
@@ -34,36 +33,6 @@ const IMAGE_ASPECT = 4 / 3;
 const IMAGE_MAX_WIDTH = 1200;
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
-
-function Req({ children, hint }: { children: React.ReactNode; hint?: string }) {
-  return (
-    <Label className="text-sm font-semibold text-foreground">
-      {children}<span className="text-destructive ml-0.5">*</span>
-      {hint && <span className="text-muted-foreground font-normal ml-1">{hint}</span>}
-    </Label>
-  );
-}
-
-function OptLabel({ children }: { children: React.ReactNode }) {
-  return (
-    <Label className="text-sm font-semibold text-foreground">{children}</Label>
-  );
-}
-
-function Section({ icon: Icon, title, number, children }: {
-  icon: React.ElementType; title: string; number: number; children: React.ReactNode;
-}) {
-  return (
-    <div className="bg-card rounded-[20px] border shadow-sm overflow-hidden">
-      <div className="flex items-center gap-3 px-5 py-3.5 bg-muted/40 border-b">
-        <div className="flex items-center justify-center h-7 w-7 rounded-full bg-primary text-primary-foreground text-xs font-bold">{number}</div>
-        <Icon className="h-4 w-4 text-primary" />
-        <h3 className="font-semibold text-base">{title}</h3>
-      </div>
-      <div className="p-5">{children}</div>
-    </div>
-  );
-}
 
 type ReminderItem = {
   id: string;
@@ -292,33 +261,25 @@ export default function DistrictUpcomingEventEditPage() {
 
   return (
     <ProtectedRoute>
-      <div className="space-y-6 max-w-3xl mx-auto">
+      <div className="space-y-6 max-w-4xl">
         {/* Header */}
-        <div className="flex items-center gap-3">
-          <Button variant="outline" size="icon" asChild>
-            <Link href={`/districts/${districtId}/upcoming-events`}><ArrowLeft className="h-4 w-4" /></Link>
-          </Button>
-          <div>
-            <h2 className="text-2xl font-bold tracking-tight text-primary">Edit Event</h2>
-            <p className="text-muted-foreground text-base">{districtName}</p>
-          </div>
-        </div>
+        <PageHeader title="Edit Event" description={districtName} back={`/districts/${districtId}/upcoming-events`} />
 
         {/* 1. Event Details */}
-        <Section icon={FileText} title="Event Details" number={1}>
+        <SectionCard icon={FileText} title="Event Details" number={1}>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1.5 sm:col-span-2">
-              <Req hint="(max 50 chars)">Title</Req>
+              <FieldLabel required hint="(max 50 chars)">Title</FieldLabel>
               <Input value={title} onChange={handleTitleChange} placeholder="Event title" maxLength={50} />
               <p className="text-xs text-muted-foreground text-right">{title.length}/50</p>
             </div>
             <div className="space-y-1.5 sm:col-span-2">
-              <OptLabel>Description <span className="text-muted-foreground font-normal text-xs">(max 450 chars)</span></OptLabel>
+              <FieldLabel>Description <span className="text-muted-foreground font-normal text-xs">(max 450 chars)</span></FieldLabel>
               <Textarea value={description} onChange={handleDescriptionChange} placeholder="Describe the event..." rows={4} maxLength={450} />
               <p className="text-xs text-muted-foreground text-right">{description.length}/450</p>
             </div>
             <div className="space-y-2 sm:col-span-2">
-              <OptLabel>Image</OptLabel>
+              <FieldLabel>Image</FieldLabel>
               {imagePreview ? (
                 <div className="relative inline-block">
                   <img src={imagePreview} alt="Event" className="h-32 w-auto max-w-[16rem] object-contain rounded-lg border" />
@@ -327,19 +288,16 @@ export default function DistrictUpcomingEventEditPage() {
                       <RotaryLoader size="sm" />
                     </div>
                   )}
-                  <button onClick={removeImage} className="absolute top-1 right-1 p-1 rounded-full bg-black/50 text-white hover:bg-red-500">
-                    <X className="h-3 w-3" />
-                  </button>
+                  <RemoveBadgeButton onClick={removeImage} aria-label="Remove image" />
                 </div>
               ) : (
                 <div>
-                  <button
+                  <UploadZone
                     onClick={() => imageInputRef.current?.click()}
-                    className="flex items-center gap-2 px-4 py-3 border-2 border-dashed rounded-lg hover:border-primary/40 transition-colors text-muted-foreground"
                   >
                     <Upload className="h-4 w-4" />
                     <span className="text-sm">Upload event image</span>
-                  </button>
+                  </UploadZone>
                   <p className="text-xs text-muted-foreground mt-1.5">Allowed: JPG, JPEG, PNG, GIF, WEBP</p>
                 </div>
               )}
@@ -347,31 +305,31 @@ export default function DistrictUpcomingEventEditPage() {
               {imageCrop.error && <p className="text-xs text-destructive mt-1">{imageCrop.error}</p>}
             </div>
             <div className="space-y-1.5">
-              <Req>Event Date</Req>
+              <FieldLabel required>Event Date</FieldLabel>
               <Input type="datetime-local" value={eventDate} onChange={(e) => setEventDate(e.target.value)} />
             </div>
             <div className="space-y-1.5">
-              <Req>Publish Date</Req>
+              <FieldLabel required>Publish Date</FieldLabel>
               <Input type="datetime-local" value={publishDate} onChange={(e) => setPublishDate(e.target.value)} />
             </div>
             <div className="space-y-1.5">
-              <Req>Expiry Date</Req>
+              <FieldLabel required>Expiry Date</FieldLabel>
               <Input type="datetime-local" value={expiryDate} onChange={(e) => setExpiryDate(e.target.value)} />
             </div>
             <div className="space-y-1.5">
-              <OptLabel>Event Venue <span className="text-muted-foreground font-normal text-xs">(max 70 chars)</span></OptLabel>
+              <FieldLabel>Event Venue <span className="text-muted-foreground font-normal text-xs">(max 70 chars)</span></FieldLabel>
               <Input value={eventVenue} onChange={(e) => setEventVenue(e.target.value)} maxLength={70} placeholder="Venue name or address" />
               <p className="text-xs text-slate-400 text-right mt-0.5">{eventVenue.length}/70</p>
             </div>
             <div className="space-y-1.5 sm:col-span-2">
-              <OptLabel>Registration Link</OptLabel>
+              <FieldLabel>Registration Link</FieldLabel>
               <Input value={registrationLink} onChange={(e) => setRegistrationLink(e.target.value)} placeholder="https://www.google.com/" />
             </div>
           </div>
-        </Section>
+        </SectionCard>
 
         {/* 2. Notification Settings */}
-        <Section icon={Bell} title="Notification Settings" number={2}>
+        <SectionCard icon={Bell} title="Notification Settings" number={2}>
           <div className="space-y-4">
             <label className="flex items-center gap-3 cursor-pointer">
               <input
@@ -407,7 +365,7 @@ export default function DistrictUpcomingEventEditPage() {
                       onChange={(e) => updateReminder(reminder.id, "time", e.target.value)}
                       className="w-36"
                     />
-                    <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive" onClick={() => removeReminder(reminder.id)}>
+                    <Button variant="ghost" size="icon" className="text-destructive row-btn-sm" onClick={() => removeReminder(reminder.id)}>
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>
@@ -418,11 +376,11 @@ export default function DistrictUpcomingEventEditPage() {
               </div>
             )}
           </div>
-        </Section>
+        </SectionCard>
 
         {/* Save Button */}
         <div className="flex justify-end pb-8">
-          <Button onClick={handleSave} disabled={saving} size="lg" className="shadow-md">
+          <Button onClick={handleSave} disabled={saving} size="lg">
             {saving ? <RotaryLoader size="sm" /> : <><Send className="mr-2 h-4 w-4" />Update Event</>}
           </Button>
         </div>

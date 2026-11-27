@@ -21,6 +21,8 @@ import '../../../../widgets/common/pagination_widget.dart';
 import '../../../../widgets/common/search_bar_widget.dart';
 import 'cog_member_search_screen.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/motion.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/roster_wheel.dart';
 
 // ---------------------------------------------------------------------------
 // Models
@@ -252,7 +254,7 @@ class _ClubMembersScreenState extends State<ClubMembersScreen> {
   Future<String?> _pickTerminationReason() async {
     final reasons = await RiCodes.of('termination_reason');
     if (reasons.isEmpty || !mounted) return '';
-    return showDialog<String>(
+    return showRowDialog<String>(
       context: context,
       builder: (ctx) => SimpleDialog(
         title: const Text('Termination reason (RI)'),
@@ -285,7 +287,7 @@ class _ClubMembersScreenState extends State<ClubMembersScreen> {
   }
 
   void _showAddMemberDialog() {
-    showDialog(
+    showRowDialog(
       context: context,
       builder: (_) => _AddMemberDialog(
         clubId: widget.clubId,
@@ -304,7 +306,7 @@ class _ClubMembersScreenState extends State<ClubMembersScreen> {
     final clubName = context.read<AuthProvider>().clubNameOf(widget.clubId);
     final ofClub =
         (clubName != null && clubName.isNotEmpty) ? ' of $clubName' : '';
-    final confirmed = await showDialog<bool>(
+    final confirmed = await showRowDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
         title: Text(makeAdmin ? 'Make Admin' : 'Remove Admin'),
@@ -513,12 +515,12 @@ class _ClubMembersScreenState extends State<ClubMembersScreen> {
                             actionLabel: canManage ? 'Add Member' : null,
                             onAction: canManage ? _showAddMemberDialog : null,
                           )
-                        : RefreshIndicator(
+                        : RowRefresh(
                             color: AppColors.primary,
                             onRefresh: () => _fetch(reset: true),
                             child: Builder(builder: (context) {
                               final display = _display;
-                              return ListView.separated(
+                              return RowListView.separated(
                               padding: (const EdgeInsets.fromLTRB(16, 16, 16, 80)).add(const EdgeInsets.only(bottom: 88)),
                               itemCount: display.length + 1,
                               separatorBuilder: (_, __) => const SizedBox(height: 8),
@@ -944,12 +946,12 @@ class _AddMemberDialogState extends State<_AddMemberDialog> {
             SizedBox(
               height: 300,
               child: _loading
-                  ? const Center(child: const CircularProgressIndicator(color: AppColors.primary))
+                  ? const LoadingWidget()
                   : _filtered.isEmpty
                       ? Center(
                           child: Text('No members found', style: AppTextStyles.body.copyWith(color: AppColors.textMuted)),
                         )
-                      : ListView.builder(
+                      : RowListView.builder(
   padding: const EdgeInsets.only(bottom: 88),
                           itemCount: _filtered.length,
                           itemBuilder: (ctx, i) {

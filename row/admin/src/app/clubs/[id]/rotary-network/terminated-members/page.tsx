@@ -1,4 +1,5 @@
 "use client";
+import { ClearButton } from "@/components/ui/text-buttons";
 
 import { useState, useEffect, useCallback } from "react";
 import { useParams } from "next/navigation";
@@ -11,15 +12,14 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 import Pagination from "@/components/Pagination";
-import { ArrowLeft, Search, UserX, X, Download } from "@/components/icons";
+import { Search, UserX, X, Download } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
-import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import SearchBox from "@/components/SearchBox";
 import * as XLSX from "xlsx-js-style";
 
 import { appLocale } from "@/lib/appFormat";
-import { ListPageSkeleton } from "@/components/row/AppKit";
+import { PageHeader, ListPageSkeleton } from "@/components/row/AppKit";
 export default function TerminatedMembersPage() {
   const params = useParams();
   const clubId = Number(params.id);
@@ -111,17 +111,7 @@ export default function TerminatedMembersPage() {
     <ProtectedRoute>
       <div className="space-y-6">
         {/* Header */}
-        <div className="flex items-center gap-3">
-          <Button variant="outline" size="icon" asChild>
-            <Link href={`/clubs/${clubId}/rotary-network`}><ArrowLeft className="h-4 w-4" /></Link>
-          </Button>
-          <div>
-            <h2 className="text-2xl font-bold tracking-tight text-primary">
-              {clubName ? `${clubName} - Terminated Members` : "Terminated Members"}
-            </h2>
-            <p className="text-muted-foreground text-base">Members terminated from this club</p>
-          </div>
-        </div>
+        <PageHeader title={clubName ? `${clubName} - Terminated Members` : "Terminated Members"} description="Members terminated from this club" back={`/clubs/${clubId}/rotary-network`} />
 
         {/* Search */}
         <div className="flex flex-wrap items-center gap-2">
@@ -135,9 +125,7 @@ export default function TerminatedMembersPage() {
               className="pl-9"
             />
             {searchInput && (
-              <button onClick={clearSearch} className="absolute right-3 top-1/2 -translate-y-1/2">
-                <X className="h-4 w-4 text-muted-foreground hover:text-foreground" />
-              </button>
+              <ClearButton onClick={clearSearch} aria-label="Clear search" />
             )}
           </div>
           <Button onClick={handleSearch} size="sm">Search</Button>
@@ -161,7 +149,7 @@ export default function TerminatedMembersPage() {
         {!loading && members.length === 0 && (
           <div className="flex flex-col items-center justify-center py-20 text-center">
             <UserX className="h-12 w-12 text-muted-foreground mb-4" />
-            <h3 className="text-lg font-semibold">No terminated members</h3>
+            <h3 className="row-h2">No terminated members</h3>
             <p className="text-muted-foreground mt-2">
               {search ? "No members found matching your search." : "No terminated members found for this club."}
             </p>
@@ -182,7 +170,7 @@ export default function TerminatedMembersPage() {
               {filteredMembers.length === 0 && searchQuery ? (
                 <div className="flex flex-col items-center justify-center py-20 text-center">
                   <UserX className="h-12 w-12 text-muted-foreground mb-4" />
-                  <h3 className="text-lg font-semibold">No results found</h3>
+                  <h3 className="row-h2">No results found</h3>
                   <p className="text-muted-foreground mt-2">No members match your filter. Try a different term.</p>
                 </div>
               ) : (
@@ -190,13 +178,13 @@ export default function TerminatedMembersPage() {
                   <CardContent className="p-0">
                     <Table>
                       <TableHeader>
-                        <TableRow className="bg-primary hover:bg-primary">
-                          <TableHead className="w-16 text-base font-semibold">S.No.</TableHead>
-                          <TableHead className="text-base font-semibold">Member ID</TableHead>
-                          <TableHead className="text-base font-semibold">Member Name</TableHead>
-                          <TableHead className="text-base font-semibold">Joined Date</TableHead>
-                          <TableHead className="text-base font-semibold">Termination Date</TableHead>
-                          <TableHead className="text-base font-semibold">Termination Reason</TableHead>
+                        <TableRow>
+                          <TableHead className="w-16">S.No.</TableHead>
+                          <TableHead>Member ID</TableHead>
+                          <TableHead>Member Name</TableHead>
+                          <TableHead>Joined Date</TableHead>
+                          <TableHead>Termination Date</TableHead>
+                          <TableHead>Termination Reason</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>

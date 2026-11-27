@@ -1,42 +1,42 @@
 "use client";
 
-import { ReactNode } from "react";
+import { ReactNode, useEffect, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { LogOut, type LucideIcon } from "@/components/icons";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Separator } from "@/components/ui/separator";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import Glide from "@/components/motion/Glide";
 import { cn } from "@/lib/utils";
 import DashboardSwitcher from "./DashboardSwitcher";
 import { withBase } from "@/lib/basePath";
 
-// ROW "Fellowship": a light rail; azure (Rotary Royal Blue) marks the selected item.
-// Single shared sidebar for every dashboard shell (District / Club / AG / RI-Director).
-const ACTIVE_BG = "#17458F";
-const ACTIVE_TEXT = "#FCFDFE";
-
 export interface SidebarNavItem {
   label: string;
   icon?: LucideIcon;
-  /** Route-link item (active by pathname). */
+  /** Heading this item sits under; consecutive items with the same group share one heading. */
+  group?: string;
+  /** Route-link item (active by pathname, or by `activeHref` when given). */
   to?: string;
   /** View-switch item (active by `activeKey`, fires `onSelect`). */
   key?: string;
+  /** Set by a caller that knows better than the pathname rule. */
+  active?: boolean;
 }
 
 export interface SidebarProps {
   brand: string;
   identityName: string;
   identityRole: string;
-  identityLabel: string;
   initials: string;
   nav: SidebarNavItem[];
   pathname?: string | null;
+  /** Pages outside the dashboard's own path (V2 forms) name their menu item. */
+  activeHref?: string;
   /** For view-switch navs: the selected key and the handler. */
   activeKey?: string;
   onSelect?: (key: string) => void;
-  variant?: "icon" | "dot";
+  emptyText?: string;
   footerText: ReactNode;
   switcherTop?: ReactNode;
   switcherKind?: "ag" | "club-admin" | "district-admin" | "goal-oversight" | "super-admin";
@@ -45,17 +45,18 @@ export interface SidebarProps {
   onSignOut: () => void;
 }
 
+// The one sidebar of every dashboard shell (District / Club / AG / Goal oversight). The azure pill glides between items.
 export default function Sidebar({
   brand,
   identityName,
   identityRole,
-  identityLabel,
   initials,
   nav,
   pathname,
+  activeHref,
   activeKey,
   onSelect,
-  variant = "dot",
+  emptyText,
   footerText,
   switcherTop,
   switcherKind,
@@ -63,94 +64,100 @@ export default function Sidebar({
   onNavigate,
   onSignOut,
 }: SidebarProps) {
+  const navRef = useRef<HTMLElement>(null);
+
+  const isActive = (item: SidebarNavItem): boolean => {
+    if (item.active !== undefined) return item.active;
+    if (!item.to) return !!item.key && activeKey === item.key;
+    if (activeHref) return item.to === activeHref;
+    return pathname === item.to || !!pathname?.startsWith(item.to + "/");
+  };
+  const activeLabel = nav.find(isActive)?.label;
+
+  // A long menu opens on the page you are on, not at the top.
+  useEffect(() => {
+    navRef.current?.querySelector('[aria-current="page"]')?.scrollIntoView({ block: "nearest" });
+  }, [activeLabel]);
+
   return (
-    <div className="flex flex-col h-full">
-      {/* Logo */}
-      <div className="px-5 pt-6 pb-4 border-b border-[color:var(--row-line)]">
+    <div className="flex h-full flex-col">
+      <div className="px-5 pb-3 pt-5">
         <Image
           src={withBase("/brand/row-logo.png")}
           alt="Roster On Wheels"
           width={220}
           height={95}
-          className="w-full max-w-[188px] h-auto object-contain"
+          className="h-auto w-full max-w-[148px] object-contain"
           priority
         />
-        <p className="text-xs text-muted-foreground mt-3 font-medium truncate">{brand}</p>
       </div>
 
-      {/* Identity */}
-      <div className="px-3 py-3 border-b border-[color:var(--row-line)]">
-        <div className="flex items-center gap-2.5 rounded-xl px-3 py-2.5" style={{ backgroundColor: "rgba(27,44,66,0.05)" }}>
-          <Avatar className="h-9 w-9 rounded-xl flex-shrink-0">
-            <AvatarFallback className="text-xs font-bold rounded-xl" style={{ background: ACTIVE_BG, color: ACTIVE_TEXT }}>{initials}</AvatarFallback>
-          </Avatar>
-          <div className="min-w-0">
-            <p className="text-foreground text-sm font-semibold truncate">{identityName}</p>
-            <p className="text-muted-foreground text-xs truncate">{identityRole}</p>
-          </div>
+      <div className="mx-3 mb-1 flex items-center gap-2.5 px-2 py-2">
+        <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-md bg-azure text-xs font-bold text-white" aria-hidden="true">
+          {initials}
+        </span>
+        <div className="min-w-0">
+          <p className="truncate text-sm font-semibold text-foreground">{identityName}</p>
+          <p className="truncate text-xs text-muted-foreground">{identityRole}</p>
         </div>
-        <p className="text-[10px] text-muted-foreground mt-2 px-1 tracking-wide uppercase truncate">{identityLabel}</p>
       </div>
 
-      {/* Nav */}
-      <ScrollArea className="flex-1 px-3 py-4">
-        <nav className="flex flex-col gap-0.5">
-          {nav.map((item) => {
-            const isActive = item.to
-              ? pathname === item.to || !!pathname?.startsWith(item.to + "/")
-              : !!item.key && activeKey === item.key;
+      <ScrollArea className="min-h-0 flex-1 border-y border-[color:var(--row-line)] px-3">
+        <nav ref={navRef} aria-label={brand} className="relative flex flex-col gap-0.5 py-3">
+          <Glide className="rounded-md bg-azure" />
+          {nav.length === 0 && emptyText && <p className="px-3 py-2 text-xs text-muted-foreground">{emptyText}</p>}
+          {nav.map((item, i) => {
+            const active = isActive(item);
             const Icon = item.icon;
+            const heading = item.group && item.group !== nav[i - 1]?.group ? item.group : null;
             const cls = cn(
-              "flex min-h-[44px] items-center gap-3 px-4 py-2.5 rounded-full text-[14px] font-medium text-left transition-colors duration-150 w-full",
-              isActive ? "font-semibold" : "text-[#1B2C42]/75 hover:text-[#1B2C42] hover:bg-[#CFE2F6]/60",
+              "group relative flex min-h-[44px] w-full items-center gap-3 rounded-md px-3 py-2 text-left text-[14px] transition-colors duration-200 lg:min-h-[38px]",
+              active ? "font-semibold text-white" : "font-medium text-foreground/80 hover:bg-card/70 hover:text-foreground",
             );
-            const style = isActive ? { backgroundColor: ACTIVE_BG, color: ACTIVE_TEXT } : undefined;
             const inner = (
               <>
-                {variant === "icon" && Icon ? (
-                  <Icon size={20} className="flex-shrink-0" />
-                ) : (
-                  <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: isActive ? ACTIVE_TEXT : "#5E93D6" }} />
-                )}
+                {Icon && <Icon size={18} className={cn("flex-shrink-0 transition-colors duration-200", active ? "text-coral" : "text-muted-foreground group-hover:text-azure")} />}
                 <span className="min-w-0 leading-tight">{item.label}</span>
               </>
             );
-            return item.to ? (
-              <Link key={item.to} href={item.to} onClick={onNavigate} className={cls} style={style}>
-                {inner}
-              </Link>
-            ) : (
-              <button
-                key={item.key}
-                onClick={() => { if (item.key) onSelect?.(item.key); onNavigate?.(); }}
-                className={cls}
-                style={style}
-              >
-                {inner}
-              </button>
+            return (
+              <div key={item.to ?? item.key} className="contents">
+                {heading && <p className="px-3 pb-1 pt-4 text-[12px] font-semibold text-muted-foreground">{heading}</p>}
+                {item.to ? (
+                  <Link href={item.to} onClick={onNavigate} className={cls} aria-current={active ? "page" : undefined}>
+                    {inner}
+                  </Link>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => { if (item.key) onSelect?.(item.key); onNavigate?.(); }}
+                    className={cls}
+                    aria-current={active ? "page" : undefined}
+                  >
+                    {inner}
+                  </button>
+                )}
+              </div>
             );
           })}
         </nav>
       </ScrollArea>
 
-      <Separator className="bg-[color:var(--row-line)] mx-3" />
-
       {/* Footer: optional club switcher + role switcher + sign out */}
-      <div className="px-3 py-3 space-y-2">
+      <div className="space-y-2 px-3 py-3">
         {!fromSuperAdminSearch && switcherTop && (
-          <div className="pb-3 mb-1 border-b border-[color:var(--row-line)]">{switcherTop}</div>
+          <div className="mb-1 border-b border-[color:var(--row-line)] pb-3">{switcherTop}</div>
         )}
         {!fromSuperAdminSearch && switcherKind && (
           <DashboardSwitcher currentKind={switcherKind} onNavigate={onNavigate} />
         )}
-        <button
-          onClick={onSignOut}
-          className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-full text-xs font-semibold text-foreground/70 hover:text-foreground hover:bg-muted transition-all"
-        >
-          <LogOut size={14} />
-          <span>Sign Out</span>
-        </button>
-        <p className="text-muted-foreground text-[11px] text-center tracking-widest uppercase truncate">{footerText}</p>
+        <div className="flex items-center justify-between gap-2">
+          <Button variant="ghost" size="sm" onClick={onSignOut} className="text-[13px] text-foreground/80">
+            <LogOut size={16} />
+            <span>Sign Out</span>
+          </Button>
+          <p className="min-w-0 truncate pr-2 text-[12px] text-muted-foreground">{footerText}</p>
+        </div>
       </div>
     </div>
   );

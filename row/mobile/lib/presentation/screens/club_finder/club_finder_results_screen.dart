@@ -12,6 +12,7 @@ import '../../widgets/common/loading_widget.dart';
 import 'package:rotary_flutter_app/core/theme/app_fonts.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
 import 'package:rotary_flutter_app/presentation/widgets/row/skeleton_list.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/motion.dart';
 
 enum ClubFinderMode { anyClub, nearMe }
 
@@ -166,7 +167,7 @@ class _ClubFinderResultsScreenState extends State<ClubFinderResultsScreen> {
             ),
           ),
         Expanded(
-          child: ListView.separated(
+          child: RowListView.separated(
             controller: _scrollCtrl,
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
             itemCount: _items.length + (_loadingMore ? 1 : 0),

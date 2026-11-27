@@ -1,5 +1,6 @@
 "use client";
 
+import { Card } from "@/components/ui/card";
 import { useState, useEffect, useCallback } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { TrfFund, TrfContribution } from "@/types/trfContribution";
@@ -39,23 +40,16 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import {
-  ArrowLeft,
-  Plus,
-  Pencil,
-  Trash2,
-  Calendar,
-} from "@/components/icons";
+import { Plus, Pencil, Trash2, Calendar } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import Pagination from "@/components/Pagination";
 import SearchBox from "@/components/SearchBox";
 import ErrorAlert from "@/components/ErrorAlert";
 import SuccessAlert from "@/components/SuccessAlert";
-import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
 
 import { appLocale } from "@/lib/appFormat";
-import { ListPageSkeleton } from "@/components/row/AppKit";
+import { PageHeader, ListPageSkeleton } from "@/components/row/AppKit";
 function TrfIcon() {
   return (
     <svg
@@ -403,25 +397,11 @@ export default function TrfContributionPage() {
     <ProtectedRoute>
       <div className="space-y-6">
         {/* Header */}
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-3">
-            <Button variant="outline" size="icon" asChild>
-              <Link href={backUrl}>
-                <ArrowLeft className="h-4 w-4" />
-              </Link>
-            </Button>
-            <div>
-              <h2 className="text-2xl font-bold tracking-tight text-primary">
-                {clubName ? `${clubName} - TRF Contributions` : "TRF Contributions"}
-              </h2>
-              <p className="text-muted-foreground text-base">
-                The Rotary Foundation contributions
-              </p>
-            </div>
-          </div>
-
-          {/* Year filter */}
-          {!loading && years.length > 0 && (
+        <PageHeader
+          title={clubName ? `${clubName} - TRF Contributions` : "TRF Contributions"}
+          description="The Rotary Foundation contributions"
+          back={backUrl}
+          actions={!loading && years.length > 0 && (
             <div className="w-full sm:w-52">
               <Select
                 value={selectedYearId?.toString() || ""}
@@ -443,7 +423,7 @@ export default function TrfContributionPage() {
               </Select>
             </div>
           )}
-        </div>
+        />
 
         {/* Loading */}
         {loading && (
@@ -474,7 +454,7 @@ export default function TrfContributionPage() {
             {!tableLoading && filteredContributions.length === 0 && contributions.length > 0 && searchQuery && (
               <div className="flex flex-col items-center justify-center py-12 text-center">
                 <TrfIcon />
-                <h3 className="text-lg font-semibold mt-3">No results found</h3>
+                <h3 className="row-h2 mt-3">No results found</h3>
                 <p className="text-muted-foreground mt-2">No contributions match your search &quot;{searchQuery}&quot;.</p>
               </div>
             )}
@@ -492,7 +472,7 @@ export default function TrfContributionPage() {
                 </p>
               </div>
             ) : filteredContributions.length === 0 ? null : (
-              <div className="overflow-x-auto border rounded-lg">
+              <Card className="overflow-x-auto">
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -525,7 +505,7 @@ export default function TrfContributionPage() {
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="h-8 w-8"
+                              className="row-btn-sm"
                               onClick={() => openEditDialog(entry)}
                             >
                               <Pencil className="h-4 w-4" />
@@ -533,7 +513,7 @@ export default function TrfContributionPage() {
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="h-8 w-8 text-destructive"
+                              className="text-destructive row-btn-sm"
                               onClick={() => handleDelete(entry.id)}
                               disabled={deletingId === entry.id}
                             >
@@ -561,7 +541,7 @@ export default function TrfContributionPage() {
                     onPageChange={setCurrentPage}
                   />
                 </div>
-              </div>
+              </Card>
             )}
           </div>
         )}

@@ -1,3 +1,4 @@
+import 'package:rotary_flutter_app/presentation/widgets/row/motion.dart';
 import 'package:flutter/material.dart' hide Text;
 import '../../../core/network/api_exceptions.dart';
 import '../../../core/services/survey_api.dart';
@@ -7,6 +8,7 @@ import '../../widgets/common/custom_app_bar.dart';
 import '../../widgets/common/empty_state_widget.dart';
 import '../../widgets/common/loading_widget.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/roster_wheel.dart';
 
 String _when(Object? iso) => DateFormatter.toDisplayWithTime(DateTime.tryParse(iso?.toString() ?? '')?.toLocal());
 
@@ -66,7 +68,7 @@ class _SurveysScreenState extends State<SurveysScreen> {
                   icon: Icons.poll_outlined,
                   title: _failed ? 'Could not load surveys' : 'No surveys',
                   subtitle: _failed ? 'Check your connection and pull to try again.' : 'You have no surveys to answer right now.')
-              : RefreshIndicator(
+              : RowRefresh(
                   onRefresh: _load,
                   child: ListView(
                     padding: const EdgeInsets.all(12),
@@ -307,7 +309,7 @@ class _SurveyScreenState extends State<SurveyScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text('${o['label']}  ${o['count']} (${o['percent']}%)'),
-                          LinearProgressIndicator(value: ((o['percent'] as num?) ?? 0) / 100, minHeight: 8),
+                          RowProgressBar(value: ((o['percent'] as num?) ?? 0) / 100, minHeight: 8),
                         ],
                       ),
                     ),

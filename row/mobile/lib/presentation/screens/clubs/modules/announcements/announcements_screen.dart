@@ -20,6 +20,8 @@ import '../../../../widgets/detail/detail_widgets.dart';
 import '../../../../providers/auth_provider.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
 import 'package:rotary_flutter_app/presentation/widgets/row/form_action_bar.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/motion.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/roster_wheel.dart';
 
 // ---------------------------------------------------------------------------
 // Model
@@ -299,7 +301,7 @@ class _AnnouncementsScreenState extends State<AnnouncementsScreen> {
                 isDense: true,
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
                 suffixIcon: _searchCtrl.text.isNotEmpty
-                    ? IconButton(icon: const Icon(Icons.close, size: 18),
+                    ? IconButton(tooltip: 'Close', icon: const Icon(Icons.close, size: 18),
                         onPressed: () { _searchCtrl.clear(); _fetch(reset: true); })
                     : null,
               ),
@@ -349,10 +351,10 @@ class _AnnouncementsScreenState extends State<AnnouncementsScreen> {
                             actionLabel: !canManage ? null : 'Add Announcement',
                             onAction: !canManage ? null : () => _showForm(),
                           )
-                        : RefreshIndicator(
+                        : RowRefresh(
                             color: AppColors.primary,
                             onRefresh: () => _fetch(reset: true),
-                            child: ListView.separated(
+                            child: RowListView.separated(
                               padding: (const EdgeInsets.all(16)).add(const EdgeInsets.only(bottom: 88)),
                               itemCount: _items.length + 1,
                               separatorBuilder: (_, __) => const SizedBox(height: 10),
@@ -971,6 +973,7 @@ class _AnnouncementFormScreenState extends State<_AnnouncementFormScreen> {
                           },
                         )),
                         IconButton(
+                          tooltip: 'Delete',
                           icon: const Icon(Icons.delete_outline, size: 18, color: AppColors.error),
                           onPressed: () => setState(() => _reminders.removeAt(idx)),
                           constraints: const BoxConstraints(),

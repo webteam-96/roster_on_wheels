@@ -40,20 +40,15 @@ import {
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
 import AlertModal from "@/components/AlertModal";
-import {
-  ArrowLeft, Plus, Pencil, Trash2, MoreHorizontal, ImageIcon,
-  AlertTriangle, Upload, X, Eye, EyeOff, GripVertical,
-  FileText, ExternalLink,
-} from "@/components/icons";
+import { Plus, Pencil, Trash2, MoreHorizontal, ImageIcon, AlertTriangle, Upload, X, Eye, EyeOff, GripVertical, FileText, ExternalLink } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
-import Link from "next/link";
 import Image from "next/image";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import SearchBox from "@/components/SearchBox";
 import ImageCropDialog from "@/components/ImageCropDialog";
 import DocumentOrLinkField from "@/components/website-data/DocumentOrLinkField";
 import { useImageCropUpload } from "@/hooks/useImageCropUpload";
-import { ListPageSkeleton } from "@/components/row/AppKit";
+import { PageHeader, ListPageSkeleton } from "@/components/row/AppKit";
 
 // Ads are sponsor posters/flyers in many shapes, so the crop stays FREE-FORM
 // (no locked aspect). Matches the upload validator's own 2560 px compression
@@ -331,24 +326,16 @@ export default function AdvertisementsPage() {
     <ProtectedRoute>
       <div className="space-y-6">
         {/* Header */}
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-3">
-            <Button variant="outline" size="icon" asChild>
-              <Link href={`/clubs/${clubId}/website-data`}><ArrowLeft className="h-4 w-4" /></Link>
-            </Button>
-            <div>
-              <h2 className="text-2xl font-bold tracking-tight text-primary">
-                {clubName ? `${clubName} - Advertisements` : "Advertisements"}
-              </h2>
-              <p className="text-muted-foreground text-base">Manage club website advertisements by year</p>
-            </div>
-          </div>
-          {canManage && (
+        <PageHeader
+          title={clubName ? `${clubName} - Advertisements` : "Advertisements"}
+          description="Manage club website advertisements by year"
+          back={`/clubs/${clubId}/website-data`}
+          actions={canManage && (
             <Button onClick={openAddDialog} disabled={allYears.length === 0}>
               <Plus className="mr-2 h-4 w-4" />Add Advertisement
             </Button>
           )}
-        </div>
+        />
 
         {loading && (
           <div className="flex items-center justify-center py-20">
@@ -391,7 +378,7 @@ export default function AdvertisementsPage() {
         {!loading && !loadingAds && selectedYearId && advertisements.length === 0 && (
           <div className="flex flex-col items-center justify-center py-20 text-center">
             <ImageIcon className="h-12 w-12 text-muted-foreground mb-4" />
-            <h3 className="text-lg font-semibold">No advertisements yet</h3>
+            <h3 className="row-h2">No advertisements yet</h3>
             <p className="text-muted-foreground mt-2">
               {canManage ? 'Click "Add Advertisement" to upload your first advertisement.' : "No advertisements have been added yet."}
             </p>
@@ -415,7 +402,7 @@ export default function AdvertisementsPage() {
               {filteredAdvertisements.map((ad, idx) => {
                 const photoUrl = getPhotoUrl(ad.advertisementImagePath);
                 return (
-                  <Card key={ad.id} className="border-primary/20 relative">
+                  <Card key={ad.id} className="relative">
                     {canManage && !isSearching && (
                       <div
                         {...dragProps(idx)}
@@ -452,7 +439,7 @@ export default function AdvertisementsPage() {
                         {canManage && (
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="icon" className="h-8 w-8">
+                              <Button variant="ghost" size="icon" className="row-btn-sm">
                                 <MoreHorizontal className="h-4 w-4" />
                               </Button>
                             </DropdownMenuTrigger>
@@ -486,16 +473,16 @@ export default function AdvertisementsPage() {
             </div>
 
             {/* Desktop table view */}
-            <div className="hidden sm:block rounded-md border">
+            <Card className="hidden sm:block overflow-hidden">
               <Table>
                 <TableHeader>
-                  <TableRow className="bg-primary hover:bg-primary">
+                  <TableRow>
                     <TableHead className="w-24">Thumbnail</TableHead>
-                    <TableHead className="text-base font-semibold">Description</TableHead>
-                    <TableHead className="w-24 text-base font-semibold">Document</TableHead>
-                    <TableHead className="w-24 text-base font-semibold">Status</TableHead>
+                    <TableHead>Description</TableHead>
+                    <TableHead className="w-24">Document</TableHead>
+                    <TableHead className="w-24">Status</TableHead>
                     {canManage && <TableHead className="w-12"></TableHead>}
-                    {canManage && <TableHead className="w-20 text-base font-semibold text-center">Sorting</TableHead>}
+                    {canManage && <TableHead className="w-20 text-center">Sorting</TableHead>}
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -520,7 +507,7 @@ export default function AdvertisementsPage() {
                             <Button
                               variant="ghost"
                               size="sm"
-                              className="h-7 gap-1 text-primary"
+                              className="row-btn-sm"
                               onClick={() => handleViewDocument(ad.documentPath!)}
                             >
                               <FileText className="h-3.5 w-3.5" />
@@ -539,7 +526,7 @@ export default function AdvertisementsPage() {
                           <TableCell>
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="icon" className="h-8 w-8">
+                                <Button variant="ghost" size="icon" className="row-btn-sm">
                                   <MoreHorizontal className="h-4 w-4" />
                                 </Button>
                               </DropdownMenuTrigger>
@@ -580,7 +567,7 @@ export default function AdvertisementsPage() {
                   })}
                 </TableBody>
               </Table>
-            </div>
+            </Card>
             </>
             )}
           </>
@@ -623,7 +610,7 @@ export default function AdvertisementsPage() {
                     <Button
                       type="button"
                       variant="outline"
-                      className="w-full h-24 border-dashed"
+                      className="w-full h-24"
                       onClick={() => fileInputRef.current?.click()}
                     >
                       <div className="flex flex-col items-center gap-1">

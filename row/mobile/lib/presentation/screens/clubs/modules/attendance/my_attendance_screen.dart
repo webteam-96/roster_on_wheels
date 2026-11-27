@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart' hide Text;
+import 'package:rotary_flutter_app/core/utils/date_formatter.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
@@ -11,6 +12,10 @@ import '../../../../widgets/common/confirmation_dialog.dart';
 import '../../../../widgets/common/custom_app_bar.dart';
 import '../../../../widgets/common/empty_state_widget.dart';
 import '../../../../widgets/common/loading_widget.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/roster_wheel.dart';
+
+/// An API date ("2026-11-20") as the app shows dates.
+String _day(dynamic raw) => DateFormatter.toDisplay(DateTime.tryParse('${raw ?? ''}'));
 
 /// Attendance standing for the signed-in member, with makeups they log themselves (gap #5, 2026-11-19).
 /// A makeup logged here waits until a club officer approves it; officers see the waiting ones on this screen.
@@ -138,7 +143,7 @@ class _MyAttendanceScreenState extends State<MyAttendanceScreen> {
           ? const ShimmerList(itemCount: 5, itemHeight: 80)
           : _error != null
               ? ErrorStateWidget(message: _error!, onRetry: _load)
-              : RefreshIndicator(
+              : RowRefresh(
                   color: AppColors.primary,
                   onRefresh: _load,
                   child: ListView(
@@ -215,7 +220,7 @@ class _MyAttendanceScreenState extends State<MyAttendanceScreen> {
       margin: const EdgeInsets.only(bottom: 8),
       child: ListTile(
         title: Text(m['eventName']?.toString() ?? ''),
-        subtitle: Text(m['meetingDate']?.toString() ?? ''),
+        subtitle: Text(_day(m['meetingDate'])),
         trailing: has || closed
             ? Text(has ? 'Makeup logged' : 'Meeting closed')
             : TextButton(
@@ -231,7 +236,7 @@ class _MyAttendanceScreenState extends State<MyAttendanceScreen> {
     final type = _makeupTypes[m['makeupType']] ?? m['makeupType']?.toString() ?? '';
     final lines = [
       if (officer) m['memberName']?.toString() ?? '',
-      '${m['makeupDate']}  $type',
+      '${_day(m['makeupDate'])}  $type',
       if (m['missedEventName'] != null) 'For ${m['missedEventName']}',
       if ((m['note'] ?? '').toString().isNotEmpty) m['note'].toString(),
       if (!officer) _statusLabel(status) + (status == 'rejected' && m['reviewNote'] != null ? ': ${m['reviewNote']}' : ''),
@@ -346,7 +351,7 @@ class _LogMakeupSheetState extends State<_LogMakeupSheet> {
             items: [
               const DropdownMenuItem<int?>(value: null, child: Text('Nearest missed meeting')),
               for (final m in open)
-                DropdownMenuItem<int?>(value: m['id'] as int?, child: Text('${m['meetingDate']}  ${m['eventName']}', overflow: TextOverflow.ellipsis)),
+                DropdownMenuItem<int?>(value: m['id'] as int?, child: Text('${_day(m['meetingDate'])}  ${m['eventName']}', overflow: TextOverflow.ellipsis)),
             ],
             onChanged: (v) => setState(() => _missedId = v),
           ),

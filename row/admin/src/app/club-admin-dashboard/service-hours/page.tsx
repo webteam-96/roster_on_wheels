@@ -6,6 +6,9 @@
  * year's report (logged hours plus hours recorded on volunteer sheets) with an Excel export.
  */
 
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table"
+import { NativeSelect } from "@/components/ui/native-select";
+import { PageHeader } from "@/components/row/AppKit";
 import { useCallback, useEffect, useState } from "react";
 import { Check, Download, Loader2, Plus, Trash2, X } from "@/components/icons";
 import { Button } from "@/components/ui/button";
@@ -25,7 +28,7 @@ import {
 import type { Contribution, ServiceHoursEntry, ServiceHoursStatus, ServiceProjectOption, ServiceReport } from "@/types/serviceHours";
 
 const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
-const SELECT = "h-10 rounded-md border border-input bg-background px-3 text-sm";
+const SELECT = "row-field";
 const TH = "p-3 font-medium";
 const message = (err: unknown, fallback: string): string =>
   (err as { response?: { data?: { message?: string } } })?.response?.data?.message || fallback;
@@ -50,24 +53,19 @@ export default function ServiceHoursPage() {
   const year = report?.yearId ?? yearId;
 
   return (
-    <div className="space-y-6 p-6">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h2 className="text-2xl font-bold tracking-tight text-primary">Service Hours</h2>
-          <p className="text-base text-muted-foreground">
-            Members log their service hours in the app. Approve them here, record what the club gave in cash and in
-            kind, and see the year&apos;s totals. Hours recorded on volunteer sign-up sheets count in too.
-          </p>
-        </div>
-        {report && (
+    <div className="space-y-6">
+      <PageHeader
+        title="Service Hours"
+        description={<>Members log their service hours in the app. Approve them here, record what the club gave in cash and in kind, and see the year&apos;s totals. Hours recorded on volunteer sign-up sheets count in too.</>}
+        actions={report && (
           <div className="flex items-center gap-2">
             <Label htmlFor="sh-year" className="text-sm">Rotary year</Label>
-            <select id="sh-year" className={SELECT} value={report.yearId} onChange={(e) => setYearId(Number(e.target.value))}>
+            <NativeSelect id="sh-year" className="w-auto" value={report.yearId} onChange={(e) => setYearId(Number(e.target.value))}>
               {report.years.map((y) => <option key={y.id} value={y.id}>{y.label}</option>)}
-            </select>
+            </NativeSelect>
           </div>
         )}
-      </div>
+      />
 
       <Tabs defaultValue="review">
         <TabsList>
@@ -129,12 +127,12 @@ function Entries({ clubId, yearId, onChange, onError }: PartProps) {
     <div className="space-y-3 pt-3">
       <div className="flex items-center gap-2">
         <Label htmlFor="sh-status" className="text-sm">Show</Label>
-        <select id="sh-status" className={SELECT} value={status} onChange={(e) => setStatus(e.target.value as ServiceHoursStatus | "")}>
+        <NativeSelect id="sh-status" className="w-auto" value={status} onChange={(e) => setStatus(e.target.value as ServiceHoursStatus | "")}>
           <option value="pending">Waiting for review</option>
           <option value="approved">Approved</option>
           <option value="rejected">Rejected</option>
           <option value="">All</option>
-        </select>
+        </NativeSelect>
       </div>
       {!entries ? (
         <div aria-busy="true"><TableSkeleton rows={4} /></div>
@@ -143,36 +141,36 @@ function Entries({ clubId, yearId, onChange, onError }: PartProps) {
       ) : (
         <Card>
           <CardContent className="overflow-x-auto p-0">
-            <table className="w-full min-w-[900px] text-sm">
-              <thead className="bg-[#EDF4FB] text-[13px] text-[#64748B]">
-                <tr className="border-b text-left">
-                  <th className={TH}>Member</th>
-                  <th className={TH}>Date</th>
-                  <th className={TH}>Service</th>
-                  <th className={`${TH} text-right`}>Hours</th>
-                  <th className={TH}>Photo</th>
-                  <th className={TH}>Review</th>
-                </tr>
-              </thead>
-              <tbody>
+            <Table className="w-full min-w-[900px] text-sm">
+              <TableHeader>
+                <TableRow className="border-b">
+                  <TableHead className={TH}>Member</TableHead>
+                  <TableHead className={TH}>Date</TableHead>
+                  <TableHead className={TH}>Service</TableHead>
+                  <TableHead className={`${TH} text-right`}>Hours</TableHead>
+                  <TableHead className={TH}>Photo</TableHead>
+                  <TableHead className={TH}>Review</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
                 {entries.map((e) => (
-                  <tr key={e.id} className="border-b align-top last:border-0">
-                    <td className="p-3 font-medium">{e.memberName}</td>
-                    <td className="p-3 whitespace-nowrap">{fmt.date(e.serviceDate.slice(0, 10))}</td>
-                    <td className="p-3">
+                  <TableRow key={e.id} className="border-b align-top last:border-0">
+                    <TableCell className="p-3 font-medium">{e.memberName}</TableCell>
+                    <TableCell className="p-3 whitespace-nowrap">{fmt.date(e.serviceDate.slice(0, 10))}</TableCell>
+                    <TableCell className="p-3">
                       <div>{e.projectTitle ?? e.otherService ?? ""}</div>
                       {e.note && <div className="text-muted-foreground">{e.note}</div>}
-                    </td>
-                    <td className="p-3 text-right tabular-nums">{fmt.number(e.hours)}</td>
-                    <td className="p-3">
+                    </TableCell>
+                    <TableCell className="p-3 text-right tabular-nums">{fmt.number(e.hours)}</TableCell>
+                    <TableCell className="p-3">
                       {e.photoPath && (
                         <a href={`${API}${e.photoPath}`} target="_blank" rel="noreferrer">
                           {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img src={`${API}${e.photoPath}`} alt={`Service photo from ${e.memberName}`} className="h-12 w-12 rounded-md object-cover" />
                         </a>
                       )}
-                    </td>
-                    <td className="p-3">
+                    </TableCell>
+                    <TableCell className="p-3">
                       {e.status !== "pending" && (
                         <p className="mb-2">
                           {e.status === "approved" ? "Approved" : "Rejected"}
@@ -184,7 +182,7 @@ function Entries({ clubId, yearId, onChange, onError }: PartProps) {
                           aria-label={`Note for ${e.memberName}`}
                           placeholder="Note (optional)"
                           maxLength={300}
-                          className="h-9 w-44"
+                          className="w-44"
                           value={notes[e.id] ?? ""}
                           onChange={(ev) => setNotes((n) => ({ ...n, [e.id]: ev.target.value }))}
                         />
@@ -193,19 +191,19 @@ function Entries({ clubId, yearId, onChange, onError }: PartProps) {
                         ) : (
                           <>
                             {e.status !== "approved" && (
-                              <Button size="sm" className="gap-1" onClick={() => review(e, true)}><Check className="h-4 w-4" /> Approve</Button>
+                              <Button size="sm" onClick={() => review(e, true)}><Check className="h-4 w-4" /> Approve</Button>
                             )}
                             {e.status !== "rejected" && (
-                              <Button size="sm" variant="outline" className="gap-1" onClick={() => review(e, false)}><X className="h-4 w-4" /> Reject</Button>
+                              <Button size="sm" variant="outline" onClick={() => review(e, false)}><X className="h-4 w-4" /> Reject</Button>
                             )}
                           </>
                         )}
                       </div>
-                    </td>
-                  </tr>
+                    </TableCell>
+                  </TableRow>
                 ))}
-              </tbody>
-            </table>
+              </TableBody>
+            </Table>
           </CardContent>
         </Card>
       )}
@@ -241,73 +239,73 @@ function Report({ clubId, report, onError }: { clubId: number; report: ServiceRe
           <div><dt className="text-muted-foreground">Cash</dt><dd className="text-xl font-semibold">{money(t.cash)}</dd></div>
           <div><dt className="text-muted-foreground">In kind</dt><dd className="text-xl font-semibold">{money(t.inKind)}</dd></div>
         </dl>
-        <Button variant="outline" className="gap-1.5" onClick={download} disabled={downloading}>
+        <Button variant="outline" onClick={download} disabled={downloading}>
           {downloading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />} Excel
         </Button>
       </div>
 
-      <h3 className="text-lg font-semibold">By project</h3>
+      <h3 className="row-h2">By project</h3>
       {report.byProject.length === 0 ? (
         <Card><CardContent className="p-5 text-sm text-muted-foreground">No approved hours or contributions in {report.yearLabel} yet.</CardContent></Card>
       ) : (
         <Card>
           <CardContent className="overflow-x-auto p-0">
-            <table className="w-full min-w-[820px] text-sm">
-              <thead className="bg-[#EDF4FB] text-[13px] text-[#64748B]">
-                <tr className="border-b text-left">
-                  <th className={TH}>Project</th>
-                  <th className={`${TH} text-right`}>Logged hours</th>
-                  <th className={`${TH} text-right`}>Volunteer sheet hours</th>
-                  <th className={`${TH} text-right`}>Man-hours on project</th>
-                  <th className={`${TH} text-right`}>Members</th>
-                  <th className={TH}>Cash</th>
-                  <th className={TH}>In kind</th>
-                </tr>
-              </thead>
-              <tbody>
+            <Table className="w-full min-w-[820px] text-sm">
+              <TableHeader>
+                <TableRow className="border-b">
+                  <TableHead className={TH}>Project</TableHead>
+                  <TableHead className={`${TH} text-right`}>Logged hours</TableHead>
+                  <TableHead className={`${TH} text-right`}>Volunteer sheet hours</TableHead>
+                  <TableHead className={`${TH} text-right`}>Man-hours on project</TableHead>
+                  <TableHead className={`${TH} text-right`}>Members</TableHead>
+                  <TableHead className={TH}>Cash</TableHead>
+                  <TableHead className={TH}>In kind</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
                 {report.byProject.map((p) => (
-                  <tr key={p.projectId ?? "other"} className="border-b last:border-0">
-                    <td className="p-3 font-medium">{p.title}</td>
-                    <td className="p-3 text-right tabular-nums">{fmt.number(p.hours)}</td>
-                    <td className="p-3 text-right tabular-nums">{fmt.number(p.volunteerHours)}</td>
-                    <td className="p-3 text-right tabular-nums">{p.projectManHours == null ? "" : fmt.number(p.projectManHours)}</td>
-                    <td className="p-3 text-right tabular-nums">{fmt.number(p.members)}</td>
-                    <td className="p-3">{moneyLine(p.cash, (a, c) => fmt.money(a, c))}</td>
-                    <td className="p-3">{moneyLine(p.inKind, (a, c) => fmt.money(a, c))}</td>
-                  </tr>
+                  <TableRow key={p.projectId ?? "other"} className="border-b last:border-0">
+                    <TableCell className="p-3 font-medium">{p.title}</TableCell>
+                    <TableCell className="p-3 text-right tabular-nums">{fmt.number(p.hours)}</TableCell>
+                    <TableCell className="p-3 text-right tabular-nums">{fmt.number(p.volunteerHours)}</TableCell>
+                    <TableCell className="p-3 text-right tabular-nums">{p.projectManHours == null ? "" : fmt.number(p.projectManHours)}</TableCell>
+                    <TableCell className="p-3 text-right tabular-nums">{fmt.number(p.members)}</TableCell>
+                    <TableCell className="p-3">{moneyLine(p.cash, (a, c) => fmt.money(a, c))}</TableCell>
+                    <TableCell className="p-3">{moneyLine(p.inKind, (a, c) => fmt.money(a, c))}</TableCell>
+                  </TableRow>
                 ))}
-              </tbody>
-            </table>
+              </TableBody>
+            </Table>
           </CardContent>
         </Card>
       )}
 
-      <h3 className="text-lg font-semibold">By member</h3>
+      <h3 className="row-h2">By member</h3>
       {report.byMember.length === 0 ? (
         <Card><CardContent className="p-5 text-sm text-muted-foreground">No member has approved hours in {report.yearLabel} yet.</CardContent></Card>
       ) : (
         <Card>
           <CardContent className="overflow-x-auto p-0">
-            <table className="w-full min-w-[560px] text-sm">
-              <thead className="bg-[#EDF4FB] text-[13px] text-[#64748B]">
-                <tr className="border-b text-left">
-                  <th className={TH}>Member</th>
-                  <th className={`${TH} text-right`}>Logged hours</th>
-                  <th className={`${TH} text-right`}>Volunteer sheet hours</th>
-                  <th className={`${TH} text-right`}>Entries</th>
-                </tr>
-              </thead>
-              <tbody>
+            <Table className="w-full min-w-[560px] text-sm">
+              <TableHeader>
+                <TableRow className="border-b">
+                  <TableHead className={TH}>Member</TableHead>
+                  <TableHead className={`${TH} text-right`}>Logged hours</TableHead>
+                  <TableHead className={`${TH} text-right`}>Volunteer sheet hours</TableHead>
+                  <TableHead className={`${TH} text-right`}>Entries</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
                 {report.byMember.map((m) => (
-                  <tr key={m.memberId} className="border-b last:border-0">
-                    <td className="p-3 font-medium">{m.name}</td>
-                    <td className="p-3 text-right tabular-nums">{fmt.number(m.hours)}</td>
-                    <td className="p-3 text-right tabular-nums">{fmt.number(m.volunteerHours)}</td>
-                    <td className="p-3 text-right tabular-nums">{fmt.number(m.entries)}</td>
-                  </tr>
+                  <TableRow key={m.memberId} className="border-b last:border-0">
+                    <TableCell className="p-3 font-medium">{m.name}</TableCell>
+                    <TableCell className="p-3 text-right tabular-nums">{fmt.number(m.hours)}</TableCell>
+                    <TableCell className="p-3 text-right tabular-nums">{fmt.number(m.volunteerHours)}</TableCell>
+                    <TableCell className="p-3 text-right tabular-nums">{fmt.number(m.entries)}</TableCell>
+                  </TableRow>
                 ))}
-              </tbody>
-            </table>
+              </TableBody>
+            </Table>
           </CardContent>
         </Card>
       )}
@@ -379,17 +377,17 @@ function Contributions({ clubId, yearId, onChange, onError }: PartProps) {
             <form onSubmit={add} className="grid gap-3 md:grid-cols-3">
               <div className="space-y-1 md:col-span-2">
                 <Label htmlFor="ct-project">Project</Label>
-                <select id="ct-project" className={`${SELECT} w-full`} required value={form.projectId} onChange={(e) => setForm({ ...form, projectId: e.target.value })}>
+                <NativeSelect id="ct-project"  required value={form.projectId} onChange={(e) => setForm({ ...form, projectId: e.target.value })}>
                   <option value="">Choose a project</option>
                   {projects.map((p) => <option key={p.id} value={p.id}>{p.title}</option>)}
-                </select>
+                </NativeSelect>
               </div>
               <div className="space-y-1">
                 <Label htmlFor="ct-kind">Kind</Label>
-                <select id="ct-kind" className={`${SELECT} w-full`} value={form.kind} onChange={(e) => setForm({ ...form, kind: e.target.value as "cash" | "in_kind" })}>
+                <NativeSelect id="ct-kind"  value={form.kind} onChange={(e) => setForm({ ...form, kind: e.target.value as "cash" | "in_kind" })}>
                   <option value="cash">Cash</option>
                   <option value="in_kind">In kind (estimated value)</option>
-                </select>
+                </NativeSelect>
               </div>
               <div className="space-y-1">
                 <Label htmlFor="ct-amount">Amount{(() => { const c = projects.find((p) => String(p.id) === form.projectId)?.currency; return c ? ` (${c})` : ""; })()}</Label>
@@ -408,7 +406,7 @@ function Contributions({ clubId, yearId, onChange, onError }: PartProps) {
                 <Input id="ct-desc" maxLength={300} required={form.kind === "in_kind"} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
               </div>
               <div className="flex items-end">
-                <Button type="submit" className="gap-1.5" disabled={saving}>
+                <Button type="submit" disabled={saving}>
                   {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />} Record
                 </Button>
               </div>
@@ -424,36 +422,36 @@ function Contributions({ clubId, yearId, onChange, onError }: PartProps) {
       ) : (
         <Card>
           <CardContent className="overflow-x-auto p-0">
-            <table className="w-full min-w-[760px] text-sm">
-              <thead className="bg-[#EDF4FB] text-[13px] text-[#64748B]">
-                <tr className="border-b text-left">
-                  <th className={TH}>Date</th>
-                  <th className={TH}>Project</th>
-                  <th className={TH}>Kind</th>
-                  <th className={`${TH} text-right`}>Amount</th>
-                  <th className={TH}>Given by</th>
-                  <th className={TH}>Description</th>
-                  <th className={TH}><span className="sr-only">Remove</span></th>
-                </tr>
-              </thead>
-              <tbody>
+            <Table className="w-full min-w-[760px] text-sm">
+              <TableHeader>
+                <TableRow className="border-b">
+                  <TableHead className={TH}>Date</TableHead>
+                  <TableHead className={TH}>Project</TableHead>
+                  <TableHead className={TH}>Kind</TableHead>
+                  <TableHead className={`${TH} text-right`}>Amount</TableHead>
+                  <TableHead className={TH}>Given by</TableHead>
+                  <TableHead className={TH}>Description</TableHead>
+                  <TableHead className={TH}><span className="sr-only">Remove</span></TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
                 {list.map((c) => (
-                  <tr key={c.id} className="border-b last:border-0">
-                    <td className="p-3 whitespace-nowrap">{fmt.date(c.contributionDate.slice(0, 10))}</td>
-                    <td className="p-3">{c.projectTitle ?? ""}</td>
-                    <td className="p-3">{c.kind === "cash" ? "Cash" : "In kind"}</td>
-                    <td className="p-3 text-right tabular-nums">{fmt.money(c.amount, c.currency)}</td>
-                    <td className="p-3">{c.contributor ?? ""}</td>
-                    <td className="p-3">{c.description ?? ""}</td>
-                    <td className="p-3 text-right">
+                  <TableRow key={c.id} className="border-b last:border-0">
+                    <TableCell className="p-3 whitespace-nowrap">{fmt.date(c.contributionDate.slice(0, 10))}</TableCell>
+                    <TableCell className="p-3">{c.projectTitle ?? ""}</TableCell>
+                    <TableCell className="p-3">{c.kind === "cash" ? "Cash" : "In kind"}</TableCell>
+                    <TableCell className="p-3 text-right tabular-nums">{fmt.money(c.amount, c.currency)}</TableCell>
+                    <TableCell className="p-3">{c.contributor ?? ""}</TableCell>
+                    <TableCell className="p-3">{c.description ?? ""}</TableCell>
+                    <TableCell className="p-3 text-right">
                       <Button size="sm" variant="ghost" aria-label="Remove contribution" disabled={deleting === c.id} onClick={() => remove(c)}>
                         {deleting === c.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
                       </Button>
-                    </td>
-                  </tr>
+                    </TableCell>
+                  </TableRow>
                 ))}
-              </tbody>
-            </table>
+              </TableBody>
+            </Table>
           </CardContent>
         </Card>
       )}

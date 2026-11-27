@@ -18,6 +18,7 @@
  *                   back-from-detail returns to the ORIGINAL caller.
  */
 
+import { Card } from "@/components/ui/card";
 import { useState, useEffect, useCallback } from "react";
 import { useParams, useSearchParams, useRouter } from "next/navigation";
 import Image from "next/image";
@@ -39,14 +40,11 @@ import DeleteDialog from "@/components/DeleteDialog";
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
 import { formatMeetingTime12Hour } from "@/lib/dateUtils";
-import {
-  Building2, AlertCircle, ArrowLeft, LayoutGrid, List, Search, Plus,
-  MoreVertical, MoreHorizontal, Pencil, Trash2, Users, MapPin, Calendar, X,
-} from "@/components/icons";
+import { Building2, AlertCircle, LayoutGrid, List, Search, Plus, MoreVertical, MoreHorizontal, Pencil, Trash2, Users, MapPin, Calendar, X } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import Pagination from "@/components/Pagination";
-import { ListPageSkeleton } from "@/components/row/AppKit";
+import { PageHeader, ListPageSkeleton } from "@/components/row/AppKit";
 
 // -----------------------------------------------------------------------------
 // V2 Grid card — inline, dashboard palette. (V1's shared ClubCard is left
@@ -107,12 +105,12 @@ function ClubCardV2({
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-2">
             <div className="min-w-0">
-              <h3 className="font-semibold text-sm truncate">{club.clubName}</h3>
+              <h3 className="row-h3 truncate">{club.clubName}</h3>
               <div className="flex flex-wrap gap-1 mt-1">
-                <Badge className="text-[10px] bg-white/15 text-white border-white/30 hover:bg-white/15">
+                <Badge className="bg-white/15 text-white border-white/30">
                   {club.clubRotaryId}
                 </Badge>
-                <Badge className="text-[10px] bg-white/15 text-white border-white/30 hover:bg-white/15">
+                <Badge className="bg-white/15 text-white border-white/30">
                   {club.districtNumber}
                 </Badge>
               </div>
@@ -121,7 +119,7 @@ function ClubCardV2({
               <div onClick={(e) => e.stopPropagation()}>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon" className="h-8 w-8 text-white hover:bg-white/15">
+                    <Button aria-label="More actions" variant="ghost" size="icon" className="row-btn-sm">
                       <MoreVertical className="h-4 w-4" />
                     </Button>
                   </DropdownMenuTrigger>
@@ -210,7 +208,7 @@ function ClubTableV2({
   };
 
   return (
-    <div className="rounded-2xl border border-slate-200 shadow-sm overflow-hidden bg-card">
+    <Card className="overflow-hidden">
       <Table>
         <TableHeader>
           <TableRow
@@ -218,13 +216,13 @@ function ClubTableV2({
             style={{ backgroundColor: "#17458f" }}
           >
             <TableHead className="w-12/90"></TableHead>
-            <TableHead className="text-xs font-semibold uppercase tracking-wide">Club Name</TableHead>
-            <TableHead className="hidden md:table-cell text-xs font-semibold uppercase tracking-wide">Rotary ID</TableHead>
-            <TableHead className="hidden md:table-cell text-xs font-semibold uppercase tracking-wide">District</TableHead>
-            <TableHead className="hidden lg:table-cell text-xs font-semibold uppercase tracking-wide">Meeting Day</TableHead>
-            <TableHead className="hidden md:table-cell text-xs font-semibold uppercase tracking-wide">City</TableHead>
-            <TableHead className="text-xs font-semibold uppercase tracking-wide">Members</TableHead>
-            <TableHead className="text-xs font-semibold uppercase tracking-wide">Status</TableHead>
+            <TableHead>Club Name</TableHead>
+            <TableHead className="hidden md:table-cell">Rotary ID</TableHead>
+            <TableHead className="hidden md:table-cell">District</TableHead>
+            <TableHead className="hidden lg:table-cell">Meeting Day</TableHead>
+            <TableHead className="hidden md:table-cell">City</TableHead>
+            <TableHead>Members</TableHead>
+            <TableHead>Status</TableHead>
             <TableHead className="w-12/90"></TableHead>
           </TableRow>
         </TableHeader>
@@ -277,7 +275,7 @@ function ClubTableV2({
                   {isSuperAdmin && (
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-500 hover:text-slate-800 hover:bg-slate-100">
+                        <Button aria-label="More actions" variant="ghost" size="icon" className="row-btn-sm">
                           <MoreHorizontal className="h-4 w-4" />
                         </Button>
                       </DropdownMenuTrigger>
@@ -304,7 +302,7 @@ function ClubTableV2({
           })}
         </TableBody>
       </Table>
-    </div>
+    </Card>
   );
 }
 
@@ -413,40 +411,25 @@ export default function DistrictClubsV2Page() {
     <ProtectedRoute>
       <div className="space-y-4">
         {/* ── Header ─────────────────────────────────────────────────── */}
-        <div className="bg-card rounded-2xl border border-slate-200 shadow-sm p-4">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex items-center gap-3">
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={goBack}
-                className="border-slate-200 text-slate-700 hover:bg-slate-100"
-              >
-                <ArrowLeft className="h-4 w-4" />
-              </Button>
-              <div>
-                <h2 className="text-xl font-bold tracking-tight text-slate-800">
-                  {districtNumber ? `District ${districtNumber}: Clubs` : "Clubs"}
-                </h2>
-                <p className="text-slate-500 text-sm">Clubs in this district</p>
-              </div>
-            </div>
-            {!isModuleView && isSuperAdmin && (
+        <PageHeader
+          title={districtNumber ? `District ${districtNumber}: Clubs` : "Clubs"}
+          description="Clubs in this district"
+          back={() => goBack()}
+          actions={!isModuleView && isSuperAdmin && (
               <Button
                 asChild
                 size="sm"
-                className="bg-azure hover:bg-mint-ink text-white"
+               
               >
                 <Link href={`/clubs/new?districtId=${districtId}`}>
                   <Plus className="mr-2 h-4 w-4" />Add Club
                 </Link>
               </Button>
             )}
-          </div>
-        </div>
+        />
 
         {/* ── Search + view toggle ───────────────────────────────────── */}
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center bg-slate-50 p-4 rounded-2xl border border-slate-200">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
             <Input
@@ -454,14 +437,14 @@ export default function DistrictClubsV2Page() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               onKeyDown={handleKeyDown}
-              className="pl-9 border-slate-200 bg-card focus:border-azure focus:ring-azure/20 text-sm"
+              className="pl-9"
             />
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <Button
               onClick={handleSearch}
               size="sm"
-              className="bg-azure hover:bg-mint-ink text-white"
+             
             >
               <Search className="mr-2 h-4 w-4" />Search
             </Button>
@@ -474,6 +457,8 @@ export default function DistrictClubsV2Page() {
                     ? "bg-azure text-white hover:bg-mint-ink hover:text-white"
                     : "text-slate-600 hover:bg-slate-100"
                 }`}
+                aria-label="Grid view"
+                aria-pressed={viewMode === "grid"}
                 onClick={() => setViewMode("grid")}
               >
                 <LayoutGrid className="h-4 w-4" />
@@ -486,6 +471,8 @@ export default function DistrictClubsV2Page() {
                     ? "bg-azure text-white hover:bg-mint-ink hover:text-white"
                     : "text-slate-600 hover:bg-slate-100"
                 }`}
+                aria-label="Table view"
+                aria-pressed={viewMode === "table"}
                 onClick={() => setViewMode("table")}
               >
                 <List className="h-4 w-4" />
@@ -503,13 +490,14 @@ export default function DistrictClubsV2Page() {
               placeholder="Filter clubs..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-9 pr-8 border-slate-200 bg-card focus:border-azure focus:ring-azure/20 text-sm"
+              className="pl-9 pr-8"
             />
             {searchQuery && (
               <Button
                 variant="ghost"
                 size="icon"
-                className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 text-slate-400 hover:text-slate-700"
+                className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7"
+                aria-label="Clear search"
                 onClick={() => setSearchQuery("")}
               >
                 <X className="h-3.5 w-3.5" />
@@ -525,26 +513,26 @@ export default function DistrictClubsV2Page() {
         )}
 
         {error && (
-          <div className="flex flex-col items-center justify-center py-20 text-center bg-card rounded-2xl border border-slate-200 shadow-sm">
+          <Card className="flex flex-col items-center justify-center py-20 text-center">
             <AlertCircle className="h-12 w-12 text-red-500 mb-4" />
-            <h3 className="text-lg font-semibold text-slate-800">Error</h3>
+            <h3 className="row-h2">Error</h3>
             <p className="text-slate-500 mt-2 max-w-md">{error}</p>
             <Button
               variant="outline"
-              className="mt-4 border-slate-200"
+              className="mt-4"
               onClick={() => fetchClubs()}
             >
               Try Again
             </Button>
-          </div>
+          </Card>
         )}
 
         {!loading && !error && data && data.items.length === 0 && (
-          <div className="flex flex-col items-center justify-center py-20 text-center bg-card rounded-2xl border border-slate-200 shadow-sm">
+          <Card className="flex flex-col items-center justify-center py-20 text-center">
             <Building2 className="h-12 w-12 text-slate-400 mb-4" />
-            <h3 className="text-lg font-semibold text-slate-800">No clubs found</h3>
+            <h3 className="row-h2">No clubs found</h3>
             <p className="text-slate-500 mt-2">No clubs in this district yet.</p>
-          </div>
+          </Card>
         )}
 
         {!loading && !error && data && data.items.length > 0 && (() => {
@@ -558,11 +546,11 @@ export default function DistrictClubsV2Page() {
           return (
             <>
               {filteredItems.length === 0 && searchQuery ? (
-                <div className="flex flex-col items-center justify-center py-20 text-center bg-card rounded-2xl border border-slate-200 shadow-sm">
+                <Card className="flex flex-col items-center justify-center py-20 text-center">
                   <Building2 className="h-12 w-12 text-slate-400 mb-4" />
-                  <h3 className="text-lg font-semibold text-slate-800">No results found</h3>
+                  <h3 className="row-h2">No results found</h3>
                   <p className="text-slate-500 mt-2">No clubs match your filter. Try a different term.</p>
-                </div>
+                </Card>
               ) : (
                 <>
                   {viewMode === "grid" ? (

@@ -12,6 +12,7 @@ import 'stat_card.dart';
 import '../../../../widgets/common/dashboard_refresh.dart';
 import 'package:rotary_flutter_app/core/theme/app_fonts.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/motion.dart';
 
 /// "Membership" tab of the District Admin dashboard, wired to
 /// `GET /api/mobile/district-admin-dashboard/membership` (+ `/members` for the
@@ -164,7 +165,7 @@ class _KpiStrip extends StatelessWidget {
     final ry = d.district.yearLabel.isEmpty ? 'this RY' : 'RY ${d.district.yearLabel}';
     // Three KPIs only — Total / New This Year / Terminated — matching the web
     // console's Membership page (the Active Members KPI was removed there too).
-    return GridView.count(
+    return RowGridView.count(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       crossAxisCount: 3,

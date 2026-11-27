@@ -69,6 +69,7 @@ class _SearchBarWidgetState extends State<SearchBarWidget> {
             ),
             suffixIcon: _controller.text.isNotEmpty
                 ? IconButton(
+                    tooltip: 'Close',
                     icon: const Icon(Icons.close_rounded, size: 18, color: AppColors.textSecondary),
                     onPressed: () {
                       _controller.clear();

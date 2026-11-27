@@ -1,4 +1,5 @@
 "use client";
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
 
 // AG District View — Wave 13A2 redesign.
 // Title "Club Performance Comparison" + 4 leaderboards (TRF / Projects / Members / Club Service),
@@ -12,10 +13,9 @@
 // on the live DTO, so we adapt: DCK = ocv (district citation surrogate),
 // Goals axis = ocv (citation total surrogate), nationalRank always "Pending".
 
+import { Card } from "@/components/ui/card";
 import { useEffect, useMemo, useState } from "react";
-import {
-  Trophy, Users, Briefcase, Calendar, Star, ArrowUpDown, ArrowUp, ArrowDown,
-} from "@/components/icons";
+import { Trophy, Users, Briefcase, Calendar, Star, ArrowUpDown, ArrowUp, ArrowDown } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell,
@@ -28,7 +28,7 @@ import { useAgYearId } from "@/hooks/useAgYearId";
 import {
   fmtInt, fmtUsd, ROTARY_BLUE, ROTARY_GOLD, ROTARY_GREEN, POLIO_PURPLE, CLUB_PALETTE,
 } from "@/components/dashboard/formatters";
-import { ListPageSkeleton } from "@/components/row/AppKit";
+import { PageHeader, ListPageSkeleton } from "@/components/row/AppKit";
 
 // ───────────────────────────────────────────────────────────────────────────
 // Leaderboard card — gradient header tile for #1 + ranked list 2-4 below.
@@ -54,20 +54,20 @@ function LeaderCard({
 }) {
   if (clubs.length === 0) {
     return (
-      <div className="border border-slate-200 rounded-[20px] bg-card p-4">
+      <Card className="p-5">
         <div className="flex items-center gap-2 mb-2">
           <Icon size={16} className="text-slate-500" />
           <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide">{title}</span>
         </div>
         <p className="text-xs text-slate-400">No data</p>
-      </div>
+      </Card>
     );
   }
   const sorted = [...clubs].sort((a, b) => accessor(b) - accessor(a)).slice(0, 4);
   const leader = sorted[0];
 
   return (
-    <div className="border border-slate-200 rounded-[20px] bg-card shadow-sm overflow-hidden flex flex-col">
+    <Card className="overflow-hidden flex flex-col">
       <div className="pt-4 px-5 pb-2 flex items-center gap-2">
         <Icon size={18} className="text-slate-500" />
         <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide">{title}</span>
@@ -96,7 +96,7 @@ function LeaderCard({
           ))}
         </ol>
       </div>
-    </div>
+    </Card>
   );
 }
 
@@ -209,17 +209,11 @@ export default function AgDistrictPage() {
   return (
     <div className="space-y-8">
       {/* Page title */}
-      <div>
-        <h1 className="text-2xl font-bold" style={{ color: ROTARY_BLUE }}>Club Performance Comparison</h1>
-        <p className="text-sm text-gray-500 mt-1">How your {data.clubs.length} clubs compare across key metrics</p>
-        <p className="text-xs text-gray-400 mt-0.5">
-          AG: {data.ag.name || "–"} · District {data.ag.districtNumber || "–"} · RY {data.ag.yearLabel || "–"}
-        </p>
-      </div>
+      <PageHeader title="Club Performance Comparison" description={<><p className="text-sm text-gray-500 mt-1">How your {data.clubs.length} clubs compare across key metrics</p> <p className="text-xs text-gray-400 mt-0.5"> AG: {data.ag.name || "–"} · District {data.ag.districtNumber || "–"} · RY {data.ag.yearLabel || "–"} </p></>} />
 
       {/* LEADERBOARDS — 4 cards: TRF (blue), Projects (purple), Members (green), Club Service (gold) */}
       <section>
-        <h2 className="text-xs font-semibold text-gray-500 mb-3 uppercase tracking-widest">Leaderboards</h2>
+        <h2 className="row-h2 mb-3">Leaderboards</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
           <LeaderCard
             icon={Star} title="Top TRF Giving" tone="blue"
@@ -242,14 +236,14 @@ export default function AgDistrictPage() {
 
       {/* HEAD-TO-HEAD COMPARISON — sortable table; National Rank = Pending */}
       <section>
-        <h2 className="text-xs font-semibold text-gray-500 mb-3 uppercase tracking-widest">Head-to-Head Comparison</h2>
-        <div className="border border-gray-200 shadow-sm rounded-[20px] bg-card overflow-hidden">
+        <h2 className="row-h2 mb-3">Head-to-Head Comparison</h2>
+        <Card className="overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="w-full border-collapse text-left">
-              <thead className="bg-[#EDF4FB] text-[13px] text-[#64748B]">
-                <tr style={{ backgroundColor: ROTARY_BLUE }}>
+            <Table className="w-full border-collapse text-left">
+              <TableHeader>
+                <TableRow style={{ backgroundColor: ROTARY_BLUE }}>
                   {headers.map((h) => (
-                    <th
+                    <TableHead
                       key={h.label}
                       onClick={() => h.key && toggleSort(h.key)}
                       className={`px-3 py-3 text-xs font-semibold text-white uppercase tracking-wide whitespace-nowrap select-none ${h.align === "right" ? "text-right" : "text-left"} ${h.key ? "cursor-pointer hover:bg-white/10" : ""}`}
@@ -258,53 +252,53 @@ export default function AgDistrictPage() {
                         {h.label}
                         {h.key && sortIcon(h.key)}
                       </span>
-                    </th>
+                    </TableHead>
                   ))}
-                </tr>
-              </thead>
-              <tbody>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
                 {sortedClubs.map((c, idx) => (
-                  <tr key={c.clubId} className={idx % 2 === 0 ? "bg-card" : "bg-gray-50"}>
-                    <td className="px-3 py-3">
+                  <TableRow key={c.clubId} className={idx % 2 === 0 ? "bg-card" : "bg-gray-50"}>
+                    <TableCell className="px-3 py-3">
                       <div className="flex flex-wrap items-center gap-2">
                         <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: CLUB_PALETTE[idx % CLUB_PALETTE.length] }} />
                         <span className="text-sm font-semibold text-gray-800">{c.clubName}</span>
                       </div>
-                    </td>
-                    <td className={numCell}>{fmtInt(c.members)}</td>
-                    <td className={numCell}>{fmtInt(c.clubService)}</td>
-                    <td className={numCell}>{fmtInt(c.totalProjects)}</td>
-                    <td className={numCell}>{fmtUsd(c.trfTotalInr)}</td>
-                    <td className={numCell}>{fmtInt(c.ocv)}</td>
-                    <td className="px-3 py-3 text-sm whitespace-nowrap text-right">
-                      <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200 text-xs font-medium">
+                    </TableCell>
+                    <TableCell className={numCell}>{fmtInt(c.members)}</TableCell>
+                    <TableCell className={numCell}>{fmtInt(c.clubService)}</TableCell>
+                    <TableCell className={numCell}>{fmtInt(c.totalProjects)}</TableCell>
+                    <TableCell className={numCell}>{fmtUsd(c.trfTotalInr)}</TableCell>
+                    <TableCell className={numCell}>{fmtInt(c.ocv)}</TableCell>
+                    <TableCell className="px-3 py-3 text-sm whitespace-nowrap text-right">
+                      <span className="inline-flex items-center px-2 py-0.5 rounded bg-amber-50 text-amber-700 border border-amber-200 text-xs font-medium">
                         Pending
                       </span>
-                    </td>
-                    <td className={numCell}>{fmtInt(c.vocationalService)}</td>
-                    <td className={numCell}>{fmtInt(c.internationalService)}</td>
-                    <td className={numCell}>{fmtInt(c.newGenerationService)}</td>
-                  </tr>
+                    </TableCell>
+                    <TableCell className={numCell}>{fmtInt(c.vocationalService)}</TableCell>
+                    <TableCell className={numCell}>{fmtInt(c.internationalService)}</TableCell>
+                    <TableCell className={numCell}>{fmtInt(c.newGenerationService)}</TableCell>
+                  </TableRow>
                 ))}
                 {sortedClubs.length === 0 && (
-                  <tr>
-                    <td colSpan={headers.length} className="px-3 py-8 text-center text-sm text-gray-400">
+                  <TableRow>
+                    <TableCell colSpan={headers.length} className="px-3 py-8 text-center text-sm text-gray-400">
                       No club data available for this AG group.
-                    </td>
-                  </tr>
+                    </TableCell>
+                  </TableRow>
                 )}
-              </tbody>
-            </table>
+              </TableBody>
+            </Table>
           </div>
           <div className="px-4 py-2 bg-gray-50 border-t border-gray-100 text-xs text-gray-400">
             Click any column header to sort. National Rank is awaiting publication and shown as Pending.
           </div>
-        </div>
+        </Card>
       </section>
 
       {/* CLUB METRICS AT A GLANCE — 2x2 bar-chart grid */}
       <section>
-        <h2 className="text-xs font-semibold text-gray-500 mb-3 uppercase tracking-widest">Club Metrics at a Glance</h2>
+        <h2 className="row-h2 mb-3">Club Metrics at a Glance</h2>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           {(["members", "totalProjects", "trfTotalInr", "clubService"] as const).map((key, ki) => {
             const titles: Record<string, string> = {
@@ -319,11 +313,11 @@ export default function AgDistrictPage() {
               color: CLUB_PALETTE[i % CLUB_PALETTE.length],
             }));
             return (
-              <div key={ki} className="border border-gray-200 shadow-sm rounded-[20px] bg-card p-5">
-                <h3 className="text-sm font-semibold text-gray-600 mb-3">{titles[key]}</h3>
+              <Card key={ki} className="p-5">
+                <h3 className="row-h3 mb-3">{titles[key]}</h3>
                 <ResponsiveContainer width="100%" height={240}>
                   <BarChart data={chartData} margin={{ top: 8, right: 16, left: 8, bottom: 40 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#edf4fb" vertical={false} />
+                    <CartesianGrid strokeDasharray="3 3" stroke="#d3dde8" vertical={false} />
                     <XAxis
                       dataKey="name"
                       tick={{ fontSize: 11, fill: "#4A5A70" }}
@@ -342,7 +336,7 @@ export default function AgDistrictPage() {
                     </Bar>
                   </BarChart>
                 </ResponsiveContainer>
-              </div>
+              </Card>
             );
           })}
         </div>
@@ -351,11 +345,11 @@ export default function AgDistrictPage() {
       {/* MULTI-METRIC RADAR — 4 axes (Members / Projects / Goals / Club Service), one polygon per club */}
       {radarPoints.length > 0 && (
         <section>
-          <h2 className="text-xs font-semibold text-gray-500 mb-1 uppercase tracking-widest">Multi-Metric Radar</h2>
+          <h2 className="row-h2 mb-1">Multi-Metric Radar</h2>
           <p className="text-xs text-gray-400 mb-3">
             All metrics normalised 0-100 so clubs can be compared across dimensions. Outer edge = leader in that axis.
           </p>
-          <div className="border border-gray-200 shadow-sm rounded-[20px] bg-card p-4">
+          <Card className="p-5">
             <ResponsiveContainer width="100%" height={420}>
               <RadarChart data={radarPoints} margin={{ top: 16, right: 40, bottom: 16, left: 40 }}>
                 <PolarGrid stroke="#d5dee8" />
@@ -376,7 +370,7 @@ export default function AgDistrictPage() {
                 <Legend wrapperStyle={{ fontSize: 12, paddingTop: 16 }} />
               </RadarChart>
             </ResponsiveContainer>
-          </div>
+          </Card>
         </section>
       )}
 

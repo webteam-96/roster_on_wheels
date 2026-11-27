@@ -21,10 +21,29 @@ export function currencyOptions(): CurrencyOption[] {
   } catch {
     names = null;
   }
-  return getActiveBrand().locale.currencies.map((code) => {
-    const name = names?.of(code) ?? code;
-    return { code, label: name === code ? code : `${name} (${code})`, symbol: fmt.currencySymbol(code) };
-  });
+  const base = defaultCurrency();
+  return getActiveBrand().locale.currencies
+    .map((code) => {
+      const name = names?.of(code) ?? code;
+      return { code, label: name === code ? code : `${name} (${code})`, symbol: fmt.currencySymbol(code) };
+    })
+    // The instance's own currency first, then by name: the list covers every district's country.
+    .sort((a, b) => Number(b.code === base) - Number(a.code === base) || a.label.localeCompare(b.label));
+}
+
+/** A total over amounts in several currencies, one figure per currency ("€1.2K + $3K"): different currencies are
+ *  never added together without a rate. */
+export function moneyTotals(
+  rows: readonly { amount?: number | null; currency?: string | null }[],
+  format: (value: number, code: string) => string = shortMoney,
+): string {
+  const totals = new Map<string, number>();
+  for (const r of rows) {
+    const code = (r.currency || defaultCurrency()).toUpperCase();
+    if (r.amount) totals.set(code, (totals.get(code) ?? 0) + Number(r.amount));
+  }
+  if (totals.size === 0) return format(0, defaultCurrency());
+  return [...totals].sort((a, b) => b[1] - a[1]).map(([code, sum]) => format(sum, code)).join(" + ");
 }
 
 // Which lucide icon belongs beside an amount: a dollar sign for dollar

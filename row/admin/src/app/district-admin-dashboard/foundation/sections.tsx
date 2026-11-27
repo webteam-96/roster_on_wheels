@@ -1,4 +1,5 @@
 "use client";
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
 
 /**
  * district-admin-dashboard/foundation/sections.tsx
@@ -18,6 +19,9 @@
  * page already has DashboardShell + SectionHeader.
  */
 
+import { IconButton } from "@/components/ui/icon-button";
+import { Input } from "@/components/ui/input";
+import { Card } from "@/components/ui/card";
 import { useCallback, useEffect, useState, useMemo } from "react";
 import Link from "next/link";
 import {
@@ -144,32 +148,32 @@ export function DistrictProjectsSection({
         <ViewOnlyBadge editableYears={editableYears} className="mb-4" />
       )}
 
-      <div className="bg-card rounded-2xl border border-slate-200 overflow-hidden">
+      <Card className="overflow-hidden">
         {/* Card header */}
         <div className="px-5 py-3 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div className="flex items-center gap-2 text-slate-500">
             <FolderKanban size={16} />
             <div>
-              <h3 className="text-sm font-semibold text-slate-800">Project Library</h3>
+              <h3 className="row-h3">Project Library</h3>
               <p className="text-xs text-slate-500 mt-0.5">Year is set by the topbar · search across titles</p>
             </div>
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <div className="relative w-full sm:w-auto">
               <Search size={14} className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-400" />
-              <input
+              <Input
                 type="text"
                 placeholder="Search by title…"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 onKeyDown={(e) => { if (e.key === "Enter") { setPage(1); fetchData(); } }}
-                className="pl-7 pr-3 h-10 py-0 text-sm border border-slate-200 rounded-[12px] w-full sm:w-52 focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                className="pl-7 pr-3 sm:w-52"
               />
             </div>
             {canManage && (
               <Link
                 href={addUrl}
-                className="inline-flex items-center gap-1.5 text-xs font-semibold px-4 h-10 rounded-full bg-[#17458F] text-white hover:bg-[#17458F]"
+                className="row-btn row-btn-primary"
               >
                 <Plus size={13} /> Add Project
               </Link>
@@ -182,84 +186,84 @@ export function DistrictProjectsSection({
           {loading ? (
             <SkeletonRows />
           ) : (
-            <table className="w-full min-w-[640px] md:min-w-full text-sm">
-              <thead className="bg-[#EDF4FB] text-[13px] text-[#64748B]">
-                <tr>
-                  <th className="px-3 py-2.5 text-left w-10">Sr</th>
-                  <th className="px-3 py-2.5 text-left">Title</th>
-                  <th className="px-3 py-2.5 text-left">Date</th>
-                  <th className="px-3 py-2.5 text-right">Cost ({currencySymbol()})</th>
-                  <th className="px-3 py-2.5 text-center">Beneficiaries</th>
-                  <th className="px-3 py-2.5 text-left">Area of Focus</th>
-                  <th className="px-3 py-2.5 text-right w-24 whitespace-nowrap">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
+            <Table className="w-full min-w-[640px] md:min-w-full text-sm">
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="px-3 text-left w-10">Sr</TableHead>
+                  <TableHead className="px-3 text-left">Title</TableHead>
+                  <TableHead className="px-3 text-left">Date</TableHead>
+                  <TableHead className="px-3 text-right">Cost ({currencySymbol()})</TableHead>
+                  <TableHead className="px-3 text-center">Beneficiaries</TableHead>
+                  <TableHead className="px-3 text-left">Area of Focus</TableHead>
+                  <TableHead className="px-3 text-right w-24 whitespace-nowrap">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody className="divide-y divide-slate-100">
                 {items.map((item, i) => (
-                  <tr key={item.id} className="hover:bg-blue-50/40">
-                    <td className="px-3 py-2 text-slate-500">{(page - 1) * PAGE_SIZE + i + 1}</td>
-                    <td className="px-3 py-2 font-medium text-slate-800">{item.title || "–"}</td>
-                    <td className="px-3 py-2 text-slate-600 whitespace-nowrap">{fmtDate(item.projectDate)}</td>
-                    <td className="px-3 py-2 text-right text-slate-600 whitespace-nowrap">
+                  <TableRow key={item.id} className="hover:bg-blue-50/40">
+                    <TableCell className="px-3 py-2 text-slate-500">{(page - 1) * PAGE_SIZE + i + 1}</TableCell>
+                    <TableCell className="px-3 py-2 font-medium text-slate-800">{item.title || "–"}</TableCell>
+                    <TableCell className="px-3 py-2 text-slate-600 whitespace-nowrap">{fmtDate(item.projectDate)}</TableCell>
+                    <TableCell className="px-3 py-2 text-right text-slate-600 whitespace-nowrap">
                       {item.projectCost != null
                         ? formatMoney(item.projectCost, item.currency)
                         : "–"}
-                    </td>
-                    <td className="px-3 py-2 text-center text-slate-600">{item.directBeneficiaries ?? "–"}</td>
-                    <td className="px-3 py-2 text-slate-600">{item.areaOfFocusName || "–"}</td>
-                    <td className="px-3 py-2">
+                    </TableCell>
+                    <TableCell className="px-3 py-2 text-center text-slate-600">{item.directBeneficiaries ?? "–"}</TableCell>
+                    <TableCell className="px-3 py-2 text-slate-600">{item.areaOfFocusName || "–"}</TableCell>
+                    <TableCell className="px-3 py-2">
                       <div className="flex items-center justify-end gap-0.5">
                         {/* View for everyone: a year you cannot edit is still one you can read (ROW-67). */}
-                        <button
+                        <IconButton
                           type="button"
                           onClick={() => setViewId(item.id)}
-                          className="inline-flex items-center justify-center w-7 h-7 rounded text-slate-500 hover:text-teal-700 hover:bg-teal-50"
+                          
                           aria-label="View project"
                           title="View"
                         >
                           <Eye size={13} />
-                        </button>
+                        </IconButton>
                         {canManage && (<>
                         <Link
                           href={`/districts/${districtId}/projects/v2/${item.id}/edit?yearId=${yearId}${returnTo ? `&returnTo=${encodeURIComponent(returnTo)}` : ""}`}
-                          className="inline-flex items-center justify-center w-7 h-7 rounded text-slate-500 hover:text-blue-700 hover:bg-blue-50"
+                          className="row-icon-btn"
                           aria-label="Edit project"
                         >
                           <Edit3 size={13} />
                         </Link>
-                        <button
+                        <IconButton
                           type="button"
                           onClick={() => setDeleteTarget(item)}
-                          className="inline-flex items-center justify-center w-7 h-7 rounded text-slate-400 hover:text-rose-700 hover:bg-rose-50"
+                          className="hover:text-red-700"
                           aria-label="Delete project"
                         >
                           <Trash2 size={13} />
-                        </button>
+                        </IconButton>
                         </>)}
                       </div>
-                    </td>
-                  </tr>
+                    </TableCell>
+                  </TableRow>
                 ))}
                 {items.length === 0 && (
-                  <tr>
-                    <td colSpan={7} className="px-4 py-10 text-center text-slate-400">
+                  <TableRow>
+                    <TableCell colSpan={7} className="px-4 py-10 text-center text-slate-400">
                       {!yearId
                         ? "Waiting for year selection…"
                         : search
                           ? "No projects match your search."
                           : "No projects for the selected year. Click \"Add Project\" to create one."}
-                    </td>
-                  </tr>
+                    </TableCell>
+                  </TableRow>
                 )}
-              </tbody>
-            </table>
+              </TableBody>
+            </Table>
           )}
         </div>
 
         <div className="px-5 py-2.5 border-t border-slate-100 text-xs text-slate-500">
           Showing {items.length} of {totalCount}
         </div>
-      </div>
+      </Card>
 
       {!loading && totalPages > 1 && (
         <Pagination
@@ -379,31 +383,31 @@ export function DistrictEventsSection({
 
   return (
     <div className="space-y-4">
-      <div className="bg-card rounded-2xl border border-slate-200 overflow-hidden">
+      <Card className="overflow-hidden">
         <div className="px-5 py-3 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div className="flex items-center gap-2 text-slate-500">
             <Calendar size={16} />
             <div>
-              <h3 className="text-sm font-semibold text-slate-800">Event Library</h3>
+              <h3 className="row-h3">Event Library</h3>
               <p className="text-xs text-slate-500 mt-0.5">Year is set by the topbar · search across titles</p>
             </div>
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <div className="relative w-full sm:w-auto">
               <Search size={14} className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-400" />
-              <input
+              <Input
                 type="text"
                 placeholder="Search by title…"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 onKeyDown={(e) => { if (e.key === "Enter") { setPage(1); fetchData(); } }}
-                className="pl-7 pr-3 h-10 py-0 text-sm border border-slate-200 rounded-[12px] w-full sm:w-52 focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                className="pl-7 pr-3 sm:w-52"
               />
             </div>
             {canManage && (
               <Link
                 href={addUrl}
-                className="inline-flex items-center gap-1.5 text-xs font-semibold px-4 h-10 rounded-full bg-[#17458F] text-white hover:bg-[#17458F]"
+                className="row-btn row-btn-primary"
               >
                 <Plus size={13} /> Add Event
               </Link>
@@ -415,65 +419,65 @@ export function DistrictEventsSection({
           {loading ? (
             <SkeletonRows />
           ) : (
-            <table className="w-full min-w-[640px] md:min-w-full text-sm">
-              <thead className="bg-[#EDF4FB] text-[13px] text-[#64748B]">
-                <tr>
-                  <th className="px-3 py-2.5 text-left w-10">Sr</th>
-                  <th className="px-3 py-2.5 text-left">Title</th>
-                  <th className="px-3 py-2.5 text-left">Event Date</th>
-                  {canManage && <th className="px-3 py-2.5 text-right w-20 whitespace-nowrap">Actions</th>}
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
+            <Table className="w-full min-w-[640px] md:min-w-full text-sm">
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="px-3 text-left w-10">Sr</TableHead>
+                  <TableHead className="px-3 text-left">Title</TableHead>
+                  <TableHead className="px-3 text-left">Event Date</TableHead>
+                  {canManage && <TableHead className="px-3 text-right w-20 whitespace-nowrap">Actions</TableHead>}
+                </TableRow>
+              </TableHeader>
+              <TableBody className="divide-y divide-slate-100">
                 {items.map((item, i) => (
-                  <tr key={item.id} className="hover:bg-blue-50/40">
-                    <td className="px-3 py-2 text-slate-500">{(page - 1) * PAGE_SIZE + i + 1}</td>
-                    <td className="px-3 py-2 font-medium text-slate-800">{item.title || "–"}</td>
-                    <td className="px-3 py-2 text-slate-600 whitespace-nowrap">{fmtDate(item.eventDate)}</td>
+                  <TableRow key={item.id} className="hover:bg-blue-50/40">
+                    <TableCell className="px-3 py-2 text-slate-500">{(page - 1) * PAGE_SIZE + i + 1}</TableCell>
+                    <TableCell className="px-3 py-2 font-medium text-slate-800">{item.title || "–"}</TableCell>
+                    <TableCell className="px-3 py-2 text-slate-600 whitespace-nowrap">{fmtDate(item.eventDate)}</TableCell>
                     {canManage && (<>
-                      <td className="px-3 py-2 text-right">
+                      <TableCell className="px-3 py-2 text-right">
                         <Link
                           href={`/districts/${districtId}/district-events/v2/${item.id}/edit?yearId=${yearId}${returnTo ? `&returnTo=${encodeURIComponent(returnTo)}` : ""}`}
-                          className="inline-flex items-center justify-center w-7 h-7 rounded text-slate-500 hover:text-blue-700 hover:bg-blue-50"
+                          className="row-icon-btn"
                           aria-label="Edit event"
                         >
                           <Edit3 size={13} />
                         </Link>
-                      </td>
-                      <td className="px-3 py-2 text-right">
-                        <button
+                      </TableCell>
+                      <TableCell className="px-3 py-2 text-right">
+                        <IconButton
                           type="button"
                           onClick={() => setDeleteTarget(item)}
-                          className="inline-flex items-center justify-center w-7 h-7 rounded text-slate-400 hover:text-rose-700 hover:bg-rose-50"
+                          className="hover:text-red-700"
                           aria-label="Delete event"
                         >
                           <Trash2 size={13} />
-                        </button>
-                      </td>
+                        </IconButton>
+                      </TableCell>
 
                     </>)}
-                  </tr>
+                  </TableRow>
                 ))}
                 {items.length === 0 && (
-                  <tr>
-                    <td colSpan={canManage ? 5 : 4} className="px-4 py-10 text-center text-slate-400">
+                  <TableRow>
+                    <TableCell colSpan={canManage ? 5 : 4} className="px-4 py-10 text-center text-slate-400">
                       {!yearId
                         ? "Waiting for year selection…"
                         : search
                           ? "No events match your search."
                           : "No events for the selected year. Click \"Add Event\" to create one."}
-                    </td>
-                  </tr>
+                    </TableCell>
+                  </TableRow>
                 )}
-              </tbody>
-            </table>
+              </TableBody>
+            </Table>
           )}
         </div>
 
         <div className="px-5 py-2.5 border-t border-slate-100 text-xs text-slate-500">
           Showing {items.length} of {totalCount}
         </div>
-      </div>
+      </Card>
 
       {!loading && totalPages > 1 && (
         <Pagination

@@ -5,6 +5,7 @@
  * reject with reason), recorded payments, the final report and closure. Flagged module "grants".
  */
 
+import { NativeSelect } from "@/components/ui/native-select";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
@@ -22,7 +23,7 @@ import { getGrantApplication, grantAction, grantComment, recordGrantPayment } fr
 import { PAYMENT_METHODS, STATUS_LABEL, orNull } from "@/lib/grants";
 import type { GrantApplication, RecordGrantPayment } from "@/types/grants";
 
-const SELECT = "h-10 w-full rounded-md border border-input bg-background px-3 text-sm";
+const SELECT = "row-field w-full";
 
 export default function DistrictGrantApplicationPage() {
   const { selectedDistrictId: districtId } = useAuth();
@@ -66,7 +67,7 @@ export default function DistrictGrantApplicationPage() {
 
   return (
     <div className="space-y-5 p-6">
-      <Button variant="outline" size="sm" asChild className="gap-1.5">
+      <Button variant="outline" size="sm" asChild>
         <Link href="/district-admin-dashboard/grants"><ArrowLeft className="h-4 w-4" /> All grants</Link>
       </Button>
       <GrantHeader app={app} />
@@ -120,9 +121,9 @@ function PaymentForm({ app, busy, onSave }: { app: GrantApplication; busy: boole
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="pay-method">Method</Label>
-            <select id="pay-method" className={SELECT} value={method} onChange={(e) => setMethod(e.target.value)}>
+            <NativeSelect id="pay-method"  value={method} onChange={(e) => setMethod(e.target.value)}>
               {Object.entries(PAYMENT_METHODS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
-            </select>
+            </NativeSelect>
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="pay-ref">Reference</Label>
@@ -133,7 +134,7 @@ function PaymentForm({ app, busy, onSave }: { app: GrantApplication; busy: boole
           <Label htmlFor="pay-note">Note</Label>
           <Input id="pay-note" maxLength={500} value={note} onChange={(e) => setNote(e.target.value)} />
         </div>
-        <Button type="submit" disabled={busy || left <= 0 || !amount} className="gap-1.5">
+        <Button type="submit" disabled={busy || left <= 0 || !amount}>
           {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />} Record payment
         </Button>
       </form>

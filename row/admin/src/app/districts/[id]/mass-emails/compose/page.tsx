@@ -1,5 +1,6 @@
 "use client";
 
+import { NativeSelect } from "@/components/ui/native-select";
 import { useState, useEffect, useCallback, Suspense } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import {
@@ -18,11 +19,10 @@ import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
 import { ArrowLeft, Save, Send, Loader2 } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
-import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { useFeatureLoadedOn } from "@/components/FeatureGate";
 import ComposeComms from "@/components/comms/ComposeComms";
-import { ListPageSkeleton } from "@/components/row/AppKit";
+import { PageHeader, ListPageSkeleton } from "@/components/row/AppKit";
 
 interface ClubOption { id: number; clubName: string; }
 interface SubGroupOption { id: number; groupName: string; memberCount: number; }
@@ -188,19 +188,11 @@ function DistrictComposeContent() {
   if (loading) return <div className="flex justify-center py-20"><ListPageSkeleton /></div>;
 
   return (
-    <div className="space-y-6 max-w-4xl mx-auto">
+    <div className="space-y-6 max-w-4xl">
       <SuccessAlert open={!!successMessage} title="Success" description={successMessage || ""} onOk={() => setSuccessMessage(null)} />
       <ErrorAlert open={!!errorMessage} title="Error" description={errorMessage || ""} onOk={() => setErrorMessage(null)} />
 
-      <div className="flex items-center gap-3">
-        <Button variant="outline" size="icon" asChild>
-          <Link href={`/districts/${districtId}/mass-emails`}><ArrowLeft className="h-4 w-4" /></Link>
-        </Button>
-        <div>
-          <h2 className="text-2xl font-bold tracking-tight text-primary">{editId ? "Edit Mass Email" : "Compose Mass Email"}</h2>
-          <p className="text-muted-foreground text-base">{districtName}</p>
-        </div>
-      </div>
+      <PageHeader title={editId ? "Edit Mass Email" : "Compose Mass Email"} description={districtName} back={`/districts/${districtId}/mass-emails`} />
 
       {/* Recipients */}
       <Card>
@@ -239,10 +231,10 @@ function DistrictComposeContent() {
           {/* Subgroups multi-select with year dropdown */}
           {recipientType === "3" && (
             <div className="space-y-3">
-              <select value={selectedYearId} onChange={e => { setSelectedYearId(e.target.value); setSelectedSubgroupIds(new Set()); }}
-                className="h-10 rounded-md border border-input bg-background px-3 py-2 text-sm w-full md:w-64">
+              <NativeSelect value={selectedYearId} onChange={e => { setSelectedYearId(e.target.value); setSelectedSubgroupIds(new Set()); }}
+                className="md:w-64">
                 {rotaryYears.map(y => <option key={y.id} value={String(y.id)}>{y.yearLabel}{y.isCurrent ? " (Current)" : ""}</option>)}
-              </select>
+              </NativeSelect>
               <div className="max-h-60 overflow-y-auto border rounded-md divide-y">
                 {subgroups.length === 0 ? (
                   <div className="text-center py-4 text-muted-foreground text-sm">No subgroups found for this year</div>

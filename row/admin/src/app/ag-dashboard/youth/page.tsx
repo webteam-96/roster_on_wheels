@@ -1,4 +1,5 @@
 "use client";
+import { Table, TableHeader, TableBody, TableFooter, TableRow, TableCell } from "@/components/ui/table";
 
 import { useEffect, useMemo, useState } from "react";
 import {
@@ -140,14 +141,14 @@ function ClubDetailCard({
   rank: number;
 }) {
   return (
-    <Card className="overflow-hidden border-slate-200 shadow-sm">
+    <Card className="overflow-hidden">
       <CardHeader
         className="text-white py-3 px-4"
         style={{ background: ROTARY_BLUE }}
       >
         <CardTitle className="text-sm font-semibold flex items-center justify-between gap-2">
           <span className="truncate">{club.clubName}</span>
-          <span className="text-[10px] font-medium text-blue-100 bg-white/15 px-2 py-0.5 rounded-full whitespace-nowrap">
+          <span className="text-[10px] font-medium text-blue-100 bg-white/15 px-2 py-0.5 rounded whitespace-nowrap">
             #{rank}
           </span>
         </CardTitle>
@@ -341,8 +342,8 @@ export default function AgYouthPage() {
       </div>
 
       {/* Per-Club New Generation Service Count */}
-      <div className="bg-card rounded-[20px] border border-slate-200 p-6">
-        <h3 className="text-base font-semibold text-slate-800 mb-1">
+      <Card className="p-5">
+        <h3 className="row-h2 mb-1">
           Per-Club New Generation Service Count
         </h3>
         <p className="text-xs text-slate-500 mb-5">
@@ -361,11 +362,11 @@ export default function AgYouthPage() {
             />
           ))
         )}
-      </div>
+      </Card>
 
       {/* Stacked Per-Club Service Breakdown */}
-      <div className="bg-card rounded-[20px] border border-slate-200 p-6">
-        <h3 className="text-base font-semibold text-slate-800 mb-1">
+      <Card className="p-5">
+        <h3 className="row-h2 mb-1">
           Per-Club Service Breakdown
         </h3>
         <p className="text-xs text-slate-500 mb-4">
@@ -380,7 +381,7 @@ export default function AgYouthPage() {
               data={chartData}
               margin={{ top: 8, right: 24, left: 0, bottom: 50 }}
             >
-              <CartesianGrid strokeDasharray="3 3" stroke="#edf4fb" />
+              <CartesianGrid strokeDasharray="3 3" stroke="#d3dde8" />
               <XAxis
                 dataKey="name"
                 tick={{ fontSize: 11, fill: "#64748b" }}
@@ -421,12 +422,12 @@ export default function AgYouthPage() {
             </BarChart>
           </ResponsiveContainer>
         )}
-      </div>
+      </Card>
 
       {/* Club-wise Service Activity table */}
-      <div className="bg-card rounded-[20px] border border-slate-200 overflow-hidden">
+      <Card className="overflow-hidden">
         <div className="px-6 py-4 border-b border-slate-100">
-          <h3 className="text-base font-semibold text-slate-800">
+          <h3 className="row-h2">
             Club-wise Service Activity
           </h3>
           <p className="text-xs text-slate-500 mt-0.5">
@@ -434,9 +435,9 @@ export default function AgYouthPage() {
           </p>
         </div>
         <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead className="bg-[#EDF4FB] text-slate-500 border-b border-slate-200">
-              <tr>
+          <Table className="w-full text-sm">
+            <TableHeader className="border-b border-slate-200">
+              <TableRow>
                 <SortTh
                   label="Club Name"
                   field="clubName"
@@ -485,9 +486,9 @@ export default function AgYouthPage() {
                   sortDir={sortDir}
                   onSort={toggleSort}
                 />
-              </tr>
-            </thead>
-            <tbody>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
               {sortedClubs.map((row) => {
                 const isZero =
                   row.newGenerationService +
@@ -495,13 +496,13 @@ export default function AgYouthPage() {
                     row.internationalService ===
                   0;
                 return (
-                  <tr
+                  <TableRow
                     key={row.clubId}
                     className={`border-t border-slate-100 ${
                       isZero ? "bg-slate-50/60" : "hover:bg-blue-50/40"
                     }`}
                   >
-                    <td className="px-4 py-2.5 font-medium">
+                    <TableCell className="px-4 py-2.5 font-medium">
                       <span
                         className={
                           isZero ? "text-slate-400" : "text-slate-800"
@@ -509,8 +510,8 @@ export default function AgYouthPage() {
                       >
                         {row.clubName}
                       </span>
-                    </td>
-                    <td
+                    </TableCell>
+                    <TableCell
                       className={`px-4 py-2.5 text-center tabular-nums ${
                         isZero
                           ? "text-slate-300"
@@ -518,8 +519,8 @@ export default function AgYouthPage() {
                       }`}
                     >
                       {row.newGenerationService || "–"}
-                    </td>
-                    <td
+                    </TableCell>
+                    <TableCell
                       className={`px-4 py-2.5 text-center tabular-nums ${
                         isZero
                           ? "text-slate-300"
@@ -527,8 +528,8 @@ export default function AgYouthPage() {
                       }`}
                     >
                       {row.vocationalService || "–"}
-                    </td>
-                    <td
+                    </TableCell>
+                    <TableCell
                       className={`px-4 py-2.5 text-center tabular-nums ${
                         isZero
                           ? "text-slate-300"
@@ -536,63 +537,63 @@ export default function AgYouthPage() {
                       }`}
                     >
                       {row.internationalService || "–"}
-                    </td>
-                    <td
+                    </TableCell>
+                    <TableCell
                       className={`px-4 py-2.5 text-center font-bold tabular-nums ${
                         isZero ? "text-slate-300" : "text-amber-700"
                       }`}
                     >
                       {row.totalProjects || "–"}
-                    </td>
-                    <td className="px-4 py-2.5 text-center text-slate-600 tabular-nums">
+                    </TableCell>
+                    <TableCell className="px-4 py-2.5 text-center text-slate-600 tabular-nums">
                       {row.members}
-                    </td>
-                  </tr>
+                    </TableCell>
+                  </TableRow>
                 );
               })}
               {sortedClubs.length === 0 && (
-                <tr>
-                  <td
+                <TableRow>
+                  <TableCell
                     colSpan={6}
                     className="px-4 py-8 text-center text-slate-400 text-sm"
                   >
                     No clubs in scope.
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               )}
-            </tbody>
+            </TableBody>
             {sortedClubs.length > 0 && (
-              <tfoot>
-                <tr className="border-t-2 border-slate-300 bg-slate-50 font-bold text-slate-800">
-                  <td className="px-4 py-3">All Clubs Total</td>
-                  <td className="px-4 py-3 text-center tabular-nums">
+              <TableFooter>
+                <TableRow className="border-t-2 border-slate-300 bg-slate-50 font-bold text-slate-800">
+                  <TableCell className="px-4 py-3">All Clubs Total</TableCell>
+                  <TableCell className="px-4 py-3 text-center tabular-nums">
                     {data.totalNewGeneration}
-                  </td>
-                  <td className="px-4 py-3 text-center tabular-nums">
+                  </TableCell>
+                  <TableCell className="px-4 py-3 text-center tabular-nums">
                     {data.totalVocational}
-                  </td>
-                  <td className="px-4 py-3 text-center tabular-nums">
+                  </TableCell>
+                  <TableCell className="px-4 py-3 text-center tabular-nums">
                     {data.totalInternational}
-                  </td>
-                  <td className="px-4 py-3 text-center tabular-nums text-amber-700">
+                  </TableCell>
+                  <TableCell className="px-4 py-3 text-center tabular-nums text-amber-700">
                     {data.totalProjects}
-                  </td>
-                  <td className="px-4 py-3 text-center tabular-nums">
+                  </TableCell>
+                  <TableCell className="px-4 py-3 text-center tabular-nums">
                     {totalMembers}
-                  </td>
-                </tr>
-              </tfoot>
+                  </TableCell>
+                </TableRow>
+              </TableFooter>
             )}
-          </table>
+          </Table>
         </div>
-      </div>
+      </Card>
 
       {/* New Generation Service Detail by Club */}
       {topDetailClubs.length > 0 && (
         <div>
           <div className="mb-4 flex items-center gap-2">
             <Briefcase size={16} className="text-slate-500" />
-            <h3 className="text-base font-semibold text-slate-800">
+            <h3 className="row-h2">
               New Generation Service Detail by Club
             </h3>
             <span className="text-xs text-slate-400">

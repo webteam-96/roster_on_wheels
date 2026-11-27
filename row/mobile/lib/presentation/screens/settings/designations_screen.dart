@@ -11,6 +11,8 @@ import '../../widgets/common/empty_state_widget.dart';
 import '../../widgets/common/loading_widget.dart';
 import '../../widgets/common/custom_drawer.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/motion.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/roster_wheel.dart';
 
 // ---------------------------------------------------------------------------
 // Model
@@ -126,10 +128,10 @@ class _DesignationsScreenState extends State<DesignationsScreen> {
                       actionLabel: 'Add Designation',
                       onAction: () => _showForm(),
                     )
-                  : RefreshIndicator(
+                  : RowRefresh(
                       color: AppColors.primary,
                       onRefresh: _fetch,
-                      child: ListView.separated(
+                      child: RowListView.separated(
                         padding: (const EdgeInsets.all(16)).add(const EdgeInsets.only(bottom: 88)),
                         itemCount: _items.length,
                         separatorBuilder: (_, __) => const SizedBox(height: 8),
@@ -163,12 +165,14 @@ class _DesignationsScreenState extends State<DesignationsScreen> {
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
                                   IconButton(
+                                    tooltip: 'Edit',
                                     icon: const Icon(Icons.edit_outlined, size: 18, color: AppColors.primary),
                                     onPressed: () => _showForm(existing: item),
                                     constraints: const BoxConstraints(),
                                     padding: const EdgeInsets.all(6),
                                   ),
                                   IconButton(
+                                    tooltip: 'Delete',
                                     icon: const Icon(Icons.delete_outline, size: 18, color: AppColors.error),
                                     onPressed: () async {
                                       final ok = await ConfirmationDialog.show(

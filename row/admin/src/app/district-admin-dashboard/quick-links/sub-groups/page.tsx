@@ -19,6 +19,7 @@
  *   - Navy #17458f / gold #F7A81B / slate palette, rounded-2xl bg-card cards.
  */
 
+import { Card } from "@/components/ui/card";
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
@@ -41,11 +42,8 @@ import AlertModal from "@/components/AlertModal";
 import RotaryLoader from "@/components/RotaryLoader";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import SearchBox from "@/components/SearchBox";
-import {
-  ArrowLeft, Plus, Pencil, Trash2, Users, User,
-  AlertTriangle, ChevronDown, ChevronRight, CalendarClock,
-} from "@/components/icons";
-import { ListPageSkeleton } from "@/components/row/AppKit";
+import { Plus, Pencil, Trash2, Users, User, AlertTriangle, ChevronDown, ChevronRight, CalendarClock } from "@/components/icons";
+import { PageHeader, ListPageSkeleton } from "@/components/row/AppKit";
 
 function withSearch(base: string, extra: Record<string, string | null | undefined>) {
   const p = new URLSearchParams();
@@ -144,42 +142,24 @@ export default function DistrictAdminSubGroupsPage() {
 
       <div className="space-y-6">
         {/* ── Header ─────────────────────────────────────────────────── */}
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-3">
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={goBack}
-              className="border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-slate-800"
-              aria-label="Back"
-            >
-              <ArrowLeft className="h-4 w-4" />
-            </Button>
-            <div className="flex items-center gap-3">
-              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-azure/10 text-ink">
-                <Users size={22} />
-              </div>
-              <div>
-                <h2 className="text-2xl font-bold tracking-tight text-ink">Sub Groups</h2>
-                <div className="h-0.5 w-16 bg-marigold rounded mt-1.5" />
-                <p className="text-sm text-slate-500 mt-1.5">Manage district sub groups and their members</p>
-              </div>
-            </div>
-          </div>
-          {canManage && yearId && (
-            <Button onClick={goAdd} className="bg-azure hover:bg-mint-ink text-white">
+        <PageHeader
+          title="Sub Groups"
+          description="Manage district sub groups and their members"
+          back={() => goBack()}
+          actions={canManage && yearId && (
+            <Button onClick={goAdd}>
               <Plus className="mr-2 h-4 w-4" />Add Sub Group
             </Button>
           )}
-        </div>
+        />
 
         {/* No year selected in the top bar */}
         {!yearId && (
-          <div className="flex flex-col items-center justify-center py-20 text-center rounded-2xl border border-slate-200 bg-card shadow-sm">
+          <Card className="flex flex-col items-center justify-center py-20 text-center">
             <CalendarClock className="h-12 w-12 text-slate-400 mb-4" />
-            <h3 className="text-lg font-semibold text-slate-800">Select a year to continue</h3>
+            <h3 className="row-h2">Select a year to continue</h3>
             <p className="text-slate-500 mt-2 text-sm">Pick a Rotary year in the top bar to view its sub groups.</p>
-          </div>
+          </Card>
         )}
 
         {yearId && (
@@ -190,20 +170,20 @@ export default function DistrictAdminSubGroupsPage() {
 
             {!loading && groups.length > 0 && (
               <div className="flex items-center gap-4 flex-wrap">
-                <Badge variant="outline" className="border-slate-200 bg-slate-50 text-slate-700 font-medium">
+                <Badge variant="outline" className="border-slate-200 bg-slate-50 text-slate-700">
                   {groups.length} Group{groups.length !== 1 ? "s" : ""}
                 </Badge>
               </div>
             )}
 
             {!loading && groups.length === 0 && (
-              <div className="flex flex-col items-center justify-center py-20 text-center rounded-2xl border border-slate-200 bg-card shadow-sm">
+              <Card className="flex flex-col items-center justify-center py-20 text-center">
                 <Users className="h-12 w-12 text-slate-400 mb-4" />
-                <h3 className="text-lg font-semibold text-slate-800">No sub groups yet</h3>
+                <h3 className="row-h2">No sub groups yet</h3>
                 <p className="text-slate-500 mt-2 text-sm">
                   {canManage ? 'Click "Add Sub Group" to create your first group.' : "No sub groups have been added yet."}
                 </p>
-              </div>
+              </Card>
             )}
 
             {!loading && groups.length > 0 && (
@@ -220,7 +200,7 @@ export default function DistrictAdminSubGroupsPage() {
                       const detail = detailCache[group.id];
                       const isLoadingDetail = loadingDetailId === group.id;
                       return (
-                        <div key={group.id} className="rounded-2xl border border-slate-200 shadow-sm bg-card overflow-hidden">
+                        <Card key={group.id} className="overflow-hidden">
                           <div className="p-4">
                             <div className="flex items-start gap-3">
                               <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-azure/10 text-ink">
@@ -239,7 +219,7 @@ export default function DistrictAdminSubGroupsPage() {
                                 variant="outline"
                                 size="sm"
                                 onClick={() => toggleExpand(group)}
-                                className="border-slate-200 text-slate-700 hover:bg-slate-50"
+                               
                               >
                                 {isExpanded ? <ChevronDown className="mr-1 h-4 w-4" /> : <ChevronRight className="mr-1 h-4 w-4" />}
                                 View Members
@@ -250,7 +230,7 @@ export default function DistrictAdminSubGroupsPage() {
                                     variant="outline"
                                     size="sm"
                                     onClick={() => goEdit(group)}
-                                    className="border-slate-200 text-slate-700 hover:bg-slate-50"
+                                   
                                   >
                                     <Pencil className="mr-1 h-4 w-4" />Edit
                                   </Button>
@@ -258,7 +238,7 @@ export default function DistrictAdminSubGroupsPage() {
                                     variant="outline"
                                     size="sm"
                                     onClick={() => setDeleteTarget(group)}
-                                    className="border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700"
+                                    className="text-red-600"
                                   >
                                     <Trash2 className="mr-1 h-4 w-4" />Delete
                                   </Button>
@@ -301,7 +281,7 @@ export default function DistrictAdminSubGroupsPage() {
                               ) : null}
                             </div>
                           )}
-                        </div>
+                        </Card>
                       );
                     })}
                   </div>

@@ -1,5 +1,8 @@
 "use client";
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
 
+import { NativeSelect } from "@/components/ui/native-select";
+import { PageHeader } from "@/components/row/AppKit";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import {
@@ -15,7 +18,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent } from "@/components/ui/card";
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
-import { ArrowLeft, Loader2, Save } from "@/components/icons";
+import { Loader2, Save } from "@/components/icons";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { useFeatureLoadedOn } from "@/components/FeatureGate";
 import TenantPlanningCard from "@/components/planning/TenantPlanningCard";
@@ -26,7 +29,7 @@ const EMPTY: TenantSubscription = {
   editionCode: "district", memberBand: null, termStart: null, termEnd: null, state: "live", region: null,
   bridgeStart: null, bridgeEnd: null, setupFeeWaived: false, platformFeePct: null, platformFeeFixed: null, feeWaiverUntil: null,
 };
-const SELECT = "h-10 w-full rounded-md border border-input bg-background px-3 text-sm";
+const SELECT = "row-field w-full";
 // API dates come back as ISO date-times; the date input wants yyyy-mm-dd. Empty must stay null (the API rejects "").
 const day = (v: string | null) => (v ? v.slice(0, 10) : null);
 
@@ -106,7 +109,7 @@ export default function TenantsPage() {
     return (
       <ProtectedRoute>
         <div className="flex flex-col items-center justify-center py-20">
-          <h3 className="text-lg font-semibold">Access Denied</h3>
+          <h3 className="row-h2">Access Denied</h3>
           <p className="text-muted-foreground mt-2">Only SuperAdmin can access settings.</p>
         </div>
       </ProtectedRoute>
@@ -123,15 +126,7 @@ export default function TenantsPage() {
   return (
     <ProtectedRoute>
       <div className="space-y-6">
-        <div className="flex items-center gap-3">
-          <Button variant="outline" size="icon" asChild>
-            <Link href="/settings" aria-label="Back to settings"><ArrowLeft className="h-4 w-4" /></Link>
-          </Button>
-          <div>
-            <h2 className="text-2xl font-bold tracking-tight text-primary">Tenants</h2>
-            <p className="text-muted-foreground text-base">District subscriptions, planning state and editions</p>
-          </div>
-        </div>
+        <PageHeader title="Tenants" description="District subscriptions, planning state and editions" back="/settings" />
         <p className="text-sm text-muted-foreground">
           Before a district goes live, share the{" "}
           <Link href="/data-processing-agreement" target="_blank" className="font-medium text-primary underline-offset-2 hover:underline">
@@ -149,9 +144,9 @@ export default function TenantsPage() {
           <>
             <div className="max-w-xs space-y-2">
               <Label htmlFor="district">District</Label>
-              <select id="district" className={SELECT} value={districtId ?? ""} onChange={(e) => setDistrictId(Number(e.target.value))}>
+              <NativeSelect id="district"  value={districtId ?? ""} onChange={(e) => setDistrictId(Number(e.target.value))}>
                 {districts.map((d) => <option key={d.id} value={d.id}>District {d.districtNumber}</option>)}
-              </select>
+              </NativeSelect>
             </div>
 
             {!detail ? (
@@ -164,23 +159,23 @@ export default function TenantsPage() {
                     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                       <div className="space-y-2">
                         <Label htmlFor="edition">Edition</Label>
-                        <select id="edition" className={SELECT} value={form.editionCode} onChange={(e) => set("editionCode", e.target.value)}>
+                        <NativeSelect id="edition"  value={form.editionCode} onChange={(e) => set("editionCode", e.target.value)}>
                           {editions.map((e) => <option key={e.code} value={e.code}>{e.name}</option>)}
-                        </select>
+                        </NativeSelect>
                       </div>
                       <div className="space-y-2">
                         <Label htmlFor="state">State</Label>
-                        <select id="state" className={SELECT} value={form.state} onChange={(e) => set("state", e.target.value as TenantSubscription["state"])}>
+                        <NativeSelect id="state"  value={form.state} onChange={(e) => set("state", e.target.value as TenantSubscription["state"])}>
                           <option value="live">Live</option>
                           <option value="planning">Planning (current year read-only)</option>
-                        </select>
+                        </NativeSelect>
                       </div>
                       <div className="space-y-2">
                         <Label htmlFor="region">Region</Label>
-                        <select id="region" className={SELECT} value={form.region ?? ""} onChange={(e) => set("region", (orNull(e.target.value) as TenantSubscription["region"]))}>
+                        <NativeSelect id="region"  value={form.region ?? ""} onChange={(e) => set("region", (orNull(e.target.value) as TenantSubscription["region"]))}>
                           <option value="">Not set</option>
                           {["US", "EU", "APAC", "IN"].map((r) => <option key={r} value={r}>{r}</option>)}
-                        </select>
+                        </NativeSelect>
                       </div>
                       <div className="space-y-2">
                         <Label htmlFor="band">Member band</Label>
@@ -255,18 +250,18 @@ export default function TenantsPage() {
                 {detail.clubs.length > 0 && (
                   <Card>
                     <CardContent className="p-6">
-                      <h3 className="mb-3 text-base font-semibold">Clubs ({detail.clubs.length})</h3>
-                      <table className="w-full text-sm">
-                        <thead className="bg-[#EDF4FB] text-[13px] text-[#64748B]"><tr className="border-b text-left text-muted-foreground"><th className="py-2 font-medium">Club</th><th className="py-2 font-medium">Edition</th></tr></thead>
-                        <tbody>
+                      <h3 className="row-h2 mb-3">Clubs ({detail.clubs.length})</h3>
+                      <Table className="w-full text-sm">
+                        <TableHeader><TableRow className="border-b"><TableHead>Club</TableHead><TableHead>Edition</TableHead></TableRow></TableHeader>
+                        <TableBody>
                           {detail.clubs.map((c) => (
-                            <tr key={c.clubId} className="border-b last:border-0">
-                              <td className="py-2">{c.clubName}</td>
-                              <td className="py-2">{editions.find((e) => e.code === c.editionCode)?.name ?? c.editionCode}</td>
-                            </tr>
+                            <TableRow key={c.clubId} className="border-b last:border-0">
+                              <TableCell className="py-2">{c.clubName}</TableCell>
+                              <TableCell className="py-2">{editions.find((e) => e.code === c.editionCode)?.name ?? c.editionCode}</TableCell>
+                            </TableRow>
                           ))}
-                        </tbody>
-                      </table>
+                        </TableBody>
+                      </Table>
                     </CardContent>
                   </Card>
                 )}

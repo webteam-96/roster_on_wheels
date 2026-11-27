@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * LoadingButton — drop-in <button> that shows an inline spinner while
+ * LoadingButton — drop-in native button that shows an inline spinner while
  * its async onAction is running.
  *
  * Why: users were double-clicking Save/Delete because nothing visibly
@@ -11,7 +11,8 @@
  *   - disables itself while pending so the second click is a no-op
  *   - re-throws errors so the parent can still handle them
  *
- * Drop-in replacement for <button>:
+ * Renders the shared `ui/button` Button; `variant` / `size` work as on Button.
+ * Drop-in replacement for a native button:
  *   <LoadingButton onAction={handleSave} className="...">Save</LoadingButton>
  *
  * If the caller already has its own `saving` state and just wants the
@@ -22,14 +23,14 @@ import {
   useCallback,
   useRef,
   useState,
-  type ButtonHTMLAttributes,
   type MouseEvent,
   type ReactNode,
 } from "react";
 import { Loader2 } from "@/components/icons";
+import { Button, type ButtonProps } from "@/components/ui/button";
 
 export interface LoadingButtonProps
-  extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, "onClick"> {
+  extends Omit<ButtonProps, "onClick" | "asChild"> {
   /** Click handler. Can be sync or async. Spinner shows until the promise settles. */
   onAction?: (e: MouseEvent<HTMLButtonElement>) => void | Promise<void>;
   /** When true, forces the spinner on (use when parent already owns the loading state). */
@@ -49,6 +50,8 @@ export default function LoadingButton({
   disabled,
   children,
   type = "button",
+  variant,
+  size,
   ...rest
 }: LoadingButtonProps) {
   const [internalPending, setInternalPending] = useState(false);
@@ -85,8 +88,11 @@ export default function LoadingButton({
   //  via React's StrictMode is sufficient since we only set false in finally).
 
   return (
-    <button
+    // Callers style it with `row-btn-*` classes; no variant given = no default primary class on top of theirs.
+    <Button
       {...rest}
+      variant={variant ?? null}
+      size={size ?? null}
       type={type}
       onClick={handleClick}
       disabled={disabled || pending}
@@ -100,6 +106,6 @@ export default function LoadingButton({
         />
       )}
       {pending && loadingLabel ? loadingLabel : children}
-    </button>
+    </Button>
   );
 }

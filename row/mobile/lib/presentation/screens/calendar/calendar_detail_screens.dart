@@ -98,7 +98,8 @@ class CalendarEventDetailScreen extends StatelessWidget {
 /// Read-only detail page for a calendar announcement.
 class CalendarAnnouncementDetailScreen extends StatelessWidget {
   final CalendarAnnouncement announcement;
-  const CalendarAnnouncementDetailScreen({super.key, required this.announcement});
+  const CalendarAnnouncementDetailScreen(
+      {super.key, required this.announcement});
 
   @override
   Widget build(BuildContext context) {
@@ -125,13 +126,15 @@ class CalendarAnnouncementDetailScreen extends StatelessWidget {
             _InfoRow(
               icon: Icons.calendar_today_rounded,
               label: 'Published',
-              value: DateFormat('EEE, d MMM yyyy').format(announcement.publishDate!),
+              value: DateFormat('EEE, d MMM yyyy')
+                  .format(announcement.publishDate!),
             ),
           if (announcement.expiryDate != null)
             _InfoRow(
               icon: Icons.event_busy_rounded,
               label: 'Expires',
-              value: DateFormat('EEE, d MMM yyyy').format(announcement.expiryDate!),
+              value: DateFormat('EEE, d MMM yyyy')
+                  .format(announcement.expiryDate!),
             ),
           if ((announcement.description ?? '').isNotEmpty) ...[
             const SizedBox(height: 8),
@@ -188,7 +191,8 @@ class _InfoRow extends StatelessWidget {
   final IconData icon;
   final String label;
   final String value;
-  const _InfoRow({required this.icon, required this.label, required this.value});
+  const _InfoRow(
+      {required this.icon, required this.label, required this.value});
 
   @override
   Widget build(BuildContext context) {

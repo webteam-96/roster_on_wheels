@@ -11,14 +11,14 @@
  * v2 reads ONLY `?returnTo=` — never any other param name.
  */
 
+import { IconButton } from "@/components/ui/icon-button";
+import { Input } from "@/components/ui/input";
+import { Card } from "@/components/ui/card";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useParams, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import {
-  ImageIcon, CheckCircle2, EyeOff, Loader2, Search, Plus,
-  Edit3, Trash2, ArrowLeft, AlertTriangle, GripVertical, Eye,
-} from "@/components/icons";
+import { ImageIcon, CheckCircle2, EyeOff, Search, Plus, Edit3, Trash2, AlertTriangle, GripVertical, Eye } from "@/components/icons";
 import {
   getClub,
   getClubBanners,
@@ -41,8 +41,9 @@ import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
 import ClubAdminShell from "@/components/v2/ClubAdminShell";
 import { useSyncClubIdFromUrl } from "@/hooks/useSyncClubIdFromUrl";
-import { SkeletonRows } from "@/components/row/AppKit";
+import { PageHeader, SkeletonRows } from "@/components/row/AppKit";
 
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 const MAX_ACTIVE = 6;
 
 function statusChipStyle(isActive: boolean): string {
@@ -235,23 +236,7 @@ export default function BannerPhotosV2Page() {
       >
       <div className="space-y-5">
         {/* Header */}
-        <div className="flex items-start justify-between gap-3">
-          <div className="flex items-start gap-2">
-            <Link
-              href={backHref}
-              className="mt-0.5 inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50"
-              aria-label="Back"
-            >
-              <ArrowLeft size={15} />
-            </Link>
-            <div>
-              <h1 className="text-lg font-semibold text-slate-800">Banner Photos</h1>
-              <p className="text-xs text-slate-500 mt-0.5">
-                RY {yearLabel} · {clubName || "–"}
-              </p>
-            </div>
-          </div>
-        </div>
+        <PageHeader title="Banner Photos" description={<>RY {yearLabel} · {clubName || "–"}</>} back={backHref} />
 
         {/* KPI row */}
         <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
@@ -261,10 +246,10 @@ export default function BannerPhotosV2Page() {
         </div>
 
         {/* Table card */}
-        <div className="bg-card rounded-2xl border border-slate-200 overflow-hidden">
+        <Card className="overflow-hidden">
           <div className="px-5 py-3 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div>
-              <h3 className="text-sm font-semibold text-slate-800">Banner Records</h3>
+              <h3 className="row-h3">Banner Records</h3>
               <p className="text-xs text-slate-500 mt-0.5">
                 {clubName || "–"} · website banner photos
               </p>
@@ -272,18 +257,18 @@ export default function BannerPhotosV2Page() {
             <div className="flex flex-wrap items-center gap-2">
               <div className="relative w-full sm:w-auto">
                 <Search size={14} className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-400" />
-                <input
+                <Input
                   type="text"
                   placeholder="Search…"
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  className="pl-7 pr-3 h-10 py-0 text-sm border border-slate-200 rounded-[12px] w-full sm:w-48 focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                  className="pl-7 pr-3 sm:w-48"
                 />
               </div>
               {canManage && (
                 <Link
                   href={addUrl}
-                  className="inline-flex items-center gap-1.5 text-xs font-semibold px-4 h-10 rounded-full bg-[#17458F] text-white hover:bg-[#17458F]"
+                  className="row-btn row-btn-primary"
                 >
                   <Plus size={13} /> Add Banner
                 </Link>
@@ -296,28 +281,28 @@ export default function BannerPhotosV2Page() {
             {loading || loadingRecords ? (
               <SkeletonRows />
             ) : (
-              <table className="w-full min-w-[640px] md:min-w-full text-sm">
-                <thead className="bg-[#EDF4FB] text-[13px] text-[#64748B]">
-                  <tr>
-                    <th className="px-3 py-2.5 text-left w-10">Sr</th>
-                    <th className="px-3 py-2.5 text-left w-24">Thumbnail</th>
-                    <th className="px-3 py-2.5 text-left">Description</th>
-                    <th className="px-3 py-2.5 text-left w-24">Status</th>
-                    {canManage && <th className="px-3 py-2.5 text-center w-20">Toggle</th>}
-                    {canManage && <th className="px-3 py-2.5 text-right w-16">Edit</th>}
-                    {canManage && <th className="px-3 py-2.5 text-right w-16">Delete</th>}
-                    {canManage && <th className="px-3 py-2.5 text-center w-16">Sort</th>}
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
+              <Table className="min-w-[640px] md:min-w-full">
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="text-left w-10">Sr</TableHead>
+                    <TableHead className="text-left w-24">Thumbnail</TableHead>
+                    <TableHead className="text-left">Description</TableHead>
+                    <TableHead className="text-left w-24">Status</TableHead>
+                    {canManage && <TableHead className="text-center w-20">Toggle</TableHead>}
+                    {canManage && <TableHead className="text-right w-16">Edit</TableHead>}
+                    {canManage && <TableHead className="text-right w-16">Delete</TableHead>}
+                    {canManage && <TableHead className="text-center w-16">Sort</TableHead>}
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
                   {filtered.map((r, i) => {
                     const photoUrl = getPhotoUrl(r.bannerImagePath);
                     const recordsIdx = records.findIndex((rec) => rec.id === r.id);
                     const dragEnabled = canManage && !search;
                     return (
-                      <tr key={r.id} className="hover:bg-blue-50/40">
-                        <td className="px-3 py-2 text-slate-500">{i + 1}</td>
-                        <td className="px-3 py-2">
+                      <TableRow key={r.id}>
+                        <TableCell>{i + 1}</TableCell>
+                        <TableCell>
                           <div className="relative h-10 w-20 overflow-hidden rounded bg-slate-100 border border-slate-200">
                             {photoUrl ? (
                               <Image src={photoUrl} alt={r.description || "Banner"} fill className="object-cover" unoptimized />
@@ -327,87 +312,84 @@ export default function BannerPhotosV2Page() {
                               </div>
                             )}
                           </div>
-                        </td>
-                        <td className="px-3 py-2 text-slate-700">
+                        </TableCell>
+                        <TableCell>
                           {r.description ? (
                             <span className="line-clamp-2 max-w-md">{r.description}</span>
                           ) : (
                             <span className="text-slate-400 italic">No description</span>
                           )}
-                        </td>
-                        <td className="px-3 py-2">
-                          <span className={`inline-flex items-center text-xs font-medium px-2 py-0.5 rounded-full border ${statusChipStyle(r.isActive)}`}>
+                        </TableCell>
+                        <TableCell>
+                          <span className={`inline-flex items-center text-xs font-medium px-2 py-0.5 rounded border ${statusChipStyle(r.isActive)}`}>
                             {r.isActive ? "Active" : "Inactive"}
                           </span>
-                        </td>
+                        </TableCell>
                         {canManage && (
-                          <td className="px-3 py-2 text-center">
-                            <button
+                          <TableCell className="text-center">
+                            <IconButton
                               type="button"
                               onClick={() => handleToggleActive(r)}
                               title={r.isActive ? "Deactivate" : "Activate"}
-                              className="inline-flex items-center justify-center w-7 h-7 rounded text-slate-500 hover:text-emerald-700 hover:bg-emerald-50"
-                              aria-label={r.isActive ? "Deactivate banner" : "Activate banner"}
-                            >
+                               aria-label={r.isActive ? "Deactivate banner" : "Activate banner"}>
                               {r.isActive ? <EyeOff size={13} /> : <Eye size={13} />}
-                            </button>
-                          </td>
+                            </IconButton>
+                          </TableCell>
                         )}
                         {canManage && (
-                          <td className="px-3 py-2 text-right">
+                          <TableCell className="text-right">
                             <Link
                               href={`/clubs/${clubId}/website-data/banners/v2/${r.id}/edit?returnTo=${returnTo}`}
-                              className="inline-flex items-center justify-center w-7 h-7 rounded text-slate-500 hover:text-blue-700 hover:bg-blue-50"
+                              className="row-icon-btn"
                               aria-label="Edit banner"
                             >
                               <Edit3 size={13} />
                             </Link>
-                          </td>
+                          </TableCell>
                         )}
                         {canManage && (
-                          <td className="px-3 py-2 text-right">
-                            <button
+                          <TableCell className="text-right">
+                            <IconButton
                               type="button"
                               onClick={() => setDeleteTarget(r)}
-                              className="inline-flex items-center justify-center w-7 h-7 rounded text-slate-400 hover:text-rose-700 hover:bg-rose-50"
+                              className="hover:text-red-700"
                               aria-label="Delete banner"
                             >
                               <Trash2 size={13} />
-                            </button>
-                          </td>
+                            </IconButton>
+                          </TableCell>
                         )}
                         {canManage && (
-                          <td
-                            className="px-3 py-2 text-center"
+                          <TableCell className="text-center"
                             title={dragEnabled ? "Drag to reorder" : "Clear search to enable reorder"}
                             {...(dragEnabled ? dragProps(recordsIdx) : {})}
                           >
                             <GripVertical className={`h-4 w-4 inline-block ${dragEnabled ? "text-slate-400 cursor-grab" : "text-slate-300 cursor-not-allowed"}`} />
-                          </td>
+                          </TableCell>
                         )}
-                      </tr>
+                      </TableRow>
                     );
                   })}
                   {filtered.length === 0 && (
-                    <tr>
-                      <td colSpan={canManage ? 8 : 4} className="px-4 py-10 text-center text-slate-400">
+                    <TableRow>
+                      <TableCell colSpan={canManage ? 8 : 4} className="py-10 text-center text-muted-foreground">
                         {search
                           ? "No banners match your search."
                           : filterYears.length === 0
                             ? "No banners recorded yet."
                             : "No banners for the selected year."}
-                      </td>
-                    </tr>
+                      </TableCell>
+                    </TableRow>
                   )}
-                </tbody>
-              </table>
+                </TableBody>
+              </Table>
             )}
           </div>
 
           <div className="px-5 py-2.5 border-t border-slate-100 text-xs text-slate-500">
             {filtered.length} banner{filtered.length === 1 ? "" : "s"} · {yearLabel}
           </div>
-        </div>
+        </Card>
 
         {/* Delete confirm */}
         <AlertModal

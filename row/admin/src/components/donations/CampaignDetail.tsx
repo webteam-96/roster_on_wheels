@@ -5,9 +5,10 @@
  * letters, the Excel export and the QR code of the public giving page.
  */
 
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table"
+import { PageHeader } from "@/components/row/AppKit";
 import { useEffect, useState } from "react";
-import Link from "next/link";
-import { ArrowLeft, Copy, Download, ExternalLink, FileText } from "@/components/icons";
+import { Copy, Download, ExternalLink, FileText } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import ErrorAlert from "@/components/ErrorAlert";
@@ -53,11 +54,7 @@ export default function CampaignDetail({ scope, scopeId, campaignId, basePath }:
   const maxDay = Math.max(1, ...(report?.daily.map((d) => d.amount) ?? [1]));
 
   return (
-    <div className="space-y-6 p-6">
-      <Link href={basePath} className="inline-flex items-center gap-1 text-sm text-primary hover:underline">
-        <ArrowLeft className="h-4 w-4" /> All campaigns
-      </Link>
-
+    <div className="space-y-6">
       {!report || !c ? (
         <div className="space-y-4" aria-busy="true">
           <Skeleton className="h-8 w-1/2" />
@@ -66,20 +63,20 @@ export default function CampaignDetail({ scope, scopeId, campaignId, basePath }:
         </div>
       ) : (
         <>
-          <div className="flex flex-wrap items-start justify-between gap-4">
-            <div className="max-w-2xl space-y-1">
-              <h2 className="text-2xl font-bold tracking-tight text-primary">{c.title}</h2>
-              <p className="text-sm text-muted-foreground">
-                {campaignStatus(c)}
-                {c.startDate || c.endDate ? `, ${[c.startDate && fmt.date(c.startDate), c.endDate && fmt.date(c.endDate)].filter(Boolean).join(" to ")}` : ""}
-              </p>
-              {c.description && <p className="whitespace-pre-line pt-1 text-base">{c.description}</p>}
-            </div>
-            <Button variant="outline" className="gap-1.5" disabled={report.count === 0}
+          <PageHeader
+            title={c.title}
+            back={basePath}
+            backLabel="All campaigns"
+            description={<><p> {campaignStatus(c)} {c.startDate || c.endDate ? `, ${[c.startDate && fmt.date(c.startDate), c.endDate && fmt.date(c.endDate)].filter(Boolean).join(" to ")}` : ""} </p> {c.description && <p className="whitespace-pre-line pt-1">{c.description}</p>}</>}
+            actions={
+              <>
+<Button variant="outline" disabled={report.count === 0}
               onClick={() => run(() => downloadDonorList(scope, scopeId, c.id), "Could not export the donor list.")}>
               <Download className="h-4 w-4" /> Donor list (Excel)
             </Button>
-          </div>
+              </>
+            }
+          />
 
           <Card>
             <CardContent className="space-y-2 p-5">
@@ -108,7 +105,7 @@ export default function CampaignDetail({ scope, scopeId, campaignId, basePath }:
           <div className="grid gap-6 lg:grid-cols-3">
             <Card className="lg:col-span-2">
               <CardContent className="space-y-3 p-5">
-                <h3 className="text-base font-semibold">Giving by day</h3>
+                <h3 className="row-h2">Giving by day</h3>
                 {report.daily.length === 0 ? (
                   <p className="text-sm text-muted-foreground">No gifts yet.</p>
                 ) : (
@@ -124,7 +121,7 @@ export default function CampaignDetail({ scope, scopeId, campaignId, basePath }:
                 )}
                 {report.topDonors.length > 0 && (
                   <>
-                    <h3 className="pt-3 text-base font-semibold">Top donors</h3>
+                    <h3 className="row-h2 pt-3">Top donors</h3>
                     <ol className="space-y-1 text-sm">
                       {report.topDonors.map((t, i) => (
                         <li key={i} className="flex justify-between gap-3">
@@ -140,7 +137,7 @@ export default function CampaignDetail({ scope, scopeId, campaignId, basePath }:
 
             <Card>
               <CardContent className="space-y-3 p-5">
-                <h3 className="text-base font-semibold">Giving page</h3>
+                <h3 className="row-h2">Giving page</h3>
                 {qr ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img src={qr} alt={`QR code for the giving page of ${c.title}`} className="h-44 w-44 border" />
@@ -150,14 +147,14 @@ export default function CampaignDetail({ scope, scopeId, campaignId, basePath }:
                 {c.givingUrl && (
                   <div className="flex flex-wrap gap-2">
                     {qr && (
-                      <Button asChild variant="outline" size="sm" className="gap-1.5">
+                      <Button asChild variant="outline" size="sm">
                         <a href={qr} download={`donate-campaign-${c.id}.png`}><Download className="h-4 w-4" /> QR code</a>
                       </Button>
                     )}
-                    <Button variant="outline" size="sm" className="gap-1.5" onClick={() => copyLink(c.givingUrl!)}>
+                    <Button variant="outline" size="sm" onClick={() => copyLink(c.givingUrl!)}>
                       <Copy className="h-4 w-4" /> {copied ? "Copied" : "Copy link"}
                     </Button>
-                    <Button asChild variant="outline" size="sm" className="gap-1.5">
+                    <Button asChild variant="outline" size="sm">
                       <a href={c.givingUrl} target="_blank" rel="noopener noreferrer"><ExternalLink className="h-4 w-4" /> Open</a>
                     </Button>
                   </div>
@@ -175,40 +172,40 @@ export default function CampaignDetail({ scope, scopeId, campaignId, basePath }:
               {report.donations.length === 0 ? (
                 <p className="p-5 text-sm text-muted-foreground">No donations yet. Share the giving page or its QR code.</p>
               ) : (
-                <table className="w-full min-w-[760px] text-sm">
-                  <thead className="bg-[#EDF4FB] text-[13px] text-[#64748B]">
-                    <tr className="border-b text-left">
-                      <th className="p-3 font-medium">Date</th>
-                      <th className="p-3 font-medium">Donor</th>
-                      <th className="p-3 text-right font-medium">Amount</th>
-                      <th className="p-3 font-medium">Status</th>
-                      <th className="p-3 font-medium">Message</th>
-                      <th className="p-3"><span className="sr-only">Receipt</span></th>
-                    </tr>
-                  </thead>
-                  <tbody>
+                <Table className="w-full min-w-[760px] text-sm">
+                  <TableHeader>
+                    <TableRow className="border-b">
+                      <TableHead className="p-3">Date</TableHead>
+                      <TableHead className="p-3">Donor</TableHead>
+                      <TableHead className="p-3 text-right">Amount</TableHead>
+                      <TableHead className="p-3">Status</TableHead>
+                      <TableHead className="p-3">Message</TableHead>
+                      <TableHead className="p-3"><span className="sr-only">Receipt</span></TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
                     {report.donations.map((d) => (
-                      <tr key={d.id} className="border-b last:border-0">
-                        <td className="p-3">{fmt.dateTime(d.paidDate ?? d.createdDate)}</td>
-                        <td className="p-3">
+                      <TableRow key={d.id} className="border-b last:border-0">
+                        <TableCell className="p-3">{fmt.dateTime(d.paidDate ?? d.createdDate)}</TableCell>
+                        <TableCell className="p-3">
                           <span className="block">{d.donorName}{d.isAnonymous ? " (anonymous on the page)" : ""}</span>
                           <span className="block text-xs text-muted-foreground">{d.donorEmail}</span>
-                        </td>
-                        <td className="p-3 text-right tabular-nums">{fmt.money(d.amount, d.currency)}</td>
-                        <td className="p-3">{d.status === "paid" ? "Paid" : "Not completed"}</td>
-                        <td className="max-w-xs p-3 text-muted-foreground">{d.message}</td>
-                        <td className="p-3 text-right">
+                        </TableCell>
+                        <TableCell className="p-3 text-right tabular-nums">{fmt.money(d.amount, d.currency)}</TableCell>
+                        <TableCell className="p-3">{d.status === "paid" ? "Paid" : "Not completed"}</TableCell>
+                        <TableCell className="max-w-xs p-3 text-muted-foreground">{d.message}</TableCell>
+                        <TableCell className="p-3 text-right">
                           {d.status === "paid" && (
-                            <Button variant="ghost" size="sm" className="gap-1.5"
+                            <Button variant="ghost" size="sm"
                               onClick={() => run(() => downloadDonationReceipt(scope, scopeId, c.id, d.id, d.merchantOrderId), "Could not create the receipt.")}>
                               <FileText className="h-4 w-4" /> Receipt
                             </Button>
                           )}
-                        </td>
-                      </tr>
+                        </TableCell>
+                      </TableRow>
                     ))}
-                  </tbody>
-                </table>
+                  </TableBody>
+                </Table>
               )}
             </CardContent>
           </Card>

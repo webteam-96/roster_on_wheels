@@ -35,7 +35,7 @@ export default function ForgotPasswordPage() {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4 py-10">
-      <Card className="w-full max-w-md overflow-hidden rounded-[20px] border border-[color:var(--row-line)] shadow-none">
+      <Card className="w-full max-w-md overflow-hidden border-[color:var(--row-line)]">
         <CardHeader className="gap-6 px-7 pb-2 pt-7">
           <BrandLogo className="h-14 self-start" />
           <div>
@@ -53,7 +53,7 @@ export default function ForgotPasswordPage() {
               <Link href="/login">
                 <Button
                   variant="outline"
-                  className="w-full font-semibold hover:opacity-90"
+                  className="w-full hover:opacity-90"
                   style={{ borderColor: "#17458f", color: "#17458f" }}
                 >
                   <ArrowLeft className="h-4 w-4" />

@@ -2,6 +2,7 @@
 
 // A member's club tags and custom profile field answers (member flexibility). Club admins edit both here.
 
+import { NativeSelect } from "@/components/ui/native-select";
 import { useEffect, useState } from "react";
 import {
   getMemberProfileFields, saveMemberProfileFields, setMemberTags,
@@ -17,7 +18,7 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "
 import { Loader2 } from "@/components/icons";
 import TagChip from "./TagChip";
 
-const SELECT = "h-9 w-full rounded-md border border-input bg-background px-3 text-sm";
+const SELECT = "row-field w-full";
 
 type Props = {
   clubId: number;
@@ -61,10 +62,10 @@ export default function MemberProfileDialog({ clubId, member, tags, onClose, onS
     if (f.fieldType === "choice" || f.fieldType === "yesno") {
       const options = f.fieldType === "yesno" ? ["yes", "no"] : f.options;
       return (
-        <select id={id} className={SELECT} value={v} onChange={(e) => set(e.target.value)}>
+        <NativeSelect id={id}  value={v} onChange={(e) => set(e.target.value)}>
           <option value="">Not set</option>
           {options.map((o) => <option key={o} value={o}>{f.fieldType === "yesno" ? (o === "yes" ? "Yes" : "No") : o}</option>)}
-        </select>
+        </NativeSelect>
       );
     }
     return <Input id={id} value={v} onChange={(e) => set(e.target.value)} maxLength={1000}
@@ -105,7 +106,7 @@ export default function MemberProfileDialog({ clubId, member, tags, onClose, onS
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={onClose}>Cancel</Button>
-          <Button className="bg-azure text-white hover:bg-mint-ink" disabled={busy || fields === null} onClick={save}>
+          <Button disabled={busy || fields === null} onClick={save}>
             {busy && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}Save
           </Button>
         </DialogFooter>

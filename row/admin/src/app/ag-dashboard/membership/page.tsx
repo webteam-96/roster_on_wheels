@@ -1,10 +1,10 @@
 "use client";
+import { Table, TableHeader, TableBody, TableRow, TableCell } from "@/components/ui/table";
 
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { useEffect, useMemo, useState } from "react";
-import {
-  TrendingUp, Users, BookOpen, ClipboardList, Globe, ChevronUp, ChevronDown,
-  Activity, Award, ChevronLeft, ChevronRight, PieChart as PieIcon, BarChart3,
-} from "@/components/icons";
+import { TrendingUp, Users, BookOpen, ClipboardList, Globe, ChevronUp, ChevronDown, Activity, Award, ChevronLeft, ChevronRight, PieChart as PieIcon, BarChart3 } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import {
   ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
@@ -14,14 +14,13 @@ import { getAgDashboardMembership } from "@/services/api";
 import type { AgMembershipResponse, AgMembershipClubRow } from "@/types/agDashboard";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAgYearId } from "@/hooks/useAgYearId";
-import SectionHeader from "@/components/dashboard/SectionHeader";
 import KpiCard from "@/components/dashboard/KpiCard";
 import {
   fmtInt, fmtInr, fmtInrShort, ROTARY_BLUE, ROTARY_GOLD, ROTARY_TEAL, ROTARY_GREEN, CLUB_PALETTE, truncate,
 } from "@/components/dashboard/formatters";
 
 import { appLocale } from "@/lib/appFormat";
-import { ListPageSkeleton } from "@/components/row/AppKit";
+import { PageHeader, ListPageSkeleton } from "@/components/row/AppKit";
 // Wave 13A2: backend sends `goalsCitations` per club but the shared TS type
 // hasn't been regenerated yet — extend it locally so we can render the GCs
 // column without breaking the contract type.
@@ -44,7 +43,7 @@ const PAGE_SIZE = 20;
 // ─────────────────────────────────────────────────────────────────────────────
 function PendingChip({ label = "Pending" }: { label?: string }) {
   return (
-    <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 text-amber-700 border border-amber-200 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide">
+    <span className="inline-flex items-center gap-1 rounded bg-amber-50 text-amber-700 border border-amber-200 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide">
       <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
       {label}
     </span>
@@ -178,36 +177,24 @@ export default function AgMembershipPage() {
   return (
     <div className="space-y-6">
       {/* ── PAGE HEADER ───────────────────────────────────────────────────── */}
-      <div className="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-800 leading-tight">Membership</h1>
-          <p className="text-sm text-slate-500 mt-1 flex items-center gap-2 flex-wrap">
-            <span>
-              AG: <span className="font-medium text-slate-700">{data.ag.name || "–"}</span>
-            </span>
-            <span className="text-slate-300">·</span>
-            <span>
-              RY <span className="font-medium text-slate-700">{data.ag.yearLabel || "–"}</span>
-            </span>
-            <span className="text-slate-300">·</span>
-            <span className="inline-flex items-center gap-1.5">
-              Data as of <span className="font-medium text-slate-700">{dataAsOf}</span>
-              <PendingChip label="Live" />
-            </span>
-          </p>
-        </div>
-        <div className="text-xs text-slate-500 bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5">
+      <PageHeader
+        title="Membership"
+        description={<><span> AG: <span className="font-medium text-slate-700">{data.ag.name || "–"}</span> </span> <span className="text-slate-300">·</span> <span> RY <span className="font-medium text-slate-700">{data.ag.yearLabel || "–"}</span> </span> <span className="text-slate-300">·</span> <span className="inline-flex items-center gap-1.5"> Data as of <span className="font-medium text-slate-700">{dataAsOf}</span> <PendingChip label="Live" /> </span></>}
+        actions={
+          <>
+<div className="text-xs text-slate-500 bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5">
           {data.clubs.length} club{data.clubs.length === 1 ? "" : "s"} · District {data.ag.districtNumber || "–"}
         </div>
-      </div>
+          </>
+        }
+      />
 
       {/* ── SECTION BANNER + KPI TILES ────────────────────────────────────── */}
-      <div className="rounded-xl border border-slate-200 bg-blue-50/40 p-5 space-y-4">
-        <SectionHeader
-          title="Membership Overview"
-          subtitle={`All ${data.clubs.length} clubs · District ${data.ag.districtNumber || "–"} · Year ${data.ag.yearLabel || "–"}`}
-          icon={TrendingUp}
-        />
+      <div className="space-y-4">
+        <div>
+          <h2 className="row-h2">Membership Overview</h2>
+          <p className="text-[13px] text-muted-foreground">{`All ${data.clubs.length} clubs · District ${data.ag.districtNumber || "–"} · Year ${data.ag.yearLabel || "–"}`}</p>
+        </div>
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           <KpiCard
             title="Total Members"
@@ -241,9 +228,9 @@ export default function AgMembershipPage() {
       </div>
 
       {/* ── CLUB-BY-CLUB COMPARISON BAR ───────────────────────────────────── */}
-      <div className="bg-card rounded-[20px] border border-slate-200 p-5">
+      <Card className="p-5">
         <div className="flex items-center justify-between mb-1">
-          <h3 className="text-sm font-bold text-slate-700 inline-flex items-center gap-2">
+          <h3 className="row-h3 inline-flex items-center gap-2">
             <BarChart3 size={14} className="text-azure" />
             Club-by-Club Comparison
           </h3>
@@ -255,7 +242,7 @@ export default function AgMembershipPage() {
         ) : (
           <ResponsiveContainer width="100%" height={320}>
             <BarChart data={barData} margin={{ top: 4, right: 8, left: 0, bottom: 50 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#edf4fb" />
+              <CartesianGrid strokeDasharray="3 3" stroke="#d3dde8" />
               <XAxis dataKey="name" tick={{ fontSize: 10, fill: "#64748b" }} angle={-30} textAnchor="end" interval={0} height={64} />
               <YAxis tick={{ fontSize: 10, fill: "#64748b" }} width={32} />
               <Tooltip
@@ -269,13 +256,13 @@ export default function AgMembershipPage() {
             </BarChart>
           </ResponsiveContainer>
         )}
-      </div>
+      </Card>
 
       {/* ── CLUB ACTIVITY AT A GLANCE  +  MEMBERS DISTRIBUTION ────────────── */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 bg-card rounded-[20px] border border-slate-200 p-5">
+        <Card className="lg:col-span-2 p-5">
           <div className="flex items-center justify-between mb-1">
-            <h3 className="text-sm font-bold text-slate-700 inline-flex items-center gap-2">
+            <h3 className="row-h3 inline-flex items-center gap-2">
               <Activity size={14} className="text-emerald-600" />
               Club Activity at a Glance
             </h3>
@@ -287,7 +274,7 @@ export default function AgMembershipPage() {
           ) : (
             <ResponsiveContainer width="100%" height={280}>
               <BarChart data={activityData} margin={{ top: 4, right: 8, left: 0, bottom: 50 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#edf4fb" />
+                <CartesianGrid strokeDasharray="3 3" stroke="#d3dde8" />
                 <XAxis dataKey="name" tick={{ fontSize: 10, fill: "#64748b" }} angle={-30} textAnchor="end" interval={0} height={64} />
                 <YAxis tick={{ fontSize: 10, fill: "#64748b" }} width={32} />
                 <Tooltip
@@ -300,11 +287,11 @@ export default function AgMembershipPage() {
               </BarChart>
             </ResponsiveContainer>
           )}
-        </div>
+        </Card>
 
-        <div className="bg-card rounded-[20px] border border-slate-200 p-5 flex flex-col">
+        <Card className="p-5 flex flex-col">
           <div className="flex items-center justify-between mb-2">
-            <h3 className="text-sm font-bold text-slate-700 inline-flex items-center gap-2">
+            <h3 className="row-h3 inline-flex items-center gap-2">
               <PieIcon size={14} className="text-azure" />
               Members Distribution
             </h3>
@@ -355,19 +342,19 @@ export default function AgMembershipPage() {
               </div>
             </>
           )}
-        </div>
+        </Card>
       </div>
 
       {/* ── CLUB-WISE DETAIL TABLE ────────────────────────────────────────── */}
-      <div className="bg-card rounded-[20px] border border-slate-200 overflow-hidden">
+      <Card className="overflow-hidden">
         <div className="px-5 py-3 border-b border-slate-100 flex items-center justify-between flex-wrap gap-2">
-          <h3 className="text-sm font-bold text-slate-700">Club-wise Detail</h3>
+          <h3 className="row-h3">Club-wise Detail</h3>
           <span className="text-xs text-slate-400">Click headers to sort · {sorted.length} club{sorted.length === 1 ? "" : "s"}</span>
         </div>
         <div className="overflow-x-auto">
-          <table className="w-full text-xs border-collapse">
-            <thead className="bg-[#EDF4FB] border-b border-slate-200">
-              <tr>
+          <Table className="w-full text-xs border-collapse">
+            <TableHeader className="border-b border-slate-200">
+              <TableRow>
                 <Th label="Club Name"     colKey="clubName"      sortKey={sortKey} sortDir={sortDir} onSort={toggleSort} className="min-w-[200px]" />
                 <Th label="Members"       colKey="members"       sortKey={sortKey} sortDir={sortDir} onSort={toggleSort} align="right" />
                 <Th label="Club Service"  colKey="clubService"   sortKey={sortKey} sortDir={sortDir} onSort={toggleSort} align="right" />
@@ -375,26 +362,26 @@ export default function AgMembershipPage() {
                 <Th label="TRF"           colKey="trf"           sortKey={sortKey} sortDir={sortDir} onSort={toggleSort} align="right" />
                 <Th label="GCs"           colKey="goalsCitations" sortKey={sortKey} sortDir={sortDir} onSort={toggleSort} align="right" />
                 <Th label="District Rank" colKey="projectRank"   sortKey={sortKey} sortDir={sortDir} onSort={toggleSort} align="right" />
-              </tr>
-            </thead>
-            <tbody>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
               {pageRows.length === 0 ? (
-                <tr>
-                  <td colSpan={7} className="px-3 py-10 text-center text-slate-400">No clubs to show.</td>
-                </tr>
+                <TableRow>
+                  <TableCell colSpan={7} className="px-3 py-10 text-center text-slate-400">No clubs to show.</TableCell>
+                </TableRow>
               ) : pageRows.map((row, i) => {
                 const gcs = row.goalsCitations;
                 const gcsKnown = typeof gcs === "number";
                 return (
-                  <tr key={row.clubId} className={`border-b border-slate-50 hover:bg-blue-50/40 transition-colors ${i % 2 === 0 ? "bg-card" : "bg-slate-50/40"}`}>
-                    <td className="px-3 py-2.5 font-medium text-slate-800 max-w-[260px]">
+                  <TableRow key={row.clubId} className={`border-b border-slate-50 hover:bg-blue-50/40 transition-colors ${i % 2 === 0 ? "bg-card" : "bg-slate-50/40"}`}>
+                    <TableCell className="px-3 py-2.5 font-medium text-slate-800 max-w-[260px]">
                       <span className="block truncate" title={row.clubName}>{row.clubName}</span>
-                    </td>
-                    <td className="px-3 py-2.5 font-semibold text-slate-800 tabular-nums text-right">{fmtInt(row.members)}</td>
-                    <td className="px-3 py-2.5 text-slate-600 tabular-nums text-right">{fmtInt(row.clubService)}</td>
-                    <td className="px-3 py-2.5 text-slate-600 tabular-nums text-right">{fmtInt(row.totalProjects)}</td>
-                    <td className="px-3 py-2.5 text-slate-600 tabular-nums text-right">{fmtInr(row.trf)}</td>
-                    <td className="px-3 py-2.5 text-right">
+                    </TableCell>
+                    <TableCell className="px-3 py-2.5 font-semibold text-slate-800 tabular-nums text-right">{fmtInt(row.members)}</TableCell>
+                    <TableCell className="px-3 py-2.5 text-slate-600 tabular-nums text-right">{fmtInt(row.clubService)}</TableCell>
+                    <TableCell className="px-3 py-2.5 text-slate-600 tabular-nums text-right">{fmtInt(row.totalProjects)}</TableCell>
+                    <TableCell className="px-3 py-2.5 text-slate-600 tabular-nums text-right">{fmtInr(row.trf)}</TableCell>
+                    <TableCell className="px-3 py-2.5 text-right">
                       {gcsKnown ? (
                         <span className="inline-flex items-center gap-1 text-amber-700 font-semibold tabular-nums">
                           <Award size={11} className="text-amber-500" />
@@ -403,8 +390,8 @@ export default function AgMembershipPage() {
                       ) : (
                         <PendingChip />
                       )}
-                    </td>
-                    <td className="px-3 py-2.5 text-slate-600 tabular-nums text-right">
+                    </TableCell>
+                    <TableCell className="px-3 py-2.5 text-slate-600 tabular-nums text-right">
                       {row.projectRank ? (
                         <span className="inline-flex items-center gap-1">
                           <span className="font-semibold text-slate-800">#{fmtInt(row.projectRank)}</span>
@@ -413,26 +400,26 @@ export default function AgMembershipPage() {
                       ) : (
                         <PendingChip />
                       )}
-                    </td>
-                  </tr>
+                    </TableCell>
+                  </TableRow>
                 );
               })}
               {/* AG Total row — only render when we’re showing the entire dataset on one page. */}
               {pageCount === 1 && sorted.length > 0 && (
-                <tr className="bg-azure/5 border-t-2 border-azure/30 font-bold text-slate-800">
-                  <td className="px-3 py-2.5 text-azure">AG Total ({data.clubs.length} Clubs)</td>
-                  <td className="px-3 py-2.5 tabular-nums text-right">{fmtInt(data.totalMembers)}</td>
-                  <td className="px-3 py-2.5 tabular-nums text-right">{fmtInt(data.totalClubService)}</td>
-                  <td className="px-3 py-2.5 tabular-nums text-right">{fmtInt(data.totalProjects)}</td>
-                  <td className="px-3 py-2.5 tabular-nums text-right">{fmtInr(data.totalTrfInr)}</td>
-                  <td className="px-3 py-2.5 tabular-nums text-right">
+                <TableRow className="bg-azure/5 border-t-2 border-azure/30 font-bold text-slate-800">
+                  <TableCell className="px-3 py-2.5 text-azure">AG Total ({data.clubs.length} Clubs)</TableCell>
+                  <TableCell className="px-3 py-2.5 tabular-nums text-right">{fmtInt(data.totalMembers)}</TableCell>
+                  <TableCell className="px-3 py-2.5 tabular-nums text-right">{fmtInt(data.totalClubService)}</TableCell>
+                  <TableCell className="px-3 py-2.5 tabular-nums text-right">{fmtInt(data.totalProjects)}</TableCell>
+                  <TableCell className="px-3 py-2.5 tabular-nums text-right">{fmtInr(data.totalTrfInr)}</TableCell>
+                  <TableCell className="px-3 py-2.5 tabular-nums text-right">
                     {fmtInt((data.clubs as ClubRow[]).reduce((s, c) => s + (c.goalsCitations ?? 0), 0))}
-                  </td>
-                  <td className="px-3 py-2.5"></td>
-                </tr>
+                  </TableCell>
+                  <TableCell className="px-3 py-2.5"></TableCell>
+                </TableRow>
               )}
-            </tbody>
-          </table>
+            </TableBody>
+          </Table>
         </div>
 
         {/* Pagination — only when > PAGE_SIZE */}
@@ -444,30 +431,30 @@ export default function AgMembershipPage() {
               {" "}of <span className="font-medium text-slate-700">{sorted.length}</span> clubs
             </span>
             <div className="inline-flex items-center gap-1">
-              <button
+              <Button
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
                 disabled={page === 1}
-                className="inline-flex items-center gap-1 px-2 py-1 rounded border border-slate-200 bg-card hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed"
+                variant="outline" size="sm"
               >
                 <ChevronLeft size={12} /> Prev
-              </button>
+              </Button>
               <span className="px-2 tabular-nums">{page} / {pageCount}</span>
-              <button
+              <Button
                 onClick={() => setPage((p) => Math.min(pageCount, p + 1))}
                 disabled={page === pageCount}
-                className="inline-flex items-center gap-1 px-2 py-1 rounded border border-slate-200 bg-card hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed"
+                variant="outline" size="sm"
               >
                 Next <ChevronRight size={12} />
-              </button>
+              </Button>
             </div>
           </div>
         )}
-      </div>
+      </Card>
 
       {/* ── BOTTOM 4 PER-CLUB SUMMARY CARDS ───────────────────────────────── */}
       {summaryClubs.length > 0 && (
         <div>
-          <h3 className="text-sm font-bold text-slate-700 mb-3 inline-flex items-center gap-2">
+          <h3 className="row-h3 mb-3 inline-flex items-center gap-2">
             <Award size={14} className="text-azure" />
             Club Highlights
             <span className="text-[11px] font-normal text-slate-400">Top {summaryClubs.length} by current sort</span>
@@ -477,9 +464,9 @@ export default function AgMembershipPage() {
               const color = CLUB_PALETTE[i % CLUB_PALETTE.length];
               const share = totalMembers > 0 ? (c.members / totalMembers) * 100 : 0;
               return (
-                <div
+                <Card
                   key={c.clubId}
-                  className="bg-card rounded-[20px] border border-slate-200 p-4 flex flex-col gap-2 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden"
+                  className="p-5 flex flex-col gap-2 transition-shadow relative overflow-hidden"
                 >
                   <span className="absolute top-0 left-0 right-0 h-1" style={{ background: color }} />
                   <div className="flex items-start justify-between gap-2 mt-1">
@@ -508,7 +495,7 @@ export default function AgMembershipPage() {
                     <span className="text-slate-500">Share of AG members</span>
                     <span className="font-semibold tabular-nums" style={{ color }}>{share.toFixed(1)}%</span>
                   </div>
-                </div>
+                </Card>
               );
             })}
           </div>

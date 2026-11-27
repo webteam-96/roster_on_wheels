@@ -5,6 +5,7 @@ import '../../widgets/common/custom_app_bar.dart';
 import '../../widgets/common/empty_state_widget.dart';
 import '../../widgets/common/loading_widget.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/roster_wheel.dart';
 
 /// The member's coming volunteer sign-ups with what the club sends them: the confirmation text and each reminder or
 /// thank-you email, when it goes and whether it went (api/mobile/volunteers/my-signups).
@@ -62,7 +63,7 @@ class _MyVolunteerSignupsScreenState extends State<MyVolunteerSignupsScreen> {
                   subtitle: _failed
                       ? 'Pull down or come back later to try again.'
                       : 'Slots you sign up for on a volunteer sheet will show here.')
-              : RefreshIndicator(
+              : RowRefresh(
                   onRefresh: _load,
                   child: ListView(
                     padding: const EdgeInsets.all(12),

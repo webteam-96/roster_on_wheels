@@ -1,4 +1,9 @@
 "use client";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { PageHeader } from "@/components/row/AppKit";
+import LocalAmountNote from "@/components/payments/LocalAmountNote";
 import { CheckCircle2, AlertTriangle } from "@/components/icons";
 
 /**
@@ -167,27 +172,20 @@ function WebsitePurchasePageBody() {
   // Active site with plenty of validity left — renewal isn't open yet.
   if (quote && quote.canPurchase === false) return (
     <div className="max-w-2xl mx-auto p-6">
-      <div className="rounded-[20px] border bg-card p-6 text-center space-y-3">
+      <Card className="p-5 text-center space-y-3">
         <CheckCircle2 className="h-8 w-8 text-green-600" aria-hidden />
-        <h1 className="text-lg font-semibold text-azure">Your club website is active</h1>
+        <h1 className="row-h1">Your club website is active</h1>
         <p className="text-sm text-slate-600">{quote.purchaseBlockedReason || "Renewal opens closer to expiry."}</p>
-      </div>
+      </Card>
     </div>
   );
 
   return (
-    <div className="max-w-2xl mx-auto p-6 space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-azure">{isRenewal ? "Renew Club Website" : "Buy Club Website"}</h1>
-        <p className="text-sm text-slate-500">
-          {isRenewal
-            ? "Extend your club website for another year."
-            : "Get your club's own website at rc<name>.example.org."}
-        </p>
-      </div>
+    <div className="space-y-6 max-w-4xl">
+      <PageHeader title={isRenewal ? "Renew Club Website" : "Buy Club Website"} description={isRenewal ? "Extend your club website for another year." : "Get your club's own website at rc<name>.example.org."} />
 
       {/* Price summary — always visible */}
-      <div className="rounded-[20px] border bg-card p-5 text-sm space-y-1.5">
+      <Card className="p-5 text-sm space-y-1.5">
         {isRenewal && (
           <>
             <div className="flex justify-between"><span className="text-slate-600">Current site</span><span className="font-medium">{quote.currentSubdomain}.{parentDomain}</span></div>
@@ -198,20 +196,21 @@ function WebsitePurchasePageBody() {
         <div className="flex justify-between"><span className="text-slate-600">Website ({quote.validityMonths} months)</span><span>{inr(quote.baseAmount)}</span></div>
         <div className="flex justify-between"><span className="text-slate-600">Tax ({quote.gstPercent}%)</span><span>{inr(quote.gstAmount)}</span></div>
         <div className="flex justify-between border-t pt-1.5 font-semibold text-azure"><span>Total payable</span><span>{inr(quote.totalAmount)}</span></div>
-      </div>
+        <LocalAmountNote currency={quote.currency} localCurrency={quote.localCurrency} localTotal={quote.localTotal} rateDate={quote.rateDate} />
+      </Card>
 
       {/* Step: subdomain (New only) */}
       {step === "subdomain" && (
-        <div className="rounded-[20px] border bg-card p-5 space-y-4">
+        <Card className="p-5 space-y-4">
           <div className="font-semibold text-slate-800">Choose your website address</div>
           <div className="flex items-stretch rounded-lg border border-slate-300 overflow-hidden focus-within:ring-2 focus-within:ring-azure">
             <span className="flex items-center px-3 bg-slate-50 text-slate-500 text-sm border-r">{prefix}</span>
-            <input
+            <Input
               autoFocus
               value={subInput}
               onChange={(e) => setSubInput(sanitize(e.target.value))}
               placeholder="yourclub"
-              className="flex-1 px-3 py-2.5 outline-none text-sm"
+              className="flex-1"
             />
             <span className="flex items-center px-3 bg-slate-50 text-slate-500 text-sm border-l">.{parentDomain}</span>
           </div>
@@ -225,20 +224,20 @@ function WebsitePurchasePageBody() {
             </div>
           )}
 
-          <button
+          <Button
             type="button"
             disabled={!subValid}
             onClick={() => setStep("confirm")}
-            className="px-6 py-2.5 rounded-lg bg-azure text-white font-medium disabled:opacity-50"
+            
           >
             Continue
-          </button>
-        </div>
+          </Button>
+        </Card>
       )}
 
       {/* Step: confirm (hyper-focused, New only) */}
       {step === "confirm" && (
-        <div className="rounded-[20px] border-2 border-azure bg-card p-6 space-y-5 text-center">
+        <Card className="p-5 space-y-5 text-center">
           <div className="text-sm text-slate-500">Your website address will be</div>
           <div className="text-2xl sm:text-3xl font-extrabold text-azure break-all tracking-tight">
             {prefix}{subInput}.{parentDomain}
@@ -251,44 +250,44 @@ function WebsitePurchasePageBody() {
             The address above is correct.
           </label>
           <div className="flex justify-center gap-3">
-            <button type="button" onClick={() => { setConfirmChecked(false); setStep("subdomain"); }}
-              className="px-5 py-2.5 rounded-lg border border-slate-300 text-slate-700 font-medium">Back</button>
-            <button type="button" disabled={!confirmChecked} onClick={() => setStep("reminder")}
-              className="px-6 py-2.5 rounded-lg bg-azure text-white font-medium disabled:opacity-50">Confirm &amp; Continue</button>
+            <Button type="button" onClick={() => { setConfirmChecked(false); setStep("subdomain"); }}
+              variant="outline">Back</Button>
+            <Button type="button" disabled={!confirmChecked} onClick={() => setStep("reminder")}
+              >Confirm &amp; Continue</Button>
           </div>
-        </div>
+        </Card>
       )}
 
       {/* Step: reminder */}
       {step === "reminder" && (
-        <div className="rounded-[20px] border bg-card p-5 space-y-4">
+        <Card className="p-5 space-y-4">
           {!isRenewal && (
             <div className="text-sm text-slate-600">Address: <span className="font-semibold text-slate-800">{prefix}{subInput}.{parentDomain}</span></div>
           )}
           <div className="font-semibold text-slate-800">Expiry reminder</div>
           <div className="space-y-1.5">
             <label className="text-sm text-slate-700">Remind me this many days before expiry</label>
-            <input
+            <Input
               type="number" min={1} max={90} value={reminderDays}
               onChange={(e) => setReminderDays(e.target.value)}
-              className="w-32 rounded-lg border border-slate-300 px-3 py-2 outline-none focus:ring-2 focus:ring-azure"
+              className="w-32"
             />
             {!reminderValid && reminderDays !== "" && <p className="text-xs text-red-600">Enter a value between 1 and 90 days.</p>}
           </div>
           <div className="flex gap-3">
             {!isRenewal && (
-              <button type="button" onClick={() => setStep("confirm")}
-                className="px-5 py-2.5 rounded-lg border border-slate-300 text-slate-700 font-medium">Back</button>
+              <Button type="button" onClick={() => setStep("confirm")}
+                variant="outline">Back</Button>
             )}
-            <button type="button" disabled={!reminderValid} onClick={() => setStep("pay")}
-              className="px-6 py-2.5 rounded-lg bg-azure text-white font-medium disabled:opacity-50">Continue to Payment</button>
+            <Button type="button" disabled={!reminderValid} onClick={() => setStep("pay")}
+              >Continue to Payment</Button>
           </div>
-        </div>
+        </Card>
       )}
 
       {/* Step: pay */}
       {step === "pay" && (
-        <div className="rounded-[20px] border bg-card p-5 space-y-4">
+        <Card className="p-5 space-y-4">
           <div className="font-semibold text-slate-800">Review &amp; pay</div>
           <div className="text-sm space-y-1">
             <div className="flex justify-between"><span className="text-slate-600">Website</span><span className="font-medium">{isRenewal ? quote.currentSubdomain : prefix + subInput}.{parentDomain}</span></div>
@@ -298,20 +297,20 @@ function WebsitePurchasePageBody() {
           </div>
           {error && <div className="rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm p-3">{error}</div>}
           <div className="flex gap-3">
-            <button type="button" onClick={() => setStep("reminder")}
-              className="px-5 py-2.5 rounded-lg border border-slate-300 text-slate-700 font-medium">Back</button>
-            <button type="button" disabled={busy} onClick={handlePay}
-              className="px-6 py-2.5 rounded-full bg-azure text-white font-medium disabled:opacity-50">
+            <Button type="button" onClick={() => setStep("reminder")}
+              variant="outline">Back</Button>
+            <Button type="button" disabled={busy} onClick={handlePay}
+              >
               {busy ? "Processing…" : `Pay ${inr(quote.totalAmount)}`}
-            </button>
+            </Button>
           </div>
           <p className="text-xs text-slate-400">Valid for {quote.validityMonths} months from payment.</p>
-        </div>
+        </Card>
       )}
 
       {/* Step: done */}
       {step === "done" && result && (
-        <div className="rounded-[20px] border bg-card p-6 space-y-4 text-center">
+        <Card className="p-5 space-y-4 text-center">
           <CheckCircle2 className="h-10 w-10 text-green-600" aria-hidden />
           <div className="text-lg font-semibold text-slate-800">Payment successful</div>
           {result.provisionStatus === "Active" ? (
@@ -330,10 +329,10 @@ function WebsitePurchasePageBody() {
             </p>
           )}
           <div>
-            <button type="button" onClick={() => router.push("/club-admin-dashboard/my-club-website")}
-              className="px-6 py-2.5 rounded-lg bg-azure text-white font-medium">Go to My Club Website</button>
+            <Button type="button" onClick={() => router.push("/club-admin-dashboard/my-club-website")}
+              >Go to My Club Website</Button>
           </div>
-        </div>
+        </Card>
       )}
     </div>
   );

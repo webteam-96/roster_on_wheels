@@ -155,11 +155,11 @@ function ClubPolicyRow({ clubId, fallbackName }: { clubId: number; fallbackName:
       <div className="min-w-0">
         <p className="font-semibold text-[#1B2C42]">{policy?.clubName || fallbackName}</p>
         {policy && (
-          <p className="text-[13px] text-[#64748B]">
+          <p className="text-[13px] text-muted-foreground">
             {policy.membersWithMfa} of {policy.activeMembers} active members use multi-factor sign-in.
           </p>
         )}
-        {!policy && !error && <div className="mt-1 h-4 w-48 animate-pulse rounded bg-[#EDF4FB]" />}
+        {!policy && !error && <div className="mt-1 h-4 w-48 animate-pulse rounded bg-muted" />}
         {error && <p className="text-[13px] text-destructive">{error}</p>}
       </div>
       {policy && (
@@ -193,8 +193,8 @@ function ClubPolicyPanel() {
 export default function AccountSecurityPage() {
   return (
     <ProtectedRoute>
-      <div className="mx-auto max-w-3xl space-y-6 px-4 py-6">
-        <PageHeader eyebrow="Account" title="Account security"
+      <div className="space-y-6 max-w-4xl">
+        <PageHeader title="Account security"
           description="Protect your sign-in with an authenticator app. You can also sign in with a one-time email link from the sign-in page." />
         <MfaPanel />
         <ClubPolicyPanel />

@@ -1,5 +1,6 @@
 "use client";
 
+import { Textarea } from "@/components/ui/textarea";
 import { useCallback, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -64,7 +65,7 @@ export default function TranslationMemoryPanel({ locale }: { locale: string }) {
   return (
     <section className="space-y-4" aria-labelledby="translation-memory-title">
       <div>
-        <h3 id="translation-memory-title" className="text-xl font-semibold text-primary">Machine translations</h3>
+        <h3 id="translation-memory-title" className="row-h2">Machine translations</h3>
         <p className="text-sm text-muted-foreground">
           Text translated for web and app. Correct a translation here and every screen uses your wording.
         </p>
@@ -82,7 +83,7 @@ export default function TranslationMemoryPanel({ locale }: { locale: string }) {
         <Input
           aria-label="Search translations"
           placeholder="Search English or translated text"
-          className="h-10 w-full sm:max-w-sm"
+          className="w-full sm:max-w-sm"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
@@ -119,9 +120,9 @@ export default function TranslationMemoryPanel({ locale }: { locale: string }) {
                     <p className="text-sm">{row.source}</p>
                     <p className="mt-1 text-xs text-muted-foreground">{row.isOverride ? "Your correction" : `Machine: ${row.provider ?? "unknown"}`}</p>
                   </div>
-                  <textarea
+                  <Textarea
                     aria-label={`Translation of ${row.source}`}
-                    className="min-h-[2.5rem] w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                    className="min-h-[2.5rem]"
                     value={draft}
                     onChange={(e) => setDrafts((d) => ({ ...d, [row.hash]: e.target.value }))}
                   />

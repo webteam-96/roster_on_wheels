@@ -5,6 +5,8 @@
 // Club Goals page); the rest = the club's Rotary.org goals that Goal Setting shows. Loaded fresh each time,
 // so a change in Club Goals (or a Rotary.org sync) shows here too. 0 / blank = "–".
 
+import { Table } from "@/components/ui/table";
+import { Card } from "@/components/ui/card";
 import { useEffect, useState } from "react";
 import { Loader2 } from "@/components/icons";
 import { getClubGoalForm, getGoalRotaryOrgValues } from "@/services/api";
@@ -88,9 +90,9 @@ export default function ClubGoalScorecard({ clubId, yearId }: { clubId: number; 
   }, [clubId, yearId]);
 
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-4 sm:p-5">
+    <Card className="p-5">
       <div className="flex flex-wrap items-baseline justify-between gap-2 mb-3">
-        <h2 className="text-base font-semibold text-slate-800">Club Goals at a glance</h2>
+        <h2 className="row-h2">Club Goals at a glance</h2>
       </div>
       {rows == null ? (
         <div className="flex items-center gap-2 py-6 text-sm text-slate-500"><Loader2 className="animate-spin" size={16} /> Loading…</div>
@@ -106,13 +108,13 @@ export default function ClubGoalScorecard({ clubId, yearId }: { clubId: number; 
           ];
           const half = Math.ceil(all.length / 2);
           const table = (list: typeof all) => (
-            <table className="w-full text-sm">
+            <Table bare className="w-full text-sm">
               <thead>
-                <tr className="border-b border-slate-200 text-left text-xs uppercase tracking-wide text-slate-500">
-                  <th className="py-2 pr-3 font-medium">Goal</th>
-                  <th className="py-2 px-3 font-medium text-right">Target</th>
-                  <th className="py-2 px-3 font-medium text-right">Achieved</th>
-                  <th className="py-2 pl-3 font-medium text-right">% Achieved</th>
+                <tr className="border-b border-slate-200">
+                  <th className="pr-3">Goal</th>
+                  <th className="px-3 text-right">Target</th>
+                  <th className="px-3 text-right">Achieved</th>
+                  <th className="pl-3 text-right">% Achieved</th>
                 </tr>
               </thead>
               <tbody>
@@ -135,7 +137,7 @@ export default function ClubGoalScorecard({ clubId, yearId }: { clubId: number; 
                   );
                 })}
               </tbody>
-            </table>
+            </Table>
           );
           return (
             <div className="grid grid-cols-1 gap-x-8 gap-y-2 lg:grid-cols-2">
@@ -145,6 +147,6 @@ export default function ClubGoalScorecard({ clubId, yearId }: { clubId: number; 
           );
         })()
       )}
-    </div>
+    </Card>
   );
 }

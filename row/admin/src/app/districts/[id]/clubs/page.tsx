@@ -13,13 +13,13 @@ import ClubTable from "@/components/ClubTable";
 import DeleteDialog from "@/components/DeleteDialog";
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
-import { Building2, AlertCircle, ArrowLeft, LayoutGrid, List, Search, Plus } from "@/components/icons";
+import { Building2, AlertCircle, LayoutGrid, List, Search, Plus } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import Pagination from "@/components/Pagination";
 import SearchBox from "@/components/SearchBox";
-import { ListPageSkeleton } from "@/components/row/AppKit";
+import { PageHeader, ListPageSkeleton } from "@/components/row/AppKit";
 
 export default function DistrictClubsPage() {
   const params = useParams();
@@ -119,39 +119,31 @@ export default function DistrictClubsPage() {
   return (
     <ProtectedRoute>
       <div className="space-y-6">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-3">
-            <Button variant="outline" size="icon" asChild>
-              <Link href={backHref}><ArrowLeft className="h-4 w-4" /></Link>
-            </Button>
-            <div>
-              <h2 className="text-2xl font-bold tracking-tight text-primary">
-                {districtNumber ? `District ${districtNumber} - Clubs` : "Clubs"}
-              </h2>
-              <p className="text-muted-foreground text-base">Clubs in this district</p>
-            </div>
-          </div>
-          {!isModuleView && isSuperAdmin && (
+        <PageHeader
+          title={districtNumber ? `District ${districtNumber} - Clubs` : "Clubs"}
+          description="Clubs in this district"
+          back={backHref}
+          actions={!isModuleView && isSuperAdmin && (
             <Button asChild>
               <Link href={`/clubs/new?districtId=${districtId}`}><Plus className="mr-2 h-4 w-4" />Add Club</Link>
             </Button>
           )}
-        </div>
+        />
 
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center bg-primary/5 p-4 rounded-lg border border-primary/20">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-primary" />
-            <Input placeholder="Search by club name or Rotary ID..." value={search} onChange={(e) => setSearch(e.target.value)} onKeyDown={handleKeyDown} className="pl-9 border-primary/30 focus:border-primary text-base" />
+            <Input placeholder="Search by club name or Rotary ID..." value={search} onChange={(e) => setSearch(e.target.value)} onKeyDown={handleKeyDown} className="pl-9" />
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <Button onClick={handleSearch} size="sm">
               <Search className="mr-2 h-4 w-4" />Search
             </Button>
             <div className="flex items-center rounded-md border ml-auto">
-              <Button variant={viewMode === "grid" ? "default" : "ghost"} size="icon" className="h-9 w-9 rounded-r-none" onClick={() => setViewMode("grid")}>
+              <Button variant={viewMode === "grid" ? "default" : "ghost"} aria-label="Grid view" aria-pressed={viewMode === "grid"} size="icon" className="rounded-r-none" onClick={() => setViewMode("grid")}>
                 <LayoutGrid className="h-4 w-4" />
               </Button>
-              <Button variant={viewMode === "table" ? "default" : "ghost"} size="icon" className="h-9 w-9 rounded-l-none" onClick={() => setViewMode("table")}>
+              <Button variant={viewMode === "table" ? "default" : "ghost"} aria-label="Table view" aria-pressed={viewMode === "table"} size="icon" className="rounded-l-none" onClick={() => setViewMode("table")}>
                 <List className="h-4 w-4" />
               </Button>
             </div>
@@ -176,7 +168,7 @@ export default function DistrictClubsPage() {
         {error && (
           <div className="flex flex-col items-center justify-center py-20 text-center">
             <AlertCircle className="h-12 w-12 text-destructive mb-4" />
-            <h3 className="text-lg font-semibold">Error</h3>
+            <h3 className="row-h2">Error</h3>
             <p className="text-muted-foreground mt-2 max-w-md">{error}</p>
             <Button variant="outline" className="mt-4" onClick={() => fetchClubs()}>Try Again</Button>
           </div>
@@ -185,7 +177,7 @@ export default function DistrictClubsPage() {
         {!loading && !error && data && data.items.length === 0 && (
           <div className="flex flex-col items-center justify-center py-20 text-center">
             <Building2 className="h-12 w-12 text-muted-foreground mb-4" />
-            <h3 className="text-lg font-semibold">No clubs found</h3>
+            <h3 className="row-h2">No clubs found</h3>
             <p className="text-muted-foreground mt-2">No clubs in this district yet.</p>
           </div>
         )}
@@ -203,7 +195,7 @@ export default function DistrictClubsPage() {
               {filteredItems.length === 0 && searchQuery ? (
                 <div className="flex flex-col items-center justify-center py-20 text-center">
                   <Building2 className="h-12 w-12 text-muted-foreground mb-4" />
-                  <h3 className="text-lg font-semibold">No results found</h3>
+                  <h3 className="row-h2">No results found</h3>
                   <p className="text-muted-foreground mt-2">No clubs match your filter. Try a different term.</p>
                 </div>
               ) : (

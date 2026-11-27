@@ -1,5 +1,6 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
 import { usePathname, useRouter } from "next/navigation";
 import { useAuth, decodeJwt } from "@/contexts/AuthContext";
 import { ArrowLeft } from "@/components/icons";
@@ -33,15 +34,15 @@ export default function SuperAdminBackToSearch() {
 
   // Sits in the AppHeader (not floating), so it never covers page content such as pagination.
   return (
-    <button
+    <Button
       type="button"
       onClick={() => router.push("/settings/global-search")}
       title="Return to Global Search (SuperAdmin)"
       aria-label="Back to Search"
-      className="inline-flex h-10 min-w-10 shrink-0 items-center justify-center gap-2 rounded-full bg-primary px-3 sm:px-4 text-sm font-semibold text-white transition-colors hover:bg-primary/90"
+      className="min-w-10"
     >
       <ArrowLeft className="h-4 w-4" />
       <span className="hidden sm:inline">Back to Search</span>
-    </button>
+    </Button>
   );
 }

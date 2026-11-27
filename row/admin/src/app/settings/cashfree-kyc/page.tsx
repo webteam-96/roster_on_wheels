@@ -1,5 +1,6 @@
 "use client";
 
+import { Card } from "@/components/ui/card";
 import { useState, useCallback, useEffect } from "react";
 import { CashfreeKyc, CashfreeVendorDetail } from "@/types/cashfreeKyc";
 import {
@@ -30,12 +31,11 @@ import {
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
 import AlertModal from "@/components/AlertModal";
-import { ArrowLeft, Plus, Pencil, Trash2, Eye, RefreshCw, CreditCard, MoreHorizontal, AlertTriangle } from "@/components/icons";
+import { Plus, Pencil, Trash2, Eye, RefreshCw, CreditCard, MoreHorizontal, AlertTriangle } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
-import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import SearchBox from "@/components/SearchBox";
-import { ListPageSkeleton } from "@/components/row/AppKit";
+import { PageHeader, ListPageSkeleton } from "@/components/row/AppKit";
 
 
 function getStatusBadgeVariant(status: string): "default" | "destructive" | "secondary" | "outline" {
@@ -287,7 +287,7 @@ export default function CashfreeKycPage() {
     return (
       <ProtectedRoute>
         <div className="flex flex-col items-center justify-center py-20">
-          <h3 className="text-lg font-semibold">Access Denied</h3>
+          <h3 className="row-h2">Access Denied</h3>
           <p className="text-muted-foreground mt-2">Only SuperAdmin can manage Cashfree KYC.</p>
         </div>
       </ProtectedRoute>
@@ -298,26 +298,22 @@ export default function CashfreeKycPage() {
     <ProtectedRoute>
       <div className="space-y-6">
         {/* Header */}
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-3">
-            <Button variant="outline" size="icon" asChild>
-              <Link href="/settings/payments-and-dues"><ArrowLeft className="h-4 w-4" /></Link>
-            </Button>
-            <div>
-              <h2 className="text-2xl font-bold tracking-tight text-primary">Cashfree KYC Management</h2>
-              <p className="text-muted-foreground text-base">Manage vendor KYC records for Cashfree</p>
-            </div>
-          </div>
-          <div className="flex flex-wrap items-center gap-2">
-            <Button variant="outline" onClick={handleRefreshAll} disabled={refreshingAll}>
+        <PageHeader
+          title="Cashfree KYC Management"
+          description="Manage vendor KYC records for Cashfree"
+          back="/settings/payments-and-dues"
+          actions={
+            <>
+<Button variant="outline" onClick={handleRefreshAll} disabled={refreshingAll}>
               <RefreshCw className={`mr-2 h-4 w-4 ${refreshingAll ? "animate-spin" : ""}`} />
               {refreshingAll ? "Refreshing..." : "Refresh All"}
             </Button>
             <Button onClick={openAddDialog}>
               <Plus className="mr-2 h-4 w-4" />Add Vendor
             </Button>
-          </div>
-        </div>
+            </>
+          }
+        />
 
         {/* Loading */}
         {loading && (
@@ -330,7 +326,7 @@ export default function CashfreeKycPage() {
         {!loading && items.length === 0 && (
           <div className="flex flex-col items-center justify-center py-20 text-center">
             <CreditCard className="h-12 w-12 text-muted-foreground mb-4" />
-            <h3 className="text-lg font-semibold">No KYC records</h3>
+            <h3 className="row-h2">No KYC records</h3>
             <p className="text-muted-foreground mt-2">Click &quot;Add Vendor&quot; to create one.</p>
           </div>
         )}
@@ -346,20 +342,20 @@ export default function CashfreeKycPage() {
             {filteredItems.length === 0 && searchQuery.trim() !== "" ? (
               <p className="text-muted-foreground text-sm py-8 text-center">No results found for &quot;{searchQuery}&quot;</p>
             ) : (
-              <div className="rounded-md border overflow-x-auto">
+              <Card className="overflow-x-auto">
                 <Table>
                   <TableHeader>
-                    <TableRow className="bg-primary hover:bg-primary">
+                    <TableRow>
                       <TableHead className="w-12">#</TableHead>
-                      <TableHead className="text-base font-semibold">Vendor ID</TableHead>
-                      <TableHead className="text-base font-semibold">Name</TableHead>
-                      <TableHead className="text-base font-semibold">Email</TableHead>
-                      <TableHead className="text-base font-semibold">Mobile</TableHead>
-                      <TableHead className="text-base font-semibold">Tax ID</TableHead>
-                      <TableHead className="text-base font-semibold">Account No</TableHead>
-                      <TableHead className="text-base font-semibold">Bank code</TableHead>
-                      <TableHead className="text-base font-semibold text-center">Status</TableHead>
-                      <TableHead className="text-base font-semibold text-center">Active</TableHead>
+                      <TableHead>Vendor ID</TableHead>
+                      <TableHead>Name</TableHead>
+                      <TableHead>Email</TableHead>
+                      <TableHead>Mobile</TableHead>
+                      <TableHead>Tax ID</TableHead>
+                      <TableHead>Account No</TableHead>
+                      <TableHead>Bank code</TableHead>
+                      <TableHead className="text-center">Status</TableHead>
+                      <TableHead className="text-center">Active</TableHead>
                       <TableHead className="w-12"></TableHead>
                     </TableRow>
                   </TableHeader>
@@ -389,7 +385,7 @@ export default function CashfreeKycPage() {
                         <TableCell>
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="icon" className="h-8 w-8"><MoreHorizontal className="h-4 w-4" /></Button>
+                              <Button aria-label="More actions" variant="ghost" size="icon" className="row-btn-sm"><MoreHorizontal className="h-4 w-4" /></Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
                               <DropdownMenuItem onClick={() => handleView(item)}>
@@ -415,7 +411,7 @@ export default function CashfreeKycPage() {
                     ))}
                   </TableBody>
                 </Table>
-              </div>
+              </Card>
             )}
           </>
         )}

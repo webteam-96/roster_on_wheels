@@ -23,7 +23,7 @@ function PayInner() {
   const token = query.get("token") || "";
 
   const [data, setData] = useState<any>(null);
-  const cur = getCurrencySymbol(data?.currency); // sign only - the charge stays INR
+  const cur = getCurrencySymbol(data?.currency); // the dues' own currency: what the payer is charged
   const [accounts, setAccounts] = useState<ClubDuesOfflineAccountOption[]>([]);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState<string | null>(null);

@@ -35,15 +35,15 @@ import SearchBox from "@/components/SearchBox";
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
 import AlertModal from "@/components/AlertModal";
-import { ArrowLeft, Plus, Pencil, Trash2, MoreHorizontal, Crown, User, Search, AlertTriangle, UserPlus, Camera as ImageIcon } from "@/components/icons";
+import { Plus, Pencil, Trash2, MoreHorizontal, Crown, User, Search, AlertTriangle, UserPlus, Camera as ImageIcon } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
-import Link from "next/link";
 import Image from "next/image";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import ImageCropDialog from "@/components/ImageCropDialog";
 import { useImageCropUpload } from "@/hooks/useImageCropUpload";
-import { ListPageSkeleton } from "@/components/row/AppKit";
+import { PageHeader, ListPageSkeleton } from "@/components/row/AppKit";
 
+import { MenuItemButton } from "@/components/ui/text-buttons"
 // Past-president photos render in round avatars everywhere (cards, table, member
 // search results), so the crop is locked square and stored at 500×500.
 const PHOTO_ASPECT = 1;
@@ -52,14 +52,14 @@ const PHOTO_MAX_WIDTH = 500;
 // Small chip helpers — keep visual treatment consistent across cards + table.
 function MemberChip() {
   return (
-    <span className="inline-flex items-center rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-700">
+    <span className="inline-flex items-center rounded bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-700">
       Member
     </span>
   );
 }
 function NonMemberChip() {
   return (
-    <span className="inline-flex items-center rounded-full bg-slate-200 px-2 py-0.5 text-xs font-medium text-slate-700">
+    <span className="inline-flex items-center rounded bg-slate-200 px-2 py-0.5 text-xs font-medium text-slate-700">
       Non-Member
     </span>
   );
@@ -331,24 +331,16 @@ export default function PastPresidentsPage() {
     <ProtectedRoute>
       <div className="space-y-6">
         {/* Header */}
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-3">
-            <Button variant="outline" size="icon" asChild>
-              <Link href={`/clubs/${clubId}/dashboard`}><ArrowLeft className="h-4 w-4" /></Link>
-            </Button>
-            <div>
-              <h2 className="text-2xl font-bold tracking-tight text-primary">
-                {clubName ? `${clubName} - Past Presidents` : "Past Presidents"}
-              </h2>
-              <p className="text-muted-foreground text-base">Historical record of club presidents by year</p>
-            </div>
-          </div>
-          {canManage && (
+        <PageHeader
+          title={clubName ? `${clubName} - Past Presidents` : "Past Presidents"}
+          description="Historical record of club presidents by year"
+          back={`/clubs/${clubId}/dashboard`}
+          actions={canManage && (
             <Button onClick={openAddDialog}>
               <Plus className="mr-2 h-4 w-4" />Add Past President
             </Button>
           )}
-        </div>
+        />
 
         {loading && (
           <div className="flex items-center justify-center py-20">
@@ -367,7 +359,7 @@ export default function PastPresidentsPage() {
         {!loading && records.length === 0 && (
           <div className="flex flex-col items-center justify-center py-20 text-center">
             <Crown className="h-12 w-12 text-muted-foreground mb-4" />
-            <h3 className="text-lg font-semibold">No past presidents recorded</h3>
+            <h3 className="row-h2">No past presidents recorded</h3>
             <p className="text-muted-foreground mt-2">
               {canManage ? "Click \"Add Past President\" to add a record." : "No records have been added yet."}
             </p>
@@ -377,7 +369,7 @@ export default function PastPresidentsPage() {
         {!loading && filteredRecords.length === 0 && records.length > 0 && searchQuery && (
           <div className="flex flex-col items-center justify-center py-12 text-center">
             <Crown className="h-12 w-12 text-muted-foreground mb-4" />
-            <h3 className="text-lg font-semibold">No results found</h3>
+            <h3 className="row-h2">No results found</h3>
             <p className="text-muted-foreground mt-2">No past presidents match your search &quot;{searchQuery}&quot;.</p>
           </div>
         )}
@@ -422,7 +414,7 @@ export default function PastPresidentsPage() {
                         {canManage && (
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="icon" className="h-8 w-8">
+                              <Button variant="ghost" size="icon" className="row-btn-sm" aria-label="More actions">
                                 <MoreHorizontal className="h-4 w-4" />
                               </Button>
                             </DropdownMenuTrigger>
@@ -444,13 +436,13 @@ export default function PastPresidentsPage() {
             </div>
 
             {/* Desktop table view */}
-            <div className="hidden sm:block rounded-md border">
+            <Card className="hidden sm:block overflow-hidden">
               <Table>
                 <TableHeader>
-                  <TableRow className="bg-primary hover:bg-primary">
+                  <TableRow>
                     <TableHead className="w-12"></TableHead>
-                    <TableHead className="text-base font-semibold">Member Name</TableHead>
-                    <TableHead className="text-base font-semibold">Rotary Year</TableHead>
+                    <TableHead>Member Name</TableHead>
+                    <TableHead>Rotary Year</TableHead>
                     {canManage && <TableHead className="w-12"></TableHead>}
                   </TableRow>
                 </TableHeader>
@@ -493,7 +485,7 @@ export default function PastPresidentsPage() {
                           <TableCell>
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="icon" className="h-8 w-8">
+                                <Button variant="ghost" size="icon" className="row-btn-sm" aria-label="More actions">
                                   <MoreHorizontal className="h-4 w-4" />
                                 </Button>
                               </DropdownMenuTrigger>
@@ -513,7 +505,7 @@ export default function PastPresidentsPage() {
                   })}
                 </TableBody>
               </Table>
-            </div>
+            </Card>
           </>
         )}
 
@@ -604,12 +596,10 @@ export default function PastPresidentsPage() {
                               {memberResults.map((m) => {
                                 const photoUrl = getPhotoUrl(m.profilePhotoPath);
                                 return (
-                                  <button
+                                  <MenuItemButton
                                     key={m.id}
                                     type="button"
-                                    className="flex items-center gap-3 w-full px-3 py-2 hover:bg-accent text-left transition-colors"
-                                    onClick={() => handleSelectMember(m)}
-                                  >
+                                     onClick={() => handleSelectMember(m)}>
                                     <div className="relative h-8 w-8 flex-shrink-0 overflow-hidden rounded-full bg-muted">
                                       {photoUrl ? (
                                         <Image src={photoUrl} alt={m.memberName} fill className="object-cover" unoptimized />
@@ -620,7 +610,7 @@ export default function PastPresidentsPage() {
                                       )}
                                     </div>
                                     <span className="text-sm font-medium">{m.memberName}</span>
-                                  </button>
+                                  </MenuItemButton>
                                 );
                               })}
                             </div>
@@ -681,7 +671,7 @@ export default function PastPresidentsPage() {
                                   )}
                                 </div>
                                 <div className="flex flex-wrap items-center gap-2">
-                                  <label className="cursor-pointer text-xs font-medium px-3 py-1.5 rounded-full border text-foreground hover:bg-accent">
+                                  <label className="cursor-pointer text-xs font-medium px-3 py-1.5 rounded border text-foreground hover:bg-accent">
                                     {shownPhoto ? "Change" : "Upload"}
                                     <input
                                       type="file"

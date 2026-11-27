@@ -5,6 +5,7 @@ import '../../widgets/common/custom_app_bar.dart';
 import '../../widgets/common/empty_state_widget.dart';
 import '../../widgets/common/loading_widget.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/roster_wheel.dart';
 
 /// The club's six RI-reported officer positions in ROW next to what Rotary International holds
 /// (`api/clubs/{id}/ri-tools/officers`). Read-only, for the club's managers; the transfer-in wizard is on the web.
@@ -67,7 +68,7 @@ class _RiOfficersScreenState extends State<RiOfficersScreen> {
           ? EmptyStateWidget(icon: Icons.compare_arrows_outlined, title: 'Not available', subtitle: _error!)
           : d == null
               ? const LoadingWidget()
-              : RefreshIndicator(onRefresh: _load, child: _body(context, d)),
+              : RowRefresh(onRefresh: _load, child: _body(context, d)),
     );
   }
 

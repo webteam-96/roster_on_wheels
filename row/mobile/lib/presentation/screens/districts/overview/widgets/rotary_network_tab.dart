@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:rotary_flutter_app/presentation/widgets/row/motion.dart';
 import 'package:flutter/material.dart' hide Text;
 import '../../../../../core/services/district_admin_dashboard_api.dart';
 import '../../../../../core/theme/app_colors.dart';
@@ -8,6 +9,7 @@ import 'district_dashboard_async.dart';
 import 'stat_card.dart';
 import 'package:rotary_flutter_app/core/theme/app_fonts.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
+import 'package:rotary_flutter_app/presentation/widgets/common/loading_widget.dart';
 
 /// District-admin **Rotary Network** tab — read-only.
 ///
@@ -293,7 +295,7 @@ class _RotaryNetworkTabState extends State<RotaryNetworkTab> {
           if (_showTerminated && _liveLoading)
             const Padding(
               padding: EdgeInsets.symmetric(vertical: 22),
-              child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
+              child: const LoadingWidget(),
             )
           else if (showClubSummary)
             _clubSummary(data)
@@ -532,7 +534,7 @@ class _RefreshProgress extends StatelessWidget {
             const SizedBox(height: 8),
             ClipRRect(
               borderRadius: BorderRadius.circular(4),
-              child: LinearProgressIndicator(
+              child: RowProgressBar(
                 value: done / total,
                 minHeight: 5,
                 backgroundColor: AppColors.muted,

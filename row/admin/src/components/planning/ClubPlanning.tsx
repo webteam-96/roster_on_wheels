@@ -1,5 +1,6 @@
 "use client";
 
+import { NativeSelect } from "@/components/ui/native-select";
 import { useCallback, useEffect, useState } from "react";
 import { Loader2, Trash2 } from "@/components/icons";
 import { Button } from "@/components/ui/button";
@@ -18,7 +19,7 @@ import MemberPicker, { type MemberOption } from "./MemberPicker";
 import type { PlanningYear } from "./NextYearDistrict";
 import { errorMessage, Section } from "./PlanningParts";
 
-const SELECT = "h-10 w-full rounded-md border border-input bg-background px-3 text-sm";
+const SELECT = "row-field w-full";
 
 /** A club's next year for its president-elect and secretary-elect: officers (committee chairs are officers too) and
  *  the club calendar, on the existing endpoints. The API allows the planning year only. */
@@ -95,10 +96,10 @@ function Officers({ clubId, year, onError }: { clubId: number; year: PlanningYea
         </div>
         <div className="space-y-2">
           <Label htmlFor="officer-designation">Role</Label>
-          <select id="officer-designation" className={SELECT} value={designationId} onChange={(e) => setDesignationId(Number(e.target.value))}>
+          <NativeSelect id="officer-designation"  value={designationId} onChange={(e) => setDesignationId(Number(e.target.value))}>
             <option value={0}>Choose a role</option>
             {designations.map((d) => <option key={d.id} value={d.id}>{d.designationName}</option>)}
-          </select>
+          </NativeSelect>
         </div>
         <Button onClick={add} disabled={!member || !designationId || busy}>{busy && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}Add officer</Button>
       </div>

@@ -1,4 +1,5 @@
 "use client";
+import { DataTable } from "@/components/ui/data-table";
 
 /**
  * Documents v2 listing — frontend overhaul.
@@ -10,13 +11,14 @@
  * v2 reads ONLY `?returnTo=` — never any other param name.
  */
 
+import { IconButton } from "@/components/ui/icon-button";
+import { Input } from "@/components/ui/input";
+import { NativeSelect } from "@/components/ui/native-select";
+import { Card } from "@/components/ui/card";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useParams, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import {
-  FileText, ShieldCheck, Eye, Download, Loader2, Search, Plus, Edit3, Trash2,
-  ArrowLeft, AlertTriangle,
-} from "@/components/icons";
+import { FileText, ShieldCheck, Eye, Download, Search, Plus, Edit3, Trash2, AlertTriangle } from "@/components/icons";
 import {
   getClub,
   getDocuments,
@@ -35,7 +37,7 @@ import ClubAdminShell from "@/components/v2/ClubAdminShell";
 import { useSyncClubIdFromUrl } from "@/hooks/useSyncClubIdFromUrl";
 
 import { appLocale } from "@/lib/appFormat";
-import { SkeletonRows } from "@/components/row/AppKit";
+import { PageHeader, SkeletonRows } from "@/components/row/AppKit";
 function fmtDateTime(s?: string | null): string {
   if (!s) return "–";
   try {
@@ -221,23 +223,7 @@ export default function DocumentsV2Page() {
       >
       <div className="space-y-5">
         {/* Header */}
-        <div className="flex items-start justify-between gap-3">
-          <div className="flex items-start gap-2">
-            <Link
-              href={`/clubs/${clubId}/dashboard`}
-              className="mt-0.5 inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50"
-              aria-label="Back"
-            >
-              <ArrowLeft size={15} />
-            </Link>
-            <div>
-              <h1 className="text-lg font-semibold text-slate-800">Documents</h1>
-              <p className="text-xs text-slate-500 mt-0.5">
-                Constitution, bylaws, forms &amp; attachments · {clubName || "–"}
-              </p>
-            </div>
-          </div>
-        </div>
+        <PageHeader title="Documents" description={<>Constitution, bylaws, forms &amp; attachments · {clubName || "–"}</>} back={`/clubs/${clubId}/dashboard`} />
 
         {/* KPI row */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -248,45 +234,45 @@ export default function DocumentsV2Page() {
         </div>
 
         {/* Table card */}
-        <div className="bg-card rounded-2xl border border-slate-200 overflow-hidden">
+        <Card className="overflow-hidden">
           <div className="px-5 py-3 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div>
-              <h3 className="text-sm font-semibold text-slate-800">Document Library</h3>
+              <h3 className="row-h3">Document Library</h3>
               <p className="text-xs text-slate-500 mt-0.5">Filter by status &amp; access type · search across titles &amp; filenames</p>
             </div>
             <div className="flex flex-wrap items-center gap-2">
-              <select
+              <NativeSelect
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
-                className="px-2 h-10 py-0 text-sm border border-slate-200 rounded-[12px] bg-card focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                className="w-auto"
               >
                 {STATUS_OPTIONS.map((s) => (
                   <option key={s.value} value={s.value}>{s.label}</option>
                 ))}
-              </select>
-              <select
+              </NativeSelect>
+              <NativeSelect
                 value={accessFilter}
                 onChange={(e) => setAccessFilter(e.target.value)}
-                className="px-2 h-10 py-0 text-sm border border-slate-200 rounded-[12px] bg-card focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                className="w-auto"
               >
                 {ACCESS_OPTIONS.map((a) => (
                   <option key={a.value} value={a.value}>{a.label}</option>
                 ))}
-              </select>
+              </NativeSelect>
               <div className="relative w-full sm:w-auto">
                 <Search size={14} className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-400" />
-                <input
+                <Input
                   type="text"
                   placeholder="Search…"
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  className="pl-7 pr-3 h-10 py-0 text-sm border border-slate-200 rounded-[12px] w-full sm:w-48 focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                  className="pl-7 pr-3 sm:w-48"
                 />
               </div>
               {canManage && (
                 <Link
                   href={addUrl}
-                  className="inline-flex items-center gap-1.5 text-xs font-semibold px-4 h-10 rounded-full bg-[#17458F] text-white hover:bg-[#17458F]"
+                  className="row-btn row-btn-primary"
                 >
                   <Plus size={13} /> Add Document
                 </Link>
@@ -299,110 +285,114 @@ export default function DocumentsV2Page() {
             {loading ? (
               <SkeletonRows />
             ) : (
-              <table className="w-full min-w-[640px] md:min-w-full text-sm">
-                <thead className="bg-[#EDF4FB] text-[13px] text-[#64748B]">
-                  <tr>
-                    <th className="px-3 py-2.5 text-left w-10">Sr</th>
-                    <th className="px-3 py-2.5 text-left">Title</th>
-                    <th className="px-3 py-2.5 text-left">Access Type</th>
-                    <th className="px-3 py-2.5 text-left">Status</th>
-                    <th className="px-3 py-2.5 text-left">Publish Date &amp; Time</th>
-                    <th className="px-3 py-2.5 text-left">Expiry Date &amp; Time</th>
-                    <th className="px-3 py-2.5 text-center w-16">Download</th>
-                    {canManage && <th className="px-3 py-2.5 text-right w-16">Edit</th>}
-                    {canManage && <th className="px-3 py-2.5 text-right w-16">Delete</th>}
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {filtered.map((d, i) => (
-                    <tr key={d.id} className="hover:bg-blue-50/40">
-                      <td className="px-3 py-2 text-slate-500">{(page - 1) * pageSize + i + 1}</td>
-                      <td className="px-3 py-2 font-medium text-slate-800">
-                        <div className="flex flex-col">
-                          <span>{d.title || "–"}</span>
-                          {d.originalFileName && (
-                            <span className="text-xs text-slate-400 truncate max-w-[280px]">{d.originalFileName}</span>
-                          )}
-                        </div>
-                      </td>
-                      <td className="px-3 py-2">
-                        <span className={`inline-flex items-center text-xs font-medium px-2 py-0.5 rounded-full border ${accessChipStyle(d.accessType)}`}>
-                          {d.accessType === "view_only" ? "View Only" : "Downloadable"}
-                        </span>
-                      </td>
-                      <td className="px-3 py-2">
-                        <span className={`inline-flex items-center text-xs font-medium px-2 py-0.5 rounded-full border ${statusChipStyle(d.status)}`}>
-                          {d.status || "–"}
-                        </span>
-                      </td>
-                      <td className="px-3 py-2 text-slate-600 whitespace-nowrap">{fmtDateTime(d.publishDateTime)}</td>
-                      <td className="px-3 py-2 text-slate-600 whitespace-nowrap">{fmtDateTime(d.expiryDateTime)}</td>
-                      <td className="px-3 py-2 text-center">
-                        {d.filePath ? (
-                          d.accessType === "downloadable" ? (
-                            <button
-                              type="button"
-                              onClick={() => triggerDownload(d)}
-                              className="inline-flex items-center justify-center w-7 h-7 rounded text-slate-500 hover:text-emerald-700 hover:bg-emerald-50"
-                              aria-label="Download document"
-                            >
-                              <Download size={13} />
-                            </button>
-                          ) : (
-                            <a
-                              href={`${API_URL}${d.filePath}`}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="inline-flex items-center justify-center w-7 h-7 rounded text-slate-500 hover:text-blue-700 hover:bg-blue-50"
-                              aria-label="View document"
-                            >
-                              <Eye size={13} />
-                            </a>
-                          )
-                        ) : (
-                          <span className="text-slate-300">–</span>
+              <DataTable
+                caption="Documents"
+                card={false}
+                className="[&_table]:min-w-[640px] md:[&_table]:min-w-full"
+                rows={filtered}
+                rowKey={(d) => d.id}
+                empty={search || statusFilter !== "all" || accessFilter !== "all" ? "No documents match your filters." : "No documents uploaded yet."}
+                columns={[
+                  { key: "sr", header: "Sr", className: "w-10 text-muted-foreground", cell: (_d, i) => (page - 1) * pageSize + i + 1 },
+                  {
+                    key: "title",
+                    header: "Title",
+                    className: "font-medium",
+                    cell: (d) => (
+                      <div className="flex flex-col">
+                        <span>{d.title || "–"}</span>
+                        {d.originalFileName && (
+                          <span className="text-xs text-slate-400 truncate max-w-[280px]">{d.originalFileName}</span>
                         )}
-                      </td>
-                      {canManage && (
-                        <td className="px-3 py-2 text-right">
-                          {d.status !== "Expired" ? (
-                            <Link
-                              href={`/clubs/${clubId}/documents/v2/${d.id}/edit?returnTo=${returnTo}`}
-                              className="inline-flex items-center justify-center w-7 h-7 rounded text-slate-500 hover:text-blue-700 hover:bg-blue-50"
-                              aria-label="Edit document"
-                            >
-                              <Edit3 size={13} />
-                            </Link>
-                          ) : (
-                            <span className="text-slate-300">–</span>
-                          )}
-                        </td>
-                      )}
-                      {canManage && (
-                        <td className="px-3 py-2 text-right">
-                          <button
-                            type="button"
-                            onClick={() => setDeleteTarget(d)}
-                            className="inline-flex items-center justify-center w-7 h-7 rounded text-slate-400 hover:text-rose-700 hover:bg-rose-50"
-                            aria-label="Delete document"
+                      </div>
+                    ),
+                  },
+                  {
+                    key: "access",
+                    header: "Access Type",
+                    cell: (d) => (
+                      <span className={`inline-flex items-center text-xs font-medium px-2 py-0.5 rounded border ${accessChipStyle(d.accessType)}`}>
+                        {d.accessType === "view_only" ? "View Only" : "Downloadable"}
+                      </span>
+                    ),
+                  },
+                  {
+                    key: "status",
+                    header: "Status",
+                    cell: (d) => (
+                      <span className={`inline-flex items-center text-xs font-medium px-2 py-0.5 rounded border ${statusChipStyle(d.status)}`}>
+                        {d.status || "–"}
+                      </span>
+                    ),
+                  },
+                  { key: "publish", header: <>Publish Date &amp; Time</>, className: "whitespace-nowrap", cell: (d) => fmtDateTime(d.publishDateTime) },
+                  { key: "expiry", header: <>Expiry Date &amp; Time</>, className: "whitespace-nowrap", cell: (d) => fmtDateTime(d.expiryDateTime) },
+                  {
+                    key: "download",
+                    header: "Download",
+                    align: "center",
+                    className: "w-16",
+                    cell: (d) =>
+                      d.filePath ? (
+                        d.accessType === "downloadable" ? (
+                          <IconButton type="button" onClick={() => triggerDownload(d)} aria-label="Download document">
+                            <Download size={13} />
+                          </IconButton>
+                        ) : (
+                          <a
+                            href={`${API_URL}${d.filePath}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="row-icon-btn"
+                            aria-label="View document"
                           >
-                            <Trash2 size={13} />
-                          </button>
-                        </td>
-                      )}
-                    </tr>
-                  ))}
-                  {filtered.length === 0 && (
-                    <tr>
-                      <td colSpan={canManage ? 9 : 7} className="px-4 py-10 text-center text-slate-400">
-                        {search || statusFilter !== "all" || accessFilter !== "all"
-                          ? "No documents match your filters."
-                          : "No documents uploaded yet."}
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
+                            <Eye size={13} />
+                          </a>
+                        )
+                      ) : (
+                        <span className="text-slate-300">–</span>
+                      ),
+                  },
+                  ...(canManage
+                    ? [
+                        {
+                          key: "edit",
+                          header: "Edit",
+                          align: "right" as const,
+                          className: "w-16",
+                          cell: (d: (typeof filtered)[number]) =>
+                            d.status !== "Expired" ? (
+                              <Link
+                                href={`/clubs/${clubId}/documents/v2/${d.id}/edit?returnTo=${returnTo}`}
+                                className="row-icon-btn"
+                                aria-label="Edit document"
+                              >
+                                <Edit3 size={13} />
+                              </Link>
+                            ) : (
+                              <span className="text-slate-300">–</span>
+                            ),
+                        },
+                        {
+                          key: "delete",
+                          header: "Delete",
+                          align: "right" as const,
+                          className: "w-16",
+                          cell: (d: (typeof filtered)[number]) => (
+                            <IconButton
+                              type="button"
+                              onClick={() => setDeleteTarget(d)}
+                              className="hover:text-red-700"
+                              aria-label="Delete document"
+                            >
+                              <Trash2 size={13} />
+                            </IconButton>
+                          ),
+                        },
+                      ]
+                    : []),
+                ]}
+              />
             )}
           </div>
 
@@ -411,7 +401,7 @@ export default function DocumentsV2Page() {
               ? <>Showing {filtered.length} of {documents.length} on this page · {totalCount} total</>
               : <>Showing {documents.length} of {totalCount}</>}
           </div>
-        </div>
+        </Card>
 
         {!loading && totalPages > 1 && (
           <Pagination

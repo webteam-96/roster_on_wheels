@@ -81,6 +81,7 @@ class _ModuleFilterBarState extends State<ModuleFilterBar> {
                       size: 19, color: AppColors.slate400),
                   suffixIcon: hasText
                       ? IconButton(
+                          tooltip: 'Close',
                           icon: const Icon(Icons.close_rounded, size: 18),
                           color: AppColors.slate400,
                           splashRadius: 18,

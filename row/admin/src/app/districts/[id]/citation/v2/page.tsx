@@ -48,7 +48,7 @@ export default function DistrictCitationV2Page() {
         <div className="flex items-center gap-3">
           <Link
             href={`/districts/${districtId}/dashboard`}
-            className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50"
+            className="row-icon-btn"
             aria-label="Back"
           >
             <ArrowLeft size={16} />

@@ -12,13 +12,14 @@
  * (?from=cmr&yearId=&month=) still work when this view is on the standalone route.
  */
 
+import { IconButton } from "@/components/ui/icon-button";
+import { Input } from "@/components/ui/input";
+import { NativeSelect } from "@/components/ui/native-select";
+import { Card } from "@/components/ui/card";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useParams, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import {
-  DollarSign, TrendingUp, Heart, Award, Globe, Loader2, Search, Plus, Edit3, Trash2,
-  ArrowLeft, AlertTriangle,
-} from "@/components/icons";
+import { DollarSign, TrendingUp, Heart, Award, Globe, Search, Plus, Edit3, Trash2, AlertTriangle } from "@/components/icons";
 import {
   getClub,
   getTrfYears,
@@ -39,9 +40,10 @@ import { useSyncClubIdFromUrl } from "@/hooks/useSyncClubIdFromUrl";
 import { useAuth } from "@/contexts/AuthContext";
 import { clubYearRights, canEditYear, heldYearLabels } from "@/lib/adminYears";
 import ViewOnlyBadge from "@/components/ViewOnlyBadge";
-import { SkeletonRows } from "@/components/row/AppKit";
+import { PageHeader, SkeletonRows } from "@/components/row/AppKit";
 import { stripBase } from "@/lib/basePath";
 
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 function fundChipStyle(name: string): string {
   const n = (name || "").toLowerCase();
   if (n.includes("annual"))    return "bg-blue-50 text-blue-700 border-blue-200";
@@ -223,23 +225,7 @@ export function TrfV2View({ clubId: propClubId, embedded = false, yearId: global
           page, the page provides the header, so we show ONLY the 4 KPI cards + the listing. */}
       {!embedded && (
         <>
-          <div className="flex items-start justify-between gap-3">
-            <div className="flex items-start gap-2">
-              <Link
-                href={backUrl}
-                className="mt-0.5 inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50"
-                aria-label="Back"
-              >
-                <ArrowLeft size={15} />
-              </Link>
-              <div>
-                <h1 className="text-lg font-semibold text-slate-800">TRF Contributions</h1>
-                <p className="text-xs text-slate-500 mt-0.5">
-                  RY {yearLabel} · {clubName || "–"}
-                </p>
-              </div>
-            </div>
-          </div>
+          <PageHeader title="TRF Contributions" description={<>RY {yearLabel} · {clubName || "–"}</>} back={backUrl} />
 
           <div
             className="rounded-xl p-5 text-white"
@@ -266,20 +252,20 @@ export function TrfV2View({ clubId: propClubId, embedded = false, yearId: global
       </div>
 
       {/* Table card */}
-      <div className="bg-card rounded-2xl border border-slate-200 overflow-hidden">
+      <Card className="overflow-hidden">
         <div className="px-5 py-3 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
-            <h3 className="text-sm font-semibold text-slate-800">Contribution Records</h3>
+            <h3 className="row-h3">Contribution Records</h3>
             <p className="text-xs text-slate-500 mt-0.5">Donor-wise contributions to The Rotary Foundation · {yearLabel}</p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
             {/* Year filter — hidden when embedded (the global dashboard year drives it). */}
             {!embedded && (
-              <select
+              <NativeSelect
                 value={selectedYearId ?? ""}
                 onChange={(e) => setSelectedYearId(e.target.value ? Number(e.target.value) : null)}
                 disabled={isFrozenYear}
-                className="px-2 h-10 py-0 text-sm border border-slate-200 rounded-[12px] bg-card focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42] disabled:bg-slate-50 disabled:text-slate-500 disabled:cursor-not-allowed"
+                className="disabled:bg-slate-50 disabled:text-slate-500 disabled:cursor-not-allowed w-auto"
               >
                 {years.length === 0 && <option value="">No years</option>}
                 {years.map((y) => (
@@ -287,22 +273,22 @@ export function TrfV2View({ clubId: propClubId, embedded = false, yearId: global
                     {y.yearLabel}{y.isCurrent ? " · current" : ""}
                   </option>
                 ))}
-              </select>
+              </NativeSelect>
             )}
             <div className="relative w-full sm:w-auto">
               <Search size={14} className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-400" />
-              <input
+              <Input
                 type="text"
                 placeholder="Search donor…"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="pl-7 pr-3 h-10 py-0 text-sm border border-slate-200 rounded-[12px] w-full sm:w-48 focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                className="pl-7 pr-3 sm:w-48"
               />
             </div>
             {canManage && (
               <Link
                 href={addUrl}
-                className="inline-flex items-center gap-1.5 text-xs font-semibold px-4 h-10 rounded-full bg-[#17458F] text-white hover:bg-[#17458F]"
+                className="row-btn row-btn-primary"
               >
                 <Plus size={13} /> Add Contribution
               </Link>
@@ -314,73 +300,73 @@ export function TrfV2View({ clubId: propClubId, embedded = false, yearId: global
           {loading ? (
             <SkeletonRows />
           ) : (
-            <table className="w-full min-w-[640px] md:min-w-full text-sm">
-              <thead className="bg-[#EDF4FB] text-[13px] text-[#64748B]">
-                <tr>
-                  <th className="px-3 py-2.5 text-left w-10">Sr</th>
-                  <th className="px-3 py-2.5 text-left">Member Name</th>
-                  <th className="px-3 py-2.5 text-left">Fund</th>
-                  <th className="px-3 py-2.5 text-right">Amount</th>
-                  <th className="px-3 py-2.5 text-left">Currency</th>
-                  <th className="px-3 py-2.5 text-left">Date</th>
+            <Table className="min-w-[640px] md:min-w-full">
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="text-left w-10">Sr</TableHead>
+                  <TableHead className="text-left">Member Name</TableHead>
+                  <TableHead className="text-left">Fund</TableHead>
+                  <TableHead className="text-right">Amount</TableHead>
+                  <TableHead className="text-left">Currency</TableHead>
+                  <TableHead className="text-left">Date</TableHead>
                   {/* One column, and it hides with the body cells below.
                       Two separate Edit/Delete headers left empty columns
                       behind on a read-only year. */}
-                  {canManage && <th className="px-3 py-2.5 text-right w-20 whitespace-nowrap">Actions</th>}
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
+                  {canManage && <TableHead className="text-right w-20 whitespace-nowrap">Actions</TableHead>}
+                </TableRow>
+              </TableHeader>
+              <TableBody>
                 {paginatedFiltered.map((c, i) => {
                   const fundLabel = c.fundType === "Others" ? (c.otherFundName || "Others") : (c.fundType || "–");
                   return (
-                    <tr key={c.id} className="hover:bg-blue-50/40">
-                      <td className="px-3 py-2 text-slate-500">{pageStart + i + 1}</td>
-                      <td className="px-3 py-2 font-medium text-slate-800">{c.donorName || "–"}</td>
-                      <td className="px-3 py-2">
-                        <span className={`inline-flex items-center text-xs font-medium px-2 py-0.5 rounded-full border ${fundChipStyle(fundLabel)}`}>
+                    <TableRow key={c.id}>
+                      <TableCell>{pageStart + i + 1}</TableCell>
+                      <TableCell className="font-medium">{c.donorName || "–"}</TableCell>
+                      <TableCell>
+                        <span className={`inline-flex items-center text-xs font-medium px-2 py-0.5 rounded border ${fundChipStyle(fundLabel)}`}>
                           {fundLabel}
                         </span>
-                      </td>
-                      <td className="px-3 py-2 text-right font-semibold text-slate-700 tabular-nums">
+                      </TableCell>
+                      <TableCell className="text-right tabular-nums">
                         {(c.amountUSD || 0).toLocaleString("en-US", { maximumFractionDigits: 2 })}
-                      </td>
-                      <td className="px-3 py-2 text-slate-500 text-xs">USD</td>
-                      <td className="px-3 py-2 text-slate-700 whitespace-nowrap">{fmtDate(c.trfDate)}</td>
+                      </TableCell>
+                      <TableCell className="text-xs">USD</TableCell>
+                      <TableCell className="whitespace-nowrap">{fmtDate(c.trfDate)}</TableCell>
                       {canManage && (
-                        <td className="px-3 py-2">
+                        <TableCell>
                           <div className="flex items-center justify-end gap-0.5">
                             <Link
                               href={`/clubs/${clubId}/trf/v2/${c.id}/edit?returnTo=${returnTo}&yearId=${selectedYearId}${cmrQuery}`}
-                              className="inline-flex items-center justify-center w-7 h-7 rounded text-slate-500 hover:text-blue-700 hover:bg-blue-50"
+                              className="row-icon-btn"
                               title="Edit"
                               aria-label="Edit contribution"
                             >
                               <Edit3 size={14} />
                             </Link>
-                            <button
+                            <IconButton
                               type="button"
                               onClick={() => setDeleteTarget(c)}
-                              className="inline-flex items-center justify-center w-7 h-7 rounded text-slate-400 hover:text-rose-700 hover:bg-rose-50"
+                              className="hover:text-red-700"
                               title="Delete"
                               aria-label="Delete contribution"
                             >
                               <Trash2 size={14} />
-                            </button>
+                            </IconButton>
                           </div>
-                        </td>
+                        </TableCell>
                       )}
-                    </tr>
+                    </TableRow>
                   );
                 })}
                 {filtered.length === 0 && (
-                  <tr>
-                    <td colSpan={canManage ? 7 : 6} className="px-4 py-10 text-center text-slate-400">
+                  <TableRow>
+                    <TableCell colSpan={canManage ? 7 : 6} className="py-10 text-center text-muted-foreground">
                       {search ? "No contributions match your search." : "No TRF contributions for this year."}
-                    </td>
-                  </tr>
+                    </TableCell>
+                  </TableRow>
                 )}
-              </tbody>
-            </table>
+              </TableBody>
+            </Table>
           )}
         </div>
 
@@ -399,7 +385,7 @@ export function TrfV2View({ clubId: propClubId, embedded = false, yearId: global
             />
           </div>
         )}
-      </div>
+      </Card>
 
       {/* Delete confirm */}
       <AlertModal

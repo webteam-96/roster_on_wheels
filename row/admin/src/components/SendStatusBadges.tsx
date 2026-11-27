@@ -23,7 +23,7 @@ function ChannelChip({
   const pending = !sentDate;
   return (
     <span
-      className="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-card px-1.5 py-0.5 text-[10px] font-medium whitespace-nowrap"
+      className="inline-flex items-center gap-1 rounded border border-slate-200 bg-card px-1.5 py-0.5 text-[10px] font-medium whitespace-nowrap"
       title={title}
     >
       <Icon size={11} className="text-slate-400" />

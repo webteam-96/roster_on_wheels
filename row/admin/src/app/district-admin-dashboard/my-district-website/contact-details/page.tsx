@@ -21,6 +21,7 @@
  * deactivate toggle, delete confirmation, success / error alerts.
  */
 
+import { Card } from "@/components/ui/card";
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { RotaryYear } from "@/types/rotaryYear";
@@ -41,10 +42,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
 import AlertModal from "@/components/AlertModal";
-import { ArrowLeft, Plus, Pencil, Trash2, AlertTriangle, Eye, EyeOff, Phone, Mail } from "@/components/icons";
+import { Plus, Pencil, Trash2, AlertTriangle, Eye, EyeOff, Phone, Mail } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import ProtectedRoute from "@/components/ProtectedRoute";
-import { ListPageSkeleton } from "@/components/row/AppKit";
+import { PageHeader, ListPageSkeleton } from "@/components/row/AppKit";
 
 export default function DistrictAdminContactDetailsPage() {
   const { isSuperAdmin, isAdmin, selectedDistrictId, user } = useAuth();
@@ -222,34 +223,19 @@ export default function DistrictAdminContactDetailsPage() {
 
       <div className="space-y-6">
         {/* ── Header ────────────────────────────────────────────────── */}
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-3">
-            <button
-              type="button"
-              onClick={goBack}
-              className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 bg-card text-slate-600 hover:bg-slate-50 hover:text-slate-800"
-              aria-label="Back"
-            >
-              <ArrowLeft className="h-4 w-4" />
-            </button>
-            <div>
-              <h2 className="text-2xl font-bold tracking-tight text-ink">
-                {districtName ? `${districtName} · Contact Details` : "Contact Details"}
-              </h2>
-              <p className="text-slate-500 text-sm mt-0.5">
-                Manage district contact details by year
-              </p>
-            </div>
-          </div>
-          {canManage && !contact && !loading && !loadingContact && selectedYearId && (
+        <PageHeader
+          title={districtName ? `${districtName} · Contact Details` : "Contact Details"}
+          description="Manage district contact details by year"
+          back={() => goBack()}
+          actions={canManage && !contact && !loading && !loadingContact && selectedYearId && (
             <Button
               onClick={openAddDialog}
-              className="bg-azure hover:bg-mint-ink text-white"
+             
             >
               <Plus className="mr-2 h-4 w-4" />Add Contact
             </Button>
           )}
-        </div>
+        />
 
         {loading && (
           <div className="flex items-center justify-center py-20">
@@ -266,19 +252,19 @@ export default function DistrictAdminContactDetailsPage() {
         )}
 
         {!loading && !loadingContact && selectedYearId && !contact && (
-          <div className="flex flex-col items-center justify-center py-20 text-center bg-card rounded-2xl border border-slate-200 shadow-sm">
+          <Card className="flex flex-col items-center justify-center py-20 text-center">
             <div className="h-14 w-14 rounded-full bg-slate-50 flex items-center justify-center mb-4">
               <Phone className="h-7 w-7 text-slate-700" />
             </div>
-            <h3 className="text-lg font-semibold text-slate-800">No contact details yet</h3>
+            <h3 className="row-h2">No contact details yet</h3>
             <p className="text-slate-500 mt-2 max-w-md">
               {canManage ? 'Click "Add Contact" to add contact details.' : "No contact details added yet."}
             </p>
-          </div>
+          </Card>
         )}
 
         {!loading && !loadingContact && contact && (
-          <div className="max-w-lg rounded-2xl border border-slate-200 shadow-sm bg-card overflow-hidden">
+          <Card className="max-w-lg overflow-hidden">
             {/* Gold accent strip */}
             <div className="h-1 bg-marigold" />
             <div className="p-6 space-y-5">
@@ -299,7 +285,7 @@ export default function DistrictAdminContactDetailsPage() {
                       variant="outline"
                       size="sm"
                       onClick={handleToggleActive}
-                      className="border-slate-200 text-slate-700 hover:bg-slate-50"
+                     
                     >
                       {contact.isActive
                         ? <><EyeOff className="mr-1 h-4 w-4" />Deactivate</>
@@ -309,7 +295,7 @@ export default function DistrictAdminContactDetailsPage() {
                       variant="outline"
                       size="sm"
                       onClick={openEditDialog}
-                      className="border-slate-200 text-slate-700 hover:bg-slate-50"
+                     
                     >
                       <Pencil className="mr-1 h-4 w-4" />Edit
                     </Button>
@@ -317,7 +303,7 @@ export default function DistrictAdminContactDetailsPage() {
                       variant="outline"
                       size="sm"
                       onClick={() => setShowDeleteConfirm(true)}
-                      className="border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700"
+                      className="text-red-600"
                     >
                       <Trash2 className="mr-1 h-4 w-4" />Delete
                     </Button>
@@ -345,7 +331,7 @@ export default function DistrictAdminContactDetailsPage() {
                 </div>
               </div>
             </div>
-          </div>
+          </Card>
         )}
 
         {/* Add / Edit dialog */}
@@ -367,7 +353,7 @@ export default function DistrictAdminContactDetailsPage() {
                   placeholder="email@example.com"
                   value={formEmail}
                   onChange={e => setFormEmail(e.target.value)}
-                  className="border-slate-200 bg-card focus:border-azure focus:ring-azure/20"
+                 
                 />
               </div>
               <div className="space-y-2">
@@ -376,13 +362,13 @@ export default function DistrictAdminContactDetailsPage() {
                   placeholder="+1 555 123 4567"
                   value={formPhone}
                   onChange={e => setFormPhone(e.target.value)}
-                  className="border-slate-200 bg-card focus:border-azure focus:ring-azure/20"
+                 
                 />
               </div>
               <div className="space-y-2">
                 <Label>Status</Label>
                 <Select value={formIsActive} onValueChange={setFormIsActive}>
-                  <SelectTrigger className="border-slate-200 bg-card focus:border-azure focus:ring-azure/20">
+                  <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -397,14 +383,14 @@ export default function DistrictAdminContactDetailsPage() {
                 variant="outline"
                 onClick={() => setDialogOpen(false)}
                 disabled={saving}
-                className="border-slate-200 text-slate-700 hover:bg-slate-50"
+               
               >
                 Cancel
               </Button>
               <Button
                 onClick={handleSave}
                 disabled={saving || !formEmail.trim() || !formPhone.trim()}
-                className="bg-azure hover:bg-mint-ink text-white"
+               
               >
                 {saving ? "Saving..." : editing ? "Update" : "Add"}
               </Button>

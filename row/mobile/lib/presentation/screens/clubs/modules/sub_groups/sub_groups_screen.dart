@@ -16,6 +16,8 @@ import '../../../../../presentation/widgets/common/rotary_year_bar.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
 import 'package:rotary_flutter_app/presentation/widgets/row/skeleton_list.dart';
 import 'package:rotary_flutter_app/presentation/widgets/row/form_action_bar.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/motion.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/roster_wheel.dart';
 
 bool _asBool(dynamic v) {
   if (v is bool) return v;
@@ -184,7 +186,7 @@ class _SubGroupsScreenState extends State<SubGroupsScreen> {
       }
     } catch (_) {}
     if (!mounted) return;
-    showDialog(
+    showRowDialog(
       context: context,
       builder: (_) => AlertDialog(
         title: Text(group['groupName']?.toString() ?? 'Members'),
@@ -192,7 +194,7 @@ class _SubGroupsScreenState extends State<SubGroupsScreen> {
           width: double.maxFinite,
           child: members.isEmpty
               ? const Text('No members assigned')
-              : ListView.separated(
+              : RowListView.separated(
   padding: const EdgeInsets.only(bottom: 88),
                   shrinkWrap: true,
                   itemCount: members.length,
@@ -282,6 +284,7 @@ class _SubGroupsScreenState extends State<SubGroupsScreen> {
                 suffixIcon: _search.isEmpty
                     ? null
                     : IconButton(
+                        tooltip: 'Close',
                         icon: const Icon(Icons.close, size: 18),
                         onPressed: () {
                           _searchCtrl.clear();
@@ -303,12 +306,12 @@ class _SubGroupsScreenState extends State<SubGroupsScreen> {
                             title: 'No matches',
                             subtitle: 'No sub-groups match "$_search".',
                           )
-                        : RefreshIndicator(
+                        : RowRefresh(
                             onRefresh: () => _loadGroups(page: _currentPage),
                             child: Column(
                               children: [
                                 Expanded(
-                                  child: ListView.separated(
+                                  child: RowListView.separated(
                                     padding: (const EdgeInsets.all(16)).add(const EdgeInsets.only(bottom: 88)),
                                     itemCount: _filteredGroups.length,
                                     separatorBuilder: (_, __) =>
@@ -639,6 +642,7 @@ class _SubGroupFormScreenState extends State<_SubGroupFormScreen> {
                               borderRadius: BorderRadius.circular(10)),
                           suffixIcon: _memberFilter.isNotEmpty
                               ? IconButton(
+                                  tooltip: 'Close',
                                   icon: const Icon(Icons.close, size: 18),
                                   onPressed: () {
                                     _memberSearchCtrl.clear();

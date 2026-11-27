@@ -6,6 +6,7 @@
  * The history shows who has updated. Data: api/clubs/{clubId}/profile-updates/*.
  */
 
+import { Card } from "@/components/ui/card";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Send } from "@/components/icons";
 import { TableSkeleton } from "@/components/dashboard/DashboardSkeleton";
@@ -13,7 +14,7 @@ import { fmtDate } from "@/components/dashboard/formatters";
 import { apiMessage, selectCls } from "@/components/membership/FoundationDesignationsCard";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
 import { useSelectedClub } from "@/contexts/AuthContext";
 import {
@@ -107,8 +108,8 @@ export default function ClubProfileUpdatesPage() {
 
   return (
     <div className="space-y-6">
-      <section className="space-y-3 rounded-[20px] border border-slate-200 bg-white p-5">
-        <h2 className="text-base font-semibold text-slate-800">Ask members to update their profile</h2>
+      <section className="row-card space-y-3 p-5">
+        <h2 className="row-h2">Ask members to update their profile</h2>
         <p className="text-sm text-slate-600">
           Each member gets an email with a personal link to check their details (no sign-in, works for 30 days) and a
           notice in the app. Login details (main mobile and email) can only be changed in the app or by the club.
@@ -133,7 +134,7 @@ export default function ClubProfileUpdatesPage() {
 
       <section className="space-y-3">
         <div className="flex flex-wrap items-end justify-between gap-3">
-          <h2 className="text-sm font-semibold text-slate-800">Members</h2>
+          <h2 className="row-h2">Members</h2>
           <label className="w-60 space-y-1 text-xs font-semibold text-slate-700">
             <span>Show</span>
             <select className={selectCls} value={filter} onChange={(e) => setFilter(e.target.value as Filter)}>
@@ -145,7 +146,7 @@ export default function ClubProfileUpdatesPage() {
         {members === null ? (
           !error && <TableSkeleton rows={6} />
         ) : (
-          <div className="overflow-x-auto rounded-[20px] border border-slate-200 bg-white">
+          <Card className="overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -184,18 +185,18 @@ export default function ClubProfileUpdatesPage() {
                 )}
               </TableBody>
             </Table>
-          </div>
+          </Card>
         )}
       </section>
 
       <section className="space-y-3">
-        <h2 className="text-sm font-semibold text-slate-800">
+        <h2 className="row-h2">
           Requests sent{requests && requests.length > 0 ? `: ${updated} of ${requests.length} updated` : ""}
         </h2>
         {requests === null ? (
           !error && <TableSkeleton rows={4} />
         ) : (
-          <div className="overflow-x-auto rounded-[20px] border border-slate-200 bg-white">
+          <Card className="overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -228,7 +229,7 @@ export default function ClubProfileUpdatesPage() {
                 )}
               </TableBody>
             </Table>
-          </div>
+          </Card>
         )}
       </section>
     </div>

@@ -1,4 +1,5 @@
 "use client";
+import { LinkButton } from "@/components/ui/text-buttons";
 
 /**
  * Enhanced committees (gap agent): the club's committees (sub groups) or the district's committees as a tree with
@@ -8,6 +9,7 @@
  * Messages go out through the club's or district's mass email. Platform switch "committees".
  */
 
+import { NativeSelect } from "@/components/ui/native-select";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AlertTriangle, Download, FileText, FolderTree, Mail, Send, Trash2, Upload, Users } from "@/components/icons";
 import { Button } from "@/components/ui/button";
@@ -25,7 +27,7 @@ import {
 } from "@/services/api";
 import type { RotaryYear } from "@/types/rotaryYear";
 
-const selectClass = "h-9 rounded-md border border-input bg-background px-2 text-sm";
+const selectClass = "row-field";
 
 /** Committees in tree order with their depth. A committee whose parent is missing counts as top level. */
 export function flattenTree(nodes: CommitteeNode[]): { node: CommitteeNode; depth: number }[] {
@@ -125,17 +127,17 @@ export default function CommitteesWorkspace({ kind, scopeId }: { kind: Committee
         </p>
         <label className="space-y-1 text-xs font-semibold text-slate-700">
           <span className="block">Rotary year</span>
-          <select className={selectClass} value={yearId ?? ""} onChange={(e) => setYearId(Number(e.target.value))}>
+          <NativeSelect className="w-auto" value={yearId ?? ""} onChange={(e) => setYearId(Number(e.target.value))}>
             {years.map((y) => <option key={y.id} value={y.id}>{y.yearLabel}</option>)}
-          </select>
+          </NativeSelect>
         </label>
       </div>
 
       <div className="grid gap-4 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
-        <section className="rounded-[20px] border border-slate-200 bg-card overflow-hidden">
+        <section className="row-card row-rise overflow-hidden">
           <header className="flex items-center gap-2 px-4 py-2.5 bg-slate-50 border-b border-slate-100">
             <FolderTree className="h-4 w-4 text-slate-500" />
-            <h3 className="text-sm font-semibold text-slate-800">Committees</h3>
+            <h3 className="row-h3">Committees</h3>
           </header>
           <div className="p-4 space-y-3">
             {loadError && <p className="text-sm text-red-700" role="alert">{loadError}</p>}
@@ -155,17 +157,16 @@ export default function CommitteesWorkspace({ kind, scopeId }: { kind: Committee
                   return (
                     <li key={node.id} className="py-2" style={{ paddingLeft: `${depth * 18}px` }}>
                       <div className="flex flex-wrap items-center justify-between gap-2">
-                        <button
+                        <LinkButton tone={selected === node.id ? "primary" : "muted"} className="min-w-0"
                           type="button"
                           onClick={() => setSelected(node.id)}
-                          className={`min-w-0 text-left text-sm font-medium hover:underline ${selected === node.id ? "text-azure" : "text-slate-800"}`}
                           data-no-translate
                         >
                           {depth > 0 && <span className="text-slate-400" aria-hidden>{"> "}</span>}
                           {node.name}
-                        </button>
-                        <select
-                          className={selectClass}
+                        </LinkButton>
+                        <NativeSelect
+                          className="w-auto"
                           aria-label={`Parent of ${node.name}`}
                           disabled={busy}
                           value={node.parentId != null && nodes.some((n) => n.id === node.parentId) ? node.parentId : ""}
@@ -175,7 +176,7 @@ export default function CommitteesWorkspace({ kind, scopeId }: { kind: Committee
                           {nodes.filter((n) => !blocked.has(n.id)).map((n) => (
                             <option key={n.id} value={n.id}>Under {n.name}</option>
                           ))}
-                        </select>
+                        </NativeSelect>
                       </div>
                       <p className="text-xs text-slate-500">
                         {node.memberCount} members, {node.documentCount} documents, {node.messageCount} messages
@@ -191,7 +192,7 @@ export default function CommitteesWorkspace({ kind, scopeId }: { kind: Committee
         {selected ? (
           <CommitteePanel key={`${kind}-${selected}`} kind={kind} id={selected} onSelect={setSelected} onChanged={load} />
         ) : (
-          <section className="rounded-[20px] border border-dashed border-slate-200 p-6 text-sm text-slate-500">
+          <section className="rounded-xl border border-dashed border-slate-200 p-6 text-sm text-slate-500">
             Choose a committee to see its members, documents and messages.
           </section>
         )}
@@ -210,10 +211,10 @@ function CommitteePanel({ kind, id, onSelect, onChanged }: {
     getCommitteeDetail(kind, id).then(setDetail).catch((err) => setError(apiMessage(err, "Could not load the committee.")));
   }, [kind, id]);
 
-  if (error) return <section className="rounded-[20px] border border-slate-200 p-4 text-sm text-red-700" role="alert">{error}</section>;
+  if (error) return <section className="rounded-xl border border-slate-200 p-4 text-sm text-red-700" role="alert">{error}</section>;
   if (!detail) {
     return (
-      <section className="rounded-[20px] border border-slate-200 p-4 space-y-2" aria-busy="true">
+      <section className="rounded-xl border border-slate-200 p-4 space-y-2" aria-busy="true">
         <Skeleton className="h-6 w-1/2" />
         <Skeleton className="h-4 w-3/4" />
         <Skeleton className="h-24 w-full" />
@@ -223,13 +224,13 @@ function CommitteePanel({ kind, id, onSelect, onChanged }: {
 
   return (
     <div className="space-y-4">
-      <section className="rounded-[20px] border border-slate-200 bg-card p-4 space-y-3">
+      <section className="row-card row-rise p-5 space-y-3">
         <nav aria-label="Committee path" className="flex flex-wrap items-center gap-1 text-xs text-slate-500" data-no-translate>
           {detail.path.map((c, i) => (
             <span key={c.id} className="flex items-center gap-1">
               {i > 0 && <span aria-hidden>/</span>}
               {c.id === detail.id ? <span className="font-semibold text-slate-800">{c.name}</span>
-                : <button type="button" className="hover:underline" onClick={() => onSelect(c.id)}>{c.name}</button>}
+                : <LinkButton onClick={() => onSelect(c.id)}>{c.name}</LinkButton>}
             </span>
           ))}
         </nav>
@@ -239,13 +240,13 @@ function CommitteePanel({ kind, id, onSelect, onChanged }: {
             {detail.children.map((c, i) => (
               <span key={c.id}>
                 {i > 0 && ", "}
-                <button type="button" className="text-azure hover:underline" onClick={() => onSelect(c.id)} data-no-translate>{c.name}</button>
+                <LinkButton onClick={() => onSelect(c.id)} data-no-translate>{c.name}</LinkButton>
               </span>
             ))}
           </p>
         )}
         <div>
-          <h4 className="flex items-center gap-1.5 text-xs font-semibold text-slate-700"><Users className="h-4 w-4" /> Members</h4>
+          <h4 className="row-h3 flex items-center gap-1.5"><Users className="h-4 w-4" /> Members</h4>
           {detail.members.length === 0 ? (
             <p className="text-sm text-slate-500">No members yet.</p>
           ) : (
@@ -317,10 +318,10 @@ function DocumentsCard({ kind, id, onChanged }: { kind: CommitteeKind; id: numbe
   };
 
   return (
-    <section className="rounded-[20px] border border-slate-200 overflow-hidden bg-card">
+    <section className="row-card row-rise overflow-hidden">
       <header className="flex items-center gap-2 px-4 py-2.5 bg-slate-50 border-b border-slate-100">
         <FileText className="h-4 w-4 text-slate-500" />
-        <h3 className="text-sm font-semibold text-slate-800">Private documents</h3>
+        <h3 className="row-h3">Private documents</h3>
       </header>
       <div className="p-4 space-y-4">
         {docs === null ? (
@@ -435,10 +436,10 @@ function MessagesCard({ kind, id, onChanged }: { kind: CommitteeKind; id: number
   };
 
   return (
-    <section className="rounded-[20px] border border-slate-200 overflow-hidden bg-card">
+    <section className="row-card row-rise overflow-hidden">
       <header className="flex items-center gap-2 px-4 py-2.5 bg-slate-50 border-b border-slate-100">
         <Mail className="h-4 w-4 text-slate-500" />
-        <h3 className="text-sm font-semibold text-slate-800">Committee email</h3>
+        <h3 className="row-h3">Committee email</h3>
       </header>
       <div className="p-4 space-y-4">
         <div className="space-y-3">
@@ -461,7 +462,7 @@ function MessagesCard({ kind, id, onChanged }: { kind: CommitteeKind; id: number
         </div>
 
         <div>
-          <h4 className="text-xs font-semibold text-slate-700">Archive</h4>
+          <h4 className="row-h3">Archive</h4>
           {messages === null ? (
             <div className="mt-2 space-y-2" aria-busy="true">
               <Skeleton className="h-4 w-2/3" />

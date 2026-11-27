@@ -7,6 +7,7 @@ import '../../widgets/common/custom_app_bar.dart';
 import '../../widgets/common/empty_state_widget.dart';
 import '../../widgets/common/loading_widget.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/roster_wheel.dart';
 
 /// Other districts the member was given time-limited access to (PETS, RLI, zone work). Each card opens that
 /// district's member screens; the server checks the grant on every request, so access ends at the expiry.
@@ -63,7 +64,7 @@ class _MyDistrictAccessScreenState extends State<MyDistrictAccessScreen> {
                       icon: Icons.map_outlined,
                       title: 'No other districts',
                       subtitle: 'When you are given access to another district for PETS, RLI or zone work, it shows here until it expires.')
-                  : RefreshIndicator(
+                  : RowRefresh(
                       onRefresh: _load,
                       child: ListView(
                         padding: const EdgeInsets.all(12),

@@ -4,6 +4,7 @@
 // the other report rows (Card + outline Download button). mode "district" → the district's report;
 // mode "club" → a club picker (list + "All") + download. Each Excel = all four categories, 2 sheets.
 
+import { NativeSelect } from "@/components/ui/native-select";
 import { useEffect, useState } from "react";
 import ClubGoalComingSoon from "@/components/ClubGoalComingSoon";
 import { CLUB_GOAL_SETTING_COMING_SOON } from "@/lib/clubGoalSetting";
@@ -106,12 +107,12 @@ export default function DistrictGoalReports({ districtId, yearId, mode = "both" 
               </div>
             </div>
             <div className="flex flex-wrap items-center gap-2">
-              <select
-                className="h-9 rounded-md border border-input bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+              <NativeSelect
+                className="w-auto"
                 value={clubId ?? ""} onChange={(e) => setClubId(e.target.value ? Number(e.target.value) : null)}>
                 <option value="">All</option>
                 {clubs.map((c) => <option key={c.clubId} value={c.clubId}>{c.clubName}</option>)}
-              </select>
+              </NativeSelect>
               {dlBtn("Download", dlClub, busy === "club")}
             </div>
           </CardContent>

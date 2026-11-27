@@ -15,6 +15,7 @@ import 'package:rotary_flutter_app/core/theme/app_fonts.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
 import '../../../core/i18n/live_translator.dart';
 import 'language_screen.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/motion.dart';
 
 // ---------------------------------------------------------------------------
 // Tile data model
@@ -150,7 +151,7 @@ class SettingsScreen extends StatelessWidget {
               icon: Icons.lock_outline_rounded,
               color: AppColors.warningDark,
               title: 'App Lock',
-              subtitle: 'Require Face ID / passcode on launch',
+              subtitle: 'Require biometrics or passcode on launch',
               onTap: () => context.push(RouteNames.securitySettings),
             ),
             // Contact-visibility settings. Live once backend read-gating shipped
@@ -220,7 +221,7 @@ class SettingsScreen extends StatelessWidget {
                     .copyWith(color: AppColors.textSecondary),
               ),
               const SizedBox(height: AppSpacing.lg),
-              GridView.builder(
+              RowGridView.builder(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
                 gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(

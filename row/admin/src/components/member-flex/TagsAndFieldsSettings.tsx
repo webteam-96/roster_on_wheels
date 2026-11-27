@@ -5,6 +5,9 @@
  * club-defined questions to every member's profile, visible to admins only or to the club's members too.
  */
 
+import { NativeSelect } from "@/components/ui/native-select";
+import { Textarea } from "@/components/ui/textarea";
+import { IconButton } from "@/components/ui/icon-button";
 import { useState } from "react";
 import {
   createClubTag, updateClubTag, deleteClubTag, createProfileField, updateProfileField, deleteProfileField,
@@ -20,7 +23,7 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "
 import { AlertTriangle, Loader2, Pencil, Plus, Trash2 } from "@/components/icons";
 import TagChip from "./TagChip";
 
-const SELECT = "h-9 w-full rounded-md border border-input bg-background px-3 text-sm";
+const SELECT = "row-field w-full";
 export const FIELD_TYPE_LABEL: Record<ProfileFieldType, string> = {
   text: "Text", number: "Number", date: "Date", choice: "Choice", yesno: "Yes / No",
 };
@@ -77,10 +80,10 @@ export default function TagsAndFieldsSettings({ clubId, tags, fields, onChanged,
               <li key={t.id} className="flex items-center gap-3 py-2">
                 <TagChip tag={t} />
                 <span className="flex-1 text-xs text-slate-500">{t.memberCount} members, {t.contactCount} contacts</span>
-                <button type="button" aria-label={`Edit ${t.name}`} className="p-1 text-slate-400 hover:text-slate-700"
-                  onClick={() => setTagEdit({ id: t.id, name: t.name, color: t.color })}><Pencil className="h-3.5 w-3.5" /></button>
-                <button type="button" aria-label={`Delete ${t.name}`} className="p-1 text-slate-400 hover:text-rose-700"
-                  onClick={() => setTagToDelete(t)}><Trash2 className="h-3.5 w-3.5" /></button>
+                <IconButton type="button" aria-label={`Edit ${t.name}`} 
+                  onClick={() => setTagEdit({ id: t.id, name: t.name, color: t.color })}><Pencil className="h-3.5 w-3.5" /></IconButton>
+                <IconButton type="button" aria-label={`Delete ${t.name}`} className="hover:text-red-700"
+                  onClick={() => setTagToDelete(t)}><Trash2 className="h-3.5 w-3.5" /></IconButton>
               </li>
             ))}
           </ul>
@@ -101,12 +104,12 @@ export default function TagsAndFieldsSettings({ clubId, tags, fields, onChanged,
                     {FIELD_TYPE_LABEL[f.fieldType]}{f.fieldType === "choice" ? `: ${f.options.join(", ")}` : ""} · {f.visibility === "members" ? "Members can see it" : "Admins only"}
                   </p>
                 </div>
-                <button type="button" aria-label={`Edit ${f.label}`} className="p-1 text-slate-400 hover:text-slate-700"
+                <IconButton type="button" aria-label={`Edit ${f.label}`} 
                   onClick={() => setFieldEdit({ id: f.id, form: { label: f.label, fieldType: f.fieldType, options: f.options, visibility: f.visibility, sortOrder: f.sortOrder }, optionsText: f.options.join("\n") })}>
                   <Pencil className="h-3.5 w-3.5" />
-                </button>
-                <button type="button" aria-label={`Delete ${f.label}`} className="p-1 text-slate-400 hover:text-rose-700"
-                  onClick={() => setFieldToDelete(f)}><Trash2 className="h-3.5 w-3.5" /></button>
+                </IconButton>
+                <IconButton type="button" aria-label={`Delete ${f.label}`} className="hover:text-red-700"
+                  onClick={() => setFieldToDelete(f)}><Trash2 className="h-3.5 w-3.5" /></IconButton>
               </li>
             ))}
           </ul>
@@ -130,7 +133,7 @@ export default function TagsAndFieldsSettings({ clubId, tags, fields, onChanged,
           )}
           <DialogFooter>
             <Button variant="outline" onClick={() => setTagEdit(null)}>Cancel</Button>
-            <Button className="bg-azure text-white hover:bg-mint-ink" disabled={busy} onClick={saveTag}>
+            <Button disabled={busy} onClick={saveTag}>
               {busy && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}Save
             </Button>
           </DialogFooter>
@@ -147,23 +150,23 @@ export default function TagsAndFieldsSettings({ clubId, tags, fields, onChanged,
                   onChange={(e) => setFieldEdit({ ...fieldEdit, form: { ...fieldEdit.form, label: e.target.value } })} /></div>
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1"><Label htmlFor="pf-type">Type</Label>
-                  <select id="pf-type" className={SELECT} value={fieldEdit.form.fieldType} disabled={!!fieldEdit.id}
+                  <NativeSelect id="pf-type"  value={fieldEdit.form.fieldType} disabled={!!fieldEdit.id}
                     onChange={(e) => setFieldEdit({ ...fieldEdit, form: { ...fieldEdit.form, fieldType: e.target.value as ProfileFieldType } })}>
                     {(Object.keys(FIELD_TYPE_LABEL) as ProfileFieldType[]).map((t) => <option key={t} value={t}>{FIELD_TYPE_LABEL[t]}</option>)}
-                  </select></div>
+                  </NativeSelect></div>
                 <div className="space-y-1"><Label htmlFor="pf-vis">Who can see it</Label>
-                  <select id="pf-vis" className={SELECT} value={fieldEdit.form.visibility}
+                  <NativeSelect id="pf-vis"  value={fieldEdit.form.visibility}
                     onChange={(e) => setFieldEdit({ ...fieldEdit, form: { ...fieldEdit.form, visibility: e.target.value as "admins" | "members" } })}>
                     <option value="admins">Admins only</option>
                     <option value="members">Club members</option>
-                  </select></div>
+                  </NativeSelect></div>
               </div>
               {fieldEdit.id && <p className="text-xs text-slate-500">The type cannot change once the field exists.</p>}
               {fieldEdit.form.fieldType === "choice" && (
                 <div className="space-y-1"><Label htmlFor="pf-options">Options, one per line</Label>
-                  <textarea id="pf-options" rows={4} value={fieldEdit.optionsText}
+                  <Textarea id="pf-options" rows={4} value={fieldEdit.optionsText}
                     onChange={(e) => setFieldEdit({ ...fieldEdit, optionsText: e.target.value })}
-                    className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm" /></div>
+                     /></div>
               )}
               <div className="space-y-1"><Label htmlFor="pf-order">Order</Label>
                 <Input id="pf-order" type="number" value={fieldEdit.form.sortOrder}
@@ -172,7 +175,7 @@ export default function TagsAndFieldsSettings({ clubId, tags, fields, onChanged,
           )}
           <DialogFooter>
             <Button variant="outline" onClick={() => setFieldEdit(null)}>Cancel</Button>
-            <Button className="bg-azure text-white hover:bg-mint-ink" disabled={busy} onClick={saveField}>
+            <Button disabled={busy} onClick={saveField}>
               {busy && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}Save
             </Button>
           </DialogFooter>

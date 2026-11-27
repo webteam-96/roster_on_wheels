@@ -12,14 +12,14 @@
  * and forward links carry no returnTo suffix.
  */
 
+import { Card } from "@/components/ui/card";
 import { useState, useEffect } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { getDistrict } from "@/services/api";
-import { Button } from "@/components/ui/button";
-import { ArrowLeft, Users, UsersRound, AlertCircle } from "@/components/icons";
+import { Users, UsersRound, AlertCircle } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import ProtectedRoute from "@/components/ProtectedRoute";
-import { ListPageSkeleton } from "@/components/row/AppKit";
+import { PageHeader, ListPageSkeleton } from "@/components/row/AppKit";
 
 const COMMITTEE_MODULES = [
   { key: "committee", name: "District Committee", description: "Manage direct committee members", icon: "Users", route: "committee" },
@@ -69,22 +69,7 @@ export default function DistrictCommitteeV2Page() {
   return (
     <ProtectedRoute>
       <div className="space-y-6">
-        <div className="flex items-center gap-3">
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={goBack}
-            className="border-slate-200 bg-card hover:bg-slate-50 text-slate-700"
-          >
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
-          <div>
-            <h2 className="text-2xl font-bold tracking-tight text-ink">
-              {districtNumber ? `District ${districtNumber} - Committee` : "District Committee"}
-            </h2>
-            <p className="text-slate-600 text-base">Manage district committee members and groups</p>
-          </div>
-        </div>
+        <PageHeader title={districtNumber ? `District ${districtNumber} - Committee` : "District Committee"} description="Manage district committee members and groups" back={() => goBack()} />
 
         {loading && (
           <div className="flex items-center justify-center py-20">
@@ -93,11 +78,11 @@ export default function DistrictCommitteeV2Page() {
         )}
 
         {error && (
-          <div className="flex flex-col items-center justify-center py-20 text-center rounded-2xl border border-slate-200 bg-card shadow-sm">
+          <Card className="flex flex-col items-center justify-center py-20 text-center">
             <AlertCircle className="h-12 w-12 text-red-600 mb-4" />
-            <h3 className="text-lg font-semibold text-slate-800">Error</h3>
+            <h3 className="row-h2">Error</h3>
             <p className="text-slate-600 mt-2 max-w-md">{error}</p>
-          </div>
+          </Card>
         )}
 
         {!loading && !error && (

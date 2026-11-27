@@ -8,6 +8,7 @@
 //     Setting month-wise figures and targets. Same source on both sides, so they never disagree.
 // The old CMR (v2) does not use this file.
 
+import { Table, TableHeader, TableBody, TableFooter, TableRow, TableHead, TableCell } from "@/components/ui/table";
 import { useEffect, useMemo, useState } from "react";
 import { CheckCircle2, Info } from "@/components/icons";
 import { getClubMonthlyGoals, getGoalRotaryOrgValues, getGoalSourceDates, type GoalMonthlyForm } from "@/services/api";
@@ -201,56 +202,56 @@ export function CmrFoundationTable({ t, dates }: { t: FoundationTable; dates: Fo
   const cols = t.synced ? 5 : 2;
   // Heading in navy, the "Updated from …" note in its own colour: green = Rotary.org, blue = RISAO (user 2026-11-13).
   const groupRow = (label: string, note: string, noteCls: string) => (
-    <tr className="bg-slate-50/80">
-      <td colSpan={cols} className="px-4 py-2">
+    <TableRow className="bg-slate-50/80">
+      <TableCell colSpan={cols} className="px-4 py-2">
         <span className="text-xs font-bold uppercase tracking-wider text-navy-950">{label}</span>
         <span className={`ml-3 text-xs font-semibold ${noteCls}`}>{note}</span>
-      </td>
-    </tr>
+      </TableCell>
+    </TableRow>
   );
   const syncRows = t.rows.filter((r) => r.source === "sync");
   const importRows = t.rows.filter((r) => r.source !== "sync");
   const line = (r: FoundationRow) => (
-    <tr key={r.name} className="hover:bg-slate-50/60">
-      <td className="px-4 py-3 font-medium text-slate-800">{r.name}</td>
-      <td className="px-4 py-3 text-right font-semibold tabular-nums text-slate-900">{usd(r.month)}</td>
+    <TableRow key={r.name} className="hover:bg-slate-50/60">
+      <TableCell className="px-4 py-3 font-medium text-slate-800">{r.name}</TableCell>
+      <TableCell className="px-4 py-3 text-right font-semibold tabular-nums text-slate-900">{usd(r.month)}</TableCell>
       {t.synced && <>
-        <td className="px-4 py-3 text-right tabular-nums text-slate-500">{usd(r.monthTarget)}</td>
-        <td className="px-4 py-3 text-right tabular-nums text-slate-800">{usd(r.ytd)}</td>
-        <td className="px-4 py-3 text-right tabular-nums text-slate-500">{usd(r.yearTarget)}</td>
+        <TableCell className="px-4 py-3 text-right tabular-nums text-slate-500">{usd(r.monthTarget)}</TableCell>
+        <TableCell className="px-4 py-3 text-right tabular-nums text-slate-800">{usd(r.ytd)}</TableCell>
+        <TableCell className="px-4 py-3 text-right tabular-nums text-slate-500">{usd(r.yearTarget)}</TableCell>
       </>}
-    </tr>
+    </TableRow>
   );
   return (
     <div className="overflow-x-auto rounded-xl ring-1 ring-slate-200">
-      <table className="min-w-full text-sm">
-        <thead className="bg-slate-50">
-          <tr>
-            <th className={`${TH} text-left`}>{t.synced ? "Fund" : "Fund type"}</th>
-            <th className={`${TH} text-right`}>This month</th>
-            {t.synced && <><th className={`${TH} text-right`}>Month target</th><th className={`${TH} text-right`}>Year till date</th><th className={`${TH} text-right`}>Year target</th></>}
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-slate-100">
+      <Table bare className="min-w-full text-sm">
+        <TableHeader className="bg-slate-50">
+          <TableRow>
+            <TableHead className={`${TH} text-left`}>{t.synced ? "Fund" : "Fund type"}</TableHead>
+            <TableHead className={`${TH} text-right`}>This month</TableHead>
+            {t.synced && <><TableHead className={`${TH} text-right`}>Month target</TableHead><TableHead className={`${TH} text-right`}>Year till date</TableHead><TableHead className={`${TH} text-right`}>Year target</TableHead></>}
+          </TableRow>
+        </TableHeader>
+        <TableBody className="divide-y divide-slate-100">
           {t.synced ? <>
             {syncRows.length > 0 && groupRow("From Rotary.org", dates.sync ? `Updated from Rotary.org on ${dates.sync}` : "Updated from Rotary.org", "text-emerald-700")}
             {syncRows.map(line)}
             {importRows.length > 0 && groupRow("From import (RISAO)", dates.imp ? `Updated from RISAO on ${dates.imp}` : "Updated from RISAO", "text-blue-700")}
             {importRows.map(line)}
           </> : t.rows.map(line)}
-        </tbody>
-        <tfoot className="bg-navy-950/[0.04] font-semibold">
-          <tr>
-            <td className="px-4 py-3 text-slate-900">Total</td>
-            <td className="px-4 py-3 text-right tabular-nums text-slate-900">{usd(t.total.month)}</td>
+        </TableBody>
+        <TableFooter className="bg-navy-950/[0.04] font-semibold">
+          <TableRow>
+            <TableCell className="px-4 py-3 text-slate-900">Total</TableCell>
+            <TableCell className="px-4 py-3 text-right tabular-nums text-slate-900">{usd(t.total.month)}</TableCell>
             {t.synced && <>
-              <td className="px-4 py-3 text-right tabular-nums text-slate-600">{usd(t.total.monthTarget)}</td>
-              <td className="px-4 py-3 text-right tabular-nums text-slate-900">{usd(t.total.ytd)}</td>
-              <td className="px-4 py-3 text-right tabular-nums text-slate-600">{usd(t.total.yearTarget)}</td>
+              <TableCell className="px-4 py-3 text-right tabular-nums text-slate-600">{usd(t.total.monthTarget)}</TableCell>
+              <TableCell className="px-4 py-3 text-right tabular-nums text-slate-900">{usd(t.total.ytd)}</TableCell>
+              <TableCell className="px-4 py-3 text-right tabular-nums text-slate-600">{usd(t.total.yearTarget)}</TableCell>
             </>}
-          </tr>
-        </tfoot>
-      </table>
+          </TableRow>
+        </TableFooter>
+      </Table>
     </div>
   );
 }
@@ -278,19 +279,19 @@ export function CmrMembershipPanel({ form, month, counts, monthLabel, clubId, ye
   const rows = membershipTable(form, month, counts, monthLabel);
   const dates = useFoundationSourceDates(clubId, yearId, tick);
   const Line = ({ r }: { r: MembershipRow }) => (
-    <tr className={r.strong ? "bg-navy-950/[0.04]" : "hover:bg-slate-50/60"}>
-      <td className="px-4 py-3">
+    <TableRow className={r.strong ? "bg-navy-950/[0.04]" : "hover:bg-slate-50/60"}>
+      <TableCell className="px-4 py-3">
         <div className={`flex items-center gap-2 ${r.strong ? "font-semibold text-slate-900" : "font-medium text-slate-800"}`}>
           {r.tone && <span className={`inline-flex h-5 w-5 items-center justify-center rounded-full text-[11px] font-bold ${r.tone === "plus" ? "bg-emerald-100 text-emerald-700" : "bg-rose-100 text-rose-700"}`}>{r.tone === "plus" ? "+" : "−"}</span>}
           {r.label}
         </div>
         {r.sub && <div className="mt-0.5 text-[11px] text-slate-500">{r.sub}</div>}
-      </td>
-      <td className={`px-4 py-3 text-right tabular-nums ${r.strong ? "text-lg font-bold text-navy-950" : "font-semibold text-slate-900"}`}>{r.month}</td>
-      <td className="px-4 py-3 text-right tabular-nums text-slate-500">{r.monthTarget}</td>
-      <td className={`px-4 py-3 text-right tabular-nums ${r.strong ? "font-bold text-slate-900" : "text-slate-800"}`}>{r.ytd}</td>
-      <td className="px-4 py-3 text-right tabular-nums text-slate-500">{r.yearTarget}</td>
-    </tr>
+      </TableCell>
+      <TableCell className={`px-4 py-3 text-right tabular-nums ${r.strong ? "text-lg font-bold text-navy-950" : "font-semibold text-slate-900"}`}>{r.month}</TableCell>
+      <TableCell className="px-4 py-3 text-right tabular-nums text-slate-500">{r.monthTarget}</TableCell>
+      <TableCell className={`px-4 py-3 text-right tabular-nums ${r.strong ? "font-bold text-slate-900" : "text-slate-800"}`}>{r.ytd}</TableCell>
+      <TableCell className="px-4 py-3 text-right tabular-nums text-slate-500">{r.yearTarget}</TableCell>
+    </TableRow>
   );
   const main = rows.filter((r) => !r.group), women = rows.filter((r) => r.group === "women");
   return (
@@ -298,30 +299,30 @@ export function CmrMembershipPanel({ form, month, counts, monthLabel, clubId, ye
       {/* The green "View only - every figure comes from …" line is replaced by the Rotary.org note (user 2026-11-13). */}
       {form === undefined && <p className="text-xs text-slate-400">Loading Club Goals…</p>}
       <div className="overflow-x-auto rounded-xl ring-1 ring-slate-200">
-        <table className="min-w-full text-sm">
-          <thead className="bg-slate-50">
-            <tr>
-              <th className={`${TH} text-left`}>Membership</th>
-              <th className={`${TH} text-right`}>This month</th>
-              <th className={`${TH} text-right`}>Month target</th>
-              <th className={`${TH} text-right`}>Year till date</th>
-              <th className={`${TH} text-right`}>Year target</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-100">
-            <tr className="bg-slate-50/80">
-              <td colSpan={5} className="px-4 py-2">
+        <Table bare className="min-w-full text-sm">
+          <TableHeader className="bg-slate-50">
+            <TableRow>
+              <TableHead className={`${TH} text-left`}>Membership</TableHead>
+              <TableHead className={`${TH} text-right`}>This month</TableHead>
+              <TableHead className={`${TH} text-right`}>Month target</TableHead>
+              <TableHead className={`${TH} text-right`}>Year till date</TableHead>
+              <TableHead className={`${TH} text-right`}>Year target</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody className="divide-y divide-slate-100">
+            <TableRow className="bg-slate-50/80">
+              <TableCell colSpan={5} className="px-4 py-2">
                 <span className="text-xs font-bold uppercase tracking-wider text-navy-950">From Rotary.org</span>
                 <span className="ml-3 text-xs font-semibold text-emerald-700">{dates.member ? `Updated from Rotary.org on ${dates.member}` : "Updated from Rotary.org"}</span>
-              </td>
-            </tr>
+              </TableCell>
+            </TableRow>
             {main.map((r) => <Line key={r.label} r={r} />)}
             {women.length > 0 && (
-              <tr><td colSpan={5} className="bg-slate-50 px-4 py-2 text-[11px] font-semibold uppercase tracking-wider text-slate-500">Women members</td></tr>
+              <TableRow><TableCell colSpan={5} className="bg-slate-50 px-4 py-2 text-[11px] font-semibold uppercase tracking-wider text-slate-500">Women members</TableCell></TableRow>
             )}
             {women.map((r) => <Line key={r.label} r={r} />)}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
       </div>
     </div>
   );

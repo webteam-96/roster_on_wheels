@@ -12,6 +12,9 @@
 // Drop-in for the native input: `value` and `onChange` speak ISO ("2026-09-01"), same as before, so
 // nothing else in a form — or on the server — changes. `min` / `max` are ISO too.
 
+import { CalendarCell } from "@/components/ui/text-buttons";
+import { Button } from "@/components/ui/button";
+import { IconButton } from "@/components/ui/icon-button";
 import { useEffect, useRef, useState } from "react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
@@ -187,50 +190,49 @@ export default function DateField({
         />
         <Popover open={open && !readOnly} onOpenChange={(o) => !disabled && !readOnly && setOpen(o)}>
           <PopoverTrigger asChild>
-            <button
+            <IconButton className="absolute right-2 top-1/2 -translate-y-1/2"
               type="button"
               hidden={readOnly}
               disabled={disabled || readOnly}
               aria-label="Open calendar"
-              className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 disabled:opacity-50"
             >
               <CalendarIcon className="h-4 w-4" />
-            </button>
+            </IconButton>
           </PopoverTrigger>
           <PopoverContent className="w-[280px] p-3" align="start">
             <div className="mb-2 flex items-center justify-between">
-              <button type="button" onClick={() => stepMonth(-1)} className="rounded p-1 hover:bg-muted" aria-label="Previous month">
+              <IconButton type="button" onClick={() => stepMonth(-1)}  aria-label="Previous month">
                 <ChevronLeft className="h-4 w-4" />
-              </button>
-              <button type="button" onClick={() => setShowMonthList((s) => !s)} className="rounded px-2 py-1 text-sm font-medium hover:bg-muted">
+              </IconButton>
+              <Button variant="ghost" size="sm" type="button" onClick={() => setShowMonthList((s) => !s)}>
                 {MONTH_NAMES[view.m - 1]} {view.y}
-              </button>
-              <button type="button" onClick={() => stepMonth(1)} className="rounded p-1 hover:bg-muted" aria-label="Next month">
+              </Button>
+              <IconButton type="button" onClick={() => stepMonth(1)}  aria-label="Next month">
                 <ChevronRight className="h-4 w-4" />
-              </button>
+              </IconButton>
             </div>
 
             {showMonthList ? (
               <div className="space-y-2">
                 <div className="flex flex-wrap items-center justify-between gap-3">
-                  <button type="button" onClick={() => setView((v) => ({ ...v, y: v.y - 1 }))} className="rounded p-1 hover:bg-muted" aria-label="Previous year">
+                  <IconButton type="button" onClick={() => setView((v) => ({ ...v, y: v.y - 1 }))}  aria-label="Previous year">
                     <ChevronLeft className="h-4 w-4" />
-                  </button>
+                  </IconButton>
                   <span className="text-sm font-medium">{view.y}</span>
-                  <button type="button" onClick={() => setView((v) => ({ ...v, y: v.y + 1 }))} className="rounded p-1 hover:bg-muted" aria-label="Next year">
+                  <IconButton type="button" onClick={() => setView((v) => ({ ...v, y: v.y + 1 }))}  aria-label="Next year">
                     <ChevronRight className="h-4 w-4" />
-                  </button>
+                  </IconButton>
                 </div>
                 <div className="grid grid-cols-3 gap-1">
                   {MONTH_NAMES.map((mn, i) => (
-                    <button
+                    <CalendarCell
                       key={mn}
-                      type="button"
                       onClick={() => { setView((v) => ({ ...v, m: i + 1 })); setShowMonthList(false); }}
-                      className={`rounded px-1 py-1.5 text-xs hover:bg-muted ${view.m === i + 1 ? "bg-primary text-primary-foreground hover:bg-primary" : ""}`}
+                      selected={view.m === i + 1}
+                      className="text-xs"
                     >
                       {mn.slice(0, 3)}
-                    </button>
+                    </CalendarCell>
                   ))}
                 </div>
               </div>
@@ -248,29 +250,26 @@ export default function DateField({
                     const blocked = (min && dayIso < min) || (max && dayIso > max);
                     const isSelected = selectedIso === dayIso;
                     return (
-                      <button
+                      <CalendarCell
                         key={dayIso}
-                        type="button"
                         disabled={!!blocked}
                         onClick={() => pickDay(day)}
-                        className={`h-8 rounded text-xs ${
-                          isSelected ? "bg-primary text-primary-foreground"
-                          : blocked ? "cursor-not-allowed text-muted-foreground/40"
-                          : dayIso === today ? "border border-primary/40 hover:bg-muted"
-                          : "hover:bg-muted"}`}
+                        selected={isSelected}
+                        today={dayIso === today}
+                        className="h-8 min-w-0 text-xs"
                       >
                         {day}
-                      </button>
+                      </CalendarCell>
                     );
                   })}
                 </div>
-                <button
+                <Button
                   type="button"
                   onClick={() => { if (!((min && today < min) || (max && today > max))) { setTyped(isoToTyped(today)); onChange(today); setOpen(false); } }}
-                  className="mt-2 w-full rounded border px-2 py-1 text-xs hover:bg-muted"
+                  variant="outline" size="sm" className="mt-2 w-full"
                 >
                   Today
-                </button>
+                </Button>
               </>
             )}
           </PopoverContent>

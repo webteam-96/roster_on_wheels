@@ -1,5 +1,6 @@
 "use client";
 
+import { IconButton } from "@/components/ui/icon-button"
 import { useState, useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
 import { getActiveLoginAnnouncement, acknowledgeLoginAnnouncements } from "@/services/api";
@@ -120,7 +121,7 @@ export default function LoginAnnouncementPopup() {
         {/* Header */}
         <div className="flex items-center justify-between gap-3 px-6 py-4 border-b bg-primary/10">
           <div className="min-w-0">
-            <h3 className="text-lg font-bold text-primary">Announcement</h3>
+            <h3 className="row-h2">Announcement</h3>
             {(roleText || total > 1) && (
               <p className="text-xs text-muted-foreground truncate">
                 {roleText && <>For: {roleText}</>}
@@ -129,14 +130,13 @@ export default function LoginAnnouncementPopup() {
               </p>
             )}
           </div>
-          <button
+          <IconButton aria-label="Close" className="shrink-0"
             type="button"
             onClick={handleClose}
-            className="flex items-center justify-center w-8 h-8 shrink-0 rounded-full bg-red-500 hover:bg-red-600 text-white transition-colors"
             title="Close (will show again next login)"
           >
             <X className="h-4 w-4" />
-          </button>
+          </IconButton>
         </div>
 
         {/* Content */}
@@ -151,7 +151,7 @@ export default function LoginAnnouncementPopup() {
         {/* Footer */}
         <div className="flex items-center justify-between gap-3 px-6 py-4 border-t bg-gray-50">
           {total > 1 ? (
-            <Button type="button" variant="outline" size="icon" className="rounded-full" onClick={go(-1)} disabled={safeIndex === 0} title="Previous announcement">
+            <Button type="button" variant="outline" size="icon" onClick={go(-1)} disabled={safeIndex === 0} title="Previous announcement">
               <ChevronLeft className="h-4 w-4" />
             </Button>
           ) : <span className="w-10" />}
@@ -159,12 +159,11 @@ export default function LoginAnnouncementPopup() {
             type="button"
             onClick={handleOk}
             size="lg"
-            className="px-10 rounded-full shadow-md"
           >
             OK
           </Button>
           {total > 1 ? (
-            <Button type="button" variant="outline" size="icon" className="rounded-full" onClick={go(1)} disabled={safeIndex === total - 1} title="Next announcement">
+            <Button type="button" variant="outline" size="icon" onClick={go(1)} disabled={safeIndex === total - 1} title="Next announcement">
               <ChevronRight className="h-4 w-4" />
             </Button>
           ) : <span className="w-10" />}

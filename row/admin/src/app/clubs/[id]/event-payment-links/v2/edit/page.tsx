@@ -1,4 +1,6 @@
 "use client";
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
+import { Switch } from "@/components/ui/switch";
 
 /**
  * Event Payment Links v2 — Edit Payment Link (5 tabs).
@@ -18,13 +20,17 @@
  * v2 reads `?editId=` (from listing routing) and `?returnTo=` for navigation.
  */
 
+import FieldLabel from "@/components/form/FieldLabel";
+import { IconButton } from "@/components/ui/icon-button";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
+import { NativeSelect } from "@/components/ui/native-select";
+import { Card } from "@/components/ui/card";
+import SectionCard from "@/components/form/SectionCard";
 import { useState, useEffect, useCallback } from "react";
 import { useParams, useSearchParams, useRouter } from "next/navigation";
-import Link from "next/link";
-import {
-  ArrowLeft, Info, Mail, ListChecks, Wallet, BadgeCheck,
-  Save, Loader2, Plus, Edit3, Trash2, AlertTriangle, X,
-} from "@/components/icons";
+import { Info, Mail, ListChecks, Wallet, BadgeCheck, Save, Plus, Edit3, Trash2, AlertTriangle, X } from "@/components/icons";
 import {
   getEventPaymentLinkDetail, updateEventPaymentLink,
   getEventRegistrations, saveEventRegistration, updateEventRegistration, deleteEventRegistration,
@@ -47,7 +53,7 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import { useSyncClubIdFromUrl } from "@/hooks/useSyncClubIdFromUrl";
 
 import { appLocale, currencySymbol } from "@/lib/appFormat";
-import { ListPageSkeleton } from "@/components/row/AppKit";
+import { PageHeader, ListPageSkeleton } from "@/components/row/AppKit";
 interface Registration { id: number; registrationName: string; amount: number; }
 interface VendorSplit {
   id: number;
@@ -64,42 +70,11 @@ interface Designation { id: number; designationName: string; }
 // Field primitives (visual only — match V2FormShell / TRF edit conventions).
 // ─────────────────────────────────────────────────────────────────────────────
 
-function FieldLabel({ children, hint, required = false }: { children: React.ReactNode; hint?: string; required?: boolean }) {
-  return (
-    <div className="flex items-center gap-1.5 mb-1">
-      <span className="w-1.5 h-1.5 rounded-full bg-blue-500" />
-      <label className="text-xs font-semibold text-slate-700">
-        {children}{required && <span className="text-rose-600 ml-0.5">*</span>}
-        {hint && <span className="text-slate-400 font-normal ml-1">{hint}</span>}
-      </label>
-    </div>
-  );
-}
-
-function SectionCard({ title, children }: { title: string; children: React.ReactNode }) {
-  return (
-    <div className="rounded-xl border border-slate-200 overflow-hidden">
-      <div className="px-4 py-2.5 bg-slate-50 border-b border-slate-100">
-        <h3 className="text-sm font-semibold text-slate-800">{title}</h3>
-      </div>
-      <div className="p-4 space-y-4">{children}</div>
-    </div>
-  );
-}
-
 function ToggleRow({ label, checked, onChange }: { label: string; checked: boolean; onChange: (v: boolean) => void }) {
   return (
     <label className="flex items-center justify-between gap-3 px-3 py-2 rounded-lg border border-slate-200 bg-card hover:bg-slate-50 cursor-pointer">
       <span className="text-sm text-slate-700">{label}</span>
-      <button
-        type="button"
-        onClick={() => onChange(!checked)}
-        className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${checked ? "bg-blue-600" : "bg-slate-300"}`}
-        aria-pressed={checked}
-        role="switch"
-      >
-        <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-card transition-transform ${checked ? "translate-x-5" : "translate-x-1"}`} />
-      </button>
+      <Switch checked={checked} onCheckedChange={onChange} />
     </label>
   );
 }
@@ -403,7 +378,7 @@ export default function EventPaymentLinkV2EditPage() {
           activeNavHref="/club-admin-dashboard/membership-dues"
         >
           <div className="flex flex-col items-center justify-center py-20">
-            <h3 className="text-lg font-semibold text-slate-800">Access Denied</h3>
+            <h3 className="row-h2">Access Denied</h3>
           </div>
         </ClubAdminShell>
       </ProtectedRoute>
@@ -433,45 +408,29 @@ export default function EventPaymentLinkV2EditPage() {
       >
         <div className="space-y-5">
           {/* Header */}
-          <div className="flex items-start justify-between gap-3">
-            <div className="flex items-start gap-2">
-              <Link
-                href={backHref}
-                className="mt-0.5 inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50"
-                aria-label="Back"
-              >
-                <ArrowLeft size={15} />
-              </Link>
-              <div>
-                <h1 className="text-lg font-semibold text-slate-800">Edit Payment Link</h1>
-                <p className="text-xs text-slate-500 mt-0.5">
-                  {title || "Untitled"} · Link #{linkId}
-                </p>
-              </div>
-            </div>
-          </div>
+          <PageHeader title="Edit Payment Link" description={<>{title || "Untitled"} · Link #{linkId}</>} back={backHref} />
 
           {/* Tabs */}
           <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <div className="bg-card rounded-2xl border border-slate-200 p-2">
-              <TabsList className="flex flex-wrap h-auto bg-slate-100 p-1 gap-1">
-                <TabsTrigger value="basic" className="gap-1.5 px-3 py-1.5 text-xs">
+            <Card className="p-2">
+              <TabsList>
+                <TabsTrigger value="basic" className="gap-1.5">
                   <Info size={13} /> Basic Info
                 </TabsTrigger>
-                <TabsTrigger value="email" className="gap-1.5 px-3 py-1.5 text-xs">
+                <TabsTrigger value="email" className="gap-1.5">
                   <Mail size={13} /> Email Templates
                 </TabsTrigger>
-                <TabsTrigger value="registrations" className="gap-1.5 px-3 py-1.5 text-xs">
+                <TabsTrigger value="registrations" className="gap-1.5">
                   <ListChecks size={13} /> Registrations
                 </TabsTrigger>
-                <TabsTrigger value="splits" className="gap-1.5 px-3 py-1.5 text-xs">
+                <TabsTrigger value="splits" className="gap-1.5">
                   <Wallet size={13} /> Vendor Splits
                 </TabsTrigger>
-                <TabsTrigger value="designations" className="gap-1.5 px-3 py-1.5 text-xs">
+                <TabsTrigger value="designations" className="gap-1.5">
                   <BadgeCheck size={13} /> Designations
                 </TabsTrigger>
               </TabsList>
-            </div>
+            </Card>
 
             {/* ── 1. BASIC INFO ─────────────────────────────────────────── */}
             <TabsContent value="basic" className="mt-4 space-y-4">
@@ -479,44 +438,40 @@ export default function EventPaymentLinkV2EditPage() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <FieldLabel>Form Type</FieldLabel>
-                    <select
+                    <NativeSelect
                       value={formType}
                       onChange={(e) => setFormType(e.target.value)}
-                      className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] bg-card focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
                     >
                       <option value="1">Standard</option>
                       <option value="2">Dynamic</option>
-                    </select>
+                    </NativeSelect>
                   </div>
                   <div>
                     <FieldLabel>Amount Type</FieldLabel>
-                    <select
+                    <NativeSelect
                       value={amountType}
                       onChange={(e) => setAmountType(e.target.value)}
-                      className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] bg-card focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
                     >
                       <option value="1">Fixed</option>
                       <option value="2">Variable</option>
-                    </select>
+                    </NativeSelect>
                   </div>
                 </div>
                 <div>
                   <FieldLabel required>Title</FieldLabel>
-                  <input
+                  <Input
                     type="text"
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
                     placeholder="Event title"
-                    className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
                   />
                 </div>
                 <div>
                   <FieldLabel>Description</FieldLabel>
-                  <textarea
+                  <Textarea
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
                     rows={3}
-                    className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
                   />
                 </div>
                 <ToggleRow label="Hide Convenience Charges" checked={isHideCharges} onChange={setIsHideCharges} />
@@ -567,12 +522,11 @@ export default function EventPaymentLinkV2EditPage() {
                 {isFood && (
                   <div>
                     <FieldLabel hint="(comma-separated IDs)">Food Preference IDs</FieldLabel>
-                    <input
+                    <Input
                       type="text"
                       value={foodPreferenceIds}
                       onChange={(e) => setFoodPreferenceIds(e.target.value)}
                       placeholder="e.g. 1,2,3"
-                      className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
                     />
                   </div>
                 )}
@@ -591,48 +545,44 @@ export default function EventPaymentLinkV2EditPage() {
                   <div className="grid grid-cols-1 sm:grid-cols-[1fr_2fr] gap-3 items-center">
                     <ToggleRow label="Remark 1" checked={isRemark1} onChange={setIsRemark1} />
                     {isRemark1 && (
-                      <input
+                      <Input
                         type="text"
                         value={remark1Title}
                         onChange={(e) => setRemark1Title(e.target.value)}
                         placeholder="Remark 1 label"
-                        className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
                       />
                     )}
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-[1fr_2fr] gap-3 items-center">
                     <ToggleRow label="Remark 2" checked={isRemark2} onChange={setIsRemark2} />
                     {isRemark2 && (
-                      <input
+                      <Input
                         type="text"
                         value={remark2Title}
                         onChange={(e) => setRemark2Title(e.target.value)}
                         placeholder="Remark 2 label"
-                        className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
                       />
                     )}
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-[1fr_2fr] gap-3 items-center">
                     <ToggleRow label="Remark 3" checked={isRemark3} onChange={setIsRemark3} />
                     {isRemark3 && (
-                      <input
+                      <Input
                         type="text"
                         value={remark3Title}
                         onChange={(e) => setRemark3Title(e.target.value)}
                         placeholder="Remark 3 label"
-                        className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
                       />
                     )}
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-[1fr_2fr] gap-3 items-center">
                     <ToggleRow label="Designation" checked={isDesignation} onChange={setIsDesignation} />
                     {isDesignation && (
-                      <input
+                      <Input
                         type="text"
                         value={designationLabel}
                         onChange={(e) => setDesignationLabel(e.target.value)}
                         placeholder="Designation field label"
-                        className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
                       />
                     )}
                   </div>
@@ -642,7 +592,7 @@ export default function EventPaymentLinkV2EditPage() {
               <div className="flex flex-wrap justify-end gap-2">
                 <LoadingLink
                   href={backHref}
-                  className="inline-flex items-center gap-1 text-sm font-medium px-3 py-1.5 rounded-full border border-slate-200 text-slate-700 hover:bg-slate-50"
+                  className="row-btn row-btn-secondary row-btn-sm"
                 >
                   <X size={14} /> Cancel
                 </LoadingLink>
@@ -650,7 +600,7 @@ export default function EventPaymentLinkV2EditPage() {
                   onAction={handleSaveLink}
                   forcePending={saving}
                   loadingLabel="Saving…"
-                  className="inline-flex items-center gap-1 text-sm font-semibold px-4 py-1.5 rounded-full bg-[#17458F] text-white hover:bg-[#17458F] disabled:opacity-50"
+                  className="row-btn row-btn-primary row-btn-sm"
                 >
                   {!saving && <Save size={14} />} Update
                 </LoadingButton>
@@ -672,12 +622,11 @@ export default function EventPaymentLinkV2EditPage() {
                 </div>
                 <div>
                   <FieldLabel hint="(comma-separated addresses)">Email CC</FieldLabel>
-                  <input
+                  <Input
                     type="text"
                     value={emailCc}
                     onChange={(e) => setEmailCc(e.target.value)}
                     placeholder="cc1@example.com, cc2@example.com"
-                    className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
                   />
                 </div>
               </SectionCard>
@@ -685,20 +634,19 @@ export default function EventPaymentLinkV2EditPage() {
               <SectionCard title="Receipt Email">
                 <div>
                   <FieldLabel>Subject</FieldLabel>
-                  <input
+                  <Input
                     type="text"
                     value={emailSubject}
                     onChange={(e) => setEmailSubject(e.target.value)}
-                    className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
                   />
                 </div>
                 <div>
                   <FieldLabel hint="(HTML supported)">Body</FieldLabel>
-                  <textarea
+                  <Textarea
                     value={emailBody}
                     onChange={(e) => setEmailBody(e.target.value)}
                     rows={6}
-                    className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] font-mono focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                    className="font-mono"
                   />
                 </div>
               </SectionCard>
@@ -706,20 +654,19 @@ export default function EventPaymentLinkV2EditPage() {
               <SectionCard title="Reminder Email">
                 <div>
                   <FieldLabel>Subject</FieldLabel>
-                  <input
+                  <Input
                     type="text"
                     value={emailReminderSubject}
                     onChange={(e) => setEmailReminderSubject(e.target.value)}
-                    className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
                   />
                 </div>
                 <div>
                   <FieldLabel hint="(HTML supported)">Body</FieldLabel>
-                  <textarea
+                  <Textarea
                     value={emailReminderBody}
                     onChange={(e) => setEmailReminderBody(e.target.value)}
                     rows={6}
-                    className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] font-mono focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                    className="font-mono"
                   />
                 </div>
               </SectionCard>
@@ -727,7 +674,7 @@ export default function EventPaymentLinkV2EditPage() {
               <div className="flex flex-wrap justify-end gap-2">
                 <LoadingLink
                   href={backHref}
-                  className="inline-flex items-center gap-1 text-sm font-medium px-3 py-1.5 rounded-full border border-slate-200 text-slate-700 hover:bg-slate-50"
+                  className="row-btn row-btn-secondary row-btn-sm"
                 >
                   <X size={14} /> Cancel
                 </LoadingLink>
@@ -735,7 +682,7 @@ export default function EventPaymentLinkV2EditPage() {
                   onAction={handleSaveLink}
                   forcePending={saving}
                   loadingLabel="Saving…"
-                  className="inline-flex items-center gap-1 text-sm font-semibold px-4 py-1.5 rounded-full bg-[#17458F] text-white hover:bg-[#17458F] disabled:opacity-50"
+                  className="row-btn row-btn-primary row-btn-sm"
                 >
                   {!saving && <Save size={14} />} Save Email Settings
                 </LoadingButton>
@@ -744,79 +691,78 @@ export default function EventPaymentLinkV2EditPage() {
 
             {/* ── 3. REGISTRATIONS ───────────────────────────────────────── */}
             <TabsContent value="registrations" className="mt-4">
-              <div className="bg-card rounded-2xl border border-slate-200 overflow-hidden">
+              <Card className="overflow-hidden">
                 <div className="px-5 py-3 border-b border-slate-100 flex items-center justify-between">
                   <div>
-                    <h3 className="text-sm font-semibold text-slate-800">Registration Types</h3>
+                    <h3 className="row-h3">Registration Types</h3>
                     <p className="text-xs text-slate-500 mt-0.5">
                       Define ticket categories and their amounts
                     </p>
                   </div>
-                  <button
+                  <Button
                     type="button"
                     onClick={() => openRegDialog()}
-                    className="inline-flex items-center gap-1.5 text-xs font-semibold px-4 h-10 rounded-full bg-[#17458F] text-white hover:bg-[#17458F]"
                   >
                     <Plus size={13} /> Add Registration
-                  </button>
+                  </Button>
                 </div>
                 <div className="overflow-x-auto">
-                  <table className="w-full min-w-[640px] md:min-w-full text-sm">
-                    <thead className="bg-[#EDF4FB] text-[13px] text-[#64748B]">
-                      <tr>
-                        <th className="px-3 py-2.5 text-left">Name</th>
-                        <th className="px-3 py-2.5 text-right">Amount</th>
-                        <th className="px-3 py-2.5 text-right w-16">Edit</th>
-                        <th className="px-3 py-2.5 text-right w-16">Delete</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100">
+                  <Table className="min-w-[640px] md:min-w-full">
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="text-left">Name</TableHead>
+                        <TableHead className="text-right">Amount</TableHead>
+                        <TableHead className="text-right w-16">Edit</TableHead>
+                        <TableHead className="text-right w-16">Delete</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
                       {registrations.length === 0 ? (
-                        <tr>
-                          <td colSpan={4} className="px-4 py-10 text-center text-slate-400">
+                        <TableRow>
+                          <TableCell colSpan={4} className="text-center text-slate-400">
                             No registration types yet.
-                          </td>
-                        </tr>
+                          </TableCell>
+                        </TableRow>
                       ) : registrations.map((r) => (
-                        <tr key={r.id} className="hover:bg-blue-50/40">
-                          <td className="px-3 py-2 font-medium text-slate-800">{r.registrationName}</td>
-                          <td className="px-3 py-2 text-right tabular-nums text-slate-700">
+                        <TableRow key={r.id}>
+                          <TableCell className="font-medium text-slate-800">{r.registrationName}</TableCell>
+                          <TableCell className="text-right tabular-nums text-slate-700">
                             {currencySymbol()}{(r.amount || 0).toLocaleString(appLocale())}
-                          </td>
-                          <td className="px-3 py-2 text-right">
-                            <button
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <IconButton
                               type="button"
                               onClick={() => openRegDialog(r)}
-                              className="inline-flex items-center justify-center w-7 h-7 rounded text-slate-500 hover:text-blue-700 hover:bg-blue-50"
+                              
                               aria-label="Edit registration"
                             >
                               <Edit3 size={13} />
-                            </button>
-                          </td>
-                          <td className="px-3 py-2 text-right">
-                            <button
+                            </IconButton>
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <IconButton
                               type="button"
                               onClick={() => setDeleteReg(r)}
-                              className="inline-flex items-center justify-center w-7 h-7 rounded text-slate-400 hover:text-rose-700 hover:bg-rose-50"
+                              className="hover:text-red-700"
                               aria-label="Delete registration"
                             >
                               <Trash2 size={13} />
-                            </button>
-                          </td>
-                        </tr>
+                            </IconButton>
+                          </TableCell>
+                        </TableRow>
                       ))}
-                    </tbody>
-                  </table>
+                    </TableBody>
+                  </Table>
                 </div>
-              </div>
+              </Card>
             </TabsContent>
 
             {/* ── 4. VENDOR SPLITS ───────────────────────────────────────── */}
             <TabsContent value="splits" className="mt-4">
-              <div className="bg-card rounded-2xl border border-slate-200 overflow-hidden">
+              <Card className="overflow-hidden">
                 <div className="px-5 py-3 border-b border-slate-100 flex items-center justify-between gap-3">
                   <div>
-                    <h3 className="text-sm font-semibold text-slate-800">Vendor Splits</h3>
+                    <h3 className="row-h3">Vendor Splits</h3>
                     <p className="text-xs text-slate-500 mt-0.5">
                       Split each registration amount across vendors / KYCs
                     </p>
@@ -825,35 +771,35 @@ export default function EventPaymentLinkV2EditPage() {
                     onAction={handleSaveSplits}
                     forcePending={splitsSaving}
                     loadingLabel="Saving…"
-                    className="inline-flex items-center gap-1.5 text-xs font-semibold px-4 h-10 rounded-full bg-[#17458F] text-white hover:bg-[#17458F] disabled:opacity-50"
+                    className="row-btn row-btn-primary"
                   >
                     {!splitsSaving && <Save size={13} />} Save Splits
                   </LoadingButton>
                 </div>
                 <div className="overflow-x-auto">
-                  <table className="w-full min-w-[640px] md:min-w-full text-sm">
-                    <thead className="bg-[#EDF4FB] text-[13px] text-[#64748B]">
-                      <tr>
-                        <th className="px-3 py-2.5 text-left">Registration</th>
-                        <th className="px-3 py-2.5 text-left">Vendor</th>
-                        <th className="px-3 py-2.5 text-right">Split Amount</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100">
+                  <Table className="min-w-[640px] md:min-w-full">
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="text-left">Registration</TableHead>
+                        <TableHead className="text-left">Vendor</TableHead>
+                        <TableHead className="text-right">Split Amount</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
                       {vendorSplits.length === 0 ? (
-                        <tr>
-                          <td colSpan={3} className="px-4 py-10 text-center text-slate-400">
+                        <TableRow>
+                          <TableCell colSpan={3} className="text-center text-slate-400">
                             No vendor splits configured.
-                          </td>
-                        </tr>
+                          </TableCell>
+                        </TableRow>
                       ) : vendorSplits.map((s, idx) => (
-                        <tr key={s.id || idx} className="hover:bg-blue-50/40">
-                          <td className="px-3 py-2 text-slate-800">{s.registrationName || `#${s.fkRegistrationId}`}</td>
-                          <td className="px-3 py-2 text-slate-700">
+                        <TableRow key={s.id || idx}>
+                          <TableCell className="text-slate-800">{s.registrationName || `#${s.fkRegistrationId}`}</TableCell>
+                          <TableCell className="text-slate-700">
                             {s.vendorName || s.vendorId || `KYC #${s.fkKycId}`}
-                          </td>
-                          <td className="px-3 py-2 text-right">
-                            <input
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <Input
                               type="number"
                               value={s.splitAmount}
                               min={0}
@@ -863,79 +809,79 @@ export default function EventPaymentLinkV2EditPage() {
                                 next[idx] = { ...next[idx], splitAmount: Number(e.target.value) || 0 };
                                 setVendorSplits(next);
                               }}
-                              className="w-28 px-2 py-1 text-sm text-right tabular-nums border border-slate-200 rounded focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                              className="row-field-sm w-28 text-right tabular-nums"
                             />
-                          </td>
-                        </tr>
+                          </TableCell>
+                        </TableRow>
                       ))}
-                    </tbody>
-                  </table>
+                    </TableBody>
+                  </Table>
                 </div>
-              </div>
+              </Card>
             </TabsContent>
 
             {/* ── 5. DESIGNATIONS ────────────────────────────────────────── */}
             <TabsContent value="designations" className="mt-4">
-              <div className="bg-card rounded-2xl border border-slate-200 overflow-hidden">
+              <Card className="overflow-hidden">
                 <div className="px-5 py-3 border-b border-slate-100">
-                  <h3 className="text-sm font-semibold text-slate-800">Designations</h3>
+                  <h3 className="row-h3">Designations</h3>
                   <p className="text-xs text-slate-500 mt-0.5">
                     Add designation options shown on the registration form
                   </p>
                 </div>
                 <div className="p-5 space-y-4">
                   <div className="flex flex-col sm:flex-row gap-2">
-                    <input
+                    <Input
                       type="text"
                       value={desigName}
                       onChange={(e) => setDesigName(e.target.value)}
                       placeholder="Designation name"
-                      className="flex-1 px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                      className="flex-1"
                     />
                     <LoadingButton
                       onAction={handleSaveDesig}
                       forcePending={desigSaving}
                       loadingLabel="Adding…"
-                      className="inline-flex items-center gap-1.5 text-sm font-semibold px-4 py-1.5 rounded-full bg-[#17458F] text-white hover:bg-[#17458F] disabled:opacity-50"
+                      className="row-btn row-btn-primary row-btn-sm"
                     >
                       {!desigSaving && <Plus size={14} />} Add
                     </LoadingButton>
                   </div>
                   <div className="overflow-x-auto">
-                    <table className="w-full min-w-[640px] md:min-w-full text-sm">
-                      <thead className="bg-[#EDF4FB] text-[13px] text-[#64748B]">
-                        <tr>
-                          <th className="px-3 py-2.5 text-left">Designation</th>
-                          <th className="px-3 py-2.5 text-right w-16">Delete</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-slate-100">
+                    <Table className="min-w-[640px] md:min-w-full">
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead className="text-left">Designation</TableHead>
+                          <TableHead className="text-right w-16">Delete</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
                         {designations.length === 0 ? (
-                          <tr>
-                            <td colSpan={2} className="px-4 py-10 text-center text-slate-400">
+                          <TableRow>
+                            <TableCell colSpan={2} className="text-center text-slate-400">
                               No designations yet.
-                            </td>
-                          </tr>
+                            </TableCell>
+                          </TableRow>
                         ) : designations.map((d) => (
-                          <tr key={d.id} className="hover:bg-blue-50/40">
-                            <td className="px-3 py-2 text-slate-800">{d.designationName}</td>
-                            <td className="px-3 py-2 text-right">
-                              <button
+                          <TableRow key={d.id}>
+                            <TableCell className="text-slate-800">{d.designationName}</TableCell>
+                            <TableCell className="text-right">
+                              <IconButton
                                 type="button"
                                 onClick={() => setDeleteDesig(d)}
-                                className="inline-flex items-center justify-center w-7 h-7 rounded text-slate-400 hover:text-rose-700 hover:bg-rose-50"
+                                className="hover:text-red-700"
                                 aria-label="Delete designation"
                               >
                                 <Trash2 size={13} />
-                              </button>
-                            </td>
-                          </tr>
+                              </IconButton>
+                            </TableCell>
+                          </TableRow>
                         ))}
-                      </tbody>
-                    </table>
+                      </TableBody>
+                    </Table>
                   </div>
                 </div>
-              </div>
+              </Card>
             </TabsContent>
           </Tabs>
         </div>
@@ -949,40 +895,38 @@ export default function EventPaymentLinkV2EditPage() {
             <div className="space-y-3">
               <div>
                 <FieldLabel required>Registration Name</FieldLabel>
-                <input
+                <Input
                   type="text"
                   value={regName}
                   onChange={(e) => setRegName(e.target.value)}
                   placeholder="e.g. Regular"
-                  className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
                 />
               </div>
               <div>
                 <FieldLabel hint={`(${currencySymbol()})`}>Amount</FieldLabel>
-                <input
+                <Input
                   type="number"
                   value={regAmount}
                   onChange={(e) => setRegAmount(e.target.value)}
                   placeholder="0"
                   min={0}
                   step="0.01"
-                  className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
                 />
               </div>
             </div>
             <DialogFooter>
-              <button
+              <Button
                 type="button"
                 onClick={() => setRegDialogOpen(false)}
-                className="inline-flex items-center gap-1 text-sm font-medium px-3 py-1.5 rounded-full border border-slate-200 text-slate-700 hover:bg-slate-50"
+                variant="outline" size="sm"
               >
                 Cancel
-              </button>
+              </Button>
               <LoadingButton
                 onAction={handleSaveReg}
                 forcePending={regSaving}
                 loadingLabel="Saving…"
-                className="inline-flex items-center gap-1 text-sm font-semibold px-4 py-1.5 rounded-full bg-[#17458F] text-white hover:bg-[#17458F] disabled:opacity-50"
+                className="row-btn row-btn-primary row-btn-sm"
               >
                 {!regSaving && <Save size={14} />} Save
               </LoadingButton>

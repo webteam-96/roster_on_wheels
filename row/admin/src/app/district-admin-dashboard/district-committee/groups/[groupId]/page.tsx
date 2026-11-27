@@ -35,7 +35,6 @@ import NonSyncRemovedCommitteeMembers from "@/components/dashboard/NonSyncRemove
 import CommitteeDocumentsCard from "@/components/membership/CommitteeDocumentsCard";
 
 import ProtectedRoute from "@/components/ProtectedRoute";
-import DistrictMembershipTabBar from "@/components/dashboard/DistrictMembershipTabBar";
 import ImageCropDialog from "@/components/ImageCropDialog";
 import { useImageCropUpload } from "@/hooks/useImageCropUpload";
 import { ListPageSkeleton } from "@/components/row/AppKit";
@@ -51,14 +50,14 @@ const PHOTO_MAX_OUTPUT = 500;
 // so the two modules stay consistent (green for member, slate for non-member).
 function MemberChip() {
   return (
-    <span className="inline-flex items-center rounded-full border border-emerald-200 bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-700">
+    <span className="inline-flex items-center rounded border border-emerald-200 bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-700">
       Member
     </span>
   );
 }
 function NonMemberChip() {
   return (
-    <span className="inline-flex items-center rounded-full border border-slate-300 bg-slate-200 px-2 py-0.5 text-xs font-medium text-slate-700">
+    <span className="inline-flex items-center rounded border border-slate-300 bg-slate-200 px-2 py-0.5 text-xs font-medium text-slate-700">
       Non-Member
     </span>
   );
@@ -330,13 +329,12 @@ export default function DistrictAdminDashboardGroupDetailPage() {
       )}
 
       <div className="space-y-6">
-        <DistrictMembershipTabBar />
         <div className="flex items-center gap-3">
           <Button
             variant="outline"
             size="icon"
-            onClick={goBack}
-            className="border-slate-200 bg-card hover:bg-slate-50 text-slate-700"
+            onClick={goBack} aria-label="Back"
+           
           >
             <ArrowLeft className="h-4 w-4" />
           </Button>
@@ -349,21 +347,21 @@ export default function DistrictAdminDashboardGroupDetailPage() {
                     onChange={(e) => setNameDraft(e.target.value)}
                     onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); saveRename(); } if (e.key === "Escape") setEditingName(false); }}
                     autoFocus
-                    className="h-9 w-72 text-lg font-bold text-ink"
+                    className="w-72 text-lg font-bold"
                     placeholder="Group name"
                   />
-                  <Button size="sm" onClick={saveRename} disabled={savingName || !nameDraft.trim()} className="bg-azure hover:bg-mint-ink text-white">
+                  <Button size="sm" onClick={saveRename} disabled={savingName || !nameDraft.trim()}>
                     {savingName ? "Saving..." : "Save"}
                   </Button>
-                  <Button size="sm" variant="outline" onClick={() => setEditingName(false)} disabled={savingName} className="border-slate-200 text-slate-700 hover:bg-slate-50">Cancel</Button>
+                  <Button size="sm" variant="outline" onClick={() => setEditingName(false)} disabled={savingName}>Cancel</Button>
                 </div>
               ) : (
                 <>
-                  <h2 className="text-2xl font-bold tracking-tight text-ink">
+                  <h1 className="row-h1">
                     District Committee: {groupName || "Group"}
-                  </h2>
+                  </h1>
                   {canManage && !isAutoManaged && (
-                    <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-500 hover:text-ink hover:bg-slate-100" onClick={startRename} title="Rename group">
+                    <Button variant="ghost" size="icon" className="row-btn-sm" onClick={startRename} title="Rename group">
                       <Pencil className="h-4 w-4" />
                     </Button>
                   )}
@@ -389,7 +387,7 @@ export default function DistrictAdminDashboardGroupDetailPage() {
           <div className="space-y-8">
             {/* ---- Members ---- */}
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-ink flex items-center gap-2">
+              <h3 className="row-h2 flex items-center gap-2">
                 <Users className="h-5 w-5" />Members <span className="text-slate-400 font-normal">({memberTotalCount})</span>
               </h3>
               <div className="flex items-center gap-3 flex-wrap">
@@ -403,7 +401,7 @@ export default function DistrictAdminDashboardGroupDetailPage() {
                     onKeyDown={handleMemberSearchKey}
                   />
                   {memberSearchTerm && (
-                    <Button variant="ghost" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 h-6 w-6" onClick={clearMemberSearch} type="button">
+                    <Button variant="ghost" size="icon" aria-label="Clear search" className="absolute right-1 top-1/2 -translate-y-1/2 h-6 w-6" onClick={clearMemberSearch} type="button">
                       <X className="h-4 w-4" />
                     </Button>
                   )}
@@ -411,14 +409,14 @@ export default function DistrictAdminDashboardGroupDetailPage() {
                 <Button variant="outline" size="sm" onClick={runMemberSearch} type="button">Search</Button>
                 {canManageMembers && (
                   <div className="ml-auto">
-                    <Button onClick={openAddMemberDialog} className="bg-azure hover:bg-mint-ink text-white"><Plus className="mr-2 h-4 w-4" />Add Member</Button>
+                    <Button onClick={openAddMemberDialog}><Plus className="mr-2 h-4 w-4" />Add Member</Button>
                   </div>
                 )}
               </div>
               {members.length === 0 && (
                 <div className="flex flex-col items-center justify-center py-16 text-center">
                   <Users className="h-12 w-12 text-muted-foreground mb-4" />
-                  <h3 className="text-lg font-semibold">{memberSearchTerm ? "No matches found" : "No members yet"}</h3>
+                  <h3 className="row-h2">{memberSearchTerm ? "No matches found" : "No members yet"}</h3>
                   <p className="text-muted-foreground mt-2">
                     {memberSearchTerm
                       ? `No members match "${memberSearchTerm}". Try a different search.`
@@ -472,8 +470,8 @@ export default function DistrictAdminDashboardGroupDetailPage() {
                             {canManageMembers && (
                               <TableCell className="text-right">
                                 <div className="flex items-center justify-end gap-1">
-                                  <Button variant="ghost" size="icon" onClick={() => openEditMemberDialog(m)}><Pencil className="h-4 w-4" /></Button>
-                                  <Button variant="ghost" size="icon" className="text-destructive" onClick={() => setDeleteMemberTarget(m)}><Trash2 className="h-4 w-4" /></Button>
+                                  <Button variant="ghost" size="icon" aria-label="Edit member" onClick={() => openEditMemberDialog(m)}><Pencil className="h-4 w-4" /></Button>
+                                  <Button variant="ghost" size="icon" aria-label="Remove member" className="text-destructive" onClick={() => setDeleteMemberTarget(m)}><Trash2 className="h-4 w-4" /></Button>
                                 </div>
                               </TableCell>
                             )}
@@ -499,69 +497,69 @@ export default function DistrictAdminDashboardGroupDetailPage() {
             {/* ---- Sub Groups (stacked below members; add on top, table with edit/delete/sort) ---- */}
             <div className="space-y-4">
               <div className="flex flex-wrap items-center justify-between gap-3">
-                <h3 className="text-lg font-semibold text-ink flex items-center gap-2">
+                <h3 className="row-h2 flex items-center gap-2">
                   <Layers className="h-5 w-5" />Sub Groups <span className="text-slate-400 font-normal">({subGroups.length})</span>
                 </h3>
                 {canManage && (
-                  <Button onClick={() => router.push(`/district-admin-dashboard/district-committee/groups/${groupId}/sub-groups/add${backQs ? `?${backQs}` : ""}`)} className="bg-azure hover:bg-mint-ink text-white"><Plus className="mr-2 h-4 w-4" />Add Sub Group</Button>
+                  <Button onClick={() => router.push(`/district-admin-dashboard/district-committee/groups/${groupId}/sub-groups/add${backQs ? `?${backQs}` : ""}`)}><Plus className="mr-2 h-4 w-4" />Add Sub Group</Button>
                 )}
               </div>
               {subGroups.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-14 text-center rounded-2xl border border-dashed border-slate-300 bg-card">
+                <div className="row-rise flex flex-col items-center justify-center py-14 text-center rounded-2xl border border-dashed border-slate-300 bg-card">
                   <Layers className="h-10 w-10 text-slate-400 mb-3" />
-                  <h4 className="text-base font-semibold text-slate-800">No sub-groups yet</h4>
+                  <h4 className="row-h2">No sub-groups yet</h4>
                   <p className="text-slate-500 text-sm mt-1">{canManage ? "Click \"Add Sub Group\" to create one." : "No sub-groups in this group."}</p>
                 </div>
               ) : (
-                <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-card shadow-sm">
-                  <table className="w-full min-w-[640px] md:min-w-full text-sm">
-                    <thead className="bg-[#EDF4FB] text-[13px] text-[#64748B]">
-                      <tr>
-                        <th className="px-4 py-3 text-left w-12">#</th>
-                        <th className="px-4 py-3 text-left">Sub-Group Name</th>
-                        <th className="px-4 py-3 text-right">Members</th>
-                        <th className="px-4 py-3 text-right w-16">Actions</th>
-                        {canManage && <th className="px-3 py-3 text-center w-14">Sort</th>}
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100">
+                <Card className="overflow-x-auto">
+                  <Table className="w-full min-w-[640px] md:min-w-full text-sm">
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="px-4 text-left w-12">#</TableHead>
+                        <TableHead className="px-4 text-left">Sub-Group Name</TableHead>
+                        <TableHead className="px-4 text-right">Members</TableHead>
+                        <TableHead className="px-4 text-right w-16">Actions</TableHead>
+                        {canManage && <TableHead className="px-3 text-center w-14">Sort</TableHead>}
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody className="divide-y divide-slate-100">
                       {subGroups.map((sg: any, idx: number) => (
-                        <tr
+                        <TableRow
                           key={sg.id}
                           className={`hover:bg-slate-50/60 ${navigatingSubGroupId === sg.id ? "opacity-70 pointer-events-none" : ""}`}
                         >
-                          <td className="px-4 py-2.5 text-slate-500 tabular-nums">{idx + 1}</td>
-                          <td className="px-4 py-2.5">
+                          <TableCell className="px-4 py-2.5 text-slate-500 tabular-nums">{idx + 1}</TableCell>
+                          <TableCell className="px-4 py-2.5">
                             <div className="flex items-center gap-2.5">
                               {navigatingSubGroupId === sg.id ? <RotaryLoader size="sm" /> : <Layers className="h-5 w-5 text-ink flex-shrink-0" />}
                               <span className="font-medium text-slate-800">{sg.subGroupName}</span>
                             </div>
-                          </td>
-                          <td className="px-4 py-2.5 text-right tabular-nums text-slate-700">{sg.memberCount || 0}</td>
-                          <td className="px-4 py-2.5" onClick={(e) => e.stopPropagation()}>
+                          </TableCell>
+                          <TableCell className="px-4 py-2.5 text-right tabular-nums text-slate-700">{sg.memberCount || 0}</TableCell>
+                          <TableCell className="px-4 py-2.5" onClick={(e) => e.stopPropagation()}>
                             <div className="flex items-center justify-end gap-1">
                               {canManage && (
                                 <>
-                                  <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-500 hover:text-ink hover:bg-slate-100" onClick={() => { setNavigatingSubGroupId(sg.id); router.push(`/district-admin-dashboard/district-committee/groups/${groupId}/sub-groups/${sg.id}${backQs ? `?${backQs}` : ""}`); }}>
+                                  <Button variant="ghost" size="icon" aria-label="Open sub-group" className="row-btn-sm" onClick={() => { setNavigatingSubGroupId(sg.id); router.push(`/district-admin-dashboard/district-committee/groups/${groupId}/sub-groups/${sg.id}${backQs ? `?${backQs}` : ""}`); }}>
                                     <Pencil className="h-4 w-4" />
                                   </Button>
-                                  <Button variant="ghost" size="icon" className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50" onClick={() => setDeleteSubGroupTarget(sg)}>
+                                  <Button variant="ghost" size="icon" aria-label="Delete sub-group" className="text-red-600 row-btn-sm" onClick={() => setDeleteSubGroupTarget(sg)}>
                                     <Trash2 className="h-4 w-4" />
                                   </Button>
                                 </>
                               )}
                             </div>
-                          </td>
+                          </TableCell>
                           {canManage && (
-                            <td className="px-3 py-2.5 text-center" {...subGroupDragProps(idx)} onClick={(e) => e.stopPropagation()}>
+                            <TableCell className="px-3 py-2.5 text-center" {...subGroupDragProps(idx)} onClick={(e) => e.stopPropagation()}>
                               <GripVertical className="h-4 w-4 text-slate-400 inline-block cursor-grab" />
-                            </td>
+                            </TableCell>
                           )}
-                        </tr>
+                        </TableRow>
                       ))}
-                    </tbody>
-                  </table>
-                </div>
+                    </TableBody>
+                  </Table>
+                </Card>
               )}
             </div>
           </div>

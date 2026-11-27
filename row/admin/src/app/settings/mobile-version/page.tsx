@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -16,9 +15,9 @@ import ErrorAlert from "@/components/ErrorAlert";
 import RotaryLoader from "@/components/RotaryLoader";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { useAuth } from "@/contexts/AuthContext";
-import { ArrowLeft, Plus, Smartphone, Loader2 } from "@/components/icons";
+import { Plus, Loader2 } from "@/components/icons";
 import { getMobileVersions, createMobileVersion } from "@/services/api";
-import { ListPageSkeleton } from "@/components/row/AppKit";
+import { PageHeader, ListPageSkeleton } from "@/components/row/AppKit";
 
 const DEFAULT_URL = process.env.NEXT_PUBLIC_IOS_APP_URL ?? "";
 // Default store URLs — pre-filled but fully editable in the Add dialog.
@@ -66,7 +65,7 @@ export default function MobileVersionPage() {
   if (!isSuperAdmin) {
     return (
       <ProtectedRoute>
-        <div className="flex flex-col items-center justify-center py-20"><h3 className="text-lg font-semibold">Access Denied</h3></div>
+        <div className="flex flex-col items-center justify-center py-20"><h3 className="row-h2">Access Denied</h3></div>
       </ProtectedRoute>
     );
   }
@@ -74,23 +73,16 @@ export default function MobileVersionPage() {
   return (
     <ProtectedRoute>
       <div className="space-y-6">
-        <div className="flex items-center justify-between flex-wrap gap-3">
-          <div className="flex items-center gap-3">
-            <Button variant="outline" size="icon" asChild>
-              <Link href="/settings"><ArrowLeft className="h-4 w-4" /></Link>
-            </Button>
-            <div>
-              <h2 className="text-2xl font-bold tracking-tight text-primary flex items-center gap-2">
-                <Smartphone className="h-6 w-6" />Mobile App Version
-              </h2>
-              <p className="text-muted-foreground text-base">
-                Add a new version to make it the live version. The newest row is automatically active and all previous rows are deactivated.
-                To correct a mistake, simply add a new version. No edit or delete option is provided by design.
-              </p>
-            </div>
-          </div>
-          <Button onClick={openAdd}><Plus className="h-4 w-4 mr-2" />Add Version</Button>
-        </div>
+        <PageHeader
+          title="Mobile App Version"
+          description="Add a new version to make it the live version. The newest row is automatically active and all previous rows are deactivated. To correct a mistake, simply add a new version. No edit or delete option is provided by design."
+          back="/settings"
+          actions={
+            <>
+<Button onClick={openAdd}><Plus className="h-4 w-4 mr-2" />Add Version</Button>
+            </>
+          }
+        />
 
         {loading && <div className="flex justify-center py-12"><ListPageSkeleton /></div>}
 
@@ -121,7 +113,7 @@ export default function MobileVersionPage() {
                       <TableCell className="max-w-[300px] truncate" title={row.message}>{row.message || "–"}</TableCell>
                       <TableCell>
                         {row.isActive ? (
-                          <Badge className="bg-green-600 text-white">ACTIVE</Badge>
+                          <Badge className="bg-green-100 text-green-800">ACTIVE</Badge>
                         ) : (
                           <Badge variant="outline">Inactive</Badge>
                         )}

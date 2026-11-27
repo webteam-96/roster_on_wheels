@@ -16,13 +16,16 @@
  * than fabricating columns.
  */
 
+import { IconButton } from "@/components/ui/icon-button";
+import { NativeSelect } from "@/components/ui/native-select";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card } from "@/components/ui/card";
+import { PageHeader } from "@/components/row/AppKit";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useParams, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import {
-  UserPlus, Mail, Phone, AlertCircle, Search, Plus, Edit3,
-  Trash2, ArrowLeft, AlertTriangle, UserCheck,
-} from "@/components/icons";
+import { UserPlus, Mail, Phone, AlertCircle, Search, Plus, Edit3, Trash2, AlertTriangle, UserCheck } from "@/components/icons";
 import {
   getClub,
   getPotentialMembers,
@@ -44,6 +47,8 @@ import ClubAdminShell from "@/components/v2/ClubAdminShell";
 import { useSyncClubIdFromUrl } from "@/hooks/useSyncClubIdFromUrl";
 import Pagination from "@/components/Pagination";
 
+import { ClearButton } from "@/components/ui/text-buttons"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 const KPI_PAGE_SIZE = 1000;
 const LIST_PAGE_SIZE = 20;
 
@@ -179,23 +184,7 @@ export default function PotentialMembersV2Page() {
       >
       <div className="space-y-5">
         {/* Header */}
-        <div className="flex items-start justify-between gap-3">
-          <div className="flex items-start gap-2">
-            <Link
-              href={`/clubs/${clubId}/rotary-network`}
-              className="mt-0.5 inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50"
-              aria-label="Back"
-            >
-              <ArrowLeft size={15} />
-            </Link>
-            <div>
-              <h1 className="text-lg font-semibold text-slate-800">Potential Members</h1>
-              <p className="text-xs text-slate-500 mt-0.5">
-                Prospective members for {clubName || "this club"}
-              </p>
-            </div>
-          </div>
-        </div>
+        <PageHeader title="Potential Members" description={<>Prospective members for {clubName || "this club"}</>} back={`/clubs/${clubId}/rotary-network`} />
 
         {/* KPI row */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -206,56 +195,54 @@ export default function PotentialMembersV2Page() {
         </div>
 
         {/* Table card */}
-        <div className="bg-card rounded-2xl border border-slate-200 overflow-hidden">
+        <Card className="overflow-hidden">
           <div className="px-5 py-3 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div>
-              <h3 className="text-sm font-semibold text-slate-800">Potential Members</h3>
+              <h3 className="row-h3">Potential Members</h3>
               <p className="text-xs text-slate-500 mt-0.5">Prospective members the club may invite to join</p>
             </div>
             <div className="flex flex-wrap items-center gap-2">
               <div className="relative w-full sm:w-auto">
                 <Search size={14} className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-400" />
-                <input
+                <Input
                   type="text"
                   placeholder="Search name, email or mobile…"
                   value={searchInput}
                   onChange={(e) => setSearchInput(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-                  className="pl-7 pr-7 h-10 py-0 text-sm border border-slate-200 rounded-[12px] w-full sm:w-64 focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                  className="pl-7 pr-7 sm:w-64"
                 />
                 {searchInput && (
-                  <button
+                  <ClearButton
                     type="button"
                     onClick={clearSearch}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
-                    aria-label="Clear search"
-                  >
+                     aria-label="Clear search">
                     ×
-                  </button>
+                  </ClearButton>
                 )}
               </div>
-              <button
+              <Button
                 type="button"
                 onClick={handleSearch}
-                className="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1.5 rounded-full border border-slate-200 text-slate-700 hover:bg-slate-50"
+                variant="outline" size="sm"
               >
                 Search
-              </button>
+              </Button>
               {pipelineOn && (
-                <select
+                <NativeSelect
                   aria-label="Stage"
                   value={stage}
                   onChange={(e) => { setPage(1); setStage(e.target.value); }}
-                  className="text-xs px-2 py-1.5 rounded-lg border border-slate-200 text-slate-700 bg-card"
+                  className="w-auto"
                 >
                   <option value="">All stages</option>
                   {PROSPECT_STAGES.map((s) => <option key={s} value={s}>{label(s)}</option>)}
-                </select>
+                </NativeSelect>
               )}
               {canManage && pipelineOn && (
                 <Link
                   href={`/clubs/${clubId}/rotary-network/potential-members/v2/follow-ups`}
-                  className="inline-flex items-center gap-1.5 text-xs font-medium px-4 h-10 rounded-full border border-slate-200 text-slate-700 hover:bg-slate-50"
+                  className="row-btn row-btn-secondary"
                 >
                   Follow-ups and notifications
                 </Link>
@@ -263,7 +250,7 @@ export default function PotentialMembersV2Page() {
               {canManage && (
                 <Link
                   href={addUrl}
-                  className="inline-flex items-center gap-1.5 text-xs font-semibold px-4 h-10 rounded-full bg-[#17458F] text-white hover:bg-[#17458F]"
+                  className="row-btn row-btn-primary"
                 >
                   <Plus size={13} /> Add Potential Member
                 </Link>
@@ -278,84 +265,84 @@ export default function PotentialMembersV2Page() {
                 {Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-5 w-full" />)}
               </div>
             ) : (
-              <table className="min-w-full text-sm">
-                <thead className="bg-[#EDF4FB] text-[13px] text-[#64748B]">
-                  <tr>
-                    <th className="px-3 py-2.5 text-left w-12">Sr</th>
-                    <th className="px-3 py-2.5 text-left">Name</th>
-                    <th className="px-3 py-2.5 text-left">Email</th>
-                    <th className="px-3 py-2.5 text-left">Mobile</th>
-                    <th className="px-3 py-2.5 text-left">Reference Details</th>
-                    {pipelineOn && <th className="px-3 py-2.5 text-left">Stage</th>}
-                    {pipelineOn && <th className="px-3 py-2.5 text-left">Owner</th>}
-                    {canManage && pipelineOn && <th className="px-3 py-2.5 text-right w-24">Member</th>}
-                    {canManage && <th className="px-3 py-2.5 text-right w-16">Edit</th>}
-                    {canManage && <th className="px-3 py-2.5 text-right w-16">Delete</th>}
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
+              <Table className="min-w-full">
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="text-left w-12">Sr</TableHead>
+                    <TableHead className="text-left">Name</TableHead>
+                    <TableHead className="text-left">Email</TableHead>
+                    <TableHead className="text-left">Mobile</TableHead>
+                    <TableHead className="text-left">Reference Details</TableHead>
+                    {pipelineOn && <TableHead className="text-left">Stage</TableHead>}
+                    {pipelineOn && <TableHead className="text-left">Owner</TableHead>}
+                    {canManage && pipelineOn && <TableHead className="text-right w-24">Member</TableHead>}
+                    {canManage && <TableHead className="text-right w-16">Edit</TableHead>}
+                    {canManage && <TableHead className="text-right w-16">Delete</TableHead>}
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
                   {members.map((m, i) => (
-                    <tr key={m.id} className="hover:bg-blue-50/40">
-                      <td className="px-3 py-2 text-slate-500">{(page - 1) * LIST_PAGE_SIZE + i + 1}</td>
-                      <td className="px-3 py-2 font-medium text-slate-800">{m.name || "–"}</td>
-                      <td className="px-3 py-2 text-slate-600">{m.email || <span className="text-slate-400">–</span>}</td>
-                      <td className="px-3 py-2 text-slate-600 whitespace-nowrap">{m.mobileNumber || <span className="text-slate-400">–</span>}</td>
-                      <td className="px-3 py-2 text-slate-600 max-w-[320px] truncate" title={m.referenceDetails || ""}>
+                    <TableRow key={m.id}>
+                      <TableCell>{(page - 1) * LIST_PAGE_SIZE + i + 1}</TableCell>
+                      <TableCell className="font-medium">{m.name || "–"}</TableCell>
+                      <TableCell>{m.email || <span className="text-slate-400">–</span>}</TableCell>
+                      <TableCell className="whitespace-nowrap">{m.mobileNumber || <span className="text-slate-400">–</span>}</TableCell>
+                      <TableCell className="max-w-[320px] truncate" title={m.referenceDetails || ""}>
                         {m.referenceDetails || <span className="text-slate-400">–</span>}
-                      </td>
+                      </TableCell>
                       {pipelineOn && (
-                        <td className="px-3 py-2 text-slate-700 whitespace-nowrap" title={m.notes || ""}>{label(m.stage)}</td>
+                        <TableCell className="whitespace-nowrap" title={m.notes || ""}>{label(m.stage)}</TableCell>
                       )}
-                      {pipelineOn && <td className="px-3 py-2 text-slate-600">{m.ownerName || "-"}</td>}
+                      {pipelineOn && <TableCell>{m.ownerName || "-"}</TableCell>}
                       {canManage && pipelineOn && (
-                        <td className="px-3 py-2 text-right">
+                        <TableCell className="text-right">
                           {m.convertedMemberId ? (
                             <span className="text-xs text-emerald-700">Member</span>
                           ) : (
-                            <button
+                            <Button
                               type="button"
                               onClick={() => setConvertTarget(m)}
-                              className="inline-flex items-center gap-1 text-xs font-medium px-2 py-1 rounded border border-slate-200 text-slate-700 hover:bg-slate-50"
+                              variant="outline" size="sm"
                             >
                               <UserCheck size={13} /> Make member
-                            </button>
+                            </Button>
                           )}
-                        </td>
+                        </TableCell>
                       )}
                       {canManage && (
-                        <td className="px-3 py-2 text-right">
+                        <TableCell className="text-right">
                           <Link
                             href={`/clubs/${clubId}/rotary-network/potential-members/v2/${m.id}/edit?returnTo=${returnTo}`}
-                            className="inline-flex items-center justify-center w-7 h-7 rounded text-slate-500 hover:text-blue-700 hover:bg-blue-50"
+                            className="row-icon-btn"
                             aria-label="Edit potential member"
                           >
                             <Edit3 size={13} />
                           </Link>
-                        </td>
+                        </TableCell>
                       )}
                       {canManage && (
-                        <td className="px-3 py-2 text-right">
-                          <button
+                        <TableCell className="text-right">
+                          <IconButton
                             type="button"
                             onClick={() => setDeleteTarget(m)}
-                            className="inline-flex items-center justify-center w-7 h-7 rounded text-slate-400 hover:text-rose-700 hover:bg-rose-50"
+                            className="hover:text-red-700"
                             aria-label="Delete potential member"
                           >
                             <Trash2 size={13} />
-                          </button>
-                        </td>
+                          </IconButton>
+                        </TableCell>
                       )}
-                    </tr>
+                    </TableRow>
                   ))}
                   {members.length === 0 && (
-                    <tr>
-                      <td colSpan={columnCount} className="px-4 py-10 text-center text-slate-400">
+                    <TableRow>
+                      <TableCell colSpan={columnCount} className="py-10 text-center text-muted-foreground">
                         {search ? "No potential members match your search." : "No potential members for this club yet."}
-                      </td>
-                    </tr>
+                      </TableCell>
+                    </TableRow>
                   )}
-                </tbody>
-              </table>
+                </TableBody>
+              </Table>
             )}
           </div>
 
@@ -367,7 +354,7 @@ export default function PotentialMembersV2Page() {
             </span>
           </div>
           {totalPages > 1 && <div className="px-5 py-3 border-t border-slate-100"><Pagination page={page} totalPages={totalPages} totalCount={totalCount} pageSize={LIST_PAGE_SIZE} onPageChange={setPage} /></div>}
-        </div>
+        </Card>
 
         {/* Delete confirm */}
         <AlertModal

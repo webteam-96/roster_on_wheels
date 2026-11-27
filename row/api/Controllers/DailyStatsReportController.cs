@@ -12,7 +12,12 @@ namespace RotaryApi.Controllers;
 public class DailyStatsReportController : ControllerBase
 {
     private readonly IDailyStatsReportService _service;
-    public DailyStatsReportController(IDailyStatsReportService service) => _service = service;
+    private readonly ILogger<DailyStatsReportController> _logger;
+    public DailyStatsReportController(IDailyStatsReportService service, ILogger<DailyStatsReportController> logger)
+    {
+        _service = service;
+        _logger = logger;
+    }
 
     private bool IsSuperAdmin()
         => (User.FindFirst("roles")?.Value ?? "").Contains("SuperAdmin");
@@ -30,7 +35,13 @@ public class DailyStatsReportController : ControllerBase
         }
         catch (Exception ex) when (ex is InvalidOperationException or ArgumentException)
         {
-            return BadRequest(new { message = $"Failed to run the daily statistics report: {ex.Message}" });
+            return BadRequest(new { message = $"The report was not sent: {ex.Message}" });
+        }
+        catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException && !HttpContext.RequestAborted.IsCancellationRequested)
+        {
+            // The provider's reply (key, sender, quota) is in the email log and the server log, not in the response.
+            _logger.LogError(ex, "Daily statistics report: the mail service did not accept the message.");
+            return StatusCode(StatusCodes.Status502BadGateway, new { message = "The report was not sent: the mail service did not accept it. The email log has the reason." });
         }
     }
 

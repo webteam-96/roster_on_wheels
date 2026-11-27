@@ -10,6 +10,10 @@
  * v2 reads ONLY `?returnTo=` — no `returnUrl`, no `backUrl`.
  */
 
+import FieldLabel from "@/components/form/FieldLabel";
+import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
+import SectionCard from "@/components/form/SectionCard";
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { Info, User, Mail, Phone, FileText } from "@/components/icons";
@@ -25,36 +29,6 @@ import ProspectPipelineFields, { type PipelineValue } from "@/components/contact
 import { ListPageSkeleton } from "@/components/row/AppKit";
 
 const TOP_MESSAGE = "Capture prospective members the club may invite to join. Provide as much contact information as possible so the club can follow up.";
-
-function FieldLabel({
-  children, hint, required, dot,
-}: { children: React.ReactNode; hint?: string; required?: boolean; dot: string }) {
-  return (
-    <div className="flex items-center gap-1.5 mb-1">
-      <span className={`w-1.5 h-1.5 rounded-full ${dot}`} />
-      <label className="text-xs font-semibold text-slate-700">
-        {children}
-        {required && <span className="text-rose-600 ml-0.5">*</span>}
-        {hint && <span className="text-slate-400 font-normal ml-1">{hint}</span>}
-      </label>
-    </div>
-  );
-}
-
-function SectionCard({
-  number, icon: Icon, title, dot, children,
-}: { number: number; icon: React.ElementType; title: string; dot: string; children: React.ReactNode }) {
-  return (
-    <div className="rounded-xl border border-slate-200 overflow-hidden mb-4">
-      <div className="flex items-center gap-3 px-4 py-2.5 bg-slate-50 border-b border-slate-100">
-        <div className={`flex items-center justify-center h-7 w-7 rounded-full text-white text-xs font-bold ${dot}`}>{number}</div>
-        <Icon className="h-4 w-4 text-slate-500" />
-        <h3 className="text-sm font-semibold text-slate-800">{title}</h3>
-      </div>
-      <div className="p-4">{children}</div>
-    </div>
-  );
-}
 
 export default function PotentialMembersV2AddPage() {
   useSyncClubIdFromUrl();
@@ -154,44 +128,44 @@ export default function PotentialMembersV2AddPage() {
         }
       >
         {/* 1. Identity */}
-        <SectionCard number={1} icon={User} title="Identity" dot="bg-[#17458F]">
+        <SectionCard number={1} icon={User} title="Identity">
           <div className="grid grid-cols-1 gap-4">
             <div>
-              <FieldLabel required dot="bg-[#17458F]">Name</FieldLabel>
-              <input
+              <FieldLabel required>Name</FieldLabel>
+              <Input
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Full name"
-                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                
               />
             </div>
           </div>
         </SectionCard>
 
         {/* 2. Contact */}
-        <SectionCard number={2} icon={Mail} title="Contact Information" dot="bg-[#17458F]">
+        <SectionCard number={2} icon={Mail} title="Contact Information">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <FieldLabel dot="bg-[#17458F]">Email</FieldLabel>
-              <input
+              <FieldLabel>Email</FieldLabel>
+              <Input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="email@example.com"
-                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                
               />
             </div>
             <div>
-              <FieldLabel dot="bg-[#17458F]" hint="(e.g. +1 555 123 4567)">Mobile Number</FieldLabel>
+              <FieldLabel hint="(e.g. +1 555 123 4567)">Mobile Number</FieldLabel>
               <div className="relative">
                 <Phone className="absolute left-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
-                <input
+                <Input
                   type="text"
                   value={mobile}
                   onChange={(e) => setMobile(e.target.value)}
                   placeholder="+1 555 123 4567"
-                  className="w-full pl-7 pr-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                  className="pl-7 pr-3"
                 />
               </div>
             </div>
@@ -199,14 +173,14 @@ export default function PotentialMembersV2AddPage() {
         </SectionCard>
 
         {/* 3. Reference */}
-        <SectionCard number={3} icon={FileText} title="Reference Details" dot="bg-[#17458F]">
-          <FieldLabel dot="bg-[#17458F]" hint="(who referred this person, notes, etc.)">Reference</FieldLabel>
-          <textarea
+        <SectionCard number={3} icon={FileText} title="Reference Details">
+          <FieldLabel hint="(who referred this person, notes, etc.)">Reference</FieldLabel>
+          <Textarea
             value={reference}
             onChange={(e) => setReference(e.target.value)}
             placeholder="Who referred this person, any notes…"
             rows={4}
-            className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+            
           />
         </SectionCard>
 

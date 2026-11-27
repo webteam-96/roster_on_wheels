@@ -4,6 +4,7 @@ import '../../../core/theme/app_text_styles.dart';
 import '../../../core/theme/app_theme.dart';
 import 'package:rotary_flutter_app/core/theme/app_fonts.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/motion.dart';
 
 class StatCardWidget extends StatelessWidget {
   final String title;
@@ -25,11 +26,11 @@ class StatCardWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     final themeColor = color ?? AppColors.primaryPrime;
     
-    return Material(
+    return RowPressable(
+      enabled: onTap != null,
+      child: Material(
       color: AppColors.white,
       borderRadius: BorderRadius.circular(20),
-      elevation: 2,
-      shadowColor: themeColor.withOpacity(0.1),
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(20),
@@ -63,7 +64,7 @@ class StatCardWidget extends StatelessWidget {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
+                  RowCountUp(
                     value,
                     style: AppTextStyles.statValue.copyWith(
                       color: AppColors.textPrimary,
@@ -86,6 +87,7 @@ class StatCardWidget extends StatelessWidget {
             ],
           ),
         ),
+      ),
       ),
     );
   }

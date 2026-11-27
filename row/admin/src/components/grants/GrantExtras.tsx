@@ -5,6 +5,8 @@
  * the monthly cash flow with recorded receipts and its Excel export, and the editable notification email templates.
  */
 
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table"
+import { NativeSelect } from "@/components/ui/native-select";
 import { useEffect, useState } from "react";
 import { Download, Loader2, Save, Trash2 } from "@/components/icons";
 import { Button } from "@/components/ui/button";
@@ -27,14 +29,14 @@ import type {
 } from "@/types/grants";
 
 const message = (err: any, fallback: string) => err?.response?.data?.message || fallback;
-const SELECT = "h-10 w-full rounded-md border border-input bg-background px-3 text-sm";
+const SELECT = "row-field w-full";
 
 function Panel({ title, hint, action, children }: { title: string; hint?: string; action?: React.ReactNode; children: React.ReactNode }) {
   return (
     <section className="space-y-3">
       <div className="flex flex-wrap items-end justify-between gap-2">
         <div>
-          <h3 className="text-lg font-semibold">{title}</h3>
+          <h3 className="row-h2">{title}</h3>
           {hint && <p className="text-sm text-muted-foreground">{hint}</p>}
         </div>
         {action}
@@ -113,39 +115,39 @@ export function QualifiedClubs({ districtId, yearId, yearLabel, onError }: {
           )}
           <Card>
             <CardContent className="overflow-x-auto p-0">
-              <table className="w-full min-w-[760px] text-sm">
-                <thead className="bg-[#EDF4FB] text-[13px] text-[#64748B]">
-                  <tr className="border-b text-left text-muted-foreground">
-                    <th className="p-3 font-medium">Club</th>
-                    <th className="p-3 font-medium">Status</th>
-                    <th className="p-3 font-medium">MOU signed</th>
-                    <th className="p-3 font-medium">Training</th>
-                    <th className="p-3 font-medium">Expires</th>
-                    <th className="p-3 font-medium">Trained members</th>
-                    <th className="p-3" />
-                  </tr>
-                </thead>
-                <tbody>
+              <Table className="w-full min-w-[760px] text-sm">
+                <TableHeader>
+                  <TableRow className="border-b">
+                    <TableHead className="p-3">Club</TableHead>
+                    <TableHead className="p-3">Status</TableHead>
+                    <TableHead className="p-3">MOU signed</TableHead>
+                    <TableHead className="p-3">Training</TableHead>
+                    <TableHead className="p-3">Expires</TableHead>
+                    <TableHead className="p-3">Trained members</TableHead>
+                    <TableHead className="p-3" />
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
                   {rows.map((r) => (
-                    <tr key={r.clubId} className="border-b last:border-0">
-                      <td className="p-3">{r.clubName}</td>
-                      <td className="p-3">
+                    <TableRow key={r.clubId} className="border-b last:border-0">
+                      <TableCell className="p-3">{r.clubName}</TableCell>
+                      <TableCell className="p-3">
                         <span className={`inline-flex rounded px-2 py-0.5 text-xs font-medium ${r.qualified ? "bg-emerald-100 text-emerald-800" : "bg-amber-100 text-amber-800"}`}
                           title={r.problem ?? undefined}>
                           {r.qualified ? "Qualified" : r.expiresOn && r.mouSignedOn && r.trainingOn ? "Expired" : "Not qualified"}
                         </span>
-                      </td>
-                      <td className="p-3">{r.mouSignedOn ? fmt.date(r.mouSignedOn) : ""}</td>
-                      <td className="p-3">{r.trainingOn ? fmt.date(r.trainingOn) : ""}</td>
-                      <td className="p-3">{r.expiresOn ? fmt.date(r.expiresOn) : ""}</td>
-                      <td className="p-3">{r.members.length || ""}</td>
-                      <td className="p-3 text-right">
+                      </TableCell>
+                      <TableCell className="p-3">{r.mouSignedOn ? fmt.date(r.mouSignedOn) : ""}</TableCell>
+                      <TableCell className="p-3">{r.trainingOn ? fmt.date(r.trainingOn) : ""}</TableCell>
+                      <TableCell className="p-3">{r.expiresOn ? fmt.date(r.expiresOn) : ""}</TableCell>
+                      <TableCell className="p-3">{r.members.length || ""}</TableCell>
+                      <TableCell className="p-3 text-right">
                         <Button size="sm" variant="outline" onClick={() => setEditing(r)}>Edit</Button>
-                      </td>
-                    </tr>
+                      </TableCell>
+                    </TableRow>
                   ))}
-                </tbody>
-              </table>
+                </TableBody>
+              </Table>
             </CardContent>
           </Card>
         </>
@@ -198,7 +200,7 @@ function QualificationForm({ districtId, yearId, row, onSaved, onClose, onError 
     <Card>
       <CardContent className="p-5">
         <form className="space-y-4" onSubmit={save}>
-          <h4 className="text-base font-semibold">{row.clubName}</h4>
+          <h4 className="row-h2">{row.clubName}</h4>
           <div className="grid gap-4 sm:grid-cols-3">
             {date("mouSignedOn", "MOU signed on")}
             {date("trainingOn", "Grant training attended on")}
@@ -224,10 +226,10 @@ function QualificationForm({ districtId, yearId, row, onSaved, onClose, onError 
               <div className="flex flex-wrap items-end gap-2">
                 <div className="w-72 space-y-1.5">
                   <Label htmlFor="q-pick">Add a trained member</Label>
-                  <select id="q-pick" className={SELECT} value={pick} onChange={(e) => setPick(e.target.value)}>
+                  <NativeSelect id="q-pick"  value={pick} onChange={(e) => setPick(e.target.value)}>
                     <option value="">Choose a member</option>
                     {available.map((m) => <option key={m.id} value={m.id}>{m.memberName}</option>)}
-                  </select>
+                  </NativeSelect>
                 </div>
                 <Button type="button" variant="outline" disabled={!pick} onClick={() => {
                   const m = roster.find((r) => r.id === Number(pick));
@@ -242,7 +244,7 @@ function QualificationForm({ districtId, yearId, row, onSaved, onClose, onError 
             <Input id="q-note" maxLength={500} value={form.note ?? ""} onChange={(e) => set("note", e.target.value || null)} />
           </div>
           <div className="flex gap-2">
-            <Button type="submit" disabled={busy} className="gap-1.5">
+            <Button type="submit" disabled={busy}>
               {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />} Save
             </Button>
             <Button type="button" variant="outline" onClick={onClose}>Close</Button>
@@ -298,7 +300,7 @@ export function MonthlyCashFlow({ districtId, cycleId, yearLabel, onError }: {
     <Panel title="Cash flow by month"
       hint="Approved grants, payments out and money received (DDF from the Foundation, club refunds). Balance is received minus paid out."
       action={
-        <Button variant="outline" className="gap-1.5" disabled={busy || !flow}
+        <Button variant="outline" disabled={busy || !flow}
           onClick={() => work(() => downloadGrantMonthlyCashFlow(districtId, cycleId, yearLabel), "Could not export.")}>
           <Download className="h-4 w-4" /> Export Excel
         </Button>
@@ -314,42 +316,42 @@ export function MonthlyCashFlow({ districtId, cycleId, yearLabel, onError }: {
           ) : (
             <Card>
               <CardContent className="overflow-x-auto p-0">
-                <table className="w-full min-w-[620px] text-sm">
-                  <thead className="bg-[#EDF4FB] text-[13px] text-[#64748B]">
-                    <tr className="border-b text-left text-muted-foreground">
-                      <th className="p-3 font-medium">Month</th>
-                      <th className="p-3 text-right font-medium">Approved</th>
-                      <th className="p-3 text-right font-medium">Paid out</th>
-                      <th className="p-3 text-right font-medium">Received</th>
-                      <th className="p-3 text-right font-medium">Balance</th>
-                    </tr>
-                  </thead>
-                  <tbody>
+                <Table className="w-full min-w-[620px] text-sm">
+                  <TableHeader>
+                    <TableRow className="border-b">
+                      <TableHead className="p-3">Month</TableHead>
+                      <TableHead className="p-3 text-right">Approved</TableHead>
+                      <TableHead className="p-3 text-right">Paid out</TableHead>
+                      <TableHead className="p-3 text-right">Received</TableHead>
+                      <TableHead className="p-3 text-right">Balance</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
                     {flow.months.map((m) => (
-                      <tr key={m.month} className="border-b">
-                        <td className="p-3">{m.month}</td>
-                        <td className="p-3 text-right tabular-nums">{fmt.money(m.approved)}</td>
-                        <td className="p-3 text-right tabular-nums">{fmt.money(m.paidOut)}</td>
-                        <td className="p-3 text-right tabular-nums">{fmt.money(m.receipts)}</td>
-                        <td className={`p-3 text-right tabular-nums ${m.balance < 0 ? "text-red-700" : ""}`}>{fmt.money(m.balance)}</td>
-                      </tr>
+                      <TableRow key={m.month} className="border-b">
+                        <TableCell className="p-3">{m.month}</TableCell>
+                        <TableCell className="p-3 text-right tabular-nums">{fmt.money(m.approved)}</TableCell>
+                        <TableCell className="p-3 text-right tabular-nums">{fmt.money(m.paidOut)}</TableCell>
+                        <TableCell className="p-3 text-right tabular-nums">{fmt.money(m.receipts)}</TableCell>
+                        <TableCell className={`p-3 text-right tabular-nums ${m.balance < 0 ? "text-red-700" : ""}`}>{fmt.money(m.balance)}</TableCell>
+                      </TableRow>
                     ))}
-                    <tr className="font-semibold">
-                      <td className="p-3">Total</td>
-                      <td className="p-3 text-right tabular-nums">{fmt.money(flow.approved)}</td>
-                      <td className="p-3 text-right tabular-nums">{fmt.money(flow.paidOut)}</td>
-                      <td className="p-3 text-right tabular-nums">{fmt.money(flow.receipts)}</td>
-                      <td className="p-3 text-right tabular-nums">{fmt.money(flow.balance)}</td>
-                    </tr>
-                  </tbody>
-                </table>
+                    <TableRow className="font-semibold">
+                      <TableCell className="p-3">Total</TableCell>
+                      <TableCell className="p-3 text-right tabular-nums">{fmt.money(flow.approved)}</TableCell>
+                      <TableCell className="p-3 text-right tabular-nums">{fmt.money(flow.paidOut)}</TableCell>
+                      <TableCell className="p-3 text-right tabular-nums">{fmt.money(flow.receipts)}</TableCell>
+                      <TableCell className="p-3 text-right tabular-nums">{fmt.money(flow.balance)}</TableCell>
+                    </TableRow>
+                  </TableBody>
+                </Table>
               </CardContent>
             </Card>
           )}
 
           <Card>
             <CardContent className="space-y-3 p-5">
-              <h4 className="text-base font-semibold">Money received</h4>
+              <h4 className="row-h2">Money received</h4>
               {flow.receiptList.length === 0 ? (
                 <p className="text-sm text-muted-foreground">No receipts recorded.</p>
               ) : (
@@ -458,7 +460,7 @@ function TemplateEditor({ districtId, template, onSaved, onError }: {
     <Card>
       <CardContent className="space-y-3 p-5">
         <div className="flex items-center justify-between gap-2">
-          <h4 className="text-base font-semibold">{TEMPLATE_TITLE[template.kind] ?? template.kind}</h4>
+          <h4 className="row-h2">{TEMPLATE_TITLE[template.kind] ?? template.kind}</h4>
           <span className="text-xs text-muted-foreground">{template.isDefault ? "Built-in" : "Edited"}</span>
         </div>
         <div className="space-y-1.5">
@@ -470,7 +472,7 @@ function TemplateEditor({ districtId, template, onSaved, onError }: {
           <Textarea id={`${id}-body`} rows={7} maxLength={8000} value={body} onChange={(e) => setBody(e.target.value)} />
         </div>
         <div className="flex flex-wrap gap-2">
-          <Button disabled={busy || !subject.trim() || !body.trim()} className="gap-1.5"
+          <Button disabled={busy || !subject.trim() || !body.trim()}
             onClick={() => work(async () => onSaved({ ...(await saveGrantEmailTemplate(districtId, template.kind, { subject, body })), isDefault: false }), "Could not save the template.")}>
             <Save className="h-4 w-4" /> Save
           </Button>

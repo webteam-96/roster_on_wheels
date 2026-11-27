@@ -20,12 +20,14 @@
  *      Active Members KPI are removed.
  */
 
+import { IconButton } from "@/components/ui/icon-button";
+import { Card } from "@/components/ui/card";
 import { useCallback, useEffect, useState } from "react";
 import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   Users, UserPlus, UserMinus, Loader2,
-  Search, User, MoreHorizontal, ShieldCheck, ShieldOff, X, Eye,
+  Search, User, MoreHorizontal, ShieldCheck, ShieldOff, X, Eye, CalendarDays,
 } from "@/components/icons";
 import { useDistrictAdminCache } from "@/contexts/DistrictAdminDashboardCacheContext";
 import { useAuth } from "@/contexts/AuthContext";
@@ -51,6 +53,7 @@ import { PagedResult } from "@/types/member";
 import {
   getDistrictMembers, getPhotoUrl,
   assignDistrictAdmin, removeDistrictAdmin, assignDistrictAdminByDistrictAdmin,
+  saveAdminYears, adminYearsSavedMessage,
 } from "@/services/api";
 import AdminYearsDialog from "@/components/AdminYearsDialog";
 import ViewOnlyBadge from "@/components/ViewOnlyBadge";
@@ -134,7 +137,7 @@ function getRoleTabV2Href(k: RoleTabKey, _districtId: number, yearId: string | n
 
 function PendingChip({ label = "Pending" }: { label?: string }) {
   return (
-    <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-700 ring-1 ring-amber-200">
+    <span className="inline-flex items-center gap-1 rounded bg-amber-50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-700 ring-1 ring-amber-200">
       <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
       {label}
     </span>
@@ -229,7 +232,7 @@ export default function DistrictAdminMembershipPage() {
   // District admin rights are per Rotary year — pick them before promoting.
   // ⚠️ Must sit above EVERY early return below: a hook has to run on each
   // render, or React counts a different number once the data arrives.
-  const [adminYearTarget, setAdminYearTarget] = useState<{ id: number; name: string } | null>(null);
+  const [adminYearTarget, setAdminYearTarget] = useState<{ id: number; name: string; editing?: boolean } | null>(null);
 
   if (status === "loading" && !membership) {
     return (
@@ -295,6 +298,24 @@ export default function DistrictAdminMembershipPage() {
     }
   };
 
+  // "Edit Years": same picker, pre-ticked with what they hold; saves in place.
+  const handleConfirmEditYears = async (picked: { yearIds: number[]; allYears: boolean }) => {
+    if (!adminYearTarget) return;
+    const { id: memberId, name: memberName } = adminYearTarget;
+    setRoleLoading(memberId);
+    try {
+      const res = await saveAdminYears({ kind: "district", districtId: districtIdForApi }, memberId, picked);
+      setAdminYearTarget(null);
+      setSuccessMessage(adminYearsSavedMessage(memberName, res));
+      fetchDirectory(dirPage, dirSearch);
+    } catch (err: any) {
+      setErrorMessage(err?.response?.data?.message || err?.response?.data || "Failed to update admin years.");
+      throw err;
+    } finally {
+      setRoleLoading(null);
+    }
+  };
+
   const handleRemoveAdmin = async (memberId: number, memberName: string) => {
     setRoleLoading(memberId);
     try {
@@ -322,7 +343,7 @@ export default function DistrictAdminMembershipPage() {
           module tabs jumps straight to its /v2 page (which already carries
           the new navy/gold/slate design and full add/edit/delete UX). The
           Directory tab keeps rendering inline below.                     */}
-      <div className="bg-card rounded-2xl border border-slate-200 shadow-sm p-3">
+      <Card className="p-3">
         <Tabs
           value={activeTab}
           onValueChange={(v) => {
@@ -337,13 +358,11 @@ export default function DistrictAdminMembershipPage() {
         >
           <div className="flex items-center justify-between gap-3 flex-wrap">
             <TabsList
-              className="h-auto flex-wrap gap-1 p-1.5 rounded-full bg-muted"
             >
               {(Object.keys(TAB_LABELS) as TabKey[]).map((k) => (
                 <TabsTrigger
                   key={k}
                   value={k}
-                  className="text-sm font-semibold px-3.5 py-1.5 rounded-full"
                 >
                   {TAB_LABELS[k]}
                 </TabsTrigger>
@@ -393,7 +412,7 @@ export default function DistrictAdminMembershipPage() {
             )}
 
             {/* Search bar — dashboard palette (slate wrapper, navy button) */}
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center bg-slate-50 p-4 rounded-2xl border border-slate-200">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
                 <Input
@@ -401,14 +420,14 @@ export default function DistrictAdminMembershipPage() {
                   value={dirSearch}
                   onChange={(e) => setDirSearch(e.target.value)}
                   onKeyDown={handleDirKeyDown}
-                  className="pl-9 border-slate-200 bg-card focus:border-azure focus:ring-azure/20 text-sm"
+                  className="pl-9"
                 />
               </div>
               <div className="flex flex-wrap items-center gap-2">
                 <Button
                   onClick={handleDirSearch}
                   size="sm"
-                  className="bg-azure hover:bg-mint-ink text-white"
+                 
                 >
                   <Search className="mr-2 h-4 w-4" />
                   Search
@@ -418,7 +437,7 @@ export default function DistrictAdminMembershipPage() {
                     variant="ghost"
                     size="sm"
                     onClick={() => { setDirSearch(""); setDirPage(1); fetchDirectory(1, ""); }}
-                    className="text-slate-600 hover:text-slate-800"
+                   
                   >
                     <X className="mr-1 h-4 w-4" />Clear
                   </Button>
@@ -431,7 +450,7 @@ export default function DistrictAdminMembershipPage() {
             {!dirLoading && dirData && dirData.items.length === 0 && (
               <div className="flex flex-col items-center justify-center py-20 text-center">
                 <Users className="h-12 w-12 text-muted-foreground mb-4" />
-                <h3 className="text-lg font-semibold">No members found</h3>
+                <h3 className="row-h2">No members found</h3>
                 <p className="text-muted-foreground mt-2">Try a different search term.</p>
               </div>
             )}
@@ -442,7 +461,7 @@ export default function DistrictAdminMembershipPage() {
                     gold underline, slate row hovers. Mirrors the look of the
                     other dashboard listings (Overview leaderboard, Foundation
                     project tables). */}
-                <div className="rounded-2xl border border-slate-200 shadow-sm overflow-hidden bg-card">
+                <Card className="overflow-hidden">
                   <Table>
                     <TableHeader>
                       <TableRow
@@ -450,12 +469,12 @@ export default function DistrictAdminMembershipPage() {
                         style={{ backgroundColor: "#17458f" }}
                       >
                         <TableHead className="w-12/90"></TableHead>
-                        <TableHead className="text-xs font-semibold uppercase tracking-wide">Member Name</TableHead>
-                        <TableHead className="hidden md:table-cell text-xs font-semibold uppercase tracking-wide">Rotary ID</TableHead>
-                        <TableHead className="hidden md:table-cell text-xs font-semibold uppercase tracking-wide">Email</TableHead>
-                        <TableHead className="hidden lg:table-cell text-xs font-semibold uppercase tracking-wide">Phone</TableHead>
-                        <TableHead className="hidden lg:table-cell text-xs font-semibold uppercase tracking-wide">Club</TableHead>
-                        <TableHead className="text-xs font-semibold uppercase tracking-wide">Roles</TableHead>
+                        <TableHead>Member Name</TableHead>
+                        <TableHead className="hidden md:table-cell">Rotary ID</TableHead>
+                        <TableHead className="hidden md:table-cell">Email</TableHead>
+                        <TableHead className="hidden lg:table-cell">Phone</TableHead>
+                        <TableHead className="hidden lg:table-cell">Club</TableHead>
+                        <TableHead>Roles</TableHead>
                         <TableHead className="w-12/90"></TableHead>
                       </TableRow>
                     </TableHeader>
@@ -498,8 +517,7 @@ export default function DistrictAdminMembershipPage() {
                                     </Badge>
                                   )) : (
                                     <Badge
-                                      variant="outline"
-                                      className="text-[10px] font-medium border-slate-200 bg-slate-50 text-slate-700"
+                                      variant="outline" className="border-slate-200 bg-slate-50 text-slate-700"
                                     >
                                       Member
                                     </Badge>
@@ -514,22 +532,21 @@ export default function DistrictAdminMembershipPage() {
                                   opens this dialog, but the cell stops propagation, so
                                   without a button of its own the Actions column rendered
                                   empty for a past-year admin and read as broken. */}
-                              <button
+                              <IconButton
                                 type="button"
                                 onClick={() => setDetailMemberId(member.id)}
                                 aria-label={`View details for ${member.memberName}`}
-                                className="inline-flex items-center justify-center w-8 h-8 rounded-lg border border-slate-200 text-slate-500 hover:bg-blue-50 hover:text-blue-600 hover:border-blue-200 transition-colors"
+                                
                               >
                                 <Eye size={15} />
-                              </button>
+                              </IconButton>
                               {/* YWAR-DISTRICT-DIRECTORY-REMOVE-ADMIN — the menu holds
                                   exactly one item, so when Remove Admin is hidden the
                                   trigger goes with it rather than opening empty. */}
-                              {(isSuperAdmin || isDistrictAdmin) &&
-                               (member.hasDistrictAdminRole ? canRemoveAdmin : true) && (
+                              {(isSuperAdmin || isDistrictAdmin) && (
                                 <DropdownMenu>
                                   <DropdownMenuTrigger asChild>
-                                    <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-500 hover:text-slate-800 hover:bg-slate-100">
+                                    <Button aria-label="More actions" variant="ghost" size="icon" className="row-btn-sm">
                                       <MoreHorizontal className="h-4 w-4" />
                                     </Button>
                                   </DropdownMenuTrigger>
@@ -537,9 +554,18 @@ export default function DistrictAdminMembershipPage() {
                                     {/* A SuperAdmin can also be made this district's Admin (user 2026-10-09) -
                                         the menu used to be empty on their row. Roles no longer conflict. */}
                                     {member.hasDistrictAdminRole ? (
-                                      <DropdownMenuItem onClick={() => handleRemoveAdmin(member.id, member.memberName)}>
-                                        <ShieldOff className="mr-2 h-4 w-4" />Remove Admin
-                                      </DropdownMenuItem>
+                                      <>
+                                        {/* Edit Years follows Make Admin's rule (years being
+                                            granted), not Remove Admin's current-year gate. */}
+                                        <DropdownMenuItem onClick={() => setAdminYearTarget({ id: member.id, name: member.memberName, editing: true })}>
+                                          <CalendarDays className="mr-2 h-4 w-4" />Edit Years
+                                        </DropdownMenuItem>
+                                        {canRemoveAdmin && (
+                                          <DropdownMenuItem onClick={() => handleRemoveAdmin(member.id, member.memberName)}>
+                                            <ShieldOff className="mr-2 h-4 w-4" />Remove Admin
+                                          </DropdownMenuItem>
+                                        )}
+                                      </>
                                     ) : (
                                       <DropdownMenuItem onClick={() => handleMakeAdmin(member.id, member.memberName)}>
                                         <ShieldCheck className="mr-2 h-4 w-4" />Make Admin
@@ -555,7 +581,7 @@ export default function DistrictAdminMembershipPage() {
                       })}
                     </TableBody>
                   </Table>
-                </div>
+                </Card>
                 <Pagination page={dirData.page} totalPages={dirData.totalPages} totalCount={dirData.totalCount} pageSize={dirData.pageSize} onPageChange={handleDirPageChange} />
               </>
             )}
@@ -566,7 +592,7 @@ export default function DistrictAdminMembershipPage() {
               TabsContent panels are needed here. Directory tab is the
               only tab with inline content (rendered above).              */}
         </Tabs>
-      </div>
+      </Card>
 
       <SuccessAlert open={!!successMessage} title="Success" description={successMessage || ""} onOk={() => setSuccessMessage(null)} />
       <ErrorAlert open={!!errorMessage} title="Error" description={errorMessage || ""} onOk={() => setErrorMessage(null)} />
@@ -578,9 +604,9 @@ export default function DistrictAdminMembershipPage() {
           scope={{ kind: "district", districtId: districtIdForApi }}
           memberId={adminYearTarget.id}
           memberName={adminYearTarget.name}
-          confirmLabel="Make District Admin"
+          confirmLabel={adminYearTarget.editing ? "Save" : "Make District Admin"}
           onCancel={() => setAdminYearTarget(null)}
-          onConfirm={handleConfirmAdminYears}
+          onConfirm={adminYearTarget.editing ? handleConfirmEditYears : handleConfirmAdminYears}
         />
       )}
     </div>

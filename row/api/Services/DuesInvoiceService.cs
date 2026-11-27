@@ -49,6 +49,8 @@ public sealed partial class DuesInvoiceService
         public DateTime DueDate { get; set; }
         public decimal Amount { get; set; }
         public decimal PaidAmount { get; set; }
+        /// <summary>The dues' currency; every amount of the invoice is in it.</summary>
+        public string? Currency { get; set; }
         public string Status { get; set; } = "";
         public string? Notes { get; set; }
         public string? VoidReason { get; set; }
@@ -286,6 +288,7 @@ public sealed partial class DuesInvoiceService
         SELECT i.pk_invoice_id AS Id, i.fk_club_id AS ClubId, i.fk_membership_dues_id AS DuesId, i.fk_member_fee_id AS MemberFeeId,
                i.fk_member_profile_id AS MemberId, COALESCE(m.MemberName, '') AS MemberName, i.fee_type AS FeeType, i.invoice_no AS InvoiceNo,
                i.issue_date AS IssueDate, i.due_date AS DueDate, i.amount AS Amount, i.paid_amount AS PaidAmount, i.status AS Status,
+               (SELECT md.Currency FROM membership_dues md WHERE md.pk_membership_dues_id = i.fk_membership_dues_id) AS Currency,
                i.notes AS Notes, i.void_reason AS VoidReason, i.email_count AS EmailCount, i.emailed_at AS EmailedAt,
                (SELECT l.description FROM dues_invoice_lines l WHERE l.fk_invoice_id = i.pk_invoice_id ORDER BY l.pk_line_id LIMIT 1) AS Description
         FROM dues_invoices i
@@ -586,7 +589,7 @@ public sealed partial class DuesInvoiceService
             var pdf = DuesInvoicePdfBuilder.Invoice(inv, await LinesAsync(inv.Id), club);
             Func<string?, string?> enc = System.Net.WebUtility.HtmlEncode;
             var body = $"<p>Dear {enc(inv.MemberName)},</p><p>Please find attached invoice {enc(inv.InvoiceNo)} from {enc(club.ClubName)} " +
-                       $"for {enc(Brand.Money(inv.Amount))}, due on {inv.DueDate:dd MMM yyyy}. Amount still due: {enc(Brand.Money(inv.Amount - inv.PaidAmount))}.</p>" +
+                       $"for {enc(DuesCurrency.Money(inv.Amount, inv.Currency))}, due on {inv.DueDate:dd MMM yyyy}. Amount still due: {enc(DuesCurrency.Money(inv.Amount - inv.PaidAmount, inv.Currency))}.</p>" +
                        "<p>You can also see your invoices and balance in the app.</p>";
             try
             {

@@ -1,5 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart' hide Text;
+import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../../../core/constants/api_constants.dart';
@@ -159,7 +160,9 @@ class _HeroAppBar extends StatelessWidget {
       pinned: true,
       stretch: true,
       backgroundColor: AppColors.primaryPrime,
+      systemOverlayStyle: SystemUiOverlayStyle.light.copyWith(statusBarColor: Colors.transparent),
       leading: IconButton(
+        tooltip: MaterialLocalizations.of(context).backButtonTooltip,
         icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white),
         onPressed: () => context.canPop() ? context.pop() : context.go('/home'),
       ),
@@ -344,12 +347,6 @@ class _ContactCard extends StatelessWidget {
             label: 'Call',
             enabled: hasPhone,
             onTap: () => _openUrl('tel:${_digits(phone)}'),
-          ),
-          _ContactAction(
-            icon: Icons.chat_bubble_outline_rounded,
-            label: 'SMS',
-            enabled: hasPhone,
-            onTap: () => _openUrl('sms:${_digits(phone)}'),
           ),
           _ContactAction(
             icon: Icons.mail_outline_rounded,

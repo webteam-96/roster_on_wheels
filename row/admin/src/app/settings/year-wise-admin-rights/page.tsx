@@ -1,4 +1,5 @@
 "use client";
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
 
 /**
  * Settings → Year-wise Admin Rights.
@@ -18,20 +19,19 @@
  */
 
 import React, { useEffect, useMemo, useState } from "react";
-import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import SearchableCombo from "@/components/SearchableCombo";
+import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
 import AlertModal from "@/components/AlertModal";
-import RotaryLoader from "@/components/RotaryLoader";
+import { PageHeader, Panel, SkeletonRows, rowTable } from "@/components/row/AppKit";
 import ProtectedRoute from "@/components/ProtectedRoute";
-import { ArrowLeft, CalendarClock, Plus, Trash2, Loader2, AlertTriangle, ShieldCheck, ShieldOff, Eye, RotateCcw } from "@/components/icons";
+import { Plus, Trash2, Loader2, AlertTriangle, ShieldCheck, ShieldOff, Eye, RotateCcw } from "@/components/icons";
 import {
   getYearRuleSettings, setYearRuleGlobal,
   setYearRuleDistrict, clearYearRuleDistrict,
@@ -249,97 +249,85 @@ export default function YearWiseAdminRightsSettingsPage() {
 
   const StateBadge = ({ on }: { on: boolean }) =>
     on ? (
-      <Badge className="bg-emerald-100 text-emerald-800 hover:bg-emerald-100 gap-1">
+      <Badge className="bg-emerald-100 text-emerald-800 gap-1">
         <ShieldCheck className="h-3 w-3" /> Year rule ON
       </Badge>
     ) : (
-      <Badge className="bg-amber-100 text-amber-800 hover:bg-amber-100 gap-1">
+      <Badge className="bg-amber-100 text-amber-800 gap-1">
         <ShieldOff className="h-3 w-3" /> Year rule OFF
       </Badge>
     );
 
-  if (loading) return <ProtectedRoute requireSuperAdmin><div className="p-8"><RotaryLoader /></div></ProtectedRoute>;
-
   const globalOn = settings?.globalEnabled ?? true;
+  // What a new setting starts as: the opposite of what it would follow anyway. Offering the same value again (ON
+  // under a platform that is ON) changed nothing.
+  const districtStart = !globalOn;
+  const clubFollows =
+    settings?.districts.find((d) => String(d.districtId) === clubPickerDistrictId)?.isEnabled ?? globalOn;
 
   const overrideTable = (rows: YearRuleScopeOverride[], kind: "district" | "club") => (
-    <div className="overflow-x-auto rounded-xl border border-slate-200">
-      <table className="min-w-full text-sm">
-        <thead className="bg-slate-50 text-xs uppercase text-slate-500">
-          <tr>
-            <th className="px-4 py-3 text-left">{kind === "club" ? "Club" : "District"}</th>
-            {kind === "club" && <th className="px-4 py-3 text-left">District</th>}
-            <th className="px-4 py-3 text-left">Setting</th>
-            <th className="px-4 py-3 text-left">Last changed</th>
-            <th className="px-4 py-3 text-right">Remove</th>
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-slate-100">
-          {rows.length === 0 && (
-            <tr>
-              <td colSpan={kind === "club" ? 5 : 4} className="px-4 py-6 text-center text-slate-500">
-                No {kind === "club" ? "club" : "district"} has its own setting, every one follows{" "}
-                {kind === "club" ? "its district" : "the platform default"}.
-              </td>
-            </tr>
-          )}
+    rows.length === 0 ? (
+      <p className="rounded-md bg-muted px-4 py-3 text-[14px] text-muted-foreground">
+        No {kind === "club" ? "club" : "district"} has its own setting. Each one follows{" "}
+        {kind === "club" ? "its district" : "the platform default"}.
+      </p>
+    ) : (
+    <div className={`${rowTable.wrap} relative rounded-md border border-[color:var(--row-line)]`}>
+      <Table className={`${rowTable.table} w-full min-w-[640px]`}>
+        <TableHeader className={rowTable.head}>
+          <TableRow>
+            <TableHead className={rowTable.th}>{kind === "club" ? "Club" : "District"}</TableHead>
+            {kind === "club" && <TableHead className={rowTable.th}>District</TableHead>}
+            <TableHead className={rowTable.th}>Year rule</TableHead>
+            <TableHead className={rowTable.th}>Last changed</TableHead>
+            <TableHead className={`${rowTable.th} text-right`}><span className="sr-only">Remove</span></TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody className={rowTable.body}>
           {rows.map((r) => {
             const id = kind === "club" ? r.clubId : r.districtId;
             const label = kind === "club" ? (r.clubName ?? `Club ${r.clubId}`) : `District ${r.districtNumber ?? r.districtId}`;
             return (
-              <tr key={`${kind}-${id}`} className="hover:bg-slate-50/70">
-                <td className="px-4 py-3 font-medium text-slate-800">{label}</td>
-                {kind === "club" && <td className="px-4 py-3 text-slate-600">{r.districtNumber ?? "-"}</td>}
-                <td className="px-4 py-3">
+              <TableRow key={`${kind}-${id}`} className={rowTable.tr}>
+                <TableCell className={`${rowTable.td} font-semibold`}>{label}</TableCell>
+                {kind === "club" && <TableCell className={rowTable.tdMuted}>{r.districtNumber ?? "–"}</TableCell>}
+                <TableCell className={rowTable.td}>
                   <div className="flex items-center gap-3">
                     <Switch
                       checked={r.isEnabled}
+                      aria-label={`Year rule for ${label}`}
                       disabled={saving}
                       onCheckedChange={(v) => ask({ kind, id, label, enable: v })}
                     />
                     <StateBadge on={r.isEnabled} />
                   </div>
-                </td>
-                <td className="px-4 py-3 text-slate-500">
-                  {r.modifiedDate ?? "-"}
-                  {r.modifiedByName ? <div className="text-xs text-slate-400">by {r.modifiedByName}</div> : null}
-                </td>
-                <td className="px-4 py-3 text-right">
-                  <Button variant="ghost" size="sm" disabled={saving} onClick={() => setClearing(r)}>
-                    <Trash2 className="h-4 w-4 text-slate-500" />
+                </TableCell>
+                <TableCell className={rowTable.tdMuted}>
+                  {r.modifiedDate ?? "–"}
+                  {r.modifiedByName ? <div className="text-[13px]">by {r.modifiedByName}</div> : null}
+                </TableCell>
+                <TableCell className={`${rowTable.td} text-right`}>
+                  <Button variant="ghost" size="sm" disabled={saving} onClick={() => setClearing(r)} aria-label={`Remove the setting for ${label}`}>
+                    <Trash2 className="h-4 w-4 text-muted-foreground" aria-hidden />
                   </Button>
-                </td>
-              </tr>
+                </TableCell>
+              </TableRow>
             );
           })}
-        </tbody>
-      </table>
+        </TableBody>
+      </Table>
     </div>
+    )
   );
 
   return (
     <ProtectedRoute requireSuperAdmin>
-      <div className="p-4 md:p-8 space-y-6 max-w-6xl">
-        <div className="flex items-center gap-3">
-          <Link href="/settings">
-            <Button variant="ghost" size="sm"><ArrowLeft className="h-4 w-4 mr-1" /> Settings</Button>
-          </Link>
-        </div>
-
-        <div className="flex items-start gap-3">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
-            <CalendarClock className="h-5 w-5" />
-          </div>
-          <div>
-            <h1 className="text-xl font-semibold text-slate-900">Year-wise Admin Rights</h1>
-            <p className="text-sm text-slate-500 mt-0.5">
-              Choose which districts and clubs the Rotary-year rule applies to. Where it is OFF,
-              an admin of that club or district can add, edit and delete in any year, exactly as
-              the platform worked before this rule existed. It never gives anyone admin access
-              they did not already have, and viewing is never restricted either way.
-            </p>
-          </div>
-        </div>
+      <div className="space-y-6">
+        <PageHeader
+          back="/settings"
+          title="Year-wise Admin Rights"
+          description="With the year rule on, an admin edits only the Rotary years they hold. With it off, they edit any year. Viewing is never restricted, and nobody becomes an admin."
+        />
 
         <SuccessAlert open={!!success} title="Saved" description={success ?? ""} onOk={() => setSuccess(null)} />
         <ErrorAlert open={!!error} title="Something went wrong" description={error ?? ""} onOk={() => setError(null)} />
@@ -347,135 +335,130 @@ export default function YearWiseAdminRightsSettingsPage() {
           title="Remove setting" description={clearing ? describe(clearing) : ""} confirmLabel="Remove" cancelLabel="Cancel"
           onConfirm={() => { const r = clearing; setClearing(null); if (r) clearOverride(r); }} />
 
+        {loading ? (
+          <SkeletonRows rows={6} />
+        ) : (
+        <>
         {/* ── Platform default ───────────────────────────────────────────── */}
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base">Default for the whole platform</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="flex items-center gap-4">
-              <Switch checked={globalOn} disabled={saving} onCheckedChange={(v) => ask({ kind: "global", enable: v })} />
+        <Panel
+          title="Whole platform"
+          headerRight={
+            <div className="flex shrink-0 items-center gap-3">
               <StateBadge on={globalOn} />
-              {settings?.globalModifiedDate && (
-                <span className="text-xs text-slate-400">
-                  changed {settings.globalModifiedDate}
-                  {settings.globalModifiedByName ? ` by ${settings.globalModifiedByName}` : ""}
-                </span>
-              )}
+              <Switch
+                checked={globalOn}
+                disabled={saving}
+                aria-label="Year rule for the whole platform"
+                onCheckedChange={(v) => ask({ kind: "global", enable: v })}
+              />
             </div>
-            <p className="text-sm text-slate-600">
-              {globalOn
-                ? "Every district and club follows the year rule unless it is switched off below."
-                : "The year rule is off everywhere by default. Only the districts and clubs switched on below enforce it."}
+          }
+        >
+          <p className="max-w-[64ch] text-[15px] text-foreground">
+            {globalOn
+              ? "Every district and club follows the year rule, except the ones switched off below."
+              : "No district or club follows the year rule, except the ones switched on below."}
+          </p>
+          {settings?.globalModifiedDate && (
+            <p className="mt-2 text-[13px] text-muted-foreground">
+              Changed {settings.globalModifiedDate}
+              {settings.globalModifiedByName ? ` by ${settings.globalModifiedByName}` : ""}
             </p>
-          </CardContent>
-        </Card>
+          )}
+        </Panel>
 
         {/* ── Districts ──────────────────────────────────────────────────── */}
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base">Districts</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex flex-wrap items-center gap-2">
-              <Select value={addDistrictId} onValueChange={setAddDistrictId}>
-                <SelectTrigger className="w-[260px]"><SelectValue placeholder="Choose a district…" /></SelectTrigger>
-                <SelectContent>
-                  {addableDistricts.map((d) => (
-                    <SelectItem key={d.id} value={String(d.id)}>District {d.districtNumber}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+        <Panel title="Districts" subtitle="Covers every club in the district, except clubs with their own setting.">
+          <div className="space-y-4">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
+              <div className="min-w-0 flex-1 space-y-1.5 sm:max-w-[360px]">
+                <Label>District</Label>
+                <SearchableCombo
+                  value={addDistrictId}
+                  onChange={setAddDistrictId}
+                  options={addableDistricts.map((d) => ({ value: String(d.id), label: `District ${d.districtNumber}` }))}
+                  placeholder="Choose a district"
+                  searchPlaceholder="District number"
+                  emptyText="No district matches."
+                />
+              </div>
               <Button
                 disabled={!addDistrictId || saving}
                 onClick={() => {
                   const d = districtOptions.find((x) => String(x.id) === addDistrictId);
-                  if (d) ask({ kind: "district", id: d.id, label: `District ${d.districtNumber}`, enable: true });
+                  if (d) ask({ kind: "district", id: d.id, label: `District ${d.districtNumber}`, enable: districtStart });
                 }}
               >
-                <Plus className="h-4 w-4 mr-1" /> Switch rule ON for this district
+                <Plus className="mr-2 h-4 w-4" aria-hidden /> Switch {districtStart ? "on" : "off"} for this district
               </Button>
             </div>
             {overrideTable(settings?.districts ?? [], "district")}
-            <p className="text-xs text-slate-500">
-              A district setting also covers every club in it, except clubs with a setting of their own below.
-            </p>
-          </CardContent>
-        </Card>
+          </div>
+        </Panel>
 
         {/* ── Clubs ──────────────────────────────────────────────────────── */}
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base">Clubs</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex flex-wrap items-center gap-2">
-              <Select value={clubPickerDistrictId} onValueChange={setClubPickerDistrictId}>
-                <SelectTrigger className="w-[220px]"><SelectValue placeholder="District…" /></SelectTrigger>
-                <SelectContent>
-                  {districtOptions.map((d) => (
-                    <SelectItem key={d.id} value={String(d.id)}>District {d.districtNumber}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Select value={addClubId} onValueChange={setAddClubId} disabled={!clubPickerDistrictId || loadingClubs}>
-                <SelectTrigger className="w-[300px]">
-                  <SelectValue placeholder={loadingClubs ? "Loading clubs…" : "Choose a club…"} />
-                </SelectTrigger>
-                <SelectContent>
-                  {addableClubs.map((c) => (
-                    <SelectItem key={c.id} value={String(c.id)}>{c.clubName}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+        <Panel title="Clubs" subtitle="A club's own setting beats its district's.">
+          <div className="space-y-4">
+            <div className="flex flex-col gap-3 lg:flex-row lg:items-end">
+              <div className="min-w-0 space-y-1.5 lg:w-[260px]">
+                <Label>District</Label>
+                <SearchableCombo
+                  value={clubPickerDistrictId}
+                  onChange={setClubPickerDistrictId}
+                  options={districtOptions.map((d) => ({ value: String(d.id), label: `District ${d.districtNumber}` }))}
+                  placeholder="Choose a district"
+                  searchPlaceholder="District number"
+                  emptyText="No district matches."
+                />
+              </div>
+              <div className="min-w-0 flex-1 space-y-1.5 lg:max-w-[360px]">
+                <Label>Club</Label>
+                <SearchableCombo
+                  value={addClubId}
+                  onChange={setAddClubId}
+                  options={addableClubs.map((c) => ({ value: String(c.id), label: c.clubName }))}
+                  placeholder={loadingClubs ? "Loading clubs" : clubPickerDistrictId ? "Choose a club" : "Choose a district first"}
+                  searchPlaceholder="Club name"
+                  emptyText="No club matches."
+                  disabled={!clubPickerDistrictId || loadingClubs}
+                />
+              </div>
               <Button
                 disabled={!addClubId || saving}
                 onClick={() => {
                   const c = clubOptions.find((x) => String(x.id) === addClubId);
-                  if (c) ask({ kind: "club", id: c.id, label: c.clubName, enable: true });
+                  if (c) ask({ kind: "club", id: c.id, label: c.clubName, enable: !clubFollows });
                 }}
               >
-                <Plus className="h-4 w-4 mr-1" /> Switch rule ON for this club
+                <Plus className="mr-2 h-4 w-4" aria-hidden /> Switch {clubFollows ? "off" : "on"} for this club
               </Button>
             </div>
             {overrideTable(settings?.clubs ?? [], "club")}
-            <p className="text-xs text-slate-500">
-              A club setting beats its district&apos;s, so one club can enforce the rule inside a district
-              that does not, or be exempted from a district that does.
-            </p>
-          </CardContent>
-        </Card>
+          </div>
+        </Panel>
 
         {/* ── The "View only" wording ────────────────────────────────────── */}
         {messageSettings && (
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base flex items-center gap-2">
-                <Eye className="h-4 w-4 text-amber-600" />
-                The &quot;View only&quot; wording
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-5">
-              <p className="text-sm text-slate-600">
-                What an admin reads where the year rule has taken Add, Edit and Delete away.
-                One wording for the whole platform, the web and the mobile app both show it,
-                from the next sign-in or app open.
-              </p>
+          <Panel
+            title="View only wording"
+            subtitle="What an admin reads where the year rule takes Add, Edit and Delete away. Web and app show it from the next sign-in."
+          >
+            <div className="space-y-6">
 
               {/* The tokens, before the boxes: nobody should have to discover them by
                   having a save refused. */}
-              <div className="rounded-md border border-slate-200 bg-slate-50 p-3">
-                <p className="text-xs font-medium text-slate-700 mb-2">
-                  Placeholders, type them exactly, and they are filled in for each reader
+              <div className="rounded-md bg-muted p-4">
+                <p className="mb-2 text-[13px] font-semibold text-foreground">
+                  Placeholders: type them exactly, they are filled in for each reader
                 </p>
                 <div className="grid gap-1.5 sm:grid-cols-2">
                   {messageSettings.tokens.map((t) => (
-                    <div key={t.token} className="text-xs text-slate-600">
-                      <code className="rounded bg-card px-1 py-0.5 font-mono text-[11px] text-amber-700 border border-slate-200">
+                    <div key={t.token} className="text-[13px] text-muted-foreground">
+                      <code className="rounded bg-card px-1 py-0.5 font-mono text-[11px] text-amber-700 border border-[color:var(--row-line)]">
                         {t.token}
                       </code>{" "}
                       {t.describes}
-                      <span className="text-slate-400">, otherwise &ldquo;{t.fallback}&rdquo;</span>
+                      <span className="text-muted-foreground">, otherwise &ldquo;{t.fallback}&rdquo;</span>
                     </div>
                   ))}
                 </div>
@@ -512,29 +495,29 @@ export default function YearWiseAdminRightsSettingsPage() {
                       );
 
                 return (
-                  <div key={m.key} className="space-y-2 border-t border-slate-100 pt-4 first:border-t-0 first:pt-0">
+                  <div key={m.key} className="space-y-3 border-t border-[color:var(--row-line)] pt-5">
                     <div className="flex flex-wrap items-center gap-2">
-                      <span className="text-sm font-medium text-slate-800">{label.title}</span>
+                      <span className="text-[15px] font-semibold text-foreground">{label.title}</span>
                       {m.isCustom ? (
-                        <Badge variant="secondary" className="text-[10px]">Edited</Badge>
+                        <Badge variant="secondary">Edited</Badge>
                       ) : (
-                        <Badge variant="outline" className="text-[10px] text-slate-500">Default</Badge>
+                        <Badge variant="outline" className="text-muted-foreground">Default</Badge>
                       )}
                       {m.isCustom && m.modifiedDate && (
-                        <span className="text-xs text-slate-400">
+                        <span className="text-[13px] text-muted-foreground">
                           {m.modifiedDate}
                           {m.modifiedByName ? ` by ${m.modifiedByName}` : ""}
                         </span>
                       )}
                     </div>
-                    {label.help && <p className="text-xs text-slate-500">{label.help}</p>}
+                    {label.help && <p className="text-[13px] text-muted-foreground">{label.help}</p>}
 
                     <Textarea
                       value={draft}
                       rows={m.key === "default_actions" ? 1 : 2}
                       disabled={busy}
                       onChange={(e) => setDrafts((d) => ({ ...d, [m.key]: e.target.value }))}
-                      className="text-sm"
+                     
                     />
 
                     {/* A real render, not a mock-up — the same function the badge uses. */}
@@ -571,8 +554,10 @@ export default function YearWiseAdminRightsSettingsPage() {
                   </div>
                 );
               })}
-            </CardContent>
-          </Card>
+            </div>
+          </Panel>
+        )}
+        </>
         )}
 
         {/* ── Confirm / preflight ────────────────────────────────────────── */}
@@ -587,7 +572,7 @@ export default function YearWiseAdminRightsSettingsPage() {
 
             {/* Turning OFF only widens access, so there is nothing to warn about. */}
             {pending && !pending.enable && (
-              <p className="text-sm text-slate-600">
+              <p className="text-sm text-muted-foreground">
                 Admins of {pending.kind === "global" ? "every district and club without its own setting" : pending.label}{" "}
                 will be able to add, edit and delete in <strong>any Rotary year</strong>. Nobody loses access, and
                 nobody becomes an admin who was not one already.
@@ -595,7 +580,7 @@ export default function YearWiseAdminRightsSettingsPage() {
             )}
 
             {pending?.enable && pending.kind === "global" && (
-              <p className="text-sm text-slate-600">
+              <p className="text-sm text-muted-foreground">
                 Every district and club without its own setting will start enforcing the year rule. Admins
                 who hold no Rotary years will lose their edit buttons there. Because this covers the whole
                 platform it is not checked district by district, switch districts on one at a time if you
@@ -606,7 +591,7 @@ export default function YearWiseAdminRightsSettingsPage() {
             {pending?.enable && pending.kind !== "global" && (
               <div className="space-y-3">
                 {preflightLoading && (
-                  <div className="flex items-center gap-2 text-sm text-slate-500">
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <Loader2 className="h-4 w-4 animate-spin" /> Checking who is affected…
                   </div>
                 )}
@@ -614,19 +599,19 @@ export default function YearWiseAdminRightsSettingsPage() {
                 {preflight && (
                   <>
                     <div className="grid grid-cols-3 gap-2">
-                      <div className="rounded-lg border border-slate-200 p-3">
-                        <div className="text-lg font-semibold text-slate-800">{preflight.allYearsCount}</div>
-                        <div className="text-xs text-slate-500">hold all years, unaffected</div>
+                      <div className="rounded-lg border border-[color:var(--row-line)] p-3">
+                        <div className="text-lg font-semibold text-foreground">{preflight.allYearsCount}</div>
+                        <div className="text-[13px] text-muted-foreground">hold all years, unaffected</div>
                       </div>
-                      <div className="rounded-lg border border-slate-200 p-3">
-                        <div className="text-lg font-semibold text-slate-800">{preflight.someYearsCount}</div>
-                        <div className="text-xs text-slate-500">will be limited to their own years</div>
+                      <div className="rounded-lg border border-[color:var(--row-line)] p-3">
+                        <div className="text-lg font-semibold text-foreground">{preflight.someYearsCount}</div>
+                        <div className="text-[13px] text-muted-foreground">will be limited to their own years</div>
                       </div>
-                      <div className={`rounded-lg border p-3 ${preflight.noYearsCount > 0 ? "border-red-300 bg-red-50" : "border-slate-200"}`}>
-                        <div className={`text-lg font-semibold ${preflight.noYearsCount > 0 ? "text-red-700" : "text-slate-800"}`}>
+                      <div className={`rounded-lg border p-3 ${preflight.noYearsCount > 0 ? "border-red-300 bg-red-50" : "border-[color:var(--row-line)]"}`}>
+                        <div className={`text-lg font-semibold ${preflight.noYearsCount > 0 ? "text-red-700" : "text-foreground"}`}>
                           {preflight.noYearsCount}
                         </div>
-                        <div className="text-xs text-slate-500">hold no years, lose every edit button</div>
+                        <div className="text-[13px] text-muted-foreground">hold no years, lose every edit button</div>
                       </div>
                     </div>
 
@@ -647,9 +632,9 @@ export default function YearWiseAdminRightsSettingsPage() {
                     )}
 
                     {preflight.admins.some((a) => !a.wouldLoseAccess && !a.allYears) && (
-                      <div className="rounded-lg border border-slate-200 p-3">
-                        <div className="text-sm font-medium text-slate-700">Will be limited to:</div>
-                        <ul className="mt-2 space-y-1 text-sm text-slate-600">
+                      <div className="rounded-lg border border-[color:var(--row-line)] p-3">
+                        <div className="text-sm font-medium text-foreground">Will be limited to:</div>
+                        <ul className="mt-2 space-y-1 text-sm text-muted-foreground">
                           {preflight.admins.filter((a) => !a.wouldLoseAccess && !a.allYears).map((a) => (
                             <li key={a.memberId}>• {a.memberName}: {a.years.join(", ")}</li>
                           ))}
@@ -658,7 +643,7 @@ export default function YearWiseAdminRightsSettingsPage() {
                     )}
 
                     {pending.kind === "district" && preflight.cascadeClubCount > 0 && (
-                      <p className="text-xs text-slate-500">
+                      <p className="text-[13px] text-muted-foreground">
                         This also switches the rule on for <strong>{preflight.cascadeClubCount}</strong> club
                         {preflight.cascadeClubCount === 1 ? "" : "s"} in the district that have no setting of their
                         own, where <strong>{preflight.cascadeAdminsWithNoYears}</strong> club admin
@@ -667,7 +652,7 @@ export default function YearWiseAdminRightsSettingsPage() {
                     )}
 
                     {(preflight.noYearsCount > 0 || preflight.cascadeAdminsWithNoYears > 0) && (
-                      <label className="flex items-start gap-2 text-sm text-slate-700">
+                      <label className="flex items-start gap-2 text-sm text-foreground">
                         <Checkbox checked={acknowledged} onCheckedChange={(v) => setAcknowledged(!!v)} className="mt-0.5" />
                         <span>
                           I understand these admins will lose edit access until they are granted Rotary years.

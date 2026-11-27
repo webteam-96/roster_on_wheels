@@ -7,6 +7,8 @@ import '../../../../core/theme/app_text_styles.dart';
 import '../../../widgets/common/custom_app_bar.dart';
 import 'package:rotary_flutter_app/core/theme/app_fonts.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/motion.dart';
+import 'package:rotary_flutter_app/presentation/widgets/common/loading_widget.dart';
 
 class AssignClubsSearchResult {
   final int memberId;
@@ -487,7 +489,7 @@ class _AssignClubsFormScreenState extends State<AssignClubsFormScreen> {
             borderRadius: BorderRadius.circular(10),
             color: AppColors.surface,
           ),
-          child: ListView.separated(
+          child: RowListView.separated(
             shrinkWrap: true,
             itemCount: _searchResults.length,
             separatorBuilder: (_, __) =>
@@ -642,10 +644,7 @@ class _AssignClubsFormScreenState extends State<AssignClubsFormScreen> {
         child: SizedBox(
           height: 360,
           child: _clubsLoading
-              ? const Center(
-                  child:
-                      const CircularProgressIndicator(color: AppColors.primary),
-                )
+              ? const LoadingWidget()
               : _availableClubs.isEmpty
                   ? Center(
                       child: Text(
@@ -662,7 +661,7 @@ class _AssignClubsFormScreenState extends State<AssignClubsFormScreen> {
                                 .copyWith(color: AppColors.textSecondary),
                           ),
                         )
-                      : ListView.builder(
+                      : RowListView.builder(
                           itemCount: filteredClubs.length,
                           itemBuilder: (_, i) {
                             final c = filteredClubs[i];

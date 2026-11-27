@@ -11,6 +11,7 @@
  * Web Links are NOT year-wise — yearId is only forwarded.
  */
 
+import { Card } from "@/components/ui/card";
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useRouter, useSearchParams, useParams } from "next/navigation";
 import dynamic from "next/dynamic";
@@ -32,11 +33,11 @@ import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
 import RotaryLoader from "@/components/RotaryLoader";
 import ProtectedRoute from "@/components/ProtectedRoute";
-import { ArrowLeft, Loader2, Link2 } from "@/components/icons";
+import { Loader2 } from "@/components/icons";
 
 const ReactQuill = dynamic(() => import("react-quill-new"), { ssr: false });
 import "react-quill-new/dist/quill.snow.css";
-import { ListPageSkeleton } from "@/components/row/AppKit";
+import { PageHeader, ListPageSkeleton } from "@/components/row/AppKit";
 
 const WEB_LINKS_BASE = "/district-admin-dashboard/quick-links/web-links";
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
@@ -199,44 +200,25 @@ export default function EditWebLinkPage() {
         <ViewOnlyBadge currentYearOnly={ywarCurrentYearLabel} className="mb-4" />
       )}
 
-      <div className="space-y-6 max-w-3xl">
+      <div className="space-y-6 max-w-4xl">
         {/* ── Header ────────────────────────────────────────────────── */}
-        <div className="flex items-center gap-3">
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={goBack}
-            className="border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-slate-800 shrink-0"
-            aria-label="Back"
-          >
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
-          <div className="flex items-center gap-3 min-w-0">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-azure/10 text-ink">
-              <Link2 size={20} />
-            </div>
-            <div className="min-w-0">
-              <h1 className="text-lg font-bold text-slate-800 leading-tight">Edit Web Link</h1>
-              <p className="text-xs text-slate-500 mt-0.5">Level {level}</p>
-            </div>
-          </div>
-        </div>
+        <PageHeader title="Edit Web Link" description={<>Level {level}</>} back={() => goBack()} />
 
         {loading ? (
           <div className="flex items-center justify-center py-20"><ListPageSkeleton /></div>
         ) : notFound ? (
-          <div className="flex flex-col items-center justify-center py-20 text-center rounded-2xl border border-slate-200 bg-card shadow-sm">
-            <h3 className="text-lg font-semibold text-slate-800">Web link not found</h3>
-            <Button variant="outline" onClick={goBack} className="mt-4 border-slate-200 text-slate-700 hover:bg-slate-50">
+          <Card className="flex flex-col items-center justify-center py-20 text-center">
+            <h3 className="row-h2">Web link not found</h3>
+            <Button variant="outline" onClick={goBack} className="mt-4">
               Back
             </Button>
-          </div>
+          </Card>
         ) : (
-          <div className="rounded-2xl border border-slate-200 shadow-sm bg-card p-6 space-y-5">
+          <Card className="p-5 space-y-5">
             <div className="space-y-2">
               <Label className="text-slate-700 text-sm font-medium">Title *</Label>
               <Input
-                className="border-slate-200 bg-card focus:border-azure focus:ring-azure/20"
+               
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="Web link title"
@@ -300,7 +282,7 @@ export default function EditWebLinkPage() {
               <div className="space-y-2">
                 <Label className="text-slate-700 text-sm font-medium">Link Type</Label>
                 <Select value={linkType} onValueChange={setLinkType}>
-                  <SelectTrigger className="border-slate-200 bg-card focus:border-azure focus:ring-azure/20">
+                  <SelectTrigger>
                     <SelectValue placeholder="Select link type" />
                   </SelectTrigger>
                   <SelectContent>
@@ -314,7 +296,7 @@ export default function EditWebLinkPage() {
               <div className="space-y-2">
                 <Label className="text-slate-700 text-sm font-medium">URL</Label>
                 <Input
-                  className="border-slate-200 bg-card focus:border-azure focus:ring-azure/20"
+                 
                   value={linkUrl}
                   onChange={(e) => setLinkUrl(e.target.value)}
                   placeholder="https://example.com"
@@ -344,7 +326,7 @@ export default function EditWebLinkPage() {
               <div className="space-y-2">
                 <Label className="text-slate-700 text-sm font-medium">YouTube Video Link</Label>
                 <Input
-                  className="border-slate-200 bg-card focus:border-azure focus:ring-azure/20"
+                 
                   value={youtubeUrl}
                   onChange={(e) => setYoutubeUrl(e.target.value)}
                   placeholder="https://youtube.com/watch?v=..."
@@ -356,7 +338,7 @@ export default function EditWebLinkPage() {
               <div className="space-y-2">
                 <Label className="text-slate-700 text-sm font-medium">Button Text</Label>
                 <Input
-                  className="border-slate-200 bg-card focus:border-azure focus:ring-azure/20"
+                 
                   value={buttonText}
                   onChange={(e) => setButtonText(e.target.value)}
                   placeholder="e.g. Read More"
@@ -369,14 +351,14 @@ export default function EditWebLinkPage() {
               <Input
                 type="number"
                 min={0}
-                className="border-slate-200 bg-card focus:border-azure focus:ring-azure/20 max-w-[160px]"
+                className="max-w-[160px]"
                 value={sortOrder}
                 onChange={(e) => setSortOrder(Number(e.target.value))}
               />
             </div>
 
             <div className="flex items-center gap-3 pt-1">
-              <Switch checked={isActive} onCheckedChange={setIsActive} />
+              <Switch checked={isActive} onCheckedChange={setIsActive} aria-label="Active" />
               <Label className="text-slate-700 text-sm font-medium">Active</Label>
             </div>
 
@@ -385,7 +367,7 @@ export default function EditWebLinkPage() {
                 variant="outline"
                 onClick={goBack}
                 disabled={saving}
-                className="border-slate-200 text-slate-700 hover:bg-slate-50"
+               
               >
                 Cancel
               </Button>
@@ -393,14 +375,14 @@ export default function EditWebLinkPage() {
                 <Button
                   onClick={handleSave}
                   disabled={saving}
-                  className="bg-azure hover:bg-mint-ink text-white"
+                 
                 >
                   {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                   Update
                 </Button>
               )}
             </div>
-          </div>
+          </Card>
         )}
 
         <SuccessAlert open={!!successMessage} title="Success" description={successMessage || ""} onOk={() => setSuccessMessage(null)} />

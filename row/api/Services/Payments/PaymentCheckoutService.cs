@@ -80,12 +80,20 @@ public sealed class PaymentCheckoutService
     private readonly string _conn;
     private readonly string _frontendUrl;
     private readonly IPaymentGateway? _gateway;
+    private readonly HashSet<string> _simulatedDistricts;
+    private readonly bool _simulateAnywhere;
 
     public PaymentCheckoutService(IConfiguration config, IWebHostEnvironment env, IEnumerable<IPaymentGateway> gateways,
         ILogger<PaymentCheckoutService> logger)
     {
         _conn = config.GetConnectionString("DefaultConnection")!;
         _frontendUrl = (config["FrontendUrl"] ?? "http://localhost:3000").TrimEnd('/');
+
+        // District numbers the simulator may be used for, e.g. Payments__SimulatedDistricts=5656. Outside a developer's
+        // machine an empty list means none: a simulated payment marks real rows paid.
+        _simulatedDistricts = (config["Payments:SimulatedDistricts"] ?? "")
+            .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        _simulateAnywhere = _simulatedDistricts.Count == 0 && env.IsDevelopment();
 
         var provider = config["Payments:Provider"]?.Trim().ToLowerInvariant();
         if (string.IsNullOrEmpty(provider)) return;
@@ -116,6 +124,8 @@ public sealed class PaymentCheckoutService
     public async Task<CheckoutSessionDto> CreateAsync(CheckoutRequest r)
     {
         if (_gateway == null) throw new InvalidOperationException("Online payments are not switched on.");
+        if (IsSimulated && !await IsSimulationAllowedAsync(r.Flow, r.FlowRef))
+            throw new InvalidOperationException(LegacyGateways.NoGatewayMessage);
         var token = Convert.ToHexString(RandomNumberGenerator.GetBytes(32)).ToLowerInvariant();
         var redirectUrl = await _gateway.CreateHostedPageAsync(r, token);
 
@@ -129,6 +139,29 @@ public sealed class PaymentCheckoutService
             new { Token = token, Gateway = _gateway.Code, r.Flow, r.FlowRef, r.MerchantOrderId, r.Amount, r.Currency,
                   r.Description, r.ReturnUrl, r.CancelUrl });
         return new CheckoutSessionDto("Redirect", redirectUrl, r.MerchantOrderId, _gateway.Code, token);
+    }
+
+    // The district an order belongs to, per flow. A donation for the whole instance has none, so it is refused.
+    private static readonly Dictionary<string, string> DistrictSql = new()
+    {
+        [PaymentSettlementService.FlowWallet] = "SELECT fk_district_id FROM wallet_topup_orders WHERE pk_id = @Id",
+        [PaymentSettlementService.FlowWebsite] = "SELECT fk_district_id FROM club_website_orders WHERE pk_id = @Id",
+        [PaymentSettlementService.FlowSubscription] = "SELECT fk_district_id FROM subscription_orders WHERE pk_id = @Id",
+        [PaymentSettlementService.FlowClubDues] = "SELECT c.fk_district_id FROM club_dues_payments p JOIN club_master c ON c.pk_club_id = p.fk_club_id WHERE p.pk_club_dues_payment_id = @Id",
+        [PaymentSettlementService.FlowMembershipDues] = "SELECT md.fk_district_id FROM membership_dues_payments p JOIN membership_dues md ON md.pk_membership_dues_id = p.fk_membership_dues_id WHERE p.pk_id = @Id",
+        [PaymentSettlementService.FlowEventLink] = "SELECT COALESCE(c.fk_district_id, l.fk_district_master_id) FROM event_payment_members m JOIN event_payment_links l ON l.pk_id = m.fk_payment_link_id LEFT JOIN club_master c ON c.pk_club_id = l.fk_club_id WHERE m.pk_id = @Id",
+        [PaymentSettlementService.FlowDonation] = "SELECT CASE dc.scope_type WHEN 'district' THEN dc.scope_id WHEN 'club' THEN c.fk_district_id END FROM donations d JOIN donation_campaigns dc ON dc.pk_campaign_id = d.fk_campaign_id LEFT JOIN club_master c ON dc.scope_type = 'club' AND c.pk_club_id = dc.scope_id WHERE d.pk_donation_id = @Id",
+    };
+
+    /// <summary>Whether the simulator may take this order: its district is on the Payments:SimulatedDistricts list.</summary>
+    public async Task<bool> IsSimulationAllowedAsync(string flow, long flowRef)
+    {
+        if (_simulateAnywhere) return true;
+        if (_simulatedDistricts.Count == 0 || !DistrictSql.TryGetValue(flow, out var sql)) return false;
+        await using var conn = Conn();
+        var number = await conn.ExecuteScalarAsync<string?>(
+            $"SELECT DistrictNumber FROM district_master WHERE pk_district_id = ({sql}) AND isdeleted = 0", new { Id = flowRef });
+        return number != null && _simulatedDistricts.Contains(number.Trim());
     }
 
     public async Task<CheckoutSessionRow?> GetAsync(string token)
@@ -220,7 +253,8 @@ public sealed class PaymentSettlementService
     {
         var session = await _checkout.GetAsync(token);
         if (session == null || session.Gateway != SimulatedPaymentGateway.GatewayCode
-            || _checkout.GatewayCode != SimulatedPaymentGateway.GatewayCode) return null;
+            || _checkout.GatewayCode != SimulatedPaymentGateway.GatewayCode
+            || !await _checkout.IsSimulationAllowedAsync(session.Flow, session.FlowRef)) return null;
 
         if (outcome != "paid")
         {

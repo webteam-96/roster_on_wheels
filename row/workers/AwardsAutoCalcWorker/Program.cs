@@ -86,7 +86,18 @@ try
         log.LogInformation("District citation auto-points calculation completed. Duration: {Min}m {Sec}s",
             (int)(stats.RunCompletedAt - stats.RunStartedAt).TotalMinutes,
             (stats.RunCompletedAt - stats.RunStartedAt).Seconds);
-        await SendCitationEmailAsync(sp, recipients, stats);
+        // Disha Goals auto answers (user 2026-11-17) - same nightly run. A failure here never fails the awards run.
+        // One email AFTER all three steps (user 2026-11-18): District Awards / District Set Goals, Disha Goals, RISAO.
+        var extra = new NightExtra();
+        var t0 = DateTime.UtcNow;
+        try { extra.Disha = await calc.CalculateDishaAutoAsync(); log.LogInformation("Disha Goals auto answers written: {N}", extra.Disha); }
+        catch (Exception dex) { extra.DishaError = dex.Message; log.LogError(dex, "Disha Goals auto answers failed."); }
+        // RISAO-linked goal questions (user 2026-11-17) - same run, never fails the awards run.
+        try { extra.Risao = await calc.PunchRisaoAsync(); log.LogInformation("RISAO goal answers written: {N}", extra.Risao); }
+        catch (Exception rex) { extra.RisaoError = rex.Message; log.LogError(rex, "RISAO goal answers failed."); }
+        extra.CompletedAt = DateTime.UtcNow;
+        extra.Seconds = (int)(extra.CompletedAt - t0).TotalSeconds;
+        await SendCitationEmailAsync(sp, recipients, stats, extra);
         return 0;
     }
 
@@ -99,12 +110,19 @@ catch (Exception ex)
     return 2;
 }
 
-static async Task SendCitationEmailAsync(IServiceProvider sp, string[] recipients, CitationCalculator.RunStats s)
+static async Task SendCitationEmailAsync(IServiceProvider sp, string[] recipients, CitationCalculator.RunStats s, NightExtra x)
 {
     if (recipients.Length == 0) return;
     var email = sp.GetRequiredService<BrevoEmailSender>();
-    var duration = s.RunCompletedAt - s.RunStartedAt;
-    var subject = $"ROW - Auto Calculate District awards Points - {s.RunCompletedAt:dd-MMM-yyyy hh:mm tt} UTC";
+    var duration = x.CompletedAt - s.RunStartedAt;
+    bool failed = x.DishaError != null || x.RisaoError != null;
+    var subject = $"ROW - Nightly District Awards / District Set Goals auto points{(failed ? " (with errors)" : "")} - {x.CompletedAt:dd-MMM-yyyy hh:mm tt} UTC";
+    static string Row(string k, string v, string? color = null) =>
+        $"<tr><td style='padding:8px 12px;border:1px solid #e2e8f0;background:#f8fafc;width:200px'>{k}</td><td style='padding:8px 12px;border:1px solid #e2e8f0{(color != null ? $";color:{color};font-weight:bold" : "")}'>{v}</td></tr>";
+    var night = $@"
+    {(x.DishaError == null ? Row("Disha Goals answers", x.Disha.ToString()) : Row("Disha Goals", "FAILED - " + System.Net.WebUtility.HtmlEncode(x.DishaError), "#b91c1c"))}
+    {(x.RisaoError == null ? Row("RISAO goal answers", x.Risao.ToString()) : Row("RISAO goal answers", "FAILED - " + System.Net.WebUtility.HtmlEncode(x.RisaoError), "#b91c1c"))}
+    {Row("Whole run completed", x.CompletedAt.ToString("dd-MMM-yyyy hh:mm:ss tt") + " UTC")}";
     var body = $@"
 <div style='font-family:Arial,Helvetica,sans-serif;font-size:14px;color:#1f2937;line-height:1.6'>
   <h2 style='color:#1e3a8a;margin:0 0 12px 0'>Auto Calculate District Awards Points</h2>
@@ -126,9 +144,21 @@ static async Task SendCitationEmailAsync(IServiceProvider sp, string[] recipient
         <td style='padding:8px 12px;border:1px solid #e2e8f0'>{s.ClubCount}</td></tr>
     <tr><td style='padding:8px 12px;border:1px solid #e2e8f0;background:#f8fafc'>Entries written</td>
         <td style='padding:8px 12px;border:1px solid #e2e8f0'>{s.EntryCount}</td></tr>
+    {night}
   </table>
   <p style='margin:20px 0 0 0;color:#64748b;font-size:12px'>This is an automated notification from ROW.</p>
 </div>";
     foreach (var to in recipients)
         await email.SendAsync(to, subject, body);
+}
+
+// Night-run results after District Awards (user 2026-11-18) - for the one summary email.
+sealed class NightExtra
+{
+    public int Disha { get; set; }
+    public string? DishaError { get; set; }
+    public int Risao { get; set; }
+    public string? RisaoError { get; set; }
+    public DateTime CompletedAt { get; set; } = DateTime.UtcNow;
+    public int Seconds { get; set; }
 }

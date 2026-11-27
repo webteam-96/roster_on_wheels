@@ -10,6 +10,7 @@ import 'ag_format.dart';
 import 'package:rotary_flutter_app/core/brand/brand.dart';
 import 'package:rotary_flutter_app/core/theme/app_fonts.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/motion.dart';
 
 /// "My Clubs" tab — the AG's Club Directory. Wired to
 /// `GET /api/mobile/ag-dashboard/clubs`.
@@ -265,6 +266,7 @@ class _SearchInput extends StatelessWidget {
           ),
           if (value.isNotEmpty)
             IconButton(
+              tooltip: 'Close',
               onPressed: () => onChanged(''),
               icon: const Icon(Icons.close_rounded,
                   size: 14, color: AppColors.slate400),
@@ -371,7 +373,7 @@ class _ClubCard extends StatelessWidget {
                 ),
               ],
               const SizedBox(height: 10),
-              GridView.count(
+              RowGridView.count(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
                 crossAxisCount: 2,
@@ -580,8 +582,7 @@ class _StatCell extends StatelessWidget {
                     letterSpacing: 0.4,
                   ),
                 ),
-                Text(
-                  value,
+                RowCountUp(value,
                   style: AppFonts.body(
                     fontSize: 13,
                     fontWeight: FontWeight.w800,

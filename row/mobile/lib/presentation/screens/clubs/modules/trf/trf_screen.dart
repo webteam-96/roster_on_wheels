@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart' hide Text;
+import 'package:rotary_flutter_app/core/utils/money_format.dart';
 import 'package:provider/provider.dart';
 import '../../../../../core/network/api_client.dart';
 import '../../../../providers/auth_provider.dart';
@@ -14,6 +15,8 @@ import '../../../../../presentation/widgets/common/empty_state_widget.dart';
 import '../../../../../presentation/widgets/common/confirmation_dialog.dart';
 import '../../../../../presentation/widgets/common/rotary_year_bar.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/motion.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/roster_wheel.dart';
 
 class TrfScreen extends StatefulWidget {
   final int clubId;
@@ -256,9 +259,9 @@ class _TrfScreenState extends State<TrfScreen> {
                 ? const LoadingWidget()
                 : _contributions.isEmpty
                     ? const EmptyStateWidget(title: 'No TRF contributions')
-                    : RefreshIndicator(
+                    : RowRefresh(
                         onRefresh: () => _loadContributions(),
-                        child: ListView.separated(
+                        child: RowListView.separated(
                           padding: (const EdgeInsets.all(16)).add(const EdgeInsets.only(bottom: 88)),
                           itemCount: _contributions.length + 1, // +1 for total row
                           separatorBuilder: (_, __) => const SizedBox(height: 8),
@@ -341,7 +344,7 @@ class _TrfScreenState extends State<TrfScreen> {
                   Row(
                     children: [
                       Text(
-                        '\$${amount?.toString() ?? '0'}',
+                        formatMoney(num.tryParse('${amount ?? 0}'), 'USD'),
                         style: AppTextStyles.caption.copyWith(
                           color: AppColors.primary,
                           fontWeight: FontWeight.w700,

@@ -1,5 +1,7 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { useCallback, useEffect, useState, useMemo } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
@@ -72,18 +74,18 @@ export default function DistrictAdminGoalSettingPage() {
 
   return (
     <div className="space-y-6">
-      <div className="bg-card rounded-2xl border border-slate-200 p-4 flex items-center justify-between">
+      <Card className="p-5 flex items-center justify-between">
         <div>
-          <h2 className="text-sm font-semibold text-slate-800">District Goal Setting</h2>
+          <h2 className="row-h2">District Goal Setting</h2>
           <p className="text-xs text-slate-500">Set the district's own targets, or review each club's goals.</p>
         </div>
         <Link
           href={clubGoalsHref}
-          className="inline-flex items-center gap-1.5 text-xs font-semibold px-4 h-10 rounded-full bg-azure text-white hover:bg-mint-ink"
+          className="row-btn row-btn-primary"
         >
           <Building2 size={13} /> View Club Goals
         </Link>
-      </div>
+      </Card>
 
       {!canEditThisYear && (
         <ViewOnlyBadge yearLabel={viewingYearLabel} editableYears={editableYears} />
@@ -97,14 +99,14 @@ export default function DistrictAdminGoalSettingPage() {
         belowCategories={
           <div className="flex flex-wrap items-start gap-3">
             {/* Messages for the category selected above (user 2026-10-09): opens that category's box. */}
-            <button
+            <Button
               type="button"
               onClick={() => setMsgOpen(true)}
               disabled={catId == null}
-              className="inline-flex items-center gap-1.5 text-xs font-semibold px-4 h-10 rounded-full border border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100 disabled:opacity-50"
+              variant="outline"
             >
               <MessagesSquare size={14} /> Messages
-            </button>
+            </Button>
             <div className="flex-1 min-w-0">
               <GoalTargetSplitPanel form={monthly} onSave={saveSplit} reloadKey={`${catId}-${yearId ?? "cur"}`} />
             </div>

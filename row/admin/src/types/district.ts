@@ -8,6 +8,8 @@ export interface DistrictListItem {
   zoneName: string | null;
   country: string | null;
   defaultCurrency: string | null;
+  /** The currency of `country`; missing on an older API. */
+  countryCurrency?: string | null;
   /** IANA time zone (N12); null = the instance default. */
   timezone: string | null;
   totalClubs: number;

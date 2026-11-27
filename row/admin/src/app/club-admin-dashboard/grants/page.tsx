@@ -6,6 +6,9 @@
  * only a grant amount and a report date on its own projects.
  */
 
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table"
+import { NativeSelect } from "@/components/ui/native-select";
+import { PageHeader } from "@/components/row/AppKit";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -24,7 +27,7 @@ import { dayInput } from "@/lib/grants";
 import type { GrantClubOverview, GrantCycle, GrantLightProject } from "@/types/grants";
 import type { RotaryYear } from "@/types/rotaryYear";
 
-const SELECT = "h-10 w-full rounded-md border border-input bg-background px-3 text-sm";
+const SELECT = "row-field w-full";
 const message = (err: any, fallback: string) => err?.response?.data?.message || fallback;
 
 export default function ClubGrantsPage() {
@@ -41,15 +44,8 @@ export default function ClubGrantsPage() {
   if (!clubId) return <p className="p-6 text-sm text-muted-foreground">Choose a club first.</p>;
 
   return (
-    <div className="space-y-6 p-6">
-      <div>
-        <h2 className="text-2xl font-bold tracking-tight text-primary">Grants</h2>
-        <p className="text-base text-muted-foreground">
-          {data?.lightMode
-            ? "Your district does not run its grants on ROW. Record each district grant on the project it funds."
-            : "Apply for your district's grants and follow each application to the final report."}
-        </p>
-      </div>
+    <div className="space-y-6">
+      <PageHeader title="Grants" description={data?.lightMode ? "Your district does not run its grants on ROW. Record each district grant on the project it funds." : "Apply for your district's grants and follow each application to the final report."} />
 
       {!data ? (
         <div className="space-y-4" aria-busy="true">
@@ -97,7 +93,7 @@ function OpenCycles({ clubId, cycles, onError }: { clubId: number; cycles: Grant
   }
   return (
     <section className="space-y-3">
-      <h3 className="text-lg font-semibold">Open for applications</h3>
+      <h3 className="row-h2">Open for applications</h3>
       {cycles.map((c) => (
         <Card key={c.id}>
           <CardContent className="space-y-3 p-5">
@@ -112,7 +108,7 @@ function OpenCycles({ clubId, cycles, onError }: { clubId: number; cycles: Grant
                 </p>
               </div>
               {starting !== c.id && (
-                <Button className="gap-1.5" onClick={() => { setStarting(c.id); setTitle(""); }}>
+                <Button onClick={() => { setStarting(c.id); setTitle(""); }}>
                   <Plus className="h-4 w-4" /> Start an application
                 </Button>
               )}
@@ -141,38 +137,38 @@ function Applications({ data }: { data: GrantClubOverview }) {
   const fmt = useFormat();
   return (
     <section className="space-y-3">
-      <h3 className="text-lg font-semibold">Your applications</h3>
+      <h3 className="row-h2">Your applications</h3>
       {data.applications.length === 0 ? (
         <Card><CardContent className="p-5 text-sm text-muted-foreground">The club has no grant applications yet.</CardContent></Card>
       ) : (
         <Card>
           <CardContent className="overflow-x-auto p-0">
-            <table className="w-full min-w-[720px] text-sm">
-              <thead className="bg-[#EDF4FB] text-[13px] text-[#64748B]">
-                <tr className="border-b text-left text-muted-foreground">
-                  <th className="p-3 font-medium">Project</th>
-                  <th className="p-3 font-medium">Year</th>
-                  <th className="p-3 font-medium">Status</th>
-                  <th className="p-3 text-right font-medium">Requested</th>
-                  <th className="p-3 text-right font-medium">Approved</th>
-                  <th className="p-3 text-right font-medium">Paid</th>
-                  <th className="p-3 font-medium">Updated</th>
-                </tr>
-              </thead>
-              <tbody>
+            <Table className="w-full min-w-[720px] text-sm">
+              <TableHeader>
+                <TableRow className="border-b">
+                  <TableHead className="p-3">Project</TableHead>
+                  <TableHead className="p-3">Year</TableHead>
+                  <TableHead className="p-3">Status</TableHead>
+                  <TableHead className="p-3 text-right">Requested</TableHead>
+                  <TableHead className="p-3 text-right">Approved</TableHead>
+                  <TableHead className="p-3 text-right">Paid</TableHead>
+                  <TableHead className="p-3">Updated</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
                 {data.applications.map((a) => (
-                  <tr key={a.id} className="border-b last:border-0">
-                    <td className="p-3"><Link href={`/club-admin-dashboard/grants/${a.id}`} className="font-medium text-primary hover:underline">{a.title}</Link></td>
-                    <td className="p-3">{a.yearLabel}</td>
-                    <td className="p-3"><StatusBadge status={a.status} /></td>
-                    <td className="p-3 text-right tabular-nums">{fmt.money(a.amountRequested)}</td>
-                    <td className="p-3 text-right tabular-nums">{a.amountApproved != null ? fmt.money(a.amountApproved) : ""}</td>
-                    <td className="p-3 text-right tabular-nums">{a.paid ? fmt.money(a.paid) : ""}</td>
-                    <td className="p-3">{fmt.date(a.updatedAt)}</td>
-                  </tr>
+                  <TableRow key={a.id} className="border-b last:border-0">
+                    <TableCell className="p-3"><Link href={`/club-admin-dashboard/grants/${a.id}`} className="font-medium text-primary hover:underline">{a.title}</Link></TableCell>
+                    <TableCell className="p-3">{a.yearLabel}</TableCell>
+                    <TableCell className="p-3"><StatusBadge status={a.status} /></TableCell>
+                    <TableCell className="p-3 text-right tabular-nums">{fmt.money(a.amountRequested)}</TableCell>
+                    <TableCell className="p-3 text-right tabular-nums">{a.amountApproved != null ? fmt.money(a.amountApproved) : ""}</TableCell>
+                    <TableCell className="p-3 text-right tabular-nums">{a.paid ? fmt.money(a.paid) : ""}</TableCell>
+                    <TableCell className="p-3">{fmt.date(a.updatedAt)}</TableCell>
+                  </TableRow>
                 ))}
-              </tbody>
-            </table>
+              </TableBody>
+            </Table>
           </CardContent>
         </Card>
       )}
@@ -228,9 +224,9 @@ function LightMode({ clubId, onError }: { clubId: number; onError: (m: string) =
     <section className="space-y-3">
       <div className="max-w-xs space-y-1.5">
         <Label htmlFor="light-year">Rotary year</Label>
-        <select id="light-year" className={SELECT} value={yearId ?? ""} onChange={(e) => setYearId(Number(e.target.value))}>
+        <NativeSelect id="light-year"  value={yearId ?? ""} onChange={(e) => setYearId(Number(e.target.value))}>
           {years.map((y) => <option key={y.id} value={y.id}>{y.yearLabel}</option>)}
-        </select>
+        </NativeSelect>
       </div>
       {projects === null ? (
         <TableSkeleton rows={4} />
@@ -239,35 +235,35 @@ function LightMode({ clubId, onError }: { clubId: number; onError: (m: string) =
       ) : (
         <Card>
           <CardContent className="overflow-x-auto p-0">
-            <table className="w-full min-w-[720px] text-sm">
-              <thead className="bg-[#EDF4FB] text-[13px] text-[#64748B]">
-                <tr className="border-b text-left text-muted-foreground">
-                  <th className="p-3 font-medium">Project</th>
-                  <th className="p-3 font-medium">Grant amount</th>
-                  <th className="p-3 font-medium">Report date</th>
-                  <th className="p-3" aria-label="Save" />
-                </tr>
-              </thead>
-              <tbody>
+            <Table className="w-full min-w-[720px] text-sm">
+              <TableHeader>
+                <TableRow className="border-b">
+                  <TableHead className="p-3">Project</TableHead>
+                  <TableHead className="p-3">Grant amount</TableHead>
+                  <TableHead className="p-3">Report date</TableHead>
+                  <TableHead className="p-3" aria-label="Save" />
+                </TableRow>
+              </TableHeader>
+              <TableBody>
                 {projects.map((p) => {
                   const e = edits[p.projectId] ?? { amount: "", date: "" };
                   const set = (patch: Partial<typeof e>) => setEdits((all) => ({ ...all, [p.projectId]: { ...e, ...patch } }));
                   return (
-                    <tr key={p.projectId} className="border-b last:border-0">
-                      <td className="p-3">{p.title}{p.projectDate ? <span className="block text-xs text-muted-foreground">{dayInput(p.projectDate)}</span> : null}</td>
-                      <td className="p-3"><Input aria-label={`Grant amount for ${p.title}`} type="number" min={0} step="0.01" className="w-36" value={e.amount} onChange={(ev) => set({ amount: ev.target.value })} /></td>
-                      <td className="p-3"><Input aria-label={`Report date for ${p.title}`} type="date" className="w-44" value={e.date} onChange={(ev) => set({ date: ev.target.value })} /></td>
-                      <td className="p-3 text-right">
-                        <Button size="sm" variant="outline" className="gap-1.5" disabled={savingId === p.projectId} onClick={() => save(p)}>
+                    <TableRow key={p.projectId} className="border-b last:border-0">
+                      <TableCell className="p-3">{p.title}{p.projectDate ? <span className="block text-xs text-muted-foreground">{dayInput(p.projectDate)}</span> : null}</TableCell>
+                      <TableCell className="p-3"><Input aria-label={`Grant amount for ${p.title}`} type="number" min={0} step="0.01" className="w-36" value={e.amount} onChange={(ev) => set({ amount: ev.target.value })} /></TableCell>
+                      <TableCell className="p-3"><Input aria-label={`Report date for ${p.title}`} type="date" className="w-44" value={e.date} onChange={(ev) => set({ date: ev.target.value })} /></TableCell>
+                      <TableCell className="p-3 text-right">
+                        <Button size="sm" variant="outline" disabled={savingId === p.projectId} onClick={() => save(p)}>
                           {savingId === p.projectId ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Save className="h-3.5 w-3.5" />}
                           {savedId === p.projectId ? "Saved" : "Save"}
                         </Button>
-                      </td>
-                    </tr>
+                      </TableCell>
+                    </TableRow>
                   );
                 })}
-              </tbody>
-            </table>
+              </TableBody>
+            </Table>
           </CardContent>
         </Card>
       )}
@@ -284,7 +280,7 @@ function Qualification({ data }: { data: GrantClubOverview }) {
   return (
     <Card>
       <CardContent className="space-y-2 p-5">
-        <h3 className="text-base font-semibold">Grant qualification</h3>
+        <h3 className="row-h2">Grant qualification</h3>
         {missing.length > 0 && (
           <p className="text-sm text-amber-800" role="status">
             The club is not qualified for {data.cycles.filter((c) => missing.includes(c.yearId)).map((c) => c.yearLabel).join(", ")} yet.{" "}

@@ -141,11 +141,18 @@ public static class DbWriter
     public static string Key(int year, string entity, int district, int club, string item, string kind)
         => $"{year}|{entity}|{district}|{club}|{item.ToLowerInvariant()}|{kind.ToLowerInvariant()}";
 
-    /// Business owner's rules: Target = inserted only when missing (an existing target is never changed);
-    /// Achieved and Value = inserted or updated on every sync; nothing is ever deleted.
-    /// Returns rows written (targets inserted + achieved/value inserted or updated) and targets left alone.
-    public static async Task<(int Written, int TargetsKept)> WriteAsync(MySqlConnection db, List<GoalDbRow> rows, string source)
+    /// Rules: Target, Achieved and Value = inserted or UPDATED on every sync, so Rizones always shows Rotary.org's
+    /// LATEST goal (user 2026-11-23: a club that changes its goal in Rotary.org changes it in Rizones - RCC only;
+    /// before, an existing target was never changed). Only the DG / club sync writes here, and only the CURRENT
+    /// Rotary year. Nothing is ever deleted: a goal Rotary.org no longer sends stays as it was.
+    /// Returns rows written and how many of them were targets that already existed (refreshed from Rotary.org).
+    /// Which Rotary year a sync writes (user 2026-11-20): Past = Achieved / Value updated, a goal only where none is saved;
+    /// Current = everything updated (latest Rotary.org goal); Next = goals only (no Achieved before 1 July).
+    public enum YearMode { Past, Current, Next }
+
+    public static async Task<(int Written, int TargetsRefreshed)> WriteAsync(MySqlConnection db, List<GoalDbRow> rows, string source, YearMode mode = YearMode.Current)
     {
+        if (mode == YearMode.Next) rows = rows.Where(r => r.Kind == "Target").ToList();
         if (rows.Count == 0) return (0, 0);
         var dIds = rows.Select(r => r.DistrictId).Distinct().ToList();
         var yIds = rows.Select(r => r.YearId).Distinct().ToList();
@@ -153,17 +160,20 @@ public static class DbWriter
                 "SELECT fk_year_id, EntityType, fk_district_id, fk_club_id, ItemName, Kind FROM goal_rotary_org_values WHERE fk_district_id IN @dIds AND fk_year_id IN @yIds",
                 new { dIds, yIds }))
             .Select(x => Key(x.Y, x.E, x.D, x.C, x.I, x.K)).ToHashSet();
-
-        var newTargets = rows.Where(r => r.Kind == "Target" && !existing.Contains(Key(r.YearId, r.EntityType, r.DistrictId, r.ClubId, r.ItemName, r.Kind))).ToList();
-        var targetsKept = rows.Count(r => r.Kind == "Target") - newTargets.Count;
-        var upserts = rows.Where(r => r.Kind != "Target").ToList();
+        var targetsRefreshed = rows.Count(r => r.Kind == "Target" && existing.Contains(Key(r.YearId, r.EntityType, r.DistrictId, r.ClubId, r.ItemName, r.Kind)));
 
         await using var tx = await db.BeginTransactionAsync();
-        // ON DUPLICATE KEY UPDATE pk_id = pk_id: a target another writer added meanwhile is still left alone.
-        await InsertAsync(db, tx, newTargets, source, "pk_id = pk_id");
-        await InsertAsync(db, tx, upserts, source, "NumericValue = VALUES(NumericValue), Source = VALUES(Source), modified_date = NOW()");
+        if (mode == YearMode.Past)
+        {
+            // An old year's goal that is already saved is never changed; a missing one is filled.
+            await InsertAsync(db, tx, rows.Where(r => r.Kind == "Target").ToList(), source, "pk_id = pk_id");
+            await InsertAsync(db, tx, rows.Where(r => r.Kind != "Target").ToList(), source, "NumericValue = VALUES(NumericValue), Source = VALUES(Source), modified_date = NOW()");
+            targetsRefreshed = 0;
+        }
+        else
+            await InsertAsync(db, tx, rows, source, "NumericValue = VALUES(NumericValue), Source = VALUES(Source), modified_date = NOW()");
         await tx.CommitAsync();
-        return (newTargets.Count + upserts.Count, targetsKept);
+        return (rows.Count, targetsRefreshed);
     }
 
     private static async Task InsertAsync(MySqlConnection db, MySqlTransaction tx, List<GoalDbRow> rows, string source, string onDuplicate)

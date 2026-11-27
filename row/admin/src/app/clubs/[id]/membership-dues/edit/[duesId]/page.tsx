@@ -14,12 +14,11 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
-import { ArrowLeft, Save, Upload, Eye } from "@/components/icons";
+import { Save, Upload } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
-import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import "react-quill-new/dist/quill.snow.css";
-import { ListPageSkeleton } from "@/components/row/AppKit";
+import { PageHeader, ListPageSkeleton } from "@/components/row/AppKit";
 
 // ReactQuill must be client-only — SSR would crash on `document`.
 const ReactQuill = dynamic(() => import("react-quill-new"), { ssr: false });
@@ -148,7 +147,7 @@ export default function ClubMembershipDuesEditPage() {
         </div>
       )}
       <div className="flex flex-wrap items-center gap-2">
-        <label className="cursor-pointer inline-flex items-center gap-2 px-3 py-2 border rounded-full text-sm hover:bg-muted">
+        <label className="cursor-pointer inline-flex items-center gap-2 px-3 py-2 border rounded text-sm hover:bg-muted">
           <Upload className="h-4 w-4" />
           {preview ? "Change" : "Upload"}
           <input type="file" accept=".jpg,.jpeg,.png,.gif,.webp" className="hidden" onChange={e => onChange(e.target.files?.[0] || null)} />
@@ -164,15 +163,15 @@ export default function ClubMembershipDuesEditPage() {
         <SuccessAlert open={!!successMessage} title="Success" description={successMessage || ""} onOk={() => setSuccessMessage(null)} />
         <ErrorAlert open={!!errorMessage} title="Error" description={errorMessage || ""} onOk={() => setErrorMessage(null)} />
 
-        <div className="flex items-center gap-3">
-          <Button variant="outline" size="icon" asChild>
-            <Link href={`/clubs/${clubId}/membership-dues`}><ArrowLeft className="h-4 w-4" /></Link>
-          </Button>
-          <div className="flex-1">
-            <h2 className="text-2xl font-bold tracking-tight text-primary">Edit Club Dues</h2>
-            <p className="text-muted-foreground text-base">Update title, description, and images</p>
-          </div>
-        </div>
+        <PageHeader
+          title="Edit Club Dues"
+          back={`/clubs/${clubId}/membership-dues`}
+          actions={
+            <>
+<p className="text-muted-foreground text-base">Update title, description, and images</p>
+            </>
+          }
+        />
 
         {/* Basic Info */}
         <Card>
@@ -271,7 +270,7 @@ Click on the link : ****`}</pre>
 
         {/* Save */}
         <div className="flex justify-end pb-8">
-          <Button onClick={handleSubmit} disabled={saving} className="bg-green-600 hover:bg-green-700">
+          <Button onClick={handleSubmit} disabled={saving}>
             {saving ? <RotaryLoader size="sm" className="mr-2" /> : <Save className="h-4 w-4 mr-2" />}
             {saving ? "Saving..." : "Save Changes"}
           </Button>

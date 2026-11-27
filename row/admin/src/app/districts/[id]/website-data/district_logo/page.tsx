@@ -14,12 +14,11 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
-import { ArrowLeft, Upload, ImageIcon, X } from "@/components/icons";
+import { Upload, ImageIcon } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
-import Link from "next/link";
 import Image from "next/image";
 import ProtectedRoute from "@/components/ProtectedRoute";
-import { ListPageSkeleton } from "@/components/row/AppKit";
+import { PageHeader, ListPageSkeleton } from "@/components/row/AppKit";
 
 export default function DistrictLogoPage() {
   const params = useParams();
@@ -88,17 +87,7 @@ export default function DistrictLogoPage() {
   return (
     <ProtectedRoute>
       <div className="space-y-6">
-        <div className="flex items-center gap-3">
-          <Button variant="outline" size="icon" asChild>
-            <Link href={`/districts/${districtId}/website-data`}><ArrowLeft className="h-4 w-4" /></Link>
-          </Button>
-          <div>
-            <h2 className="text-2xl font-bold tracking-tight text-primary">
-              {districtNumber ? `District ${districtNumber} - District Logo` : "District Logo"}
-            </h2>
-            <p className="text-muted-foreground text-base">Manage the district logo image</p>
-          </div>
-        </div>
+        <PageHeader title={districtNumber ? `District ${districtNumber} - District Logo` : "District Logo"} description="Manage the district logo image" back={`/districts/${districtId}/website-data`} />
 
         {loading && (
           <div className="flex items-center justify-center py-20">
@@ -107,7 +96,7 @@ export default function DistrictLogoPage() {
         )}
 
         {!loading && (
-          <Card className="border-primary/20 max-w-lg">
+          <Card className="max-w-lg">
             <CardContent className="p-6 space-y-6">
               <div className="space-y-2">
                 <Label className="text-base font-semibold">Current Logo</Label>
@@ -137,7 +126,7 @@ export default function DistrictLogoPage() {
                   />
                   <Button
                     variant="outline"
-                    className="w-full h-16 border-dashed"
+                    className="w-full h-16"
                     onClick={() => fileInputRef.current?.click()}
                     disabled={uploading}
                   >

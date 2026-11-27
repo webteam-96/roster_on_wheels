@@ -6,6 +6,7 @@
  * allowance. Sends then use the allowance instead of email credits.
  */
 
+import { NativeSelect } from "@/components/ui/native-select";
 import { useEffect, useState } from "react";
 import { Skeleton } from "@/components/dashboard/DashboardSkeleton";
 import { getCommTemplates, getCommUsage, type CommTemplate, type CommUsage, type CommsScope } from "@/services/api";
@@ -32,11 +33,11 @@ export default function ComposeComms({ scope, ownerId, templateKey, onTemplateKe
     <div className="space-y-2 rounded-lg border border-slate-200 p-3">
       <label className="block text-sm font-medium text-slate-700">
         Language versions
-        <select className="mt-1 block h-10 w-full rounded-md border border-input bg-background px-3 text-sm md:w-80" value={templateKey}
+        <NativeSelect className="mt-1 block md:w-80" value={templateKey}
           onChange={(e) => onTemplateKey(e.target.value)} disabled={templates === null}>
           <option value="">None: everyone gets the text below</option>
           {keys.map((k) => <option key={k} value={k}>{k} ({languages(k)})</option>)}
-        </select>
+        </NativeSelect>
       </label>
       <p className="text-xs text-slate-500">
         With a template, each member gets the version in their language; members without a matching version get the

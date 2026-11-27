@@ -5,6 +5,8 @@
  * decides which transitions the viewer may make (app.actions); these components only render them.
  */
 
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table"
+import { PageHeader } from "@/components/row/AppKit";
 import { useState, type ReactNode } from "react";
 import { Download, Trash2 } from "@/components/icons";
 import { Button } from "@/components/ui/button";
@@ -29,7 +31,7 @@ export function Section({ title, children, action }: { title: string; children: 
     <Card>
       <CardContent className="space-y-3 p-5">
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <h3 className="text-base font-semibold">{title}</h3>
+          <h3 className="row-h2">{title}</h3>
           {action}
         </div>
         {children}
@@ -52,10 +54,7 @@ export function DetailSkeleton() {
 export function GrantHeader({ app }: { app: GrantApplication }) {
   return (
     <div className="space-y-1">
-      <div className="flex flex-wrap items-center gap-3">
-        <h2 className="text-2xl font-bold tracking-tight text-primary">{app.title}</h2>
-        <StatusBadge status={app.status} />
-      </div>
+      <PageHeader title={<>{app.title} <StatusBadge status={app.status} /></>} />
       <p className="text-sm text-muted-foreground">
         {app.clubName}, Rotary year {app.yearLabel}
         {app.createdByName ? `. Started by ${app.createdByName}` : ""}
@@ -104,40 +103,40 @@ export function GrantSummary({ app }: { app: GrantApplication }) {
               {lines(kind).length === 0 ? (
                 <p className="text-sm text-muted-foreground">None listed.</p>
               ) : (
-                <table className="w-full text-sm">
+                <Table className="w-full text-sm">
                   {kind === "expense" && hasActuals && (
-                    <thead>
-                      <tr className="border-b text-left text-xs text-muted-foreground">
-                        <th className="py-1 font-medium">Line</th>
-                        <th className="py-1 text-right font-medium">Budget</th>
-                        <th className="py-1 text-right font-medium">Actual</th>
-                        <th className="py-1 text-right font-medium">Variance</th>
-                      </tr>
-                    </thead>
+                    <TableHeader>
+                      <TableRow className="border-b">
+                        <TableHead>Line</TableHead>
+                        <TableHead className="text-right">Budget</TableHead>
+                        <TableHead className="text-right">Actual</TableHead>
+                        <TableHead className="text-right">Variance</TableHead>
+                      </TableRow>
+                    </TableHeader>
                   )}
-                  <tbody>
+                  <TableBody>
                     {lines(kind).map((l, i) => (
-                      <tr key={i} className="border-b last:border-0">
-                        <td className="py-1.5 pr-2">
+                      <TableRow key={i} className="border-b last:border-0">
+                        <TableCell className="py-1.5 pr-2">
                           {l.description}
                           {l.detail ? <span className="block text-xs text-muted-foreground">{l.detail}</span> : null}
                           {l.category || l.supplier ? (
                             <span className="block text-xs text-muted-foreground">{[l.category, l.supplier].filter(Boolean).join(", ")}</span>
                           ) : null}
-                        </td>
-                        <td className="py-1.5 text-right tabular-nums">{fmt.money(l.amount)}</td>
+                        </TableCell>
+                        <TableCell className="py-1.5 text-right tabular-nums">{fmt.money(l.amount)}</TableCell>
                         {kind === "expense" && hasActuals && (
                           <>
-                            <td className="py-1.5 pl-2 text-right tabular-nums">{l.actualAmount != null ? fmt.money(l.actualAmount) : ""}</td>
-                            <td className={`py-1.5 pl-2 text-right tabular-nums ${(l.variance ?? 0) > 0 ? "text-red-700" : ""}`}>
+                            <TableCell className="py-1.5 pl-2 text-right tabular-nums">{l.actualAmount != null ? fmt.money(l.actualAmount) : ""}</TableCell>
+                            <TableCell className={`py-1.5 pl-2 text-right tabular-nums ${(l.variance ?? 0) > 0 ? "text-red-700" : ""}`}>
                               {l.variance != null ? fmt.money(l.variance) : ""}
-                            </td>
+                            </TableCell>
                           </>
                         )}
-                      </tr>
+                      </TableRow>
                     ))}
-                  </tbody>
-                </table>
+                  </TableBody>
+                </Table>
               )}
             </div>
           ))}
@@ -239,26 +238,26 @@ export function PaymentsTable({ app }: { app: GrantApplication }) {
   const fmt = useFormat();
   return (
     <div className="overflow-x-auto">
-      <table className="w-full min-w-[520px] text-sm">
-        <thead>
-          <tr className="border-b text-left text-muted-foreground">
-            <th className="py-2 font-medium">Date</th>
-            <th className="py-2 font-medium">Method</th>
-            <th className="py-2 font-medium">Reference</th>
-            <th className="py-2 text-right font-medium">Amount</th>
-          </tr>
-        </thead>
-        <tbody>
+      <Table className="w-full min-w-[520px] text-sm">
+        <TableHeader>
+          <TableRow className="border-b">
+            <TableHead>Date</TableHead>
+            <TableHead>Method</TableHead>
+            <TableHead>Reference</TableHead>
+            <TableHead className="text-right">Amount</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
           {app.payments.map((p) => (
-            <tr key={p.id} className="border-b last:border-0">
-              <td className="py-2">{fmt.date(p.paidOn)}</td>
-              <td className="py-2">{PAYMENT_METHODS[p.method] ?? p.method}</td>
-              <td className="py-2">{p.reference ?? ""}{p.note ? <span className="block text-xs text-muted-foreground">{p.note}</span> : null}</td>
-              <td className="py-2 text-right tabular-nums">{fmt.money(p.amount)}</td>
-            </tr>
+            <TableRow key={p.id} className="border-b last:border-0">
+              <TableCell className="py-2">{fmt.date(p.paidOn)}</TableCell>
+              <TableCell className="py-2">{PAYMENT_METHODS[p.method] ?? p.method}</TableCell>
+              <TableCell className="py-2">{p.reference ?? ""}{p.note ? <span className="block text-xs text-muted-foreground">{p.note}</span> : null}</TableCell>
+              <TableCell className="py-2 text-right tabular-nums">{fmt.money(p.amount)}</TableCell>
+            </TableRow>
           ))}
-        </tbody>
-      </table>
+        </TableBody>
+      </Table>
       <p className="mt-2 text-sm text-muted-foreground">
         Paid {fmt.money(app.paid)} of {fmt.money(app.amountApproved ?? 0)} approved.
       </p>
@@ -300,7 +299,7 @@ export function AttachmentList({ app, side, scopeId, onDelete, children }: {
                 </span>
               </span>
               <span className="flex flex-wrap gap-2">
-                <Button size="sm" variant="outline" className="gap-1.5" onClick={() => download(a.id)}>
+                <Button size="sm" variant="outline" onClick={() => download(a.id)}>
                   <Download className="h-3.5 w-3.5" /> Download
                 </Button>
                 {onDelete && app.attachmentKinds.includes(a.kind) && (

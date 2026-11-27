@@ -5,17 +5,15 @@ import { useState, useEffect } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { getTrfYears, getClub } from "@/services/api";
 import { ReportYear } from "@/types/clubMonthlyReport";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Calendar } from "@/components/icons";
+import { Calendar } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import ErrorAlert from "@/components/ErrorAlert";
-import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { useFeatureLoadedOn } from "@/components/FeatureGate";
-import { ListPageSkeleton } from "@/components/row/AppKit";
+import { PageHeader, ListPageSkeleton } from "@/components/row/AppKit";
 
 interface OcvCard {
   key: string;
@@ -270,25 +268,11 @@ export default function OcvGovPage() {
     <ProtectedRoute>
       <div className="space-y-6">
         {/* Header */}
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-3">
-            <Button variant="outline" size="icon" asChild>
-              <Link href={`/clubs/${clubId}/dashboard`}>
-                <ArrowLeft className="h-4 w-4" />
-              </Link>
-            </Button>
-            <div>
-              <h2 className="text-2xl font-bold tracking-tight text-primary">
-                {clubName ? `${clubName} - OCV/GOV` : "OCV/GOV"}
-              </h2>
-              <p className="text-muted-foreground text-base">
-                Official Club Visit / Governor&apos;s Official Visit
-              </p>
-            </div>
-          </div>
-
-          {/* Year filter */}
-          {!loading && years.length > 0 && (
+        <PageHeader
+          title={clubName ? `${clubName} - OCV/GOV` : "OCV/GOV"}
+          description={<>Official Club Visit / Governor&apos;s Official Visit</>}
+          back={`/clubs/${clubId}/dashboard`}
+          actions={!loading && years.length > 0 && (
             <div className="w-full sm:w-52">
               <Select
                 value={selectedYearId?.toString() || ""}
@@ -309,7 +293,7 @@ export default function OcvGovPage() {
               </Select>
             </div>
           )}
-        </div>
+        />
 
         {/* Loading */}
         {loading && (
@@ -331,15 +315,14 @@ export default function OcvGovPage() {
               >
                 {card.disabled && (
                   <Badge
-                    variant="secondary"
-                    className="absolute top-3 right-3 bg-amber-100 text-amber-800 hover:bg-amber-100"
+                    variant="secondary" className="absolute top-3 right-3 bg-amber-100 text-amber-800"
                   >
                     Coming Soon
                   </Badge>
                 )}
                 <CardContent className="flex flex-col items-center text-center p-6 pt-8">
                   <div className="mb-4">{card.icon}</div>
-                  <h3 className="text-lg font-semibold text-foreground mb-2">{card.title}</h3>
+                  <h3 className="row-h2 mb-2">{card.title}</h3>
                   <p className="text-sm text-muted-foreground">{card.description}</p>
                 </CardContent>
               </Card>
@@ -352,7 +335,7 @@ export default function OcvGovPage() {
           <div className="mt-4 flex flex-col items-center text-center">
             <p className="text-lg font-semibold text-primary mb-3">Click Here to View/Generate the Uploaded Documents</p>
             <Card
-              className="cursor-pointer transition-all duration-200 hover:shadow-lg hover:border-primary/40 w-full max-w-sm"
+              className="cursor-pointer transition-all duration-200 hover:border-primary/40 w-full max-w-sm"
               onClick={() => {
                 if (!selectedYearId) { setErrorMessage("Please select a Rotary Year first."); return; }
                 router.push(`/clubs/${clubId}/ocv-gov/report?yearId=${selectedYearId}`);
@@ -360,7 +343,7 @@ export default function OcvGovPage() {
             >
               <CardContent className="flex flex-col items-center text-center p-6 pt-8">
                 <div className="mb-4"><GenerateReportIcon /></div>
-                <h3 className="text-lg font-semibold text-foreground mb-2">Generate OCV Report</h3>
+                <h3 className="row-h2 mb-2">Generate OCV Report</h3>
                 <p className="text-sm text-muted-foreground">Generate and download OCV compliance report</p>
               </CardContent>
             </Card>

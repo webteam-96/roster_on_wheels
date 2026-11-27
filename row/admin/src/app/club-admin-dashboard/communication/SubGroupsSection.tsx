@@ -1,4 +1,5 @@
 "use client";
+import { LinkButton } from "@/components/ui/text-buttons";
 
 /**
  * Club Admin · Communication → Subgroups (V2, inside the club-admin shell).
@@ -24,7 +25,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -205,7 +206,9 @@ export default function SubGroupsSection({ clubId }: { clubId: number }) {
     try {
       const memberIds = Array.from(selectedMemberIds);
       if (editingGroup) {
-        await updateSubGroup(clubId, editingGroup.id, { groupName: groupName.trim(), memberIds });
+        // The API's year guard needs the group's year (PUT without it is a 403); the group is listed under selectedYearId.
+        const body = { yearId: Number(selectedYearId), groupName: groupName.trim(), memberIds };
+        await updateSubGroup(clubId, editingGroup.id, body);
         setSuccessMessage("Sub group updated successfully.");
       } else {
         if (!dialogYearId) { setErrorMessage("Please select a Rotary Year."); setSaving(false); return; }
@@ -259,7 +262,7 @@ export default function SubGroupsSection({ clubId }: { clubId: number }) {
           <span className="text-sm font-semibold">Subgroups: organise members into groups (used as Mass email recipient lists)</span>
         </div>
         {canManage && !loading && selectedYearId && (
-          <Button onClick={openAddDialog} className="bg-azure hover:bg-mint-ink text-white">
+          <Button onClick={openAddDialog}>
             <Plus className="mr-2 h-4 w-4" />Add Sub Group
           </Button>
         )}
@@ -286,7 +289,7 @@ export default function SubGroupsSection({ clubId }: { clubId: number }) {
       {!loading && !loadingGroups && selectedYearId && groups.length === 0 && (
         <div className="flex flex-col items-center justify-center py-16 text-center">
           <Users className="h-12 w-12 text-muted-foreground mb-4" />
-          <h3 className="text-lg font-semibold">No sub groups found</h3>
+          <h3 className="row-h2">No sub groups found</h3>
           <p className="text-muted-foreground mt-2">{canManage ? 'Click "Add Sub Group" to create one.' : "No sub groups have been created yet."}</p>
         </div>
       )}
@@ -298,7 +301,7 @@ export default function SubGroupsSection({ clubId }: { clubId: number }) {
       {!loading && !loadingGroups && filteredGroups.length === 0 && groups.length > 0 && searchQuery && (
         <div className="flex flex-col items-center justify-center py-12 text-center">
           <Users className="h-12 w-12 text-muted-foreground mb-4" />
-          <h3 className="text-lg font-semibold">No results found</h3>
+          <h3 className="row-h2">No results found</h3>
           <p className="text-muted-foreground mt-2">No sub groups match your search &quot;{searchQuery}&quot;.</p>
         </div>
       )}
@@ -308,19 +311,19 @@ export default function SubGroupsSection({ clubId }: { clubId: number }) {
           {/* Mobile cards */}
           <div className="block sm:hidden space-y-3">
             {filteredGroups.map((group) => (
-              <Card key={group.id} className="border-primary/20">
+              <Card key={group.id}>
                 <CardContent className="p-4">
                   <div className="flex flex-wrap items-center justify-between gap-3">
                     <div className="flex-1 min-w-0">
-                      <button className="font-semibold text-primary truncate hover:underline text-left" onClick={() => openViewDialog(group)}>
+                      <LinkButton className="truncate text-left" onClick={() => openViewDialog(group)}>
                         {group.groupName}
-                      </button>
+                      </LinkButton>
                       <div className="flex items-center gap-2 mt-1">
                         <Badge variant="secondary"><Users className="mr-1 h-3 w-3" />{group.memberCount} {group.memberCount === 1 ? "member" : "members"}</Badge>
                       </div>
                     </div>
                     <DropdownMenu>
-                      <DropdownMenuTrigger asChild><Button variant="ghost" size="icon" className="h-8 w-8"><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger>
+                      <DropdownMenuTrigger asChild><Button variant="ghost" size="icon" className="row-btn-sm"><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem onClick={() => openViewDialog(group)}><Eye className="mr-2 h-4 w-4" />View Members</DropdownMenuItem>
                         {canManage && (<>
@@ -336,12 +339,12 @@ export default function SubGroupsSection({ clubId }: { clubId: number }) {
           </div>
 
           {/* Desktop table */}
-          <div className="hidden sm:block rounded-md border">
+          <Card className="hidden sm:block overflow-hidden">
             <Table>
               <TableHeader>
                 <TableRow className="hover:opacity-100" style={{ backgroundColor: "#17458f" }}>
-                  <TableHead className="text-base font-semibold">Group Name</TableHead>
-                  <TableHead className="text-base font-semibold text-center">Members</TableHead>
+                  <TableHead>Group Name</TableHead>
+                  <TableHead className="text-center">Members</TableHead>
                   <TableHead className="w-12"></TableHead>
                 </TableRow>
               </TableHeader>
@@ -349,12 +352,12 @@ export default function SubGroupsSection({ clubId }: { clubId: number }) {
                 {filteredGroups.map((group) => (
                   <TableRow key={group.id} className="hover:bg-slate-50 transition-colors">
                     <TableCell>
-                      <button className="font-semibold text-primary hover:underline text-left" onClick={() => openViewDialog(group)}>{group.groupName}</button>
+                      <LinkButton className="text-left" onClick={() => openViewDialog(group)}>{group.groupName}</LinkButton>
                     </TableCell>
                     <TableCell className="text-center"><Badge variant="secondary"><Users className="mr-1 h-3 w-3" />{group.memberCount}</Badge></TableCell>
                     <TableCell>
                       <DropdownMenu>
-                        <DropdownMenuTrigger asChild><Button variant="ghost" size="icon" className="h-8 w-8"><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger>
+                        <DropdownMenuTrigger asChild><Button variant="ghost" size="icon" className="row-btn-sm"><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                           <DropdownMenuItem onClick={() => openViewDialog(group)}><Eye className="mr-2 h-4 w-4" />View Members</DropdownMenuItem>
                           {canManage && (<>
@@ -368,7 +371,7 @@ export default function SubGroupsSection({ clubId }: { clubId: number }) {
                 ))}
               </TableBody>
             </Table>
-          </div>
+          </Card>
         </>
       )}
 
@@ -419,9 +422,9 @@ export default function SubGroupsSection({ clubId }: { clubId: number }) {
                       </div>
                       <div className="relative">
                         <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
-                        <Input placeholder="Search by name, mobile, email..." value={memberSearchQuery} onChange={(e) => setMemberSearchQuery(e.target.value)} className="pl-8 h-8 text-sm" />
+                        <Input placeholder="Search by name, mobile, email..." value={memberSearchQuery} onChange={(e) => setMemberSearchQuery(e.target.value)} className="row-field-sm pl-8" />
                         {memberSearchQuery && (
-                          <Button variant="ghost" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 h-5 w-5" onClick={() => setMemberSearchQuery("")}><X className="h-3 w-3" /></Button>
+                          <Button variant="ghost" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 h-5 w-5 h-5 w-5 h-5 w-5 h-5 w-5" onClick={() => setMemberSearchQuery("")}><X className="h-3 w-3" /></Button>
                         )}
                       </div>
                     </div>
@@ -458,7 +461,7 @@ export default function SubGroupsSection({ clubId }: { clubId: number }) {
                   <div className="border rounded-md flex flex-col overflow-hidden">
                     <div className="px-3 py-2 border-b bg-muted/50 flex items-center justify-between">
                       <span className="text-sm font-semibold">Selected Members</span>
-                      <Badge variant="secondary" className="text-xs">{selectedMemberIds.size} selected</Badge>
+                      <Badge variant="secondary">{selectedMemberIds.size} selected</Badge>
                     </div>
                     <div className="flex-1 overflow-y-auto max-h-[324px]">
                       {selectedMembers.length === 0 ? (
@@ -472,7 +475,7 @@ export default function SubGroupsSection({ clubId }: { clubId: number }) {
                                 {photoUrl ? <Image src={photoUrl} alt={member.memberName} fill className="object-cover" unoptimized /> : <div className="flex h-full w-full items-center justify-center bg-primary/10 text-primary"><User className="h-3.5 w-3.5" /></div>}
                               </div>
                               <span className="text-sm font-medium flex-1 truncate">{member.memberName}</span>
-                              <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground hover:text-destructive" onClick={() => removeMember(member.memberId)}><X className="h-3.5 w-3.5" /></Button>
+                              <Button variant="ghost" size="icon" className="w-6 text-muted-foreground row-btn-sm" onClick={() => removeMember(member.memberId)}><X className="h-3.5 w-3.5" /></Button>
                             </div>
                           );
                         })
@@ -485,7 +488,7 @@ export default function SubGroupsSection({ clubId }: { clubId: number }) {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDialogOpen(false)} disabled={saving}>Cancel</Button>
-            <Button onClick={handleSave} disabled={saving || !groupName.trim()} className="bg-azure hover:bg-mint-ink text-white">
+            <Button onClick={handleSave} disabled={saving || !groupName.trim()}>
               {saving ? "Saving..." : editingGroup ? "Update" : "Create"}
             </Button>
           </DialogFooter>

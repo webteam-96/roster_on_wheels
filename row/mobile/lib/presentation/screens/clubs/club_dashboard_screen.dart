@@ -1,5 +1,8 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:rotary_flutter_app/presentation/widgets/view_only_notice.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/skeleton_list.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/bento.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/module_icons.dart';
 import 'package:flutter/material.dart' hide Text;
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -13,6 +16,7 @@ import '../../../core/services/club_admin_dashboard_api.dart';
 import '../../../data/models/club_admin_dashboard_models.dart';
 import '../../../data/models/wallet_models.dart';
 import '../../widgets/common/module_status_badge.dart';
+import '../../../core/network/api_exceptions.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../widgets/weblinks/weblinks_section.dart';
@@ -22,15 +26,16 @@ import '../../providers/auth_provider.dart';
 import '../../widgets/common/coming_soon_badge.dart';
 import '../../widgets/common/dues_subscription_dialog.dart';
 import '../../widgets/common/empty_state_widget.dart';
-import '../../widgets/common/loading_widget.dart';
 import 'overview/widgets/club_dashboard_async.dart';
 import 'package:rotary_flutter_app/core/theme/app_fonts.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/motion.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/roster_wheel.dart';
 
 /// Selectable visual layouts for the Club dashboard.
 enum _DashboardVariant {
   list,     // Single-column grouped rows (most scannable)
-  featured, // Uniform 3-col card grid, grouped by category
+  featured, // Bento grid per module group (the stored name predates it)
 }
 
 const String _kVariantPrefKey = 'club_dashboard_variant';
@@ -43,8 +48,7 @@ class ClubDashboardScreen extends StatefulWidget {
   State<ClubDashboardScreen> createState() => _ClubDashboardScreenState();
 }
 
-class _ClubDashboardScreenState extends State<ClubDashboardScreen>
-    with SingleTickerProviderStateMixin {
+class _ClubDashboardScreenState extends State<ClubDashboardScreen> {
   final ApiClient _api = ApiClient();
   String _clubName = '';
   List<DashboardModuleGroup> _groups = [];
@@ -56,22 +60,12 @@ class _ClubDashboardScreenState extends State<ClubDashboardScreen>
   // above. Null until fetched (or non-admin → never shown).
   ModuleBadge? _websiteBadge;
   ModuleBadge? _duesBadge;
-  _DashboardVariant _variant = _DashboardVariant.list;
+  _DashboardVariant _variant = _DashboardVariant.featured;
   ComingSoonRegistry _comingSoon = ComingSoonRegistry.empty();
-
-  late final AnimationController _adminFlashController;
-  late final Animation<double> _adminFlashAnim;
 
   @override
   void initState() {
     super.initState();
-    _adminFlashController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 850),
-    )..repeat(reverse: true);
-    _adminFlashAnim = Tween<double>(begin: 0.35, end: 1.0).animate(
-      CurvedAnimation(parent: _adminFlashController, curve: Curves.easeInOut),
-    );
     _fetchDashboard();
     _fetchCredits();
     _loadVariant();
@@ -163,12 +157,6 @@ class _ClubDashboardScreenState extends State<ClubDashboardScreen>
     return null;
   }
 
-  @override
-  void dispose() {
-    _adminFlashController.dispose();
-    super.dispose();
-  }
-
   Future<void> _loadVariant() async {
     final prefs = await SharedPreferences.getInstance();
     final storedVariant = prefs.getString(_kVariantPrefKey);
@@ -177,7 +165,7 @@ class _ClubDashboardScreenState extends State<ClubDashboardScreen>
       if (storedVariant != null) {
         _variant = _DashboardVariant.values.firstWhere(
           (v) => v.name == storedVariant,
-          orElse: () => _DashboardVariant.list,
+          orElse: () => _DashboardVariant.featured,
         );
       }
     });
@@ -256,7 +244,7 @@ class _ClubDashboardScreenState extends State<ClubDashboardScreen>
         });
       }
     } catch (e) {
-      if (mounted) setState(() { _error = e.toString(); _loading = false; });
+      if (mounted) setState(() { _error = friendlyErrorMessage(e); _loading = false; });
     }
   }
 
@@ -378,11 +366,10 @@ class _ClubDashboardScreenState extends State<ClubDashboardScreen>
   /// club appears in the member's dues, open their scoped dues screen; otherwise
   /// the club has no dues set up → show the contact-for-subscription popup on tap.
   Future<void> _openMemberDues() async {
-    showDialog<void>(
+    showRowDialog<void>(
       context: context,
       barrierDismissible: false,
-      builder: (_) =>
-          const Center(child: const CircularProgressIndicator(color: AppColors.primary)),
+      builder: (_) => const RowBusy(),
     );
     var hasDues = false;
     try {
@@ -420,7 +407,7 @@ class _ClubDashboardScreenState extends State<ClubDashboardScreen>
       backgroundColor: AppColors.lightBg,
       body: Stack(
         children: [
-          RefreshIndicator(
+          RowRefresh(
             color: AppColors.primary,
             onRefresh: _fetchDashboard,
             child: CustomScrollView(
@@ -433,6 +420,7 @@ class _ClubDashboardScreenState extends State<ClubDashboardScreen>
               elevation: 0,
               centerTitle: false,
               leading: IconButton(
+                tooltip: MaterialLocalizations.of(context).backButtonTooltip,
                 icon: const Icon(Icons.arrow_back_ios_new_rounded, color: AppColors.textPrimary),
                 onPressed: () => context.pop(),
               ),
@@ -466,10 +454,7 @@ class _ClubDashboardScreenState extends State<ClubDashboardScreen>
               const SliverToBoxAdapter(child: ViewOnlyNotice()),
             SliverToBoxAdapter(
               child: _loading
-                  ? const Padding(
-                      padding: EdgeInsets.only(top: 100),
-                      child: LoadingWidget(),
-                    )
+                  ? const RowSkeletonList(rows: 9)
                   : _error != null
                       ? Padding(
                           padding: const EdgeInsets.only(top: 60),
@@ -495,8 +480,7 @@ class _ClubDashboardScreenState extends State<ClubDashboardScreen>
   }
 
   Widget _buildAdminPill({required VoidCallback onTap, bool elevated = false}) {
-    return FadeTransition(
-      opacity: _adminFlashAnim,
+    return RowPressable(
       child: Material(
         color: elevated ? AppColors.primaryPrime : AppColors.primaryPrime.withValues(alpha: 0.92),
         borderRadius: BorderRadius.circular(20),
@@ -575,7 +559,7 @@ class _ClubDashboardScreenState extends State<ClubDashboardScreen>
                   ),
                 ),
                 _variantOption(sheetContext, _DashboardVariant.list,     'List View',     'Single-column rows, scannable'),
-                _variantOption(sheetContext, _DashboardVariant.featured, 'Featured',      'Equal-size cards, 3 per row'),
+                _variantOption(sheetContext, _DashboardVariant.featured, 'Grid', 'Tiles in mixed sizes'),
                 const SizedBox(height: 8),
               ],
               ),
@@ -619,7 +603,7 @@ class _ClubDashboardScreenState extends State<ClubDashboardScreen>
       padding: const EdgeInsets.fromLTRB(AppSpacing.md, AppSpacing.lg, AppSpacing.md, AppSpacing.xxl),
       child: Column(
         children: [
-          ...groups.map(_buildListGroupSection),
+          ...revealAll(groups.map(_buildListGroupSection).toList()),
           WebLinksSection(
               baseEndpoint: '/api/mobile/clubs/${widget.clubId}/weblinks'),
         ],
@@ -660,7 +644,7 @@ class _ClubDashboardScreenState extends State<ClubDashboardScreen>
     final imageUrl = hasImage ? '${ApiConstants.mediaBaseUrl}$iconPath' : null;
     final cs = _comingSoon.isComingSoon(m.moduleKey);
     final badge = cs ? null : _badgeFor(m.moduleKey);
-    final row = Material(
+    final row = RowPressable(morph: true, scale: .985, child: Material(
       color: Colors.transparent,
       child: InkWell(
         onTap: _onTapFor(m),
@@ -681,10 +665,10 @@ class _ClubDashboardScreenState extends State<ClubDashboardScreen>
                     ? CachedNetworkImage(
                         imageUrl: imageUrl!,
                         fit: BoxFit.contain,
-                        placeholder: (_, __) => Icon(_ModuleTile.fallbackIcon(m.moduleKey), color: accent, size: 18),
-                        errorWidget: (_, __, ___) => Icon(_ModuleTile.fallbackIcon(m.moduleKey), color: accent, size: 18),
+                        placeholder: (_, __) => Icon(moduleIcon(m.moduleKey), color: accent, size: 18),
+                        errorWidget: (_, __, ___) => Icon(moduleIcon(m.moduleKey), color: accent, size: 18),
                       )
-                    : Icon(_ModuleTile.fallbackIcon(m.moduleKey), color: accent, size: 18),
+                    : Icon(moduleIcon(m.moduleKey), color: accent, size: 18),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -710,7 +694,7 @@ class _ClubDashboardScreenState extends State<ClubDashboardScreen>
           ),
         ),
       ),
-    );
+    ));
     if (!cs) return row;
     return Stack(
       children: [
@@ -736,7 +720,7 @@ class _ClubDashboardScreenState extends State<ClubDashboardScreen>
       padding: const EdgeInsets.fromLTRB(AppSpacing.md, AppSpacing.lg, AppSpacing.md, AppSpacing.xxl),
       child: Column(
         children: [
-          ...groups.map(_buildFeaturedGroupSection),
+          ...revealAll(groups.map(_buildFeaturedGroupSection).toList()),
           WebLinksSection(
               baseEndpoint: '/api/mobile/clubs/${widget.clubId}/weblinks'),
         ],
@@ -745,47 +729,49 @@ class _ClubDashboardScreenState extends State<ClubDashboardScreen>
   }
 
   Widget _buildFeaturedGroupSection(DashboardModuleGroup group) {
-    final categoryColor = _categoryColor(group.categoryName, group.categoryId);
     final modules = group.modules;
-    if (modules.isEmpty) {
-      return const SizedBox.shrink();
-    }
-    // Groups whose tiles carry a status badge (Payments) need slightly taller
-    // grid cells so the inline badge under the name never overflows on narrow
-    // phones. Plain groups keep the tighter ratio.
-    final bool hasBadge = modules.any((m) => _badgeFor(m.moduleKey) != null);
-
-    // ONE uniform card width for every tile in every group: a fixed 3-column
-    // grid regardless of group size. The previous bento put three different
-    // widths on a single screen (full-width hero, 2-up for pairs, 3-up for
-    // triples) — a fixed column count is the only way the widths stay identical
-    // across groups, since any size-dependent count re-introduces the variance.
+    if (modules.isEmpty) return const SizedBox.shrink();
+    final spans = RowBento.spans(modules.length);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _categoryCaption(group.categoryName, categoryColor, bottomGap: 12),
-        GridView.builder(
-          shrinkWrap: true,
-          padding: EdgeInsets.zero,
-          physics: const NeverScrollableScrollPhysics(),
-          itemCount: modules.length,
-          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 3,
-            crossAxisSpacing: 12,
-            mainAxisSpacing: 12,
-            childAspectRatio: hasBadge ? 0.72 : 0.85,
-          ),
-          itemBuilder: (_, i) {
-            final m = modules[i];
-            return comingSoonOverlay(
-              isComingSoon: _comingSoon.isComingSoon(m.moduleKey),
-              date: _comingSoon.dateFor(m.moduleKey),
-              child: _ModuleTile(module: m, accent: categoryColor, onTap: _onTapFor(m), badge: _badgeFor(m.moduleKey)),
-            );
-          },
-        ),
-        const SizedBox(height: 32),
+        _categoryCaption(group.categoryName, _categoryColor(group.categoryName, group.categoryId), bottomGap: 12),
+        RowBento(items: [
+          for (final (i, m) in modules.indexed) BentoItem(spans[i].$1, spans[i].$2, _buildBentoTile(m, i, spans[i])),
+        ]),
+        const SizedBox(height: 28),
       ],
+    );
+  }
+
+  Widget _buildBentoTile(DashboardModuleModel m, int index, (int, int) span) {
+    final cs = _comingSoon.isComingSoon(m.moduleKey);
+    final hasImage = m.iconPath != null && m.iconPath!.isNotEmpty;
+    final badge = cs ? null : _badgeFor(m.moduleKey);
+    return comingSoonOverlay(
+      isComingSoon: cs,
+      date: _comingSoon.dateFor(m.moduleKey),
+      child: RowBentoTile(
+        label: m.moduleName,
+        icon: hasImage
+            // Uploaded icons bring their own colours: give them a light ground on every tone.
+            ? Container(
+                width: 40,
+                height: 40,
+                padding: const EdgeInsets.all(8),
+                decoration: const BoxDecoration(color: AppColors.surface, shape: BoxShape.circle),
+                child: CachedNetworkImage(
+                  imageUrl: '${ApiConstants.mediaBaseUrl}${m.iconPath}',
+                  fit: BoxFit.contain,
+                  placeholder: (_, __) => Icon(moduleIcon(m.moduleKey), color: AppColors.primaryPrime, size: 22),
+                  errorWidget: (_, __, ___) => Icon(moduleIcon(m.moduleKey), color: AppColors.primaryPrime, size: 22),
+                ),
+              )
+            : Icon(moduleIcon(m.moduleKey)),
+        tone: RowBentoTile.toneFor(index, span),
+        badge: badge == null ? null : ModuleBadgeChip(badge: badge),
+        onTap: _onTapFor(m),
+      ),
     );
   }
 
@@ -820,115 +806,3 @@ String _normKey(String k) =>
 
 // One brand colour for every module group (design.md 1: no rainbow colouring).
 Color _categoryColor(String categoryName, int categoryId) => AppColors.primaryPrime;
-
-// ---------------------------------------------------------------------------
-// Module tile (variant A & D — 3-col tinted)
-// ---------------------------------------------------------------------------
-
-class _ModuleTile extends StatelessWidget {
-  final DashboardModuleModel module;
-  final Color accent;
-  final VoidCallback? onTap;
-  final ModuleBadge? badge;
-  const _ModuleTile(
-      {required this.module, required this.accent, this.onTap, this.badge});
-
-  static IconData fallbackIcon(String moduleKey) => _fallbackIcon(moduleKey);
-
-  static IconData _fallbackIcon(String moduleKey) {
-    final key = moduleKey.toLowerCase().replaceAll(' ', '');
-    if (key.contains('directory')) return Icons.people_outline;
-    if (key.contains('bod') || key.contains('board')) return Icons.groups_2_outlined;
-    if (key.contains('president')) return Icons.military_tech_outlined;
-    if (key.contains('calendar')) return Icons.calendar_month_outlined;
-    if (key.contains('event')) return Icons.event_outlined;
-    if (key.contains('announcement')) return Icons.campaign_outlined;
-    if (key.contains('market')) return Icons.storefront_outlined;
-    if (key.contains('clubservice')) return Icons.handshake_outlined;
-    if (key.contains('community')) return Icons.volunteer_activism_outlined;
-    if (key.contains('vocational')) return Icons.work_outline;
-    if (key.contains('generation')) return Icons.school_outlined;
-    if (key.contains('international')) return Icons.public_outlined;
-    if (key.contains('image')) return Icons.image_outlined;
-    if (key.contains('newsletter')) return Icons.newspaper_outlined;
-    if (key.contains('document')) return Icons.folder_outlined;
-    if (key.contains('admin') || key.contains('website')) return Icons.admin_panel_settings_outlined;
-    if (key.contains('attendance')) return Icons.fact_check_outlined;
-    if (key.contains('weblink') || key.contains('link')) return Icons.link_outlined;
-    if (key.contains('report') || key.contains('cmr')) return Icons.bar_chart_rounded;
-    return Icons.grid_view_outlined;
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final iconPath = module.iconPath;
-    final hasImage = iconPath != null && iconPath.isNotEmpty;
-    final imageUrl = hasImage ? '${ApiConstants.mediaBaseUrl}$iconPath' : null;
-
-    final card = Container(
-      decoration: BoxDecoration(
-        color: accent.withValues(alpha: 0.06),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: accent.withValues(alpha: 0.15), width: 1),
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(20),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                width: 52,
-                height: 52,
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: accent.withValues(alpha: 0.18),
-                  shape: BoxShape.circle,
-                ),
-                child: hasImage
-                    ? CachedNetworkImage(
-                        imageUrl: imageUrl!,
-                        fit: BoxFit.contain,
-                        placeholder: (_, __) => Icon(_fallbackIcon(module.moduleKey), color: accent, size: 24),
-                        errorWidget: (_, __, ___) => Icon(_fallbackIcon(module.moduleKey), color: accent, size: 24),
-                      )
-                    : Icon(_fallbackIcon(module.moduleKey), size: 26, color: accent),
-              ),
-              const SizedBox(height: 10),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8),
-                child: Text(
-                  module.moduleName,
-                  style: AppFonts.body(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.textPrimary,
-                    height: 1.2,
-                  ),
-                  textAlign: TextAlign.center,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-              // Status/value badge sits inline under the name so it reads as
-              // part of the tile (a floating corner pill looked detached on the
-              // faint tile and overflowed the top edge of tall grid cells).
-              if (badge != null) ...[
-                const SizedBox(height: 8),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 6),
-                  child: ModuleBadgeChip(badge: badge!),
-                ),
-              ],
-            ],
-          ),
-        ),
-      ),
-    );
-    return card;
-  }
-}
-
-

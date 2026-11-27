@@ -41,7 +41,7 @@ function AddToOrgStatusRow({ installed }: { installed: boolean | null }) {
 
   if (installed) {
     return (
-      <span className="inline-flex w-fit items-center gap-2 rounded-full bg-emerald-50 px-3 py-1 text-sm font-semibold text-emerald-700 ring-1 ring-emerald-200">
+      <span className="inline-flex w-fit items-center gap-2 rounded bg-emerald-50 px-3 py-1 text-sm font-semibold text-emerald-700 ring-1 ring-emerald-200">
         <CheckCircle2 size={18} className="text-emerald-600" aria-hidden />
         Add-to-Org extension ready
       </span>
@@ -50,12 +50,12 @@ function AddToOrgStatusRow({ installed }: { installed: boolean | null }) {
 
   return (
     <span className="inline-flex flex-wrap items-center gap-2.5">
-      <span className="inline-flex items-center gap-2 rounded-full bg-amber-50 px-3 py-1 text-sm font-semibold text-amber-800 ring-1 ring-amber-300">
+      <span className="inline-flex items-center gap-2 rounded bg-amber-50 px-3 py-1 text-sm font-semibold text-amber-800 ring-1 ring-amber-300">
         <span className="h-2.5 w-2.5 rounded-full bg-amber-500" />
         Extension not installed
       </span>
       <a href={ADD_TO_ORG_WEBSTORE_URL} target="_blank" rel="noopener noreferrer">
-        <Button type="button" variant="outline" className="h-9 gap-2 px-3.5 text-sm font-semibold">
+        <Button type="button" variant="outline">
           <Download size={16} /> Install extension
         </Button>
       </a>

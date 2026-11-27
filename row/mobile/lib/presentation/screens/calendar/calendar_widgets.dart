@@ -10,6 +10,7 @@ import '../../../data/models/rotarian_model.dart';
 import 'calendar_detail_screens.dart';
 import 'package:rotary_flutter_app/core/theme/app_fonts.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/motion.dart';
 
 /// The kinds of things a calendar day can be marked with. Each gets its own
 /// colour dot in the month picker.
@@ -63,59 +64,79 @@ class DayPicker extends StatelessWidget {
 
   bool get _isToday {
     final now = DateTime.now();
-    return date.year == now.year && date.month == now.month && date.day == now.day;
+    return date.year == now.year &&
+        date.month == now.month &&
+        date.day == now.day;
   }
 
   @override
   Widget build(BuildContext context) {
+    final now = DateTime.now();
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+      padding: const EdgeInsets.fromLTRB(20, 12, 8, 4),
       child: Row(
         children: [
-          IconButton(
-            icon: const Icon(Icons.chevron_left_rounded),
-            color: AppColors.primary,
-            onPressed: () =>
-                onChanged(DateTime(date.year, date.month, date.day - 1)),
-          ),
           Expanded(
             child: InkWell(
               onTap: () => _pick(context),
-              borderRadius: BorderRadius.circular(10),
-              child: Container(
-                padding: const EdgeInsets.symmetric(vertical: 8),
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color: AppColors.primaryLight,
-                  borderRadius: BorderRadius.circular(10),
-                ),
+              borderRadius: BorderRadius.circular(8),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 4),
                 child: Column(
-                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      DateFormat('EEEE').format(date),
+                      _isToday ? 'Today' : DateFormat('EEEE').format(date),
                       style: AppFonts.body(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.textSecondary,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        color: _isToday
+                            ? AppColors.warningInk
+                            : AppColors.textSecondary,
+                        letterSpacing: .6,
                       ),
                     ),
-                    Text(
-                      _isToday
-                          ? 'Today · ${DateFormat('d MMM yyyy').format(date)}'
-                          : DateFormat('d MMMM yyyy').format(date),
-                      style: AppFonts.body(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.primary,
-                      ),
+                    const SizedBox(height: 2),
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          DateFormat('d MMMM yyyy').format(date),
+                          style: AppFonts.display(
+                            fontSize: 20,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.textPrimary,
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        const Icon(Icons.expand_more_rounded,
+                            size: 20, color: AppColors.textSecondary),
+                      ],
                     ),
                   ],
                 ),
               ),
             ),
           ),
+          if (!_isToday)
+            TextButton(
+              onPressed: () =>
+                  onChanged(DateTime(now.year, now.month, now.day)),
+              child: Text('Today',
+                  style: AppFonts.body(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.primary)),
+            ),
           IconButton(
+            tooltip: 'Previous',
+            icon: const Icon(Icons.chevron_left_rounded),
+            color: AppColors.primary,
+            onPressed: () =>
+                onChanged(DateTime(date.year, date.month, date.day - 1)),
+          ),
+          IconButton(
+            tooltip: 'Next',
             icon: const Icon(Icons.chevron_right_rounded),
             color: AppColors.primary,
             onPressed: () =>
@@ -240,6 +261,7 @@ class _MonthCalendarSheetState extends State<_MonthCalendarSheet> {
             Row(
               children: [
                 IconButton(
+                  tooltip: 'Previous',
                   icon: const Icon(Icons.chevron_left_rounded),
                   color: AppColors.primary,
                   onPressed: () => _shiftMonth(-1),
@@ -256,6 +278,7 @@ class _MonthCalendarSheetState extends State<_MonthCalendarSheet> {
                   ),
                 ),
                 IconButton(
+                  tooltip: 'Next',
                   icon: const Icon(Icons.chevron_right_rounded),
                   color: AppColors.primary,
                   onPressed: () => _shiftMonth(1),
@@ -283,12 +306,11 @@ class _MonthCalendarSheetState extends State<_MonthCalendarSheet> {
             // Day grid (loader overlay keeps height stable while fetching)
             Stack(
               children: [
-                GridView.builder(
+                RowGridView.builder(
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
                   padding: EdgeInsets.zero,
-                  gridDelegate:
-                      const SliverGridDelegateWithFixedCrossAxisCount(
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 7,
                     childAspectRatio: 0.74,
                   ),
@@ -314,8 +336,7 @@ class _MonthCalendarSheetState extends State<_MonthCalendarSheet> {
                       child: const SizedBox(
                         width: 22,
                         height: 22,
-                        child:
-                            CircularProgressIndicator(strokeWidth: 2.5),
+                        child: CircularProgressIndicator(strokeWidth: 2.5),
                       ),
                     ),
                   ),
@@ -377,9 +398,8 @@ class _DayCell extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Dots in a stable kind order so colours are consistent across days.
-    final ordered = CalendarMarkKind.values
-        .where((k) => marks.contains(k))
-        .toList();
+    final ordered =
+        CalendarMarkKind.values.where((k) => marks.contains(k)).toList();
     return InkResponse(
       onTap: onTap,
       radius: 26,
@@ -475,14 +495,16 @@ class CalendarPersonTile extends StatelessWidget {
                   height: 44,
                   color: AppColors.primaryLight,
                   child: url == null
-                      ? const Icon(Icons.person_rounded, color: AppColors.primary)
+                      ? const Icon(Icons.person_rounded,
+                          color: AppColors.primary)
                       : CachedNetworkImage(
                           imageUrl: url,
                           fit: BoxFit.cover,
                           placeholder: (_, __) =>
                               Container(color: AppColors.primaryLight),
-                          errorWidget: (_, __, ___) =>
-                              const Icon(Icons.person_rounded, color: AppColors.primary),
+                          errorWidget: (_, __, ___) => const Icon(
+                              Icons.person_rounded,
+                              color: AppColors.primary),
                         ),
                 ),
               ),
@@ -541,8 +563,9 @@ class CalendarPersonTile extends StatelessWidget {
               ),
               Icon(
                 isAnniversary ? Icons.favorite_rounded : Icons.cake_rounded,
-                color:
-                    isAnniversary ? AppColors.accentPurple : AppColors.goldPrime,
+                color: isAnniversary
+                    ? AppColors.accentPurple
+                    : AppColors.goldPrime,
               ),
             ],
           ),
@@ -653,14 +676,16 @@ class CalendarFamilyTile extends StatelessWidget {
                   height: 44,
                   color: AppColors.primaryLight,
                   child: url == null
-                      ? const Icon(Icons.person_rounded, color: AppColors.primary)
+                      ? const Icon(Icons.person_rounded,
+                          color: AppColors.primary)
                       : CachedNetworkImage(
                           imageUrl: url,
                           fit: BoxFit.cover,
                           placeholder: (_, __) =>
                               Container(color: AppColors.primaryLight),
                           errorWidget: (_, __, ___) => const Icon(
-                              Icons.person_rounded, color: AppColors.primary),
+                              Icons.person_rounded,
+                              color: AppColors.primary),
                         ),
                 ),
               ),
@@ -731,8 +756,9 @@ class CalendarFamilyTile extends StatelessWidget {
               ),
               Icon(
                 isAnniversary ? Icons.favorite_rounded : Icons.cake_rounded,
-                color:
-                    isAnniversary ? AppColors.accentPurple : AppColors.goldPrime,
+                color: isAnniversary
+                    ? AppColors.accentPurple
+                    : AppColors.goldPrime,
               ),
             ],
           ),
@@ -765,8 +791,7 @@ class CalendarFamilyContactDetails extends StatelessWidget {
           ? _fetchContact(item.memberId)
           : Future<RotarianProfile?>.value(null),
       builder: (context, snap) {
-        if (item.memberId > 0 &&
-            snap.connectionState != ConnectionState.done) {
+        if (item.memberId > 0 && snap.connectionState != ConnectionState.done) {
           return const _ContactRowLoading();
         }
         return _ContactChooserRow(targets: _familyTargets(item, snap.data));
@@ -814,7 +839,7 @@ class _ContactRowLoading extends StatelessWidget {
       );
 }
 
-/// Divider + call / email / message buttons for a set of contact
+/// Divider + call / email buttons for a set of contact
 /// targets. A channel button shows when ANY target is reachable on it; tapping
 /// opens the chooser popup. Renders nothing when no target is reachable at all.
 class _ContactChooserRow extends StatelessWidget {
@@ -849,14 +874,6 @@ class _ContactChooserRow extends StatelessWidget {
                 onTap: () =>
                     _showContactChooser(context, _CalChannel.email, targets),
               ),
-            if (anyPhone)
-            if (anyPhone)
-              _ContactIconButton(
-                icon: Icons.chat_bubble_outline_rounded,
-                tooltip: 'Message',
-                onTap: () =>
-                    _showContactChooser(context, _CalChannel.sms, targets),
-              ),
           ],
         ),
       ],
@@ -864,12 +881,11 @@ class _ContactChooserRow extends StatelessWidget {
   }
 }
 
-/// The four contact channels a chooser card can act on.
-enum _CalChannel { call, sms, email }
+/// The contact channels a chooser card can act on.
+enum _CalChannel { call, email }
 
 const Map<_CalChannel, String> _kChannelLabels = {
   _CalChannel.call: 'Call',
-  _CalChannel.sms: 'Message',
   _CalChannel.email: 'Email',
 };
 
@@ -992,8 +1008,6 @@ String _urlForTarget(_CalChannel channel, _ContactTarget t) {
   switch (channel) {
     case _CalChannel.call:
       return 'tel:${_digits(t.phone ?? '')}';
-    case _CalChannel.sms:
-      return 'sms:${_digits(t.phone ?? '')}';
     case _CalChannel.email:
       return 'mailto:${(t.email ?? '').trim()}';
   }
@@ -1108,14 +1122,16 @@ class _ContactChooserCard extends StatelessWidget {
                     height: 42,
                     color: AppColors.surface,
                     child: target.photoUrl == null
-                        ? const Icon(Icons.person_rounded, color: AppColors.primary)
+                        ? const Icon(Icons.person_rounded,
+                            color: AppColors.primary)
                         : CachedNetworkImage(
                             imageUrl: target.photoUrl!,
                             fit: BoxFit.cover,
                             placeholder: (_, __) =>
                                 Container(color: AppColors.surface),
                             errorWidget: (_, __, ___) => const Icon(
-                                Icons.person_rounded, color: AppColors.primary),
+                                Icons.person_rounded,
+                                color: AppColors.primary),
                           ),
                   ),
                 ),
@@ -1151,7 +1167,8 @@ class _ContactChooserCard extends StatelessWidget {
                         style: AppFonts.body(
                           fontSize: 13,
                           fontWeight: FontWeight.w500,
-                          fontStyle: enabled ? FontStyle.normal : FontStyle.italic,
+                          fontStyle:
+                              enabled ? FontStyle.normal : FontStyle.italic,
                           color: AppColors.textSecondary,
                         ),
                         maxLines: 1,
@@ -1163,7 +1180,8 @@ class _ContactChooserCard extends StatelessWidget {
                 const SizedBox(width: 8),
                 Icon(_channelIcon(channel),
                     size: 20,
-                    color: enabled ? AppColors.primary : AppColors.textSecondary),
+                    color:
+                        enabled ? AppColors.primary : AppColors.textSecondary),
               ],
             ),
           ),
@@ -1176,8 +1194,6 @@ class _ContactChooserCard extends StatelessWidget {
     switch (channel) {
       case _CalChannel.call:
         return Icons.call_rounded;
-      case _CalChannel.sms:
-        return Icons.chat_bubble_outline_rounded;
       case _CalChannel.email:
         return Icons.mail_outline_rounded;
     }
@@ -1212,99 +1228,102 @@ class CalendarEventTile extends StatelessWidget {
             children: [
               if (event.eventDate != null) _dayBadge(event.eventDate!),
               if (event.eventDate != null) const SizedBox(width: 12),
-          if (imgUrl != null) ...[
-            ClipRRect(
-              borderRadius: BorderRadius.circular(8),
-              child: CachedNetworkImage(
-                imageUrl: imgUrl,
-                width: 56,
-                height: 56,
-                fit: BoxFit.cover,
-                placeholder: (_, __) => Container(
-                  width: 56,
-                  height: 56,
-                  color: AppColors.primaryLight,
-                ),
-                errorWidget: (_, __, ___) => Container(
-                  width: 56,
-                  height: 56,
-                  color: AppColors.primaryLight,
-                  child: const Icon(Icons.event_rounded, color: AppColors.primary),
-                ),
-              ),
-            ),
-            const SizedBox(width: 10),
-          ],
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  event.title,
-                  style: AppFonts.body(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.textPrimary,
+              if (imgUrl != null) ...[
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: CachedNetworkImage(
+                    imageUrl: imgUrl,
+                    width: 56,
+                    height: 56,
+                    fit: BoxFit.cover,
+                    placeholder: (_, __) => Container(
+                      width: 56,
+                      height: 56,
+                      color: AppColors.primaryLight,
+                    ),
+                    errorWidget: (_, __, ___) => Container(
+                      width: 56,
+                      height: 56,
+                      color: AppColors.primaryLight,
+                      child: const Icon(Icons.event_rounded,
+                          color: AppColors.primary),
+                    ),
                   ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
                 ),
-                if ((event.eventVenue ?? '').isNotEmpty) ...[
-                  const SizedBox(height: 2),
-                  Row(
-                    children: [
-                      const Icon(Icons.place_rounded, size: 12, color: AppColors.textSecondary),
-                      const SizedBox(width: 4),
-                      Flexible(
-                        child: Text(
-                          event.eventVenue!,
+                const SizedBox(width: 10),
+              ],
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      event.title,
+                      style: AppFonts.body(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.textPrimary,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    if ((event.eventVenue ?? '').isNotEmpty) ...[
+                      const SizedBox(height: 2),
+                      Row(
+                        children: [
+                          const Icon(Icons.place_rounded,
+                              size: 12, color: AppColors.textSecondary),
+                          const SizedBox(width: 4),
+                          Flexible(
+                            child: Text(
+                              event.eventVenue!,
+                              style: AppFonts.body(
+                                fontSize: 13,
+                                color: AppColors.textSecondary,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                    if ((event.description ?? '').isNotEmpty) ...[
+                      const SizedBox(height: 4),
+                      Text(
+                        event.description!,
+                        style: AppFonts.body(
+                          fontSize: 13,
+                          color: AppColors.textPrimary,
+                          height: 1.4,
+                        ),
+                        maxLines: 3,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                    if ((event.registrationLink ?? '').isNotEmpty) ...[
+                      const SizedBox(height: 8),
+                      TextButton.icon(
+                        onPressed: () => _launch(event.registrationLink!),
+                        icon: const Icon(Icons.open_in_new_rounded, size: 16),
+                        label: Text(
+                          'Register',
                           style: AppFonts.body(
                             fontSize: 13,
-                            color: AppColors.textSecondary,
+                            fontWeight: FontWeight.w700,
                           ),
-                          overflow: TextOverflow.ellipsis,
+                        ),
+                        style: TextButton.styleFrom(
+                          foregroundColor: AppColors.primary,
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 10, vertical: 4),
+                          minimumSize: Size.zero,
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                         ),
                       ),
                     ],
-                  ),
-                ],
-                if ((event.description ?? '').isNotEmpty) ...[
-                  const SizedBox(height: 4),
-                  Text(
-                    event.description!,
-                    style: AppFonts.body(
-                      fontSize: 13,
-                      color: AppColors.textPrimary,
-                      height: 1.4,
-                    ),
-                    maxLines: 3,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
-                if ((event.registrationLink ?? '').isNotEmpty) ...[
-                  const SizedBox(height: 8),
-                  TextButton.icon(
-                    onPressed: () => _launch(event.registrationLink!),
-                    icon: const Icon(Icons.open_in_new_rounded, size: 16),
-                    label: Text(
-                      'Register',
-                      style: AppFonts.body(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    style: TextButton.styleFrom(
-                      foregroundColor: AppColors.primary,
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                      minimumSize: Size.zero,
-                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    ),
-                  ),
-                ],
-              ],
-            ),
-          ),
-        ],
+                  ],
+                ),
+              ),
+            ],
           ),
         ),
       ),
@@ -1372,78 +1391,81 @@ class CalendarAnnouncementTile extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               if (imgUrl != null) ...[
-            ClipRRect(
-              borderRadius: BorderRadius.circular(8),
-              child: CachedNetworkImage(
-                imageUrl: imgUrl,
-                width: 56,
-                height: 56,
-                fit: BoxFit.cover,
-                placeholder: (_, __) => Container(
-                  width: 56,
-                  height: 56,
-                  color: AppColors.primaryLight,
-                ),
-                errorWidget: (_, __, ___) => Container(
-                  width: 56,
-                  height: 56,
-                  color: AppColors.primaryLight,
-                  child: const Icon(Icons.campaign_rounded, color: AppColors.primary),
-                ),
-              ),
-            ),
-            const SizedBox(width: 10),
-          ] else ...[
-            Container(
-              width: 44,
-              height: 44,
-              decoration: BoxDecoration(
-                color: AppColors.primaryLight,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: const Icon(Icons.campaign_rounded, color: AppColors.primary),
-            ),
-            const SizedBox(width: 10),
-          ],
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  announcement.title,
-                  style: AppFonts.body(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.textPrimary,
-                  ),
-                ),
-                if (announcement.publishDate != null) ...[
-                  const SizedBox(height: 2),
-                  Text(
-                    DateFormat('d MMM yyyy').format(announcement.publishDate!),
-                    style: AppFonts.body(
-                      fontSize: 13,
-                      color: AppColors.textSecondary,
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: CachedNetworkImage(
+                    imageUrl: imgUrl,
+                    width: 56,
+                    height: 56,
+                    fit: BoxFit.cover,
+                    placeholder: (_, __) => Container(
+                      width: 56,
+                      height: 56,
+                      color: AppColors.primaryLight,
+                    ),
+                    errorWidget: (_, __, ___) => Container(
+                      width: 56,
+                      height: 56,
+                      color: AppColors.primaryLight,
+                      child: const Icon(Icons.campaign_rounded,
+                          color: AppColors.primary),
                     ),
                   ),
-                ],
-                if ((announcement.description ?? '').isNotEmpty) ...[
-                  const SizedBox(height: 4),
-                  Text(
-                    announcement.description!,
-                    style: AppFonts.body(
-                      fontSize: 13,
-                      color: AppColors.textPrimary,
-                      height: 1.4,
-                    ),
-                    maxLines: 3,
-                    overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(width: 10),
+              ] else ...[
+                Container(
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(
+                    color: AppColors.primaryLight,
+                    borderRadius: BorderRadius.circular(8),
                   ),
-                ],
+                  child: const Icon(Icons.campaign_rounded,
+                      color: AppColors.primary),
+                ),
+                const SizedBox(width: 10),
               ],
-            ),
-          ),
-        ],
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      announcement.title,
+                      style: AppFonts.body(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
+                    if (announcement.publishDate != null) ...[
+                      const SizedBox(height: 2),
+                      Text(
+                        DateFormat('d MMM yyyy')
+                            .format(announcement.publishDate!),
+                        style: AppFonts.body(
+                          fontSize: 13,
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
+                    ],
+                    if ((announcement.description ?? '').isNotEmpty) ...[
+                      const SizedBox(height: 4),
+                      Text(
+                        announcement.description!,
+                        style: AppFonts.body(
+                          fontSize: 13,
+                          color: AppColors.textPrimary,
+                          height: 1.4,
+                        ),
+                        maxLines: 3,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ],
           ),
         ),
       ),
@@ -1546,13 +1568,6 @@ class CalendarContactDetails extends StatelessWidget {
                     tooltip: 'Email',
                     onTap: () => _openUrl('mailto:$email'),
                   ),
-                if (phone.isNotEmpty)
-                if (phone.isNotEmpty)
-                  _ContactIconButton(
-                    icon: Icons.chat_bubble_outline_rounded,
-                    tooltip: 'Message',
-                    onTap: () => _openUrl('sms:${_digits(phone)}'),
-                  ),
               ],
             ),
           ],
@@ -1611,73 +1626,132 @@ Future<void> _openUrl(String url) async {
   } catch (_) {}
 }
 
-/// A tappable gradient choice card used by the Club / District calendar
-/// selection pages (shown instead of a dropdown when the user belongs to more
-/// than one club / district). Matches the app's club-card style
-/// (MyClubsListScreen): cycling gradient, white circular icon badge, bold white
-/// label, forward chevron. Tapping opens that club's / district's calendar.
+/// One calendar in a list of the user's clubs / districts: a light row with the name, what kind of
+/// calendar it is, and a chevron. Tapping opens that calendar.
 class CalendarChoiceTile extends StatelessWidget {
   final String label;
+  final String? subtitle;
   final IconData icon;
-  final int index;
   final VoidCallback onTap;
   const CalendarChoiceTile({
     super.key,
     required this.label,
+    this.subtitle,
     required this.icon,
-    required this.index,
     required this.onTap,
   });
 
-  static const _gradients = [
-    [AppColors.accentBlue, AppColors.accentBlue],
-    [AppColors.accentBlue, AppColors.chart5],
-    [AppColors.accentBlue, AppColors.accentBlue],
-    [AppColors.errorDark, AppColors.error],
-    [AppColors.successDark, AppColors.success],
-    [AppColors.warningInk, AppColors.warningDark],
-  ];
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: AppColors.surface,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(14),
+        side: const BorderSide(color: AppColors.line),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(14, 14, 10, 14),
+          child: Row(
+            children: [
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: AppColors.primaryLight,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(icon, color: AppColors.primaryPrime, size: 20),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      label,
+                      style: AppFonts.body(
+                        color: AppColors.textPrimary,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 15,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    if (subtitle != null) ...[
+                      const SizedBox(height: 2),
+                      Text(subtitle!,
+                          style: AppFonts.body(
+                              color: AppColors.textSecondary, fontSize: 13)),
+                    ],
+                  ],
+                ),
+              ),
+              const Icon(Icons.chevron_right_rounded,
+                  color: AppColors.textMuted),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// A calendar tab title: the name, plus the count only when there is something that day.
+class CalendarTabLabel extends StatelessWidget {
+  final String label;
+  final int? count;
+  const CalendarTabLabel(this.label, this.count, {super.key});
 
   @override
   Widget build(BuildContext context) {
-    final grad = _gradients[index % _gradients.length];
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: AppColors.primaryPrime,
-          borderRadius: BorderRadius.circular(18),
-
-        ),
-        child: Row(
-          children: [
+    final n = count ?? 0;
+    return Tab(
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(label),
+          if (n > 0) ...[
+            const SizedBox(width: 6),
             Container(
-              padding: const EdgeInsets.all(8),
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.2),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(icon, color: Colors.white, size: 22),
+                  color: AppColors.goldPrime,
+                  borderRadius: BorderRadius.circular(8)),
+              child: Text('$n',
+                  style: AppFonts.body(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.darkBg)),
             ),
-            const SizedBox(width: 14),
-            Expanded(
-              child: Text(
-                label,
-                style: AppFonts.body(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w800,
-                  fontSize: 15,
-                ),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-            Icon(Icons.arrow_forward_ios_rounded,
-                color: Colors.white.withValues(alpha: 0.7), size: 16),
           ],
-        ),
+        ],
       ),
+    );
+  }
+}
+
+/// Nothing on the selected day: one quiet line, not a big illustration.
+class CalendarDayEmpty extends StatelessWidget {
+  final IconData icon;
+  final String text;
+  const CalendarDayEmpty({super.key, required this.icon, required this.text});
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(20, 48, 20, 20),
+      children: [
+        Icon(icon, size: 28, color: AppColors.textMuted),
+        const SizedBox(height: 10),
+        Text(
+          text,
+          textAlign: TextAlign.center,
+          style: AppFonts.body(fontSize: 14, color: AppColors.textSecondary),
+        ),
+      ],
     );
   }
 }

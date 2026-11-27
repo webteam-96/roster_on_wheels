@@ -1,3 +1,6 @@
+import 'package:rotary_flutter_app/presentation/widgets/row/handshake_logo.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/motion.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/form_action_bar.dart';
 import 'package:flutter/material.dart' hide Text;
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -7,7 +10,6 @@ import '../../../core/theme/row_tokens.dart';
 import '../../providers/auth_provider.dart';
 import '../../widgets/common/custom_button.dart';
 import '../../widgets/row/tone_card.dart';
-import 'package:rotary_flutter_app/core/brand/brand.dart';
 import 'package:rotary_flutter_app/core/theme/app_fonts.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
 
@@ -33,15 +35,11 @@ class WelcomeScreen extends StatelessWidget {
                 child: Column(
                   children: [
                     const SizedBox(height: 32),
-                    Image.asset(
-                      'assets/images/row-logo.png',
-                      width: 180,
-                      semanticLabel: Brand.current.productName,
-                    ),
+                    const RowLogo(width: 180),
                     const SizedBox(height: 40),
 
                     // Avatar: initials on a gold disc (a small accent, never a field), check badge.
-                    Stack(
+                    RowPop(child: Stack(
                       alignment: Alignment.center,
                       children: [
                         Container(
@@ -67,7 +65,7 @@ class WelcomeScreen extends StatelessWidget {
                         Positioned(
                           bottom: 4,
                           right: 4,
-                          child: Container(
+                          child: RowReveal(index: 6, distance: 0, child: RowPop(from: 0, child: Container(
                             width: 28,
                             height: 28,
                             decoration: BoxDecoration(
@@ -76,17 +74,17 @@ class WelcomeScreen extends StatelessWidget {
                               border: Border.all(color: AppColors.lightBg, width: 2),
                             ),
                             child: const Icon(Icons.check_rounded, color: AppColors.lightBg, size: 16),
-                          ),
+                          ))),
                         ),
                       ],
-                    ),
+                    )),
                     const SizedBox(height: 24),
-                    Text(
+                    RowReveal(index: 2, child: Text(
                       'Welcome,',
                       style: AppFonts.body(color: AppColors.textSecondary, fontSize: 16, fontWeight: FontWeight.w500),
-                    ),
+                    )),
                     const SizedBox(height: 4),
-                    Text(
+                    RowReveal(index: 3, child: Text(
                       name,
                       textAlign: TextAlign.center,
                       style: AppFonts.display(
@@ -95,11 +93,11 @@ class WelcomeScreen extends StatelessWidget {
                         fontWeight: FontWeight.w600,
                         height: 1.1,
                       ),
-                    ),
+                    )),
                     const SizedBox(height: 32),
 
                     if (auth.welcomeClubs.isNotEmpty)
-                      SizedBox(
+                      RowReveal(index: 5, child: SizedBox(
                         width: double.infinity,
                         child: ToneCard(
                           tone: RowTone.sky,
@@ -135,14 +133,14 @@ class WelcomeScreen extends StatelessWidget {
                             ],
                           ),
                         ),
-                      ),
+                      )),
                     const SizedBox(height: 40),
                   ],
                 ),
               ),
             ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(24, 0, 24, 32),
+            // A pinned bar: the club list scrolls under its hairline instead of being cut by the button.
+            RowFormActionBar(
               child: CustomButton(
                 label: 'Get Started',
                 onPressed: () => context.go(RouteNames.home),

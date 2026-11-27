@@ -20,6 +20,8 @@ import 'package:rotary_flutter_app/core/utils/currency_symbol.dart';
 import 'package:rotary_flutter_app/core/theme/app_fonts.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
 import 'package:rotary_flutter_app/presentation/widgets/row/skeleton_list.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/motion.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/roster_wheel.dart';
 
 /// District admin's **District Dues** management view — mobile port of the web
 /// district-admin "District Dues" page. Two tabs:
@@ -33,7 +35,7 @@ import 'package:rotary_flutter_app/presentation/widgets/row/skeleton_list.dart';
 ///    the receipt + reminder email editors (subject/body with insertable
 ///    tokens), plus a test-email sender.
 ///
-/// Endpoints (ClubDuesController): GET /api/club-dues?districtId= (campaigns) →
+/// Endpoints (ClubDuesController): GET /api/club-dues/my-district?districtId= (campaigns) →
 /// {id}/clubs (per-club) → payments/{id}/offline-details + approve-reject;
 /// {id}/offline-payment (record); {id}[/clubs/{clubId}]/reminder;
 /// {id}/content (GET + PATCH); test-email.
@@ -113,8 +115,9 @@ class _DistrictClubDuesScreenState extends State<DistrictClubDuesScreen> {
       _error = null;
     });
     try {
+      // my-district, not the bare list: the list is Super Admin only, so a district admin got a 403.
       final resp = await _api.get<List<dynamic>>(
-        '/api/club-dues',
+        '/api/club-dues/my-district',
         queryParams: {'districtId': widget.districtId},
         fromJson: (j) => j as List<dynamic>,
       );
@@ -263,7 +266,7 @@ class _DistrictClubDuesScreenState extends State<DistrictClubDuesScreen> {
         _tabBar(),
         Expanded(
           child: _tab == 'clubs'
-              ? RefreshIndicator(
+              ? RowRefresh(
                   color: AppColors.primary,
                   onRefresh: _loadClubs,
                   child: _clubsList(),
@@ -850,7 +853,7 @@ class _DistrictClubDuesScreenState extends State<DistrictClubDuesScreen> {
 
   // ── Confirmation dialog for reminder sends ────────────────────────────
   Future<bool> _confirm(String title, String message, String confirmLabel) async {
-    final ok = await showDialog<bool>(
+    final ok = await showRowDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
         shape:
@@ -1412,6 +1415,7 @@ class _DistrictClubDuesScreenState extends State<DistrictClubDuesScreen> {
                   if (file != null) ...[
                     const SizedBox(width: 6),
                     IconButton(
+                      tooltip: 'Close',
                       onPressed: () => setState(() => assign(null)),
                       icon: const Icon(Icons.close_rounded, size: 18),
                       visualDensity: VisualDensity.compact,

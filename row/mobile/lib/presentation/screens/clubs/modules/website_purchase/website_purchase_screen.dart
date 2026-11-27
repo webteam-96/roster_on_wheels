@@ -18,6 +18,7 @@ import 'package:rotary_flutter_app/core/utils/money_format.dart';
 import 'package:rotary_flutter_app/core/theme/app_fonts.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
 import 'package:rotary_flutter_app/presentation/widgets/row/skeleton_list.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/roster_wheel.dart';
 
 /// Club website self-service Buy / Renew (Razorpay). A club admin (role 2) of
 /// the club buys a brand-new website (choosing a subdomain) or renews an
@@ -657,7 +658,7 @@ class _RenewalNotOpenState extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final url = _url;
-    return RefreshIndicator(
+    return RowRefresh(
       onRefresh: onRefresh,
       child: ListView(
         padding: const EdgeInsets.all(24),

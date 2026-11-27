@@ -5,6 +5,7 @@ import '../../core/services/mobile_version_service.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/motion.dart';
 
 /// Blocking force-update dialog. Cannot be dismissed by tapping outside,
 /// pressing back, or anything other than tapping "Update".
@@ -18,7 +19,7 @@ Future<void> showForceUpdateDialog(
   // tapping "Update", which leaves the app entirely.
   while (true) {
     if (!context.mounted) return;
-    await showDialog<void>(
+    await showRowDialog<void>(
       context: context,
       barrierDismissible: false,
       builder: (ctx) => _UpdateDialog(
@@ -35,7 +36,7 @@ Future<void> showSoftUpdateDialog(
   BuildContext context, {
   required MobileVersionResult result,
 }) async {
-  await showDialog<void>(
+  await showRowDialog<void>(
     context: context,
     barrierDismissible: true,
     builder: (ctx) => _UpdateDialog(

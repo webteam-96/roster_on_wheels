@@ -1,5 +1,6 @@
 "use client";
 
+import { NativeSelect } from "@/components/ui/native-select";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -179,11 +180,11 @@ export default function MemberRemovalDialog({ open, loading, preview, onConfirm,
         {!!terminationReasons?.length && onReasonCodeChange && (
           <div className="space-y-1">
             <label htmlFor="ri-termination" className="text-sm font-medium">Termination reason (RI)</label>
-            <select id="ri-termination" value={reasonCode ?? ""} onChange={(e) => onReasonCodeChange(e.target.value)}
-              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
+            <NativeSelect id="ri-termination" value={reasonCode ?? ""} onChange={(e) => onReasonCodeChange(e.target.value)}
+              className="flex">
               <option value="">Not given</option>
               {terminationReasons.map((r) => <option key={r.code} value={r.code}>{r.label}</option>)}
-            </select>
+            </NativeSelect>
           </div>
         )}
 

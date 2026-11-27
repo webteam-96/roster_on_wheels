@@ -9,6 +9,8 @@ import '../../widgets/common/custom_app_bar.dart';
 import '../../widgets/common/empty_state_widget.dart';
 import '../../widgets/common/loading_widget.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/motion.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/roster_wheel.dart';
 
 /// Friends of the club (feature `contacts_growth`): non-members who get the club's emails and event invites. Club
 /// officers see the list and add a friend they met; the API allows only the club's managers (403 otherwise).
@@ -62,7 +64,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
 
   Future<void> _add() async {
     final name = TextEditingController(), email = TextEditingController(), phone = TextEditingController();
-    final ok = await showDialog<bool>(
+    final ok = await showRowDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Add a friend of the club'),
@@ -137,9 +139,9 @@ class _FriendsScreenState extends State<FriendsScreen> {
                           icon: Icons.volunteer_activism_outlined,
                           title: 'No friends of the club yet',
                           subtitle: 'Friends are not members. They get the club\'s emails and event invites.')
-                      : RefreshIndicator(
+                      : RowRefresh(
                           onRefresh: _load,
-                          child: ListView.separated(
+                          child: RowListView.separated(
                             padding: const EdgeInsets.fromLTRB(16, 8, 16, 88),
                             itemCount: friends.length,
                             separatorBuilder: (_, __) => const SizedBox(height: 8),

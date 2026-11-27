@@ -1,5 +1,6 @@
 "use client";
 
+import { Card } from "@/components/ui/card";
 import { useState } from "react";
 import { ClubListItem } from "@/types/club";
 import { getPhotoUrl } from "@/services/api";
@@ -47,18 +48,18 @@ export default function ClubTable({ clubs, onDelete, isSuperAdmin, districtId, v
   };
 
   return (
-    <div className="rounded-md border">
+    <Card className="overflow-hidden">
       <Table>
         <TableHeader>
-          <TableRow className="bg-primary hover:bg-primary">
+          <TableRow>
             <TableHead className="w-12"></TableHead>
-            <TableHead className="text-base font-semibold">Club Name</TableHead>
-            <TableHead className="hidden md:table-cell text-base font-semibold">Rotary ID</TableHead>
-            <TableHead className="hidden md:table-cell text-base font-semibold">District</TableHead>
-            <TableHead className="hidden lg:table-cell text-base font-semibold">Meeting Day</TableHead>
-            <TableHead className="hidden md:table-cell text-base font-semibold">City</TableHead>
-            <TableHead className="text-base font-semibold">Members</TableHead>
-            <TableHead className="text-base font-semibold">Status</TableHead>
+            <TableHead>Club Name</TableHead>
+            <TableHead className="hidden md:table-cell">Rotary ID</TableHead>
+            <TableHead className="hidden md:table-cell">District</TableHead>
+            <TableHead className="hidden lg:table-cell">Meeting Day</TableHead>
+            <TableHead className="hidden md:table-cell">City</TableHead>
+            <TableHead>Members</TableHead>
+            <TableHead>Status</TableHead>
             <TableHead className="w-12"></TableHead>
           </TableRow>
         </TableHeader>
@@ -106,7 +107,7 @@ export default function ClubTable({ clubs, onDelete, isSuperAdmin, districtId, v
                   {isSuperAdmin && (
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={(e) => e.stopPropagation()}>
+                        <Button variant="ghost" size="icon" className="row-btn-sm" onClick={(e) => e.stopPropagation()}>
                           <MoreHorizontal className="h-4 w-4" />
                         </Button>
                       </DropdownMenuTrigger>
@@ -129,6 +130,6 @@ export default function ClubTable({ clubs, onDelete, isSuperAdmin, districtId, v
           })}
         </TableBody>
       </Table>
-    </div>
+    </Card>
   );
 }

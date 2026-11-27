@@ -6,6 +6,7 @@
  * Hidden when the membership_fields module is off or the viewer may not see this member's designations.
  */
 
+import { NativeSelect } from "@/components/ui/native-select";
 import { useCallback, useEffect, useState } from "react";
 import { AlertTriangle, Award, Plus, Trash2 } from "@/components/icons";
 import { Button } from "@/components/ui/button";
@@ -21,13 +22,14 @@ import {
 } from "@/services/api";
 
 export const selectCls =
-  "flex h-11 w-full rounded-xl border border-input bg-card px-3.5 py-2 text-base md:text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/25";
+  "row-field flex w-full md:text-sm";
 
 export function apiMessage(err: unknown, fallback: string): string {
   return (err as { response?: { data?: { message?: string } } })?.response?.data?.message || fallback;
 }
 
-export default function FoundationDesignationsCard({ memberId }: { memberId: number }) {
+/** onChange: called after an add or remove, so a report beside the card can reload. */
+export default function FoundationDesignationsCard({ memberId, onChange }: { memberId: number; onChange?: () => void }) {
   const on = useFeatureOn("membership_fields");
   const { isSuperAdmin, isAdmin, isAG } = useAuth();
   const canEdit = isSuperAdmin || isAdmin || isAG; // a member sees their own list read-only; the API decides either way
@@ -63,6 +65,7 @@ export default function FoundationDesignationsCard({ memberId }: { memberId: num
       setDate("");
       setNotes("");
       await load();
+      onChange?.();
     } catch (err) {
       setError(apiMessage(err, "Could not add the designation."));
     } finally {
@@ -79,6 +82,7 @@ export default function FoundationDesignationsCard({ memberId }: { memberId: num
     try {
       await removeMemberDesignation(memberId, target.id);
       await load();
+      onChange?.();
     } catch (err) {
       setError(apiMessage(err, "Could not remove the designation."));
     } finally {
@@ -87,10 +91,10 @@ export default function FoundationDesignationsCard({ memberId }: { memberId: num
   };
 
   return (
-    <section className="rounded-[20px] border border-slate-200 overflow-hidden mb-4 bg-card">
+    <section className="row-card row-rise overflow-hidden mb-4">
       <header className="flex items-center gap-2 px-4 py-2.5 bg-slate-50 border-b border-slate-100">
         <Award className="h-4 w-4 text-slate-500" />
-        <h3 className="text-sm font-semibold text-slate-800">Foundation designations</h3>
+        <h3 className="row-h3">Foundation designations</h3>
       </header>
       <div className="p-4 space-y-4">
         {rows === null ? (
@@ -123,11 +127,11 @@ export default function FoundationDesignationsCard({ memberId }: { memberId: num
           <div className="grid gap-3 sm:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)_minmax(0,1fr)_auto] sm:items-end">
             <label className="space-y-1 text-xs font-semibold text-slate-700">
               <span>Designation</span>
-              <select className={selectCls} value={choice} onChange={(e) => setChoice(e.target.value)}>
+              <NativeSelect className="flex md:text-sm" value={choice} onChange={(e) => setChoice(e.target.value)}>
                 {DESIGNATION_OPTIONS.map((o) => (
                   <option key={o.value} value={o.value}>{o.label}</option>
                 ))}
-              </select>
+              </NativeSelect>
             </label>
             <label className="space-y-1 text-xs font-semibold text-slate-700">
               <span>Date reached</span>

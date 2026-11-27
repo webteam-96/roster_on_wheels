@@ -1,4 +1,6 @@
 "use client";
+import { DataTable } from "@/components/ui/data-table";
+import { ToggleButton } from "@/components/ui/text-buttons";
 
 /**
  * Community Service v2 listing — Community Service avenue.
@@ -17,13 +19,15 @@
  * with the unified projects listing.
  */
 
+import { IconButton } from "@/components/ui/icon-button";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { NativeSelect } from "@/components/ui/native-select";
+import { Card } from "@/components/ui/card";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter, useParams, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import {
-  HeartHandshake, Users, IndianRupee, Loader2, Search, Plus, Edit3, Trash2,
-  Download, ArrowLeft, AlertTriangle, Info, Puzzle,
-} from "@/components/icons";
+import { HeartHandshake, Users, IndianRupee, Search, Plus, Edit3, Trash2, Download, AlertTriangle, Info, Puzzle } from "@/components/icons";
 import {
   getClub,
   getModules,
@@ -36,7 +40,7 @@ import { ProjectListItem } from "@/types/project";
 import { useAuth } from "@/contexts/AuthContext";
 import KpiCard from "@/components/dashboard/KpiCard";
 import { fmtInt, fmtDate, fmtInrShort } from "@/components/dashboard/formatters";
-import { getCurrencySymbol } from "@/lib/currency";
+import { getCurrencySymbol, moneyTotals } from "@/lib/currency";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import AlertModal from "@/components/AlertModal";
 import SuccessAlert from "@/components/SuccessAlert";
@@ -50,7 +54,7 @@ import { isFlowBotEnabled, AVENUE_LABELS, buildOrgExportFromDetail, triggerAddTo
 import AddToOrgConfirmDialog from "@/components/AddToOrgConfirmDialog";
 
 import { appLocale } from "@/lib/appFormat";
-import { SkeletonRows } from "@/components/row/AppKit";
+import { PageHeader, SkeletonRows } from "@/components/row/AppKit";
 import AgreeText from "@/components/AgreeText";
 const SYNC_API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
@@ -211,7 +215,7 @@ export default function CommunityServiceV2Page() {
   // ProjectListItem doesn't carry it.
   const totalProjectsForYear = totalCount;
   const totalBeneficiaries = projects.reduce((sum, p) => sum + (p.directBeneficiaries ?? 0), 0);
-  const totalCost = projects.reduce((sum, p) => sum + (p.projectCost ?? 0), 0);
+  const totalCost = moneyTotals(projects.map((p) => ({ amount: p.projectCost, currency: p.currency })));
 
   const totalPages = Math.ceil(totalCount / PAGE_SIZE);
 
@@ -261,23 +265,7 @@ export default function CommunityServiceV2Page() {
       >
       <div className="space-y-5">
         {/* Header */}
-        <div className="flex items-start justify-between gap-3">
-          <div className="flex items-start gap-2">
-            <Link
-              href={`/clubs/${clubId}/dashboard`}
-              className="mt-0.5 inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50"
-              aria-label="Back"
-            >
-              <ArrowLeft size={15} />
-            </Link>
-            <div>
-              <h1 className="text-lg font-semibold text-slate-800">Community Service Projects</h1>
-              <p className="text-xs text-slate-500 mt-0.5">
-                RY {yearLabel} · {clubName || "–"}
-              </p>
-            </div>
-          </div>
-        </div>
+        <PageHeader title="Community Service Projects" description={<>RY {yearLabel} · {clubName || "–"}</>} back={`/clubs/${clubId}/dashboard`} />
 
         {/* KPI row — 3 tiles (Man Hours intentionally removed: ProjectListItem
             doesn't expose manHours, so showing a hard-coded 0 was misleading.
@@ -288,37 +276,35 @@ export default function CommunityServiceV2Page() {
           <KpiCard title="Beneficiaries" value={fmtInt(totalBeneficiaries)}    subtitle="Lives impacted (page)" icon={Users}      color="blue" />
           {/* Sums raw cost across rows regardless of currency — not currency-pure once
               mixed-currency projects exist on one page. Known limitation, not a bug. */}
-          <KpiCard title="Amount Spent"  value={fmtInrShort(totalCost)}        subtitle="Project investment (page)" icon={IndianRupee} color="gold" />
+          <KpiCard title="Amount Spent"  value={totalCost}        subtitle="Project investment (page)" icon={IndianRupee} color="gold" />
         </div>
 
         {/* Table card */}
-        <div className="bg-card rounded-2xl border border-slate-200 overflow-hidden">
+        <Card className="overflow-hidden">
           <div className="px-5 py-3 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div>
-              <h3 className="text-sm font-semibold text-slate-800">Community Service</h3>
+              <h3 className="row-h3">Community Service</h3>
               <p className="text-xs text-slate-500 mt-0.5">Project records · {yearLabel}</p>
             </div>
             <div className="flex flex-wrap items-center gap-2">
-              <div className="inline-flex rounded-lg border border-slate-200 overflow-hidden text-xs">
-                <button
+              <div role="group" aria-label="Project type" className="flex gap-2">
+                <ToggleButton pressed={subTab === "one_time"}
                   type="button"
                   onClick={() => setSubTab("one_time")}
-                  className={`px-3 py-1.5 ${subTab === "one_time" ? "bg-blue-600 text-white" : "text-slate-600 hover:bg-slate-50"}`}
                 >
                   One time Project
-                </button>
-                <button
+                </ToggleButton>
+                <ToggleButton pressed={subTab === "ongoing"}
                   type="button"
                   onClick={() => setSubTab("ongoing")}
-                  className={`px-3 py-1.5 border-l border-slate-200 ${subTab === "ongoing" ? "bg-[#17458F] text-white" : "text-slate-600 hover:bg-slate-50"}`}
                 >
                   Ongoing/Repeat Projects
-                </button>
+                </ToggleButton>
               </div>
-              <select
+              <NativeSelect
                 value={selectedYearId ?? ""}
                 onChange={(e) => setSelectedYearId(e.target.value ? Number(e.target.value) : null)}
-                className="px-2 h-10 py-0 text-sm border border-slate-200 rounded-[12px] bg-card focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                className="w-auto"
               >
                 {years.length === 0 && <option value="">No years</option>}
                 {years.map((y) => (
@@ -326,49 +312,48 @@ export default function CommunityServiceV2Page() {
                     {y.yearLabel}{y.isCurrent ? " · current" : ""}
                   </option>
                 ))}
-              </select>
+              </NativeSelect>
               <div className="relative w-full sm:w-auto">
                 <Search size={14} className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-400" />
-                <input
+                <Input
                   type="text"
                   placeholder="Search…"
                   value={searchInput}
                   onChange={(e) => setSearchInput(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-                  className="pl-7 pr-3 h-10 py-0 text-sm border border-slate-200 rounded-[12px] w-full sm:w-48 focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                  className="pl-7 pr-3 sm:w-48"
                 />
               </div>
-              <button
+              <Button
                 type="button"
                 onClick={handleSearch}
-                className="text-xs font-medium px-2.5 py-1.5 rounded-full border border-slate-200 text-slate-700 hover:bg-slate-50"
+                variant="outline" size="sm"
               >
                 Search
-              </button>
+              </Button>
               {search && (
-                <button
+                <Button
                   type="button"
                   onClick={clearSearch}
-                  className="text-xs font-medium px-2.5 py-1.5 rounded-full border border-slate-200 text-slate-500 hover:bg-slate-50"
+                  variant="outline" size="sm"
                 >
                   Clear
-                </button>
+                </Button>
               )}
-              <button
+              <Button
                 type="button"
                 onClick={() => exportToCsv(visibleRows, yearLabel, clubName || "club")}
-                className="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1.5 rounded-full border border-slate-200 text-slate-700 hover:bg-slate-50"
+                variant="outline" size="sm"
               >
                 <Download size={13} /> Export CSV
-              </button>
+              </Button>
               {canManage && (
-                <button
+                <Button
                   type="button"
                   onClick={handleAddClick}
-                  className="inline-flex items-center gap-1.5 text-xs font-semibold px-4 h-10 rounded-full bg-[#17458F] text-white hover:bg-[#17458F]"
                 >
                   <Plus size={13} /> Add Project
-                </button>
+                </Button>
               )}
             </div>
           </div>
@@ -378,89 +363,67 @@ export default function CommunityServiceV2Page() {
             {loading ? (
               <SkeletonRows />
             ) : (
-              <table className="w-full min-w-[640px] md:min-w-full text-sm">
-                <thead className="bg-[#EDF4FB] text-[13px] text-[#64748B]">
-                  <tr>
-                    <th className="px-3 py-2.5 text-left w-10">Sr</th>
-                    <th className="px-3 py-2.5 text-left whitespace-nowrap">Date</th>
-                    <th className="px-3 py-2.5 text-left">Title</th>
-                    <th className="px-3 py-2.5 text-left">Type</th>
-                    <th className="px-3 py-2.5 text-left">Area of Focus</th>
-                    <th className="px-3 py-2.5 text-right">Cost</th>
-                    <th className="px-3 py-2.5 text-right">Direct Benf</th>
-                    {canManage && <th className="px-3 py-2.5 text-right w-16">Edit</th>}
-                    {canManage && <th className="px-3 py-2.5 text-right w-16">Delete</th>}
-                    {isBotEnabled && installed === true && <th className="px-3 py-2.5 text-right w-16">Rotary.org</th>}
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {visibleRows.map((p, i) => {
-                    const cost = Number(p.projectCost ?? 0);
-                    const benf = Number(p.directBeneficiaries ?? 0);
-                    const aof = p.areaOfFocusName || p.otherAreaOfFocus || "–";
-                    return (
-                      <tr key={p.id} className="hover:bg-blue-50/40">
-                        <td className="px-3 py-2 text-slate-500">{(page - 1) * PAGE_SIZE + i + 1}</td>
-                        <td className="px-3 py-2 text-slate-700 whitespace-nowrap">{fmtDate(p.projectDate)}</td>
-                        <td className="px-3 py-2 font-medium text-slate-800">{p.title || "–"}</td>
-                        <td className="px-3 py-2">
-                          <span className={`inline-flex items-center text-xs font-medium px-2 py-0.5 rounded-full border ${projectTypeChipStyle(p.projectType)}`}>
+              <DataTable
+                caption="Community service projects"
+                card={false}
+                className="[&_table]:min-w-[640px] md:[&_table]:min-w-full"
+                rows={visibleRows}
+                rowKey={(p) => p.id}
+                empty={search ? "No projects match your search." : "No projects in this section."}
+                columns={[
+{ key: "sr", header: "Sr", className: "w-10 text-muted-foreground", cell: (p, i) => (page - 1) * PAGE_SIZE + i + 1 },
+{ key: "date", header: "Date", className: "whitespace-nowrap", cell: (p, i) => fmtDate(p.projectDate) },
+{ key: "title", header: "Title", className: "font-medium", cell: (p, i) => p.title || "–" },
+{ key: "type", header: "Type", cell: (p, i) => (<>
+                          <span className={`inline-flex items-center text-xs font-medium px-2 py-0.5 rounded border ${projectTypeChipStyle(p.projectType)}`}>
                             {projectTypeLabel(p.projectType)}
                           </span>
-                        </td>
-                        <td className="px-3 py-2 text-slate-600">{aof}</td>
-                        <td className="px-3 py-2 text-right text-slate-600 whitespace-nowrap">{cost > 0 ? `${getCurrencySymbol(p.currency)}${cost.toLocaleString(appLocale())}` : "–"}</td>
-                        <td className="px-3 py-2 text-right text-slate-600">{benf > 0 ? fmtInt(benf) : "–"}</td>
-                        {canManage && (
-                          <td className="px-3 py-2 text-right">
+</>) },
+{ key: "aof", header: "Area of Focus", cell: (p, i) => {
+                    const aof = p.areaOfFocusName || p.otherAreaOfFocus || "–";
+return (<span className="text-slate-600">{aof}</span>);
+} },
+{ key: "cost", header: "Cost", align: "right", className: "whitespace-nowrap", cell: (p, i) => {
+                    const cost = Number(p.projectCost ?? 0);
+return (<span className="text-slate-600 whitespace-nowrap">{cost > 0 ? `${getCurrencySymbol(p.currency)}${cost.toLocaleString(appLocale())}` : "–"}</span>);
+} },
+{ key: "benf", header: "Direct Benf", align: "right", cell: (p, i) => {
+                    const benf = Number(p.directBeneficiaries ?? 0);
+return (<span className="text-slate-600">{benf > 0 ? fmtInt(benf) : "–"}</span>);
+} },
+...(canManage ? [{ key: "edit", header: "Edit", align: "right" as const, className: "w-16", cell: (p: (typeof visibleRows)[number], i: number) => (<>
                             <Link
                               href={`/clubs/${clubId}/community-service/v2/${p.id}/edit?returnTo=${returnTo}&yearId=${selectedYearId}`}
-                              className="inline-flex items-center justify-center w-7 h-7 rounded text-slate-500 hover:text-blue-700 hover:bg-blue-50"
+                              className="row-icon-btn"
                               aria-label="Edit project"
                             >
                               <Edit3 size={13} />
                             </Link>
-                          </td>
-                        )}
-                        {canManage && (
-                          <td className="px-3 py-2 text-right">
-                            <button
+</>) }, { key: "delete", header: "Delete", align: "right" as const, className: "w-16", cell: (p: (typeof visibleRows)[number], i: number) => (<>
+                            <IconButton
                               type="button"
                               onClick={() => setDeleteTarget(p)}
-                              className="inline-flex items-center justify-center w-7 h-7 rounded text-slate-400 hover:text-rose-700 hover:bg-rose-50"
+                              className="hover:text-red-700"
                               aria-label="Delete project"
                             >
                               <Trash2 size={13} />
-                            </button>
-                          </td>
-                        )}
-                        {isBotEnabled && installed === true && (
-                          <td className="px-3 py-2 text-right">
+                            </IconButton>
+</>) }] : []),
+...(isBotEnabled && installed === true ? [{ key: "rotary", header: "Rotary.org", align: "right" as const, className: "w-16", cell: (p: (typeof visibleRows)[number], i: number) => (<>
                             {canSync && (
-                              <button
+                              <IconButton
                                 type="button"
                                 onClick={() => setSyncTarget(p)}
-                                className="inline-flex items-center justify-center w-7 h-7 rounded text-slate-400 hover:text-blue-700 hover:bg-blue-50"
+                                
                                 aria-label="Add to Rotary Org"
                                 title="Add to Rotary Org"
                               >
                                 <Puzzle size={13} />
-                              </button>
+                              </IconButton>
                             )}
-                          </td>
-                        )}
-                      </tr>
-                    );
-                  })}
-                  {visibleRows.length === 0 && (
-                    <tr>
-                      <td colSpan={7 + (canManage ? 2 : 0) + (isBotEnabled && installed === true ? 1 : 0)} className="px-4 py-10 text-center text-slate-400">
-                        {search ? "No projects match your search." : "No projects in this section."}
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
+</>) }] : []),
+                ]}
+              />
             )}
           </div>
 
@@ -479,7 +442,7 @@ export default function CommunityServiceV2Page() {
               />
             </div>
           )}
-        </div>
+        </Card>
 
         {/* Agree dialog (required disclaimer before creating a project) */}
         <AlertModal

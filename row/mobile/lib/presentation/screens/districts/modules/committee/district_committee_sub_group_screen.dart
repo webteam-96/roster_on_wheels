@@ -14,6 +14,8 @@ import 'committee_member_form_screen.dart';
 import 'district_committee_member_detail_screen.dart';
 import 'district_committee_sub_group_form_screen.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/motion.dart';
+import 'package:rotary_flutter_app/presentation/widgets/common/loading_widget.dart';
 
 // ---------------------------------------------------------------------------
 // Shared models
@@ -183,7 +185,7 @@ class _CommitteeSubGroupsListScreenState
 
 
   Future<void> _confirmDelete(_SubGroup sg) async {
-    final ok = await showDialog<bool>(
+    final ok = await showRowDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Delete Sub-Group'),
@@ -237,7 +239,7 @@ class _CommitteeSubGroupsListScreenState
         ],
       ),
       body: _loading
-          ? const Center(child: const CircularProgressIndicator(color: AppColors.primary))
+          ? const LoadingWidget()
           : _error != null
               ? ErrorStateWidget(message: _error!, onRetry: _fetch)
               : _buildBody(canManage),
@@ -288,7 +290,7 @@ class _CommitteeSubGroupsListScreenState
             )
           else
             Expanded(
-              child: ListView.separated(
+              child: RowListView.separated(
                 itemCount: _subGroups.length,
                 separatorBuilder: (_, __) => const SizedBox(height: 10),
                 itemBuilder: (_, i) {
@@ -477,7 +479,7 @@ class _CommitteeSubGroupDetailScreenState
   }
 
   Future<void> _confirmDelete(_Member m) async {
-    final ok = await showDialog<bool>(
+    final ok = await showRowDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Delete member?'),
@@ -573,7 +575,7 @@ class _CommitteeSubGroupDetailScreenState
         ],
       ),
       body: _loading
-          ? const Center(child: const CircularProgressIndicator(color: AppColors.primary))
+          ? const LoadingWidget()
           : _error != null
               ? ErrorStateWidget(message: _error!, onRetry: _fetchMembers)
               : _buildBody(canManage),
@@ -614,7 +616,7 @@ class _CommitteeSubGroupDetailScreenState
             )
           else
             Expanded(
-              child: ListView.separated(
+              child: RowListView.separated(
                 itemCount: _members.length,
                 separatorBuilder: (_, __) => const SizedBox(height: 10),
                 itemBuilder: (_, i) {

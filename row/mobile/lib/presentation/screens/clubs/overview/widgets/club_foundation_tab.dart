@@ -18,6 +18,7 @@ import '../../modules/trf/trf_screen.dart';
 import 'club_dashboard_async.dart';
 import 'package:rotary_flutter_app/core/theme/app_fonts.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/motion.dart';
 
 /// "Foundation" tab on the Club Overview screen — wired to the live
 /// `api/mobile/club-admin-dashboard/foundation` (this club's fund actuals) and
@@ -300,7 +301,7 @@ class _GoalsCardState extends State<_GoalsCard> {
   Future<void> _delete() async {
     final g = widget.goal;
     if (g == null) return;
-    final ok = await showDialog<bool>(
+    final ok = await showRowDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(
         title: Text('Delete goals?',
@@ -716,7 +717,7 @@ class _GoalsCardState extends State<_GoalsCard> {
           const SizedBox(height: 4),
           ClipRRect(
             borderRadius: BorderRadius.circular(999),
-            child: LinearProgressIndicator(
+            child: RowProgressBar(
               value: pct / 100,
               minHeight: 6,
               backgroundColor: AppColors.slate100,
@@ -840,7 +841,7 @@ class _KpiCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 8),
-          Text(
+          RowCountUp(
             formatMoney(spec.value, 'USD'),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,

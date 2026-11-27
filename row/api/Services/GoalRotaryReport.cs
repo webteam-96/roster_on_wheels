@@ -57,7 +57,7 @@ public partial class GoalSettingService
     /// District report (new design). oversight = the RI Director / Zone / District Assistant scope check
     /// (as BuildDistrictGoalSettingReportScopedAsync); otherwise the District Admin check (as
     /// BuildDistrictMonthlyExcelAsync). Several districts (a zone) stack on the same sheets.
-    public async Task<byte[]?> BuildRotaryDistrictReportAsync(int memberId, IReadOnlyList<int> districtIds, int? yearId, bool oversight)
+    public async Task<byte[]?> BuildRotaryDistrictReportAsync(int memberId, IReadOnlyList<int> districtIds, int? yearId, bool oversight, bool rccOnly = false)
     {
         using var conn = CreateConnection();
         await conn.OpenAsync();
@@ -88,12 +88,12 @@ public partial class GoalSettingService
         }
         var filter = oversight ? await OversightCategoryFilterAsync(conn, memberId) : await DaCategoryFilterAsync(conn, memberId);
         var wb = await RenderRotaryWorkbookAsync(conn, entities, resolvedYearId,
-            $"Rotary Year {yearLabel}   ·   Generated {DateTime.UtcNow:dd MMM yyyy, hh:mm tt}", isEditable, filter, dropYouthPct: oversight);
+            $"Rotary Year {yearLabel}   ·   Generated {DateTime.UtcNow:dd MMM yyyy, hh:mm tt}", isEditable, filter, dropYouthPct: oversight, rccOnly: rccOnly);
         return wb == null ? null : SaveAndDispose(wb);
     }
 
     /// Club report (new design) - the Club Admin's own club, or a club of the District Admin's district.
-    public async Task<byte[]?> BuildRotaryClubReportAsync(int memberId, int clubId, int? yearId)
+    public async Task<byte[]?> BuildRotaryClubReportAsync(int memberId, int clubId, int? yearId, bool rccOnly = false)
     {
         using var conn = CreateConnection();
         await conn.OpenAsync();
@@ -107,14 +107,14 @@ public partial class GoalSettingService
         if (row == null) return null;
         string title = $"{(string?)row.name ?? $"Club {id}"} · District {(string?)row.num ?? ""}";
         var wb = await RenderRotaryWorkbookAsync(conn, new() { (title, "Club", id, 0) }, resolvedYearId,
-            $"Rotary Year {yearLabel}   ·   Generated {DateTime.UtcNow:dd MMM yyyy, hh:mm tt}", isEditable, await DaCategoryFilterAsync(conn, memberId));
+            $"Rotary Year {yearLabel}   ·   Generated {DateTime.UtcNow:dd MMM yyyy, hh:mm tt}", isEditable, await DaCategoryFilterAsync(conn, memberId), rccOnly: rccOnly);
         return wb == null ? null : SaveAndDispose(wb);
     }
 
     /// Every club of a district (user 2026-11-02, "All" in the club picker): the same report in the
     /// district-wise layout - goals down the rows, one column per club, then Total. District Admin of that
     /// district / Super Admin, or (oversight) a goal role whose scope holds the district.
-    public async Task<byte[]?> BuildRotaryAllClubsReportAsync(int memberId, int districtId, int? yearId, bool oversight)
+    public async Task<byte[]?> BuildRotaryAllClubsReportAsync(int memberId, int districtId, int? yearId, bool oversight, bool rccOnly = false)
     {
         using var conn = CreateConnection();
         await conn.OpenAsync();
@@ -147,17 +147,55 @@ public partial class GoalSettingService
         if (clubs.Count == 0) return null;
         var wb = await RenderRotaryWorkbookAsync(conn, clubs.Select(c => (c.Name, "Club", c.Id, 0)).ToList(), resolvedYearId,
             $"District {num}   ·   Rotary Year {yearLabel}   ·   Generated {DateTime.UtcNow:dd MMM yyyy, hh:mm tt}", isEditable, filter,
-            multiTitle: $"Club Goal Setting — District {num} (all clubs)");
+            multiTitle: rccOnly ? $"District {num} (all clubs)" : $"Club Goal Setting — District {num} (all clubs)", rccOnly: rccOnly);
         return wb == null ? null : SaveAndDispose(wb);
     }
 
     // Same sheets and writers as RenderEntityWorkbookAsync, one entity after another.
     private async Task<XLWorkbook?> RenderRotaryWorkbookAsync(MySqlConnection conn,
         List<(string Title, string EntityType, int ClubId, int DistrictId)> entities, int yearId, string subtitle,
-        bool autoFillLive, HashSet<int>? onlyCategoryIds, bool dropYouthPct = false, string? multiTitle = null)
+        bool autoFillLive, HashSet<int>? onlyCategoryIds, bool dropYouthPct = false, string? multiTitle = null, bool rccOnly = false)
+    {
+        _rccReport = rccOnly;
+        try { return RccWording(await RenderRotaryWorkbookCoreAsync(conn, entities, yearId, subtitle, autoFillLive, onlyCategoryIds, dropYouthPct, multiTitle, rccOnly), rccOnly); }
+        finally { _rccReport = false; }
+    }
+
+    // RCC Goals report (user 2026-11-18): "Target" reads "Goal" everywhere, "% Ach." = "Achieved (%)", and the
+    // title sits at the left so it shows on wide sheets. Header texts only - goal names never contain these words.
+    private static XLWorkbook? RccWording(XLWorkbook? wb, bool rcc)
+    {
+        if (wb == null || !rcc) return wb;
+        var exact = new Dictionary<string, string>(StringComparer.Ordinal)
+        {
+            ["Target for the Current year"] = "Goal for the Current year", ["Target Details"] = "Goal Details", ["Target\nDetails"] = "Goal\nDetails",
+            ["Target"] = "Goal", ["  Target"] = "  Goal", ["% Ach."] = "Achieved (%)", ["Achievement (%)"] = "Achieved (%)",
+            ["  Achievement(%)"] = "  Achieved (%)", ["Achievement(%)"] = "Achieved (%)", ["To add"] = "Goal to add",
+        };
+        foreach (var ws in wb.Worksheets)
+        {
+            foreach (var cell in ws.CellsUsed(c => c.DataType == XLDataType.Text))
+            {
+                var v = cell.GetString();
+                if (exact.TryGetValue(v, out var nv)) cell.Value = nv;
+                else if (v.StartsWith("Target for ", StringComparison.Ordinal)) cell.Value = "Goal for " + v["Target for ".Length..];
+            }
+            var t = ws.Cell(1, 1);
+            if (t.IsMerged()) t.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
+            var st = ws.Cell(2, 1);
+            if (st.IsMerged()) st.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
+        }
+        return wb;
+    }
+
+    private async Task<XLWorkbook?> RenderRotaryWorkbookCoreAsync(MySqlConnection conn,
+        List<(string Title, string EntityType, int ClubId, int DistrictId)> entities, int yearId, string subtitle,
+        bool autoFillLive, HashSet<int>? onlyCategoryIds, bool dropYouthPct, string? multiTitle, bool rccOnly)
     {
         var blocks = new List<(string Title, string EntityType, string? TrfAsOn,
             List<(string Name, List<GoalMetricComputed> Rows, List<GoalMonthPeriodDto> Months)> PerCat)>();
+        // RCC Goals report (rccOnly): YTD = the 26 Rotary.org goals; Quarter / Month wise = the 5 with month figures.
+        var ytdPerCat = new List<List<(string Name, List<GoalMetricComputed> Rows, List<GoalMonthPeriodDto> Months)>>();
         // Each entity on its own pooled connection, 12 at a time (a district's ~100 clubs, a zone's
         // districts), as the old all-clubs report does; the order stays as given.
         var sem = new SemaphoreSlim(12);
@@ -180,12 +218,19 @@ public partial class GoalSettingService
             if (dropYouthPct) DropYouthPct(perCat);
             if (!trfAsOnByType.TryGetValue(e.EntityType, out var asOn))
                 trfAsOnByType[e.EntityType] = asOn = await FoundationAsOnAsync(conn, yearId, e.EntityType);
-            blocks.Add((e.Title, e.EntityType, asOn, RotaryOrder(perCat)));
+            if (rccOnly)
+            {
+                var only5 = RccFiveOnly(perCat);
+                blocks.Add((e.Title, e.EntityType, asOn, RotaryOrder(only5)));
+                ytdPerCat.Add(RotaryOrder(await WithRotaryOnlyRowsAsync(conn, RccFiveOnly(perCat), e.EntityType, e.ClubId, e.DistrictId, yearId)));
+            }
+            else blocks.Add((e.Title, e.EntityType, asOn, RotaryOrder(perCat)));
         }
         if (blocks.Count == 0) return null;
         var months0 = UnionMonths(blocks.SelectMany(b => b.PerCat.Select(p => p.Months)));
         bool grid = blocks[0].EntityType == "District";
-        string title0 = blocks.Count == 1 ? blocks[0].Title : multiTitle ?? "District Goal Setting";
+        string title0 = blocks.Count == 1 ? (rccOnly ? $"RCC Goals · {blocks[0].Title}" : blocks[0].Title)
+            : rccOnly ? $"RCC Goals · {multiTitle ?? "Districts"}" : multiTitle ?? "District Goal Setting";
 
         var wb = new XLWorkbook();
 
@@ -195,7 +240,9 @@ public partial class GoalSettingService
             // districts across, then Total.
             // More than one club or district (user 2026-11-02, the rule everywhere): one ROW per club /
             // district, the questions across. A single club or district keeps its own tabular report.
-            WriteDistrictMatrixSheets(wb, blocks.Select(b => (b.Title, b.PerCat)).ToList(), title0, subtitle, blocks[0].TrfAsOn, months0);
+            WriteDistrictMatrixSheets(wb, blocks.Select(b => (b.Title, b.PerCat)).ToList(), title0, subtitle, blocks[0].TrfAsOn, months0,
+                rccOnly ? blocks.Select((b, i) => (b.Title, ytdPerCat[i])).ToList() : null,
+                rcc: rccOnly, entityWord: blocks[0].EntityType == "District" ? "District" : "Club");
         }
         else
         {
@@ -204,7 +251,7 @@ public partial class GoalSettingService
             s1.Column(1).Width = 34;
             for (int i = 2; i <= 5; i++) s1.Column(i).Width = 15;
             RenderTitleBand(s1, 5, title0, subtitle, ref r);
-            WriteYtdBlock(s1, blocks[0].PerCat, ref r, blocks[0].TrfAsOn);
+            WriteYtdBlock(s1, rccOnly ? ytdPerCat[0] : blocks[0].PerCat, ref r, blocks[0].TrfAsOn);
             s1.PageSetup.PrintAreas.Add($"A1:E{Math.Max(1, r - 1)}");
             s1.PageSetup.PageOrientation = XLPageOrientation.Landscape;
             s1.PageSetup.FitToPages(1, 0);
@@ -261,7 +308,8 @@ public partial class GoalSettingService
     //    lines with the SAME figures as that club's / district's own sheet (WriteYtdBlock /
     //    WriteQuarterBlock / WriteMonthGridBlock). Total = added up; a Total % uses the same rule. ──
     private sealed record MatrixLine(string Label, Func<GoalMetricComputed, decimal?> Val, bool Pct = false,
-        Func<GoalMetricComputed, decimal?>? StatusTarget = null, Func<GoalMetricComputed, decimal?>? TotalPct = null);
+        Func<GoalMetricComputed, decimal?>? StatusTarget = null, Func<GoalMetricComputed, decimal?>? TotalPct = null,
+        string? Group = null);   // RCC (user 2026-11-18): lines of one month / quarter share one header ("Jul")
 
     // Several clubs / districts (user 2026-11-02): one ROW per club or district (Total at the bottom),
     // the questions ACROSS: a section band, the goal name over its columns, then
@@ -270,7 +318,7 @@ public partial class GoalSettingService
         List<(string Title, List<(string Name, List<GoalMetricComputed> Rows, List<GoalMonthPeriodDto> Months)> PerCat)> blocks,
         string title, string subtitle,
         Func<string, bool> includeCategory, Func<string, GoalMetricComputed, bool> includeMetric,
-        Func<string, GoalMetricComputed, List<MatrixLine>> linesOf)
+        Func<string, GoalMetricComputed, List<MatrixLine>> linesOf, string entityWord = "Club")
     {
         int n = blocks.Count;
         List<GoalMetricComputed>? RowsOf(int bi, string cat) =>
@@ -299,10 +347,11 @@ public partial class GoalSettingService
         int r = 1;
         RenderTitleBand(s, Math.Max(2, last), title, subtitle, ref r);
 
-        // Three header rows: section · goal · line.
-        int h0 = r, h1 = r + 1, h2 = r + 2;
-        var club = s.Cell(h0, 1); club.Value = "Club"; StyleHeaderCell(club);
-        StyleHeaderCell(s.Cell(h1, 1)); StyleHeaderCell(s.Cell(h2, 1));
+        // Three header rows: section · goal · line (+ a month / quarter row when the lines are grouped - RCC).
+        bool grouped = cols.Any(x => x.Line?.Group != null);
+        int h0 = r, h1 = r + 1, hg = r + 2, h2 = grouped ? r + 3 : r + 2;
+        var club = s.Cell(h0, 1); club.Value = entityWord; StyleHeaderCell(club);
+        for (int hr = h1; hr <= h2; hr++) StyleHeaderCell(s.Cell(hr, 1));
         s.Range(h0, 1, h2, 1).Merge();
         void Span(int row, int from, int to, string text, bool band)
         {
@@ -320,12 +369,31 @@ public partial class GoalSettingService
             {
                 int e = k; while (e + 1 <= j && cols[e + 1].M.FieldKey == cols[k].M.FieldKey) e++;
                 Span(h1, 2 + k, 2 + e, cols[k].Label, false);
-                for (int q = k; q <= e; q++) Span(h2, 2 + q, 2 + q, cols[q].Single ? "Value" : cols[q].Line!.Label, false);
+                if (!grouped)
+                    for (int q = k; q <= e; q++) Span(h2, 2 + q, 2 + q, cols[q].Single ? "Value" : cols[q].Line!.Label, false);
+                else
+                    for (int q = k; q <= e;)
+                    {
+                        var g = cols[q].Single ? null : cols[q].Line!.Group;
+                        if (g == null)
+                        {   // a yearly line: its label over both header rows
+                            Span(hg, 2 + q, 2 + q, cols[q].Single ? "Value" : cols[q].Line!.Label, false);
+                            StyleHeaderCell(s.Cell(h2, 2 + q));
+                            s.Range(hg, 2 + q, h2, 2 + q).Merge().Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
+                            q++; continue;
+                        }
+                        int ge = q; while (ge + 1 <= e && cols[ge + 1].Line?.Group == g) ge++;
+                        Span(hg, 2 + q, 2 + ge, g, false);
+                        s.Range(hg, 2 + q, hg, 2 + ge).Style.Fill.BackgroundColor = XLColor.FromHtml("#DBEAFE");
+                        for (int x = q; x <= ge; x++) Span(h2, 2 + x, 2 + x, cols[x].Line!.Label, false);
+                        q = ge + 1;
+                    }
                 k = e + 1;
             }
             i = j + 1;
         }
         s.Row(h1).Height = 30; s.Row(h2).Height = 30;
+        if (grouped) s.Row(hg).Height = 20;
         r = h2 + 1;
         s.SheetView.Freeze(h2, 1);
 
@@ -397,21 +465,27 @@ public partial class GoalSettingService
     // The three district-wise sheets. Lines and figures follow the one-district writers.
     private void WriteDistrictMatrixSheets(XLWorkbook wb,
         List<(string Title, List<(string Name, List<GoalMetricComputed> Rows, List<GoalMonthPeriodDto> Months)> PerCat)> blocks,
-        string title, string subtitle, string? trfAsOn, List<GoalMonthPeriodDto> months)
+        string title, string subtitle, string? trfAsOn, List<GoalMonthPeriodDto> months,
+        List<(string Title, List<(string Name, List<GoalMetricComputed> Rows, List<GoalMonthPeriodDto> Months)> PerCat)>? ytdBlocks = null,
+        bool rcc = false, string entityWord = "Club")
     {
         int Write(IXLWorksheet ws,
             List<(string Title, List<(string Name, List<GoalMetricComputed> Rows, List<GoalMonthPeriodDto> Months)> PerCat)> bl,
             string t, string st, Func<string, bool> incCat, Func<string, GoalMetricComputed, bool> incMetric,
             Func<string, GoalMetricComputed, List<MatrixLine>> lines, ref int row)
-            => WriteEntityRowsMatrix(ws, bl, t, st, incCat, incMetric, lines);
+            => WriteEntityRowsMatrix(ws, bl, t, st, incCat, incMetric, lines, rcc ? entityWord : "Club");
+        // RCC (user 2026-11-18): month / quarter = one header with Goal / Achieved / Achieved (%) under it.
+        decimal? RunPct(decimal? goal, decimal? ach, bool two) =>
+            goal is > 0 && ach.HasValue ? Math.Round(ach.Value * 100m / goal.Value, two ? 2 : 0, MidpointRounding.AwayFromZero) : null;
         string BaseLabel(GoalMetricComputed m) =>
             string.IsNullOrWhiteSpace(ReportLabel(m.BaselineLabel)) ? "As on July 1st" : ReportLabel(m.BaselineLabel);
         static decimal YearStart(GoalMetricComputed m) => m.BaselineIsReferenceOnly ? 0m : (m.Baseline ?? 0m);
 
         // YTD (Till Date): As on July 1st · Target · Achieved · Achievement (%).
         int r = 1;
-        Write(wb.Worksheets.Add("YTD (Till Date)"), blocks, title, subtitle,
-            _ => true, (_, m) => m.MonthlyTracked || m.SingleValue,
+        // RCC Goals (user 2026-11-18): YTD = all 26 goals (ytdBlocks), every district / club one row.
+        Write(wb.Worksheets.Add("YTD (Till Date)"), ytdBlocks ?? blocks, title, subtitle,
+            _ => true, (_, m) => m.MonthlyTracked || m.SingleValue || m.FieldKey.StartsWith("rotary_", StringComparison.Ordinal),
             (cat, m) =>
             {
                 var l = new List<MatrixLine>();
@@ -442,13 +516,23 @@ public partial class GoalSettingService
                     decimal? QA(GoalMetricComputed x) => x.QuarterlyAchieved.TryGetValue(qq, out var v) ? v : null;
                     decimal? QP(decimal? t, decimal? a, bool two) => t.HasValue && t.Value != 0m && a.HasValue
                         ? Math.Round(a.Value / t.Value * 100m, two ? 2 : 0, MidpointRounding.AwayFromZero) : null;
-                    l.Add(new($"{qLabels[q - 1]} Target", QT));
-                    l.Add(new($"{qLabels[q - 1]} Achieved", QA));
+                    if (!rcc)
+                    {
+                        l.Add(new($"{qLabels[q - 1]} Target", QT));
+                        l.Add(new($"{qLabels[q - 1]} Achieved", QA));
+                    }
                     // Total quarter % = added-up achieved ÷ added-up target (each district: its own).
                     var qTot = blocks.Select(b => b.PerCat.FirstOrDefault(p => string.Equals(p.Name, cat, StringComparison.OrdinalIgnoreCase)).Rows?
                         .FirstOrDefault(x => x.FieldKey == m.FieldKey)).Where(x => x != null).ToList();
                     decimal? tT = qTot.Select(x => QT(x!)).Where(v => v.HasValue).Select(v => v!.Value).DefaultIfEmpty().Sum();
                     decimal? tA = qTot.Any(x => QA(x!).HasValue) ? qTot.Select(x => QA(x!)).Where(v => v.HasValue).Sum(v => v!.Value) : null;
+                    if (rcc)
+                    {
+                        l.Add(new("Goal", QT, Group: qLabels[q - 1]));
+                        l.Add(new("Achieved", QA, Group: qLabels[q - 1]));
+                        l.Add(new("Achieved (%)", x => QP(QT(x), QA(x), x.TwoDecimalPct), Pct: true, TotalPct: _ => QP(tT, tA, m.TwoDecimalPct), Group: qLabels[q - 1]));
+                        continue;
+                    }
                     l.Add(new($"{qLabels[q - 1]} Achievement (%)", x => QP(QT(x), QA(x), x.TwoDecimalPct), Pct: true,
                         TotalPct: _ => QP(tT, tA, m.TwoDecimalPct)));
                 }
@@ -490,6 +574,14 @@ public partial class GoalSettingService
                             run += x.Monthly.TryGetValue(p.Month, out var v) && v.HasValue ? v.Value : 0m;
                         return run;
                     }
+                    if (rcc)
+                    {
+                        l.Add(new("Goal", MT, Group: mo.Label));
+                        l.Add(new("Achieved", MA, StatusTarget: MT, Group: mo.Label));
+                        l.Add(new("Achieved (%)", x => RunPct(MT(x), MA(x), x.TwoDecimalPct), Pct: true,
+                            TotalPct: _ => RunPct(Sum2(m, blocks, cat, MT), Sum2(m, blocks, cat, MA), m.TwoDecimalPct), Group: mo.Label));
+                        continue;
+                    }
                     l.Add(new($"{mo.Label} Target", MT));
                     l.Add(new($"{mo.Label} Achieved", MA, StatusTarget: MT));
                 }
@@ -506,6 +598,56 @@ public partial class GoalSettingService
                 .FirstOrDefault(x => x.FieldKey == m.FieldKey))
             .Where(x => x != null).Select(x => pick(x!)).Where(v => v.HasValue).ToList();
         return vals.Count == 0 ? null : vals.Sum(v => v!.Value);
+    }
+
+    // ── RCC Goals report (user 2026-11-18): the same report with ONLY the 26 Rotary.org goals ──
+    // The 5 Rotary.org goals that are also our goals (their whole group = the screen's card).
+    private static readonly HashSet<string> RccFiveGroups = new(StringComparer.OrdinalIgnoreCase)
+        { "Total Members", "Annual Fund", "Polio Plus Fund", "Annual Fund YTD", "PolioPlus Fund YTD", "Rotaract", "Interact" };
+
+    private static List<(string Name, List<GoalMetricComputed> Rows, List<GoalMonthPeriodDto> Months)> RccFiveOnly(
+        List<(string Name, List<GoalMetricComputed> Rows, List<GoalMonthPeriodDto> Months)> perCat) =>
+        perCat.Select(p => (p.Name, p.Rows.Where(m => RccFiveGroups.Contains(m.GroupName)
+                // Rotaractors sit in the "Rotaract" group but are not a Rotary.org goal
+                && !(string.Equals(m.GroupName, "Rotaract", StringComparison.OrdinalIgnoreCase) && m.FieldKey.Contains("members", StringComparison.Ordinal))).ToList(), p.Months))
+              .ToList();
+
+    // Section of the 26 -> the report category that carries that section's band.
+    private static readonly Dictionary<string, string> RccSectionCategory = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ["Expand Our Reach"] = "Membership", ["Increase our Impact"] = "Foundation",
+        ["Increase Our Ability to Adapt"] = "Public Image", ["Enhance Participant Engagement"] = "Youth Service",
+    };
+
+    // The 21 Rotary.org-only goals as YTD rows (Goal / Achieved / %, from Rotary.org), each under its section.
+    private static async Task<List<(string Name, List<GoalMetricComputed> Rows, List<GoalMonthPeriodDto> Months)>> WithRotaryOnlyRowsAsync(
+        MySqlConnection conn, List<(string Name, List<GoalMetricComputed> Rows, List<GoalMonthPeriodDto> Months)> perCat,
+        string entityType, int clubId, int districtId, int yearId)
+    {
+        var org = (await conn.QueryAsync<(string Item, string Kind, decimal? Value)>(entityType == "Club"
+            ? "SELECT ItemName, Kind, NumericValue FROM goal_rotary_org_values WHERE fk_year_id = @Y AND EntityType = 'Club' AND fk_club_id = @C AND isdeleted = 0"
+            : "SELECT ItemName, Kind, NumericValue FROM goal_rotary_org_values WHERE fk_year_id = @Y AND EntityType = 'District' AND fk_district_id = @D AND fk_club_id = 0 AND isdeleted = 0",
+            new { Y = yearId, C = clubId, D = districtId })).ToList();
+        decimal? O(string item, string kind) => org.FirstOrDefault(o => o.Item == item && o.Kind == kind).Value;
+        var five = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+            { "Club membership", "Rotaract clubs", "Interact clubs", "Annual Fund contributions", "PolioPlus Fund contributions" };
+        var months = perCat.Select(p => p.Months).FirstOrDefault(m => m != null && m.Count > 0) ?? new List<GoalMonthPeriodDto>();
+        var res = perCat.Select(p => (p.Name, Rows: p.Rows.ToList(), p.Months)).ToList();
+        foreach (var g in RccCombinedReport.RotaryGoals.Where(g => !five.Contains(g.Item)))
+        {
+            var cat = RccSectionCategory[g.Section];
+            int i = res.FindIndex(p => (IsTrfCategory(p.Name) ? "Foundation" : p.Name).Equals(cat, StringComparison.OrdinalIgnoreCase));
+            if (i < 0) { res.Add((cat, new List<GoalMetricComputed>(), months)); i = res.Count - 1; }
+            var t = O(g.Item, "Target"); var a = O(g.Item, "Achieved");
+            bool yesNo = entityType == "Club" && g.YesNo;
+            res[i].Rows.Add(new GoalMetricComputed
+            {
+                Label = yesNo ? $"{g.Item} (1 = Yes)" : g.Item, GroupName = g.Item, FieldKey = "rotary_" + g.Item,
+                HasBaseline = false, Target = t, Achieved = a,
+                Pct = t > 0 ? Math.Round((a ?? 0) * 100m / t.Value, 2) : null, TwoDecimalPct = true,
+            });
+        }
+        return res.Select(p => (p.Name, p.Rows, p.Months)).ToList();
     }
 
     // New tab order + Rotary.org goal names. Category names themselves stay (the writers key on them).

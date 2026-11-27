@@ -20,6 +20,8 @@ import '../../../../widgets/common/pagination_widget.dart';
 import '../../../../widgets/detail/detail_widgets.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
 import 'package:rotary_flutter_app/presentation/widgets/row/form_action_bar.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/motion.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/roster_wheel.dart';
 
 // ---------------------------------------------------------------------------
 // Model
@@ -289,6 +291,7 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
               border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
               suffixIcon: _searchCtrl.text.isNotEmpty
                   ? IconButton(
+                      tooltip: 'Close',
                       icon: const Icon(Icons.close, size: 18),
                       onPressed: () { _searchCtrl.clear(); _loadData(); },
                     )
@@ -348,10 +351,10 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
                       actionLabel: !canManage ? null : 'Add Document',
                       onAction: !canManage ? null : () => _openForm(),
                     )
-                  : RefreshIndicator(
+                  : RowRefresh(
                       color: AppColors.primary,
                       onRefresh: () => _fetch(reset: true),
-                      child: ListView.separated(
+                      child: RowListView.separated(
                         padding: (const EdgeInsets.all(16)).add(const EdgeInsets.only(bottom: 88)),
                         itemCount: _items.length + 1,
                         separatorBuilder: (_, __) => const SizedBox(height: 8),

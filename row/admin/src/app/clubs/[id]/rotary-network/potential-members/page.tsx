@@ -1,4 +1,5 @@
 "use client";
+import { ClearButton } from "@/components/ui/text-buttons";
 
 import { useState, useEffect, useCallback } from "react";
 import { useParams } from "next/navigation";
@@ -26,13 +27,10 @@ import Pagination from "@/components/Pagination";
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
 import AlertModal from "@/components/AlertModal";
-import {
-  ArrowLeft, Search, UserPlus, X, Plus, Pencil, Trash2, AlertTriangle,
-} from "@/components/icons";
+import { Search, UserPlus, X, Plus, Pencil, Trash2, AlertTriangle } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
-import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
-import { ListPageSkeleton } from "@/components/row/AppKit";
+import { PageHeader, ListPageSkeleton } from "@/components/row/AppKit";
 
 export default function PotentialMembersPage() {
   const params = useParams();
@@ -188,24 +186,16 @@ export default function PotentialMembersPage() {
     <ProtectedRoute>
       <div className="space-y-6">
         {/* Header */}
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-3">
-            <Button variant="outline" size="icon" asChild>
-              <Link href={`/clubs/${clubId}/rotary-network`}><ArrowLeft className="h-4 w-4" /></Link>
-            </Button>
-            <div>
-              <h2 className="text-2xl font-bold tracking-tight text-primary">
-                {clubName ? `${clubName} - Potential Members` : "Potential Members"}
-              </h2>
-              <p className="text-muted-foreground text-base">Manage potential members for this club</p>
-            </div>
-          </div>
-          {canManage && (
+        <PageHeader
+          title={clubName ? `${clubName} - Potential Members` : "Potential Members"}
+          description="Manage potential members for this club"
+          back={`/clubs/${clubId}/rotary-network`}
+          actions={canManage && (
             <Button onClick={openAddDialog}>
               <Plus className="mr-2 h-4 w-4" />Add Potential Member
             </Button>
           )}
-        </div>
+        />
 
         {/* Search */}
         <div className="flex flex-wrap items-center gap-2">
@@ -219,9 +209,7 @@ export default function PotentialMembersPage() {
               className="pl-9"
             />
             {searchInput && (
-              <button onClick={clearSearch} className="absolute right-3 top-1/2 -translate-y-1/2">
-                <X className="h-4 w-4 text-muted-foreground hover:text-foreground" />
-              </button>
+              <ClearButton onClick={clearSearch} aria-label="Clear search" />
             )}
           </div>
           <Button onClick={handleSearch} size="sm">Search</Button>
@@ -237,7 +225,7 @@ export default function PotentialMembersPage() {
         {!loading && members.length === 0 && (
           <div className="flex flex-col items-center justify-center py-20 text-center">
             <UserPlus className="h-12 w-12 text-muted-foreground mb-4" />
-            <h3 className="text-lg font-semibold">No potential members</h3>
+            <h3 className="row-h2">No potential members</h3>
             <p className="text-muted-foreground mt-2">
               {search ? "No potential members found matching your search." : canManage ? 'Click "Add Potential Member" to add one.' : "No potential members found for this club."}
             </p>
@@ -250,14 +238,14 @@ export default function PotentialMembersPage() {
             <CardContent className="p-0">
               <Table>
                 <TableHeader>
-                  <TableRow className="bg-primary hover:bg-primary">
-                    <TableHead className="w-16 text-base font-semibold">S.No.</TableHead>
-                    <TableHead className="text-base font-semibold">Name</TableHead>
-                    <TableHead className="text-base font-semibold">Email</TableHead>
-                    <TableHead className="text-base font-semibold">Mobile Number</TableHead>
-                    <TableHead className="text-base font-semibold">Reference Details</TableHead>
+                  <TableRow>
+                    <TableHead className="w-16">S.No.</TableHead>
+                    <TableHead>Name</TableHead>
+                    <TableHead>Email</TableHead>
+                    <TableHead>Mobile Number</TableHead>
+                    <TableHead>Reference Details</TableHead>
                     {canManage && (
-                      <TableHead className="w-24 text-base font-semibold">Actions</TableHead>
+                      <TableHead className="w-24">Actions</TableHead>
                     )}
                   </TableRow>
                 </TableHeader>
@@ -275,7 +263,7 @@ export default function PotentialMembersPage() {
                             <Button variant="ghost" size="icon" onClick={() => openEditDialog(member)}>
                               <Pencil className="h-4 w-4" />
                             </Button>
-                            <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive" onClick={() => confirmDelete(member)}>
+                            <Button variant="ghost" size="icon" className="text-destructive" onClick={() => confirmDelete(member)}>
                               <Trash2 className="h-4 w-4" />
                             </Button>
                           </div>

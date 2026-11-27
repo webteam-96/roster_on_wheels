@@ -9,12 +9,14 @@ import type { Config } from "tailwindcss";
 // ROW "Fellowship" (row/website/design.md). Tailwind's default hue scales are remapped onto the
 // Fellowship palette so the thousands of existing `bg-blue-700` / `text-slate-800` classes follow the
 // brand without page edits. green/emerald/red/rose/amber stay stock: they carry status meaning.
+// The light steps are variables (globals.css --tw-*): softened for the admin, original values on the public site and in print.
+const v = (name: string) => `rgb(var(--tw-${name}) / <alpha-value>)`;
 const fellowshipBlue = {
-  50: "#F3F8FD", 100: "#EDF4FB", 200: "#CFE2F6", 300: "#A9C6EA", 400: "#5E93D6", 500: "#0067C8",
+  50: v("blue-50"), 100: v("blue-100"), 200: "#CFE2F6", 300: "#A9C6EA", 400: "#5E93D6", 500: "#0067C8",
   600: "#1F56A8", 700: "#17458F", 800: "#0B3F7A", 900: "#12376F", 950: "#0A2547",
 };
 const fellowshipNeutral = {
-  50: "#F7F9FC", 100: "#EDF4FB", 200: "#D5DEE8", 300: "#B7C3D2", 400: "#66768C", 500: "#64748B",  // 400 darkened from #8796AA: helper text was 3.0:1 on white
+  50: v("slate-50"), 100: v("slate-100"), 200: v("slate-200"), 300: "#B0BECE", 400: "#56667D", 500: "#526177",  // 4.5:1 or better on every surface
   600: "#4A5A70", 700: "#2A3F5C", 800: "#1B2C42", 900: "#132033", 950: "#0B1422",
 };
 const marigold = {
@@ -42,7 +44,8 @@ const config: Config = {
   			...neutralFamily,
   			yellow: marigold,
   			orange: marigold,
-  			white: "#FCFDFE", // FRONTEND-RULES #3: `bg-white` surfaces are off-white
+  			rose: { 600: "#CB1640" }, // stock #e11d48 is 4.4:1 on the card surface
+			white: v("white"), // FRONTEND-RULES #3: `bg-white` surfaces are off-white
   			// ── admin (shadcn) ──
   			background: 'hsl(var(--background))',
   			foreground: 'hsl(var(--foreground))',
@@ -138,11 +141,8 @@ const config: Config = {
   			// NOTE: `muted` intentionally NOT redefined here (see header comment)
   		},
   		borderRadius: {
-  			// Panels and cards use one deliberate radius (design.md 8.1, FRONTEND-RULES #23).
-  			'2xl': '20px',
-  			lg: 'var(--radius)',
-  			md: 'calc(var(--radius) - 2px)',
-  			sm: 'calc(var(--radius) - 4px)',
+  			// One shape family in globals.css --r-*: 4px marks, 6px controls, 10px cards; the public site keeps its own.
+  			sm: 'var(--r-sm)', DEFAULT: 'var(--r)', md: 'var(--r-md)', lg: 'var(--r-lg)', xl: 'var(--r-xl)', '2xl': 'var(--r-2xl)', '3xl': 'var(--r-3xl)',
   			'go-sm': 'var(--go-radius-sm)', 'go-md': 'var(--go-radius-md)', 'go-lg': 'var(--go-radius-lg)'
   		},
   		fontFamily: {

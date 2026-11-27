@@ -1,4 +1,5 @@
 "use client";
+import { RemoveBadgeButton, UploadZone } from "@/components/ui/text-buttons";
 
 /**
  * District Upcoming Events V2 — Edit Event.
@@ -18,6 +19,12 @@
  * in sync — mirrors useSyncClubIdFromUrl's pattern.
  */
 
+import FieldLabel from "@/components/form/FieldLabel";
+import { Button } from "@/components/ui/button";
+import { IconButton } from "@/components/ui/icon-button";
+import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
+import SectionCard from "@/components/form/SectionCard";
 import { useEffect, useRef, useState } from "react";
 import DateField from "@/components/DateField";
 import { useParams } from "next/navigation";
@@ -32,7 +39,6 @@ import {
 } from "@/services/api";
 import V2FormShell, { useV2ReturnTo } from "@/components/v2/V2FormShell";
 import DistrictAdminShell from "@/components/v2/DistrictAdminShell";
-import DistrictCommunicationTabBar from "@/components/dashboard/DistrictCommunicationTabBar";
 import RotaryLoader from "@/components/RotaryLoader";
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
@@ -53,38 +59,6 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
 const TOP_MESSAGE =
   "District events appear to all clubs in the district during the configured publish window. After the expiry date the event is archived but stays viewable in the listing.";
-
-function FieldLabel({
-  children, hint, dot, required = true,
-}: {
-  children: React.ReactNode; hint?: string; dot: string; required?: boolean;
-}) {
-  return (
-    <div className="flex items-center gap-1.5 mb-1">
-      <span className={`w-1.5 h-1.5 rounded-full ${dot}`} />
-      <label className="text-xs font-semibold text-slate-700">
-        {children}
-        {required && <span className="text-rose-600 ml-0.5">*</span>}
-        {hint && <span className="text-slate-400 font-normal ml-1">{hint}</span>}
-      </label>
-    </div>
-  );
-}
-
-function SectionCard({
-  number, icon: Icon, title, dot, children,
-}: { number: number; icon: React.ElementType; title: string; dot: string; children: React.ReactNode }) {
-  return (
-    <div className="rounded-xl border border-slate-200 overflow-hidden mb-4">
-      <div className="flex items-center gap-3 px-4 py-2.5 bg-slate-50 border-b border-slate-100">
-        <div className={`flex items-center justify-center h-7 w-7 rounded-full text-white text-xs font-bold ${dot}`}>{number}</div>
-        <Icon className="h-4 w-4 text-slate-500" />
-        <h3 className="text-sm font-semibold text-slate-800">{title}</h3>
-      </div>
-      <div className="p-4">{children}</div>
-    </div>
-  );
-}
 
 type ReminderItem = {
   id: string;
@@ -368,9 +342,6 @@ export default function DistrictUpcomingEventsV2EditPage() {
         pageTitle="Edit District Event"
         activeNavHref="/district-admin-dashboard/communication"
       >
-        <div className="mb-4">
-          <DistrictCommunicationTabBar />
-        </div>
         <V2FormShell
           title="Edit District Event"
           subtitle={districtName}
@@ -385,37 +356,37 @@ export default function DistrictUpcomingEventsV2EditPage() {
             </div>
           }
         >
-          <div className="">
+          <div>
           <div className="min-w-0">
           {/* 1. Event Details */}
-          <SectionCard number={1} icon={FileText} title="Event Details" dot="bg-[#17458F]">
+          <SectionCard number={1} icon={FileText} title="Event Details">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="sm:col-span-2">
-                <FieldLabel hint="(max 50 chars)" dot="bg-[#17458F]">Title</FieldLabel>
-                <input
+                <FieldLabel required hint="(max 50 chars)">Title</FieldLabel>
+                <Input
                   type="text"
                   value={title}
                   onChange={handleTitleChange}
                   placeholder="Event title"
                   maxLength={50}
-                  className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                  
                 />
                 <p className="text-xs text-slate-400 text-right mt-0.5">{title.length}/50</p>
               </div>
               <div className="sm:col-span-2">
-                <FieldLabel hint="(max 450 chars)" dot="bg-[#17458F]" required={false}>Description</FieldLabel>
-                <textarea
+                <FieldLabel hint="(max 450 chars)" required={false}>Description</FieldLabel>
+                <Textarea
                   value={description}
                   onChange={handleDescriptionChange}
                   placeholder="Describe the event..."
                   rows={4}
                   maxLength={450}
-                  className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42] resize-y"
+                  className="resize-y"
                 />
                 <p className="text-xs text-slate-400 text-right mt-0.5">{description.length}/450</p>
               </div>
               <div className="sm:col-span-2">
-                <FieldLabel dot="bg-[#17458F]" required={false}>Image</FieldLabel>
+                <FieldLabel required={false}>Image</FieldLabel>
                 {imagePreview ? (
                   <div className="relative inline-block">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -425,24 +396,16 @@ export default function DistrictUpcomingEventsV2EditPage() {
                         <RotaryLoader size="sm" />
                       </div>
                     )}
-                    <button
-                      type="button"
-                      onClick={removeImage}
-                      className="absolute top-1 right-1 p-1 rounded-full bg-black/50 text-white hover:bg-red-500"
-                    >
-                      <X className="h-3 w-3" />
-                    </button>
+                    <RemoveBadgeButton onClick={removeImage} aria-label="Remove image" />
                   </div>
                 ) : (
                   <div>
-                    <button
-                      type="button"
+                    <UploadZone
                       onClick={() => imageInputRef.current?.click()}
-                      className="flex items-center gap-2 px-4 py-3 border-2 border-dashed border-slate-200 rounded-lg hover:border-blue-300 transition-colors text-slate-500"
                     >
                       <Upload className="h-4 w-4" />
                       <span className="text-sm">Upload event image</span>
-                    </button>
+                    </UploadZone>
                     <p className="text-xs text-slate-400 mt-1.5">Allowed: JPG, JPEG, PNG, GIF, WEBP</p>
                   </div>
                 )}
@@ -456,58 +419,58 @@ export default function DistrictUpcomingEventsV2EditPage() {
                 {imageCrop.error && <p className="text-xs text-rose-600 mt-1">{imageCrop.error}</p>}
               </div>
               <div>
-                <FieldLabel dot="bg-[#17458F]">Event Date</FieldLabel>
-                <input
+                <FieldLabel required>Event Date</FieldLabel>
+                <Input
                   type="datetime-local"
                   value={eventDate}
                   onChange={(e) => setEventDate(e.target.value)}
-                  className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                  
                 />
               </div>
               <div>
-                <FieldLabel dot="bg-[#17458F]">Publish Date</FieldLabel>
-                <input
+                <FieldLabel required>Publish Date</FieldLabel>
+                <Input
                   type="datetime-local"
                   value={publishDate}
                   onChange={(e) => setPublishDate(e.target.value)}
-                  className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                  
                 />
               </div>
               <div>
-                <FieldLabel dot="bg-[#17458F]">Expiry Date</FieldLabel>
-                <input
+                <FieldLabel required>Expiry Date</FieldLabel>
+                <Input
                   type="datetime-local"
                   value={expiryDate}
                   onChange={(e) => setExpiryDate(e.target.value)}
-                  className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                  
                 />
               </div>
               <div>
-                <FieldLabel hint="(max 70 chars)" dot="bg-[#17458F]" required={false}>Event Venue</FieldLabel>
-                <input
+                <FieldLabel hint="(max 70 chars)" required={false}>Event Venue</FieldLabel>
+                <Input
                   type="text"
                   value={eventVenue}
                   onChange={(e) => setEventVenue(e.target.value)} maxLength={70}
                   placeholder="Venue name or address"
-                  className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                  
                 />
               <p className="text-xs text-slate-400 text-right mt-0.5">{eventVenue.length}/70</p>
               </div>
               <div className="sm:col-span-2">
-                <FieldLabel dot="bg-[#17458F]" required={false}>Registration Link</FieldLabel>
-                <input
+                <FieldLabel required={false}>Registration Link</FieldLabel>
+                <Input
                   type="url"
                   value={registrationLink}
                   onChange={(e) => setRegistrationLink(e.target.value)}
                   placeholder="https://www.google.com/"
-                  className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                  
                 />
               </div>
             </div>
           </SectionCard>
 
           {/* 2. Notification Settings */}
-          <SectionCard number={2} icon={Bell} title="Notification Settings" dot="bg-[#17458F]">
+          <SectionCard number={2} icon={Bell} title="Notification Settings">
             <div className="space-y-4">
               <label className="flex w-fit items-center gap-3 cursor-pointer">
                 <input
@@ -544,46 +507,46 @@ export default function DistrictUpcomingEventsV2EditPage() {
                 <div className="space-y-3 pl-7">
                   {reminders.map((reminder, idx) => (
                     <div key={reminder.id} className="flex items-center gap-3">
-                      <DateField value={reminder.date} onChange={(v: string) => updateReminder(reminder.id, "date", v)} className="w-40 px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]" />
-                      <input
+                      <DateField value={reminder.date} onChange={(v: string) => updateReminder(reminder.id, "date", v)} className="row-field w-40" />
+                      <Input
                         type="time"
                         value={reminder.time}
                         onChange={(e) => updateReminder(reminder.id, "time", e.target.value)}
-                        className="w-36 px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                        className="w-36"
                       />
                       {/* Show delete even for a single reminder so one added by mistake can be removed. */}
                       {reminders.length > 0 && (
-                        <button
+                        <IconButton
                           type="button"
                           onClick={() => removeReminder(reminder.id)}
-                          className="inline-flex items-center justify-center h-8 w-8 rounded-md text-rose-600 hover:bg-rose-50"
+                          className="hover:text-red-700"
                           title="Remove reminder"
                         >
                           <Trash2 className="h-4 w-4" />
-                        </button>
+                        </IconButton>
                       )}
                       {idx === reminders.length - 1 && (
-                        <button
+                        <IconButton
                           type="button"
                           onClick={addReminder}
                           title="Add another reminder"
-                          className="inline-flex items-center justify-center h-8 w-8 rounded-full border border-emerald-200 text-emerald-600 hover:bg-emerald-50"
+                          
                         >
                           <Plus className="h-4 w-4" />
-                        </button>
+                        </IconButton>
                       )}
                     </div>
                   ))}
                   {/* When every reminder has been removed, keep a way to add one back
                       (the inline "+" lives inside the last row, which no longer renders). */}
                   {reminders.length === 0 && (
-                    <button
+                    <Button
                       type="button"
                       onClick={addReminder}
-                      className="inline-flex items-center gap-1.5 px-3 py-2 text-sm rounded-full border border-emerald-200 text-emerald-600 hover:bg-emerald-50"
+                      variant="outline"
                     >
                       <Plus className="h-4 w-4" /> Add reminder
-                    </button>
+                    </Button>
                   )}
                 </div>
               )}

@@ -25,11 +25,10 @@ import {
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
 import AlertModal from "@/components/AlertModal";
-import { ArrowLeft, Save, Loader2 } from "@/components/icons";
+import { Save, Loader2 } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
-import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
-import { ListPageSkeleton } from "@/components/row/AppKit";
+import { PageHeader, ListPageSkeleton } from "@/components/row/AppKit";
 
 interface Registration { id: number; registrationName: string; amount: number; }
 interface VendorSplit { id: number; fkRegistrationId: number; registrationName?: string; fkKycId: number; vendorId?: string; vendorName?: string; splitAmount: number; }
@@ -268,7 +267,7 @@ export default function DistrictEditPaymentLinkPage() {
   }, [linkId, activeTab, fetchRegs, fetchSplits, fetchDesigs]);
 
   if (!isSuperAdmin && !isAdmin) {
-    return (<ProtectedRoute><div className="flex flex-col items-center justify-center py-20"><h3 className="text-lg font-semibold">Access Denied</h3></div></ProtectedRoute>);
+    return (<ProtectedRoute><div className="flex flex-col items-center justify-center py-20"><h3 className="row-h2">Access Denied</h3></div></ProtectedRoute>);
   }
   if (loading) return (<ProtectedRoute><div className="flex justify-center py-20"><ListPageSkeleton /></div></ProtectedRoute>);
 
@@ -278,18 +277,10 @@ export default function DistrictEditPaymentLinkPage() {
         <SuccessAlert open={!!successMessage} title="Success" description={successMessage || ""} onOk={() => setSuccessMessage(null)} />
         <ErrorAlert open={!!errorMessage} title="Error" description={errorMessage || ""} onOk={() => setErrorMessage(null)} />
 
-        <div className="flex items-center gap-3">
-          <Button variant="outline" size="icon" asChild>
-            <Link href={`/districts/${districtId}/event-payment-links`}><ArrowLeft className="h-4 w-4" /></Link>
-          </Button>
-          <div>
-            <h2 className="text-2xl font-bold tracking-tight text-primary">Edit Payment Link</h2>
-            <p className="text-muted-foreground text-base">{districtName}</p>
-          </div>
-        </div>
+        <PageHeader title="Edit Payment Link" description={districtName} back={`/districts/${districtId}/event-payment-links`} />
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="flex-wrap">
+          <TabsList>
             <TabsTrigger value="basic">Basic Info</TabsTrigger>
             <TabsTrigger value="email">Email Templates</TabsTrigger>
           </TabsList>
@@ -311,10 +302,10 @@ export default function DistrictEditPaymentLinkPage() {
             <Card><CardContent className="pt-6 space-y-4">
               <div><Label>Email Logo</Label><Input type="file" accept=".jpg,.jpeg,.png,.gif,.webp" onChange={e => setEmailLogoFile(e.target.files?.[0] || null)} /><p className="text-xs text-muted-foreground mt-1.5">Allowed: JPG, JPEG, PNG, GIF, WEBP</p></div>
               <div><Label>Email CC</Label><Input value={emailCc} onChange={e => setEmailCc(e.target.value)} /></div>
-              <h3 className="font-semibold pt-4">Receipt Email</h3>
+              <h3 className="row-h3 pt-4">Receipt Email</h3>
               <div><Label>Subject</Label><Input value={emailSubject} onChange={e => setEmailSubject(e.target.value)} /></div>
               <div><Label>Body (HTML)</Label><Textarea value={emailBody} onChange={e => setEmailBody(e.target.value)} rows={6} /></div>
-              <h3 className="font-semibold pt-4">Reminder Email</h3>
+              <h3 className="row-h3 pt-4">Reminder Email</h3>
               <div><Label>Subject</Label><Input value={emailReminderSubject} onChange={e => setEmailReminderSubject(e.target.value)} /></div>
               <div><Label>Body (HTML)</Label><Textarea value={emailReminderBody} onChange={e => setEmailReminderBody(e.target.value)} rows={6} /></div>
               <div className="flex justify-end"><Button onClick={handleSaveLink} disabled={saving}>{saving ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}{saving ? "Saving..." : "Save Email Settings"}</Button></div>

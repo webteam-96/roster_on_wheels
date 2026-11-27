@@ -9,6 +9,10 @@
 //   ARRFC / AE/MGA / AEPNC / ARMC / ARPIC : My districts · each of their district groups · my team.
 //   RI Director / SuperAdmin : every group of the zone.
 
+import { Button } from "@/components/ui/button";
+import { MenuItemButton, ToggleButton } from "@/components/ui/text-buttons";
+import { Textarea } from "@/components/ui/textarea";
+import { NativeSelect } from "@/components/ui/native-select";
 import { useEffect, useRef, useState } from "react";
 import { Loader2, Megaphone, MessagesSquare, Send, Users } from "@/components/icons";
 import {
@@ -35,8 +39,8 @@ function GroupRow({ g, active, onClick }: { g: GoalGroupDto; active: boolean; on
   const Icon = g.kind === "Broadcast" ? Megaphone : Users;
   const tone = g.kind === "Broadcast" ? "bg-amber-500" : g.kind === "Team" ? "bg-violet-600" : "bg-teal-700";
   return (
-    <button type="button" onClick={onClick}
-      className={`w-full flex items-center gap-3 px-3 py-2.5 text-left border-b border-slate-100 ${active ? "bg-slate-100" : "hover:bg-slate-50"}`}>
+    <MenuItemButton selected={active} type="button" onClick={onClick}
+      className="rounded-none border-b border-slate-100 px-3 py-2.5">
       <span className={`h-11 w-11 rounded-full flex items-center justify-center text-white shrink-0 ${tone}`}><Icon size={20} /></span>
       <span className="flex-1 min-w-0">
         <span className="flex items-baseline gap-2">
@@ -49,11 +53,11 @@ function GroupRow({ g, active, onClick }: { g: GoalGroupDto; active: boolean; on
             {g.lastMessagePreview || (g.kind === "Broadcast" ? "One message to every district" : "No messages yet")}
           </span>
           {g.unreadCount > 0 && (
-            <span className="min-w-[20px] h-5 px-1.5 rounded-full bg-emerald-500 text-white text-[11px] font-semibold flex items-center justify-center shrink-0">{g.unreadCount}</span>
+            <span className="min-w-[20px] h-5 px-1.5 rounded bg-emerald-500 text-white text-[11px] font-semibold flex items-center justify-center shrink-0">{g.unreadCount}</span>
           )}
         </span>
       </span>
-    </button>
+    </MenuItemButton>
   );
 }
 
@@ -206,7 +210,7 @@ export default function GroupMessages({
   const unreadTotal = groups.filter((g) => g.unreadCount > 0).length + people.filter((c) => c.unreadCount > 0).length;
   const catsInUse = cats.filter((c) => groups.some((g) => g.categoryId === c.id));
   const pill = (on: boolean) =>
-    `text-[11px] font-medium px-2.5 py-0.5 rounded-full whitespace-nowrap ${on ? "bg-teal-700 text-white" : "bg-slate-100 text-slate-600 hover:bg-slate-200"}`;
+    `text-[11px] font-medium px-2.5 py-0.5 rounded whitespace-nowrap ${on ? "bg-teal-700 text-white" : "bg-slate-100 text-slate-600 hover:bg-slate-200"}`;
   const section = (label: string) => (
     <div className="px-3 pt-3 pb-1 text-[11px] font-semibold uppercase tracking-wide text-emerald-700 bg-white sticky top-0">{label}</div>
   );
@@ -217,9 +221,9 @@ export default function GroupMessages({
         placeholder="Search group, name, district…" />
       {catsInUse.length > 1 && (
         <div className="flex gap-1.5 px-3 py-2 border-b border-slate-100 overflow-x-auto">
-          <button type="button" className={pill(catFilter === 0)} onClick={() => setCatFilter(0)}>All</button>
+          <ToggleButton pressed={catFilter === 0} type="button" onClick={() => setCatFilter(0)}>All</ToggleButton>
           {catsInUse.map((c) => (
-            <button key={c.id} type="button" className={pill(catFilter === c.id)} onClick={() => setCatFilter(c.id)}>{c.name}</button>
+            <ToggleButton pressed={catFilter === c.id} key={c.id} type="button" onClick={() => setCatFilter(c.id)}>{c.name}</ToggleButton>
           ))}
         </div>
       )}
@@ -262,29 +266,29 @@ export default function GroupMessages({
       {canPost && (
         <div className="px-3 py-2.5 border-t border-slate-200 bg-slate-50 flex flex-wrap items-end gap-2 shrink-0">
           {activePerson && (
-            <select value={postCat} onChange={(e) => setPostCat(Number(e.target.value))} disabled={posting}
+            <NativeSelect value={postCat} onChange={(e) => setPostCat(Number(e.target.value))} disabled={posting}
               title="Which category is this message about?"
-              className="h-10 px-2 text-sm bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500">
+              className="w-auto">
               {cats.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
-            </select>
+            </NativeSelect>
           )}
           {activePerson && tagDistricts.length > 0 && (
-            <select value={postDistrict} onChange={(e) => setPostDistrict(Number(e.target.value))} disabled={posting}
+            <NativeSelect value={postDistrict} onChange={(e) => setPostDistrict(Number(e.target.value))} disabled={posting}
               title="Which district is this message about?"
-              className="h-10 px-2 text-sm bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500">
+              className="w-auto">
               <option value={0}>All districts</option>
               {tagDistricts.map((d) => <option key={d.id} value={d.id}>District {d.number}</option>)}
-            </select>
+            </NativeSelect>
           )}
-          <textarea ref={inputRef} rows={1} value={text} disabled={posting} maxLength={4000}
+          <Textarea ref={inputRef} rows={1} value={text} disabled={posting} maxLength={4000}
             onChange={(e) => setText(e.target.value)}
             onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }}
             placeholder={activeGroup?.kind === "Broadcast" ? "Message to all these districts" : "Type a message"}
-            className="flex-1 min-w-[160px] min-h-[40px] max-h-32 resize-none px-3 py-2 text-sm bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500" />
-          <button type="button" onClick={send} disabled={posting || !text.trim()} title="Send"
-            className="h-10 w-10 rounded-full bg-emerald-600 text-white flex items-center justify-center hover:bg-emerald-700 disabled:opacity-40 shrink-0">
+            className="flex-1 min-w-[160px] min-h-[40px] max-h-32 resize-none" />
+          <Button size="icon" aria-label="Send" type="button" onClick={send} disabled={posting || !text.trim()} title="Send"
+            className="shrink-0">
             {posting ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
-          </button>
+          </Button>
         </div>
       )}
       {!canPost && !loadingMsgs && (

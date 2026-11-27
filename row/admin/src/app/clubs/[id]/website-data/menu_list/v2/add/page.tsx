@@ -16,6 +16,10 @@
  * v2 reads ONLY `?returnTo=` — no `returnUrl`, no `backUrl`.
  */
 
+import FieldLabel from "@/components/form/FieldLabel";
+import { NativeSelect } from "@/components/ui/native-select";
+import { Input } from "@/components/ui/input";
+import SectionCard from "@/components/form/SectionCard";
 import { useEffect, useMemo, useState } from "react";
 import { useParams } from "next/navigation";
 import dynamic from "next/dynamic";
@@ -39,37 +43,8 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import { useSyncClubIdFromUrl } from "@/hooks/useSyncClubIdFromUrl";
 import { ListPageSkeleton } from "@/components/row/AppKit";
 
+import { IconButton } from "@/components/ui/icon-button"
 const ReactQuill = dynamic(() => import("react-quill-new"), { ssr: false });
-
-function FieldLabel({
-  children, hint, dot, required = false,
-}: { children: React.ReactNode; hint?: string; dot: string; required?: boolean }) {
-  return (
-    <div className="flex items-center gap-1.5 mb-1">
-      <span className={`w-1.5 h-1.5 rounded-full ${dot}`} />
-      <label className="text-xs font-semibold text-slate-700">
-        {children}
-        {required && <span className="text-rose-600 ml-0.5">*</span>}
-        {hint && <span className="text-slate-400 font-normal ml-1">{hint}</span>}
-      </label>
-    </div>
-  );
-}
-
-function SectionCard({
-  number, icon: Icon, title, dot, children,
-}: { number: number; icon: React.ElementType; title: string; dot: string; children: React.ReactNode }) {
-  return (
-    <div className="rounded-xl border border-slate-200 mb-4 overflow-hidden">
-      <div className="flex items-center gap-3 px-4 py-2.5 bg-slate-50 border-b border-slate-100">
-        <div className={`flex items-center justify-center h-7 w-7 rounded-full text-white text-xs font-bold ${dot}`}>{number}</div>
-        <Icon className="h-4 w-4 text-slate-500" />
-        <h3 className="text-sm font-semibold text-slate-800">{title}</h3>
-      </div>
-      <div className="p-4">{children}</div>
-    </div>
-  );
-}
 
 export default function MenuListV2AddPage() {
   useSyncClubIdFromUrl();
@@ -254,34 +229,34 @@ export default function MenuListV2AddPage() {
         }
       >
         {/* 1. Identity */}
-        <SectionCard number={1} icon={FileText} title="Menu Identity" dot="bg-[#17458F]">
-          <FieldLabel dot="bg-[#17458F]" required>Menu Name</FieldLabel>
-          <input
+        <SectionCard number={1} icon={FileText} title="Menu Identity">
+          <FieldLabel required>Menu Name</FieldLabel>
+          <Input
             type="text"
             placeholder="e.g. Our Initiatives"
             value={formName}
             onChange={(e) => setFormName(e.target.value)}
-            className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+            
             autoFocus
           />
         </SectionCard>
 
         {/* 2. Link target */}
-        <SectionCard number={2} icon={Link2} title="Link Target" dot="bg-[#17458F]">
-          <FieldLabel dot="bg-[#17458F]" required>Link Type</FieldLabel>
-          <select
+        <SectionCard number={2} icon={Link2} title="Link Target">
+          <FieldLabel required>Link Type</FieldLabel>
+          <NativeSelect
             value={formLinkType}
             onChange={(e) => { setFormLinkType(e.target.value); setFormLinkValue(""); setFormContentHtml(""); }}
-            className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42] bg-card mb-4"
+            className="mb-4"
           >
             {LINK_TYPES.map((t) => (
               <option key={t.value} value={t.value}>{t.label}</option>
             ))}
-          </select>
+          </NativeSelect>
 
           {formLinkType === "html" && (
             <div>
-              <FieldLabel dot="bg-[#17458F]" required>Content</FieldLabel>
+              <FieldLabel required>Content</FieldLabel>
               <ReactQuill
                 theme="snow"
                 value={formContentHtml}
@@ -297,19 +272,17 @@ export default function MenuListV2AddPage() {
 
           {formLinkType === "document" && (
             <div>
-              <FieldLabel dot="bg-[#17458F]" required>Document</FieldLabel>
+              <FieldLabel required>Document</FieldLabel>
               {formLinkValue ? (
                 <div className="flex items-center gap-2 p-2 border border-slate-200 rounded-md bg-slate-50">
                   <FileText className="h-4 w-4 text-slate-500 flex-shrink-0" />
                   <span className="text-sm truncate flex-1 text-slate-700">{formLinkValue.split("/").pop()}</span>
-                  <button
+                  <IconButton
                     type="button"
                     onClick={() => setFormLinkValue("")}
-                    className="inline-flex items-center justify-center h-6 w-6 rounded text-slate-400 hover:text-rose-700 hover:bg-rose-50"
-                    aria-label="Remove document"
-                  >
+                     aria-label="Remove document">
                     <X size={12} />
-                  </button>
+                  </IconButton>
                 </div>
               ) : (
                 <div>
@@ -338,17 +311,17 @@ export default function MenuListV2AddPage() {
 
           {formLinkType === "page" && (
             <div>
-              <FieldLabel dot="bg-[#17458F]" required>Page</FieldLabel>
-              <select
+              <FieldLabel required>Page</FieldLabel>
+              <NativeSelect
                 value={formLinkValue}
                 onChange={(e) => setFormLinkValue(e.target.value)}
-                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42] bg-card"
+                
               >
                 <option value="">Select an existing page…</option>
                 {pageOptions.map((p) => (
                   <option key={p.value} value={p.value}>{p.label}</option>
                 ))}
-              </select>
+              </NativeSelect>
               <p className="text-[11px] text-slate-500 mt-1.5">
                 Links this menu to one of your website&apos;s existing pages.
               </p>
@@ -357,14 +330,14 @@ export default function MenuListV2AddPage() {
 
           {formLinkType === "external" && (
             <div>
-              <FieldLabel dot="bg-[#17458F]" required>URL</FieldLabel>
-              <input
+              <FieldLabel required>URL</FieldLabel>
+              <Input
                 type="url"
                 inputMode="url"
                 placeholder="https://example.com/page"
                 value={formLinkValue}
                 onChange={(e) => setFormLinkValue(e.target.value)}
-                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                
               />
               <p className="text-[11px] text-slate-500 mt-1.5">
                 Must be a full URL starting with <code>http://</code> or <code>https://</code>.
@@ -374,28 +347,28 @@ export default function MenuListV2AddPage() {
         </SectionCard>
 
         {/* 3. Display */}
-        <SectionCard number={3} icon={Settings} title="Display" dot="bg-[#17458F]">
+        <SectionCard number={3} icon={Settings} title="Display">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <FieldLabel dot="bg-[#17458F]"><Hash className="h-3 w-3 inline-block mr-0.5 -mt-0.5" />Sort Order</FieldLabel>
-              <input
+              <FieldLabel><Hash className="h-3 w-3 inline-block mr-0.5 -mt-0.5" />Sort Order</FieldLabel>
+              <Input
                 type="number"
                 min={1}
                 value={formSortOrder}
                 onChange={(e) => setFormSortOrder(Number(e.target.value))}
-                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                
               />
             </div>
             <div>
-              <FieldLabel dot="bg-[#17458F]">Status</FieldLabel>
-              <select
+              <FieldLabel>Status</FieldLabel>
+              <NativeSelect
                 value={formIsActive}
                 onChange={(e) => setFormIsActive(e.target.value)}
-                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42] bg-card"
+                
               >
                 <option value="1">Active</option>
                 <option value="0">Inactive</option>
-              </select>
+              </NativeSelect>
             </div>
           </div>
         </SectionCard>

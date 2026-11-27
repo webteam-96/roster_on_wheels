@@ -9,6 +9,7 @@ import '../../core/theme/app_gradients.dart';
 import '../../data/models/login_announcement_model.dart';
 import 'package:rotary_flutter_app/core/theme/app_fonts.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/motion.dart';
 
 /// Checks for an active login announcement and shows the popup if one exists.
 ///
@@ -35,7 +36,7 @@ Future<void> checkAndShowLoginAnnouncement(
     if (!ann.hasContent) return;
     if (!context.mounted) return;
 
-    await showDialog<void>(
+    await showRowDialog<void>(
       context: context,
       barrierDismissible: false,
       builder: (_) => LoginAnnouncementPopup(announcement: ann),

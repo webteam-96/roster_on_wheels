@@ -15,10 +15,12 @@
  * disabled state) propagate everywhere.
  */
 
+import { Button } from "@/components/ui/button";
 import { useCallback, useMemo, type ReactNode } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { ArrowLeft, Save, X, Send } from "@/components/icons";
+import { Save, X, Send } from "@/components/icons";
+import { PageHeader } from "@/components/row/AppKit";
 import LoadingButton from "./LoadingButton";
 
 export interface V2FormShellProps {
@@ -39,14 +41,9 @@ export interface V2FormShellProps {
   /** Hide the entire sticky footer (Save/Cancel bar). Use when a nested editor renders
    *  its own action buttons, so the page doesn't show two competing Save bars. */
   hideFooter?: boolean;
-  /** Color classes for the primary Save button. Defaults to the generic blue used
-   *  across most v2 forms; pass brand classes to match a section's theme (e.g. the
-   *  Foundation pages use the gold #F7A81B / navy #17458f dashboard accent). */
+  /** Kept for existing callers: the Save button has one colour. */
   saveTone?: string;
 }
-
-// Default primary-button tone — generic v2 blue. Overridable per-page via `saveTone`.
-const SAVE_TONE_DEFAULT = "bg-blue-600 text-white hover:bg-blue-700";
 
 export function useV2ReturnTo(defaultBack: string) {
   const router = useRouter();
@@ -88,7 +85,6 @@ export default function V2FormShell({
   footerStart,
   hideCancel = false,
   hideFooter = false,
-  saveTone = SAVE_TONE_DEFAULT,
 }: V2FormShellProps) {
   const params = useSearchParams();
   const returnTo = params.get("returnTo") || "";
@@ -96,34 +92,20 @@ export default function V2FormShell({
 
   return (
     <div className="space-y-5">
-      <div className="flex items-start justify-between gap-3">
-        <div className="flex items-start gap-2">
-          <Link
-            href={cancelHref}
-            className="mt-0.5 inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50"
-            aria-label="Back"
-          >
-            <ArrowLeft size={15} />
-          </Link>
-          <div>
-            <h1 className="text-lg font-semibold text-slate-800">{title}</h1>
-            {subtitle && <p className="text-xs text-slate-500 mt-0.5">{subtitle}</p>}
-          </div>
-        </div>
-      </div>
+      <PageHeader title={title} description={subtitle} back={cancelHref} />
 
       {banner && (
-        <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-2 text-xs text-slate-600">
+        <div className="rounded-md border border-[color:var(--row-line)] bg-muted px-4 py-2 text-[13px] text-muted-foreground">
           {banner}
         </div>
       )}
 
-      <div className="rounded-[20px] border border-[color:var(--row-line)] bg-card p-5 pb-8 md:p-6">
+      <div className="row-rise">
         {children}
       </div>
 
       {!hideFooter && (
-      <div className="sticky bottom-0 z-10 -mx-4 mt-4 flex flex-wrap items-center gap-x-4 gap-y-3 border-t border-[color:var(--row-line)] bg-[#F7F9FC] px-4 py-3 md:-mx-8 md:px-8">
+      <div className="sticky bottom-0 z-10 -mx-4 mt-4 flex flex-wrap items-center gap-x-4 gap-y-3 border-t border-[color:var(--row-line)] bg-background px-4 py-3 md:-mx-8 md:px-8">
         {footerStart && (
           <div className="flex flex-wrap items-center gap-2">{footerStart}</div>
         )}
@@ -131,22 +113,22 @@ export default function V2FormShell({
           {!hideCancel && (
             <Link
               href={cancelHref}
-              className="inline-flex items-center gap-2 rounded-full border border-slate-300 px-4 py-2.5 text-[15px] font-semibold text-slate-700 hover:bg-slate-100"
+              className="row-btn row-btn-secondary"
             >
               <X size={17} /> Cancel
             </Link>
           )}
           {secondaryAction && (
-            <button
+            <Button
               type="button"
               onClick={secondaryAction.onClick}
               disabled={secondaryAction.disabled || saving}
               title={secondaryAction.disabled ? "Install the Add-to-Org extension to use this" : undefined}
-              className="inline-flex items-center gap-2 rounded-full bg-amber-400 px-5 py-2.5 text-[15px] font-bold text-blue-950 shadow-sm ring-1 ring-amber-500/50 hover:bg-amber-500 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400 disabled:shadow-none disabled:ring-0"
+              variant="outline"
             >
               <Send size={17} />
               {secondaryAction.label}
-            </button>
+            </Button>
           )}
           <LoadingButton
             type="button"
@@ -154,7 +136,7 @@ export default function V2FormShell({
             forcePending={saving}
             loadingLabel="Saving…"
             spinnerSize={17}
-            className={`inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-[15px] font-bold shadow-sm disabled:opacity-50 ${saveTone}`}
+            className="row-btn row-btn-primary"
           >
             {!saving && <Save size={17} />}
             {saveLabel}

@@ -4,6 +4,7 @@
 // payment stub until Stripe: it creates the district tenant in planning with Club Basic for every club and starts
 // planning with the governor-elect.
 
+import { PageHeader } from "@/components/row/AppKit";
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
@@ -12,7 +13,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { TableSkeleton } from "@/components/dashboard/DashboardSkeleton";
 import ErrorAlert from "@/components/ErrorAlert";
-import { ArrowLeft } from "@/components/icons";
 import { getBoothSignups, provisionBoothSignup, rejectBoothSignup, type BoothSignup } from "@/services/api";
 import { useFormat } from "@/hooks/useFormat";
 
@@ -42,15 +42,7 @@ export default function BoothSignupsPage() {
   return (
     <ProtectedRoute>
       <div className="space-y-6">
-        <div className="flex items-center gap-3">
-          <Button variant="outline" size="icon" asChild aria-label="Back to settings"><Link href="/settings"><ArrowLeft className="h-4 w-4" /></Link></Button>
-          <div>
-            <h2 className="text-2xl font-bold tracking-tight text-primary">Booth sign-ups</h2>
-            <p className="text-base text-muted-foreground">
-              Governors-elect who signed up at <Link className="underline" href="/public/booth">/public/booth</Link>. Mark a sign-up paid once the payment is taken.
-            </p>
-          </div>
-        </div>
+        <PageHeader title="Booth sign-ups" description={<>Governors-elect who signed up at <Link className="underline" href="/public/booth">/public/booth</Link>. Mark a sign-up paid once the payment is taken.</>} back="/settings" />
         {rows === null ? <TableSkeleton rows={4} /> : rows.length === 0 ? <p className="text-muted-foreground">No sign-ups yet.</p> : (
           <ul className="divide-y rounded-lg border">
             {rows.map((r) => (

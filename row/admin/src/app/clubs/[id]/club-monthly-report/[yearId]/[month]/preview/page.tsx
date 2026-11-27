@@ -1,4 +1,5 @@
 "use client";
+import { formatMoney } from "@/lib/currency";
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { getMonthlyReportPreview, uploadMonthlyReportToDistrict, sendMonthlyReportEmail } from "@/services/api";
@@ -406,7 +407,7 @@ function MonthlyReportPreviewPage() {
                                   </Badge>
                                 )}
                                 {project.parentProjectId && (
-                                  <Badge className="bg-[#FFC65C] text-orange-800 border-orange-300 text-xs">
+                                  <Badge className="bg-[#FFC65C] text-orange-800 border-orange-300">
                                     Child Project
                                   </Badge>
                                 )}
@@ -424,7 +425,7 @@ function MonthlyReportPreviewPage() {
                           </>
                         )}
                         <TableCell className="text-right border">
-                          {project.projectCost != null ? project.projectCost.toLocaleString() : "-"}
+                          {project.projectCost != null ? formatMoney(project.projectCost, project.currency) : "-"}
                         </TableCell>
                         <TableCell className="text-right border">{project.directBeneficiaries ?? "-"}</TableCell>
                         <TableCell className="text-right border">{project.manHours ?? "-"}</TableCell>

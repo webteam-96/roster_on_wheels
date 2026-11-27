@@ -11,25 +11,9 @@
  * v2 sub-pages are built in a follow-up phase; these links may 404 until then.
  */
 
+import { Card } from "@/components/ui/card";
 import Link from "next/link";
-import {
-  Globe,
-  AlertTriangle,
-  CheckCircle2,
-  Image as ImageIcon,
-  Megaphone,
-  Share2,
-  Building2,
-  ListChecks,
-  Palette,
-  PhoneCall,
-  Info,
-  Languages,
-  Plus,
-  Calendar,
-  ChevronRight,
-  ExternalLink,
-} from "@/components/icons";
+import { Globe, AlertTriangle, CheckCircle2, Image as ImageIcon, Megaphone, Share2, ListChecks, Palette, PhoneCall, Info, Languages, Plus, Calendar, ChevronRight, ExternalLink } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import { useClubAdminCache } from "@/contexts/ClubAdminDashboardCacheContext";
 import KpiCard from "@/components/dashboard/KpiCard";
@@ -37,7 +21,7 @@ import { fmtInt, fmtDate } from "@/components/dashboard/formatters";
 import ClubTrainingSection from "@/components/training/ClubTrainingSection";
 
 import { appLocale } from "@/lib/appFormat";
-import { ListPageSkeleton } from "@/components/row/AppKit";
+import { PageHeader, ListPageSkeleton } from "@/components/row/AppKit";
 // ───────────────────────────────────────────────────────────────────────────
 // Status chip config
 
@@ -75,10 +59,6 @@ type MgmtCard = {
   description: string;
   href: (clubId: number, qs: string) => string;
   icon: typeof ImageIcon;
-  accent: string;   // icon foreground
-  bg: string;       // icon background tile
-  ring: string;     // hover ring colour
-  gradient: string; // subtle background tint on the card
 };
 
 // Encode current tab so v2 pages can route their back arrow back here.
@@ -93,80 +73,48 @@ const MGMT_CARDS: MgmtCard[] = [
     description: "Hero banners shown on the homepage carousel.",
     href: (id, qs) => `/clubs/${id}/website-data/banners/v2${qs}`,
     icon: ImageIcon,
-    accent: "text-blue-600",
-    bg: "bg-blue-50",
-    ring: "hover:ring-blue-200",
-    gradient: "bg-blue-50/60",
   },
   {
     title: "Advertisement Area",
     description: "Sponsor and promo blocks displayed on the site.",
     href: (id, qs) => `/clubs/${id}/website-data/advertisements/v2${qs}`,
     icon: Megaphone,
-    accent: "text-slate-600",
-    bg: "bg-slate-50",
-    ring: "hover:ring-slate-200",
-    gradient: "bg-slate-50/60",
   },
   {
     title: "Social Media Links",
     description: "Connect your club's social channels to the site.",
     href: (id, qs) => `/clubs/${id}/website-data/social_media_links/v2${qs}`,
     icon: Share2,
-    accent: "text-pink-600",
-    bg: "bg-pink-50",
-    ring: "hover:ring-pink-200",
-    gradient: "bg-pink-50/60",
   },
   {
     title: "Logos",
     description: "Upload Club Logo + Rotary Logo (3:1 horizontal crop). Same Club Logo column as the profile page: change here reflects everywhere.",
     href: (id, qs) => `/clubs/${id}/website-data/logos${qs}`,
     icon: ImageIcon,
-    accent: "text-amber-600",
-    bg: "bg-amber-50",
-    ring: "hover:ring-amber-200",
-    gradient: "bg-amber-50/60",
   },
   {
     title: "Menu List",
     description: "Reorder, rename, and toggle visible menu items.",
     href: (id, qs) => `/clubs/${id}/website-data/menu_list/v2${qs}`,
     icon: ListChecks,
-    accent: "text-emerald-600",
-    bg: "bg-emerald-50",
-    ring: "hover:ring-emerald-200",
-    gradient: "bg-emerald-50/60",
   },
   {
     title: "Change Theme",
     description: "Pick a colour palette and visual style.",
     href: (id, qs) => `/clubs/${id}/website-data/theme/v2${qs}`,
     icon: Palette,
-    accent: "text-slate-600",
-    bg: "bg-slate-50",
-    ring: "hover:ring-slate-200",
-    gradient: "bg-slate-50/60",
   },
   {
     title: "Contact Details",
     description: "Phone, email, address shown in the footer.",
     href: (id, qs) => `/clubs/${id}/website-data/contact_details/v2${qs}`,
     icon: PhoneCall,
-    accent: "text-teal-600",
-    bg: "bg-teal-50",
-    ring: "hover:ring-teal-200",
-    gradient: "bg-teal-50/60",
   },
   {
     title: "About",
     description: "Edit the About section that introduces your club.",
     href: (id, qs) => `/clubs/${id}/website-data/about/v2${qs}`,
     icon: Info,
-    accent: "text-rose-600",
-    bg: "bg-rose-50",
-    ring: "hover:ring-rose-200",
-    gradient: "bg-rose-50/60",
   },
   {
     // flag website_languages: FeatureGate hides this link while the module is off
@@ -174,20 +122,12 @@ const MGMT_CARDS: MgmtCard[] = [
     description: "Offer the site in more languages; translate pages by hand or by machine.",
     href: (id, qs) => `/clubs/${id}/website-data/languages${qs}`,
     icon: Languages,
-    accent: "text-sky-600",
-    bg: "bg-sky-50",
-    ring: "hover:ring-sky-200",
-    gradient: "bg-sky-50/60",
   },
   {
     title: "Website extras",
     description: "Social media feeds, Google Analytics, search engines and QR codes.",
     href: (id, qs) => `/clubs/${id}/website-data/extras${qs}`,
     icon: Share2,
-    accent: "text-emerald-600",
-    bg: "bg-emerald-50",
-    ring: "hover:ring-emerald-200",
-    gradient: "bg-emerald-50/60",
   },
 ];
 
@@ -291,14 +231,9 @@ export default function ClubAdminMyClubWebsitePage() {
   return (
     <div className="space-y-6">
       {/* ─────────────────── Header row ─────────────────── */}
-      <div className="flex items-start justify-between flex-wrap gap-4">
-        <div className="flex items-start gap-3 min-w-0">
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-azure/10 text-azure">
-            <Globe size={20} />
-          </div>
-          <div className="min-w-0">
-            <h1 className="text-lg font-bold text-slate-800 leading-tight">My Club Website</h1>
-            <div className="flex items-center gap-2 mt-1 flex-wrap">
+      <PageHeader
+          title="My Club Website"
+          description={<><div className="flex items-center gap-2 mt-1 flex-wrap">
               {publicUrl ? (
                 publicHref ? (
                   <a
@@ -328,26 +263,23 @@ export default function ClubAdminMyClubWebsitePage() {
                     : "bg-emerald-50 text-emerald-700 border-emerald-200";
                 const dot     = noSite ? "bg-slate-400" : expired ? "bg-red-500" : "bg-emerald-500";
                 return (
-                  <span className={`inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full border ${tone}`}>
+                  <span className={`inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded border ${tone}`}>
                     <span className={`h-1.5 w-1.5 rounded-full ${dot}`} />
                     {label}
                   </span>
                 );
               })()}
-            </div>
-          </div>
-        </div>
-
-        {showRenewButton && (
+            </div></>}
+          actions={<>{showRenewButton && (
           <Link
             href="/club-admin-dashboard/website-purchase"
-            className="inline-flex items-center gap-2 self-start rounded-full bg-azure px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-azure"
+            className="row-btn row-btn-primary self-start"
           >
             <Plus size={16} />
             Renew Club Website
           </Link>
-        )}
-      </div>
+        )}</>}
+        />
 
       {/* Kill switch banner */}
       {website.killSwitchOn && (
@@ -361,7 +293,7 @@ export default function ClubAdminMyClubWebsitePage() {
 
       {/* Not-configured CTA — replaces KPI/media tiles entirely */}
       {!website.configured ? (
-        <div className="rounded-2xl border border-slate-200 bg-card p-10 text-center">
+        <Card className="p-10 text-center">
           <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100">
             <Globe size={28} className="text-slate-400" />
           </div>
@@ -372,12 +304,12 @@ export default function ClubAdminMyClubWebsitePage() {
           </p>
           <Link
             href="/club-admin-dashboard/website-purchase"
-            className="inline-flex items-center gap-2 rounded-full bg-azure px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-azure"
+            className="row-btn row-btn-primary"
           >
             <Plus size={16} />
             Buy Club Website
           </Link>
-        </div>
+        </Card>
       ) : (
         <>
           {/* ─────────────────── Top KPI row ─────────────────── */}
@@ -435,10 +367,6 @@ export default function ClubAdminMyClubWebsitePage() {
               target={BANNER_TARGET}
               percent={bannerPct}
               icon={ImageIcon}
-              barClass="bg-blue-500"
-              tintFrom="bg-blue-50"
-              accent="text-blue-600"
-              bg="bg-blue-50"
               addLabel="+ Add Banner"
               addHref={`/clubs/${clubId}/website-data/banners/v2${RETURN_TO_QS}`}
             />
@@ -448,10 +376,6 @@ export default function ClubAdminMyClubWebsitePage() {
               target={AD_TARGET}
               percent={adPct}
               icon={Megaphone}
-              barClass="bg-[#A9C6EA]"
-              tintFrom="bg-slate-50"
-              accent="text-slate-600"
-              bg="bg-slate-50"
               addLabel="+ Add Ad"
               addHref={`/clubs/${clubId}/website-data/advertisements/v2${RETURN_TO_QS}`}
             />
@@ -463,10 +387,10 @@ export default function ClubAdminMyClubWebsitePage() {
       <ClubTrainingSection clubId={clubId} active={(website.status === "active" || website.status === "trial") && website.configured} />
 
       {/* ─────────────────── Website Management grid ─────────────────── */}
-      <div className="bg-card rounded-2xl border border-slate-200 p-5">
+      <Card className="p-5">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h2 className="text-base font-semibold text-slate-800">Website Management</h2>
+            <h2 className="row-h2">Website Management</h2>
             <p className="text-xs text-slate-500 mt-0.5">Configure every section of your club site.</p>
           </div>
         </div>
@@ -478,21 +402,18 @@ export default function ClubAdminMyClubWebsitePage() {
               <Link
                 key={card.title}
                 href={card.href(clubId, RETURN_TO_QS)}
-                className={`group relative rounded-xl border border-slate-200 ${card.gradient} p-4 transition hover:shadow-md hover:-translate-y-0.5 ring-1 ring-transparent ${card.ring}`}
+                className="row-tile"
               >
-                <div className={`flex h-11 w-11 items-center justify-center rounded-lg ${card.bg} ${card.accent} mb-3`}>
+                <div className="row-tile-icon">
                   <Icon size={20} />
                 </div>
-                <p className="text-sm font-semibold text-slate-800 leading-tight">{card.title}</p>
-                <p className="text-xs text-slate-500 mt-1 leading-snug">{card.description}</p>
-                <span className={`absolute top-3 right-3 ${card.accent} opacity-0 group-hover:opacity-100 transition`}>
-                  <ChevronRight size={16} />
-                </span>
+                <p className="row-h3">{card.title}</p>
+                <p className="mt-1 text-[13px] text-muted-foreground">{card.description}</p>
               </Link>
             );
           })}
         </div>
-      </div>
+      </Card>
     </div>
   );
 }
@@ -506,10 +427,6 @@ interface MediaTileProps {
   target: number;
   percent: number;
   icon: typeof ImageIcon;
-  barClass: string;
-  tintFrom: string;
-  accent: string;
-  bg: string;
   addLabel: string;
   addHref: string;
 }
@@ -520,31 +437,27 @@ function MediaTile({
   target,
   percent,
   icon: Icon,
-  barClass,
-  tintFrom,
-  accent,
-  bg,
   addLabel,
   addHref,
 }: MediaTileProps) {
   return (
-    <div className={`relative rounded-2xl border border-slate-200 ${tintFrom} p-5 overflow-hidden`}>
+    <Card className="p-5">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
-            <div className={`flex h-9 w-9 items-center justify-center rounded-lg ${bg} ${accent}`}>
+            <div className="row-tile-icon">
               <Icon size={18} />
             </div>
             <div>
-              <p className="text-xs font-medium text-slate-500 uppercase tracking-wide">{title}</p>
-              <p className="text-2xl font-extrabold text-slate-800 tabular-nums leading-tight">{fmtInt(count)}</p>
+              <p className="text-[13px] font-semibold text-muted-foreground">{title}</p>
+              <p className="font-display text-[24px] font-semibold tabular-nums leading-tight text-azure">{fmtInt(count)}</p>
             </div>
           </div>
         </div>
 
         <Link
           href={addHref}
-          className={`inline-flex items-center gap-1 text-xs font-semibold px-3 py-1.5 rounded-lg ${bg} ${accent} hover:brightness-95 transition flex-shrink-0`}
+          className="row-btn row-btn-secondary row-btn-sm"
         >
           <Plus size={12} />
           {addLabel.replace(/^\+\s*/, "")}
@@ -560,11 +473,11 @@ function MediaTile({
         </div>
         <div className="h-2 bg-white/70 border border-slate-100 rounded-full overflow-hidden">
           <div
-            className={`h-full rounded-full ${barClass} transition-all`}
+            className={`h-full rounded-full bg-azure transition-all`}
             style={{ width: `${percent}%` }}
           />
         </div>
       </div>
-    </div>
+    </Card>
   );
 }

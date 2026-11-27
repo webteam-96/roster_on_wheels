@@ -11,11 +11,16 @@ public class DistrictListDto
     public string? ZoneName { get; set; }
     public string? Country { get; set; }
     public string? DefaultCurrency { get; set; }
+    /// <summary>The currency of <see cref="Country"/>, for the Settings > Currency screen.</summary>
+    public string? CountryCurrency => Services.CountryCurrency.Of(Country);
     /// <summary>IANA time zone (N12); null = the brand's zone.</summary>
     public string? Timezone { get; set; }
     public int TotalClubs { get; set; }
     public int TotalMembers { get; set; }
 }
+
+/// <summary>One district whose currency was set from its country.</summary>
+public sealed record DistrictCurrencyChange(int Id, string DistrictNumber, string? From, string To);
 
 public class DistrictDetailDto
 {

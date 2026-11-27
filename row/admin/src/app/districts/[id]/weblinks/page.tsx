@@ -1,4 +1,5 @@
 "use client";
+import { LinkButton } from "@/components/ui/text-buttons";
 
 import { useState, useEffect, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
@@ -22,13 +23,12 @@ import ErrorAlert from "@/components/ErrorAlert";
 import AlertModal from "@/components/AlertModal";
 import SearchBox from "@/components/SearchBox";
 import RotaryLoader from "@/components/RotaryLoader";
-import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
-import { ArrowLeft, Plus, Pencil, Trash2, MoreHorizontal, FolderOpen, AlertTriangle, ChevronRight, FolderTree, Loader2, Image as ImageIcon } from "@/components/icons";
+import { Plus, Pencil, Trash2, MoreHorizontal, FolderOpen, AlertTriangle, ChevronRight, FolderTree, Loader2, Image as ImageIcon } from "@/components/icons";
 
 const ReactQuill = dynamic(() => import("react-quill-new"), { ssr: false });
 import "react-quill-new/dist/quill.snow.css";
-import { ListPageSkeleton } from "@/components/row/AppKit";
+import { PageHeader, ListPageSkeleton } from "@/components/row/AppKit";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 const quillModules = { toolbar: [["bold", "italic", "underline"], [{ list: "ordered" }, { list: "bullet" }], ["link"], ["clean"]] };
@@ -37,7 +37,7 @@ interface BreadcrumbItem { id: number | null; title: string; }
 
 function LinkTypeBadge({ type }: { type: string }) {
   const colors: Record<string, string> = { None: "bg-gray-100 text-gray-700", Page: "bg-blue-100 text-blue-700", URL: "bg-green-100 text-green-700", PDF: "bg-red-100 text-red-700" };
-  return <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${colors[type] || "bg-gray-100 text-gray-700"}`}>{type}</span>;
+  return <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${colors[type] || "bg-gray-100 text-gray-700"}`}>{type}</span>;
 }
 
 export default function DistrictWeblinksPage() {
@@ -140,23 +140,19 @@ export default function DistrictWeblinksPage() {
   return (
     <ProtectedRoute>
       <div className="space-y-6">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-3">
-            <Button variant="outline" size="icon" asChild><Link href={`/districts/${districtId}/dashboard`}><ArrowLeft className="h-4 w-4" /></Link></Button>
-            <div>
-              <h2 className="text-2xl font-bold tracking-tight text-primary">{districtName ? `${districtName} - Weblinks` : "Weblinks"}</h2>
-              <p className="text-muted-foreground text-base">Manage weblinks and navigation</p>
-            </div>
-          </div>
-          {canManage && <Button onClick={openAddDialog}><Plus className="mr-2 h-4 w-4" />Add Weblink</Button>}
-        </div>
+        <PageHeader
+          title={districtName ? `${districtName} - Weblinks` : "Weblinks"}
+          description="Manage weblinks and navigation"
+          back={`/districts/${districtId}/dashboard`}
+          actions={canManage && <Button onClick={openAddDialog}><Plus className="mr-2 h-4 w-4" />Add Weblink</Button>}
+        />
 
         {breadcrumb.length > 1 && (
           <div className="flex items-center gap-1 text-sm flex-wrap">
             {breadcrumb.map((item, index) => (
               <span key={index} className="flex items-center gap-1">
                 {index > 0 && <ChevronRight className="h-3 w-3 text-muted-foreground" />}
-                <button onClick={() => navigateTo(index)} className={`hover:underline ${index === breadcrumb.length - 1 ? "font-semibold text-primary" : "text-muted-foreground hover:text-foreground"}`}>{item.title}</button>
+                <LinkButton onClick={() => navigateTo(index)} tone={index === breadcrumb.length - 1 ? "primary" : "muted"}>{item.title}</LinkButton>
               </span>
             ))}
           </div>
@@ -164,19 +160,19 @@ export default function DistrictWeblinksPage() {
 
         {!loading && weblinks.length > 0 && <SearchBox value={searchQuery} onChange={setSearchQuery} placeholder="Quick filter by title, type..." className="max-w-md" />}
         {loading && <div className="flex items-center justify-center py-20"><ListPageSkeleton /></div>}
-        {!loading && weblinks.length === 0 && <div className="flex flex-col items-center justify-center py-20 text-center"><FolderOpen className="h-12 w-12 text-muted-foreground mb-4" /><h3 className="text-lg font-semibold">No weblinks found</h3><p className="text-muted-foreground mt-2">{canManage ? 'Click "Add Weblink" to create one.' : "No weblinks available."}</p></div>}
+        {!loading && weblinks.length === 0 && <div className="flex flex-col items-center justify-center py-20 text-center"><FolderOpen className="h-12 w-12 text-muted-foreground mb-4" /><h3 className="row-h2">No weblinks found</h3><p className="text-muted-foreground mt-2">{canManage ? 'Click "Add Weblink" to create one.' : "No weblinks available."}</p></div>}
 
         {!loading && filteredWeblinks.length > 0 && (
           <Card><CardContent className="p-0">
             <Table>
               <TableHeader>
-                <TableRow className="bg-primary hover:bg-primary">
-                  <TableHead className="w-12 text-base font-semibold">S.No.</TableHead>
-                  <TableHead className="text-base font-semibold">Logo</TableHead>
-                  <TableHead className="text-base font-semibold">Title</TableHead>
-                  <TableHead className="text-base font-semibold text-center">Type</TableHead>
-                  <TableHead className="text-base font-semibold text-center">Children</TableHead>
-                  <TableHead className="text-base font-semibold text-center">Active</TableHead>
+                <TableRow>
+                  <TableHead className="w-12">S.No.</TableHead>
+                  <TableHead>Logo</TableHead>
+                  <TableHead>Title</TableHead>
+                  <TableHead className="text-center">Type</TableHead>
+                  <TableHead className="text-center">Children</TableHead>
+                  <TableHead className="text-center">Active</TableHead>
                   {canManage && <TableHead className="w-12"></TableHead>}
                 </TableRow>
               </TableHeader>
@@ -186,19 +182,18 @@ export default function DistrictWeblinksPage() {
                     <TableCell className="font-medium">{index + 1}</TableCell>
                     <TableCell>{w.logoPath ? <img src={`${API_BASE_URL}${w.logoPath}`} alt="" className="h-10 w-10 rounded object-cover" /> : <div className="h-10 w-10 rounded bg-muted flex items-center justify-center"><ImageIcon className="h-5 w-5 text-muted-foreground" /></div>}</TableCell>
                     <TableCell>{isRowClickable(w) ? (
-                      <button type="button" onClick={() => handleRowClick(w)}
-                        className="font-medium text-primary hover:underline text-left"
+                      <LinkButton type="button" onClick={() => handleRowClick(w)}
                         title={w.childCount > 0 ? "View children" : w.linkType === "URL" ? "Open URL" : w.linkType === "PDF" ? "Open PDF" : w.youtubeUrl ? "Open YouTube" : ""}>
                         {w.title}
-                      </button>
+                      </LinkButton>
                     ) : <p className="font-medium">{w.title}</p>}</TableCell>
                     <TableCell className="text-center"><LinkTypeBadge type={w.linkType} /></TableCell>
                     <TableCell className="text-center">{w.childCount > 0 ? <Badge variant="secondary">{w.childCount}</Badge> : <span className="text-muted-foreground">0</span>}</TableCell>
-                    <TableCell className="text-center"><Switch checked={w.isActive} onCheckedChange={() => handleToggleActive(w)} disabled={!canManage} /></TableCell>
+                    <TableCell className="text-center"><Switch aria-label={`Active: ${w.title}`} checked={w.isActive} onCheckedChange={() => handleToggleActive(w)} disabled={!canManage} /></TableCell>
                     {canManage && (
                       <TableCell>
                         <DropdownMenu>
-                          <DropdownMenuTrigger asChild><Button variant="ghost" size="icon" className="h-8 w-8"><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger>
+                          <DropdownMenuTrigger asChild><Button aria-label="More actions" variant="ghost" size="icon" className="row-btn-sm"><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
                             {w.level < 3 && <DropdownMenuItem onClick={() => navigateInto(w)}><FolderTree className="mr-2 h-4 w-4" />View Children</DropdownMenuItem>}
                             <DropdownMenuItem onClick={() => openEditDialog(w)}><Pencil className="mr-2 h-4 w-4" />Edit</DropdownMenuItem>
@@ -225,7 +220,7 @@ export default function DistrictWeblinksPage() {
               <div className="space-y-2"><Label>{formLevel === 1 ? "Writeup / About" : "About Weblink"}</Label><div className="min-h-[150px]"><ReactQuill theme="snow" value={formWriteup} onChange={setFormWriteup} modules={quillModules} placeholder="Enter content..." /></div></div>
               <div className="space-y-2"><Label htmlFor="wl-logo">{formLevel === 1 ? "Module Logo" : "Logo"}</Label>{editing?.logoPath && !formLogo && <div className="mb-2"><img src={`${API_BASE_URL}${editing.logoPath}`} alt="Current logo" className="h-16 w-16 rounded object-cover border" /></div>}<Input id="wl-logo" type="file" accept=".jpg,.jpeg,.png,.gif,.webp" onChange={(e) => setFormLogo(e.target.files?.[0] || null)} /><p className="text-xs text-muted-foreground mt-1.5">Allowed: JPG, JPEG, PNG, GIF, WEBP</p></div>
               {formLevel === 1 && <div className="space-y-2"><Label htmlFor="wl-banner">Banner</Label>{editing?.bannerPath && !formBanner && <div className="mb-2"><img src={`${API_BASE_URL}${editing.bannerPath}`} alt="Current banner" className="h-20 w-full max-w-xs rounded object-cover border" /></div>}<Input id="wl-banner" type="file" accept=".jpg,.jpeg,.png,.gif,.webp" onChange={(e) => setFormBanner(e.target.files?.[0] || null)} /><p className="text-xs text-muted-foreground mt-1.5">Allowed: JPG, JPEG, PNG, GIF, WEBP</p></div>}
-              {formLevel <= 2 && <div className="space-y-2"><Label>Link Type</Label><Select value={formLinkType} onValueChange={setFormLinkType}><SelectTrigger><SelectValue placeholder="Select link type" /></SelectTrigger><SelectContent>{getLinkTypeOptions().map((opt) => <SelectItem key={opt} value={opt}>{opt}</SelectItem>)}</SelectContent></Select></div>}
+              {formLevel <= 2 && <div className="space-y-2"><Label>Link Type</Label><Select value={formLinkType} onValueChange={setFormLinkType}><SelectTrigger aria-label="Link type"><SelectValue placeholder="Select link type" /></SelectTrigger><SelectContent>{getLinkTypeOptions().map((opt) => <SelectItem key={opt} value={opt}>{opt}</SelectItem>)}</SelectContent></Select></div>}
               {(formLinkType === "URL" || formLevel === 3) && <div className="space-y-2"><Label htmlFor="wl-url">URL</Label><Input id="wl-url" value={formLinkUrl} onChange={(e) => setFormLinkUrl(e.target.value)} placeholder="https://example.com" /></div>}
               {formLinkType === "PDF" && formLevel <= 2 && <div className="space-y-2"><Label htmlFor="wl-pdf">PDF File</Label><Input id="wl-pdf" type="file" accept=".pdf" onChange={(e) => setFormPdf(e.target.files?.[0] || null)} /><p className="text-xs text-muted-foreground mt-1.5">Allowed: PDF only</p></div>}
               {formLevel === 1 && <div className="space-y-2"><Label htmlFor="wl-youtube">YouTube Video Link</Label><Input id="wl-youtube" value={formYoutubeUrl} onChange={(e) => setFormYoutubeUrl(e.target.value)} placeholder="https://youtube.com/watch?v=..." /></div>}

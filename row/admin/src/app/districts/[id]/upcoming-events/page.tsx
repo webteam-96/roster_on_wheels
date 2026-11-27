@@ -1,5 +1,7 @@
 "use client";
+import { ClearButton } from "@/components/ui/text-buttons";
 
+import PublishStatusBadge from "@/components/PublishStatusBadge";
 import { useState, useEffect, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { UpcomingEventListItem } from "@/types/upcomingEvent";
@@ -27,16 +29,12 @@ import SearchBox from "@/components/SearchBox";
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
 import AlertModal from "@/components/AlertModal";
-import {
-  ArrowLeft, Search, X, Plus, Pencil, Trash2, Eye,
-  MoreHorizontal, FolderOpen, AlertTriangle,
-} from "@/components/icons";
+import { Search, X, Plus, Pencil, Trash2, MoreHorizontal, FolderOpen, AlertTriangle } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
-import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
 
 import { appLocale } from "@/lib/appFormat";
-import { ListPageSkeleton } from "@/components/row/AppKit";
+import { PageHeader, ListPageSkeleton } from "@/components/row/AppKit";
 const STATUS_OPTIONS = [
   { value: "all", label: "All" },
   { value: "Published", label: "Published" },
@@ -44,18 +42,6 @@ const STATUS_OPTIONS = [
   { value: "Unpublished", label: "Unpublished" },
 ];
 
-function StatusBadge({ status }: { status: string }) {
-  const colors: Record<string, string> = {
-    Published: "bg-green-100 text-green-700",
-    Expired: "bg-red-100 text-red-700",
-    Unpublished: "bg-yellow-100 text-yellow-700",
-  };
-  return (
-    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${colors[status] || "bg-gray-100 text-gray-700"}`}>
-      {status}
-    </span>
-  );
-}
 
 export default function DistrictUpcomingEventsPage() {
   const params = useParams();
@@ -150,24 +136,16 @@ export default function DistrictUpcomingEventsPage() {
   return (
     <ProtectedRoute>
       <div className="space-y-6">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-3">
-            <Button variant="outline" size="icon" asChild>
-              <Link href={`/districts/${districtId}/dashboard`}><ArrowLeft className="h-4 w-4" /></Link>
-            </Button>
-            <div>
-              <h2 className="text-2xl font-bold tracking-tight text-primary">
-                {districtName ? `${districtName} - Upcoming Events` : "Upcoming Events"}
-              </h2>
-              <p className="text-muted-foreground text-base">Manage district upcoming events</p>
-            </div>
-          </div>
-          {canManage && (
+        <PageHeader
+          title={districtName ? `${districtName} - Upcoming Events` : "Upcoming Events"}
+          description="Manage district upcoming events"
+          back={`/districts/${districtId}/dashboard`}
+          actions={canManage && (
             <Button onClick={() => router.push(`/districts/${districtId}/upcoming-events/add`)}>
               <Plus className="mr-2 h-4 w-4" />Add Event
             </Button>
           )}
-        </div>
+        />
 
         <div className="flex flex-col sm:flex-row gap-4">
           <div className="w-full sm:w-44">
@@ -185,9 +163,7 @@ export default function DistrictUpcomingEventsPage() {
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input placeholder="Search by title..." value={searchInput} onChange={(e) => setSearchInput(e.target.value)} onKeyDown={(e) => e.key === "Enter" && handleSearch()} className="pl-9" />
               {searchInput && (
-                <button onClick={clearSearch} className="absolute right-3 top-1/2 -translate-y-1/2">
-                  <X className="h-4 w-4 text-muted-foreground hover:text-foreground" />
-                </button>
+                <ClearButton onClick={clearSearch} aria-label="Clear search" />
               )}
             </div>
             <Button onClick={handleSearch} size="sm">Search</Button>
@@ -201,7 +177,7 @@ export default function DistrictUpcomingEventsPage() {
         {!loading && events.length === 0 && (
           <div className="flex flex-col items-center justify-center py-20 text-center">
             <FolderOpen className="h-12 w-12 text-muted-foreground mb-4" />
-            <h3 className="text-lg font-semibold">No events found</h3>
+            <h3 className="row-h2">No events found</h3>
             <p className="text-muted-foreground mt-2">{search ? "No events match your search." : "No events available."}</p>
           </div>
         )}
@@ -211,13 +187,13 @@ export default function DistrictUpcomingEventsPage() {
             <CardContent className="p-0">
               <Table>
                 <TableHeader>
-                  <TableRow className="bg-primary hover:bg-primary">
-                    <TableHead className="w-12 text-base font-semibold">S.No.</TableHead>
-                    <TableHead className="text-base font-semibold">Title</TableHead>
-                    <TableHead className="text-base font-semibold">Event Date</TableHead>
-                    <TableHead className="text-base font-semibold">Publish Date</TableHead>
-                    <TableHead className="text-base font-semibold">Expiry Date</TableHead>
-                    <TableHead className="text-base font-semibold text-center">Status</TableHead>
+                  <TableRow>
+                    <TableHead className="w-12">S.No.</TableHead>
+                    <TableHead>Title</TableHead>
+                    <TableHead>Event Date</TableHead>
+                    <TableHead>Publish Date</TableHead>
+                    <TableHead>Expiry Date</TableHead>
+                    <TableHead className="text-center">Status</TableHead>
                     {canManage && <TableHead className="w-12"></TableHead>}
                   </TableRow>
                 </TableHeader>
@@ -236,12 +212,12 @@ export default function DistrictUpcomingEventsPage() {
                       <TableCell>{formatDate(event.eventDate)}</TableCell>
                       <TableCell>{formatDate(event.publishDate)}</TableCell>
                       <TableCell>{formatDate(event.expiryDate)}</TableCell>
-                      <TableCell className="text-center"><StatusBadge status={event.status} /><SendStatusBadges item={event} /></TableCell>
+                      <TableCell className="text-center"><PublishStatusBadge status={event.status} /><SendStatusBadges item={event} /></TableCell>
                       {canManage && (
                         <TableCell>
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="icon" className="h-8 w-8"><MoreHorizontal className="h-4 w-4" /></Button>
+                              <Button aria-label="More actions" variant="ghost" size="icon" className="row-btn-sm"><MoreHorizontal className="h-4 w-4" /></Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
                               {event.status !== "Expired" && (

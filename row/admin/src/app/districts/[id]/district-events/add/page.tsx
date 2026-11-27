@@ -1,4 +1,6 @@
 "use client";
+import { RemoveBadgeButton } from "@/components/ui/text-buttons";
+import { PageHeader } from "@/components/row/AppKit";
 import { useState, useEffect } from "react";
 import DateField from "@/components/DateField";
 import { useParams, useRouter } from "next/navigation";
@@ -10,9 +12,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
-import { ArrowLeft, Upload, X, Send, Info } from "@/components/icons";
+import { Upload, X, Send, Info } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
-import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import ImageCropDialog from "@/components/ImageCropDialog";
 import { useImageCropUpload } from "@/hooks/useImageCropUpload";
@@ -82,7 +83,7 @@ export default function DistrictEventAddPage() {
 
   return (
     <ProtectedRoute>
-      <div className="space-y-6 max-w-4xl mx-auto">
+      <div className="space-y-6 max-w-4xl">
         <ImageCropDialog
           open={photoCrop.open}
           imageSrc={photoCrop.imageSrc}
@@ -97,10 +98,7 @@ export default function DistrictEventAddPage() {
         <SuccessAlert open={!!successMessage} title="Success" description={successMessage || ""} onOk={() => router.push(`/districts/${districtId}/district-events`)} />
         <ErrorAlert open={!!errorMessage} title="Error" description={errorMessage || ""} onOk={() => setErrorMessage(null)} />
 
-        <div className="flex items-center gap-3">
-          <Button variant="outline" size="icon" asChild><Link href={`/districts/${districtId}/district-events`}><ArrowLeft className="h-4 w-4" /></Link></Button>
-          <div><h2 className="text-2xl font-bold tracking-tight text-primary">Add District Event</h2><p className="text-muted-foreground">{districtName}</p></div>
-        </div>
+        <PageHeader title="Add District Event" description={districtName} back={`/districts/${districtId}/district-events`} />
 
         <div className="flex gap-3 rounded-lg border border-blue-200 bg-blue-50/80 p-3 text-sm text-blue-800">
           <Info className="h-4 w-4 shrink-0 mt-0.5" />
@@ -127,7 +125,7 @@ export default function DistrictEventAddPage() {
               <div key={idx} className="border rounded-lg overflow-hidden">
                 <div className="relative w-full h-40 group bg-muted">
                   <img src={photo.preview || `${API_URL}${photo.path}`} alt="" className="w-full h-full object-contain" />
-                  <button onClick={() => removePhoto(idx)} className="absolute top-1 right-1 bg-destructive text-white rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity"><X className="h-3 w-3" /></button>
+                  <RemoveBadgeButton onClick={() => removePhoto(idx)} aria-label="Remove photo" />
                 </div>
                 <div className="p-3 space-y-2">
                   <Textarea
@@ -136,7 +134,7 @@ export default function DistrictEventAddPage() {
                     placeholder="Photo description (max 500 chars)"
                     rows={3}
                     maxLength={500}
-                    className="text-sm resize-none"
+                    className="resize-none"
                   />
                   <p className="text-xs text-muted-foreground text-right">{photo.description.length}/500</p>
                 </div>

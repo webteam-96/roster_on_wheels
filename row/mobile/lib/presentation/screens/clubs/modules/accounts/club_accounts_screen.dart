@@ -7,6 +7,7 @@ import '../../../../widgets/common/custom_app_bar.dart';
 import '../../../../widgets/common/empty_state_widget.dart';
 import '../../../../widgets/common/loading_widget.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/roster_wheel.dart';
 
 /// The club's accounts for its officers (gap agent, `api/clubs/{id}/accounts`): bank balances, this Rotary year's
 /// profit and loss and the dues members owe by age (both read-only), the latest entries, and the treasurer's quick
@@ -159,7 +160,7 @@ class _ClubAccountsScreenState extends State<ClubAccountsScreen> {
           ? EmptyStateWidget(icon: Icons.account_balance_outlined, title: 'Not available', subtitle: _error!)
           : s == null
               ? const LoadingWidget()
-              : RefreshIndicator(
+              : RowRefresh(
                   onRefresh: _load,
                   child: ListView(
                     padding: const EdgeInsets.fromLTRB(16, 16, 16, 88),

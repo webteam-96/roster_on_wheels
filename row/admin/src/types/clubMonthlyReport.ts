@@ -67,6 +67,7 @@ export interface ReportProject {
   projectDate: string | null;
   areaOfFocusName: string | null;
   projectCost: number | null;
+  currency?: string | null;
   directBeneficiaries: number | null;
   manHours: number | null;
   rotariansInvolved: number | null;

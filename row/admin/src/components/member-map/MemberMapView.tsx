@@ -129,7 +129,7 @@ export default function MemberMapView({ scope, id }: { scope: MapScope; id: numb
           <div className="grid gap-6 md:grid-cols-2">
             <Card>
               <CardContent className="space-y-4 p-6">
-                <h3 className="text-lg font-semibold">Members by city</h3>
+                <h3 className="row-h2">Members by city</h3>
                 {byCity.length === 0 && <p className="text-sm text-muted-foreground">No member has opted in yet.</p>}
                 {byCity.map(([city, list]) => (
                   <div key={city}>
@@ -145,7 +145,7 @@ export default function MemberMapView({ scope, id }: { scope: MapScope; id: numb
             </Card>
             <Card>
               <CardContent className="space-y-3 p-6">
-                <h3 className="text-lg font-semibold">Meeting places</h3>
+                <h3 className="row-h2">Meeting places</h3>
                 {data.meetingPlaces.length === 0 && <p className="text-sm text-muted-foreground">No club has a meeting place on the map yet.</p>}
                 {data.meetingPlaces.map((p) => (
                   <div key={p.clubId} className="text-sm">

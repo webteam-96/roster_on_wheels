@@ -1,5 +1,9 @@
 "use client";
 
+import SectionCard from "@/components/form/SectionCard";
+import RadioPill from "@/components/form/RadioPill";
+import FieldLabel from "@/components/form/FieldLabel";
+import { Card } from "@/components/ui/card";
 import { useState, useEffect, useRef } from "react";
 import DateField from "@/components/DateField";
 import { useParams, useSearchParams, useRouter } from "next/navigation";
@@ -25,10 +29,7 @@ import {
 } from "@/components/ui/dialog";
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
-import {
-  ArrowLeft, Upload, X, Star, Info, Search,
-  FileText, MapPin, Target, IndianRupee, Camera, Send,
-} from "@/components/icons";
+import { Upload, X, Star, Info, Search, FileText, MapPin, Target, IndianRupee, Camera, Send } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
@@ -40,7 +41,8 @@ import ImageCropDialog from "@/components/ImageCropDialog";
 import { useImageCropQueue } from "@/hooks/useImageCropQueue";
 
 import { currencySymbol } from "@/lib/appFormat";
-import { ListPageSkeleton } from "@/components/row/AppKit";
+import { PageHeader, ListPageSkeleton } from "@/components/row/AppKit";
+import { ClearButton, LinkButton, MenuItemButton, RemoveBadgeButton } from "@/components/ui/text-buttons"
 // Project photos are shown 16:9 on the public site (components/pages/projects/shared.tsx),
 // so the crop is locked to that shape. 1600×900 keeps the widest card retina-sharp.
 const PROJECT_PHOTO_ASPECT = 16 / 9;
@@ -91,58 +93,10 @@ interface PhotoItem {
 }
 
 /* ── Section wrapper with icon + title ── */
-function Section({ icon: Icon, title, children, number }: {
-  icon: React.ElementType;
-  title: string;
-  children: React.ReactNode;
-  number: number;
-}) {
-  return (
-    <div className="relative bg-card rounded-[20px] border shadow-sm overflow-hidden">
-      <div className="flex items-center gap-3 px-5 py-3.5 bg-primary/5 border-b">
-        <div className="flex items-center justify-center h-8 w-8 rounded-full bg-primary text-primary-foreground text-sm font-bold shrink-0">
-          {number}
-        </div>
-        <Icon className="h-5 w-5 text-primary shrink-0" />
-        <h3 className="text-base font-semibold text-foreground">{title}</h3>
-      </div>
-      <div className="p-5">{children}</div>
-    </div>
-  );
-}
 
 /* ── Radio pill component ── */
-function RadioPill({ name, checked, onChange, label }: {
-  name: string; value?: string; checked: boolean; onChange: () => void; label: string;
-}) {
-  return (
-    <label
-      className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-lg border-2 cursor-pointer transition-all text-sm font-medium
-        ${checked
-          ? "border-primary bg-primary/5 text-primary ring-1 ring-primary/20"
-          : "border-muted-foreground/20 hover:border-primary/40 text-muted-foreground hover:text-foreground"
-        }`}
-    >
-      <input type="radio" name={name} checked={checked} onChange={onChange} className="sr-only" />
-      <div className={`h-4 w-4 rounded-full border-2 flex items-center justify-center transition-all
-        ${checked ? "border-primary" : "border-muted-foreground/40"}`}>
-        {checked && <div className="h-2 w-2 rounded-full bg-primary" />}
-      </div>
-      {label}
-    </label>
-  );
-}
 
 /* ── Required label helper ── */
-function Req({ children, hint, optional }: { children: React.ReactNode; hint?: string; optional?: boolean }) {
-  return (
-    <Label className="text-sm font-medium">
-      {children}{!optional && <span className="text-destructive ml-0.5">*</span>}
-      {optional && <span className="text-xs text-muted-foreground font-normal ml-1">(optional)</span>}
-      {hint && <span className="text-xs text-muted-foreground ml-1.5">{hint}</span>}
-    </Label>
-  );
-}
 
 export default function AddProjectPage() {
   const params = useParams();
@@ -552,25 +506,21 @@ export default function AddProjectPage() {
 
   return (
     <ProtectedRoute>
-      <div className="space-y-5 max-w-4xl mx-auto pb-10">
+      <div className="space-y-5 max-w-4xl">
         {/* ── Header ── */}
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-3">
-            <Button variant="outline" size="icon" asChild>
-              <Link href={returnUrl || `/clubs/${clubId}/projects?module=${moduleKey}`}><ArrowLeft className="h-4 w-4" /></Link>
-            </Button>
-            <div>
-              <h2 className="text-2xl font-bold tracking-tight text-primary">
-                {clubName ? `${clubName} - ${moduleLabel}` : moduleLabel}
-              </h2>
-              <p className="text-muted-foreground text-base">Add new project</p>
-            </div>
-          </div>
-          <Button onClick={handleSave} disabled={saving} size="lg" className="shadow-md">
+        <PageHeader
+          title={clubName ? `${clubName} - ${moduleLabel}` : moduleLabel}
+          description="Add new project"
+          back={returnUrl || `/clubs/${clubId}/projects?module=${moduleKey}`}
+          actions={
+            <>
+<Button onClick={handleSave} disabled={saving} size="lg">
             <Send className="mr-2 h-4 w-4" />
             {saving ? "Saving..." : "Save Project"}
           </Button>
-        </div>
+            </>
+          }
+        />
 
         {/* ── Top message ── */}
         {topMessage && (
@@ -581,10 +531,10 @@ export default function AddProjectPage() {
         )}
 
         {/* ── 1. Project Type ── */}
-        <Section icon={FileText} title="Project Type" number={1}>
+        <SectionCard icon={FileText} title="Project Type" number={1}>
           <div className="space-y-5">
             <div>
-              <Req>Select Project Type</Req>
+              <FieldLabel required>Select Project Type</FieldLabel>
               <div className="flex flex-wrap gap-3 mt-2">
                 <RadioPill name="projectType" value="one_time" checked={projectType === "one_time"} onChange={() => handleProjectTypeChange("one_time")} label="One Time Project" />
                 <RadioPill name="projectType" value="ongoing_repeat" checked={projectType === "ongoing_repeat"} onChange={() => handleProjectTypeChange("ongoing_repeat")} label="Ongoing / Repeat Project" />
@@ -595,7 +545,7 @@ export default function AddProjectPage() {
             {projectType === "ongoing_repeat" && (
               <div className="space-y-4 pl-5 border-l-2 border-primary/30 ml-2">
                 <div>
-                  <Req>Ongoing/Repeat Type</Req>
+                  <FieldLabel required>Ongoing/Repeat Type</FieldLabel>
                   <div className="flex flex-wrap gap-3 mt-2">
                     <RadioPill name="ongoingSubType" value="new" checked={ongoingSubType === "new"} onChange={() => { setOngoingSubType("new"); setIsJointProject(null); setClubRole(""); }} label="Create New" />
                     <RadioPill name="ongoingSubType" value="existing" checked={ongoingSubType === "existing"} onChange={() => { setOngoingSubType("existing"); setIsJointProject(null); setClubRole(""); }} label="Select Existing" />
@@ -604,7 +554,7 @@ export default function AddProjectPage() {
 
                 {ongoingSubType === "new" && (
                   <div className="space-y-1.5">
-                    <Req>Title of Ongoing/Repeat Project</Req>
+                    <FieldLabel required>Title of Ongoing/Repeat Project</FieldLabel>
                     <Input
                       value={ongoingGroupTitle}
                       onChange={(e) => setOngoingGroupTitle(e.target.value)}
@@ -615,7 +565,7 @@ export default function AddProjectPage() {
 
                 {ongoingSubType === "existing" && (
                   <div className="space-y-2">
-                    <Req>Search Existing Project</Req>
+                    <FieldLabel required>Search Existing Project</FieldLabel>
                     <div className="relative">
                       <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                       <Input
@@ -625,21 +575,18 @@ export default function AddProjectPage() {
                         className="pl-9"
                       />
                       {ongoingSearch && (
-                        <button onClick={() => { setOngoingSearch(""); setSelectedParentId(null); }} className="absolute right-3 top-1/2 -translate-y-1/2">
-                          <X className="h-4 w-4 text-muted-foreground hover:text-foreground" />
-                        </button>
+                        <ClearButton onClick={() => { setOngoingSearch(""); setSelectedParentId(null); }} aria-label="Clear search" />
                       )}
                     </div>
                     {ongoingSearch && ongoingProjects.length > 0 && !selectedParentId && (
                       <div className="border rounded-lg max-h-48 overflow-y-auto shadow-sm">
                         {ongoingProjects.map((p) => (
-                          <button
+                          <MenuItemButton
                             key={p.id}
                             onClick={() => { setSelectedParentId(p.id); setOngoingSearch(p.title); }}
-                            className="w-full text-left px-3 py-2.5 text-sm hover:bg-primary/5 transition-colors border-b last:border-b-0"
-                          >
+                            className="border-b last:border-b-0">
                             {p.title}
-                          </button>
+                          </MenuItemButton>
                         ))}
                       </div>
                     )}
@@ -661,7 +608,7 @@ export default function AddProjectPage() {
             {(projectType === "one_time" || (projectType === "ongoing_repeat" && ongoingSubType)) && (
               <div className="space-y-4 pt-4 border-t border-dashed">
                 <div>
-                  <Req>Is this a joint project with any other Rotary Club / Organisation?</Req>
+                  <FieldLabel required>Is this a joint project with any other Rotary Club / Organisation?</FieldLabel>
                   <div className="flex flex-wrap gap-3 mt-2">
                     <RadioPill name="jointProject" value="yes" checked={isJointProject === true} onChange={() => setIsJointProject(true)} label="Yes" />
                     <RadioPill name="jointProject" value="no" checked={isJointProject === false} onChange={() => setIsJointProject(false)} label="No" />
@@ -675,11 +622,11 @@ export default function AddProjectPage() {
                       <p>Project uploaded by co-host Rotary club will be displayed only in the club monthly report & club website (If subscribed through ROW)</p>
                     </div>
                     <div className="space-y-1.5">
-                      <Req>Name of Co-host Rotary Club / Partner Organisation</Req>
+                      <FieldLabel required>Name of Co-host Rotary Club / Partner Organisation</FieldLabel>
                       <Input value={coHostName} onChange={(e) => setCoHostName(e.target.value)} placeholder="Enter co-host name" />
                     </div>
                     <div>
-                      <Req>Your Club Role</Req>
+                      <FieldLabel required>Your Club Role</FieldLabel>
                       <div className="flex flex-wrap gap-3 mt-2">
                         <RadioPill name="clubRole" value="lead" checked={clubRole === "lead"} onChange={() => setClubRole("lead")} label="Lead Club" />
                         <RadioPill name="clubRole" value="co_host" checked={clubRole === "co_host"} onChange={() => setClubRole("co_host")} label="Co-Host Club" />
@@ -690,41 +637,41 @@ export default function AddProjectPage() {
               </div>
             )}
           </div>
-        </Section>
+        </SectionCard>
 
         {/* ── 2. Project Details ── */}
-        <Section icon={MapPin} title="Project Details" number={2}>
+        <SectionCard icon={MapPin} title="Project Details" number={2}>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1.5 sm:col-span-2">
-              <Req hint="(max 50 chars)">Title</Req>
+              <FieldLabel required hint="(max 50 chars)">Title</FieldLabel>
               <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Project title" maxLength={50} />
               <p className="text-xs text-muted-foreground text-right">{title.length}/50</p>
             </div>
 
             <div className="space-y-1.5 sm:col-span-2">
-              <Req hint="(max 1000 chars)">Description</Req>
+              <FieldLabel required hint="(max 1000 chars)">Description</FieldLabel>
               <Textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Describe the project, its objectives, and impact..." rows={4} maxLength={1000} />
               <p className="text-xs text-muted-foreground text-right">{description.length}/1000</p>
             </div>
 
             <div className="space-y-1.5">
-              <Req>Location of Project</Req>
+              <FieldLabel required>Location of Project</FieldLabel>
               <Input value={location} onChange={(e) => setLocation(e.target.value)} placeholder="City, Venue, etc." />
             </div>
 
             <div className="space-y-1.5">
-              <Req>Date of Project</Req>
+              <FieldLabel required>Date of Project</FieldLabel>
               <DateField value={projectDate} onChange={setProjectDate} max={frozenMonth ? frozenDateMax : todayStr} min={frozenMonth ? frozenDateMin : undefined} />
             </div>
           </div>
-        </Section>
+        </SectionCard>
 
         {/* ── 3. Classification (hidden for Club Service) ── */}
         {!isClubService && (
-        <Section icon={Target} title="Area of Focus" number={3}>
+        <SectionCard icon={Target} title="Area of Focus" number={3}>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div className="space-y-1.5">
-              <Req>Area of Focus</Req>
+              <FieldLabel required>Area of Focus</FieldLabel>
               <Select value={selectedAofId} onValueChange={setSelectedAofId}>
                 <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
                 <SelectContent>
@@ -741,18 +688,18 @@ export default function AddProjectPage() {
               )}
             </div>
           </div>
-        </Section>
+        </SectionCard>
         )}
 
         {/* ── 4. Financial & Impact ── */}
-        <Section icon={IndianRupee} title="Financial & Impact" number={isClubService ? 3 : 4}>
+        <SectionCard icon={IndianRupee} title="Financial & Impact" number={isClubService ? 3 : 4}>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             <div className="space-y-1.5">
-              <Req>Project Cost ({currencySymbol()})</Req>
+              <FieldLabel required>Project Cost ({currencySymbol()})</FieldLabel>
               <Input type="number" value={projectCost} onChange={(e) => setProjectCost(e.target.value)} placeholder="0" min="0" />
             </div>
             <div className="space-y-1.5">
-              <Req>Funding</Req>
+              <FieldLabel required>Funding</FieldLabel>
               <Select value={selectedFundingId} onValueChange={handleFundingChange}>
                 <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
                 <SelectContent>
@@ -766,7 +713,7 @@ export default function AddProjectPage() {
             {/* Funding-conditional: Global Grant fields */}
             {showGlobalGrantBlock && (
               <div className="sm:col-span-2 lg:col-span-3 space-y-3 border border-primary/30 bg-primary/5 rounded-md p-4 mt-1">
-                <h4 className="text-sm font-semibold text-primary">Global Grant Details</h4>
+                <h4 className="row-h3">Global Grant Details</h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
                     <Label>Global Grant Number</Label>
@@ -789,12 +736,12 @@ export default function AddProjectPage() {
                       onChange={(e) => setAmountSpent(onlyDigits(e.target.value))} placeholder="0" />
                   </div>
                   <div className="space-y-1.5 md:col-span-2">
-                    <Req>Host Clubs/Districts</Req>
+                    <FieldLabel required>Host Clubs/Districts</FieldLabel>
                     <Input type="text" value={hostClubsDistricts}
                       onChange={(e) => setHostClubsDistricts(e.target.value)} placeholder="e.g., RC Chicago, RC Paris" />
                   </div>
                   <div className="space-y-1.5 md:col-span-2">
-                    <Req>Global Partner Clubs/Districts</Req>
+                    <FieldLabel required>Global Partner Clubs/Districts</FieldLabel>
                     <Input type="text" value={globalPartnerClubsDistricts}
                       onChange={(e) => setGlobalPartnerClubsDistricts(e.target.value)} placeholder="e.g., RC Tokyo" />
                   </div>
@@ -805,20 +752,20 @@ export default function AddProjectPage() {
             {/* Funding-conditional: CSR fields */}
             {showCsrBlock && (
               <div className="sm:col-span-2 lg:col-span-3 space-y-3 border border-primary/30 bg-primary/5 rounded-md p-4 mt-1">
-                <h4 className="text-sm font-semibold text-primary">CSR Details</h4>
+                <h4 className="row-h3">CSR Details</h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-1.5 md:col-span-2">
-                    <Req>Name of the CSR Company</Req>
+                    <FieldLabel required>Name of the CSR Company</FieldLabel>
                     <Input type="text" value={csrCompanyName}
                       onChange={(e) => setCsrCompanyName(e.target.value)} placeholder="e.g., ABC Industries Ltd" />
                   </div>
                   <div className="space-y-1.5">
-                    <Req>Amount Sanctioned ({currencySymbol()})</Req>
+                    <FieldLabel required>Amount Sanctioned ({currencySymbol()})</FieldLabel>
                     <Input inputMode="numeric" pattern="[0-9]*" value={amountSanctioned}
                       onChange={(e) => setAmountSanctioned(onlyDigits(e.target.value))} placeholder="0" />
                   </div>
                   <div className="space-y-1.5">
-                    <Req>Amount Received ({currencySymbol()})</Req>
+                    <FieldLabel required>Amount Received ({currencySymbol()})</FieldLabel>
                     <Input inputMode="numeric" pattern="[0-9]*" value={amountReceived}
                       onChange={(e) => setAmountReceived(onlyDigits(e.target.value))} placeholder="0" />
                   </div>
@@ -826,30 +773,30 @@ export default function AddProjectPage() {
               </div>
             )}
             <div className="space-y-1.5">
-              <Req>Direct Beneficiaries</Req>
+              <FieldLabel required>Direct Beneficiaries</FieldLabel>
               <Input type="number" value={directBeneficiaries} onChange={(e) => setDirectBeneficiaries(e.target.value)} placeholder="0" min="0" />
             </div>
             <div className="space-y-1.5">
-              <Req hint="(Rotarians x Hours)">Man Hours</Req>
+              <FieldLabel required hint="(Rotarians x Hours)">Man Hours</FieldLabel>
               <Input type="number" value={manHours} onChange={(e) => setManHours(e.target.value)} placeholder="0" min="0" />
             </div>
             <div className="space-y-1.5">
-              <Req>Rotarians Involved</Req>
+              <FieldLabel required>Rotarians Involved</FieldLabel>
               <Input type="number" value={rotariansInvolved} onChange={(e) => setRotariansInvolved(e.target.value)} placeholder="0" min="0" />
             </div>
             <div className="space-y-1.5">
-              <Req optional>Rotaractors Involved</Req>
+              <FieldLabel required optional>Rotaractors Involved</FieldLabel>
               <Input type="number" value={rotaractorsInvolved} onChange={(e) => setRotaractorsInvolved(e.target.value)} placeholder="0" min="0" />
             </div>
             <div className="space-y-1.5">
-              <Req optional>RCC Involved</Req>
+              <FieldLabel required optional>RCC Involved</FieldLabel>
               <Input type="number" value={rccInvolved} onChange={(e) => setRccInvolved(e.target.value)} placeholder="0" min="0" />
             </div>
           </div>
-        </Section>
+        </SectionCard>
 
         {/* ── 5. Photos ── */}
-        <Section icon={Camera} title="Photos" number={isClubService ? 4 : 5}>
+        <SectionCard icon={Camera} title="Photos" number={isClubService ? 4 : 5}>
           <div className="space-y-4">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <p className="text-sm text-muted-foreground">Upload 1-5 photos. First photo is set as primary by default.</p>
@@ -898,16 +845,13 @@ export default function AddProjectPage() {
                           className="h-36 w-full object-contain"
                         />
                         {photo.isPrimary && (
-                          <div className="absolute top-2 left-2 flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-500 text-white text-xs font-medium shadow">
+                          <div className="absolute top-2 left-2 flex items-center gap-1 px-2 py-0.5 rounded bg-amber-500 text-white text-xs font-medium shadow">
                             <Star className="h-3 w-3 fill-white" />Primary
                           </div>
                         )}
-                        <button
+                        <RemoveBadgeButton
                           onClick={() => removePhoto(index)}
-                          className="absolute top-2 right-2 h-6 w-6 rounded-full bg-black/60 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                        >
-                          <X className="h-3.5 w-3.5" />
-                        </button>
+                          className="opacity-0 group-hover:opacity-100 focus-visible:opacity-100" aria-label="Remove photo" />
                       </div>
                     )}
                     <div className="p-3 space-y-2">
@@ -917,16 +861,15 @@ export default function AddProjectPage() {
                         placeholder="Photo description (max 500 chars)"
                         rows={3}
                         maxLength={500}
-                        className="text-sm resize-none"
+                        className="resize-none"
                       />
                       <p className="text-xs text-muted-foreground text-right">{photo.description.length}/500</p>
                       {!photo.isPrimary && (
-                        <button
+                        <LinkButton
                           onClick={() => setPrimaryPhoto(index)}
-                          className="flex items-center gap-1 text-xs text-muted-foreground hover:text-amber-500 transition-colors"
-                        >
+                          tone="muted" size="sm">
                           <Star className="h-3 w-3" />Set as primary
-                        </button>
+                        </LinkButton>
                       )}
                     </div>
                   </div>
@@ -934,7 +877,7 @@ export default function AddProjectPage() {
               </div>
             )}
           </div>
-        </Section>
+        </SectionCard>
 
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pt-2">
           <label className="flex items-center gap-2.5 cursor-pointer select-none">
@@ -970,7 +913,7 @@ export default function AddProjectPage() {
                 Submit &amp; Add to Org
               </Button>
             )}
-            <Button onClick={handleSave} disabled={saving} size="lg" className="shadow-md">
+            <Button onClick={handleSave} disabled={saving} size="lg">
               <Send className="mr-2 h-4 w-4" />
               {saving ? "Saving..." : "Save Project"}
             </Button>

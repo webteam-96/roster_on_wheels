@@ -1,10 +1,13 @@
 "use client";
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
 
 /**
  * SuperAdmin view of all website-training appointments (Settings → Club Websites tab).
  * Lists every appointment with its Zoom link + reschedule action (reuses the booking dialog).
  */
 
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { useCallback, useEffect, useState } from "react";
 import { Video, RefreshCw } from "@/components/icons";
 import { getAllTrainingAppointments } from "@/services/api";
@@ -31,55 +34,55 @@ export default function WebsiteTrainingAppointmentsTab() {
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h2 className="text-lg font-semibold text-slate-800">Website Training Appointments</h2>
+          <h2 className="row-h2">Website Training Appointments</h2>
           <p className="text-sm text-slate-500">All booked training sessions with their Zoom links.</p>
         </div>
-        <button onClick={load} className="inline-flex items-center gap-2 rounded-full border border-slate-300 px-3 py-1.5 text-sm hover:bg-slate-50">
+        <Button onClick={load} variant="outline" size="sm">
           <RefreshCw size={14} /> Refresh
-        </button>
+        </Button>
       </div>
 
-      <div className="overflow-x-auto rounded-xl border border-slate-200 bg-card">
-        <table className="w-full text-sm">
-          <thead className="bg-slate-50 text-slate-600">
-            <tr>
-              <th className="text-left px-4 py-2.5 font-medium">Club</th>
-              <th className="text-left px-4 py-2.5 font-medium">Date &amp; time ({appTimeZone()})</th>
-              <th className="text-left px-4 py-2.5 font-medium">Status</th>
-              <th className="text-left px-4 py-2.5 font-medium">Booked by</th>
-              <th className="text-left px-4 py-2.5 font-medium">Zoom</th>
-              <th className="text-right px-4 py-2.5 font-medium">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-100">
+      <Card className="overflow-x-auto">
+        <Table className="w-full text-sm">
+          <TableHeader>
+            <TableRow>
+              <TableHead className="text-left px-4">Club</TableHead>
+              <TableHead className="text-left px-4">Date &amp; time ({appTimeZone()})</TableHead>
+              <TableHead className="text-left px-4">Status</TableHead>
+              <TableHead className="text-left px-4">Booked by</TableHead>
+              <TableHead className="text-left px-4">Zoom</TableHead>
+              <TableHead className="text-right px-4">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody className="divide-y divide-slate-100">
             {loading ? (
-              <tr><td colSpan={6} className="px-4 py-8 text-center text-slate-400">Loading…</td></tr>
+              <TableRow><TableCell colSpan={6} className="px-4 py-8 text-center text-slate-400">Loading…</TableCell></TableRow>
             ) : rows.length === 0 ? (
-              <tr><td colSpan={6} className="px-4 py-8 text-center text-slate-400">No training appointments yet.</td></tr>
+              <TableRow><TableCell colSpan={6} className="px-4 py-8 text-center text-slate-400">No training appointments yet.</TableCell></TableRow>
             ) : rows.map((r) => (
-              <tr key={r.id} className="hover:bg-slate-50/50">
-                <td className="px-4 py-2.5 font-medium text-slate-800">{r.clubName}</td>
-                <td className="px-4 py-2.5 text-slate-600">{fmt(r.slotStart)}</td>
-                <td className="px-4 py-2.5">
-                  <span className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${r.status === "Cancelled" ? "bg-slate-100 text-slate-500" : "bg-emerald-50 text-emerald-700"}`}>{r.status}</span>
-                </td>
-                <td className="px-4 py-2.5 text-slate-600">{r.bookedByName || "–"}</td>
-                <td className="px-4 py-2.5">
+              <TableRow key={r.id} className="hover:bg-slate-50/50">
+                <TableCell className="px-4 py-2.5 font-medium text-slate-800">{r.clubName}</TableCell>
+                <TableCell className="px-4 py-2.5 text-slate-600">{fmt(r.slotStart)}</TableCell>
+                <TableCell className="px-4 py-2.5">
+                  <span className={`inline-block rounded px-2 py-0.5 text-xs font-medium ${r.status === "Cancelled" ? "bg-slate-100 text-slate-500" : "bg-emerald-50 text-emerald-700"}`}>{r.status}</span>
+                </TableCell>
+                <TableCell className="px-4 py-2.5 text-slate-600">{r.bookedByName || "–"}</TableCell>
+                <TableCell className="px-4 py-2.5">
                   {r.zoomJoinUrl ? (
                     <a href={r.zoomJoinUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-azure hover:underline">
                       <Video size={14} /> Join
                     </a>
                   ) : <span className="text-slate-400">–</span>}
-                </td>
-                <td className="px-4 py-2.5 text-right">
-                  <button onClick={() => setResc({ id: r.id, clubId: r.clubId })}
-                    className="rounded-lg border border-slate-300 px-3 py-1 text-xs hover:bg-slate-50">Reschedule</button>
-                </td>
-              </tr>
+                </TableCell>
+                <TableCell className="px-4 py-2.5 text-right">
+                  <Button onClick={() => setResc({ id: r.id, clubId: r.clubId })}
+                    variant="outline" size="sm">Reschedule</Button>
+                </TableCell>
+              </TableRow>
             ))}
-          </tbody>
-        </table>
-      </div>
+          </TableBody>
+        </Table>
+      </Card>
 
       {resc && (
         <TrainingBookingDialog

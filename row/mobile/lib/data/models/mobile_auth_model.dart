@@ -71,25 +71,6 @@ class ZoneScopeModel {
       );
 }
 
-class MobileOtpRequestResult {
-  final String message;
-  final bool sentEmail;
-  final int otpExpiresInSeconds;
-
-  const MobileOtpRequestResult({
-    required this.message,
-    required this.sentEmail,
-    required this.otpExpiresInSeconds,
-  });
-
-  factory MobileOtpRequestResult.fromJson(Map<String, dynamic> j) =>
-      MobileOtpRequestResult(
-        message: j['message']?.toString() ?? '',
-        sentEmail: j['sentEmail'] as bool? ?? false,
-        otpExpiresInSeconds: j['otpExpiresInSeconds'] as int? ?? 300,
-      );
-}
-
 class MobileVerifyOtpResult {
   final bool mustChangePassword;
   final String token;

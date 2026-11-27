@@ -5,6 +5,8 @@
  * the create / edit dialog. Used by the club and the district admin dashboards.
  */
 
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table"
+import { PageHeader } from "@/components/row/AppKit";
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { Edit, FileText, Loader2, Plus, Trash2 } from "@/components/icons";
@@ -113,22 +115,19 @@ export default function DonationCampaigns({ scope, scopeId, basePath }: { scope:
   };
 
   return (
-    <div className="space-y-6 p-6">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h2 className="text-2xl font-bold tracking-tight text-primary">Donations</h2>
-          <p className="text-base text-muted-foreground">
-            Fundraising campaigns with a goal and dates. Each has a public giving page and a QR code. Donors get a
-            receipt letter by email.
-          </p>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <Button asChild variant="outline" className="gap-1.5">
+    <div className="space-y-6">
+      <PageHeader
+        title="Donations"
+        description="Fundraising campaigns with a goal and dates. Each has a public giving page and a QR code. Donors get a receipt letter by email."
+        actions={
+          <>
+<Button asChild variant="outline">
             <Link href={`${basePath}/receipt-letter`}><FileText className="h-4 w-4" /> Receipt letter</Link>
           </Button>
-          <Button className="gap-1.5" onClick={() => open()}><Plus className="h-4 w-4" /> New campaign</Button>
-        </div>
-      </div>
+          <Button onClick={() => open()}><Plus className="h-4 w-4" /> New campaign</Button>
+          </>
+        }
+      />
 
       {!data ? (
         <div aria-busy="true"><TableSkeleton rows={4} /></div>
@@ -137,40 +136,40 @@ export default function DonationCampaigns({ scope, scopeId, basePath }: { scope:
       ) : (
         <Card>
           <CardContent className="overflow-x-auto p-0">
-            <table className="w-full min-w-[760px] text-sm">
-              <thead className="bg-[#EDF4FB] text-[13px] text-[#64748B]">
-                <tr className="border-b text-left">
-                  <th className="p-3 font-medium">Campaign</th>
-                  <th className="p-3 font-medium">Dates</th>
-                  <th className="w-56 p-3 font-medium">Raised</th>
-                  <th className="p-3 text-right font-medium">Donors</th>
-                  <th className="p-3 font-medium">Status</th>
-                  <th className="p-3"><span className="sr-only">Actions</span></th>
-                </tr>
-              </thead>
-              <tbody>
+            <Table className="w-full min-w-[760px] text-sm">
+              <TableHeader>
+                <TableRow className="border-b">
+                  <TableHead className="p-3">Campaign</TableHead>
+                  <TableHead className="p-3">Dates</TableHead>
+                  <TableHead className="w-56 p-3">Raised</TableHead>
+                  <TableHead className="p-3 text-right">Donors</TableHead>
+                  <TableHead className="p-3">Status</TableHead>
+                  <TableHead className="p-3"><span className="sr-only">Actions</span></TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
                 {data.campaigns.map((c) => (
-                  <tr key={c.id} className="border-b last:border-0">
-                    <td className="p-3">
+                  <TableRow key={c.id} className="border-b last:border-0">
+                    <TableCell className="p-3">
                       <Link href={`${basePath}/${c.id}`} className="font-medium text-primary hover:underline">{c.title}</Link>
-                    </td>
-                    <td className="p-3">{[c.startDate && fmt.date(c.startDate), c.endDate && fmt.date(c.endDate)].filter(Boolean).join(" to ") || "No end date"}</td>
-                    <td className="space-y-1 p-3">
+                    </TableCell>
+                    <TableCell className="p-3">{[c.startDate && fmt.date(c.startDate), c.endDate && fmt.date(c.endDate)].filter(Boolean).join(" to ") || "No end date"}</TableCell>
+                    <TableCell className="space-y-1 p-3">
                       <span className="block tabular-nums">
                         {fmt.money(c.progress.raised, c.currency)}{c.goalAmount > 0 ? ` of ${fmt.money(c.goalAmount, c.currency)}` : ""}
                       </span>
                       {c.goalAmount > 0 && <ProgressBar percent={c.progress.percent} />}
-                    </td>
-                    <td className="p-3 text-right tabular-nums">{fmt.number(c.progress.donors)}</td>
-                    <td className="p-3">{campaignStatus(c)}</td>
-                    <td className="p-3 text-right whitespace-nowrap">
+                    </TableCell>
+                    <TableCell className="p-3 text-right tabular-nums">{fmt.number(c.progress.donors)}</TableCell>
+                    <TableCell className="p-3">{campaignStatus(c)}</TableCell>
+                    <TableCell className="p-3 text-right whitespace-nowrap">
                       <Button variant="ghost" size="sm" aria-label={`Edit ${c.title}`} onClick={() => open(c)}><Edit className="h-4 w-4" /></Button>
                       <Button variant="ghost" size="sm" aria-label={`Delete ${c.title}`} onClick={() => remove(c)}><Trash2 className="h-4 w-4" /></Button>
-                    </td>
-                  </tr>
+                    </TableCell>
+                  </TableRow>
                 ))}
-              </tbody>
-            </table>
+              </TableBody>
+            </Table>
           </CardContent>
         </Card>
       )}
@@ -235,7 +234,7 @@ export default function DonationCampaigns({ scope, scopeId, basePath }: { scope:
               {formError && <p className="text-sm text-destructive" role="alert">{formError}</p>}
               <DialogFooter>
                 <Button type="button" variant="outline" onClick={() => setEditing(null)}>Cancel</Button>
-                <Button type="submit" disabled={busy} className="gap-1.5">{busy && <Loader2 className="h-4 w-4 animate-spin" />} Save</Button>
+                <Button type="submit" disabled={busy}>{busy && <Loader2 className="h-4 w-4 animate-spin" />} Save</Button>
               </DialogFooter>
             </form>
           )}

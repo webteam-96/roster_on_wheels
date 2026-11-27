@@ -65,17 +65,14 @@ import {
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
 import AlertModal from "@/components/AlertModal";
-import {
-  ArrowLeft, Plus, Pencil, Trash2, MoreHorizontal, ImageIcon,
-  AlertTriangle, Upload, X, Eye, EyeOff, GripVertical, Search,
-} from "@/components/icons";
+import { Plus, Pencil, Trash2, MoreHorizontal, ImageIcon, AlertTriangle, Upload, X, Eye, EyeOff, GripVertical, Search } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import Image from "next/image";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import ImageCropDialog from "@/components/ImageCropDialog";
 import DocumentOrLinkField from "@/components/website-data/DocumentOrLinkField";
 import { useImageCropUpload } from "@/hooks/useImageCropUpload";
-import { ListPageSkeleton } from "@/components/row/AppKit";
+import { PageHeader, ListPageSkeleton } from "@/components/row/AppKit";
 
 const BANNER_ASPECT = 16 / 5;
 const BANNER_MAX_WIDTH = 1920;
@@ -363,35 +360,20 @@ export default function DistrictAdminBannerPhotosPage() {
 
       <div className="space-y-6">
         {/* ── Header ─────────────────────────────────────────────── */}
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-3">
-            <button
-              type="button"
-              onClick={goBack}
-              className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 bg-card text-slate-600 hover:bg-slate-50 hover:text-slate-800"
-              aria-label="Back"
-            >
-              <ArrowLeft className="h-4 w-4" />
-            </button>
-            <div>
-              <h2 className="text-2xl font-bold tracking-tight text-ink">
-                {districtNumber ? `District ${districtNumber} · Banner Photos` : "Banner Photos"}
-              </h2>
-              <p className="text-slate-500 text-sm mt-0.5">
-                Manage district website banner photos by year
-              </p>
-            </div>
-          </div>
-          {canManage && (
+        <PageHeader
+          title={districtNumber ? `District ${districtNumber} · Banner Photos` : "Banner Photos"}
+          description="Manage district website banner photos by year"
+          back={() => goBack()}
+          actions={canManage && (
             <Button
               onClick={openAddDialog}
               disabled={!selectedYearId}
-              className="bg-azure hover:bg-mint-ink text-white"
+             
             >
               <Plus className="mr-2 h-4 w-4" />Add Banner
             </Button>
           )}
-        </div>
+        />
 
         {loading && (
           <div className="flex items-center justify-center py-20">
@@ -401,7 +383,7 @@ export default function DistrictAdminBannerPhotosPage() {
 
         {/* ── Active-count badge (year picker removed — top-bar owns year) ── */}
         {!loading && (
-          <div className="flex items-center gap-4 flex-wrap bg-card rounded-2xl border border-slate-200 shadow-sm p-4">
+          <Card className="flex items-center gap-4 flex-wrap p-5">
             {selectedYearId && !loadingBanners && (
               <Badge
                 variant={activeCount >= maxActive ? "destructive" : "secondary"}
@@ -412,7 +394,7 @@ export default function DistrictAdminBannerPhotosPage() {
                 {activeCount}/{maxActive} Active
               </Badge>
             )}
-          </div>
+          </Card>
         )}
 
         {/* Only show this secondary loader once the initial fetch is done,
@@ -425,13 +407,13 @@ export default function DistrictAdminBannerPhotosPage() {
 
         {/* ── Empty state ────────────────────────────────────────── */}
         {!loading && !loadingBanners && selectedYearId && banners.length === 0 && (
-          <div className="flex flex-col items-center justify-center py-20 text-center bg-card rounded-2xl border border-slate-200 shadow-sm">
+          <Card className="flex flex-col items-center justify-center py-20 text-center">
             <ImageIcon className="h-12 w-12 text-slate-400 mb-4" />
-            <h3 className="text-lg font-semibold text-slate-800">No banners yet</h3>
+            <h3 className="row-h2">No banners yet</h3>
             <p className="text-slate-500 mt-2">
               {canManage ? 'Click "Add Banner" to upload your first banner photo.' : "No banners have been added yet."}
             </p>
-          </div>
+          </Card>
         )}
 
         {/* ── Search + list ──────────────────────────────────────── */}
@@ -445,13 +427,13 @@ export default function DistrictAdminBannerPhotosPage() {
                   placeholder="Search banners..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-9 pr-8 border-slate-200 bg-card focus:border-azure focus:ring-azure/20 text-sm"
+                  className="pl-9 pr-8"
                 />
                 {searchQuery && (
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="absolute right-1 top-1/2 -translate-y-1/2 h-6 w-6 text-slate-500 hover:text-slate-800"
+                    className="absolute right-1 top-1/2 -translate-y-1/2 w-6 w-6 w-6 h-6 w-6"
                     onClick={() => setSearchQuery("")}
                   >
                     <X className="h-3 w-3" />
@@ -469,7 +451,7 @@ export default function DistrictAdminBannerPhotosPage() {
               {filteredBanners.map((banner, idx) => {
                 const photoUrl = getPhotoUrl(banner.bannerImagePath);
                 return (
-                  <Card key={banner.id} className="rounded-2xl border border-slate-200 shadow-sm bg-card relative">
+                  <Card key={banner.id} className="row-rise relative">
                     {canManage && !isSearching && (
                       <div
                         {...dragProps(idx)}
@@ -504,7 +486,7 @@ export default function DistrictAdminBannerPhotosPage() {
                         {canManage && (
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-500 hover:text-slate-800 hover:bg-slate-100">
+                              <Button aria-label="More actions" variant="ghost" size="icon" className="row-btn-sm">
                                 <MoreHorizontal className="h-4 w-4" />
                               </Button>
                             </DropdownMenuTrigger>
@@ -529,18 +511,18 @@ export default function DistrictAdminBannerPhotosPage() {
             </div>
 
             {/* ── Desktop: table ─────────────────────────────────── */}
-            <div className="hidden sm:block rounded-2xl border border-slate-200 shadow-sm overflow-hidden bg-card">
+            <Card className="hidden sm:block overflow-hidden">
               <Table>
                 <TableHeader>
                   <TableRow
                     className="hover:opacity-100 border-b-2 border-marigold"
                     style={{ backgroundColor: "#17458f" }}
                   >
-                    <TableHead className="w-24 text-xs font-semibold uppercase tracking-wide">Thumbnail</TableHead>
-                    <TableHead className="text-xs font-semibold uppercase tracking-wide">Description</TableHead>
-                    <TableHead className="w-24 text-xs font-semibold uppercase tracking-wide">Status</TableHead>
+                    <TableHead className="w-24">Thumbnail</TableHead>
+                    <TableHead>Description</TableHead>
+                    <TableHead className="w-24">Status</TableHead>
                     {canManage && <TableHead className="w-12/90"></TableHead>}
-                    {canManage && <TableHead className="w-20 text-xs font-semibold uppercase tracking-wide text-center">Sorting</TableHead>}
+                    {canManage && <TableHead className="w-20 text-center">Sorting</TableHead>}
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -574,7 +556,7 @@ export default function DistrictAdminBannerPhotosPage() {
                           <TableCell>
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-500 hover:text-slate-800 hover:bg-slate-100">
+                                <Button aria-label="More actions" variant="ghost" size="icon" className="row-btn-sm">
                                   <MoreHorizontal className="h-4 w-4" />
                                 </Button>
                               </DropdownMenuTrigger>
@@ -606,7 +588,7 @@ export default function DistrictAdminBannerPhotosPage() {
                   })}
                 </TableBody>
               </Table>
-            </div>
+            </Card>
             </>
             )}
           </>
@@ -635,7 +617,7 @@ export default function DistrictAdminBannerPhotosPage() {
                     <Button
                       type="button"
                       variant="outline"
-                      className="w-full h-24 border-dashed border-slate-300 text-slate-600 hover:bg-slate-50"
+                      className="w-full h-24"
                       onClick={() => fileInputRef.current?.click()}
                     >
                       <div className="flex flex-col items-center gap-1">
@@ -665,14 +647,14 @@ export default function DistrictAdminBannerPhotosPage() {
                   onChange={(e) => setFormDescription(e.target.value.slice(0, 500))}
                   rows={2}
                   maxLength={500}
-                  className="border-slate-200 bg-card focus:border-azure focus:ring-azure/20"
+                 
                 />
                 <p className="text-xs text-slate-400 text-right">{formDescription.length}/500</p>
               </div>
               <div className="space-y-2">
                 <Label className="text-slate-600 text-sm">Status</Label>
                 <Select value={formIsActive} onValueChange={setFormIsActive}>
-                  <SelectTrigger className="border-slate-200 bg-card focus:border-azure focus:ring-azure/20"><SelectValue /></SelectTrigger>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="1">Active</SelectItem>
                     <SelectItem value="0">Inactive</SelectItem>
@@ -683,7 +665,7 @@ export default function DistrictAdminBannerPhotosPage() {
                 <div className="space-y-2">
                   <Label className="text-slate-600 text-sm">Rotary Year</Label>
                   <Select value={formYearId} onValueChange={setFormYearId}>
-                    <SelectTrigger className="border-slate-200 bg-card focus:border-azure focus:ring-azure/20"><SelectValue placeholder="Select a year" /></SelectTrigger>
+                    <SelectTrigger><SelectValue placeholder="Select a year" /></SelectTrigger>
                     <SelectContent>
                       {allRotaryYears.map((y) => (
                         <SelectItem key={y.id} value={String(y.id)}>{y.yearLabel}{y.isCurrent ? " (Current)" : ""}</SelectItem>
@@ -698,14 +680,14 @@ export default function DistrictAdminBannerPhotosPage() {
                 variant="outline"
                 onClick={() => setDialogOpen(false)}
                 disabled={saving}
-                className="border-slate-200 text-slate-700 hover:bg-slate-50"
+               
               >
                 Cancel
               </Button>
               <Button
                 onClick={handleSave}
                 disabled={saving || !formImagePath}
-                className="bg-azure hover:bg-mint-ink text-white"
+               
               >
                 {saving ? "Saving..." : editingBanner ? "Update" : "Add"}
               </Button>

@@ -1,4 +1,5 @@
 "use client";
+import { LinkButton } from "@/components/ui/text-buttons";
 
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useParams } from "next/navigation";
@@ -20,12 +21,11 @@ import SearchBox from "@/components/SearchBox";
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
 import AlertModal from "@/components/AlertModal";
-import { ArrowLeft, Plus, Pencil, Trash2, MoreHorizontal, Users, User, Search, AlertTriangle, X, Eye } from "@/components/icons";
+import { Plus, Pencil, Trash2, MoreHorizontal, Users, User, Search, AlertTriangle, X, Eye } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
-import Link from "next/link";
 import Image from "next/image";
 import ProtectedRoute from "@/components/ProtectedRoute";
-import { ListPageSkeleton } from "@/components/row/AppKit";
+import { PageHeader, ListPageSkeleton } from "@/components/row/AppKit";
 
 export default function DistrictSubGroupsPage() {
   const params = useParams();
@@ -139,16 +139,12 @@ export default function DistrictSubGroupsPage() {
   return (
     <ProtectedRoute>
       <div className="space-y-6">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-3">
-            <Button variant="outline" size="icon" asChild><Link href={`/districts/${districtId}/dashboard`}><ArrowLeft className="h-4 w-4" /></Link></Button>
-            <div>
-              <h2 className="text-2xl font-bold tracking-tight text-primary">{districtName ? `${districtName} - Sub Groups` : "Sub Groups"}</h2>
-              <p className="text-muted-foreground text-base">Manage district sub groups and their members</p>
-            </div>
-          </div>
-          {canManage && !loading && selectedYearId && <Button onClick={openAddDialog}><Plus className="mr-2 h-4 w-4" />Add Sub Group</Button>}
-        </div>
+        <PageHeader
+          title={districtName ? `${districtName} - Sub Groups` : "Sub Groups"}
+          description="Manage district sub groups and their members"
+          back={`/districts/${districtId}/dashboard`}
+          actions={canManage && !loading && selectedYearId && <Button onClick={openAddDialog}><Plus className="mr-2 h-4 w-4" />Add Sub Group</Button>}
+        />
 
         {loading && <div className="flex items-center justify-center py-20"><ListPageSkeleton /></div>}
         {!loading && allYears.length > 0 && (
@@ -162,28 +158,28 @@ export default function DistrictSubGroupsPage() {
 
         {loadingGroups && <div className="flex items-center justify-center py-12"><ListPageSkeleton /></div>}
         {!loading && !loadingGroups && selectedYearId && groups.length === 0 && (
-          <div className="flex flex-col items-center justify-center py-20 text-center"><Users className="h-12 w-12 text-muted-foreground mb-4" /><h3 className="text-lg font-semibold">No sub groups found</h3></div>
+          <div className="flex flex-col items-center justify-center py-20 text-center"><Users className="h-12 w-12 text-muted-foreground mb-4" /><h3 className="row-h2">No sub groups found</h3></div>
         )}
         {!loading && !loadingGroups && groups.length > 0 && <SearchBox value={searchQuery} onChange={setSearchQuery} placeholder="Search by group name..." />}
 
         {!loading && !loadingGroups && filteredGroups.length > 0 && (
-          <div className="rounded-md border">
+          <Card className="overflow-hidden">
             <Table>
               <TableHeader>
-                <TableRow className="bg-primary hover:bg-primary">
-                  <TableHead className="text-base font-semibold">Group Name</TableHead>
-                  <TableHead className="text-base font-semibold text-center">Members</TableHead>
+                <TableRow>
+                  <TableHead>Group Name</TableHead>
+                  <TableHead className="text-center">Members</TableHead>
                   <TableHead className="w-12"></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredGroups.map((group) => (
                   <TableRow key={group.id} className="hover:bg-primary/5 transition-colors">
-                    <TableCell><button className="font-semibold text-primary hover:underline text-left" onClick={() => openViewDialog(group)}>{group.groupName}</button></TableCell>
+                    <TableCell><LinkButton className="text-left" onClick={() => openViewDialog(group)}>{group.groupName}</LinkButton></TableCell>
                     <TableCell className="text-center"><Badge variant="secondary"><Users className="mr-1 h-3 w-3" />{group.memberCount}</Badge></TableCell>
                     <TableCell>
                       <DropdownMenu>
-                        <DropdownMenuTrigger asChild><Button variant="ghost" size="icon" className="h-8 w-8"><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger>
+                        <DropdownMenuTrigger asChild><Button aria-label="More actions" variant="ghost" size="icon" className="row-btn-sm"><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                           <DropdownMenuItem onClick={() => openViewDialog(group)}><Eye className="mr-2 h-4 w-4" />View Members</DropdownMenuItem>
                           {canManage && <>
@@ -197,7 +193,7 @@ export default function DistrictSubGroupsPage() {
                 ))}
               </TableBody>
             </Table>
-          </div>
+          </Card>
         )}
 
         {/* Add/Edit Dialog */}
@@ -220,7 +216,7 @@ export default function DistrictSubGroupsPage() {
                     <div className="border rounded-md flex flex-col overflow-hidden">
                       <div className="px-3 py-2 border-b bg-muted/50">
                         <div className="flex items-center justify-between mb-2"><span className="text-sm font-semibold">Available Members</span><span className="text-xs text-muted-foreground">{availableMembers.length} available</span></div>
-                        <div className="relative"><Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" /><Input placeholder="Search..." value={memberSearchQuery} onChange={(e) => setMemberSearchQuery(e.target.value)} className="pl-8 h-8 text-sm" />{memberSearchQuery && <Button variant="ghost" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 h-5 w-5" onClick={() => setMemberSearchQuery("")}><X className="h-3 w-3" /></Button>}</div>
+                        <div className="relative"><Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" /><Input placeholder="Search..." value={memberSearchQuery} onChange={(e) => setMemberSearchQuery(e.target.value)} className="row-field-sm pl-8" />{memberSearchQuery && <Button variant="ghost" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 h-5 w-5 h-5 w-5 h-5 w-5 h-5 w-5" onClick={() => setMemberSearchQuery("")}><X className="h-3 w-3" /></Button>}</div>
                       </div>
                       {availableMembers.length > 0 && <div className="px-3 py-1.5 border-b flex items-center gap-2"><Checkbox id="selectAll" checked={availableMembers.length > 0 && availableMembers.every((m) => selectedMemberIds.has(m.memberId))} onCheckedChange={(checked) => selectAllAvailable(!!checked)} /><label htmlFor="selectAll" className="text-xs font-medium cursor-pointer">Select All ({availableMembers.length})</label></div>}
                       <div className="flex-1 overflow-y-auto max-h-[280px]">
@@ -239,7 +235,7 @@ export default function DistrictSubGroupsPage() {
                       </div>
                     </div>
                     <div className="border rounded-md flex flex-col overflow-hidden">
-                      <div className="px-3 py-2 border-b bg-muted/50 flex items-center justify-between"><span className="text-sm font-semibold">Selected Members</span><Badge variant="secondary" className="text-xs">{selectedMemberIds.size} selected</Badge></div>
+                      <div className="px-3 py-2 border-b bg-muted/50 flex items-center justify-between"><span className="text-sm font-semibold">Selected Members</span><Badge variant="secondary">{selectedMemberIds.size} selected</Badge></div>
                       <div className="flex-1 overflow-y-auto max-h-[324px]">
                         {selectedMembers.length === 0 ? <div className="flex items-center justify-center py-8 text-sm text-muted-foreground">No members selected</div> :
                           selectedMembers.map((member) => {
@@ -248,7 +244,7 @@ export default function DistrictSubGroupsPage() {
                               <div key={member.memberId} className="flex items-center gap-2 px-3 py-2 border-b last:border-b-0">
                                 <div className="relative h-7 w-7 flex-shrink-0 overflow-hidden rounded-full bg-muted">{photoUrl ? <Image src={photoUrl} alt={member.memberName} fill className="object-cover" unoptimized /> : <div className="flex h-full w-full items-center justify-center bg-primary/10 text-primary"><User className="h-3.5 w-3.5" /></div>}</div>
                                 <span className="text-sm font-medium flex-1 truncate">{member.memberName}</span>
-                                <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground hover:text-destructive" onClick={() => removeMember(member.memberId)}><X className="h-3.5 w-3.5" /></Button>
+                                <Button variant="ghost" size="icon" className="w-6 text-muted-foreground row-btn-sm" onClick={() => removeMember(member.memberId)}><X className="h-3.5 w-3.5" /></Button>
                               </div>
                             );
                           })

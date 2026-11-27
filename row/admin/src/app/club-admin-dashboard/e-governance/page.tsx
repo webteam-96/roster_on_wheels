@@ -1,5 +1,7 @@
 "use client";
 
+import { LinkButton } from "@/components/ui/text-buttons"
+import PillTabs from "@/components/row/PillTabs";
 import { useFeatureOn } from "@/components/FeatureGate";
 import { useState } from "react";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
@@ -79,12 +81,11 @@ export default function ClubAdminEGovernancePage() {
     return (
       <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700 flex items-center justify-between">
         <span>Failed to load e-governance data.</span>
-        <button
+        <LinkButton tone="danger" size="sm"
           onClick={() => refresh()}
-          className="text-xs font-semibold text-red-700 underline"
         >
           Retry
-        </button>
+        </LinkButton>
       </div>
     );
   }
@@ -130,25 +131,6 @@ function useEGovTabsOn(): Record<EGovTab, boolean> {
 function EGovTabBar({ active, onChange }: { active: EGovTab; onChange: (k: EGovTab) => void }) {
   const tabOn = useEGovTabsOn();
   return (
-    <div className="overflow-x-auto">
-      <div
-        className="inline-flex items-center gap-1 rounded-full p-1.5 bg-muted"
-      >
-        {EGOV_TABS.filter((t) => tabOn[t.key]).map((t) => {
-          const isActive = active === t.key;
-          return (
-            <button
-              key={t.key}
-              onClick={() => onChange(t.key)}
-              className={`inline-flex h-9 items-center px-4 text-sm font-semibold rounded-full whitespace-nowrap transition-colors ${
-                isActive ? "bg-card text-foreground ring-1 ring-[color:var(--row-line)]" : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              {t.label}
-            </button>
-          );
-        })}
-      </div>
-    </div>
+    <PillTabs items={EGOV_TABS.filter((t) => tabOn[t.key])} active={active} onChange={onChange} />
   );
 }

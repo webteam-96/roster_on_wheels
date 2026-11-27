@@ -16,8 +16,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useParams, useSearchParams } from "next/navigation";
-import Link from "next/link";
-import { AlertTriangle, ArrowLeft, Image as ImageIcon, Trash2, Upload } from "@/components/icons";
+import { AlertTriangle, Image as ImageIcon, Trash2, Upload } from "@/components/icons";
 import AlertModal from "@/components/AlertModal";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -29,7 +28,7 @@ import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
 import ImageCropDialog from "@/components/ImageCropDialog";
 import { useImageCropUpload } from "@/hooks/useImageCropUpload";
-import { ListPageSkeleton } from "@/components/row/AppKit";
+import { PageHeader, ListPageSkeleton } from "@/components/row/AppKit";
 
 // Per-logo crop targets:
 //   • Club Logo   → SQUARE (1:1) — typical circular/square club emblem.
@@ -179,18 +178,7 @@ export default function ClubWebsiteLogosPage() {
           confirmLabel="Remove" confirmClassName="bg-destructive text-destructive-foreground hover:bg-destructive/90" cancelLabel="Cancel"
           onConfirm={() => { const w = removing; setRemoving(null); if (w) handleRemove(w); }} />
 
-        <div className="flex items-center gap-3">
-          <Button variant="outline" size="icon" asChild>
-            <Link href={returnTo}><ArrowLeft className="h-4 w-4" /></Link>
-          </Button>
-          <div>
-            <h2 className="text-2xl font-bold text-primary">Logos</h2>
-            <p className="text-muted-foreground">
-              <strong>Club Logo</strong>: square (1:1), saved at 900×900 for retina.{" "}
-              <strong>Rotary Logo</strong>: horizontal (3.75:1), saved at 900×240 to fit the website's 300×80 header slot.
-            </p>
-          </div>
-        </div>
+        <PageHeader title="Logos" description={<><strong>Club Logo</strong>: square (1:1), saved at 900×900 for retina.{" "} <strong>Rotary Logo</strong>: horizontal (3.75:1), saved at 900×240 to fit the website's 300×80 header slot.</>} back={returnTo} />
 
         {loading ? (
           <div className="flex justify-center py-20"><ListPageSkeleton /></div>

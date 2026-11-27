@@ -1,5 +1,8 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
+import { Download } from "@/components/icons";
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { getClubDuesReport } from "@/services/api";
@@ -231,86 +234,82 @@ export default function ClubDuesReportPage() {
 
       {/* Actions */}
       <div className="max-w-7xl mx-auto px-4 py-4 flex justify-end">
-        <button
+        <Button
           onClick={() => downloadCSV(dues.purpose || "District Dues", clubs)}
-          className="inline-flex items-center gap-2 px-4 py-2 bg-azure text-white rounded-full hover:bg-mint-ink transition-colors text-sm font-medium"
+          type="button"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-            <polyline points="7 10 12 15 17 10" />
-            <line x1="12" y1="15" x2="12" y2="3" />
-          </svg>
+          <Download className="h-4 w-4" aria-hidden />
           Download Report
-        </button>
+        </Button>
       </div>
 
       {/* Table */}
       <div className="max-w-7xl mx-auto px-4 pb-8">
         <div className="bg-card rounded-lg shadow overflow-x-auto">
-          <table className="w-full min-w-[640px] md:min-w-full text-sm">
-            <thead className="bg-[#EDF4FB] text-[13px] text-[#64748B]">
-              <tr className="bg-azure text-white">
-                <th className="px-3 py-3 text-left font-medium whitespace-nowrap">Sr.No</th>
-                <th className="px-3 py-3 text-left font-medium whitespace-nowrap">Club</th>
-                <th className="px-3 py-3 text-center font-medium whitespace-nowrap">Members</th>
-                <th className="px-3 py-3 text-right font-medium whitespace-nowrap">Offline Rate</th>
-                <th className="px-3 py-3 text-right font-medium whitespace-nowrap">Offline Amount</th>
-                <th className="px-3 py-3 text-right font-medium whitespace-nowrap">Offline Paid</th>
-                <th className="px-3 py-3 text-right font-medium whitespace-nowrap">Offline Pending</th>
-                <th className="px-3 py-3 text-right font-medium whitespace-nowrap">Online Rate</th>
-                <th className="px-3 py-3 text-right font-medium whitespace-nowrap">Online Amount</th>
-                <th className="px-3 py-3 text-right font-medium whitespace-nowrap">Online Paid</th>
-                <th className="px-3 py-3 text-right font-medium whitespace-nowrap">Online Pending</th>
-                <th className="px-3 py-3 text-right font-medium whitespace-nowrap">Total Paid</th>
-                <th className="px-3 py-3 text-center font-medium whitespace-nowrap">Status</th>
-                <th className="px-3 py-3 text-center font-medium whitespace-nowrap">Payment Mode</th>
-                <th className="px-3 py-3 text-left font-medium whitespace-nowrap">Offline Account</th>
-                <th className="px-3 py-3 text-left font-medium whitespace-nowrap">Offline Mode</th>
-                <th className="px-3 py-3 text-left font-medium whitespace-nowrap">Offline Reference No</th>
-                <th className="px-3 py-3 text-left font-medium whitespace-nowrap">Offline Remark</th>
-                <th className="px-3 py-3 text-left font-medium whitespace-nowrap">Offline Payment Date</th>
-              </tr>
-            </thead>
-            <tbody>
+          <Table bare className="min-w-[640px] md:min-w-full">
+            <TableHeader className="bg-muted text-[13px] text-muted-foreground">
+              <TableRow>
+                <TableHead className="px-3 py-3 text-left font-medium whitespace-nowrap">Sr.No</TableHead>
+                <TableHead className="px-3 py-3 text-left font-medium whitespace-nowrap">Club</TableHead>
+                <TableHead className="px-3 py-3 text-center font-medium whitespace-nowrap">Members</TableHead>
+                <TableHead className="px-3 py-3 text-right font-medium whitespace-nowrap">Offline Rate</TableHead>
+                <TableHead className="px-3 py-3 text-right font-medium whitespace-nowrap">Offline Amount</TableHead>
+                <TableHead className="px-3 py-3 text-right font-medium whitespace-nowrap">Offline Paid</TableHead>
+                <TableHead className="px-3 py-3 text-right font-medium whitespace-nowrap">Offline Pending</TableHead>
+                <TableHead className="px-3 py-3 text-right font-medium whitespace-nowrap">Online Rate</TableHead>
+                <TableHead className="px-3 py-3 text-right font-medium whitespace-nowrap">Online Amount</TableHead>
+                <TableHead className="px-3 py-3 text-right font-medium whitespace-nowrap">Online Paid</TableHead>
+                <TableHead className="px-3 py-3 text-right font-medium whitespace-nowrap">Online Pending</TableHead>
+                <TableHead className="px-3 py-3 text-right font-medium whitespace-nowrap">Total Paid</TableHead>
+                <TableHead className="px-3 py-3 text-center font-medium whitespace-nowrap">Status</TableHead>
+                <TableHead className="px-3 py-3 text-center font-medium whitespace-nowrap">Payment Mode</TableHead>
+                <TableHead className="px-3 py-3 text-left font-medium whitespace-nowrap">Offline Account</TableHead>
+                <TableHead className="px-3 py-3 text-left font-medium whitespace-nowrap">Offline Mode</TableHead>
+                <TableHead className="px-3 py-3 text-left font-medium whitespace-nowrap">Offline Reference No</TableHead>
+                <TableHead className="px-3 py-3 text-left font-medium whitespace-nowrap">Offline Remark</TableHead>
+                <TableHead className="px-3 py-3 text-left font-medium whitespace-nowrap">Offline Payment Date</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
               {clubs.length === 0 ? (
-                <tr><td colSpan={19} className="px-3 py-8 text-center text-gray-500">No clubs found.</td></tr>
+                <TableRow><TableCell colSpan={19} className="px-3 py-8 text-center text-gray-500">No clubs found.</TableCell></TableRow>
               ) : (
                 clubs.map((c, idx) => {
                   const [offMode, offRef, offRemark, offDate] = offlineCells(c);
                   const offAmounts = offlineAmountCells(c);
                   const onAmounts = onlineAmountCells(c);
                   return (
-                  <tr key={c.clubDuesClubId} className="border-b border-gray-100 hover:bg-gray-50">
-                    <td className="px-3 py-2.5 whitespace-nowrap">{idx + 1}</td>
-                    <td className="px-3 py-2.5 whitespace-nowrap font-medium">
+                  <TableRow key={c.clubDuesClubId}>
+                    <TableCell className="px-3 py-2.5 whitespace-nowrap">{idx + 1}</TableCell>
+                    <TableCell className="px-3 py-2.5 whitespace-nowrap font-medium">
                       {c.clubName || "-"}
                       {!c.isSyncedFromRotaryOrg && <span className="ml-2 text-xs rounded bg-amber-100 text-amber-700 px-1.5 py-0.5">non-sync</span>}
-                    </td>
-                    <td className="px-3 py-2.5 whitespace-nowrap text-center">{c.memberCount}</td>
-                    <td className="px-3 py-2.5 whitespace-nowrap text-right">{offAmounts ? `${cur}${fmtAmt(offAmounts[0])}` : "-"}</td>
-                    <td className="px-3 py-2.5 whitespace-nowrap text-right">{offAmounts ? `${cur}${fmtAmt(offAmounts[1])}` : "-"}</td>
-                    <td className="px-3 py-2.5 whitespace-nowrap text-right">{offAmounts ? `${cur}${fmtAmt(offAmounts[2])}` : "-"}</td>
-                    <td className="px-3 py-2.5 whitespace-nowrap text-right">{offAmounts ? `${cur}${fmtAmt(offAmounts[3])}` : "-"}</td>
-                    <td className="px-3 py-2.5 whitespace-nowrap text-right">{onAmounts ? `${cur}${fmtAmt(onAmounts[0])}` : "-"}</td>
-                    <td className="px-3 py-2.5 whitespace-nowrap text-right">{onAmounts ? `${cur}${fmtAmt(onAmounts[1])}` : "-"}</td>
-                    <td className="px-3 py-2.5 whitespace-nowrap text-right">{onAmounts ? `${cur}${fmtAmt(onAmounts[2])}` : "-"}</td>
-                    <td className="px-3 py-2.5 whitespace-nowrap text-right">{onAmounts ? `${cur}${fmtAmt(onAmounts[3])}` : "-"}</td>
-                    <td className="px-3 py-2.5 whitespace-nowrap text-right">{cur}{fmtAmt(totalPaid(c))}</td>
-                    <td className="px-3 py-2.5 whitespace-nowrap text-center">
+                    </TableCell>
+                    <TableCell className="px-3 py-2.5 whitespace-nowrap text-center">{c.memberCount}</TableCell>
+                    <TableCell className="px-3 py-2.5 whitespace-nowrap text-right">{offAmounts ? `${cur}${fmtAmt(offAmounts[0])}` : "-"}</TableCell>
+                    <TableCell className="px-3 py-2.5 whitespace-nowrap text-right">{offAmounts ? `${cur}${fmtAmt(offAmounts[1])}` : "-"}</TableCell>
+                    <TableCell className="px-3 py-2.5 whitespace-nowrap text-right">{offAmounts ? `${cur}${fmtAmt(offAmounts[2])}` : "-"}</TableCell>
+                    <TableCell className="px-3 py-2.5 whitespace-nowrap text-right">{offAmounts ? `${cur}${fmtAmt(offAmounts[3])}` : "-"}</TableCell>
+                    <TableCell className="px-3 py-2.5 whitespace-nowrap text-right">{onAmounts ? `${cur}${fmtAmt(onAmounts[0])}` : "-"}</TableCell>
+                    <TableCell className="px-3 py-2.5 whitespace-nowrap text-right">{onAmounts ? `${cur}${fmtAmt(onAmounts[1])}` : "-"}</TableCell>
+                    <TableCell className="px-3 py-2.5 whitespace-nowrap text-right">{onAmounts ? `${cur}${fmtAmt(onAmounts[2])}` : "-"}</TableCell>
+                    <TableCell className="px-3 py-2.5 whitespace-nowrap text-right">{onAmounts ? `${cur}${fmtAmt(onAmounts[3])}` : "-"}</TableCell>
+                    <TableCell className="px-3 py-2.5 whitespace-nowrap text-right">{cur}{fmtAmt(totalPaid(c))}</TableCell>
+                    <TableCell className="px-3 py-2.5 whitespace-nowrap text-center">
                       <span className={`text-xs font-medium px-2 py-0.5 rounded ${statusClasses(c.status)}`}>{reportStatus(c.status) || "-"}</span>
-                    </td>
-                    <td className="px-3 py-2.5 whitespace-nowrap text-center">{paymentMode(c) || "-"}</td>
-                    <td className="px-3 py-2.5 whitespace-nowrap">{c.paidOnline === false ? (c.offlineAccountLabel || "-") : "-"}</td>
-                    <td className="px-3 py-2.5 whitespace-nowrap">{offMode || "-"}</td>
-                    <td className="px-3 py-2.5 whitespace-nowrap">{offRef || "-"}</td>
-                    <td className="px-3 py-2.5">{offRemark || "-"}</td>
-                    <td className="px-3 py-2.5 whitespace-nowrap">{offDate || "-"}</td>
-                  </tr>
+                    </TableCell>
+                    <TableCell className="px-3 py-2.5 whitespace-nowrap text-center">{paymentMode(c) || "-"}</TableCell>
+                    <TableCell className="px-3 py-2.5 whitespace-nowrap">{c.paidOnline === false ? (c.offlineAccountLabel || "-") : "-"}</TableCell>
+                    <TableCell className="px-3 py-2.5 whitespace-nowrap">{offMode || "-"}</TableCell>
+                    <TableCell className="px-3 py-2.5 whitespace-nowrap">{offRef || "-"}</TableCell>
+                    <TableCell className="px-3 py-2.5">{offRemark || "-"}</TableCell>
+                    <TableCell className="px-3 py-2.5 whitespace-nowrap">{offDate || "-"}</TableCell>
+                  </TableRow>
                   );
                 })
               )}
-            </tbody>
-          </table>
+            </TableBody>
+          </Table>
         </div>
 
         {clubs.length > 0 && (

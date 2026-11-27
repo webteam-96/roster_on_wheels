@@ -2,6 +2,7 @@
 
 // Meal charges (DACdb parity): club default price, price per meeting, diners marked from the meeting's attendance
 // with guests as named lines on the host, and billing as invoice lines (monthly, or onto the open invoice).
+import { NativeSelect } from "@/components/ui/native-select";
 import { useCallback, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,12 +11,13 @@ import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ErrorState, SkeletonRows } from "@/components/row/AppKit";
+import { LinkButton } from "@/components/ui/text-buttons"
 import {
   billMeals, getMealMeeting, getMealMeetings, getMealSettings, saveMealDiners, saveMealSettings,
   type MealMeetingDetail, type MealMeetingRow,
 } from "@/services/api";
 
-const SELECT = "w-full border border-input bg-background rounded-md h-9 px-2 text-sm";
+const SELECT = "row-field w-full";
 
 function errText(e: unknown, fallback: string): string {
   const m = (e as { response?: { data?: { message?: string } } })?.response?.data?.message;
@@ -71,10 +73,10 @@ export default function MealsTab({ clubId, today, money, onBilled }: Props) {
         <div className="ml-auto flex flex-wrap items-end gap-3">
           <div><Label htmlFor="m-month">Bill month</Label><Input id="m-month" type="month" value={month} onChange={(e) => setMonth(e.target.value)} /></div>
           <div className="w-60"><Label htmlFor="m-mode">How</Label>
-            <select id="m-mode" className={SELECT} value={mode} onChange={(e) => setMode(e.target.value as "monthly" | "open")}>
+            <NativeSelect id="m-mode"  value={mode} onChange={(e) => setMode(e.target.value as "monthly" | "open")}>
               <option value="monthly">One invoice per member for the month</option>
               <option value="open">Add to the member&apos;s open invoice</option>
-            </select></div>
+            </NativeSelect></div>
           <Button disabled={busy || !month} onClick={bill}>Bill meals</Button>
         </div>
       </section>
@@ -100,8 +102,8 @@ export default function MealsTab({ clubId, today, money, onBilled }: Props) {
                     <TableCell>{m.eventDate}</TableCell><TableCell>{m.eventName}</TableCell>
                     <TableCell className="text-right">{m.meetingPrice != null ? money(m.meetingPrice) : defaultPrice ? `${money(Number(defaultPrice))} (default)` : "Not set"}</TableCell>
                     <TableCell className="text-right">{m.diners}</TableCell><TableCell className="text-right">{m.billed}</TableCell>
-                    <TableCell><button type="button" className="underline" onClick={() => setOpenId(openId === m.attendanceId ? null : m.attendanceId)}>
-                      {openId === m.attendanceId ? "Close" : "Mark diners"}</button></TableCell>
+                    <TableCell><LinkButton type="button" onClick={() => setOpenId(openId === m.attendanceId ? null : m.attendanceId)}>
+                      {openId === m.attendanceId ? "Close" : "Mark diners"}</LinkButton></TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -157,9 +159,9 @@ function DinersPanel({ clubId, attendanceId, money, onSaved }: { clubId: number;
   const effective = price !== "" ? Number(price) : detail.defaultPrice;
   const count = rows.reduce((n, r) => n + (r.ate ? 1 : 0) + r.guests.split(",").filter((g) => g.trim()).length, 0);
   return (
-    <section className="space-y-3 rounded-[20px] border border-[color:var(--row-line)] p-5">
+    <section className="space-y-3 rounded-xl border border-[color:var(--row-line)] p-5">
       <div className="flex flex-wrap items-end gap-3">
-        <h3 className="mr-auto text-lg font-semibold">{detail.meeting.eventName}, {detail.meeting.eventDate}</h3>
+        <h3 className="row-h2 mr-auto">{detail.meeting.eventName}, {detail.meeting.eventDate}</h3>
         <div className="w-44"><Label htmlFor="d-price">Price for this meeting</Label>
           <Input id="d-price" type="number" min="0" step="0.01" placeholder={detail.defaultPrice != null ? `Default ${detail.defaultPrice}` : "Not set"}
             value={price} onChange={(e) => setPrice(e.target.value)} /></div>

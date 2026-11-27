@@ -20,6 +20,8 @@ import 'package:rotary_flutter_app/core/utils/money_format.dart';
 import 'package:rotary_flutter_app/core/theme/app_fonts.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
 import 'package:rotary_flutter_app/presentation/widgets/row/skeleton_list.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/motion.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/roster_wheel.dart';
 
 bool _asBool(dynamic v) {
   if (v is bool) return v;
@@ -307,6 +309,7 @@ class _ClubInfoScreenState extends State<ClubInfoScreen> {
           suffixIcon: _searchQuery.isEmpty
               ? null
               : IconButton(
+                  tooltip: 'Close',
                   splashRadius: 18,
                   icon: const Icon(Icons.close_rounded,
                       size: 18, color: AppColors.textMuted),
@@ -384,6 +387,7 @@ class _ClubInfoHeaderState extends State<_ClubInfoHeader> {
             children: [
               if (widget.onBack != null)
                 IconButton(
+                  tooltip: MaterialLocalizations.of(context).backButtonTooltip,
                   icon: const Icon(
                     Icons.arrow_back_ios_new_rounded,
                     size: 20,
@@ -871,10 +875,10 @@ class _RotariansTabState extends State<_RotariansTab>
     }
     // Search now runs server-side, so paging more results in-search is valid.
     final showLoadMore = _hasMore;
-    return RefreshIndicator(
+    return RowRefresh(
       color: AppColors.primary,
       onRefresh: _fetch,
-      child: ListView.separated(
+      child: RowListView.separated(
         padding: const EdgeInsets.all(12),
         itemCount: _items.length + (showLoadMore ? 1 : 0),
         separatorBuilder: (_, __) => const SizedBox(height: 8),
@@ -1218,12 +1222,12 @@ class _BodTabState extends State<_BodTab> with AutomaticKeepAliveClientMixin {
         subtitle: 'No directors match "${widget.searchQuery}".',
       );
     }
-    return RefreshIndicator(
+    return RowRefresh(
       color: AppColors.primary,
       onRefresh: () => _selectedYearId != null
           ? _fetchDirectors(_selectedYearId!)
           : Future.value(),
-      child: ListView.separated(
+      child: RowListView.separated(
         padding: const EdgeInsets.all(12),
         itemCount: filtered.length,
         separatorBuilder: (_, __) => const SizedBox(height: 8),
@@ -1543,7 +1547,7 @@ class _CommunicationTabState extends State<_CommunicationTab>
       );
     }
 
-    return RefreshIndicator(
+    return RowRefresh(
       color: AppColors.primary,
       onRefresh: _fetch,
       child: ListView(
@@ -2152,10 +2156,10 @@ class _ProjectsTabState extends State<_ProjectsTab>
         subtitle: 'No projects match "${widget.searchQuery}".',
       );
     }
-    return RefreshIndicator(
+    return RowRefresh(
       color: AppColors.primary,
       onRefresh: _fetch,
-      child: GridView.count(
+      child: RowGridView.count(
         padding: const EdgeInsets.all(12),
         crossAxisCount: 2,
         crossAxisSpacing: 8,
@@ -2897,7 +2901,7 @@ class _ProjectDetailPageState extends State<_ProjectDetailPage> {
             ? const LoadingWidget()
             : p == null
                 ? _errorState()
-                : RefreshIndicator(
+                : RowRefresh(
                     onRefresh: _fetch,
                     child: ListView(
                       padding: EdgeInsets.zero,

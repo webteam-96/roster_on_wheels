@@ -156,6 +156,7 @@ export {
   PencilIcon as Pencil,
   PercentIcon as Percent,
   PhoneIcon as Phone,
+  QrCodeIcon as QrCode,
   PhoneCallIcon as PhoneCall,
   ChartPieIcon as PieChart,
   PlayIcon as Play,

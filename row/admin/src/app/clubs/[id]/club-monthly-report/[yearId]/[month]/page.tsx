@@ -1,4 +1,6 @@
 "use client";
+import { MenuItemButton } from "@/components/ui/text-buttons";
+import { PageHeader } from "@/components/row/AppKit";
 import { useState, useEffect, useCallback } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import {
@@ -40,20 +42,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  ArrowLeft,
-  ArrowRight,
-  Plus,
-  Pencil,
-  Trash2,
-  Save,
-  Calendar,
-  DollarSign,
-  FolderOpen,
-  Users,
-  FileText,
-  CheckCircle2,
-} from "@/components/icons";
+import { ArrowLeft, ArrowRight, Plus, Pencil, Trash2, Save, Calendar, DollarSign, FolderOpen, Users, FileText, CheckCircle2 } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import ErrorAlert from "@/components/ErrorAlert";
 import SuccessAlert from "@/components/SuccessAlert";
@@ -471,25 +460,9 @@ export default function ClubMonthlyReportWizardPage() {
 
   return (
     <ProtectedRoute>
-      <div className="container mx-auto px-4 py-6 max-w-6xl">
+      <div>
         {/* Header */}
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-3">
-            <Link href={`/clubs/${clubId}/club-monthly-report`}>
-              <Button variant="ghost" size="icon">
-                <ArrowLeft className="h-5 w-5" />
-              </Button>
-            </Link>
-            <div>
-              <h1 className="text-2xl font-bold tracking-tight text-primary">
-                {clubName ? `${clubName} - Monthly Report` : "Monthly Report"}
-              </h1>
-              <p className="text-muted-foreground text-base">
-                {MONTH_NAMES[month] || `Month ${month}`}
-              </p>
-            </div>
-          </div>
-        </div>
+        <PageHeader title={clubName ? `${clubName} - Monthly Report` : "Monthly Report"} description={MONTH_NAMES[month] || `Month ${month}`} back={`/clubs/${clubId}/club-monthly-report`} />
 
         {/* Step Indicator */}
         <div className="mb-8">
@@ -624,14 +597,15 @@ export default function ClubMonthlyReportWizardPage() {
                                 <Link
                                   href={`/clubs/${clubId}/club-service/${meeting.projectId}/edit?returnUrl=${encodeURIComponent(returnUrlForStep("meetings"))}&frozenMonth=${month}&frozenYearId=${yearId}`}
                                 >
-                                  <Button variant="ghost" size="icon" className="h-8 w-8">
+                                  <Button variant="ghost" size="icon" className="row-btn-sm" aria-label="Edit meeting">
                                     <Pencil className="h-4 w-4" />
                                   </Button>
                                 </Link>
                                 <Button
                                   variant="ghost"
                                   size="icon"
-                                  className="h-8 w-8 text-destructive"
+                                  className="text-destructive row-btn-sm"
+                                  aria-label="Delete meeting"
                                   onClick={() => handleDeleteMeeting(meeting.projectId)}
                                   disabled={deletingId === meeting.projectId}
                                 >
@@ -702,7 +676,8 @@ export default function ClubMonthlyReportWizardPage() {
                                 <Button
                                   variant="ghost"
                                   size="icon"
-                                  className="h-8 w-8 text-destructive"
+                                  className="text-destructive row-btn-sm"
+                                  aria-label="Delete TRF entry"
                                   onClick={() => handleDeleteTrf(entry.id)}
                                   disabled={deletingTrfId === entry.id}
                                 >
@@ -776,8 +751,8 @@ export default function ClubMonthlyReportWizardPage() {
                       const isCollapsed = collapsedSections[serviceType];
                       return (
                         <div key={serviceType} className="border rounded-lg">
-                          <button
-                            className="w-full flex items-center justify-between p-4 hover:bg-muted/50 transition-colors"
+                          <MenuItemButton
+                            className="justify-between rounded-none p-4"
                             onClick={() => toggleSection(serviceType)}
                           >
                             <div className="flex flex-wrap items-center gap-2">
@@ -789,7 +764,7 @@ export default function ClubMonthlyReportWizardPage() {
                                 isCollapsed ? "" : "rotate-90"
                               }`}
                             />
-                          </button>
+                          </MenuItemButton>
                           {!isCollapsed && (
                             <div className="px-4 pb-4 overflow-x-auto">
                               <Table>
@@ -828,7 +803,7 @@ export default function ClubMonthlyReportWizardPage() {
                                                 </Badge>
                                               )}
                                               {project.parentProjectId && (
-                                                <Badge className="bg-[#FFC65C] text-orange-800 border-orange-300 text-xs">
+                                                <Badge className="bg-[#FFC65C] text-orange-800 border-orange-300">
                                                   Child Project
                                                 </Badge>
                                               )}
@@ -856,7 +831,8 @@ export default function ClubMonthlyReportWizardPage() {
                                             <Button
                                               variant="ghost"
                                               size="icon"
-                                              className="h-8 w-8"
+                                              className="row-btn-sm"
+                                              aria-label="Edit project"
                                             >
                                               <Pencil className="h-4 w-4" />
                                             </Button>
@@ -864,7 +840,8 @@ export default function ClubMonthlyReportWizardPage() {
                                           <Button
                                             variant="ghost"
                                             size="icon"
-                                            className="h-8 w-8 text-destructive"
+                                            className="text-destructive row-btn-sm"
+                                            aria-label="Delete project"
                                             onClick={() =>
                                               handleDeleteProject(
                                                 project.projectId,

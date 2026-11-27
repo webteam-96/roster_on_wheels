@@ -1,4 +1,5 @@
 "use client";
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
 
 /**
  * District Committee — Groups (DA-dashboard palette).
@@ -11,6 +12,8 @@
  * scope this round).
  */
 
+import { Card } from "@/components/ui/card";
+import { PageHeader } from "@/components/row/AppKit";
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { RotaryYear } from "@/types/rotaryYear";
@@ -30,7 +33,7 @@ import { Badge } from "@/components/ui/badge";
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
 import AlertModal from "@/components/AlertModal";
-import { ArrowLeft, Plus, Pencil, Trash2, AlertTriangle, UsersRound, Users, MoreHorizontal, Layers, Lock, Search, X } from "@/components/icons";
+import { Plus, Pencil, Trash2, AlertTriangle, UsersRound, Lock, Search, X } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import DistrictMembershipTabBar from "@/components/dashboard/DistrictMembershipTabBar";
@@ -184,44 +187,27 @@ export function GroupCommitteeView({ embedded = false }: { embedded?: boolean } 
           <ViewOnlyBadge editableYears={editableYears} className="mb-4" />
         )}
 
-        {!embedded && <DistrictMembershipTabBar />}
         {!embedded && (
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex items-center gap-3">
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={goBack}
-                className="border-slate-200 bg-card hover:bg-slate-50 text-slate-700"
-              >
-                <ArrowLeft className="h-4 w-4" />
-              </Button>
-              <div>
-                <h2 className="text-2xl font-bold tracking-tight text-ink">
-                  {districtName ? `${districtName} - Group Committee` : "Group Committee"}
-                </h2>
-                <p className="text-slate-600 text-sm">Manage groups with members and sub-groups</p>
-              </div>
-            </div>
-          </div>
+          <PageHeader title={districtName ? `${districtName} - Group Committee` : "Group Committee"} description="Manage groups with members and sub-groups" back={() => goBack()} />
         )}
+        {!embedded && <DistrictMembershipTabBar />}
 
         {loading && <div className="flex items-center justify-center py-20"><RotaryLoader size="lg" /></div>}
 
         {!loading && allYears.length > 0 && (
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center bg-slate-50 p-4 rounded-2xl border border-slate-200">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
             {/* Year Select removed — top-bar year (?yearId=) drives filter. */}
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
               <Input
-                className="pl-9 pr-8 border-slate-200 bg-card focus:border-azure focus:ring-azure/20"
+                className="pl-9 pr-8"
                 placeholder="Search by group name..."
                 value={searchDraft}
                 onChange={(e) => setSearchDraft(e.target.value)}
                 onKeyDown={handleSearchKey}
               />
               {searchTerm && (
-                <Button variant="ghost" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 h-6 w-6 text-slate-500 hover:text-slate-800" onClick={clearSearch} type="button">
+                <Button variant="ghost" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 w-6 w-6 w-6 h-6 w-6" onClick={clearSearch} type="button">
                   <X className="h-4 w-4" />
                 </Button>
               )}
@@ -231,7 +217,7 @@ export function GroupCommitteeView({ embedded = false }: { embedded?: boolean } 
                 size="sm"
                 onClick={handleSearch}
                 type="button"
-                className="bg-azure hover:bg-mint-ink text-white"
+               
               >
                 <Search className="mr-2 h-4 w-4" />Search
               </Button>
@@ -240,7 +226,7 @@ export function GroupCommitteeView({ embedded = false }: { embedded?: boolean } 
                   variant="ghost"
                   size="sm"
                   onClick={clearSearch}
-                  className="text-slate-600 hover:text-slate-800"
+                 
                 >
                   <X className="mr-1 h-4 w-4" />Clear
                 </Button>
@@ -251,7 +237,7 @@ export function GroupCommitteeView({ embedded = false }: { embedded?: boolean } 
                 <Button
                   size="sm"
                   onClick={() => router.push(`/district-admin-dashboard/district-committee/groups/add${backQs ? `?${backQs}` : ""}`)}
-                  className="bg-azure hover:bg-mint-ink text-white"
+                 
                 >
                   <Plus className="mr-2 h-4 w-4" />Add Group
                 </Button>
@@ -263,48 +249,47 @@ export function GroupCommitteeView({ embedded = false }: { embedded?: boolean } 
         {loadingGroups && <div className="flex items-center justify-center py-12"><RotaryLoader size="lg" /></div>}
 
         {!loading && !loadingGroups && selectedYearId && groups.length === 0 && (
-          <div className="flex flex-col items-center justify-center py-20 text-center rounded-2xl border border-slate-200 bg-card shadow-sm">
+          <Card className="flex flex-col items-center justify-center py-20 text-center">
             <UsersRound className="h-12 w-12 text-slate-400 mb-4" />
-            <h3 className="text-lg font-semibold text-slate-800">{searchTerm ? "No matches found" : "No groups yet"}</h3>
+            <h3 className="row-h2">{searchTerm ? "No matches found" : "No groups yet"}</h3>
             <p className="text-slate-600 mt-2">
               {searchTerm ? `No groups match "${searchTerm}".` : (canManage ? 'Click "Add Group" to create a group.' : "No groups created yet.")}
             </p>
-          </div>
+          </Card>
         )}
 
         {!loading && !loadingGroups && groups.length > 0 && (
           <>
-          <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-card shadow-sm">
-            <table className="w-full min-w-[640px] md:min-w-full text-sm">
-              <thead className="bg-[#EDF4FB] text-[13px] text-[#64748B]">
-                <tr>
-                  <th className="px-4 py-3 text-left w-12">#</th>
-                  <th className="px-4 py-3 text-left">Group Name</th>
-                  <th className="px-4 py-3 text-left">Type</th>
-                  <th className="px-4 py-3 text-right">Members</th>
-                  <th className="px-4 py-3 text-right">Sub-Groups</th>
-                  <th className="px-4 py-3 text-right w-16">Actions</th>
-                  {canManage && <th className="px-3 py-3 text-center w-14">Sort</th>}
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
+          <Card className="overflow-x-auto">
+            <Table className="w-full min-w-[640px] md:min-w-full text-sm">
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="px-4 text-left w-12">#</TableHead>
+                  <TableHead className="px-4 text-left">Group Name</TableHead>
+                  <TableHead className="px-4 text-left">Type</TableHead>
+                  <TableHead className="px-4 text-right">Members</TableHead>
+                  <TableHead className="px-4 text-right">Sub-Groups</TableHead>
+                  <TableHead className="px-4 text-right w-16">Actions</TableHead>
+                  {canManage && <TableHead className="px-3 text-center w-14">Sort</TableHead>}
+                </TableRow>
+              </TableHeader>
+              <TableBody className="divide-y divide-slate-100">
                 {groups.map((g: any, idx: number) => (
-                  <tr
+                  <TableRow
                     key={g.id}
                     className={`hover:bg-slate-50/60 ${navigatingId === g.id ? "opacity-70 pointer-events-none" : ""}`}
                   >
-                    <td className="px-4 py-2.5 text-slate-500 tabular-nums">{idx + 1}</td>
-                    <td className="px-4 py-2.5">
+                    <TableCell className="px-4 py-2.5 text-slate-500 tabular-nums">{idx + 1}</TableCell>
+                    <TableCell className="px-4 py-2.5">
                       <div className="flex items-center gap-2.5">
                         {navigatingId === g.id ? <RotaryLoader size="sm" /> : <UsersRound className="h-5 w-5 text-ink flex-shrink-0" />}
                         <span className="font-medium text-slate-800">{g.groupName}</span>
                       </div>
-                    </td>
-                    <td className="px-4 py-2.5">
+                    </TableCell>
+                    <TableCell className="px-4 py-2.5">
                       {isAutoManagedGroup(g.groupName) ? (
                         <Badge
-                          variant="secondary"
-                          className="flex w-fit items-center gap-1 bg-slate-100 text-slate-600 border border-slate-200"
+                          variant="secondary" className="flex w-fit items-center gap-1 bg-slate-100 text-slate-600 border border-slate-200"
                           title="Auto-managed by BOD: edit via Board of Directors"
                         >
                           <Lock className="h-3 w-3" />Auto
@@ -312,33 +297,33 @@ export function GroupCommitteeView({ embedded = false }: { embedded?: boolean } 
                       ) : (
                         <span className="text-slate-500">Manual</span>
                       )}
-                    </td>
-                    <td className="px-4 py-2.5 text-right tabular-nums text-slate-700">{g.memberCount || 0}</td>
-                    <td className="px-4 py-2.5 text-right tabular-nums text-slate-700">{g.subGroupCount || 0}</td>
-                    <td className="px-4 py-2.5" onClick={(e) => e.stopPropagation()}>
+                    </TableCell>
+                    <TableCell className="px-4 py-2.5 text-right tabular-nums text-slate-700">{g.memberCount || 0}</TableCell>
+                    <TableCell className="px-4 py-2.5 text-right tabular-nums text-slate-700">{g.subGroupCount || 0}</TableCell>
+                    <TableCell className="px-4 py-2.5" onClick={(e) => e.stopPropagation()}>
                       <div className="flex items-center justify-end gap-1">
                         {canManage && !isAutoManagedGroup(g.groupName) && (
                           <>
-                            <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-500 hover:text-ink hover:bg-slate-100" onClick={() => { setNavigatingId(g.id); router.push(`/district-admin-dashboard/district-committee/groups/${g.id}${backQs ? `?${backQs}` : ""}`); }}>
+                            <Button variant="ghost" size="icon" className="row-btn-sm" onClick={() => { setNavigatingId(g.id); router.push(`/district-admin-dashboard/district-committee/groups/${g.id}${backQs ? `?${backQs}` : ""}`); }}>
                               <Pencil className="h-4 w-4" />
                             </Button>
-                            <Button variant="ghost" size="icon" className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50" onClick={() => setDeleteTarget(g)}>
+                            <Button variant="ghost" size="icon" className="text-red-600 row-btn-sm" onClick={() => setDeleteTarget(g)}>
                               <Trash2 className="h-4 w-4" />
                             </Button>
                           </>
                         )}
                       </div>
-                    </td>
+                    </TableCell>
                     {canManage && (
-                      <td className="px-3 py-2.5 text-center" {...dragProps(idx)} onClick={(e) => e.stopPropagation()}>
+                      <TableCell className="px-3 py-2.5 text-center" {...dragProps(idx)} onClick={(e) => e.stopPropagation()}>
                         <GripVertical className="h-4 w-4 text-slate-400 inline-block cursor-grab" />
-                      </td>
+                      </TableCell>
                     )}
-                  </tr>
+                  </TableRow>
                 ))}
-              </tbody>
-            </table>
-          </div>
+              </TableBody>
+            </Table>
+          </Card>
           </>
         )}
 

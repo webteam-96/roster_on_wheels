@@ -13,13 +13,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { ArrowLeft, Plus, Pencil, BarChart3, Calendar, CheckCircle2, Clock, Download, FileText, FileSpreadsheet } from "@/components/icons";
+import { Plus, Pencil, Calendar, CheckCircle2, Clock, Download, FileText, FileSpreadsheet } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import ErrorAlert from "@/components/ErrorAlert";
-import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { downloadPDF, downloadWord } from "@/utils/reportDownload";
-import { ListPageSkeleton } from "@/components/row/AppKit";
+import { PageHeader, ListPageSkeleton } from "@/components/row/AppKit";
 
 export default function ClubMonthlyReportPage() {
   const params = useParams();
@@ -112,25 +111,11 @@ export default function ClubMonthlyReportPage() {
     <ProtectedRoute>
       <div className="space-y-6">
         {/* Header */}
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-3">
-            <Button variant="outline" size="icon" asChild>
-              <Link href={`/clubs/${clubId}/dashboard`}>
-                <ArrowLeft className="h-4 w-4" />
-              </Link>
-            </Button>
-            <div>
-              <h2 className="text-2xl font-bold tracking-tight text-primary">
-                {clubName ? `${clubName} - Club Monthly Reports` : "Club Monthly Reports"}
-              </h2>
-              <p className="text-muted-foreground text-base">
-                View and manage monthly reports
-              </p>
-            </div>
-          </div>
-
-          {/* Year filter */}
-          {!loadingYears && years.length > 0 && (
+        <PageHeader
+          title={clubName ? `${clubName} - Club Monthly Reports` : "Club Monthly Reports"}
+          description="View and manage monthly reports"
+          back={`/clubs/${clubId}/dashboard`}
+          actions={!loadingYears && years.length > 0 && (
             <div className="w-full sm:w-52">
               <Select
                 value={selectedYearId?.toString() || ""}
@@ -151,7 +136,7 @@ export default function ClubMonthlyReportPage() {
               </Select>
             </div>
           )}
-        </div>
+        />
 
         {/* Loading */}
         {isLoading && (
@@ -164,7 +149,7 @@ export default function ClubMonthlyReportPage() {
         {!isLoading && months.length === 0 && (
           <div className="flex flex-col items-center justify-center py-20 text-center">
             <Calendar className="h-12 w-12 text-muted-foreground mb-4" />
-            <h3 className="text-lg font-semibold">No months available</h3>
+            <h3 className="row-h2">No months available</h3>
             <p className="text-muted-foreground mt-2">
               {years.length === 0
                 ? "No rotary years have been configured yet."
@@ -179,17 +164,17 @@ export default function ClubMonthlyReportPage() {
             <CardContent className="p-0">
               <Table>
                 <TableHeader>
-                  <TableRow className="bg-primary hover:bg-primary">
-                    <TableHead className="w-12 text-base font-semibold">
+                  <TableRow>
+                    <TableHead className="w-12">
                       S.No.
                     </TableHead>
-                    <TableHead className="text-base font-semibold">
+                    <TableHead>
                       Month
                     </TableHead>
-                    <TableHead className="text-base font-semibold text-center">
+                    <TableHead className="text-center">
                       Status
                     </TableHead>
-                    <TableHead className="text-base font-semibold text-center">
+                    <TableHead className="text-center">
                       Actions
                     </TableHead>
                   </TableRow>
@@ -209,7 +194,7 @@ export default function ClubMonthlyReportPage() {
                       <TableCell className="text-center">
                         <div className="flex items-center justify-center gap-2 flex-wrap">
                           {item.isCreated ? (
-                            <Badge variant="default" className="bg-green-100 text-green-800 hover:bg-green-100">
+                            <Badge variant="default" className="bg-green-100 text-green-800">
                               <CheckCircle2 className="mr-1 h-3 w-3" />
                               Created
                             </Badge>
@@ -220,7 +205,7 @@ export default function ClubMonthlyReportPage() {
                             </Badge>
                           )}
                           {item.isUploadedToDistrict && (
-                            <Badge variant="default" className="bg-blue-100 text-blue-800 hover:bg-blue-100">
+                            <Badge variant="default" className="bg-blue-100 text-azure-100 text-blue-800">
                               Uploaded to District
                             </Badge>
                           )}

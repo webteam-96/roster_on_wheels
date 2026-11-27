@@ -91,9 +91,9 @@ public interface IGoalSettingService
     Task<(byte[] File, int Filled, int Missing)> ConvertFoundationMcrToClubFileAsync(Stream mcrStream);
 
     // New Goal Setting (Rotary.org), ported from upstream.
-    Task<byte[]?> BuildRotaryDistrictReportAsync(int memberId, IReadOnlyList<int> districtIds, int? yearId, bool oversight);
-    Task<byte[]?> BuildRotaryClubReportAsync(int memberId, int clubId, int? yearId);
-    Task<byte[]?> BuildRotaryAllClubsReportAsync(int memberId, int districtId, int? yearId, bool oversight);
+    Task<byte[]?> BuildRotaryDistrictReportAsync(int memberId, IReadOnlyList<int> districtIds, int? yearId, bool oversight, bool rccOnly = false);
+    Task<byte[]?> BuildRotaryClubReportAsync(int memberId, int clubId, int? yearId, bool rccOnly = false);
+    Task<byte[]?> BuildRotaryAllClubsReportAsync(int memberId, int districtId, int? yearId, bool oversight, bool rccOnly = false);
     Task<(int Changed, int Skipped)> SetDistrictClubsLockAsync(int memberId, int districtId, int yearId, IReadOnlyList<int> categoryIds, int clubId, bool locked);
     // Goal module restored 2026-11-20 (owner): per-category locks, one-to-one and group goal messages.
     Task<GoalLockStatusDto> SetClubLockAsync(int memberId, int categoryId, int yearId, int clubId, bool locked);

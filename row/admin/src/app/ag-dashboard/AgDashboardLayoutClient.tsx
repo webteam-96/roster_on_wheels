@@ -29,14 +29,12 @@ export default function AgDashboardLayoutClient({ children }: { children: ReactN
     <DashboardGuard kind="ag">
       <DashboardShell
         brand="AG Dashboard"
-        identityLabel="Signed in"
         identityName={name}
         identityRole="Assistant Governor"
         initials={initials || "AG"}
         nav={AG_NAV}
         footerText={<DashboardYearFooterText />}
         pageTitle={title}
-        variant="icon"
         switcherKind="ag"
         topbarCenter={
           // Suspense: the selector reads useSearchParams().

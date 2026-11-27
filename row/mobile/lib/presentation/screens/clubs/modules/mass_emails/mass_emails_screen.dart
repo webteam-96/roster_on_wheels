@@ -18,6 +18,8 @@ import '../../../../../presentation/widgets/detail/detail_widgets.dart';
 import 'package:rotary_flutter_app/core/brand/brand.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
 import 'mass_email_library_screen.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/motion.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/roster_wheel.dart';
 
 class MassEmailsScreen extends StatefulWidget {
   final int clubId;
@@ -302,7 +304,7 @@ class _MassEmailsScreenState extends State<MassEmailsScreen> {
                   child: _emails.isEmpty
                       ? const EmptyStateWidget(
                           title: 'No mass emails sent yet')
-                      : RefreshIndicator(
+                      : RowRefresh(
                           onRefresh: () async {
                             await _loadEmails(page: _currentPage);
                             await _loadCreditBalance();
@@ -311,7 +313,7 @@ class _MassEmailsScreenState extends State<MassEmailsScreen> {
                           // sibling modules) so it scrolls with the content and
                           // never collides with the FAB. Bottom inset clears the
                           // floating button for the last card.
-                          child: ListView.separated(
+                          child: RowListView.separated(
                             padding: (EdgeInsets.fromLTRB(
                                 16, 16, 16, canManage ? 88 : 16)).add(const EdgeInsets.only(bottom: 88)),
                             itemCount: _emails.length + 1,
@@ -426,6 +428,7 @@ class _MassEmailsScreenState extends State<MassEmailsScreen> {
               contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               suffixIcon: _searchCtrl.text.isNotEmpty
                   ? IconButton(
+                      tooltip: 'Close',
                       icon: const Icon(Icons.close, size: 18),
                       onPressed: () {
                         _searchCtrl.clear();
@@ -895,7 +898,7 @@ class _MassEmailDetailScreenState extends State<_MassEmailDetailScreen> {
             icon: Icons.bar_chart_outlined,
             title: 'Delivery Stats',
             number: 2,
-            child: GridView.count(
+            child: RowGridView.count(
               crossAxisCount: 2,
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),

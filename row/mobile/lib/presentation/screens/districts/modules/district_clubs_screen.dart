@@ -10,6 +10,8 @@ import '../../../widgets/common/empty_state_widget.dart';
 import '../../../widgets/common/loading_widget.dart';
 import '../../../widgets/common/search_bar_widget.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/motion.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/roster_wheel.dart';
 
 // ---------------------------------------------------------------------------
 // Model
@@ -20,8 +22,7 @@ class _Club {
   final String? city;
   final bool isActive;
   final int? totalMembers;
-  // Of totalMembers, how many are honorary (ClubListDto.HonoraryMembers). The
-  // displayed member count is totalMembers − honoraryMembers.
+  // Counted apart from totalMembers (ClubListDto.TotalMembers already leaves honorary members out).
   final int? honoraryMembers;
   // Wave 13A4 — listing columns: auto-managed-from-Rotary.org flag + website.
   final bool isSyncedFromRotaryOrg;
@@ -123,7 +124,7 @@ class _DistrictClubsScreenState extends State<DistrictClubsScreen> {
   }
 
   Future<void> _confirmDelete(_Club club) async {
-    final ok = await showDialog<bool>(
+    final ok = await showRowDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Delete Club'),
@@ -175,10 +176,10 @@ class _DistrictClubsScreenState extends State<DistrictClubsScreen> {
                                 : 'No clubs found for this district.',
                             icon: Icons.groups_outlined,
                           )
-                        : RefreshIndicator(
+                        : RowRefresh(
                             color: AppColors.primary,
                             onRefresh: () => _fetch(reset: true),
-                            child: ListView.separated(
+                            child: RowListView.separated(
                               padding: const EdgeInsets.all(16),
                               itemCount: _visible.length,
                               separatorBuilder: (_, __) => const SizedBox(height: 10),
@@ -226,17 +227,14 @@ class _ClubCard extends StatelessWidget {
     required this.onDelete,
   });
 
-  // Honorary count (clamped ≥ 0). ClubListDto.HonoraryMembers is a subset of
-  // totalMembers.
+  // Honorary count (clamped ≥ 0).
   int _honoraryMembers(_Club c) {
     final h = c.honoraryMembers ?? 0;
     return h < 0 ? 0 : h;
   }
 
-  // The displayed member count is REGULAR = totalMembers − honoraryMembers,
-  // matching the web.
-  int _regularMembers(_Club c) =>
-      ((c.totalMembers ?? 0) - _honoraryMembers(c)).clamp(0, c.totalMembers ?? 0);
+  // Regular members, as on the web.
+  int _regularMembers(_Club c) => c.totalMembers ?? 0;
 
   // Group large counts with thousands separators (e.g. 100000 → "100,000") so
   // big clubs stay readable.

@@ -7,6 +7,7 @@
 //   - useClubGoalPercents: each club's key goal %, for the District Awards "Club Points" table.
 // Rounding follows Goal Setting everywhere: Membership whole numbers, Foundation 2 decimals.
 
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
 import { useEffect, useMemo, useState } from "react";
 import { ChevronDown, ChevronRight, Target } from "@/components/icons";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -98,32 +99,32 @@ export function DistrictGoalAchievementCard({ districtId, yearId }: { districtId
                       <span className="font-semibold text-slate-800 text-sm">{c.ourName}</span>
                       {form.achievedAsOn && <span className="text-[11px] text-slate-500">Achieved as on {form.achievedAsOn}</span>}
                     </div>
-                    <table className="w-full text-sm">
-                      <thead>
-                        <tr className="text-xs text-slate-500">
-                          <th className="text-left font-medium px-3 py-1.5">Goal</th>
-                          <th className="text-right font-medium px-3 py-1.5">Target</th>
-                          <th className="text-right font-medium px-3 py-1.5">Achieved</th>
-                          <th className="text-right font-medium px-3 py-1.5">%</th>
-                        </tr>
-                      </thead>
-                      <tbody>
+                    <Table bare className="w-full text-sm">
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead className="text-left px-3">Goal</TableHead>
+                          <TableHead className="text-right px-3">Target</TableHead>
+                          <TableHead className="text-right px-3">Achieved</TableHead>
+                          <TableHead className="text-right px-3">%</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
                         {shown.map((r) => {
                           const pf = byKey(r.pct);
                           const p = pf?.numericValue != null ? Number(pf.numericValue) : null;
                           return (
-                            <tr key={r.pct} className="border-t border-slate-100">
-                              <td className="px-3 py-1.5 text-slate-700">{rowTitle(r)}</td>
-                              <td className="px-3 py-1.5 text-right tabular-nums">{fmtFigure(byKey(r.target))}</td>
-                              <td className="px-3 py-1.5 text-right tabular-nums">{fmtFigure(byKey(r.achieved))}</td>
-                              <td className="px-3 py-1.5 text-right">
-                                <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-semibold tabular-nums ring-1 ${goalRagClass(p)}`}>{fmtGoalPct(p, c.categoryId)}</span>
-                              </td>
-                            </tr>
+                            <TableRow key={r.pct} className="border-t border-slate-100">
+                              <TableCell className="px-3 py-1.5 text-slate-700">{rowTitle(r)}</TableCell>
+                              <TableCell className="px-3 py-1.5 text-right tabular-nums">{fmtFigure(byKey(r.target))}</TableCell>
+                              <TableCell className="px-3 py-1.5 text-right tabular-nums">{fmtFigure(byKey(r.achieved))}</TableCell>
+                              <TableCell className="px-3 py-1.5 text-right">
+                                <span className={`inline-block px-2 py-0.5 rounded text-xs font-semibold tabular-nums ring-1 ${goalRagClass(p)}`}>{fmtGoalPct(p, c.categoryId)}</span>
+                              </TableCell>
+                            </TableRow>
                           );
                         })}
-                      </tbody>
-                    </table>
+                      </TableBody>
+                    </Table>
                   </div>
                 );
               })}

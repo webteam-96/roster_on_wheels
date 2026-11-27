@@ -58,11 +58,11 @@ export default function SubscriptionLock({ kind, level, loading, children }: { k
   if (!isLockedPath(kind, level, pathname)) return <>{children}</>;
   const clubFeature = kind === "club" && level === "Reporting";
   return (
-    <section className="mx-auto mt-10 max-w-[560px] rounded-[20px] border border-[color:var(--row-line)] bg-[#FCFDFE] px-8 py-10 text-center">
-      <h2 className="font-display text-[24px] font-semibold text-[#1B2C42]">
+    <section className="row-card row-rise mx-auto mt-10 max-w-[560px] px-8 py-10 text-center">
+      <h2 className="row-h2">
         {clubFeature ? "Available with Club subscription" : "This area needs an active subscription"}
       </h2>
-      <p className="mx-auto mt-3 max-w-[44ch] text-[15px] text-[#64748B]">
+      <p className="mx-auto mt-3 max-w-[44ch] text-[15px] text-muted-foreground">
         {clubFeature
           ? "Your district's subscription covers club reporting. This feature opens when the club has its own subscription."
           : "Nothing has been deleted. Everything comes back as it was once the subscription is active."}

@@ -108,7 +108,7 @@ export default function EditMemberPage() {
       <ProtectedRoute>
         <div className="flex flex-col items-center justify-center py-20">
           <AlertCircle className="h-12 w-12 text-destructive mb-4" />
-          <h3 className="text-lg font-semibold">Error</h3>
+          <h3 className="row-h2">Error</h3>
           <p className="text-muted-foreground mt-2">
             {error || "Member not found."}
           </p>

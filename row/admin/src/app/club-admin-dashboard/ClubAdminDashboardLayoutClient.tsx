@@ -107,14 +107,12 @@ function ClubAdminShell({ name, initials, title, showYearSelector, officerClubId
   return (
     <DashboardShell
       brand="Club Dashboard"
-      identityLabel="Signed in"
       identityName={name}
       identityRole="Club Admin"
       initials={initials || "CA"}
       nav={nav}
       footerText={<DashboardYearFooterText />}
       pageTitle={title}
-      variant="dot"
       switcherKind="club-admin"
       topbarCenter={
         <>

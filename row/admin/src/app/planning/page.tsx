@@ -50,7 +50,7 @@ function Workspace() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold tracking-tight text-primary">Planning workspace</h2>
+        <h2 className="row-h2">Planning workspace</h2>
         <p className="text-base text-muted-foreground">Next year&apos;s team, officers, committees and calendar, ready before the cut-over.</p>
       </div>
 

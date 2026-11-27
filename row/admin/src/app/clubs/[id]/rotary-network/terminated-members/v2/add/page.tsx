@@ -18,6 +18,11 @@
  * v2 reads ONLY `?returnTo=` — no `returnUrl`, no `backUrl`.
  */
 
+import FieldLabel from "@/components/form/FieldLabel";
+import { NativeSelect } from "@/components/ui/native-select";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import SectionCard from "@/components/form/SectionCard";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useParams } from "next/navigation";
 import Image from "next/image";
@@ -43,6 +48,7 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import { useSyncClubIdFromUrl } from "@/hooks/useSyncClubIdFromUrl";
 import { ListPageSkeleton } from "@/components/row/AppKit";
 
+import { MenuItemButton } from "@/components/ui/text-buttons"
 const TOP_MESSAGE =
   "Terminating a member soft-deletes their membership for THIS club only. " +
   "Their master profile, login, and other-club memberships are preserved. " +
@@ -57,34 +63,6 @@ const TERMINATION_REASONS = [
   { value: "Resigned",              label: "Resigned" },
   { value: "Other",                 label: "Other" },
 ];
-
-function FieldLabel({ children, hint, dot, required = true }: { children: React.ReactNode; hint?: string; dot: string; required?: boolean }) {
-  return (
-    <div className="flex items-center gap-1.5 mb-1">
-      <span className={`w-1.5 h-1.5 rounded-full ${dot}`} />
-      <label className="text-xs font-semibold text-slate-700">
-        {children}
-        {required && <span className="text-rose-600 ml-0.5">*</span>}
-        {hint && <span className="text-slate-400 font-normal ml-1">{hint}</span>}
-      </label>
-    </div>
-  );
-}
-
-function SectionCard({
-  number, icon: Icon, title, dot, children,
-}: { number: number; icon: React.ElementType; title: string; dot: string; children: React.ReactNode }) {
-  return (
-    <div className="rounded-xl border border-slate-200 overflow-hidden mb-4">
-      <div className="flex items-center gap-3 px-4 py-2.5 bg-slate-50 border-b border-slate-100">
-        <div className={`flex items-center justify-center h-7 w-7 rounded-full text-white text-xs font-bold ${dot}`}>{number}</div>
-        <Icon className="h-4 w-4 text-slate-500" />
-        <h3 className="text-sm font-semibold text-slate-800">{title}</h3>
-      </div>
-      <div className="p-4">{children}</div>
-    </div>
-  );
-}
 
 export default function TerminatedMembersV2AddPage() {
   useSyncClubIdFromUrl();
@@ -275,8 +253,8 @@ export default function TerminatedMembersV2AddPage() {
         }
       >
         {/* 1. Member */}
-        <SectionCard number={1} icon={UserMinus} title="Member" dot="bg-[#17458F]">
-          <FieldLabel dot="bg-[#17458F]">Select an Active Club Member</FieldLabel>
+        <SectionCard number={1} icon={UserMinus} title="Member">
+          <FieldLabel required>Select an Active Club Member</FieldLabel>
           {selectedMember ? (
             <div className="flex items-center gap-3 p-3 border rounded-lg bg-amber-50/60 border-amber-100">
               <div className="relative h-10 w-10 flex-shrink-0 overflow-hidden rounded-full bg-card border border-slate-200">
@@ -301,23 +279,23 @@ export default function TerminatedMembersV2AddPage() {
                   {selectedMember.emailId ? ` · ${selectedMember.emailId}` : ""}
                 </div>
               </div>
-              <button
+              <Button
                 type="button"
                 onClick={clearSelectedMember}
-                className="text-xs font-medium px-2.5 py-1 rounded-full border border-slate-200 text-slate-600 hover:bg-card"
+                variant="outline" size="sm"
               >
                 Change
-              </button>
+              </Button>
             </div>
           ) : (
             <div className="relative">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-              <input
+              <Input
                 type="text"
                 placeholder="Search active members by name, Rotary ID, email…"
                 value={memberSearch}
                 onChange={(e) => { setMemberSearch(e.target.value); setShowResults(true); }}
-                className="w-full pl-9 pr-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                className="pl-9 pr-3"
                 autoFocus
               />
               {showResults && memberSearch.trim() && memberResults.length > 0 && (
@@ -325,12 +303,10 @@ export default function TerminatedMembersV2AddPage() {
                   {memberResults.map((m) => {
                     const photoUrl = getPhotoUrl(m.profilePhotoPath);
                     return (
-                      <button
+                      <MenuItemButton
                         key={m.id}
                         type="button"
-                        onClick={() => handleSelectMember(m)}
-                        className="flex items-center gap-3 w-full px-3 py-2 hover:bg-amber-50/60 text-left transition-colors"
-                      >
+                        onClick={() => handleSelectMember(m)}>
                         <div className="relative h-8 w-8 flex-shrink-0 overflow-hidden rounded-full bg-slate-100 border border-slate-200">
                           {photoUrl ? (
                             <Image src={photoUrl} alt={m.memberName} fill className="object-cover" unoptimized />
@@ -347,7 +323,7 @@ export default function TerminatedMembersV2AddPage() {
                             {m.emailId ? ` · ${m.emailId}` : ""}
                           </div>
                         </div>
-                      </button>
+                      </MenuItemButton>
                     );
                   })}
                 </div>
@@ -365,19 +341,19 @@ export default function TerminatedMembersV2AddPage() {
         </SectionCard>
 
         {/* 2. Reason (the server records today as the termination date) */}
-        <SectionCard number={2} icon={Calendar} title="Termination Reason" dot="bg-[#17458F]">
+        <SectionCard number={2} icon={Calendar} title="Termination Reason">
           <div>
-              <FieldLabel dot="bg-[#17458F]">Termination Reason</FieldLabel>
-              <select
+              <FieldLabel required>Termination Reason</FieldLabel>
+              <NativeSelect
                 value={terminationReason}
                 onChange={(e) => setTerminationReason(e.target.value)}
-                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] bg-card focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                
               >
                 <option value="">Select a reason…</option>
                 {TERMINATION_REASONS.map((r) => (
                   <option key={r.value} value={r.value}>{r.label}</option>
                 ))}
-              </select>
+              </NativeSelect>
               <p className="text-xs text-slate-400 mt-0.5">Recorded on the member's termination record.</p>
             </div>
         </SectionCard>

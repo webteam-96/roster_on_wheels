@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { Card } from "@/components/ui/card";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { ModuleCategory, CreateModuleCategoryRequest, UpdateModuleCategoryRequest } from "@/types/module";
 import { getModuleCategories, createModuleCategory, updateModuleCategory, deleteModuleCategory } from "@/services/api";
 import { useAuth } from "@/contexts/AuthContext";
@@ -27,12 +28,11 @@ import {
 import DeleteDialog from "@/components/DeleteDialog";
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
-import { Plus, Pencil, Trash2, AlertCircle, ArrowLeft, FolderOpen } from "@/components/icons";
+import { Plus, Pencil, Trash2, AlertCircle, FolderOpen } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
-import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import SearchBox from "@/components/SearchBox";
-import { ListPageSkeleton } from "@/components/row/AppKit";
+import { PageHeader, ListPageSkeleton } from "@/components/row/AppKit";
 
 export default function ModuleCategoriesPage() {
   const { isSuperAdmin } = useAuth();
@@ -42,6 +42,8 @@ export default function ModuleCategoriesPage() {
 
   // Dialog state
   const [dialogOpen, setDialogOpen] = useState(false);
+  // The dialog is opened from plain buttons (no DialogTrigger), so Radix has no trigger to send focus back to on close.
+  const openerRef = useRef<HTMLElement | null>(null);
   const [editingCategory, setEditingCategory] = useState<ModuleCategory | null>(null);
   const [categoryName, setCategoryName] = useState("");
   const [sortOrder, setSortOrder] = useState(0);
@@ -75,6 +77,7 @@ export default function ModuleCategoriesPage() {
   }, [fetchCategories]);
 
   const openAddDialog = () => {
+    openerRef.current = document.activeElement as HTMLElement | null;
     setEditingCategory(null);
     setCategoryName("");
     setSortOrder(categories.length > 0 ? Math.max(...categories.map(c => c.sortOrder)) + 1 : 1);
@@ -82,6 +85,7 @@ export default function ModuleCategoriesPage() {
   };
 
   const openEditDialog = (category: ModuleCategory) => {
+    openerRef.current = document.activeElement as HTMLElement | null;
     setEditingCategory(category);
     setCategoryName(category.categoryName);
     setSortOrder(category.sortOrder);
@@ -149,7 +153,7 @@ export default function ModuleCategoriesPage() {
     return (
       <ProtectedRoute>
         <div className="flex flex-col items-center justify-center py-20">
-          <h3 className="text-lg font-semibold">Access Denied</h3>
+          <h3 className="row-h2">Access Denied</h3>
           <p className="text-muted-foreground mt-2">Only SuperAdmin can manage module categories.</p>
         </div>
       </ProtectedRoute>
@@ -159,20 +163,18 @@ export default function ModuleCategoriesPage() {
   return (
     <ProtectedRoute>
       <div className="space-y-6">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-3">
-            <Button variant="outline" size="icon" asChild>
-              <Link href="/settings/module-master"><ArrowLeft className="h-4 w-4" /></Link>
-            </Button>
-            <div>
-              <h2 className="text-2xl font-bold tracking-tight text-primary">Module Categories</h2>
-              <p className="text-muted-foreground text-base">Manage module categories</p>
-            </div>
-          </div>
-          <Button onClick={openAddDialog}>
+        <PageHeader
+          title="Module Categories"
+          description="Manage module categories"
+          back="/settings/module-master"
+          actions={
+            <>
+<Button onClick={openAddDialog}>
             <Plus className="mr-2 h-4 w-4" />Add Category
           </Button>
-        </div>
+            </>
+          }
+        />
 
         {loading && (
           <div className="flex items-center justify-center py-20">
@@ -183,7 +185,7 @@ export default function ModuleCategoriesPage() {
         {error && (
           <div className="flex flex-col items-center justify-center py-20 text-center">
             <AlertCircle className="h-12 w-12 text-destructive mb-4" />
-            <h3 className="text-lg font-semibold">Error</h3>
+            <h3 className="row-h2">Error</h3>
             <p className="text-muted-foreground mt-2 max-w-md">{error}</p>
             <Button variant="outline" className="mt-4" onClick={() => fetchCategories()}>Try Again</Button>
           </div>
@@ -192,7 +194,7 @@ export default function ModuleCategoriesPage() {
         {!loading && !error && categories.length === 0 && (
           <div className="flex flex-col items-center justify-center py-20 text-center">
             <FolderOpen className="h-12 w-12 text-muted-foreground mb-4" />
-            <h3 className="text-lg font-semibold">No categories found</h3>
+            <h3 className="row-h2">No categories found</h3>
             <p className="text-muted-foreground mt-2">Create your first module category.</p>
           </div>
         )}
@@ -207,7 +209,7 @@ export default function ModuleCategoriesPage() {
             {filteredCategories.length === 0 && searchQuery.trim() !== "" ? (
               <p className="text-muted-foreground text-sm py-8 text-center">No results found for &quot;{searchQuery}&quot;</p>
             ) : (
-          <div className="rounded-md border">
+          <Card className="overflow-hidden">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -243,14 +245,14 @@ export default function ModuleCategoriesPage() {
                 ))}
               </TableBody>
             </Table>
-          </div>
+          </Card>
             )}
           </>
         )}
 
         {/* Add/Edit Dialog */}
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-          <DialogContent>
+          <DialogContent onCloseAutoFocus={(e) => { if (openerRef.current?.isConnected) { e.preventDefault(); openerRef.current.focus(); } }}>
             <DialogHeader>
               <DialogTitle>{editingCategory ? "Edit Category" : "Add Category"}</DialogTitle>
               <DialogDescription>

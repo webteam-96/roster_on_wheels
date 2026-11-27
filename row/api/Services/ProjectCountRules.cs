@@ -16,7 +16,7 @@ namespace RotaryApi.Services;
 //      entry of THIS year stands in for it, so a project carried over from last year is
 //      still counted in the year the work happened (35 such projects in 2026-27 — under a
 //      plain "parent only" rule they would have counted in no year at all);
-//   3. Zone 0 does not count — and with it the permanently exempt districts.
+//   3. Only the instance's zones count (Brand:Scope) — and never the permanently exempt districts.
 //
 // Club Service is NOT a project (it is the club's meetings) and is excluded from every
 // count here; the email reports it on its own line.
@@ -53,12 +53,13 @@ public sealed class ProjectCountFilter
     // untouched in the database — this hides them from the counts, it does not fix the data.
     public const string AvenueModuleKeys = ProjectModuleKeys + ",'" + ClubServiceModuleKey + "'";
 
-    // Rule 3 — the organisation is ROW. "Zone 0" (the placeholder) and
-    // "Other Zones" are not part of it, and these three districts never count anywhere.
-    public static readonly string[] IndiaZoneNames = { "Zone 4", "Zone 5", "Zone 6", "Zone 7", "Zone 8" };
+    // Rule 3 — the zones of this instance (Brand:Scope:Zones; none listed = every zone, as ROW runs). It named the
+    // original platform's India zones, which no ROW district is in, so every project count was 0 (fixed 2026-11-25).
     public static string[] ExemptDistrictNumbers => RotaryApi.Services.Brand.ExemptDistricts;   // ROW: Brand:Scope:ExemptDistricts
 
-    private static string ZoneList => "'" + string.Join("','", IndiaZoneNames) + "'";
+    private static string ZoneClause(string zone) => RotaryApi.Services.Brand.Zones is { Length: > 0 } zones
+        ? $"AND {zone}.ZoneName IN ('{string.Join("','", zones.Select(n => n.Replace("\\", "\\\\").Replace("'", "''")))}')"
+        : "";
     private static string ExemptList => "'" + string.Join("','", ExemptDistrictNumbers) + "'";
 
     /// <summary>
@@ -72,7 +73,7 @@ public sealed class ProjectCountFilter
              AND {district}.DistrictNumber NOT IN ({ExemptList})
         JOIN zone_master {zone} ON {zone}.pk_zone_id = {district}.fk_zone_id
              AND {zone}.isdeleted = 0 AND {zone}.IsActive = 1
-             AND {zone}.ZoneName IN ({ZoneList})";
+             {ZoneClause(zone)}";
 
     /// <summary>The row exists and is switched on. Says nothing about approvals.</summary>
     public static string Live(string a = "p") => $"{a}.isdeleted = 0 AND {a}.is_active = 1";

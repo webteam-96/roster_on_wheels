@@ -23,12 +23,11 @@ import {
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
 import AlertModal from "@/components/AlertModal";
-import { ArrowLeft, Plus, Pencil, Trash2, MoreHorizontal, AlertTriangle } from "@/components/icons";
+import { Plus, Pencil, Trash2, MoreHorizontal, AlertTriangle } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
-import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import SearchBox from "@/components/SearchBox";
-import { ListPageSkeleton } from "@/components/row/AppKit";
+import { PageHeader, ListPageSkeleton } from "@/components/row/AppKit";
 
 interface MasterItem {
   id: number;
@@ -168,7 +167,7 @@ export default function EventMastersPage() {
               <TableCell><Badge variant={item.isActive ? "default" : "secondary"}>{item.isActive ? "Active" : "Inactive"}</Badge></TableCell>
               <TableCell>
                 <DropdownMenu>
-                  <DropdownMenuTrigger asChild><Button variant="ghost" size="icon"><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger>
+                  <DropdownMenuTrigger asChild><Button aria-label="More actions" variant="ghost" size="icon"><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
                     <DropdownMenuItem onClick={() => openEdit(item)}><Pencil className="h-4 w-4 mr-2" />Edit</DropdownMenuItem>
                     <DropdownMenuItem onClick={() => setDeleteItem(item)} className="text-destructive"><Trash2 className="h-4 w-4 mr-2" />Deactivate</DropdownMenuItem>
@@ -183,7 +182,7 @@ export default function EventMastersPage() {
   };
 
   if (!isSuperAdmin) {
-    return (<ProtectedRoute><div className="flex flex-col items-center justify-center py-20"><h3 className="text-lg font-semibold">Access Denied</h3><p className="text-muted-foreground mt-2">Only SuperAdmin can access this page.</p></div></ProtectedRoute>);
+    return (<ProtectedRoute><div className="flex flex-col items-center justify-center py-20"><h3 className="row-h2">Access Denied</h3><p className="text-muted-foreground mt-2">Only SuperAdmin can access this page.</p></div></ProtectedRoute>);
   }
 
   return (
@@ -192,15 +191,7 @@ export default function EventMastersPage() {
         <SuccessAlert open={!!successMessage} title="Success" description={successMessage || ""} onOk={() => setSuccessMessage(null)} />
         <ErrorAlert open={!!errorMessage} title="Error" description={errorMessage || ""} onOk={() => setErrorMessage(null)} />
 
-        <div className="flex items-center gap-3">
-          <Button variant="outline" size="icon" asChild>
-            <Link href="/settings/payments-and-dues"><ArrowLeft className="h-4 w-4" /></Link>
-          </Button>
-          <div>
-            <h2 className="text-2xl font-bold tracking-tight text-primary">Event Masters</h2>
-            <p className="text-muted-foreground text-base">Manage t-shirt sizes and food preferences</p>
-          </div>
-        </div>
+        <PageHeader title="Event Masters" description="Manage t-shirt sizes and food preferences" back="/settings/payments-and-dues" />
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <div className="flex flex-wrap items-center justify-between gap-3">

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart' hide Text;
 import '../../../core/network/api_client.dart';
 import '../../../core/network/api_exceptions.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/motion.dart';
 
 /// District target setting (build spec B.29): the district's proposals per club and target. A club's managers accept
 /// or counter here; the district reads the answers (it proposes on the web). No locking (module sheet).
@@ -68,7 +69,7 @@ class _TargetProposalsSectionState extends State<TargetProposalsSection> {
   Future<void> _counterDialog(Map<String, dynamic> p) async {
     final value = TextEditingController();
     final note = TextEditingController();
-    final ok = await showDialog<bool>(
+    final ok = await showRowDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
         title: Text('Counter: ${proposalMetricLabels[p['metric']] ?? p['metric']}'),

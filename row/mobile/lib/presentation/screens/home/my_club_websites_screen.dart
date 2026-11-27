@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart' hide Text;
 import 'package:provider/provider.dart';
-import 'package:url_launcher/url_launcher.dart';
 import '../../../core/network/api_client.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
@@ -10,6 +9,9 @@ import '../../widgets/common/empty_state_widget.dart';
 import '../clubs/overview/widgets/club_website_tab.dart';
 import 'package:rotary_flutter_app/core/theme/app_fonts.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/motion.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/roster_wheel.dart';
+import 'package:rotary_flutter_app/presentation/widgets/common/loading_widget.dart';
 
 class _MyClub {
   final int id;
@@ -43,7 +45,10 @@ class _MyClubWebsitesScreenState extends State<MyClubWebsitesScreen> {
   }
 
   Future<void> _load() async {
-    setState(() { _loading = true; _error = null; });
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
     // COG (by id) and IFRM (by name, e.g. "IFRM 3142") are special clubs hidden
     // from this list, mirroring the home "My Clubs" card.
     final cogId = context.read<AuthProvider>().cogClubId;
@@ -57,8 +62,7 @@ class _MyClubWebsitesScreenState extends State<MyClubWebsitesScreen> {
       final clubs = raw
           .map((e) => _MyClub.fromJson(e as Map<String, dynamic>))
           .where((c) =>
-              c.id != cogId &&
-              !c.name.trim().toLowerCase().contains('ifrm'))
+              c.id != cogId && !c.name.trim().toLowerCase().contains('ifrm'))
           .toList();
       setState(() {
         _clubs = clubs;
@@ -66,7 +70,10 @@ class _MyClubWebsitesScreenState extends State<MyClubWebsitesScreen> {
       });
     } catch (e) {
       if (!mounted) return;
-      setState(() { _error = e.toString(); _loading = false; });
+      setState(() {
+        _error = e.toString();
+        _loading = false;
+      });
     }
   }
 
@@ -85,10 +92,10 @@ class _MyClubWebsitesScreenState extends State<MyClubWebsitesScreen> {
     );
   }
 
-  /// A plain member whose club has NO website yet: show the same "Website not
-  /// set up yet" card the admin sees, but without any set-up action (members
-  /// can't provision a site) — just Contact support.
-  void _openMemberNoWebsite(_MyClub club) {
+  /// A plain member gets the same "My Club Website" page as an admin, minus the management tools:
+  /// the public link (copy / visit / share), or the "not set up yet" card with Contact support.
+  void _openMemberView(_MyClub club) {
+    final url = (club.websiteUrl ?? '').trim();
     Navigator.of(context).push(
       MaterialPageRoute<void>(
         builder: (_) => Scaffold(
@@ -96,38 +103,28 @@ class _MyClubWebsitesScreenState extends State<MyClubWebsitesScreen> {
           appBar: const CustomAppBar(title: 'My Club Website'),
           body: SingleChildScrollView(
             padding: const EdgeInsets.fromLTRB(12, 16, 12, 32),
-            child: WebsiteNotConfiguredCard(
-              clubId: club.id,
-              clubName: club.name,
-              showSetup: false,
-            ),
+            child: url.isEmpty
+                ? WebsiteNotConfiguredCard(
+                    clubId: club.id, clubName: club.name, showSetup: false)
+                : Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Text(club.name,
+                          style: AppFonts.body(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.textPrimary)),
+                      const SizedBox(height: 12),
+                      WebsiteShareBar(
+                          url: url.startsWith('http') ? url : 'https://$url'),
+                      const SizedBox(height: 12),
+                      Text('Club admins manage the website content.',
+                          style: AppTextStyles.caption),
+                    ],
+                  ),
           ),
         ),
       ),
-    );
-  }
-
-  Future<void> _openWebsite(_MyClub club) async {
-    final raw = club.websiteUrl;
-    if (raw == null || raw.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('No website configured for ${club.name}.')),
-      );
-      return;
-    }
-    var url = raw.trim();
-    if (!url.startsWith('http://') && !url.startsWith('https://')) {
-      url = 'https://$url';
-    }
-    final uri = Uri.tryParse(url);
-    if (uri == null) return;
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
-      return;
-    }
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Could not open $url')),
     );
   }
 
@@ -136,7 +133,7 @@ class _MyClubWebsitesScreenState extends State<MyClubWebsitesScreen> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: const CustomAppBar(title: 'My Club Websites'),
-      body: RefreshIndicator(
+      body: RowRefresh(
         color: AppColors.primary,
         onRefresh: _load,
         child: _buildBody(),
@@ -146,7 +143,7 @@ class _MyClubWebsitesScreenState extends State<MyClubWebsitesScreen> {
 
   Widget _buildBody() {
     if (_loading) {
-      return const Center(child: const CircularProgressIndicator(color: AppColors.primary));
+      return const LoadingWidget();
     }
     if (_error != null) {
       return ErrorStateWidget(message: _error!, onRetry: _load);
@@ -164,25 +161,26 @@ class _MyClubWebsitesScreenState extends State<MyClubWebsitesScreen> {
         ],
       );
     }
-    return ListView.separated(
+    return RowListView.separated(
       padding: const EdgeInsets.all(16),
       physics: const AlwaysScrollableScrollPhysics(),
       itemCount: _clubs.length + 1,
-      separatorBuilder: (_, i) => i == 0 ? const SizedBox.shrink() : const SizedBox(height: 10),
+      separatorBuilder: (_, i) =>
+          i == 0 ? const SizedBox.shrink() : const SizedBox(height: 10),
       itemBuilder: (_, i) {
         if (i == 0) {
           return Padding(
             padding: const EdgeInsets.only(bottom: 12),
             child: Text(
               'Tap a club to open or manage its website',
-              style: AppTextStyles.caption.copyWith(color: AppColors.textSecondary),
+              style: AppTextStyles.caption
+                  .copyWith(color: AppColors.textSecondary),
             ),
           );
         }
         final club = _clubs[i - 1];
         final hasWebsite = (club.websiteUrl ?? '').isNotEmpty;
-        // Admins of THIS club manage/set up the site here; plain members just
-        // open the public URL (unchanged).
+        // Same page for everyone; only admins of THIS club get the management tools on it.
         final isAdmin = context.read<AuthProvider>().isClubAdminOf(club.id);
 
         final String subtitle;
@@ -213,10 +211,8 @@ class _MyClubWebsitesScreenState extends State<MyClubWebsitesScreen> {
             onTap: () {
               if (isAdmin) {
                 _openManage(club);
-              } else if (hasWebsite) {
-                _openWebsite(club);
               } else {
-                _openMemberNoWebsite(club);
+                _openMemberView(club);
               }
             },
             borderRadius: BorderRadius.circular(12),
@@ -225,12 +221,14 @@ class _MyClubWebsitesScreenState extends State<MyClubWebsitesScreen> {
               child: Row(
                 children: [
                   Container(
-                    width: 44, height: 44,
+                    width: 44,
+                    height: 44,
                     decoration: BoxDecoration(
                       color: AppColors.primaryLight,
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    child: const Icon(Icons.business_outlined, color: AppColors.primary, size: 22),
+                    child: const Icon(Icons.business_outlined,
+                        color: AppColors.primary, size: 22),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
@@ -261,17 +259,8 @@ class _MyClubWebsitesScreenState extends State<MyClubWebsitesScreen> {
                     ),
                   ),
                   const SizedBox(width: 8),
-                  Icon(
-                    isAdmin
-                        ? Icons.chevron_right_rounded
-                        : (hasWebsite
-                            ? Icons.open_in_new
-                            : Icons.chevron_right_rounded),
-                    size: isAdmin ? 24 : 20,
-                    color: (isAdmin || hasWebsite)
-                        ? AppColors.primary
-                        : AppColors.textMuted,
-                  ),
+                  const Icon(Icons.chevron_right_rounded,
+                      size: 24, color: AppColors.primary),
                 ],
               ),
             ),

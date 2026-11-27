@@ -21,13 +21,14 @@
  * v2 reads ONLY `?returnTo=` — back arrow honors it for cross-tab returns.
  */
 
+import FieldLabel from "@/components/form/FieldLabel";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { NativeSelect } from "@/components/ui/native-select";
+import { Card } from "@/components/ui/card";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import Link from "next/link";
 import { useParams, useSearchParams } from "next/navigation";
-import {
-  ArrowLeft, Phone, Mail, Calendar, CheckCircle2, ShieldCheck, Save,
-  Trash2, Plus, Loader2, Eye, EyeOff, AlertTriangle,
-} from "@/components/icons";
+import { Phone, Mail, Calendar, CheckCircle2, ShieldCheck, Save, Trash2, Plus, Loader2, Eye, EyeOff, AlertTriangle } from "@/components/icons";
 import { useSyncClubIdFromUrl } from "@/hooks/useSyncClubIdFromUrl";
 
 import {
@@ -51,21 +52,8 @@ import AlertModal from "@/components/AlertModal";
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
 import ClubAdminShell from "@/components/v2/ClubAdminShell";
-import { SkeletonRows } from "@/components/row/AppKit";
+import { PageHeader, SkeletonRows } from "@/components/row/AppKit";
 
-function FieldLabel({
-  children, dot, required = false,
-}: { children: React.ReactNode; dot: string; required?: boolean }) {
-  return (
-    <div className="flex items-center gap-1.5 mb-1">
-      <span className={`w-1.5 h-1.5 rounded-full ${dot}`} />
-      <label className="text-xs font-semibold text-slate-700">
-        {children}
-        {required && <span className="text-rose-600 ml-0.5">*</span>}
-      </label>
-    </div>
-  );
-}
 
 export default function ContactDetailsV2Page() {
   useSyncClubIdFromUrl();
@@ -325,23 +313,7 @@ export default function ContactDetailsV2Page() {
       >
       <div className="space-y-5">
         {/* Header */}
-        <div className="flex items-start justify-between gap-3">
-          <div className="flex items-start gap-2">
-            <Link
-              href={backHref}
-              className="mt-0.5 inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50"
-              aria-label="Back"
-            >
-              <ArrowLeft size={15} />
-            </Link>
-            <div>
-              <h1 className="text-lg font-semibold text-slate-800">Contact Details</h1>
-              <p className="text-xs text-slate-500 mt-0.5">
-                RY {yearLabel} · {clubName || "–"}
-              </p>
-            </div>
-          </div>
-        </div>
+        <PageHeader title="Contact Details" description={<>RY {yearLabel} · {clubName || "–"}</>} back={backHref} />
 
         {/* KPI row */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -352,7 +324,7 @@ export default function ContactDetailsV2Page() {
         </div>
 
         {/* Form / record card */}
-        <div className="bg-card rounded-2xl border border-slate-200 overflow-hidden">
+        <Card className="overflow-hidden">
           {/* Header bar */}
           <div className="px-5 py-3 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-blue-50">
             <div className="flex flex-wrap items-center gap-2">
@@ -360,31 +332,31 @@ export default function ContactDetailsV2Page() {
                 <Phone size={18} />
               </div>
               <div>
-                <h3 className="text-sm font-semibold text-slate-800">Public Contact Details</h3>
+                <h3 className="row-h3">Public Contact Details</h3>
                 <p className="text-xs text-slate-500">One contact per Rotary year · {clubName || "–"}</p>
               </div>
             </div>
             <div className="flex flex-wrap items-center gap-2">
               {dataYears.length > 0 && (
-                <select
+                <NativeSelect
                   value={selectedYearId}
                   onChange={(e) => setSelectedYearId(e.target.value)}
-                  className="px-2 h-10 py-0 text-sm border border-slate-200 rounded-[12px] bg-card focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                  className="w-auto"
                 >
                   {dataYears.map((y) => (
                     <option key={y.id} value={String(y.id)}>
                       {y.yearLabel}{y.isCurrent ? " · current" : ""}
                     </option>
                   ))}
-                </select>
+                </NativeSelect>
               )}
               {contact ? (
-                <span className={`inline-flex items-center gap-1 text-xs font-medium px-2 py-1 rounded-full border ${contact.isActive ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-slate-100 text-slate-600 border-slate-200"}`}>
+                <span className={`inline-flex items-center gap-1 text-xs font-medium px-2 py-1 rounded border ${contact.isActive ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-slate-100 text-slate-600 border-slate-200"}`}>
                   {contact.isActive ? <Eye size={11} /> : <EyeOff size={11} />}
                   {contact.isActive ? "Active" : "Inactive"}
                 </span>
               ) : (
-                <span className="inline-flex items-center gap-1 text-xs font-medium px-2 py-1 rounded-full bg-amber-50 text-amber-700 border-amber-200">
+                <span className="inline-flex items-center gap-1 text-xs font-medium px-2 py-1 rounded bg-amber-50 text-amber-700 border-amber-200">
                   <Plus size={11} /> No record · Add new
                 </span>
               )}
@@ -398,59 +370,59 @@ export default function ContactDetailsV2Page() {
             <div className="p-5 grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Email */}
               <div>
-                <FieldLabel dot="bg-[#17458F]" required>Email</FieldLabel>
+                <FieldLabel required>Email</FieldLabel>
                 <div className="relative">
                   <Mail size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
-                  <input
+                  <Input
                     type="email"
                     placeholder="email@example.com"
                     value={formEmail}
                     disabled={!canManage || saving}
                     onChange={(e) => setFormEmail(e.target.value)}
-                    className="w-full pl-7 pr-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42] disabled:bg-slate-50 disabled:cursor-not-allowed"
+                    className="pl-7 pr-3 disabled:bg-slate-50 disabled:cursor-not-allowed"
                   />
                 </div>
               </div>
 
               {/* Phone */}
               <div>
-                <FieldLabel dot="bg-[#17458F]" required>Phone</FieldLabel>
+                <FieldLabel required>Phone</FieldLabel>
                 <div className="relative">
                   <Phone size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
-                  <input
+                  <Input
                     type="text"
                     placeholder="+1 555 123 4567"
                     value={formPhone}
                     disabled={!canManage || saving}
                     onChange={(e) => setFormPhone(e.target.value)}
-                    className="w-full pl-7 pr-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42] disabled:bg-slate-50 disabled:cursor-not-allowed"
+                    className="pl-7 pr-3 disabled:bg-slate-50 disabled:cursor-not-allowed"
                   />
                 </div>
               </div>
 
               {/* Status */}
               <div>
-                <FieldLabel dot="bg-[#17458F]">Status</FieldLabel>
-                <select
+                <FieldLabel>Status</FieldLabel>
+                <NativeSelect
                   value={formIsActive}
                   onChange={(e) => setFormIsActive(e.target.value)}
                   disabled={!canManage || saving}
-                  className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42] bg-card disabled:bg-slate-50 disabled:cursor-not-allowed"
+                  className="disabled:bg-slate-50 disabled:cursor-not-allowed"
                 >
                   <option value="1">Active</option>
                   <option value="0">Inactive</option>
-                </select>
+                </NativeSelect>
               </div>
 
               {/* Rotary Year — only when no record yet AND nothing is selected (first add). */}
               {!contact && !selectedYearId && (
                 <div>
-                  <FieldLabel dot="bg-[#17458F]" required>Rotary Year</FieldLabel>
-                  <select
+                  <FieldLabel required>Rotary Year</FieldLabel>
+                  <NativeSelect
                     value={formYearId}
                     onChange={(e) => setFormYearId(e.target.value)}
                     disabled={!canManage || saving}
-                    className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42] bg-card disabled:bg-slate-50 disabled:cursor-not-allowed"
+                    className="disabled:bg-slate-50 disabled:cursor-not-allowed"
                   >
                     <option value="">Select a year</option>
                     {allYears.map((y) => (
@@ -458,7 +430,7 @@ export default function ContactDetailsV2Page() {
                         {y.yearLabel}{y.isCurrent ? " (Current)" : ""}
                       </option>
                     ))}
-                  </select>
+                  </NativeSelect>
                 </div>
               )}
             </div>
@@ -479,38 +451,38 @@ export default function ContactDetailsV2Page() {
               <div className="flex flex-wrap items-center gap-2">
                 {contact && (
                   <>
-                    <button
+                    <Button
                       type="button"
                       onClick={handleToggleActive}
                       disabled={saving}
-                      className="inline-flex items-center gap-1 text-xs font-medium px-3 py-1.5 rounded-full border border-slate-200 text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+                      variant="outline" size="sm"
                     >
                       {contact.isActive ? <EyeOff size={13} /> : <Eye size={13} />}
                       {contact.isActive ? "Deactivate" : "Activate"}
-                    </button>
-                    <button
+                    </Button>
+                    <Button
                       type="button"
                       onClick={() => setShowDeleteConfirm(true)}
                       disabled={saving}
-                      className="inline-flex items-center gap-1 text-xs font-medium px-3 py-1.5 rounded-full border border-rose-200 text-rose-700 hover:bg-rose-50 disabled:opacity-50"
+                      variant="outline" size="sm" className="text-red-700"
                     >
                       <Trash2 size={13} /> Delete
-                    </button>
+                    </Button>
                   </>
                 )}
-                <button
+                <Button
                   type="button"
                   onClick={handleSave}
                   disabled={saving || !formEmail.trim() || !formPhone.trim() || (!contact && !selectedYearId && !formYearId)}
-                  className="inline-flex items-center gap-1 text-xs font-semibold px-3 py-1.5 rounded-full bg-[#17458F] text-white hover:bg-[#17458F] disabled:opacity-50"
+                  size="sm"
                 >
                   {saving ? <Loader2 className="animate-spin" size={13} /> : (contact ? <Save size={13} /> : <Plus size={13} />)}
                   {saving ? "Saving…" : (contact ? "Save Changes" : "Add Contact")}
-                </button>
+                </Button>
               </div>
             </div>
           )}
-        </div>
+        </Card>
 
         {/* Delete confirm */}
         <AlertModal

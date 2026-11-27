@@ -13,10 +13,10 @@ class ApiConstants {
   static const String changePassword = '/api/auth/change-password';
   static const String logout = '/api/auth/logout';
   static const String myContext = '/api/auth/my-context';
+  /// Every club of a district, for a District Admin with All Club Access.
+  static String districtAllClubs(int districtId) =>
+      '/api/district-admin/districts/$districtId/all-clubs';
 
-  // Mobile Auth (OTP)
-  static const String mobileRequestOtp = '/api/mobile/auth/request-otp';
-  static const String mobileVerifyOtp = '/api/mobile/auth/verify-otp';
   static const String mobileLogout = '/api/mobile/auth/logout';
 
   // Mobile → Web hand-off: POST mints a one-time link that opens the web portal
@@ -83,6 +83,12 @@ class ApiConstants {
   // Documents
 
   // Attendance
+  // QR attendance
+  static const String attendanceQrKey = '/api/mobile/attendance/qr-key';
+  static const String attendanceQrStatus = '/api/mobile/attendance/qr-status';
+  static String clubAttendanceToday(int clubId) => '/api/mobile/clubs/$clubId/attendance/today';
+  static String attendanceScan(int attendanceId) => '/api/mobile/attendance/$attendanceId/scan';
+  static String attendanceMarkSelf(int attendanceId) => '/api/mobile/attendance/$attendanceId/mark-self';
 
   // Monthly Reports
 
@@ -155,6 +161,9 @@ class ApiConstants {
   // Admin
   static const String adminAssignRole = '/api/admin/assign-role';
   static const String adminRemoveRole = '/api/admin/remove-role';
+  /// Year-wise Admin Rights: GET feeds the Make Admin year picker (?clubId=&memberId=),
+  /// POST edits an existing club admin's years (Edit Years).
+  static const String adminClubAdminYears = '/api/admin/club-admin-years';
 
   // Credit Management
 

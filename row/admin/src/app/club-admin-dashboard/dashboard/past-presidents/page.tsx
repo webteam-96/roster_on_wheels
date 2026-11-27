@@ -7,6 +7,9 @@
  * a returnTo back to this tab. Delete uses deletePastPresident with a confirm.
  */
 
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table"
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
@@ -138,7 +141,7 @@ export default function DashboardPastPresidentsPage() {
     <div className="space-y-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h2 className="text-lg font-semibold text-slate-800">Past Presidents</h2>
+          <h2 className="row-h2">Past Presidents</h2>
           <p className="text-xs text-slate-500 mt-0.5">
             Club leadership history · {showAllYears ? "All years" : selectedYearLabel}
           </p>
@@ -147,7 +150,7 @@ export default function DashboardPastPresidentsPage() {
           {canAdd && (
           <Link
             href={`/clubs/${clubId}/past-presidents/v2/add?returnTo=${encodeURIComponent(RETURN_TO)}`}
-            className="inline-flex items-center gap-1.5 h-9 text-xs font-semibold px-3 rounded-full bg-[#17458F] text-white hover:bg-[#17458F]"
+            className="row-btn row-btn-primary row-btn-sm"
           >
             <Plus size={13} /> Add Past President
           </Link>
@@ -165,7 +168,7 @@ export default function DashboardPastPresidentsPage() {
         />
       </div>
 
-      <div className="bg-card rounded-2xl border border-slate-200 overflow-hidden">
+      <Card className="overflow-hidden">
         {filtered.length === 0 ? (
           <div className="px-5 py-12 text-center text-slate-500">
             <Award className="h-10 w-10 mx-auto mb-3 text-slate-300" />
@@ -183,23 +186,23 @@ export default function DashboardPastPresidentsPage() {
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[640px] md:min-w-full text-sm">
-              <thead className="bg-[#EDF4FB] text-xs text-slate-500">
-                <tr>
-                  <th className="px-4 py-2.5 text-left w-14">#</th>
-                  <th className="px-4 py-2.5 text-left w-16">Photo</th>
-                  <th className="px-4 py-2.5 text-left">Name</th>
-                  <th className="px-4 py-2.5 text-left">Rotary Year</th>
-                  <th className="px-4 py-2.5 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
+            <Table className="w-full min-w-[640px] md:min-w-full text-sm">
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="px-4 text-left w-14">#</TableHead>
+                  <TableHead className="px-4 text-left w-16">Photo</TableHead>
+                  <TableHead className="px-4 text-left">Name</TableHead>
+                  <TableHead className="px-4 text-left">Rotary Year</TableHead>
+                  <TableHead className="px-4 text-right">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody className="divide-y divide-slate-100">
                 {filtered.map((r, i) => {
                   const photoUrl = getPhotoUrl(r.profilePhotoPath);
                   return (
-                    <tr key={r.id} className="hover:bg-blue-50/40">
-                      <td className="px-4 py-2.5 text-slate-500 tabular-nums">{i + 1}</td>
-                      <td className="px-4 py-2.5">
+                    <TableRow key={r.id} className="hover:bg-blue-50/40">
+                      <TableCell className="px-4 py-2.5 text-slate-500 tabular-nums">{i + 1}</TableCell>
+                      <TableCell className="px-4 py-2.5">
                         {photoUrl ? (
                           // eslint-disable-next-line @next/next/no-img-element
                           <img src={photoUrl} alt="" className="h-9 w-9 rounded-full object-cover" />
@@ -208,47 +211,47 @@ export default function DashboardPastPresidentsPage() {
                             {r.memberName?.charAt(0)}
                           </div>
                         )}
-                      </td>
-                      <td className="px-4 py-2.5 font-medium text-slate-800">
+                      </TableCell>
+                      <TableCell className="px-4 py-2.5 font-medium text-slate-800">
                         <div className="flex flex-wrap items-center gap-2">
                           <span>{r.memberName}</span>
                           <span
-                            className={`inline-flex items-center text-[11px] font-medium px-2 py-0.5 rounded-full ${
+                            className={`inline-flex items-center text-[11px] font-medium px-2 py-0.5 rounded ${
                               r.isMember ? "bg-emerald-100 text-emerald-700" : "bg-slate-200 text-slate-700"
                             }`}
                           >
                             {r.isMember ? "Member" : "Non-Member"}
                           </span>
                         </div>
-                      </td>
-                      <td className="px-4 py-2.5 text-slate-600">{r.yearLabel}</td>
-                      <td className="px-4 py-2.5">
+                      </TableCell>
+                      <TableCell className="px-4 py-2.5 text-slate-600">{r.yearLabel}</TableCell>
+                      <TableCell className="px-4 py-2.5">
                         <div className="flex items-center justify-end gap-1.5">
                           {canEditRow(r.yearId) && (
                             <Link
                               href={`/clubs/${clubId}/past-presidents/v2/${r.id}/edit?returnTo=${encodeURIComponent(RETURN_TO)}`}
-                              className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1.5 rounded-full border border-slate-200 text-slate-700 hover:bg-blue-50 hover:text-blue-700"
+                              className="row-btn row-btn-secondary row-btn-sm"
                             >
                               <Edit3 className="h-3.5 w-3.5" />Edit
                             </Link>
                           )}
-                          <button
+                          <Button
                             type="button"
                             onClick={() => setDeleteTarget(r)}
-                            className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1.5 rounded-full border border-slate-200 text-rose-600 hover:bg-rose-50"
+                            variant="outline" size="sm" className="text-red-700"
                           >
                             <Trash2 className="h-3.5 w-3.5" />Delete
-                          </button>
+                          </Button>
                         </div>
-                      </td>
-                    </tr>
+                      </TableCell>
+                    </TableRow>
                   );
                 })}
-              </tbody>
-            </table>
+              </TableBody>
+            </Table>
           </div>
         )}
-      </div>
+      </Card>
 
       <AlertModal
         open={!!deleteTarget}

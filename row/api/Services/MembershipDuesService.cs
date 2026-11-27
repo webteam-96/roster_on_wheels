@@ -2647,7 +2647,7 @@ public class MembershipDuesService : IMembershipDuesService
         // Get member's fee allocation
         var fee = await conn.QueryFirstOrDefaultAsync<dynamic>(@"
             SELECT f.pk_id AS FeeId, f.fk_member_profile_id, f.AnnualAmount, f.Semi1Amount, f.Semi2Amount,
-                   md.fk_club_id, md.AmountType, md.OnlineSurchargePercent
+                   md.fk_club_id, md.AmountType, md.OnlineSurchargePercent, md.Currency
             FROM membership_dues_member_fees f
             JOIN membership_dues md ON f.fk_membership_dues_id = md.pk_membership_dues_id
             WHERE f.fk_membership_dues_id=@DuesId AND f.fk_member_profile_id=@MemberId AND f.isdeleted=0",
@@ -2762,7 +2762,7 @@ public class MembershipDuesService : IMembershipDuesService
         if (_checkout.Enabled)
         {
             var session = await _checkout.CreateAsync(new CheckoutRequest(PaymentSettlementService.FlowMembershipDues, paymentId, orderId,
-                amount, Brand.DefaultCurrency, "Membership dues", returnUrl, $"{frontendUrl}/pay/dues/{duesId}"));
+                amount, DuesCurrency.Normalize((string?)fee.Currency), "Membership dues", returnUrl, $"{frontendUrl}/pay/dues/{duesId}"));
             await conn.ExecuteAsync("UPDATE membership_dues_payments SET TransactionId=@OrderId, OrderSplitsJson=@SplitsJson WHERE pk_id=@Id",
                 new { OrderId = orderId, SplitsJson = splitsJson, Id = paymentId });
             return new DuesPaymentSessionResponseDto { OrderId = orderId, PaymentId = paymentId, Checkout = session };

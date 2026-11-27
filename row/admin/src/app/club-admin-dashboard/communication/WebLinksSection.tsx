@@ -8,6 +8,7 @@
  * clubId comes from the tab prop.
  */
 
+import { LinkButton } from "@/components/ui/text-buttons"
 import { useState, useEffect, useCallback, useMemo } from "react";
 import dynamic from "next/dynamic";
 import { Weblink } from "@/types/weblink";
@@ -28,7 +29,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import SuccessAlert from "@/components/SuccessAlert";
@@ -65,7 +66,7 @@ function LinkTypeBadge({ type }: { type: string }) {
     PDF: "bg-red-100 text-red-700",
   };
   return (
-    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${colors[type] || "bg-gray-100 text-gray-700"}`}>
+    <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${colors[type] || "bg-gray-100 text-gray-700"}`}>
       {type}
     </span>
   );
@@ -269,7 +270,7 @@ export default function WebLinksSection({ clubId }: { clubId: number }) {
           <span className="text-sm font-semibold">Web Links: navigation links & pages shown on the club website</span>
         </div>
         {canManage && (
-          <Button onClick={openAddDialog} className="bg-azure hover:bg-mint-ink text-white">
+          <Button onClick={openAddDialog}>
             <Plus className="mr-2 h-4 w-4" />Add Weblink
           </Button>
         )}
@@ -281,12 +282,11 @@ export default function WebLinksSection({ clubId }: { clubId: number }) {
           {breadcrumb.map((item, index) => (
             <span key={index} className="flex items-center gap-1">
               {index > 0 && <ChevronRight className="h-3 w-3 text-muted-foreground" />}
-              <button
+              <LinkButton tone={index === breadcrumb.length - 1 ? "primary" : "muted"}
                 onClick={() => navigateTo(index)}
-                className={`hover:underline ${index === breadcrumb.length - 1 ? "font-semibold text-primary" : "text-muted-foreground hover:text-foreground"}`}
               >
                 {item.title}
-              </button>
+              </LinkButton>
             </span>
           ))}
         </div>
@@ -301,7 +301,7 @@ export default function WebLinksSection({ clubId }: { clubId: number }) {
       {!loading && weblinks.length === 0 && (
         <div className="flex flex-col items-center justify-center py-16 text-center">
           <FolderOpen className="h-12 w-12 text-muted-foreground mb-4" />
-          <h3 className="text-lg font-semibold">No weblinks found</h3>
+          <h3 className="row-h2">No weblinks found</h3>
           <p className="text-muted-foreground mt-2">{canManage ? 'Click "Add Weblink" to create one.' : "No weblinks available."}</p>
         </div>
       )}
@@ -309,7 +309,7 @@ export default function WebLinksSection({ clubId }: { clubId: number }) {
       {!loading && filteredWeblinks.length === 0 && searchQuery && weblinks.length > 0 && (
         <div className="flex flex-col items-center justify-center py-16 text-center">
           <FolderOpen className="h-12 w-12 text-muted-foreground mb-4" />
-          <h3 className="text-lg font-semibold">No results found</h3>
+          <h3 className="row-h2">No results found</h3>
           <p className="text-muted-foreground mt-2">No weblinks match &quot;{searchQuery}&quot;.</p>
         </div>
       )}
@@ -320,12 +320,12 @@ export default function WebLinksSection({ clubId }: { clubId: number }) {
             <Table>
               <TableHeader>
                 <TableRow className="hover:opacity-100" style={{ backgroundColor: "#17458f" }}>
-                  <TableHead className="w-12 text-base font-semibold">S.No.</TableHead>
-                  <TableHead className="text-base font-semibold">Logo</TableHead>
-                  <TableHead className="text-base font-semibold">Title</TableHead>
-                  <TableHead className="text-base font-semibold text-center">Type</TableHead>
-                  <TableHead className="text-base font-semibold text-center">Children</TableHead>
-                  <TableHead className="text-base font-semibold text-center">Active</TableHead>
+                  <TableHead className="w-12">S.No.</TableHead>
+                  <TableHead>Logo</TableHead>
+                  <TableHead>Title</TableHead>
+                  <TableHead className="text-center">Type</TableHead>
+                  <TableHead className="text-center">Children</TableHead>
+                  <TableHead className="text-center">Active</TableHead>
                   {canManage && <TableHead className="w-12"></TableHead>}
                 </TableRow>
               </TableHeader>
@@ -343,14 +343,13 @@ export default function WebLinksSection({ clubId }: { clubId: number }) {
                     </TableCell>
                     <TableCell>
                       {isRowClickable(w) ? (
-                        <button
+                        <LinkButton
                           type="button"
                           onClick={() => handleRowClick(w)}
-                          className="font-medium text-primary hover:underline text-left"
                           title={w.childCount > 0 ? "View children" : w.linkType === "URL" ? "Open URL" : w.linkType === "PDF" ? "Open PDF" : w.youtubeUrl ? "Open YouTube" : ""}
                         >
                           {w.title}
-                        </button>
+                        </LinkButton>
                       ) : (
                         <p className="font-medium">{w.title}</p>
                       )}
@@ -365,7 +364,7 @@ export default function WebLinksSection({ clubId }: { clubId: number }) {
                     {canManage && (
                       <TableCell>
                         <DropdownMenu>
-                          <DropdownMenuTrigger asChild><Button variant="ghost" size="icon" className="h-8 w-8"><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger>
+                          <DropdownMenuTrigger asChild><Button variant="ghost" size="icon" className="row-btn-sm"><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
                             {w.level < 3 && <DropdownMenuItem onClick={() => navigateInto(w)}><FolderTree className="mr-2 h-4 w-4" />View Children</DropdownMenuItem>}
                             <DropdownMenuItem onClick={() => openEditDialog(w)}><Pencil className="mr-2 h-4 w-4" />Edit</DropdownMenuItem>
@@ -481,7 +480,7 @@ export default function WebLinksSection({ clubId }: { clubId: number }) {
 
           <DialogFooter>
             <Button variant="outline" onClick={() => { setDialogOpen(false); setEditing(null); resetForm(); }} disabled={saving}>Cancel</Button>
-            <Button onClick={handleSave} disabled={saving} className="bg-azure hover:bg-mint-ink text-white">
+            <Button onClick={handleSave} disabled={saving}>
               {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               {editing ? "Update" : "Create"}
             </Button>

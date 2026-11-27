@@ -1,11 +1,10 @@
 "use client";
+import { DataTable } from "@/components/ui/data-table";
 
+import { Card } from "@/components/ui/card";
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import Link from "next/link";
-import {
-  ArrowLeft, Users, Calendar, Briefcase, Heart,
-} from "@/components/icons";
+import { Users, Calendar, Briefcase, Heart } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, Legend,
@@ -16,7 +15,7 @@ import { fmtInt, fmtInr, fmtInrShort, fmtDate, ROTARY_BLUE, ROTARY_GOLD } from "
 import KpiCard from "@/components/dashboard/KpiCard";
 import { useAgYearId } from "@/hooks/useAgYearId";
 import { formatMoney } from "@/lib/currency";
-import { ListPageSkeleton } from "@/components/row/AppKit";
+import { PageHeader, ListPageSkeleton } from "@/components/row/AppKit";
 
 export default function AgClubDetailPage() {
   const params = useParams();
@@ -54,17 +53,7 @@ export default function AgClubDetailPage() {
 
   return (
     <div className="space-y-6">
-      <Link href="/ag-dashboard/clubs" className="inline-flex items-center gap-1 text-xs text-slate-500 hover:text-slate-800">
-        <ArrowLeft size={14} /> Back to club directory
-      </Link>
-
-      <div>
-        <h1 className="text-xl font-bold text-slate-800">{summary.clubName}</h1>
-        <p className="text-sm text-slate-500 mt-0.5">
-          District {summary.districtNumber || "–"} · President: {summary.presidentName || "–"}
-          {summary.projectRank ? ` · District rank #${summary.projectRank}` : ""}
-        </p>
-      </div>
+      <PageHeader title={summary.clubName} description={<>District {summary.districtNumber || "–"} · President: {summary.presidentName || "–"} {summary.projectRank ? ` · District rank #${summary.projectRank}` : ""}</>} back="/ag-dashboard/clubs" />
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <KpiCard title="Members"   value={fmtInt(summary.members)}       icon={Users}     color="blue"  />
@@ -74,14 +63,14 @@ export default function AgClubDetailPage() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-card rounded-[20px] border border-slate-200 p-5">
-          <h3 className="text-sm font-semibold text-slate-800 mb-3">Monthly Activity</h3>
+        <Card className="p-5">
+          <h3 className="row-h3 mb-3">Monthly Activity</h3>
           {monthly.length === 0 ? (
             <p className="text-xs text-slate-400">No monthly data for this year yet.</p>
           ) : (
             <ResponsiveContainer width="100%" height={260}>
               <LineChart data={monthly} margin={{ top: 8, right: 16, left: 0, bottom: 4 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#edf4fb" />
+                <CartesianGrid strokeDasharray="3 3" stroke="#d3dde8" />
                 <XAxis dataKey="month" tick={{ fontSize: 10, fill: "#64748b" }} />
                 <YAxis tick={{ fontSize: 10, fill: "#64748b" }} width={32} />
                 <Tooltip contentStyle={{ fontSize: 12, borderRadius: 8 }} />
@@ -91,10 +80,10 @@ export default function AgClubDetailPage() {
               </LineChart>
             </ResponsiveContainer>
           )}
-        </div>
+        </Card>
 
-        <div className="bg-card rounded-[20px] border border-slate-200 p-5">
-          <h3 className="text-sm font-semibold text-slate-800 mb-3">TRF Breakdown</h3>
+        <Card className="p-5">
+          <h3 className="row-h3 mb-3">TRF Breakdown</h3>
           {trf.totalInr === 0 ? (
             <p className="text-xs text-slate-400">No TRF contributions recorded.</p>
           ) : (
@@ -108,7 +97,7 @@ export default function AgClubDetailPage() {
                 ]}
                 margin={{ top: 8, right: 16, left: 0, bottom: 4 }}
               >
-                <CartesianGrid strokeDasharray="3 3" stroke="#edf4fb" vertical={false} />
+                <CartesianGrid strokeDasharray="3 3" stroke="#d3dde8" vertical={false} />
                 <XAxis dataKey="name" tick={{ fontSize: 11, fill: "#64748b" }} />
                 <YAxis tickFormatter={(v) => fmtInrShort(v)} tick={{ fontSize: 10, fill: "#64748b" }} width={60} />
                 <Tooltip formatter={(v) => fmtInr(Number(v))} contentStyle={{ fontSize: 12, borderRadius: 8 }} />
@@ -116,41 +105,31 @@ export default function AgClubDetailPage() {
               </BarChart>
             </ResponsiveContainer>
           )}
-        </div>
+        </Card>
       </div>
 
-      <div className="bg-card rounded-[20px] border border-slate-200 overflow-hidden">
+      <Card className="overflow-hidden">
         <div className="px-5 py-3 border-b border-slate-100">
-          <h3 className="text-sm font-semibold text-slate-800">Recent Projects</h3>
+          <h3 className="row-h3">Recent Projects</h3>
           <p className="text-xs text-slate-500 mt-0.5">Top 10 most recent</p>
         </div>
         {recentProjects.length === 0 ? (
           <p className="px-5 py-6 text-xs text-slate-400">No projects yet.</p>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="bg-[#EDF4FB] text-xs text-slate-500 border-b border-slate-200">
-                <tr>
-                  <th className="px-4 py-2.5 text-left">Date</th>
-                  <th className="px-4 py-2.5 text-left">Title</th>
-                  <th className="px-4 py-2.5 text-right">Cost</th>
-                  <th className="px-4 py-2.5 text-right">Beneficiaries</th>
-                </tr>
-              </thead>
-              <tbody>
-                {recentProjects.map((p, i) => (
-                  <tr key={i} className="border-t border-slate-100 hover:bg-slate-50">
-                    <td className="px-4 py-2 text-xs text-slate-600 whitespace-nowrap">{fmtDate(p.date)}</td>
-                    <td className="px-4 py-2 font-medium text-slate-800">{p.title}</td>
-                    <td className="px-4 py-2 text-right tabular-nums text-slate-700">{p.cost > 0 ? formatMoney(p.cost, p.currency) : "–"}</td>
-                    <td className="px-4 py-2 text-right tabular-nums text-slate-700">{p.beneficiaries > 0 ? fmtInt(p.beneficiaries) : "–"}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <DataTable
+            caption="Recent projects"
+            card={false}
+            rows={recentProjects}
+            rowKey={(_, i) => i}
+            columns={[
+              { key: "date", header: "Date", className: "whitespace-nowrap", cell: (p) => fmtDate(p.date) },
+              { key: "title", header: "Title", className: "font-medium", cell: (p) => p.title },
+              { key: "cost", header: "Cost", align: "right", className: "tabular-nums", cell: (p) => (p.cost > 0 ? formatMoney(p.cost, p.currency) : "–") },
+              { key: "beneficiaries", header: "Beneficiaries", align: "right", className: "tabular-nums", cell: (p) => (p.beneficiaries > 0 ? fmtInt(p.beneficiaries) : "–") },
+            ]}
+          />
         )}
-      </div>
+      </Card>
     </div>
   );
 }

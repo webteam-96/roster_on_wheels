@@ -1,4 +1,5 @@
 "use client";
+import { IconButton } from "@/components/ui/icon-button";
 
 /**
  * App Route Maintenance — SuperAdmin switchboard.
@@ -12,20 +13,10 @@
  * and the DI line in Program.cs. This page is fully self-contained.
  */
 
+import { PageHeader } from "@/components/row/AppKit";
 import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import Link from "next/link";
-import {
-  AlertTriangle,
-  ArrowLeft,
-  CheckCircle2,
-  ChevronDown,
-  ChevronRight,
-  Loader2,
-  Lock,
-  Search,
-  Settings,
-  Wrench,
-} from "@/components/icons";
+import { AlertTriangle, ArrowLeft, CheckCircle2, ChevronDown, ChevronRight, Loader2, Lock, Search, Settings, Wrench } from "@/components/icons";
 
 import { useAuth } from "@/contexts/AuthContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
@@ -81,7 +72,7 @@ const GROUPS: GroupDef[] = [
     description: "Locked: blocking these would lock users out of the app.",
     locked: true,
     routes: [
-      "/splash", "/login", "/otp-verify", "/welcome", "/terms",
+      "/splash", "/login", "/welcome", "/terms",
       "/admin-login", "/forgot-password", "/reset-password", "/home",
       "/app-lock", "/settings/security", "/profile", "/profile/edit",
       "/notifications", "/settings", "/settings/color-theme",
@@ -387,9 +378,8 @@ function RouteRow({ row, locked, onSaved, onError }: RowProps) {
       } px-3 py-2.5 transition-colors`}
     >
       <div className="flex items-center gap-3">
-        <button
+        <IconButton
           type="button"
-          className="flex-shrink-0 text-slate-400 hover:text-slate-700 disabled:opacity-40"
           onClick={() => setExpanded((v) => !v)}
           disabled={locked}
           aria-label={expanded ? "Collapse" : "Expand"}
@@ -399,7 +389,7 @@ function RouteRow({ row, locked, onSaved, onError }: RowProps) {
           ) : (
             <ChevronRight className="h-4 w-4" />
           )}
-        </button>
+        </IconButton>
 
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
@@ -412,12 +402,12 @@ function RouteRow({ row, locked, onSaved, onError }: RowProps) {
               {row.label ?? row.routeKey}
             </span>
             {locked && (
-              <Badge variant="outline" className="text-[10px] gap-1 px-1.5 py-0">
+              <Badge variant="outline" className="gap-1">
                 <Lock className="h-3 w-3" /> LOCKED
               </Badge>
             )}
             {isOn && !isGlobal && (
-              <Badge className="text-[10px] bg-amber-500 hover:bg-amber-600 text-white">
+              <Badge className="bg-amber-100 text-amber-900">
                 UNDER MAINTENANCE
               </Badge>
             )}
@@ -466,7 +456,7 @@ function RouteRow({ row, locked, onSaved, onError }: RowProps) {
               onChange={(e) => handleMessageChange(e.target.value)}
               placeholder="e.g. We're upgrading this section. Back by 6 PM."
               maxLength={500}
-              className="h-8 text-sm"
+              className="row-field-sm"
             />
           </div>
           <div>
@@ -475,7 +465,7 @@ function RouteRow({ row, locked, onSaved, onError }: RowProps) {
               type="datetime-local"
               value={until}
               onChange={(e) => handleUntilChange(e.target.value)}
-              className="h-8 text-sm"
+              className="row-field-sm"
             />
           </div>
           <p className="text-[11px] text-slate-400 sm:col-span-2">
@@ -580,7 +570,7 @@ export default function AppMaintenancePage() {
       <ProtectedRoute>
         <div className="flex flex-col items-center py-20 text-center">
           <AlertTriangle className="h-12 w-12 text-amber-500 mb-3" />
-          <h3 className="text-lg font-semibold">Access Denied</h3>
+          <h3 className="row-h2">Access Denied</h3>
           <p className="text-muted-foreground mt-2 max-w-md">
             Only SuperAdmin can manage App Route Maintenance. This controls
             which mobile app routes are currently blocked for all users.
@@ -609,22 +599,7 @@ export default function AppMaintenancePage() {
         />
 
         {/* Header */}
-        <div className="flex items-center gap-3">
-          <Button variant="outline" size="icon" asChild>
-            <Link href="/settings">
-              <ArrowLeft className="h-4 w-4" />
-            </Link>
-          </Button>
-          <div>
-            <h2 className="text-2xl font-bold tracking-tight text-primary flex items-center gap-2">
-              <Wrench className="h-6 w-6" /> App Route Maintenance
-            </h2>
-            <p className="text-muted-foreground text-base">
-              Mark mobile app routes as &quot;under maintenance.&quot; The mobile app
-              respects these flags in real time.
-            </p>
-          </div>
-        </div>
+        <PageHeader title="App Route Maintenance" description={<>Mark mobile app routes as &quot;under maintenance.&quot; The mobile app respects these flags in real time.</>} back="/settings" />
 
         {/* KPI strip */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -707,7 +682,7 @@ export default function AppMaintenancePage() {
                         <Settings className="h-4 w-4" />
                       )}
                       {group.title}
-                      <Badge variant="secondary" className="text-[10px]">
+                      <Badge variant="secondary">
                         {visibleRouteKeys.length}
                       </Badge>
                     </CardTitle>

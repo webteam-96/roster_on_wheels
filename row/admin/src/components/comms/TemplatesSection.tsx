@@ -1,4 +1,7 @@
 "use client";
+import { Button } from "@/components/ui/button"
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table"
+import { LinkButton } from "@/components/ui/text-buttons";
 
 /**
  * N5 Communication: templates per language for one club or district. A template key has one version per language;
@@ -14,7 +17,7 @@ import {
   type CommTemplate, type CommsScope,
 } from "@/services/api";
 import { CAMPAIGN_PLACEHOLDERS, SYSTEM_TEMPLATES, isLanguageCode, isTemplateKey } from "@/lib/comms";
-import { btnPrimary, btnSecondary, card, errorOf, input } from "./ui";
+import { card, errorOf, input } from "./ui";
 
 interface Draft { templateKey: string; language: string; subject: string; bodyHtml: string; reviewed: boolean; }
 const EMPTY: Draft = { templateKey: "", language: "", subject: "", bodyHtml: "", reviewed: true };
@@ -92,16 +95,16 @@ export default function TemplatesSection({ scope, id, defaultLanguage }: { scope
       <div className={card}>
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
-            <h2 className="text-base font-semibold text-slate-800">Templates</h2>
+            <h2 className="row-h2">Templates</h2>
             <p className="mt-1 max-w-2xl text-sm text-slate-500">
               One version per language. Each member gets the version in their own language, else the {defaultLanguage} version.
               The keys birthday, anniversary and meeting_reminder are used by greetings and the meeting reminder; any other key
               can be picked when you compose a mass email.
             </p>
           </div>
-          <button type="button" className={btnPrimary} onClick={() => { setDraft({ ...EMPTY, language: defaultLanguage }); setError(null); }}>
+          <Button type="button" onClick={() => { setDraft({ ...EMPTY, language: defaultLanguage }); setError(null); }}>
             New template
-          </button>
+          </Button>
         </div>
         {error && <p role="alert" className="mt-3 text-sm text-red-700">{error}</p>}
         {notice && <p role="status" className="mt-3 text-sm text-emerald-700">{notice}</p>}
@@ -114,15 +117,15 @@ export default function TemplatesSection({ scope, id, defaultLanguage }: { scope
           </p>
           <div className="mt-2 flex flex-wrap items-center gap-2">
             <input aria-label="Target language code" className={`${input} w-28`} placeholder="es" value={target} onChange={(e) => setTarget(e.target.value)} />
-            <button type="button" className={btnPrimary} disabled={busy} onClick={translate}>Translate</button>
-            <button type="button" className={btnSecondary} onClick={() => setTranslateFrom(null)}>Cancel</button>
+            <Button type="button" disabled={busy} onClick={translate}>Translate</Button>
+            <Button variant="outline" type="button" onClick={() => setTranslateFrom(null)}>Cancel</Button>
           </div>
         </div>
       )}
 
       {draft && (
         <div className={card}>
-          <h3 className="text-sm font-semibold text-slate-800">{rows?.some((r) => r.templateKey === draft.templateKey && r.language === draft.language) ? "Edit template" : "New template"}</h3>
+          <h3 className="row-h3">{rows?.some((r) => r.templateKey === draft.templateKey && r.language === draft.language) ? "Edit template" : "New template"}</h3>
           <div className="mt-3 grid gap-3 md:grid-cols-[1fr_8rem]">
             <label className="text-sm text-slate-700">
               Key
@@ -151,8 +154,8 @@ export default function TemplatesSection({ scope, id, defaultLanguage }: { scope
             Reviewed by a person (unticked versions are shown as beta)
           </label>
           <div className="mt-4 flex gap-2">
-            <button type="button" className={btnPrimary} disabled={busy} onClick={save}>Save template</button>
-            <button type="button" className={btnSecondary} onClick={() => setDraft(null)}>Cancel</button>
+            <Button type="button" disabled={busy} onClick={save}>Save template</Button>
+            <Button variant="outline" type="button" onClick={() => setDraft(null)}>Cancel</Button>
           </div>
         </div>
       )}
@@ -164,36 +167,36 @@ export default function TemplatesSection({ scope, id, defaultLanguage }: { scope
           <p className="text-sm text-slate-500">No templates yet. Greetings and reminders use their standard text until you add one.</p>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-slate-200 text-left text-slate-500">
-                  <th className="py-2 pr-3 font-medium">Key</th>
-                  <th className="py-2 pr-3 font-medium">Language</th>
-                  <th className="py-2 pr-3 font-medium">Subject</th>
-                  <th className="py-2 pr-3 font-medium">State</th>
-                  <th className="py-2 font-medium"><span className="sr-only">Actions</span></th>
-                </tr>
-              </thead>
-              <tbody>
+            <Table className="w-full text-sm">
+              <TableHeader>
+                <TableRow className="border-b border-slate-200">
+                  <TableHead className="pr-3">Key</TableHead>
+                  <TableHead className="pr-3">Language</TableHead>
+                  <TableHead className="pr-3">Subject</TableHead>
+                  <TableHead className="pr-3">State</TableHead>
+                  <TableHead><span className="sr-only">Actions</span></TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
                 {rows.map((t) => (
-                  <tr key={t.id} className="border-b border-slate-100 last:border-0">
-                    <td className="py-2 pr-3 font-medium text-slate-800">{t.templateKey}</td>
-                    <td className="py-2 pr-3">{t.language}</td>
-                    <td className="py-2 pr-3 text-slate-700">{t.subject}</td>
-                    <td className="py-2 pr-3">
+                  <TableRow key={t.id} className="border-b border-slate-100 last:border-0">
+                    <TableCell className="py-2 pr-3 font-medium text-slate-800">{t.templateKey}</TableCell>
+                    <TableCell className="py-2 pr-3">{t.language}</TableCell>
+                    <TableCell className="py-2 pr-3 text-slate-700">{t.subject}</TableCell>
+                    <TableCell className="py-2 pr-3">
                       {t.reviewed
                         ? <span className="text-emerald-700">Reviewed</span>
                         : <span className="rounded border border-amber-300 px-1.5 py-0.5 text-xs text-amber-800">Beta: machine translated</span>}
-                    </td>
-                    <td className="py-2 text-right whitespace-nowrap">
-                      <button type="button" className="text-sm text-azure hover:underline" onClick={() => { setDraft({ ...t }); setError(null); }}>Edit</button>
-                      <button type="button" className="ml-3 text-sm text-azure hover:underline" onClick={() => { setTranslateFrom(t); setTarget(""); }}>Translate</button>
-                      <button type="button" className="ml-3 text-sm text-red-700 hover:underline" disabled={busy} onClick={() => remove(t)}>Delete</button>
-                    </td>
-                  </tr>
+                    </TableCell>
+                    <TableCell className="py-2 text-right whitespace-nowrap">
+                      <LinkButton onClick={() => { setDraft({ ...t }); setError(null); }}>Edit</LinkButton>
+                      <LinkButton className="ml-3" onClick={() => { setTranslateFrom(t); setTarget(""); }}>Translate</LinkButton>
+                      <LinkButton tone="danger" className="ml-3" disabled={busy} onClick={() => remove(t)}>Delete</LinkButton>
+                    </TableCell>
+                  </TableRow>
                 ))}
-              </tbody>
-            </table>
+              </TableBody>
+            </Table>
           </div>
         )}
       </div>

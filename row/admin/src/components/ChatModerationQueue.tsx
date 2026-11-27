@@ -1,5 +1,6 @@
 "use client";
 
+import { PageHeader } from "@/components/row/AppKit";
 import { useCallback, useEffect, useState } from "react";
 import {
   getChatReports, resolveChatReport, setChatMemberMuted, setChatMessageHidden, type ChatReport,
@@ -86,26 +87,25 @@ export default function ChatModerationQueue({ scope, ownerId }: Props) {
   }
 
   return (
-    <div className="space-y-5 p-6">
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div className="min-w-0">
-          <h2 className="text-xl font-semibold">Chat moderation</h2>
-          <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
-            Messages that members reported in your {scope === "clubs" ? "club's" : "district's"} chats. Hide a message,
-            mute its sender in that chat, then resolve the report. You see the reported message only, never the whole chat.
-          </p>
-        </div>
-        <Button variant="outline" onClick={load} className="gap-1.5">
+    <div className="space-y-5">
+      <PageHeader
+        title="Chat moderation"
+        description={<>Messages that members reported in your {scope === "clubs" ? "club's" : "district's"} chats. Hide a message, mute its sender in that chat, then resolve the report. You see the reported message only, never the whole chat.</>}
+        actions={
+          <>
+<Button variant="outline" onClick={load}>
           <RefreshCw className="h-4 w-4" /> Refresh
         </Button>
-      </div>
+          </>
+        }
+      />
 
       <div role="tablist" aria-label="Reports" className="inline-flex gap-1 rounded-md border p-1">
         {(["open", "resolved"] as const).map((s) => (
-          <button key={s} type="button" role="tab" aria-selected={status === s} onClick={() => setStatus(s)}
-            className={`rounded px-3 py-1.5 text-sm font-medium ${status === s ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}>
+          <Button variant={status === s ? "default" : "ghost"} size="sm" key={s} type="button" role="tab" aria-selected={status === s} onClick={() => setStatus(s)}
+           >
             {s === "open" ? "Open" : "Resolved"}
-          </button>
+          </Button>
         ))}
       </div>
 
@@ -154,7 +154,7 @@ export default function ChatModerationQueue({ scope, ownerId }: Props) {
                     </Button>
                     {status === "open" && (
                       <>
-                        <Input className="h-9 w-full sm:w-72" maxLength={500} placeholder="Note for the record (optional)"
+                        <Input className="w-full sm:w-72" maxLength={500} placeholder="Note for the record (optional)"
                           aria-label="Note for the record" value={notes[r.id] ?? ""}
                           onChange={(e) => setNotes({ ...notes, [r.id]: e.target.value })} />
                         <Button size="sm" disabled={busy === r.id} onClick={() => resolve(r)}>Resolve</Button>

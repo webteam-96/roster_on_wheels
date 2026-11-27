@@ -17,6 +17,8 @@ import '../../../widgets/detail/detail_widgets.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
 import '../../clubs/modules/mass_emails/mass_email_library_screen.dart';
 import 'package:rotary_flutter_app/presentation/widgets/row/skeleton_list.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/motion.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/roster_wheel.dart';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -331,7 +333,7 @@ class _DistrictMassEmailsScreenState extends State<DistrictMassEmailsScreen> {
   }
 
   Future<void> _delete(_MassEmail item) async {
-    final ok = await showDialog<bool>(
+    final ok = await showRowDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Delete Mass Email'),
@@ -371,7 +373,7 @@ class _DistrictMassEmailsScreenState extends State<DistrictMassEmailsScreen> {
   }
 
   Future<void> _sendNow(_MassEmail item) async {
-    final ok = await showDialog<bool>(
+    final ok = await showRowDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Send Mass Email'),
@@ -593,6 +595,7 @@ class _DistrictMassEmailsScreenState extends State<DistrictMassEmailsScreen> {
               suffixIcon: _searchCtrl.text.isEmpty
                   ? null
                   : IconButton(
+                      tooltip: 'Close',
                       icon: const Icon(Icons.close, size: 18),
                       onPressed: () {
                         _searchCtrl.clear();
@@ -646,10 +649,10 @@ class _DistrictMassEmailsScreenState extends State<DistrictMassEmailsScreen> {
       );
     }
 
-    return RefreshIndicator(
+    return RowRefresh(
       color: AppColors.primary,
       onRefresh: () => _fetch(reset: true),
-      child: ListView.separated(
+      child: RowListView.separated(
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
         itemCount: _items.length + 1,
         separatorBuilder: (_, __) => const SizedBox(height: 10),
@@ -1132,6 +1135,7 @@ class _MassEmailComposePageState extends State<_MassEmailComposePage> {
       appBar: CustomAppBar(
         title: _isEdit ? 'Edit Mass Email' : 'Compose Mass Email',
         leading: IconButton(
+          tooltip: 'Close',
           icon: const Icon(Icons.close, color: Colors.white),
           onPressed: _saving ? null : () => Navigator.of(context).pop(false),
         ),
@@ -1281,7 +1285,7 @@ class _MassEmailComposePageState extends State<_MassEmailComposePage> {
         border: Border.all(color: AppColors.border),
         borderRadius: BorderRadius.circular(8),
       ),
-      child: ListView.builder(
+      child: RowListView.builder(
         shrinkWrap: true,
         itemCount: widget.clubs.length,
         itemBuilder: (_, i) {
@@ -1364,7 +1368,7 @@ class _MassEmailComposePageState extends State<_MassEmailComposePage> {
                             .copyWith(color: AppColors.textSecondary),
                       ),
                     )
-                  : ListView.builder(
+                  : RowListView.builder(
                       shrinkWrap: true,
                       itemCount: _subgroups.length,
                       itemBuilder: (_, i) {

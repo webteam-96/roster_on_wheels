@@ -3,12 +3,11 @@
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { getClub } from "@/services/api";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { ArrowLeft, UserX, UserPlus } from "@/components/icons";
+import { UserX, UserPlus } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import ProtectedRoute from "@/components/ProtectedRoute";
-import { ListPageSkeleton } from "@/components/row/AppKit";
+import { PageHeader, ListPageSkeleton } from "@/components/row/AppKit";
 
 const subModules = [
   {
@@ -50,23 +49,7 @@ export default function RotaryNetworkPage() {
   return (
     <ProtectedRoute>
       <div className="space-y-6">
-        <div className="flex items-center gap-3">
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={() => router.push(`/clubs/${clubId}/dashboard`)}
-          >
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
-          <div>
-            <h2 className="text-2xl font-bold tracking-tight text-primary">
-              {clubName ? `${clubName} - Rotary Network` : "Rotary Network"}
-            </h2>
-            <p className="text-muted-foreground text-base">
-              Manage terminated and potential members
-            </p>
-          </div>
-        </div>
+        <PageHeader title={clubName ? `${clubName} - Rotary Network` : "Rotary Network"} description="Manage terminated and potential members" back={() => router.push(`/clubs/${clubId}/dashboard`)} />
 
         {loading ? (
           <div className="flex items-center justify-center py-20">

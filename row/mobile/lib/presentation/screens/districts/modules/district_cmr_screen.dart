@@ -8,6 +8,8 @@ import '../../../widgets/common/empty_state_widget.dart';
 import '../../../widgets/common/loading_widget.dart';
 import '../../../widgets/common/rotary_year_bar.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/motion.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/roster_wheel.dart';
 
 // ── Models ────────────────────────────────────────────────────────────────────
 
@@ -203,12 +205,12 @@ class _DistrictCmrScreenState extends State<DistrictCmrScreen> {
         subtitle: 'No months available for this year.',
       );
     }
-    return RefreshIndicator(
+    return RowRefresh(
       color: AppColors.primary,
       onRefresh: () async {
         if (_selectedYear != null) await _fetchMonths(_selectedYear!);
       },
-      child: ListView.separated(
+      child: RowListView.separated(
         padding: const EdgeInsets.fromLTRB(16, 4, 16, 20),
         physics: const AlwaysScrollableScrollPhysics(),
         itemCount: _months.length,

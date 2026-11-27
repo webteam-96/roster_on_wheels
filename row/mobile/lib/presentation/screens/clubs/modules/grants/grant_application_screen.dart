@@ -7,6 +7,8 @@ import '../../../../../core/utils/snackbar_utils.dart';
 import '../../../../widgets/common/custom_app_bar.dart';
 import '../../../../widgets/common/loading_widget.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/motion.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/roster_wheel.dart';
 
 String grantStatusLabel(String? s) =>
     (s ?? '').replaceAll('_', ' ').replaceFirstMapped(RegExp(r'^\w'), (m) => m[0]!.toUpperCase());
@@ -67,7 +69,7 @@ class _GrantApplicationScreenState extends State<GrantApplicationScreen> {
     final summary = TextEditingController();
     final spent = TextEditingController();
     final reached = TextEditingController();
-    final ok = await showDialog<bool>(
+    final ok = await showRowDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
         title: Text(grantStatusLabel(action)),
@@ -119,7 +121,7 @@ class _GrantApplicationScreenState extends State<GrantApplicationScreen> {
   Future<void> _interimReport() async {
     final progress = TextEditingController();
     final spent = TextEditingController();
-    final ok = await showDialog<bool>(
+    final ok = await showRowDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Interim report'),
@@ -150,7 +152,7 @@ class _GrantApplicationScreenState extends State<GrantApplicationScreen> {
 
   Future<void> _comment() async {
     final c = TextEditingController();
-    final ok = await showDialog<bool>(
+    final ok = await showRowDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Add a comment'),
@@ -175,7 +177,7 @@ class _GrantApplicationScreenState extends State<GrantApplicationScreen> {
       appBar: const CustomAppBar(title: 'Grant application'),
       body: a == null
           ? const LoadingWidget()
-          : RefreshIndicator(
+          : RowRefresh(
               onRefresh: _load,
               child: ListView(
                 padding: const EdgeInsets.all(12),

@@ -10,6 +10,8 @@ import '../../../../widgets/common/custom_button.dart';
 import '../../../../widgets/common/empty_state_widget.dart';
 import 'district_website_contact_form_screen.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/motion.dart';
+import 'package:rotary_flutter_app/presentation/widgets/common/loading_widget.dart';
 
 bool _asBool(dynamic v) {
   if (v is bool) return v;
@@ -153,7 +155,7 @@ class _DistrictWebsiteContactDetailsScreenState extends State<DistrictWebsiteCon
 
 
   Future<void> _confirmDelete(_Contact c) async {
-    final ok = await showDialog<bool>(
+    final ok = await showRowDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Delete Contact Detail'),
@@ -197,7 +199,7 @@ class _DistrictWebsiteContactDetailsScreenState extends State<DistrictWebsiteCon
       backgroundColor: AppColors.background,
       appBar: const CustomAppBar(title: 'Contact Details'),
       body: _loading
-          ? const Center(child: const CircularProgressIndicator(color: AppColors.primary))
+          ? const LoadingWidget()
           : _error != null
               ? ErrorStateWidget(message: _error!, onRetry: _loadInitial)
               : _buildBody(canManage),

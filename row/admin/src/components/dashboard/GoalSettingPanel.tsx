@@ -6,6 +6,11 @@
 // into one club). Callers supply fetchForm/saveForm bound to the right
 // club/district endpoint + id — this component has no opinion on entity type.
 
+import { Table } from "@/components/ui/table";
+import { LinkButton, ToggleButton } from "@/components/ui/text-buttons";
+import { IconButton } from "@/components/ui/icon-button";
+import { Textarea } from "@/components/ui/textarea";
+import { Card } from "@/components/ui/card";
 import { Fragment, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { Loader2, Save, Lock, Info, Plus, Trash2, ExternalLink, Globe, Link2 } from "@/components/icons";
 import LoadingButton from "@/components/v2/LoadingButton";
@@ -335,9 +340,9 @@ export default function GoalSettingPanel({
 
   if (loadingCategories) {
     return (
-      <div className="bg-card rounded-2xl border border-slate-200 p-6 flex items-center justify-center text-slate-500">
+      <Card className="p-5 flex items-center justify-center text-slate-500">
         <Loader2 className="animate-spin mr-2" size={16} /> Loading Goal Setting…
-      </div>
+      </Card>
     );
   }
   if (!categories || categories.length === 0) return null;
@@ -348,21 +353,21 @@ export default function GoalSettingPanel({
   const isClubFoundation = !!form && form.fields.some((f) => f.fieldKey === "club_af_goal_amount");
 
   return (
-    <div className="bg-card rounded-2xl border border-slate-200 overflow-hidden">
+    <Card className="overflow-hidden">
       {/* A save is confirmed by an alert the user has to dismiss, not a small green line beside the
           button that is easy to miss (user 2026-09-29). The quarterly / month-wise popups do the
           same, and they close themselves as well. */}
       <SuccessAlert open={!!success} title="Saved" description={success ?? ""} onOk={() => setSuccess(null)} />
       <div className="px-5 py-3 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-blue-50">
         <div>
-          <h3 className="text-sm font-semibold text-slate-800">{title}</h3>
+          <h3 className="row-h3">{title}</h3>
           <p className="text-xs text-slate-500">
             {subtitle || (form ? `${form.entityName} · RY ${form.yearLabel}` : "")}
           </p>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
           {form && !form.isEditable && (
-            <span className="inline-flex items-center gap-1 text-xs font-medium px-2 py-1 rounded-full bg-slate-100 text-slate-600 border border-slate-200 w-fit">
+            <span className="inline-flex items-center gap-1 text-xs font-medium px-2 py-1 rounded bg-slate-100 text-slate-600 border border-slate-200 w-fit">
               <Lock size={11} /> {readOnly ? "Read only" : "Past year · read only"}
             </span>
           )}
@@ -372,17 +377,12 @@ export default function GoalSettingPanel({
       {/* Category tabs */}
       <div className="px-5 pt-3 flex flex-wrap gap-1.5 border-b border-slate-100 pb-3">
         {categories.map((c) => (
-          <button
+          <ToggleButton pressed={activeCategoryId === c.id}
             key={c.id}
             onClick={() => setActiveCategoryId(c.id)}
-            className={`px-4 py-1.5 text-sm font-semibold rounded-lg transition ${
-              activeCategoryId === c.id
-                ? "bg-blue-600 text-white shadow-sm"
-                : "bg-card border border-slate-200 text-slate-600 hover:bg-slate-50"
-            }`}
-          >
+>
             {c.name}
-          </button>
+          </ToggleButton>
         ))}
       </div>
 
@@ -409,8 +409,8 @@ export default function GoalSettingPanel({
             />
           ) : (
             groups.map(([groupName, fields]) => (
-              <div key={groupName} className="bg-card rounded-[20px] border border-slate-200 shadow-sm px-4 sm:px-5 py-4">
-                <h4 className="text-base font-bold text-blue-700 pb-2 mb-1 border-b-2 border-amber-400 flex flex-wrap items-center gap-x-2 gap-y-0.5">
+              <Card key={groupName} className="px-4 sm:px-5 py-4">
+                <h4 className="row-h2 pb-2 mb-1 border-b-2 border-amber-400 flex flex-wrap items-center gap-x-2 gap-y-0.5">
                   {groupName}
                   {groupName === "Summary" && <SummaryInfo fields={fields} />}
                   {groupName === "RAG Analysis" && (
@@ -449,7 +449,7 @@ export default function GoalSettingPanel({
                     ))
                   )}
                 </div>
-              </div>
+              </Card>
             ))
           )}
         </div>
@@ -468,14 +468,14 @@ export default function GoalSettingPanel({
               forcePending={saving}
               loadingLabel="Saving…"
               spinnerSize={13}
-              className="inline-flex items-center gap-1 text-xs font-semibold px-5 py-2 rounded-full bg-[#17458F] text-white hover:bg-[#17458F] disabled:opacity-50"
+              className="row-btn row-btn-primary row-btn-sm"
             >
               {!saving && <Save size={13} />} Save Goals
             </LoadingButton>
           )}
         </div>
       </div>
-    </div>
+    </Card>
   );
 }
 
@@ -523,13 +523,13 @@ function ClubFoundationTable({
 
   return (
     <div className="overflow-x-auto">
-      <h4 className="text-xs font-semibold uppercase tracking-wide text-slate-500 mb-2">Annual Fund &amp; Contributions</h4>
-      <table className="w-full min-w-[560px] border-separate border-spacing-y-2">
+      <h4 className="row-h3 mb-2">Annual Fund &amp; Contributions</h4>
+      <Table bare className="w-full min-w-[560px] border-separate border-spacing-y-2">
         <thead>
-          <tr className="text-[11px] uppercase tracking-wide text-slate-400">
-            <th className="text-left font-medium px-2 w-1/3">Annual Fund Goal Amount <span className="normal-case text-slate-300">(Target)</span></th>
-            <th className="text-left font-medium px-2 w-1/3">Contribution</th>
-            <th className="text-left font-medium px-2 w-1/3">Goal % Achieved</th>
+          <tr>
+            <th className="text-left px-2 w-1/3">Annual Fund Goal Amount <span className="normal-case text-slate-300">(Target)</span></th>
+            <th className="text-left px-2 w-1/3">Contribution</th>
+            <th className="text-left px-2 w-1/3">Goal % Achieved</th>
           </tr>
         </thead>
         <tbody>
@@ -548,7 +548,7 @@ function ClubFoundationTable({
             );
           })}
         </tbody>
-      </table>
+      </Table>
     </div>
   );
 }
@@ -586,14 +586,13 @@ function SummaryInfo({ fields }: { fields: GoalFieldWithValueDto[] }) {
   const has = (k: string) => fields.some((x) => x.fieldKey === k);
   return (
     <span ref={ref} className="relative inline-flex">
-      <button
+      <IconButton aria-label="How is this calculated?"
         type="button"
         onClick={() => setOpen((o) => !o)}
         title="How is this calculated?"
-        className="text-blue-500 hover:text-blue-700"
-      >
+>
         <Info size={15} />
-      </button>
+      </IconButton>
       {open && (
         <div className="absolute left-5 top-0 z-20 w-72 rounded-lg border border-slate-200 bg-card p-3 text-xs text-slate-600 shadow-lg">
           <div className="font-semibold text-slate-700 mb-1.5">How the Summary is calculated</div>
@@ -671,21 +670,21 @@ function SuggestionsList({
       {Array.from({ length: shownCount }).map((_, i) => (
         <div key={slots[i].fieldId} className="flex items-start gap-2">
           <span className="text-xs text-slate-400 pt-2 w-5 shrink-0">{i + 1}.</span>
-          <textarea
+          <Textarea
             rows={2}
             value={valueAt(i)}
             onChange={(e) => onText(slots[i].fieldId, e.target.value)}
             placeholder="Enter a Public Image activity suggestion..."
-            className="flex-1 px-2.5 py-1.5 text-sm border border-slate-300 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42] resize-y"
+            className="flex-1 resize-y"
           />
-          <button
+          <IconButton
             type="button"
             onClick={() => handleDelete(i)}
             title="Remove this suggestion"
-            className="mt-1 p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded"
+            className="hover:text-red-700 mt-1"
           >
             <Trash2 size={15} />
-          </button>
+          </IconButton>
         </div>
       ))}
       {shownCount < slots.length && (() => {
@@ -693,14 +692,13 @@ function SuggestionsList({
         const lastEmpty = valueAt(shownCount - 1).trim() === "";
         return (
           <div className="flex flex-wrap items-center gap-2 mt-1">
-            <button
+            <LinkButton size="sm"
               type="button"
               onClick={() => setVisible((v) => Math.min(slots.length, v + 1))}
               disabled={lastEmpty}
-              className="inline-flex items-center gap-1 text-xs font-semibold text-blue-600 hover:text-blue-800 disabled:text-slate-400 disabled:cursor-not-allowed"
-            >
+>
               <Plus size={14} /> Add suggestion
-            </button>
+            </LinkButton>
             {lastEmpty && <span className="text-[11px] text-slate-400">Fill suggestion {shownCount} before adding another.</span>}
           </div>
         );
@@ -787,18 +785,16 @@ function GoalFieldInput({
     return (
       <FieldRow label={label}>
         <div className="flex gap-1.5">
-          <button
+          <ToggleButton pressed={buf.bool}
             type="button"
             disabled={disabled}
             onClick={() => onBool(true)}
-            className={`px-4 py-1 text-xs font-bold rounded ${buf.bool ? "bg-blue-600 text-white" : "bg-slate-100 text-slate-500"} ${disabled ? "opacity-60 cursor-not-allowed" : ""}`}
-          >YES</button>
-          <button
+>YES</ToggleButton>
+          <ToggleButton pressed={!buf.bool}
             type="button"
             disabled={disabled}
             onClick={() => onBool(false)}
-            className={`px-4 py-1 text-xs font-bold rounded ${!buf.bool ? "bg-blue-600 text-white" : "bg-slate-100 text-slate-500"} ${disabled ? "opacity-60 cursor-not-allowed" : ""}`}
-          >NO</button>
+>NO</ToggleButton>
         </div>
       </FieldRow>
     );
@@ -808,13 +804,13 @@ function GoalFieldInput({
   if (field.dataType === "Text") {
     return (
       <FieldRow label={label} alignTop>
-        <textarea
+        <Textarea
           rows={2}
           value={buf.text}
           disabled={disabled}
           onChange={(e) => onText(e.target.value)}
           placeholder={disabled ? "" : "Enter text..."}
-          className="w-64 sm:w-72 max-w-full px-2.5 py-1.5 text-sm border border-slate-300 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42] disabled:bg-slate-100 disabled:text-slate-500 resize-y"
+          className="w-64 sm:w-72 max-w-full disabled:bg-slate-100 disabled:text-slate-500 resize-y"
         />
       </FieldRow>
     );

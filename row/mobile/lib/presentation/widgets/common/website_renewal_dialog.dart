@@ -7,6 +7,7 @@ import '../../../core/theme/app_text_styles.dart';
 import 'dues_subscription_dialog.dart'
     show kDuesSupportPhones, kDuesSupportEmail, kDuesSupportHours;
 import 'package:rotary_flutter_app/core/i18n/text.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/motion.dart';
 
 /// Popup shown from the club Website tab / overview when the club's website is
 /// expired or not yet set up. The mobile app cannot run the Razorpay purchase
@@ -35,7 +36,7 @@ void showWebsiteRenewalDialog(
       ? 'FOR ACTIVATION, PLEASE CONTACT'
       : 'FOR RENEWAL, PLEASE CONTACT';
 
-  showDialog<void>(
+  showRowDialog<void>(
     context: context,
     builder: (ctx) => Dialog(
       backgroundColor: AppColors.white,

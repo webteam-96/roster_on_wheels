@@ -13,6 +13,8 @@ import 'club_dues_offline_screen.dart';
 import 'package:rotary_flutter_app/core/utils/money_format.dart';
 import 'package:rotary_flutter_app/core/theme/app_fonts.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/motion.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/roster_wheel.dart';
 
 /// Pay page for one club's district dues campaign. Online payment mirrors the
 /// wallet flow: create order → native Razorpay checkout → verify. Offline opens
@@ -137,7 +139,7 @@ class _ClubDuesPayScreenState extends State<ClubDuesPayScreen> {
   }
 
   Future<void> _showSuccessDialog(ClubDuesVerifyResult r) {
-    return showDialog<void>(
+    return showRowDialog<void>(
       context: context,
       builder: (ctx) => AlertDialog(
         icon: const Icon(Icons.check_circle_rounded,
@@ -210,7 +212,7 @@ class _ClubDuesPayScreenState extends State<ClubDuesPayScreen> {
     if (_loading) return const LoadingWidget();
     if (_error != null) return ErrorStateWidget(message: _error!, onRetry: _load);
     final dues = _dues!;
-    return RefreshIndicator(
+    return RowRefresh(
       onRefresh: _load,
       child: ListView(
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),

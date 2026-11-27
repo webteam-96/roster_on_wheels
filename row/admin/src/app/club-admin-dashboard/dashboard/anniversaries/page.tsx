@@ -6,6 +6,7 @@
  * as CSV (the API builds the CSV). Data: GET api/clubs/{clubId}/anniversaries.
  */
 
+import { Card } from "@/components/ui/card";
 import { useEffect, useMemo, useState } from "react";
 import { Download, Printer } from "@/components/icons";
 import KpiCard from "@/components/dashboard/KpiCard";
@@ -13,7 +14,7 @@ import { KpiTileSkeleton, TableSkeleton } from "@/components/dashboard/Dashboard
 import { fmtDate, fmtInt } from "@/components/dashboard/formatters";
 import { apiMessage, selectCls } from "@/components/membership/FoundationDesignationsCard";
 import { Button } from "@/components/ui/button";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
 import { useSelectedClub } from "@/contexts/AuthContext";
 import { downloadAnniversaryCsv, getAnniversaryReport, type AnniversaryReport, type AnniversaryRow } from "@/services/api";
 
@@ -89,14 +90,14 @@ export default function ClubAnniversariesPage() {
       return;
     }
     const title = `${report.clubName}: anniversaries, ${monthName(report.month)} ${report.year}`;
-    const body = rows.map((r) => `<tr><td>${esc(r.memberName)}</td><td>${esc(fmtDate(r.joinedDate))}</td><td>${r.yearsOfService ?? ""}</td>`
-      + `<td>${r.joinAnniversaryDay ? `${r.joinAnniversaryDay} (${r.anniversaryYears} yrs)` : ""}</td><td>${r.milestone ? "Milestone" : ""}</td>`
-      + `<td>${r.birthdayDay ?? ""}</td><td>${r.weddingAnniversaryDay ?? ""}</td></tr>`).join("");
+    const body = rows.map((r) => `<TableRow><TableCell>${esc(r.memberName)}</TableCell><TableCell>${esc(fmtDate(r.joinedDate))}</TableCell><TableCell>${r.yearsOfService ?? ""}</TableCell>`
+      + `<TableCell>${r.joinAnniversaryDay ? `${r.joinAnniversaryDay} (${r.anniversaryYears} yrs)` : ""}</TableCell><TableCell>${r.milestone ? "Milestone" : ""}</TableCell>`
+      + `<TableCell>${r.birthdayDay ?? ""}</TableCell><TableCell>${r.weddingAnniversaryDay ?? ""}</TableCell></TableRow>`).join("");
     w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>${esc(title)}</title><style>
       body{font-family:Georgia,serif;margin:24px;color:rgb(31 41 55)}h1{font-size:18px}table{border-collapse:collapse;width:100%;font-size:12px}
       th,td{border:1px solid rgb(209 213 219);padding:4px 6px;text-align:left}th{background:rgb(243 244 246)}</style></head><body>
-      <h1>${esc(title)}</h1><table><thead><tr><th>Member</th><th>Joined</th><th>Years of service</th><th>Joining anniversary</th>
-      <th>Milestone</th><th>Birthday</th><th>Wedding anniversary</th></tr></thead><tbody>${body}</tbody></table></body></html>`);
+      <h1>${esc(title)}</h1><Table><TableHeader><TableRow><TableHead>Member</TableHead><TableHead>Joined</TableHead><TableHead>Years of service</TableHead><TableHead>Joining anniversary</TableHead>
+      <TableHead>Milestone</TableHead><TableHead>Birthday</TableHead><TableHead>Wedding anniversary</TableHead></TableRow></TableHeader><TableBody>${body}</TableBody></Table></body></html>`);
     w.document.close();
     w.focus();
     w.print();
@@ -153,7 +154,7 @@ export default function ClubAnniversariesPage() {
             <KpiCard title="Birthdays" value={fmtInt(report.counts.birthdays)} color="green" />
             <KpiCard title="Wedding anniversaries" value={fmtInt(report.counts.weddingAnniversaries)} color="teal" />
           </div>
-          <div className="overflow-x-auto rounded-[20px] border border-slate-200 bg-white">
+          <Card className="overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -175,7 +176,7 @@ export default function ClubAnniversariesPage() {
                       {r.joinAnniversaryDay ? (
                         <span>
                           {r.joinAnniversaryDay} {monthName(report.month)}: {r.anniversaryYears} years
-                          {r.milestone && <span className="ml-2 rounded-full border border-amber-300 px-2 py-0.5 text-xs font-semibold text-amber-800">Milestone</span>}
+                          {r.milestone && <span className="ml-2 rounded border border-amber-300 px-2 py-0.5 text-xs font-semibold text-amber-800">Milestone</span>}
                         </span>
                       ) : "–"}
                     </TableCell>
@@ -194,7 +195,7 @@ export default function ClubAnniversariesPage() {
                 )}
               </TableBody>
             </Table>
-          </div>
+          </Card>
         </>
       )}
     </div>

@@ -1,4 +1,6 @@
 "use client";
+import { MenuItemButton, ToggleButton } from "@/components/ui/text-buttons"
+import { Button } from "@/components/ui/button";
 import { CalendarCheck } from "@/components/icons";
 
 /**
@@ -102,7 +104,7 @@ export default function TrainingBookingDialog({ open, onOpenChange, clubId, mode
               <p className="text-xs text-slate-500">Your Zoom link will be shared shortly by email.</p>
             )}
             <div>
-              <button onClick={() => onOpenChange(false)} className="mt-2 px-5 py-2 rounded-lg bg-azure text-white text-sm font-medium">Done</button>
+              <Button onClick={() => onOpenChange(false)} className="mt-2">Done</Button>
             </div>
           </div>
         ) : loading ? (
@@ -117,18 +119,11 @@ export default function TrainingBookingDialog({ open, onOpenChange, clubId, mode
               {days.map((d) => {
                 const closed = d.isClosed || (d.slots?.length ?? 0) === 0;
                 return (
-                  <button
+                  <MenuItemButton selected={selectedDate === d.date}
                     key={d.date}
                     disabled={closed}
                     title={closed ? (d.closedReason || "Not available") : undefined}
                     onClick={() => { setSelectedDate(d.date); setSelectedSlot(null); }}
-                    className={`w-full text-left px-3 py-2 rounded-lg text-sm border ${
-                      selectedDate === d.date
-                        ? "bg-azure text-white border-azure"
-                        : closed
-                        ? "bg-slate-50 border-slate-200 text-slate-400 cursor-not-allowed line-through decoration-slate-300"
-                        : "bg-card border-slate-200 hover:border-azure/40"
-                    }`}
                   >
                     {d.dayLabel}
                     {closed ? (
@@ -138,7 +133,7 @@ export default function TrainingBookingDialog({ open, onOpenChange, clubId, mode
                     ) : (
                       <span className={`ml-1 text-xs ${selectedDate === d.date ? "text-white/70" : "text-slate-400"}`}>({d.slots.length})</span>
                     )}
-                  </button>
+                  </MenuItemButton>
                 );
               })}
             </div>
@@ -148,18 +143,11 @@ export default function TrainingBookingDialog({ open, onOpenChange, clubId, mode
               </p>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                 {slotsForDay.map((sl) => (
-                  <button
+                  <ToggleButton pressed={selectedSlot === sl.time} className="justify-center"
                     key={sl.time}
                     disabled={!sl.isOpen}
                     title={sl.isOpen ? undefined : sl.reason || "Not available"}
                     onClick={() => setSelectedSlot(sl.time)}
-                    className={`px-2 py-2 rounded-lg text-sm border ${
-                      selectedSlot === sl.time
-                        ? "bg-azure text-white border-azure"
-                        : !sl.isOpen
-                        ? "bg-slate-50 border-slate-200 text-slate-400 cursor-not-allowed"
-                        : "bg-card border-slate-200 hover:border-azure/40"
-                    }`}
                   >
                     <span className={sl.isOpen ? "" : "line-through decoration-slate-300"}>{to12h(sl.time)}</span>
                     {!sl.isOpen && (
@@ -167,7 +155,7 @@ export default function TrainingBookingDialog({ open, onOpenChange, clubId, mode
                         {sl.status === "booked" ? "Booked" : sl.status === "dayFull" ? "Day full" : "Not available"}
                       </span>
                     )}
-                  </button>
+                  </ToggleButton>
                 ))}
                 {slotsForDay.length === 0 && (
                   <p className="col-span-full text-sm text-slate-400 py-4">
@@ -177,11 +165,11 @@ export default function TrainingBookingDialog({ open, onOpenChange, clubId, mode
               </div>
               {error && <div className="mt-3 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm p-2">{error}</div>}
               <div className="mt-4 flex justify-end gap-2">
-                <button onClick={() => onOpenChange(false)} className="px-4 py-2 rounded-lg border border-slate-300 text-sm">Cancel</button>
-                <button disabled={!selectedSlot || busy} onClick={confirm}
-                  className="px-5 py-2 rounded-lg bg-azure text-white text-sm font-medium disabled:opacity-50">
+                <Button onClick={() => onOpenChange(false)} variant="outline">Cancel</Button>
+                <Button disabled={!selectedSlot || busy} onClick={confirm}
+                  >
                   {busy ? "Please wait…" : mode === "reschedule" ? "Reschedule" : "Confirm booking"}
-                </button>
+                </Button>
               </div>
             </div>
           </div>

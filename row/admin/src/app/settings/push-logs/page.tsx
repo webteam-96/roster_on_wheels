@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -15,9 +14,9 @@ import ErrorAlert from "@/components/ErrorAlert";
 import RotaryLoader from "@/components/RotaryLoader";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { useAuth } from "@/contexts/AuthContext";
-import { ArrowLeft, RefreshCw, Eye, Send, Loader2, Bell, AlertTriangle } from "@/components/icons";
+import { RefreshCw, Eye, Send, Loader2, AlertTriangle } from "@/components/icons";
 import { getRecentPushLogs, getPushRecipients, getStuckPushes, sendPushNow } from "@/services/api";
-import { ListPageSkeleton } from "@/components/row/AppKit";
+import { PageHeader, ListPageSkeleton } from "@/components/row/AppKit";
 
 export default function PushLogsPage() {
   const { isSuperAdmin } = useAuth();
@@ -77,7 +76,7 @@ export default function PushLogsPage() {
     return (
       <ProtectedRoute>
         <div className="flex flex-col items-center justify-center py-20">
-          <h3 className="text-lg font-semibold">Access Denied</h3>
+          <h3 className="row-h2">Access Denied</h3>
         </div>
       </ProtectedRoute>
     );
@@ -86,20 +85,13 @@ export default function PushLogsPage() {
   return (
     <ProtectedRoute>
       <div className="space-y-6">
-        <div className="flex items-center justify-between flex-wrap gap-3">
-          <div className="flex items-center gap-3">
-            <Button variant="outline" size="icon" asChild>
-              <Link href="/settings"><ArrowLeft className="h-4 w-4" /></Link>
-            </Button>
-            <div>
-              <h2 className="text-2xl font-bold tracking-tight text-primary flex items-center gap-2">
-                <Bell className="h-6 w-6" />Push Notification Logs
-              </h2>
-              <p className="text-muted-foreground text-base">Last 5 days of push activity (older logs auto-deleted at 04:00)</p>
-            </div>
-          </div>
-          <div className="flex flex-wrap items-end gap-3">
-            <div>
+        <PageHeader
+          title="Push Notification Logs"
+          description="Last 5 days of push activity (older logs auto-deleted at 04:00)"
+          back="/settings"
+          actions={
+            <>
+<div>
               <Label className="text-xs text-muted-foreground">Type</Label>
               <Select value={filterType} onValueChange={setFilterType}>
                 <SelectTrigger className="w-44"><SelectValue /></SelectTrigger>
@@ -114,8 +106,9 @@ export default function PushLogsPage() {
             <Button variant="outline" onClick={reload} disabled={loading}>
               <RefreshCw className={`h-4 w-4 mr-2 ${loading ? "animate-spin" : ""}`} />Refresh
             </Button>
-          </div>
-        </div>
+            </>
+          }
+        />
 
         {loading && <div className="flex justify-center py-12"><ListPageSkeleton /></div>}
 

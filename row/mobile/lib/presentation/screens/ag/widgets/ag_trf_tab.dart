@@ -1,3 +1,4 @@
+import 'package:rotary_flutter_app/presentation/widgets/row/motion.dart';
 import 'package:flutter/material.dart' hide Text;
 import '../../../../core/services/ag_dashboard_api.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -342,8 +343,7 @@ class _KpiCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 6),
-          Text(
-            value,
+          RowCountUp(value,
             style: AppFonts.body(
               fontSize: 17,
               fontWeight: FontWeight.w800,
@@ -1002,7 +1002,7 @@ class _ContributionRow extends StatelessWidget {
         const SizedBox(height: 4),
         ClipRRect(
           borderRadius: BorderRadius.circular(999),
-          child: LinearProgressIndicator(
+          child: RowProgressBar(
             value: frac,
             minHeight: 14,
             backgroundColor: AppColors.slate100,
@@ -1049,7 +1049,7 @@ class _AgTotalContributionRow extends StatelessWidget {
         const SizedBox(height: 4),
         ClipRRect(
           borderRadius: BorderRadius.circular(999),
-          child: const LinearProgressIndicator(
+          child: RowProgressBar(
             value: 1.0,
             minHeight: 14,
             backgroundColor: AppColors.slate100,

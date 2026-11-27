@@ -1,5 +1,7 @@
 "use client";
+import { Table, TableHeader, TableBody, TableFooter, TableRow, TableHead, TableCell } from "@/components/ui/table";
 
+import { Card } from "@/components/ui/card";
 import { useEffect, useMemo, useState } from "react";
 import {
   Heart, DollarSign, TrendingUp, Award, BarChart2, Trophy, PieChart,
@@ -192,10 +194,10 @@ export default function AgTrfPage() {
 
       {/* ── Stacked bar chart + Top Giving Clubs leaderboard ─────────── */}
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-        <div className="xl:col-span-2 bg-card rounded-2xl border border-slate-200 p-5 shadow-sm">
+        <Card className="xl:col-span-2 p-5">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h3 className="text-base font-semibold text-slate-800">TRF Giving Breakdown by Club</h3>
+              <h3 className="row-h2">TRF Giving Breakdown by Club</h3>
               <p className="text-xs text-slate-400 mt-0.5">Stacked by fund type · clubs with giving only</p>
             </div>
             <BarChart2 size={18} className="text-slate-300" />
@@ -235,15 +237,15 @@ export default function AgTrfPage() {
               </BarChart>
             </ResponsiveContainer>
           )}
-        </div>
+        </Card>
 
-        <div className="bg-card rounded-2xl border border-slate-200 p-5 shadow-sm">
+        <Card className="p-5">
           <div className="flex items-center justify-between mb-4">
             <div className="flex flex-wrap items-center gap-2">
               <Trophy size={16} className="text-amber-500" />
-              <h3 className="text-base font-semibold text-slate-800">Top Giving Clubs</h3>
+              <h3 className="row-h2">Top Giving Clubs</h3>
             </div>
-            <span className="text-xs text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">My Clubs</span>
+            <span className="text-xs text-slate-500 bg-slate-100 px-2 py-0.5 rounded">My Clubs</span>
           </div>
           {top4.length === 0 ? (
             <p className="text-xs text-slate-400">No giving yet.</p>
@@ -266,15 +268,15 @@ export default function AgTrfPage() {
               ))}
             </ol>
           )}
-        </div>
+        </Card>
       </div>
 
       {/* ── MY CLUBS TRF SUMMARY · Per-club contribution bars ────────── */}
-      <div className="bg-card rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+      <Card className="overflow-hidden">
         <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
           <div className="flex flex-wrap items-center gap-2">
             <PieChart size={18} className="text-blue-700" />
-            <h3 className="text-base font-semibold text-slate-800 tracking-wide">
+            <h3 className="row-h2">
               MY CLUBS TRF SUMMARY <span className="text-slate-400 font-normal">,  Per-club contribution</span>
             </h3>
           </div>
@@ -327,7 +329,7 @@ export default function AgTrfPage() {
               </div>
               <div className="relative h-3 w-full rounded-full bg-slate-100 overflow-hidden">
                 <div
-                  className="h-full rounded-full"
+                  className="row-grow h-full rounded-full"
                   style={{
                     width: "100%",
                     background: ROTARY_GOLD,
@@ -345,18 +347,18 @@ export default function AgTrfPage() {
             </div>
           </div>
         )}
-      </div>
+      </Card>
 
       {/* ── Detailed TRF Giving Table ────────────────────────────────── */}
-      <div className="bg-card rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
+      <Card className="overflow-hidden">
         <div className="px-5 py-3 border-b border-slate-100 flex items-center justify-between">
-          <h3 className="text-base font-semibold text-slate-800">Detailed TRF Giving Table</h3>
+          <h3 className="row-h2">Detailed TRF Giving Table</h3>
           <span className="text-xs text-slate-400">Click column headers to sort</span>
         </div>
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[640px] md:min-w-full text-sm">
-            <thead className="bg-[#EDF4FB] border-b border-slate-200">
-              <tr>
+          <Table className="w-full min-w-[640px] md:min-w-full text-sm">
+            <TableHeader className="border-b border-slate-200">
+              <TableRow>
                 {([
                   ["Club Name", "name"],
                   ["Annual Fund", "annual"],
@@ -365,65 +367,65 @@ export default function AgTrfPage() {
                   ["Other Funds", "other"],
                   ["Total", "total"],
                 ] as Array<[string, SortField]>).map(([label, field], i) => (
-                  <th
+                  <TableHead
                     key={field}
                     onClick={() => handleSort(field)}
                     className={`px-3 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider cursor-pointer select-none whitespace-nowrap hover:bg-slate-100 ${i > 0 ? "text-right" : "text-left"}`}
                   >
                     {label}<SortIcon field={field} />
-                  </th>
+                  </TableHead>
                 ))}
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
+              </TableRow>
+            </TableHeader>
+            <TableBody className="divide-y divide-slate-100">
               {sorted.length === 0 ? (
-                <tr>
-                  <td colSpan={6} className="px-3 py-8 text-center text-slate-400 text-sm">
+                <TableRow>
+                  <TableCell colSpan={6} className="px-3 py-8 text-center text-slate-400 text-sm">
                     No clubs found.
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               ) : (
                 sorted.map((club) => (
-                  <tr key={club.clubId} className="hover:bg-blue-50/40">
-                    <td className="px-3 py-2.5 font-medium text-slate-800">{club.clubName}</td>
-                    <td className="px-3 py-2.5 text-right tabular-nums text-slate-600">
+                  <TableRow key={club.clubId} className="hover:bg-blue-50/40">
+                    <TableCell className="px-3 py-2.5 font-medium text-slate-800">{club.clubName}</TableCell>
+                    <TableCell className="px-3 py-2.5 text-right tabular-nums text-slate-600">
                       {club.trf.annualInr > 0 ? fmtUsd(club.trf.annualInr) : <span className="text-slate-300">–</span>}
-                    </td>
-                    <td className="px-3 py-2.5 text-right tabular-nums text-slate-600">
+                    </TableCell>
+                    <TableCell className="px-3 py-2.5 text-right tabular-nums text-slate-600">
                       {club.trf.polioInr > 0 ? fmtUsd(club.trf.polioInr) : <span className="text-slate-300">–</span>}
-                    </td>
-                    <td className="px-3 py-2.5 text-right tabular-nums text-slate-600">
+                    </TableCell>
+                    <TableCell className="px-3 py-2.5 text-right tabular-nums text-slate-600">
                       {club.trf.endowment > 0 ? fmtUsd(club.trf.endowment) : <span className="text-slate-300">–</span>}
-                    </td>
-                    <td className="px-3 py-2.5 text-right tabular-nums text-slate-600">
+                    </TableCell>
+                    <TableCell className="px-3 py-2.5 text-right tabular-nums text-slate-600">
                       {club.trf.others > 0 ? fmtUsd(club.trf.others) : <span className="text-slate-300">–</span>}
-                    </td>
-                    <td className="px-3 py-2.5 text-right tabular-nums font-semibold text-blue-700">
+                    </TableCell>
+                    <TableCell className="px-3 py-2.5 text-right tabular-nums font-semibold text-blue-700">
                       {fmtUsd(club.trf.totalInr)}
-                    </td>
-                  </tr>
+                    </TableCell>
+                  </TableRow>
                 ))
               )}
-            </tbody>
-            <tfoot className="bg-slate-800 text-white">
-              <tr>
-                <td className="px-3 py-3 font-bold text-sm">AG Total</td>
-                <td className="px-3 py-3 text-right font-bold tabular-nums">{fmtUsd(data.totals.annualInr)}</td>
-                <td className="px-3 py-3 text-right font-bold tabular-nums">{fmtUsd(data.totals.polioInr)}</td>
-                <td className="px-3 py-3 text-right font-bold tabular-nums">
+            </TableBody>
+            <TableFooter className="bg-slate-800 text-white">
+              <TableRow>
+                <TableCell className="px-3 py-3 font-bold text-sm">AG Total</TableCell>
+                <TableCell className="px-3 py-3 text-right font-bold tabular-nums">{fmtUsd(data.totals.annualInr)}</TableCell>
+                <TableCell className="px-3 py-3 text-right font-bold tabular-nums">{fmtUsd(data.totals.polioInr)}</TableCell>
+                <TableCell className="px-3 py-3 text-right font-bold tabular-nums">
                   {data.totals.endowment > 0 ? fmtUsd(data.totals.endowment) : <span className="text-slate-400">–</span>}
-                </td>
-                <td className="px-3 py-3 text-right font-bold tabular-nums">
+                </TableCell>
+                <TableCell className="px-3 py-3 text-right font-bold tabular-nums">
                   {data.totals.others > 0 ? fmtUsd(data.totals.others) : <span className="text-slate-400">–</span>}
-                </td>
-                <td className="px-3 py-3 text-right font-bold tabular-nums" style={{ color: ROTARY_GOLD }}>
+                </TableCell>
+                <TableCell className="px-3 py-3 text-right font-bold tabular-nums" style={{ color: ROTARY_GOLD }}>
                   {fmtUsd(data.totals.totalInr)}
-                </td>
-              </tr>
-            </tfoot>
-          </table>
+                </TableCell>
+              </TableRow>
+            </TableFooter>
+          </Table>
         </div>
-      </div>
+      </Card>
     </div>
   );
 }

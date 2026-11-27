@@ -21,9 +21,12 @@
  * `{ id, name }`.
  */
 
+import { MenuItemButton } from "@/components/ui/text-buttons"
+import { Button } from "@/components/ui/button"
 import { useState, useEffect, useRef } from "react";
 import { ChevronDown, Check } from "@/components/icons";
 import { cn } from "@/lib/utils";
+import { ScopeLabel } from "./TopBar";
 
 export interface ScopePickerItem {
   id: number;
@@ -68,52 +71,34 @@ export default function ScopePicker({
 
   // Single-scope user — read-only text, no dropdown affordance.
   if (items.length <= 1) {
-    return (
-      <span className="hidden sm:flex items-center gap-1.5 text-sm text-slate-500 max-w-[320px] truncate">
-        {label && (
-          <span className="text-[10px] uppercase tracking-wide text-slate-400">
-            {label}
-          </span>
-        )}
-        {/* Bigger + branded blue per user request 2026-06-12. */}
-        <span className="font-bold text-base text-blue-700 truncate">
-          {selected.name}
-        </span>
-      </span>
-    );
+    return <ScopeLabel label={label ?? ""} name={selected.name} />;
   }
 
   // Multi-scope user — clickable dropdown.
   return (
     <div className="relative" ref={menuRef}>
-      <button
+      <Button variant="ghost" className="-ml-3 max-w-[340px] px-3"
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className={cn(
-          "flex items-center gap-2 px-3 py-1.5 rounded-md text-sm",
-          "border border-slate-200 hover:border-slate-300 hover:bg-slate-50",
-          "transition-colors max-w-[320px]",
-        )}
         aria-haspopup="listbox"
         aria-expanded={open}
       >
         {label && (
-          <span className="text-[10px] uppercase tracking-wide text-slate-400">
+          <span className="text-[13px] font-normal text-muted-foreground">
             {label}
           </span>
         )}
-        {/* Bigger + branded blue per user request 2026-06-12. */}
-        <span className="font-bold text-base text-blue-700 truncate">
+        <span className="truncate">
           {selected.name}
         </span>
-        <ChevronDown size={14} className="text-blue-700 flex-shrink-0" />
-      </button>
+        <ChevronDown size={14} className="flex-shrink-0 text-muted-foreground" />
+      </Button>
 
       {open && (
         <div
           role="listbox"
           className={cn(
-            "absolute right-0 mt-1 z-50 min-w-[240px] max-w-[320px]",
+            "absolute left-0 mt-1 z-50 min-w-[240px] max-w-[320px]",
             "bg-card border border-slate-200 rounded-md shadow-lg",
             "py-1 max-h-72 overflow-y-auto",
           )}
@@ -121,7 +106,7 @@ export default function ScopePicker({
           {items.map((item) => {
             const isSelected = item.id === selected.id;
             return (
-              <button
+              <MenuItemButton selected={isSelected} className="justify-between gap-2"
                 key={item.id}
                 type="button"
                 role="option"
@@ -130,11 +115,6 @@ export default function ScopePicker({
                   onSelect(item.id);
                   setOpen(false);
                 }}
-                className={cn(
-                  "w-full flex items-center justify-between gap-2 px-3 py-2 text-left text-xs",
-                  "hover:bg-slate-50 transition-colors",
-                  isSelected && "bg-amber-50",
-                )}
               >
                 <span
                   className={cn(
@@ -147,7 +127,7 @@ export default function ScopePicker({
                 {isSelected && (
                   <Check size={14} className="text-amber-600 flex-shrink-0" />
                 )}
-              </button>
+              </MenuItemButton>
             );
           })}
         </div>

@@ -4,6 +4,9 @@
 // Rotary year, with Assistant Governor group and status filters and a drill-in per club. The API decides which clubs
 // this viewer sees (district managers: all; an AG: their group; a club admin: their club).
 
+import { LinkButton } from "@/components/ui/text-buttons"
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table"
+import { Card } from "@/components/ui/card";
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { getDistrictTargets, type TargetDashboardData } from "@/services/api";
@@ -17,7 +20,7 @@ import { ClubTargetCard, MetricGrid, StatusChip, TargetsNote, errorText } from "
 
 // Meetings are part of the attendance figure in the table; the drill-in shows them on their own.
 const COLUMNS = METRICS.filter((m) => m.key !== "meetings");
-const panel = "rounded-xl border border-slate-200 bg-card p-5";
+const panel = "row-card p-5";
 
 export default function TargetDashboard({ districtId, yearId, clubPageHref }: {
   districtId: number | null;
@@ -62,7 +65,7 @@ export default function TargetDashboard({ districtId, yearId, clubPageHref }: {
     <div className="space-y-4">
       <section className={panel}>
         <div className="mb-4 space-y-1">
-          <h2 className="text-base font-semibold text-slate-800">
+          <h2 className="row-h2">
             {data.wholeDistrict ? "District total" : data.clubs.length === 1 ? "Your club" : "Your clubs together"}, RY {data.yearLabel}
           </h2>
           <TargetsNote elapsed={data.yearElapsedPercent} />
@@ -88,7 +91,7 @@ export default function TargetDashboard({ districtId, yearId, clubPageHref }: {
           <div className="flex flex-wrap items-center gap-3">
             {data.agGroups.length > 0 && (
               <Select value={group} onValueChange={setGroup}>
-                <SelectTrigger className="h-8 w-60" aria-label="Assistant Governor group"><SelectValue /></SelectTrigger>
+                <SelectTrigger className="row-field-sm w-60" aria-label="Assistant Governor group"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Assistant Governor groups</SelectItem>
                   {data.agGroups.map((g) => <SelectItem key={g.memberId} value={String(g.memberId)}>{g.name} ({g.clubs})</SelectItem>)}
@@ -97,52 +100,52 @@ export default function TargetDashboard({ districtId, yearId, clubPageHref }: {
               </Select>
             )}
             <Select value={status} onValueChange={setStatus}>
-              <SelectTrigger className="h-8 w-44" aria-label="Status"><SelectValue /></SelectTrigger>
+              <SelectTrigger className="row-field-sm w-44" aria-label="Status"><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All statuses</SelectItem>
                 {(["red", "amber", "green", "none"] as const).map((s) => <SelectItem key={s} value={s}>{STATUS[s].label}</SelectItem>)}
               </SelectContent>
             </Select>
-            <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search clubs" aria-label="Search clubs" className="h-8 w-56" />
+            <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search clubs" aria-label="Search clubs" className="row-field-sm w-56" />
             <span className="text-xs text-slate-500">{rows.length} of {data.clubs.length} clubs</span>
           </div>
 
-          <div className="mt-4 max-h-[36rem] overflow-auto rounded-lg border border-slate-200">
-            <table className="min-w-full text-sm">
-              <thead className="sticky top-0 bg-[#EDF4FB] text-[13px] text-[#64748B]">
-                <tr>
-                  <th className="px-3 py-2 text-left">Club</th>
-                  <th className="px-3 py-2 text-left">Status</th>
-                  <th className="px-3 py-2 text-left">Assistant Governor</th>
-                  {COLUMNS.map((m) => <th key={m.key} className="px-3 py-2 text-right" title={m.hint}>{m.label}</th>)}
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
+          <Card className="mt-4 max-h-[36rem] overflow-auto">
+            <Table bare className="min-w-full text-sm">
+              <TableHeader className="sticky top-0">
+                <TableRow>
+                  <TableHead className="px-3 text-left">Club</TableHead>
+                  <TableHead className="px-3 text-left">Status</TableHead>
+                  <TableHead className="px-3 text-left">Assistant Governor</TableHead>
+                  {COLUMNS.map((m) => <TableHead key={m.key} className="px-3 text-right" title={m.hint}>{m.label}</TableHead>)}
+                </TableRow>
+              </TableHeader>
+              <TableBody className="divide-y divide-slate-100">
                 {rows.map((r) => (
-                  <tr key={r.clubId}>
-                    <td className="px-3 py-2">
-                      <button type="button" onClick={() => setOpenClub(r.clubId)} className="text-left font-medium text-azure hover:underline">
+                  <TableRow key={r.clubId}>
+                    <TableCell className="px-3 py-2">
+                      <LinkButton type="button" onClick={() => setOpenClub(r.clubId)}>
                         {r.clubName}
-                      </button>
-                    </td>
-                    <td className="px-3 py-2"><StatusChip status={r.status} /></td>
-                    <td className="px-3 py-2 text-slate-600">{r.agName ?? "-"}</td>
+                      </LinkButton>
+                    </TableCell>
+                    <TableCell className="px-3 py-2"><StatusChip status={r.status} /></TableCell>
+                    <TableCell className="px-3 py-2 text-slate-600">{r.agName ?? "-"}</TableCell>
                     {COLUMNS.map((m) => {
                       const v = r.metrics[m.key];
                       return (
-                        <td key={m.key} className={`whitespace-nowrap px-3 py-2 text-right tabular-nums ${STATUS[v.status].cell}`} title={STATUS[v.status].label}>
+                        <TableCell key={m.key} className={`whitespace-nowrap px-3 py-2 text-right tabular-nums ${STATUS[v.status].cell}`} title={STATUS[v.status].label}>
                           {formatMetric(m.key, v, r.metrics.meetings.actual)}
-                        </td>
+                        </TableCell>
                       );
                     })}
-                  </tr>
+                  </TableRow>
                 ))}
                 {rows.length === 0 && (
-                  <tr><td colSpan={3 + COLUMNS.length} className="px-3 py-6 text-center text-slate-400">No clubs match.</td></tr>
+                  <TableRow><TableCell colSpan={3 + COLUMNS.length} className="px-3 py-6 text-center text-slate-400">No clubs match.</TableCell></TableRow>
                 )}
-              </tbody>
-            </table>
-          </div>
+              </TableBody>
+            </Table>
+          </Card>
         </section>
       )}
     </div>

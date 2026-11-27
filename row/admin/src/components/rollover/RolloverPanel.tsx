@@ -6,6 +6,7 @@
  * already in the new year show as "Already there" and are never sent.
  */
 
+import { NativeSelect } from "@/components/ui/native-select";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Loader2, Undo2 } from "@/components/icons";
 import { Button } from "@/components/ui/button";
@@ -23,7 +24,7 @@ import {
 } from "@/services/api";
 import type { RotaryYear } from "@/types/rotaryYear";
 
-const SELECT = "h-10 rounded-md border border-input bg-background px-3 text-sm";
+const SELECT = "row-field";
 const message = (err: any, fallback: string) => err?.response?.data?.message || fallback;
 const ACTION_LABEL: Record<RolloverAction, string> = { add: "Will be added", exists: "Already there", left: "No longer in the club" };
 
@@ -97,10 +98,10 @@ export default function RolloverPanel({ scope, scopeId }: { scope: RolloverScope
       <div className="flex flex-wrap items-end gap-3">
         <label className="space-y-1 text-sm">
           <span className="block font-medium">Roll over from</span>
-          <select className={SELECT} value={fromYearId ?? ""} onChange={(e) => setFromYearId(e.target.value ? Number(e.target.value) : undefined)}>
+          <NativeSelect className="w-auto" value={fromYearId ?? ""} onChange={(e) => setFromYearId(e.target.value ? Number(e.target.value) : undefined)}>
             <option value="">Current Rotary year</option>
             {years.map((y) => <option key={y.id} value={y.id}>{y.yearLabel}</option>)}
-          </select>
+          </NativeSelect>
         </label>
         {preview && <p className="pb-2 text-sm text-muted-foreground">Into {preview.toYear.label}. Nothing changes until you apply.</p>}
       </div>
@@ -118,7 +119,7 @@ export default function RolloverPanel({ scope, scopeId }: { scope: RolloverScope
       ) : (
         <>
           <Card><CardContent className="space-y-4 p-6">
-            <h3 className="text-lg font-semibold">Committees</h3>
+            <h3 className="row-h2">Committees</h3>
             {preview.committees.length === 0 ? (
               <p className="text-sm text-muted-foreground">No committees in {preview.fromYear.label} to carry over.</p>
             ) : preview.committees.map((c) => (
@@ -150,7 +151,7 @@ export default function RolloverPanel({ scope, scopeId }: { scope: RolloverScope
 
           {scope === "club" && (
             <Card><CardContent className="space-y-4 p-6">
-              <h3 className="text-lg font-semibold">Officers</h3>
+              <h3 className="row-h2">Officers</h3>
               {preview.ipp ? (
                 <label className="flex items-center gap-3">
                   <Checkbox disabled={preview.ipp.action !== "add"} checked={preview.ipp.action === "add" && sel.includeIpp}
@@ -182,7 +183,7 @@ export default function RolloverPanel({ scope, scopeId }: { scope: RolloverScope
           )}
 
           <Card><CardContent className="space-y-3 p-6">
-            <h3 className="text-lg font-semibold">Already in place for {preview.toYear.label}</h3>
+            <h3 className="row-h2">Already in place for {preview.toYear.label}</h3>
             {preview.incoming.length === 0 ? (
               <p className="text-sm text-muted-foreground">No officers entered for {preview.toYear.label} yet.</p>
             ) : (
@@ -220,7 +221,7 @@ export default function RolloverPanel({ scope, scopeId }: { scope: RolloverScope
           </div>
 
           <Card><CardContent className="space-y-3 p-6">
-            <h3 className="text-lg font-semibold">Earlier rollovers</h3>
+            <h3 className="row-h2">Earlier rollovers</h3>
             <p className="text-sm text-muted-foreground">
               Undo removes only what that run added. It is refused while anything added or edited since then hangs off
               it (for example a member added to a committee the run created); remove those first.

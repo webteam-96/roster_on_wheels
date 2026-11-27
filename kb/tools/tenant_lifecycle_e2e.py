@@ -64,7 +64,7 @@ ids = ",".join(map(str, clubs))
 current = int(sql("SELECT pk_year_id FROM rotary_year_master WHERE isdeleted=0 AND IsCurrent=1 LIMIT 1"))
 dkeys = sql("SELECT ModuleKey FROM module_master WHERE isdeleted=0 AND ModuleLevel IN ('District','Both') ORDER BY SortOrder LIMIT 3").split()
 ckeys = sql("SELECT ModuleKey FROM module_master WHERE isdeleted=0 AND ModuleLevel IN ('Club','Both') ORDER BY SortOrder LIMIT 2").split()
-EDS = "('district','club_basic')"
+EDS = "('district','club_basic','rotaract')"
 BAK = {"e2e_tl_ed": f"SELECT * FROM edition_catalogue WHERE code IN {EDS}",
        "e2e_tl_em": f"SELECT * FROM edition_modules WHERE edition_code IN {EDS}",
        "e2e_tl_ts": f"SELECT * FROM tenant_subscriptions WHERE fk_district_id={district}",
@@ -109,6 +109,12 @@ try:
     # a module data row the edition switches off must survive (on/off only)
     off_key = sql(f"SELECT m.ModuleKey FROM club_modules cm JOIN module_master m ON m.pk_module_id=cm.fk_module_id "
                   f"WHERE cm.fk_club_id={club0} AND m.ModuleKey NOT IN ('{ckeys[0]}') LIMIT 1")
+    call("PUT", "/api/editions/rotaract", {"name": "Rotaract", "moduleKeys": []}, sa)
+    before = sql(f"SELECT COUNT(*) FROM district_modules WHERE fk_district_id={district} AND IsEnabled=1")
+    s, b = call("POST", f"/api/tenants/{district}/apply-edition", {}, sa)
+    check("an edition with no modules is not applied", s == 400 and "Rotaract" in str(b), (s, b))
+    check("and nothing is switched off", before == sql(f"SELECT COUNT(*) FROM district_modules WHERE fk_district_id={district} AND IsEnabled=1"))
+    call("PUT", "/api/editions/rotaract", {"name": "Rotaract", "moduleKeys": ckeys[:1]}, sa)
     s, b = call("POST", f"/api/tenants/{district}/apply-edition", {}, sa)
     check("SuperAdmin applies the editions", s == 200, (s, b))
     on = set(sql(f"SELECT m.ModuleKey FROM district_modules dm JOIN module_master m ON m.pk_module_id=dm.fk_module_id "

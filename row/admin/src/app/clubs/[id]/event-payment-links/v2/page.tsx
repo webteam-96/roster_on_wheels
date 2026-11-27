@@ -1,4 +1,6 @@
 "use client";
+import { DataTable } from "@/components/ui/data-table";
+import { LinkButton } from "@/components/ui/text-buttons";
 
 /**
  * Event Payment Links v2 listing — modernised, dashboard-style layout.
@@ -11,6 +13,8 @@
  * NO Delete button (view + edit only). All chrome wrapped in ClubAdminShell.
  */
 
+import { Input } from "@/components/ui/input";
+import { Card } from "@/components/ui/card";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useParams, useSearchParams } from "next/navigation";
 import {
@@ -110,7 +114,7 @@ export default function EventPaymentLinksV2ListingPage() {
           activeNavHref="/club-admin-dashboard/membership-dues"
         >
           <div className="flex flex-col items-center justify-center py-20">
-            <h3 className="text-lg font-semibold text-slate-800">Access Denied</h3>
+            <h3 className="row-h2">Access Denied</h3>
             <p className="text-xs text-slate-500 mt-1">You do not have permission to view this page.</p>
           </div>
         </ClubAdminShell>
@@ -135,10 +139,10 @@ export default function EventPaymentLinksV2ListingPage() {
           </div>
 
           {/* Table card */}
-          <div className="bg-card rounded-2xl border border-slate-200 overflow-hidden">
+          <Card className="overflow-hidden">
             <div className="px-5 py-3 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
               <div>
-                <h3 className="text-sm font-semibold text-slate-800">Payment Link Records</h3>
+                <h3 className="row-h3">Payment Link Records</h3>
                 <p className="text-xs text-slate-500 mt-0.5">
                   Edit configuration, view paid / unpaid members, copy report links
                 </p>
@@ -146,12 +150,12 @@ export default function EventPaymentLinksV2ListingPage() {
               <div className="flex flex-wrap items-center gap-2">
                 <div className="relative w-full sm:w-auto">
                   <Search size={14} className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-400" />
-                  <input
+                  <Input
                     type="text"
                     placeholder="Search title…"
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
-                    className="pl-7 pr-3 h-10 py-0 text-sm border border-slate-200 rounded-[12px] w-full sm:w-56 focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                    className="pl-7 pr-3 sm:w-56"
                   />
                 </div>
                 {/* NO Add button on V2 — admin only edits existing links. */}
@@ -162,59 +166,35 @@ export default function EventPaymentLinksV2ListingPage() {
               <SkeletonRows />
             ) : (
               <div className="overflow-x-auto">
-                <table className="w-full min-w-[640px] md:min-w-full text-sm">
-                  <thead className="bg-[#EDF4FB] text-[13px] text-[#64748B]">
-                    <tr>
-                      <th className="px-3 py-2.5 text-left">Title</th>
-                      <th className="px-3 py-2.5 text-left">Type</th>
-                      <th className="px-3 py-2.5 text-center">Paid</th>
-                      <th className="px-3 py-2.5 text-center">Unpaid</th>
-                      <th className="px-3 py-2.5 text-left">Status</th>
-                      <th className="px-3 py-2.5 text-left">Created</th>
-                      <th className="px-3 py-2.5 text-center">Report</th>
-                      <th className="px-3 py-2.5 text-center">Google Sheet</th>
-                      <th className="px-3 py-2.5 text-center w-24">Members</th>
-                      <th className="px-3 py-2.5 text-center w-16">Edit</th>
-                      {/* NO Delete column on V2 — view + edit only. */}
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {filtered.length === 0 ? (
-                      <tr>
-                        <td colSpan={10} className="px-4 py-10 text-center text-slate-400">
-                          {search ? "No links match your search." : "No payment links found."}
-                        </td>
-                      </tr>
-                    ) : filtered.map((item) => {
-                      const reportUrl = typeof window !== "undefined"
-                        ? `${window.location.origin}${BASE_PATH}/report/${item.id}`
-                        : `/report/${item.id}`;
-                      const sheetUrl = item.googleSheetId
-                        ? `https://docs.google.com/spreadsheets/d/${item.googleSheetId}`
-                        : null;
-                      return (
-                        <tr key={item.id} className="hover:bg-blue-50/40">
-                          <td className="px-3 py-2 font-medium text-slate-800 max-w-[220px] truncate">
+                <DataTable
+                  caption="Payment links"
+                  card={false}
+                  className="[&_table]:min-w-[640px] md:[&_table]:min-w-full"
+                  rows={filtered}
+                  rowKey={(item) => item.id}
+                  empty={search ? "No links match your search." : "No payment links found."}
+                  columns={[
+{ key: "title", header: "Title", className: "font-medium max-w-[220px] truncate", cell: (item, _i) => (<>
                             {item.title || "Untitled"}
-                          </td>
-                          <td className="px-3 py-2">
-                            <span className="inline-flex items-center text-xs font-medium px-2 py-0.5 rounded-full border bg-slate-50 text-slate-700 border-slate-200">
+</>) },
+{ key: "type", header: "Type", cell: (item, _i) => (<>
+                            <span className="inline-flex items-center text-xs font-medium px-2 py-0.5 rounded border bg-slate-50 text-slate-700 border-slate-200">
                               {item.formType === 1 ? "Standard" : "Dynamic"}
                             </span>
-                          </td>
-                          <td className="px-3 py-2 text-center">
-                            <span className="inline-flex items-center text-xs font-semibold px-2 py-0.5 rounded-full border bg-emerald-50 text-emerald-700 border-emerald-200 tabular-nums">
+</>) },
+{ key: "paid", header: "Paid", align: "center", cell: (item, _i) => (<>
+                            <span className="inline-flex items-center text-xs font-semibold px-2 py-0.5 rounded border bg-emerald-50 text-emerald-700 border-emerald-200 tabular-nums">
                               {item.paidCount}
                             </span>
-                          </td>
-                          <td className="px-3 py-2 text-center">
-                            <span className="inline-flex items-center text-xs font-semibold px-2 py-0.5 rounded-full border bg-amber-50 text-amber-700 border-amber-200 tabular-nums">
+</>) },
+{ key: "unpaid", header: "Unpaid", align: "center", cell: (item, _i) => (<>
+                            <span className="inline-flex items-center text-xs font-semibold px-2 py-0.5 rounded border bg-amber-50 text-amber-700 border-amber-200 tabular-nums">
                               {item.unpaidCount}
                             </span>
-                          </td>
-                          <td className="px-3 py-2">
+</>) },
+{ key: "status", header: "Status", cell: (item, _i) => (<>
                             <span
-                              className={`inline-flex items-center text-xs font-medium px-2 py-0.5 rounded-full border ${
+                              className={`inline-flex items-center text-xs font-medium px-2 py-0.5 rounded border ${
                                 item.isActive
                                   ? "bg-emerald-50 text-emerald-700 border-emerald-200"
                                   : "bg-slate-50 text-slate-600 border-slate-200"
@@ -222,85 +202,92 @@ export default function EventPaymentLinksV2ListingPage() {
                             >
                               {item.isActive ? "Active" : "Inactive"}
                             </span>
-                          </td>
-                          <td className="px-3 py-2 text-xs text-slate-500 whitespace-nowrap">
+</>) },
+{ key: "created", header: "Created", className: "text-xs whitespace-nowrap", cell: (item, _i) => (<>
                             {new Date(item.createdDate).toLocaleDateString()}
-                          </td>
-                          <td className="px-3 py-2 text-center">
+</>) },
+{ key: "report", header: "Report", align: "center", cell: (item, _i) => {
+                      const reportUrl = typeof window !== "undefined"
+                        ? `${window.location.origin}${BASE_PATH}/report/${item.id}`
+                        : `/report/${item.id}`;
+return (<>
                             <div className="flex items-center justify-center gap-1.5">
-                              <button
+                              <LinkButton size="sm"
                                 type="button"
                                 onClick={() => window.open(withBase(`/report/${item.id}`), "_blank")}
-                                className="inline-flex items-center gap-0.5 text-xs text-blue-600 hover:text-blue-800 hover:underline"
+
                                 aria-label="Open report"
                               >
                                 <FileBarChart size={12} /> View
-                              </button>
+                              </LinkButton>
                               <span className="text-slate-300">|</span>
-                              <button
+                              <LinkButton size="sm"
                                 type="button"
                                 onClick={() => handleCopy(reportUrl, "Report link")}
-                                className="inline-flex items-center gap-0.5 text-xs text-blue-600 hover:text-blue-800 hover:underline"
+
                                 aria-label="Copy report link"
                               >
                                 <Copy size={12} /> Copy
-                              </button>
+                              </LinkButton>
                             </div>
-                          </td>
-                          <td className="px-3 py-2 text-center">
+</>);
+} },
+{ key: "sheet", header: "Google Sheet", align: "center", cell: (item, _i) => {
+                      const sheetUrl = item.googleSheetId
+                        ? `https://docs.google.com/spreadsheets/d/${item.googleSheetId}`
+                        : null;
+return (<>
                             {sheetUrl ? (
                               <div className="flex flex-col items-center gap-0.5">
-                                <button
+                                <LinkButton size="sm"
                                   type="button"
                                   onClick={() => window.open(sheetUrl, "_blank")}
-                                  className="inline-flex items-center gap-0.5 text-xs text-blue-600 hover:text-blue-800 hover:underline"
+
                                   aria-label="Open Google Sheet"
                                 >
                                   <ExternalLink size={12} /> Open
-                                </button>
-                                <button
+                                </LinkButton>
+                                <LinkButton size="sm"
                                   type="button"
                                   onClick={() => handleCopy(sheetUrl, "Google Sheet URL")}
-                                  className="inline-flex items-center gap-0.5 text-xs text-blue-600 hover:text-blue-800 hover:underline"
+
                                   aria-label="Copy Google Sheet URL"
                                 >
                                   <Copy size={12} /> Copy URL
-                                </button>
+                                </LinkButton>
                               </div>
                             ) : (
                               <span className="text-xs text-slate-300">–</span>
                             )}
-                          </td>
-                          <td className="px-3 py-2 text-center">
+</>);
+} },
+{ key: "members", header: "Members", align: "center", className: "w-24", cell: (item, _i) => (<>
                             <LoadingLink
                               href={`/clubs/${clubId}/event-payment-links/v2/${item.id}/members?returnTo=${returnTo}`}
-                              className="inline-flex items-center gap-1 text-xs font-medium px-2 py-1 rounded border border-slate-200 text-slate-700 hover:bg-slate-50"
+                              className="row-btn row-btn-secondary row-btn-sm"
                               aria-label="View members"
                             >
                               <Users size={12} /> Members
                             </LoadingLink>
-                          </td>
-                          <td className="px-3 py-2 text-center">
+</>) },
+{ key: "edit", header: "Edit", align: "center", className: "w-16", cell: (item, _i) => (<>
                             <LoadingLink
                               href={`/clubs/${clubId}/event-payment-links/v2/edit?editId=${item.id}&returnTo=${returnTo}`}
-                              className="inline-flex items-center justify-center w-7 h-7 rounded text-slate-500 hover:text-blue-700 hover:bg-blue-50"
+                              className="row-icon-btn"
                               aria-label="Edit payment link"
                             >
                               <Edit3 size={13} />
                             </LoadingLink>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
+</>) },
+                  ]}
+                />
               </div>
             )}
 
             <div className="px-5 py-2.5 border-t border-slate-100 text-xs text-slate-500">
               {filtered.length} record{filtered.length === 1 ? "" : "s"}
             </div>
-          </div>
+          </Card>
 
           <SuccessAlert open={!!successMessage} title="Success" description={successMessage || ""} onOk={() => setSuccessMessage(null)} />
           <ErrorAlert open={!!errorMessage} title="Error" description={errorMessage || ""} onOk={() => setErrorMessage(null)} />

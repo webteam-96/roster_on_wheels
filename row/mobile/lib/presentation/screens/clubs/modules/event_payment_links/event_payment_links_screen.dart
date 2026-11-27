@@ -22,6 +22,8 @@ import '../../../../../presentation/widgets/common/pagination_widget.dart';
 import 'package:rotary_flutter_app/core/utils/currency_symbol.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
 import 'package:rotary_flutter_app/presentation/widgets/row/form_action_bar.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/motion.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/roster_wheel.dart';
 
 class EventPaymentLinksScreen extends StatefulWidget {
   final int clubId;
@@ -190,6 +192,7 @@ class _EventPaymentLinksScreenState extends State<EventPaymentLinksScreen> {
                   valueListenable: _searchCtrl,
                   builder: (_, value, __) => value.text.isNotEmpty
                       ? IconButton(
+                          tooltip: 'Clear',
                           icon: const Icon(Icons.clear, size: 18),
                           onPressed: () {
                             _searchCtrl.clear();
@@ -211,12 +214,12 @@ class _EventPaymentLinksScreenState extends State<EventPaymentLinksScreen> {
                 ? const LoadingWidget()
                 : _links.isEmpty
                     ? const EmptyStateWidget(title: 'No event payment links found')
-                    : RefreshIndicator(
+                    : RowRefresh(
                         onRefresh: () => _loadLinks(page: _currentPage),
                         child: Column(
                           children: [
                             Expanded(
-                              child: ListView.separated(
+                              child: RowListView.separated(
                           padding: (const EdgeInsets.all(16)).add(const EdgeInsets.only(bottom: 88)),
                           itemCount: _links.length,
                           separatorBuilder: (_, __) => const SizedBox(height: 8),
@@ -367,11 +370,13 @@ class _EventPaymentLinksScreenState extends State<EventPaymentLinksScreen> {
                   ),
                   if (canManage) ...[
                     IconButton(
+                      tooltip: 'Edit',
                       icon: const Icon(Icons.edit_outlined, size: 18),
                       onPressed: () => _openForm(link: link as Map<String, dynamic>),
                       color: Colors.grey[600],
                     ),
                     IconButton(
+                      tooltip: 'Delete',
                       icon: const Icon(Icons.delete_outline, size: 18),
                       onPressed: () => _delete(link['id'] as int),
                       color: Colors.red[400],
@@ -705,7 +710,7 @@ class _ParticipantsScreenState extends State<_ParticipantsScreen> {
   }
 
   Future<void> _openOfflinePayment(int memberPaymentId, String memberName) async {
-    final saved = await showDialog<bool>(
+    final saved = await showRowDialog<bool>(
       context: context,
       builder: (_) => _OfflinePaymentDialog(
         clubId: widget.clubId,
@@ -741,7 +746,7 @@ class _ParticipantsScreenState extends State<_ParticipantsScreen> {
           ? const LoadingWidget()
           : _participants.isEmpty
               ? const EmptyStateWidget(title: 'No participants yet')
-              : ListView.separated(
+              : RowListView.separated(
                   padding: (const EdgeInsets.all(16)).add(const EdgeInsets.only(bottom: 88)),
                   itemCount: _participants.length,
                   separatorBuilder: (_, __) => const Divider(height: 1),

@@ -1,5 +1,6 @@
 "use client";
 
+import { NativeSelect } from "@/components/ui/native-select";
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -7,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/dashboard/DashboardSkeleton";
 import { getMembershipRiFields, getRiCodes, setMembershipRiFields, type RiCode } from "@/services/api";
 
-const SELECT = "flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm";
+const SELECT = "row-field flex w-full";
 
 /**
  * A membership's RI member type and join reason (build spec 3.12), for the Rotary.org outbound sync. Shown on the
@@ -58,18 +59,18 @@ export function MembershipRiFieldsCard({ clubId, memberId }: { clubId: number; m
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-1">
                 <Label htmlFor="ri-type">RI member type</Label>
-                <select id="ri-type" className={SELECT} value={type} onChange={(e) => { setType(e.target.value); setState("idle"); }}>
+                <NativeSelect id="ri-type" className="flex" value={type} onChange={(e) => { setType(e.target.value); setState("idle"); }}>
                   <option value="">Not set</option>
                   {types.map((c) => <option key={c.code} value={c.code}>{c.label}</option>)}
-                </select>
+                </NativeSelect>
               </div>
               <div className="space-y-1">
                 <Label htmlFor="ri-join">Join reason</Label>
-                <select id="ri-join" className={SELECT} value={join} onChange={(e) => { setJoin(e.target.value); setState("idle"); }}
+                <NativeSelect id="ri-join" className="flex" value={join} onChange={(e) => { setJoin(e.target.value); setState("idle"); }}
                   disabled={joins.length === 0}>
                   <option value="">{joins.length === 0 ? "No join reasons in Settings > RI codes" : "Not set"}</option>
                   {joins.map((c) => <option key={c.code} value={c.code}>{c.label}</option>)}
-                </select>
+                </NativeSelect>
               </div>
             </div>
             <div className="flex items-center gap-3">

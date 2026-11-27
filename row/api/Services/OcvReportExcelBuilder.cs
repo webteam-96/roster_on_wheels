@@ -79,7 +79,7 @@ public static class OcvReportExcelBuilder
         // ── Header block ──
         var generatedAt = DateTime.UtcNow.ToString("dd MMM yyyy, hh:mm tt", CultureInfo.InvariantCulture);
         Title("Governor's Official Visit Report — " + (header.ClubName ?? ""), 16, true, false, "#1F4E79");
-        Title("Rotary Zones 4, 5, 6, 7 & 8 Admin Portal", 10, false, true, "#555555");
+        Title($"{Brand.ProductName} Admin Portal", 10, false, true, "#555555");
         Title($"Rotary Year: {header.YearLabel}", 10, false, true, "#555555");
         Title($"Generated: {generatedAt}  |  Club ID: {header.ClubRotaryId}  ·  District: {header.DistrictNumber}  ·  President: {header.PresidentName}  ·  Assistant Governor: {header.AssistantGovernorName}", 10, false, false, "#666666");
         r++;

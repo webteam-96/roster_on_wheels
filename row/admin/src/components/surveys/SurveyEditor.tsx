@@ -5,11 +5,14 @@
  * results with a chart per question and a CSV download (api/Controllers/SurveysController.cs).
  */
 
+import { Table, TableBody, TableRow, TableCell } from "@/components/ui/table"
+import { NativeSelect } from "@/components/ui/native-select";
+import { PageHeader } from "@/components/row/AppKit";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Bar, BarChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
-import { ArrowLeft, Download, Lock, Plus, Save, Send, Trash2 } from "@/components/icons";
+import { Download, Lock, Plus, Save, Send, Trash2 } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -26,7 +29,7 @@ import {
 import { emptyQuestion, isChoice, STATE_LABEL, toBody, toForm, TYPE_LABEL, type QuestionRow, type SurveyForm } from "@/lib/surveys";
 import type { QuestionType, Survey, SurveyQuestionResult, SurveyResults, SurveyScope, SurveySubGroup } from "@/types/surveys";
 
-const SELECT = "h-10 w-full rounded-md border border-input bg-background px-3 text-sm";
+const SELECT = "row-field w-full";
 const BAR_FILL = "hsl(var(--primary))";
 const AXIS = { fontSize: 11, fill: "hsl(var(--muted-foreground))" };
 const message = (err: any, fallback: string) => err?.response?.data?.message || fallback;
@@ -71,17 +74,17 @@ function QuestionChart({ q }: { q: SurveyQuestionResult }) {
           </BarChart>
         </ResponsiveContainer>
       </div>
-      <table className="w-full text-sm">
-        <tbody>
+      <Table className="w-full text-sm">
+        <TableBody>
           {data.map((o) => (
-            <tr key={o.label} className="border-b last:border-0">
-              <td className="py-1">{o.label}</td>
-              <td className="py-1 text-right tabular-nums">{fmt.number(o.count)}</td>
-              <td className="w-20 py-1 text-right tabular-nums text-muted-foreground">{o.percent}%</td>
-            </tr>
+            <TableRow key={o.label} className="border-b last:border-0">
+              <TableCell className="py-1">{o.label}</TableCell>
+              <TableCell className="py-1 text-right tabular-nums">{fmt.number(o.count)}</TableCell>
+              <TableCell className="w-20 py-1 text-right tabular-nums text-muted-foreground">{o.percent}%</TableCell>
+            </TableRow>
           ))}
-        </tbody>
-      </table>
+        </TableBody>
+      </Table>
     </div>
   );
 }
@@ -204,35 +207,28 @@ export default function SurveyEditor({ scope, scopeId, param, basePath }: Props)
     });
 
   return (
-    <div className="space-y-6 p-6">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div className="space-y-1">
-          <Button asChild variant="ghost" size="sm" className="-ml-2 gap-1">
-            <Link href={basePath}><ArrowLeft className="h-4 w-4" /> All surveys</Link>
-          </Button>
-          <h2 className="text-2xl font-bold tracking-tight text-primary">{isNew ? "New survey" : survey?.title}</h2>
-          {survey && (
-            <p className="text-sm text-muted-foreground">
-              {STATE_LABEL[survey.state]}. Opens {fmt.dateTime(survey.opensAt)}, closes {fmt.dateTime(survey.closesAt)}.
-              {survey.audienceCount != null && ` Audience: ${fmt.number(survey.audienceCount)} people.`}
-            </p>
-          )}
-        </div>
-        <div className="flex flex-wrap gap-2">
-          {survey?.state === "draft" && (
-            <Button onClick={publish} disabled={busy} className="gap-1.5"><Send className="h-4 w-4" /> Publish</Button>
+    <div className="space-y-6">
+      <PageHeader
+        title={isNew ? "New survey" : survey?.title}
+        description={survey && ( <p className="text-sm text-muted-foreground"> {STATE_LABEL[survey.state]}. Opens {fmt.dateTime(survey.opensAt)}, closes {fmt.dateTime(survey.closesAt)}. {survey.audienceCount != null && ` Audience: ${fmt.number(survey.audienceCount)} people.`} </p> )}
+        back={basePath}
+        actions={
+          <>
+{survey?.state === "draft" && (
+            <Button onClick={publish} disabled={busy}><Send className="h-4 w-4" /> Publish</Button>
           )}
           {(survey?.state === "open" || survey?.state === "scheduled") && (
-            <Button variant="outline" onClick={close} disabled={busy} className="gap-1.5"><Lock className="h-4 w-4" /> Close now</Button>
+            <Button variant="outline" onClick={close} disabled={busy}><Lock className="h-4 w-4" /> Close now</Button>
           )}
           {survey && survey.state !== "draft" && (
-            <Button variant="outline" onClick={download} disabled={busy} className="gap-1.5"><Download className="h-4 w-4" /> Download CSV</Button>
+            <Button variant="outline" onClick={download} disabled={busy}><Download className="h-4 w-4" /> Download CSV</Button>
           )}
           {survey && (
-            <Button variant="outline" onClick={remove} disabled={busy} className="gap-1.5 text-destructive"><Trash2 className="h-4 w-4" /> Delete</Button>
+            <Button variant="outline" onClick={remove} disabled={busy} className="text-destructive"><Trash2 className="h-4 w-4" /> Delete</Button>
           )}
-        </div>
-      </div>
+          </>
+        }
+      />
 
       {notice && <p className="text-sm text-primary" role="status">{notice}</p>}
 
@@ -257,10 +253,10 @@ export default function SurveyEditor({ scope, scopeId, param, basePath }: Props)
           {scope === "clubs" ? (
             <div className="space-y-1.5">
               <Label htmlFor="sv-audience">Who is asked</Label>
-              <select id="sv-audience" className={SELECT} value={form.subGroupId} disabled={!draft} onChange={(e) => set({ subGroupId: e.target.value })}>
+              <NativeSelect id="sv-audience"  value={form.subGroupId} disabled={!draft} onChange={(e) => set({ subGroupId: e.target.value })}>
                 <option value="">All active members</option>
                 {subGroups.map((g) => <option key={g.id} value={g.id}>{g.name}</option>)}
-              </select>
+              </NativeSelect>
             </div>
           ) : (
             <p className="text-sm text-muted-foreground md:col-span-2">
@@ -281,7 +277,7 @@ export default function SurveyEditor({ scope, scopeId, param, basePath }: Props)
       </Card>
 
       <section className="space-y-3" aria-labelledby="sv-questions">
-        <h3 id="sv-questions" className="text-lg font-semibold">Questions</h3>
+        <h3 id="sv-questions" className="row-h2">Questions</h3>
         {!draft && <p className="text-sm text-muted-foreground">The questions are fixed once a survey is published.</p>}
         {form.questions.map((q, i) => (
           <Card key={i}>
@@ -292,9 +288,9 @@ export default function SurveyEditor({ scope, scopeId, param, basePath }: Props)
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor={`sv-t${i}`}>Answer type</Label>
-                <select id={`sv-t${i}`} className={SELECT} value={q.type} disabled={!draft} onChange={(e) => setQ(i, { type: e.target.value as QuestionType })}>
+                <NativeSelect id={`sv-t${i}`}  value={q.type} disabled={!draft} onChange={(e) => setQ(i, { type: e.target.value as QuestionType })}>
                   {(Object.keys(TYPE_LABEL) as QuestionType[]).map((t) => <option key={t} value={t}>{TYPE_LABEL[t]}</option>)}
-                </select>
+                </NativeSelect>
               </div>
               {isChoice(q.type) && (
                 <div className="space-y-1.5 md:col-span-2">
@@ -319,19 +315,19 @@ export default function SurveyEditor({ scope, scopeId, param, basePath }: Props)
           </Card>
         ))}
         {draft && (
-          <Button variant="outline" className="gap-1.5" onClick={() => set({ questions: [...form.questions, emptyQuestion()] })} disabled={form.questions.length >= 50}>
+          <Button variant="outline" onClick={() => set({ questions: [...form.questions, emptyQuestion()] })} disabled={form.questions.length >= 50}>
             <Plus className="h-4 w-4" /> Add a question
           </Button>
         )}
       </section>
 
       {survey?.state !== "closed" && (
-        <Button onClick={save} disabled={busy} className="gap-1.5"><Save className="h-4 w-4" /> {isNew ? "Save draft" : "Save changes"}</Button>
+        <Button onClick={save} disabled={busy}><Save className="h-4 w-4" /> {isNew ? "Save draft" : "Save changes"}</Button>
       )}
 
       {survey && survey.state !== "draft" && (
         <section className="space-y-3" aria-labelledby="sv-results">
-          <h3 id="sv-results" className="text-lg font-semibold">Results</h3>
+          <h3 id="sv-results" className="row-h2">Results</h3>
           {!results ? (
             <div aria-busy="true"><Skeleton className="h-40 w-full" /></div>
           ) : (

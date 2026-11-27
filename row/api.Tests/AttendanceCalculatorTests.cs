@@ -94,6 +94,8 @@ public class AttendanceCalculatorTests
         // unknown birth or join date never qualifies
         Assert.False(Rule85(null, new DateOnly(1980, 1, 1), asOf));
         Assert.False(Rule85(new DateOnly(1930, 1, 1), null, asOf));
+        // 1900 is the placeholder year of a birthday stored without one
+        Assert.False(Rule85(new DateOnly(1900, 6, 15), new DateOnly(2024, 7, 1), asOf));
     }
 
     [Fact]

@@ -12,6 +12,7 @@ import 'stat_card.dart';
 import '../../../../widgets/common/dashboard_refresh.dart';
 import 'package:rotary_flutter_app/core/theme/app_fonts.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/motion.dart';
 
 /// "E-Governance & Reporting" tab of the District Admin dashboard, wired to
 /// `GET /api/mobile/district-admin-dashboard/egovernance` (+ `/egovernance/per-club`
@@ -467,7 +468,7 @@ class _CmrMiniKpis extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GridView.count(
+    return RowGridView.count(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       crossAxisCount: 2,
@@ -1016,7 +1017,7 @@ class _ClubRow extends StatelessWidget {
           const SizedBox(height: 5),
           ClipRRect(
             borderRadius: BorderRadius.circular(999),
-            child: LinearProgressIndicator(
+            child: RowProgressBar(
               value: completedPct / 100,
               minHeight: 5,
               backgroundColor: AppColors.slate100,

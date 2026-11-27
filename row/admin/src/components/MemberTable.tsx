@@ -1,5 +1,6 @@
 "use client";
 
+import { Card } from "@/components/ui/card";
 import { MemberListItem } from "@/types/member";
 import { useFeature } from "@/contexts/BrandContext";
 import { getPhotoUrl } from "@/services/api";
@@ -59,26 +60,26 @@ export default function MemberTable({
           </Badge>
         ))}
         {!roles.includes("Member") && (
-          <Badge variant="outline" className="text-xs">Member</Badge>
+          <Badge variant="outline">Member</Badge>
         )}
       </div>
     );
   };
 
   return (
-    <div className="rounded-md border">
+    <Card className="overflow-hidden">
       <Table>
         <TableHeader>
-          <TableRow className="bg-primary hover:bg-primary">
+          <TableRow>
             <TableHead className="w-12"></TableHead>
-            <TableHead className="text-base font-semibold">Name</TableHead>
-            <TableHead className="hidden md:table-cell text-base font-semibold">Rotary ID</TableHead>
-            <TableHead className="hidden md:table-cell text-base font-semibold">Role</TableHead>
-            <TableHead className="hidden lg:table-cell text-base font-semibold">Business</TableHead>
-            <TableHead className="hidden md:table-cell text-base font-semibold">City</TableHead>
-            <TableHead className="hidden sm:table-cell text-base font-semibold">Phone</TableHead>
-            <TableHead className="hidden lg:table-cell text-base font-semibold">Email</TableHead>
-            {showBloodGroup && <TableHead className="hidden sm:table-cell text-base font-semibold">Blood Group</TableHead>}
+            <TableHead>Name</TableHead>
+            <TableHead className="hidden md:table-cell">Rotary ID</TableHead>
+            <TableHead className="hidden md:table-cell">Role</TableHead>
+            <TableHead className="hidden lg:table-cell">Business</TableHead>
+            <TableHead className="hidden md:table-cell">City</TableHead>
+            <TableHead className="hidden sm:table-cell">Phone</TableHead>
+            <TableHead className="hidden lg:table-cell">Email</TableHead>
+            {showBloodGroup && <TableHead className="hidden sm:table-cell">Blood Group</TableHead>}
             <TableHead className="w-12"></TableHead>
           </TableRow>
         </TableHeader>
@@ -154,7 +155,7 @@ export default function MemberTable({
                 <TableCell>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon" className="h-8 w-8" onClick={(e) => e.stopPropagation()}>
+                      <Button variant="ghost" size="icon" className="row-btn-sm" onClick={(e) => e.stopPropagation()}>
                         <MoreHorizontal className="h-4 w-4" />
                       </Button>
                     </DropdownMenuTrigger>
@@ -202,6 +203,6 @@ export default function MemberTable({
           })}
         </TableBody>
       </Table>
-    </div>
+    </Card>
   );
 }

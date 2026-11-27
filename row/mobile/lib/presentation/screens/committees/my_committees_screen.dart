@@ -7,6 +7,8 @@ import '../../widgets/common/custom_app_bar.dart';
 import '../../widgets/common/empty_state_widget.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
 import 'package:rotary_flutter_app/presentation/widgets/row/skeleton_list.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/motion.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/roster_wheel.dart';
 
 /// Enhanced committees (feature `committees`): the member's club and district committees, and for each one its
 /// subcommittees, members, private documents and message archive. Members can also write to the committee; the
@@ -51,7 +53,7 @@ class _MyCommitteesScreenState extends State<MyCommitteesScreen> {
       appBar: const CustomAppBar(title: 'My committees'),
       body: rows == null
           ? const RowSkeletonList()
-          : RefreshIndicator(
+          : RowRefresh(
               onRefresh: _load,
               child: rows.isEmpty
                   ? ListView(children: [
@@ -61,7 +63,7 @@ class _MyCommitteesScreenState extends State<MyCommitteesScreen> {
                         subtitle: _error != null ? 'Pull down to try again.' : 'Your club or district adds you to committees.',
                       ),
                     ])
-                  : ListView.separated(
+                  : RowListView.separated(
                       itemCount: rows.length,
                       separatorBuilder: (_, __) => const Divider(height: 1),
                       itemBuilder: (_, i) {
@@ -192,9 +194,9 @@ class _CommitteeDetailScreenState extends State<CommitteeDetailScreen> {
     if (docs.isEmpty) {
       return const EmptyStateWidget(icon: Icons.description_outlined, title: 'No documents yet');
     }
-    return RefreshIndicator(
+    return RowRefresh(
       onRefresh: _load,
-      child: ListView.separated(
+      child: RowListView.separated(
         itemCount: docs.length,
         separatorBuilder: (_, __) => const Divider(height: 1),
         itemBuilder: (_, i) {
@@ -219,9 +221,9 @@ class _CommitteeDetailScreenState extends State<CommitteeDetailScreen> {
     if (rows.isEmpty) {
       return const EmptyStateWidget(icon: Icons.mail_outline, title: 'No messages yet');
     }
-    return RefreshIndicator(
+    return RowRefresh(
       onRefresh: _load,
-      child: ListView.separated(
+      child: RowListView.separated(
         padding: const EdgeInsets.only(bottom: 88),
         itemCount: rows.length,
         separatorBuilder: (_, __) => const Divider(height: 1),
@@ -243,7 +245,7 @@ class _CommitteeDetailScreenState extends State<CommitteeDetailScreen> {
   Widget _members(Map<String, dynamic> d) {
     final members = ((d['members'] as List?) ?? const []).cast<Map<String, dynamic>>();
     if (members.isEmpty) return const EmptyStateWidget(icon: Icons.people_outline, title: 'No members yet');
-    return ListView.separated(
+    return RowListView.separated(
       itemCount: members.length,
       separatorBuilder: (_, __) => const Divider(height: 1),
       itemBuilder: (_, i) {

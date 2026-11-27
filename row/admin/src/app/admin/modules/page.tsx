@@ -1,5 +1,6 @@
 "use client";
 
+import { Card } from "@/components/ui/card";
 import { useState, useCallback, useEffect } from "react";
 import { Module, ModuleUsageCount, ModuleComingSoonInfo } from "@/types/module";
 import { getModules, deleteModule, getModuleUsageCount, getModulesComingSoon, updateModuleComingSoon } from "@/services/api";
@@ -27,13 +28,13 @@ import {
 } from "@/components/ui/dialog";
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
-import { Plus, Pencil, Trash2, AlertCircle, ArrowLeft, Package, Download, Clock, Loader2 } from "@/components/icons";
+import { Plus, Pencil, Trash2, AlertCircle, Package, Download, Clock, Loader2 } from "@/components/icons";
 import { exportToCSV } from "@/utils/csvExport";
 import RotaryLoader from "@/components/RotaryLoader";
 import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import SearchBox from "@/components/SearchBox";
-import { ListPageSkeleton } from "@/components/row/AppKit";
+import { PageHeader, ListPageSkeleton } from "@/components/row/AppKit";
 
 export default function ModulesPage() {
   const { isSuperAdmin } = useAuth();
@@ -182,7 +183,7 @@ export default function ModulesPage() {
     return (
       <ProtectedRoute>
         <div className="flex flex-col items-center justify-center py-20">
-          <h3 className="text-lg font-semibold">Access Denied</h3>
+          <h3 className="row-h2">Access Denied</h3>
           <p className="text-muted-foreground mt-2">Only SuperAdmin can manage modules.</p>
         </div>
       </ProtectedRoute>
@@ -192,18 +193,13 @@ export default function ModulesPage() {
   return (
     <ProtectedRoute>
       <div className="space-y-6">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-3">
-            <Button variant="outline" size="icon" asChild>
-              <Link href="/settings/module-master"><ArrowLeft className="h-4 w-4" /></Link>
-            </Button>
-            <div>
-              <h2 className="text-2xl font-bold tracking-tight text-primary">Modules</h2>
-              <p className="text-muted-foreground text-base">Manage system modules</p>
-            </div>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <Button variant="outline" onClick={() => exportToCSV(modules, "modules", [
+        <PageHeader
+          title="Modules"
+          description="Manage system modules"
+          back="/settings/module-master"
+          actions={
+            <>
+<Button variant="outline" onClick={() => exportToCSV(modules, "modules", [
               { key: "moduleName", label: "Module Name" }, { key: "moduleKey", label: "Key" },
               { key: "categoryName", label: "Category" }, { key: "moduleLevel", label: "Level" },
               { key: "sortOrder", label: "Sort Order", numeric: true }, { key: "isActive", label: "Active" },
@@ -211,8 +207,9 @@ export default function ModulesPage() {
             <Button asChild>
               <Link href="/admin/modules/new"><Plus className="mr-2 h-4 w-4" />Add Module</Link>
             </Button>
-          </div>
-        </div>
+            </>
+          }
+        />
 
         {loading && (
           <div className="flex items-center justify-center py-20">
@@ -223,7 +220,7 @@ export default function ModulesPage() {
         {error && (
           <div className="flex flex-col items-center justify-center py-20 text-center">
             <AlertCircle className="h-12 w-12 text-destructive mb-4" />
-            <h3 className="text-lg font-semibold">Error</h3>
+            <h3 className="row-h2">Error</h3>
             <p className="text-muted-foreground mt-2 max-w-md">{error}</p>
             <Button variant="outline" className="mt-4" onClick={() => fetchModules()}>Try Again</Button>
           </div>
@@ -232,7 +229,7 @@ export default function ModulesPage() {
         {!loading && !error && modules.length === 0 && (
           <div className="flex flex-col items-center justify-center py-20 text-center">
             <Package className="h-12 w-12 text-muted-foreground mb-4" />
-            <h3 className="text-lg font-semibold">No modules found</h3>
+            <h3 className="row-h2">No modules found</h3>
             <p className="text-muted-foreground mt-2">Create your first module.</p>
           </div>
         )}
@@ -247,7 +244,7 @@ export default function ModulesPage() {
             {filteredModules.length === 0 && searchQuery.trim() !== "" ? (
               <p className="text-muted-foreground text-sm py-8 text-center">No results found for &quot;{searchQuery}&quot;</p>
             ) : (
-            <div className="rounded-md border">
+            <Card className="overflow-hidden">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -297,13 +294,13 @@ export default function ModulesPage() {
                     <TableCell>
                       <div className="flex flex-wrap items-center gap-2">
                         {cs?.isComingSoon ? (
-                          <Badge className="bg-amber-100 text-amber-800 border-amber-300 hover:bg-amber-100">
+                          <Badge className="bg-amber-100 text-amber-800 border-amber-300">
                             {formatCsDate(cs.comingSoonDate) || "Coming Soon"}
                           </Badge>
                         ) : (
                           <span className="text-muted-foreground text-xs">–</span>
                         )}
-                        <Button variant="outline" size="sm" className="h-7 px-2" onClick={() => openCsDialog(mod)} title="Edit Coming Soon">
+                        <Button variant="outline" size="sm" className="row-btn-sm" onClick={() => openCsDialog(mod)} title="Edit Coming Soon">
                           <Clock className="h-3 w-3 mr-1" />Edit
                         </Button>
                       </div>
@@ -325,7 +322,7 @@ export default function ModulesPage() {
                 })}
               </TableBody>
             </Table>
-          </div>
+          </Card>
             )}
           </>
         )}

@@ -11,13 +11,14 @@
  * v2 reads ONLY `?returnTo=` — never any other param name.
  */
 
+import { IconButton } from "@/components/ui/icon-button";
+import { Input } from "@/components/ui/input";
+import { NativeSelect } from "@/components/ui/native-select";
+import { Card } from "@/components/ui/card";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useParams, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import {
-  ArrowLeft, Crown, Users, UserCheck, UserX, CalendarRange, CalendarClock, Loader2,
-  Search, Plus, Edit3, Trash2, User, AlertTriangle,
-} from "@/components/icons";
+import { Crown, UserCheck, UserX, CalendarRange, CalendarClock, Search, Plus, Edit3, Trash2, User, AlertTriangle } from "@/components/icons";
 import {
   getClub,
   getClubMembers,
@@ -35,8 +36,9 @@ import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
 import ClubAdminShell from "@/components/v2/ClubAdminShell";
 import { useSyncClubIdFromUrl } from "@/hooks/useSyncClubIdFromUrl";
-import { SkeletonRows } from "@/components/row/AppKit";
+import { PageHeader, SkeletonRows } from "@/components/row/AppKit";
 
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 export default function PastPresidentsV2ListingPage() {
   useSyncClubIdFromUrl();
   const params = useParams();
@@ -189,23 +191,7 @@ export default function PastPresidentsV2ListingPage() {
       >
       <div className="space-y-5">
         {/* Header */}
-        <div className="flex items-start justify-between gap-3">
-          <div className="flex items-start gap-2">
-            <Link
-              href={`/clubs/${clubId}/dashboard`}
-              className="mt-0.5 inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50"
-              aria-label="Back"
-            >
-              <ArrowLeft size={15} />
-            </Link>
-            <div>
-              <h1 className="text-lg font-semibold text-slate-800">Past Presidents</h1>
-              <p className="text-xs text-slate-500 mt-0.5">
-                Historical record of club presidents · {clubName || "–"}
-              </p>
-            </div>
-          </div>
-        </div>
+        <PageHeader title="Past Presidents" description={<>Historical record of club presidents · {clubName || "–"}</>} back={`/clubs/${clubId}/dashboard`} />
 
         {/* KPI row */}
         <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
@@ -247,39 +233,39 @@ export default function PastPresidentsV2ListingPage() {
         </div>
 
         {/* Table card */}
-        <div className="bg-card rounded-2xl border border-slate-200 overflow-hidden">
+        <Card className="overflow-hidden">
           <div className="px-5 py-3 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div>
-              <h3 className="text-sm font-semibold text-slate-800">Past President Records</h3>
+              <h3 className="row-h3">Past President Records</h3>
               <p className="text-xs text-slate-500 mt-0.5">
                 {clubName || "–"} · ordered by Rotary year
               </p>
             </div>
             <div className="flex flex-wrap items-center gap-2">
-              <select
+              <NativeSelect
                 value={selectedYearId === "all" ? "" : String(selectedYearId)}
                 onChange={(e) => setSelectedYearId(e.target.value === "" ? "all" : Number(e.target.value))}
-                className="px-2 h-10 py-0 text-sm border border-slate-200 rounded-[12px] bg-card focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                className="w-auto"
               >
                 <option value="">All Years</option>
                 {yearOptions.map((y) => (
                   <option key={y.id} value={y.id}>{y.label}</option>
                 ))}
-              </select>
+              </NativeSelect>
               <div className="relative w-full sm:w-auto">
                 <Search size={14} className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-400" />
-                <input
+                <Input
                   type="text"
                   placeholder="Search…"
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  className="pl-7 pr-3 h-10 py-0 text-sm border border-slate-200 rounded-[12px] w-full sm:w-48 focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                  className="pl-7 pr-3 sm:w-48"
                 />
               </div>
               {canManage && (
                 <Link
                   href={addUrl}
-                  className="inline-flex items-center gap-1.5 text-xs font-semibold px-4 h-10 rounded-full bg-[#17458F] text-white hover:bg-[#17458F]"
+                  className="row-btn row-btn-primary"
                 >
                   <Plus size={13} /> Add Past President
                 </Link>
@@ -328,7 +314,7 @@ export default function PastPresidentsV2ListingPage() {
                         <div className="mt-1.5 flex items-center gap-1.5 flex-wrap">
                           {/* Member vs Non-Member chip — primary distinction */}
                           <span
-                            className={`inline-flex items-center text-[11px] font-medium px-2 py-0.5 rounded-full ${
+                            className={`inline-flex items-center text-[11px] font-medium px-2 py-0.5 rounded ${
                               r.isMember
                                 ? "bg-emerald-100 text-emerald-700"
                                 : "bg-slate-200 text-slate-700"
@@ -339,7 +325,7 @@ export default function PastPresidentsV2ListingPage() {
                           {/* Secondary status only for members — still active in club today? */}
                           {r.isMember && (
                             <span
-                              className={`inline-flex items-center text-[11px] font-medium px-2 py-0.5 rounded-full border ${
+                              className={`inline-flex items-center text-[11px] font-medium px-2 py-0.5 rounded border ${
                                 isActive
                                   ? "bg-emerald-50 text-emerald-700 border-emerald-200"
                                   : "bg-slate-50 text-slate-600 border-slate-200"
@@ -354,19 +340,19 @@ export default function PastPresidentsV2ListingPage() {
                         <div className="flex items-center gap-1 flex-shrink-0">
                           <Link
                             href={`/clubs/${clubId}/past-presidents/v2/${r.id}/edit?returnTo=${returnTo}`}
-                            className="inline-flex items-center justify-center w-8 h-8 rounded text-slate-500 hover:text-blue-700 hover:bg-blue-50"
+                            className="row-icon-btn"
                             aria-label="Edit past president"
                           >
                             <Edit3 size={14} />
                           </Link>
-                          <button
+                          <IconButton
                             type="button"
                             onClick={() => setDeleteTarget(r)}
-                            className="inline-flex items-center justify-center w-8 h-8 rounded text-slate-400 hover:text-rose-700 hover:bg-rose-50"
+                            className="hover:text-red-700"
                             aria-label="Delete past president"
                           >
                             <Trash2 size={14} />
-                          </button>
+                          </IconButton>
                         </div>
                       )}
                     </div>
@@ -383,29 +369,29 @@ export default function PastPresidentsV2ListingPage() {
 
               {/* Desktop table view (sm+) */}
               <div className="hidden sm:block overflow-x-auto">
-                <table className="w-full min-w-[640px] md:min-w-full text-sm">
-                <thead className="bg-[#EDF4FB] text-[13px] text-[#64748B]">
-                  <tr>
-                    <th className="px-3 py-2.5 text-left w-12">Photo</th>
-                    <th className="px-3 py-2.5 text-left">Name</th>
-                    <th className="px-3 py-2.5 text-left">Year</th>
-                    <th className="px-3 py-2.5 text-left">Member ID</th>
-                    <th className="px-3 py-2.5 text-left">Status</th>
-                    {canManage && <th className="px-3 py-2.5 text-right w-16">Edit</th>}
-                    {canManage && <th className="px-3 py-2.5 text-right w-16">Delete</th>}
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
+                <Table className="min-w-[640px] md:min-w-full">
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="text-left w-12">Photo</TableHead>
+                    <TableHead className="text-left">Name</TableHead>
+                    <TableHead className="text-left">Year</TableHead>
+                    <TableHead className="text-left">Member ID</TableHead>
+                    <TableHead className="text-left">Status</TableHead>
+                    {canManage && <TableHead className="text-right w-16">Edit</TableHead>}
+                    {canManage && <TableHead className="text-right w-16">Delete</TableHead>}
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
                   {filtered.map((r) => {
                     const photoUrl = getPhotoUrl(r.profilePhotoPath);
                     const isActive = r.memberId != null && activeMemberIds.has(r.memberId);
                     const isNonMember = !r.isMember;
                     return (
-                      <tr
+                      <TableRow
                         key={r.id}
                         className={`${isNonMember ? "bg-slate-100" : ""} hover:bg-blue-50/40`}
                       >
-                        <td className="px-3 py-2">
+                        <TableCell>
                           {photoUrl ? (
                             // eslint-disable-next-line @next/next/no-img-element
                             <img
@@ -418,16 +404,16 @@ export default function PastPresidentsV2ListingPage() {
                               <User size={16} />
                             </div>
                           )}
-                        </td>
-                        <td className="px-3 py-2 font-medium text-slate-800">{r.memberName}</td>
-                        <td className="px-3 py-2 text-slate-700 whitespace-nowrap">{r.yearLabel}</td>
-                        <td className="px-3 py-2 text-xs text-slate-500 whitespace-nowrap">
+                        </TableCell>
+                        <TableCell className="font-medium">{r.memberName}</TableCell>
+                        <TableCell className="whitespace-nowrap">{r.yearLabel}</TableCell>
+                        <TableCell className="text-xs whitespace-nowrap">
                           {r.memberId != null ? `#${r.memberId}` : "–"}
-                        </td>
-                        <td className="px-3 py-2">
+                        </TableCell>
+                        <TableCell>
                           <div className="flex items-center gap-1.5 flex-wrap">
                             <span
-                              className={`inline-flex items-center text-xs font-medium px-2 py-0.5 rounded-full ${
+                              className={`inline-flex items-center text-xs font-medium px-2 py-0.5 rounded ${
                                 r.isMember
                                   ? "bg-emerald-100 text-emerald-700"
                                   : "bg-slate-200 text-slate-700"
@@ -437,7 +423,7 @@ export default function PastPresidentsV2ListingPage() {
                             </span>
                             {r.isMember && (
                               <span
-                                className={`inline-flex items-center text-xs font-medium px-2 py-0.5 rounded-full border ${
+                                className={`inline-flex items-center text-xs font-medium px-2 py-0.5 rounded border ${
                                   isActive
                                     ? "bg-emerald-50 text-emerald-700 border-emerald-200"
                                     : "bg-slate-50 text-slate-600 border-slate-200"
@@ -447,44 +433,44 @@ export default function PastPresidentsV2ListingPage() {
                               </span>
                             )}
                           </div>
-                        </td>
+                        </TableCell>
                         {canManage && (
-                          <td className="px-3 py-2 text-right">
+                          <TableCell className="text-right">
                             <Link
                               href={`/clubs/${clubId}/past-presidents/v2/${r.id}/edit?returnTo=${returnTo}`}
-                              className="inline-flex items-center justify-center w-7 h-7 rounded text-slate-500 hover:text-blue-700 hover:bg-blue-50"
+                              className="row-icon-btn"
                               aria-label="Edit past president"
                             >
                               <Edit3 size={13} />
                             </Link>
-                          </td>
+                          </TableCell>
                         )}
                         {canManage && (
-                          <td className="px-3 py-2 text-right">
-                            <button
+                          <TableCell className="text-right">
+                            <IconButton
                               type="button"
                               onClick={() => setDeleteTarget(r)}
-                              className="inline-flex items-center justify-center w-7 h-7 rounded text-slate-400 hover:text-rose-700 hover:bg-rose-50"
+                              className="hover:text-red-700"
                               aria-label="Delete past president"
                             >
                               <Trash2 size={13} />
-                            </button>
-                          </td>
+                            </IconButton>
+                          </TableCell>
                         )}
-                      </tr>
+                      </TableRow>
                     );
                   })}
                   {filtered.length === 0 && (
-                    <tr>
-                      <td colSpan={canManage ? 7 : 5} className="px-4 py-10 text-center text-slate-400">
+                    <TableRow>
+                      <TableCell colSpan={canManage ? 7 : 5} className="py-10 text-center text-muted-foreground">
                         {search || selectedYearId !== "all"
                           ? "No past presidents match your filters."
                           : "No past presidents recorded yet."}
-                      </td>
-                    </tr>
+                      </TableCell>
+                    </TableRow>
                   )}
-                </tbody>
-              </table>
+                </TableBody>
+              </Table>
               </div>
             </>
           )}
@@ -495,7 +481,7 @@ export default function PastPresidentsV2ListingPage() {
               ? ` · ${yearOptions.find((y) => y.id === selectedYearId)!.label}`
               : ""}
           </div>
-        </div>
+        </Card>
 
         {/* Delete confirm */}
         <AlertModal

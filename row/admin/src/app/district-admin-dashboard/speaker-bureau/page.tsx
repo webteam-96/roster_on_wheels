@@ -6,6 +6,7 @@
  * ratings and hide an abusive comment (the score still counts).
  */
 
+import { PageHeader } from "@/components/row/AppKit";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Check, Pencil, Trash2, X } from "@/components/icons";
 import { Button } from "@/components/ui/button";
@@ -115,17 +116,11 @@ export default function DistrictSpeakerBureauPage() {
   };
 
   return (
-    <div className="space-y-8 p-6">
-      <div>
-        <h2 className="text-2xl font-bold tracking-tight text-primary">Speaker bureau</h2>
-        <p className="text-base text-muted-foreground">
-          Speakers your clubs can book for their meetings. Clubs find them by topic, language and rating, book them, and
-          rate the talk afterwards. Speakers proposed by clubs wait here for your approval.
-        </p>
-      </div>
+    <div className="space-y-8">
+      <PageHeader title="Speaker bureau" description="Speakers your clubs can book for their meetings. Clubs find them by topic, language and rating, book them, and rate the talk afterwards. Speakers proposed by clubs wait here for your approval." />
 
       <section className="space-y-3">
-        <h3 className="text-lg font-semibold">{editing ? "Edit speaker" : "Add a speaker"}</h3>
+        <h3 className="row-h2">{editing ? "Edit speaker" : "Add a speaker"}</h3>
         <Card>
           <CardContent className="p-5">
             <EntryForm form={form} onChange={setForm} onSubmit={save} onCancel={editing ? reset : undefined} busy={busy}
@@ -143,7 +138,7 @@ export default function DistrictSpeakerBureauPage() {
       </section>
 
       <section className="space-y-3">
-        <h3 className="text-lg font-semibold">Speakers</h3>
+        <h3 className="row-h2">Speakers</h3>
         <SearchFilters value={search} onChange={setSearch} withStatus />
         <EntryTable list={list} showStatus empty="No speakers match. Add one above, or clear the filters."
           actions={(e) => (

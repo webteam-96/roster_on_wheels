@@ -3,6 +3,9 @@
 // RAG Analysis popup (user 2026-10-30): the district's clubs with their Rotary.org member count, grouped
 // by the 5 Rotary.org bands - the same figures the RAG card counts, so each group adds up to its number.
 
+import { Table, TableBody, TableRow, TableCell } from "@/components/ui/table"
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { useEffect, useMemo, useState } from "react";
 import { Download, Loader2, Search } from "@/components/icons";
 import XLSX from "xlsx-js-style";
@@ -82,15 +85,15 @@ export default function RagClubsDialog({ open, onClose, yearId, districtId, titl
         <div className="shrink-0 flex flex-wrap items-center gap-2 pr-8">
           <label className="relative flex-1 min-w-[200px] max-w-sm">
             <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-go-text-muted" />
-            <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search club…"
-              className="w-full h-9 rounded-go-sm border border-go-border-strong bg-go-surface pl-9 pr-3 text-go-body focus:outline-none focus-visible:ring-2 focus-visible:ring-go-navy-700 focus-visible:ring-offset-1" />
+            <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search club…"
+              className="bg-go-surface pl-9 pr-3 text-go-body" />
           </label>
           <span className="text-go-meta text-go-text-secondary">Member count from Rotary.org</span>
           <span className="flex-1" />
-          <button type="button" onClick={download} disabled={!clubs || clubs.length === 0}
-            className="inline-flex items-center gap-1.5 h-9 rounded-go-sm border border-go-border-strong bg-go-surface px-3.5 text-go-label font-bold text-go-navy-700 hover:bg-go-sunken disabled:opacity-40">
+          <Button type="button" onClick={download} disabled={!clubs || clubs.length === 0}
+            variant="outline" size="sm">
             <Download size={14} /> Download
-          </button>
+          </Button>
         </div>
         <div className="flex-1 min-h-0 overflow-y-auto space-y-4 pt-2">
           {error && <p className="text-go-body text-go-danger-600">{error}</p>}
@@ -103,16 +106,16 @@ export default function RagClubsDialog({ open, onClose, yearId, districtId, titl
                 <span className="text-go-body font-bold" style={{ color: g.band.color }}>{g.clubs.length} clubs</span>
               </div>
               {g.clubs.length > 0 && (
-                <table className="w-full text-go-body">
-                  <tbody>
+                <Table className="w-full text-go-body">
+                  <TableBody>
                     {g.clubs.map((c) => (
-                      <tr key={c.clubId} className="border-t border-go-border">
-                        <td className="px-4 py-1.5 text-go-text-primary">{c.clubName}</td>
-                        <td className="px-4 py-1.5 text-right font-bold text-go-navy-900 tabular-nums w-28">{c.members}</td>
-                      </tr>
+                      <TableRow key={c.clubId} className="border-t border-go-border">
+                        <TableCell className="px-4 py-1.5 text-go-text-primary">{c.clubName}</TableCell>
+                        <TableCell className="px-4 py-1.5 text-right font-bold text-go-navy-900 tabular-nums w-28">{c.members}</TableCell>
+                      </TableRow>
                     ))}
-                  </tbody>
-                </table>
+                  </TableBody>
+                </Table>
               )}
             </div>
           ))}

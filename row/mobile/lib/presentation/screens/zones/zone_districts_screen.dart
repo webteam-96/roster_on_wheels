@@ -12,6 +12,8 @@ import '../../providers/auth_provider.dart';
 import '../../widgets/common/empty_state_widget.dart';
 import '../../widgets/common/loading_widget.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/motion.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/roster_wheel.dart';
 
 /// Zone detail screen: shows Districts and Clubs tabs.
 /// For scoped roles (DistrictAdmin, ClubAdmin), only assigned entities are shown.
@@ -180,6 +182,7 @@ class _ZoneHeader extends StatelessWidget {
       child: Row(
         children: [
           IconButton(
+            tooltip: MaterialLocalizations.of(context).backButtonTooltip,
             icon: const Icon(Icons.arrow_back, color: Colors.white),
             onPressed: onBack,
           ),
@@ -218,10 +221,10 @@ class _DistrictsTab extends StatelessWidget {
         subtitle: 'No districts found in this zone.',
       );
     }
-    return RefreshIndicator(
+    return RowRefresh(
       color: AppColors.primary,
       onRefresh: () async => onRetry(),
-      child: ListView.separated(
+      child: RowListView.separated(
         padding: const EdgeInsets.all(16),
         itemCount: districts.length,
         separatorBuilder: (_, __) => const SizedBox(height: 12),
@@ -259,10 +262,10 @@ class _ClubsTab extends StatelessWidget {
         subtitle: 'No clubs found in this zone.',
       );
     }
-    return RefreshIndicator(
+    return RowRefresh(
       color: AppColors.primary,
       onRefresh: () async => onRetry(),
-      child: ListView.separated(
+      child: RowListView.separated(
         padding: const EdgeInsets.all(16),
         itemCount: clubs.length,
         separatorBuilder: (_, __) => const SizedBox(height: 12),

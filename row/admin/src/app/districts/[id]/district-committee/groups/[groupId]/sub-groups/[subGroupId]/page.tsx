@@ -20,16 +20,15 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogD
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
 import AlertModal from "@/components/AlertModal";
-import { ArrowLeft, Plus, Pencil, Trash2, AlertTriangle, Users, Search, X, Upload } from "@/components/icons";
+import { Plus, Pencil, Trash2, AlertTriangle, Users, Search, X, Upload } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import NonSyncRemovedCommitteeMembers from "@/components/dashboard/NonSyncRemovedCommitteeMembers";
 import CommitteeDocumentsCard from "@/components/membership/CommitteeDocumentsCard";
 import ImageCropDialog from "@/components/ImageCropDialog";
 import { useImageCropUpload } from "@/hooks/useImageCropUpload";
-import Link from "next/link";
 
 import ProtectedRoute from "@/components/ProtectedRoute";
-import { ListPageSkeleton } from "@/components/row/AppKit";
+import { PageHeader, ListPageSkeleton } from "@/components/row/AppKit";
 
 // Committee photos render as small circular thumbnails in the list and on the
 // public site — square crop, 500×500 stored for retina.
@@ -40,14 +39,14 @@ const PHOTO_MAX_OUTPUT = 500;
 // so the two modules stay consistent (green for member, slate for non-member).
 function MemberChip() {
   return (
-    <span className="inline-flex items-center rounded-full border border-emerald-200 bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-700">
+    <span className="inline-flex items-center rounded border border-emerald-200 bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-700">
       Member
     </span>
   );
 }
 function NonMemberChip() {
   return (
-    <span className="inline-flex items-center rounded-full border border-slate-300 bg-slate-200 px-2 py-0.5 text-xs font-medium text-slate-700">
+    <span className="inline-flex items-center rounded border border-slate-300 bg-slate-200 px-2 py-0.5 text-xs font-medium text-slate-700">
       Non-Member
     </span>
   );
@@ -204,15 +203,7 @@ export default function SubGroupDetailPage() {
   return (
     <ProtectedRoute>
       <div className="space-y-6">
-        <div className="flex items-center gap-3">
-          <Button variant="outline" size="icon" asChild>
-            <Link href={`/districts/${districtId}/district-committee/groups/${groupId}`}><ArrowLeft className="h-4 w-4" /></Link>
-          </Button>
-          <div>
-            <h2 className="text-2xl font-bold tracking-tight text-primary">{subGroupName || "Sub Group"}</h2>
-            <p className="text-muted-foreground text-base">{districtName} - {groupName} - Sub Group</p>
-          </div>
-        </div>
+        <PageHeader title={subGroupName || "Sub Group"} description={<>{districtName} - {groupName} - Sub Group</>} back={`/districts/${districtId}/district-committee/groups/${groupId}`} />
 
         {loading && <div className="flex items-center justify-center py-20"><ListPageSkeleton /></div>}
 
@@ -227,7 +218,7 @@ export default function SubGroupDetailPage() {
             {members.length === 0 && (
               <div className="flex flex-col items-center justify-center py-16 text-center">
                 <Users className="h-12 w-12 text-muted-foreground mb-4" />
-                <h3 className="text-lg font-semibold">No members yet</h3>
+                <h3 className="row-h2">No members yet</h3>
                 <p className="text-muted-foreground mt-2">{canManage ? "Add members to this sub group." : "No members in this sub group."}</p>
               </div>
             )}

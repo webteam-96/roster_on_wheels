@@ -81,6 +81,7 @@ class _AgOverviewScreenState extends State<AgOverviewScreen> {
           centerTitle: false,
           titleSpacing: 0,
           leading: IconButton(
+            tooltip: MaterialLocalizations.of(context).backButtonTooltip,
             icon: const Icon(Icons.arrow_back_ios_new_rounded,
                 color: AppColors.textPrimary),
             onPressed: () => context.pop(),

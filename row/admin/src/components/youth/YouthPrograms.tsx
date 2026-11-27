@@ -6,7 +6,10 @@
  * Protection clearance register. Admins appoint; only appointees see the records (the API enforces it).
  */
 
-import { useCallback, useEffect, useState } from "react";
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table"
+import { NativeSelect } from "@/components/ui/native-select";
+import { PageHeader } from "@/components/row/AppKit";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Loader2, Plus, Save, Search, Trash2 } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -22,7 +25,7 @@ import {
 } from "@/services/api";
 import { ACTION_LABEL, CLEARANCE_LABEL, PROGRAM_LABEL, STATUS_LABEL, dayInput, nextStatuses } from "@/lib/youth";
 
-const SELECT = "h-10 rounded-md border border-input bg-background px-3 text-sm";
+const SELECT = "row-field";
 const message = (err: any, fallback: string) => err?.response?.data?.message || fallback;
 const forbidden = (err: any) => err?.response?.status === 403;
 
@@ -44,7 +47,7 @@ function MemberPicker({ scope, label, onPick }: { scope: YouthScope; label: stri
       <div className="flex gap-2">
         <Input id={`pick-${label}`} value={q} placeholder="Member name" onChange={(e) => setQ(e.target.value)}
           onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); void search(); } }} />
-        <Button type="button" variant="outline" onClick={search} disabled={busy} className="gap-1.5">
+        <Button type="button" variant="outline" onClick={search} disabled={busy}>
           {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />} Search
         </Button>
       </div>
@@ -63,7 +66,9 @@ function MemberPicker({ scope, label, onPick }: { scope: YouthScope; label: stri
   );
 }
 
-export default function YouthPrograms({ scope }: { scope: YouthScope }) {
+export default function YouthPrograms({ scope: scopeProp }: { scope: YouthScope }) {
+  // Pages pass a fresh object literal each render; key the loaders on the values or every parent render refetches (ROW2-1).
+  const scope = useMemo(() => ({ kind: scopeProp.kind, id: scopeProp.id }), [scopeProp.kind, scopeProp.id]);
   const fmt = useFormat();
   const isDistrict = scope.kind === "districts";
   const role = isDistrict ? "district youth chair" : "club youth officer";
@@ -117,18 +122,12 @@ export default function YouthPrograms({ scope }: { scope: YouthScope }) {
   );
 
   return (
-    <div className="space-y-6 p-6">
-      <div>
-        <h2 className="text-2xl font-bold tracking-tight text-primary">Youth Programs</h2>
-        <p className="text-base text-muted-foreground">
-          RYLA and RLI participants by program year, and Youth Protection clearances for volunteers. Youth data is
-          sensitive: only the appointed {role} sees these records.
-        </p>
-      </div>
+    <div className="space-y-6">
+      <PageHeader title="Youth Programs" description={<>RYLA and RLI participants by program year, and Youth Protection clearances for volunteers. Youth data is sensitive: only the appointed {role} sees these records.</>} />
 
       <Card>
         <CardContent className="space-y-4 p-5">
-          <h3 className="text-lg font-semibold">{isDistrict ? "District youth chair" : "Club youth officer"}</h3>
+          <h3 className="row-h2">{isDistrict ? "District youth chair" : "Club youth officer"}</h3>
           {officers.error && !officers.data ? <p className="text-sm text-destructive">{officers.error}</p>
             : !officers.data ? <div aria-busy="true"><TableSkeleton rows={2} /></div>
             : officers.data.length === 0 ? <p className="text-sm text-muted-foreground">Nobody is appointed yet.</p>
@@ -137,7 +136,7 @@ export default function YouthPrograms({ scope }: { scope: YouthScope }) {
                 {officers.data.map((o) => (
                   <li key={o.memberId} className="flex items-center justify-between gap-2 px-3 py-2">
                     <span>{o.memberName}{o.clubName && isDistrict ? <span className="text-muted-foreground">, {o.clubName}</span> : null}</span>
-                    <Button type="button" size="sm" variant="outline" className="gap-1.5" disabled={busy}
+                    <Button type="button" size="sm" variant="outline" disabled={busy}
                       onClick={() => act(() => removeYouthOfficer(scope, o.memberId), () => { loadOfficers(); loadPeople(); loadClearances(); }, "Could not remove the appointment.")}>
                       <Trash2 className="h-4 w-4" /> Remove
                     </Button>
@@ -152,10 +151,10 @@ export default function YouthPrograms({ scope }: { scope: YouthScope }) {
 
       <div className="flex gap-2 border-b" role="tablist">
         {(["participants", "clearances"] as const).map((t) => (
-          <button key={t} type="button" role="tab" aria-selected={tab === t} onClick={() => setTab(t)}
-            className={`-mb-px border-b-2 px-3 py-2 text-sm font-medium ${tab === t ? "border-primary text-primary" : "border-transparent text-muted-foreground"}`}>
+          <Button variant={tab === t ? "default" : "ghost"} size="sm" key={t} type="button" role="tab" aria-selected={tab === t} onClick={() => setTab(t)}
+           >
             {t === "participants" ? "RYLA and RLI" : "Youth Protection"}
-          </button>
+          </Button>
         ))}
       </div>
 
@@ -165,20 +164,20 @@ export default function YouthPrograms({ scope }: { scope: YouthScope }) {
             <div className="flex flex-wrap items-end gap-3">
               <div className="space-y-1">
                 <Label htmlFor="youth-year">Program year</Label>
-                <select id="youth-year" className={SELECT} value={yearId ?? ""} onChange={(e) => setYearId(Number(e.target.value))}>
+                <NativeSelect id="youth-year" className="w-auto" value={yearId ?? ""} onChange={(e) => setYearId(Number(e.target.value))}>
                   {years.map((y) => <option key={y.id} value={y.id}>{y.label}</option>)}
-                </select>
+                </NativeSelect>
               </div>
               <div className="space-y-1">
                 <Label htmlFor="youth-program">Program</Label>
-                <select id="youth-program" className={SELECT} value={program} onChange={(e) => setProgram(e.target.value as YouthProgram | "")}>
+                <NativeSelect id="youth-program" className="w-auto" value={program} onChange={(e) => setProgram(e.target.value as YouthProgram | "")}>
                   <option value="">RYLA and RLI</option>
                   <option value="ryla">RYLA</option>
                   <option value="rli">RLI</option>
-                </select>
+                </NativeSelect>
               </div>
               {!isDistrict && !draft && (
-                <Button type="button" className="gap-1.5" onClick={() => setDraft({ program: "ryla", fullName: "", contactEmail: "" })}>
+                <Button type="button" onClick={() => setDraft({ program: "ryla", fullName: "", contactEmail: "" })}>
                   <Plus className="h-4 w-4" /> Add participant
                 </Button>
               )}
@@ -188,9 +187,9 @@ export default function YouthPrograms({ scope }: { scope: YouthScope }) {
               <Card><CardContent className="grid gap-3 p-5 sm:grid-cols-4">
                 <div className="space-y-1">
                   <Label htmlFor="p-program">Program</Label>
-                  <select id="p-program" className={`${SELECT} w-full`} value={draft.program} onChange={(e) => setDraft({ ...draft, program: e.target.value as YouthProgram })}>
+                  <NativeSelect id="p-program"  value={draft.program} onChange={(e) => setDraft({ ...draft, program: e.target.value as YouthProgram })}>
                     <option value="ryla">RYLA</option><option value="rli">RLI</option>
-                  </select>
+                  </NativeSelect>
                 </div>
                 <div className="space-y-1">
                   <Label htmlFor="p-name">Full name</Label>
@@ -201,7 +200,7 @@ export default function YouthPrograms({ scope }: { scope: YouthScope }) {
                   <Input id="p-email" type="email" maxLength={254} value={draft.contactEmail} onChange={(e) => setDraft({ ...draft, contactEmail: e.target.value })} />
                 </div>
                 <div className="flex items-end gap-2">
-                  <Button type="button" disabled={busy} className="gap-1.5"
+                  <Button type="button" disabled={busy}
                     onClick={() => act(() => addYouthParticipant(scope.id, { program: draft.program, yearId, fullName: draft.fullName, contactEmail: draft.contactEmail || null }),
                       () => { setDraft(null); loadPeople(); }, "Could not add the participant.")}>
                     <Save className="h-4 w-4" /> Save
@@ -216,26 +215,26 @@ export default function YouthPrograms({ scope }: { scope: YouthScope }) {
               : people.data.length === 0 ? <Card><CardContent className="p-5 text-sm text-muted-foreground">No participants for this program year yet.</CardContent></Card>
               : (
                 <Card><CardContent className="overflow-x-auto p-0">
-                  <table className="w-full min-w-[760px] text-sm">
-                    <thead className="bg-[#EDF4FB] text-[13px] text-[#64748B]">
-                      <tr className="border-b text-left">
-                        <th className="p-3 font-medium">Participant</th>
-                        <th className="p-3 font-medium">Program</th>
-                        <th className="p-3 font-medium">Sponsoring club</th>
-                        <th className="p-3 font-medium">Added</th>
-                        <th className="p-3 font-medium">Status</th>
-                        <th className="p-3 font-medium">Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody>
+                  <Table className="w-full min-w-[760px] text-sm">
+                    <TableHeader>
+                      <TableRow className="border-b">
+                        <TableHead className="p-3">Participant</TableHead>
+                        <TableHead className="p-3">Program</TableHead>
+                        <TableHead className="p-3">Sponsoring club</TableHead>
+                        <TableHead className="p-3">Added</TableHead>
+                        <TableHead className="p-3">Status</TableHead>
+                        <TableHead className="p-3">Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
                       {people.data.map((p) => (
-                        <tr key={p.id} className="border-b last:border-0">
-                          <td className="p-3"><div className="font-medium">{p.fullName}</div>{p.contactEmail && <div className="text-muted-foreground">{p.contactEmail}</div>}</td>
-                          <td className="p-3">{PROGRAM_LABEL[p.program]}</td>
-                          <td className="p-3">{p.sponsorClubName}</td>
-                          <td className="p-3">{fmt.date(p.createdDate)}</td>
-                          <td className="p-3">{STATUS_LABEL[p.status]}</td>
-                          <td className="p-3">
+                        <TableRow key={p.id} className="border-b last:border-0">
+                          <TableCell className="p-3"><div className="font-medium">{p.fullName}</div>{p.contactEmail && <div className="text-muted-foreground">{p.contactEmail}</div>}</TableCell>
+                          <TableCell className="p-3">{PROGRAM_LABEL[p.program]}</TableCell>
+                          <TableCell className="p-3">{p.sponsorClubName}</TableCell>
+                          <TableCell className="p-3">{fmt.date(p.createdDate)}</TableCell>
+                          <TableCell className="p-3">{STATUS_LABEL[p.status]}</TableCell>
+                          <TableCell className="p-3">
                             <div className="flex flex-wrap gap-1.5">
                               {nextStatuses(p.status, isDistrict).map((s) => (
                                 <Button key={s} type="button" size="sm" variant="outline" disabled={busy}
@@ -244,11 +243,11 @@ export default function YouthPrograms({ scope }: { scope: YouthScope }) {
                                 </Button>
                               ))}
                             </div>
-                          </td>
-                        </tr>
+                          </TableCell>
+                        </TableRow>
                       ))}
-                    </tbody>
-                  </table>
+                    </TableBody>
+                  </Table>
                 </CardContent></Card>
               )}
           </div>
@@ -273,7 +272,7 @@ export default function YouthPrograms({ scope }: { scope: YouthScope }) {
                 </div>
               ))}
               <div className="flex items-end gap-2">
-                <Button type="button" disabled={busy} className="gap-1.5"
+                <Button type="button" disabled={busy}
                   onClick={() => act(() => saveYouthClearance(scope, editing.memberId, {
                     trainingDate: editing.trainingDate || null, checkDate: editing.checkDate || null, expiryDate: editing.expiryDate || null,
                   }), () => { setEditing(null); loadClearances(); }, "Could not save the clearance.")}>
@@ -288,34 +287,34 @@ export default function YouthPrograms({ scope }: { scope: YouthScope }) {
             : clearances.data.length === 0 ? <Card><CardContent className="p-5 text-sm text-muted-foreground">No clearances recorded yet.</CardContent></Card>
             : (
               <Card><CardContent className="overflow-x-auto p-0">
-                <table className="w-full min-w-[760px] text-sm">
-                  <thead className="bg-[#EDF4FB] text-[13px] text-[#64748B]">
-                    <tr className="border-b text-left">
-                      <th className="p-3 font-medium">Volunteer</th>
-                      <th className="p-3 font-medium">Training</th>
-                      <th className="p-3 font-medium">Background check</th>
-                      <th className="p-3 font-medium">Expires</th>
-                      <th className="p-3 font-medium">State</th>
-                      <th className="p-3 font-medium"><span className="sr-only">Actions</span></th>
-                    </tr>
-                  </thead>
-                  <tbody>
+                <Table className="w-full min-w-[760px] text-sm">
+                  <TableHeader>
+                    <TableRow className="border-b">
+                      <TableHead className="p-3">Volunteer</TableHead>
+                      <TableHead className="p-3">Training</TableHead>
+                      <TableHead className="p-3">Background check</TableHead>
+                      <TableHead className="p-3">Expires</TableHead>
+                      <TableHead className="p-3">State</TableHead>
+                      <TableHead className="p-3"><span className="sr-only">Actions</span></TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
                     {clearances.data.map((c) => (
-                      <tr key={c.memberId} className="border-b last:border-0">
-                        <td className="p-3"><div className="font-medium">{c.memberName}</div>{isDistrict && c.clubName && <div className="text-muted-foreground">{c.clubName}</div>}</td>
-                        <td className="p-3">{c.trainingDate ? fmt.date(c.trainingDate) : ""}</td>
-                        <td className="p-3">{c.checkDate ? fmt.date(c.checkDate) : ""}</td>
-                        <td className="p-3">{c.expiryDate ? fmt.date(c.expiryDate) : ""}</td>
-                        <td className={`p-3 ${c.state === "expired" ? "text-destructive" : c.state === "expiring" ? "font-medium" : ""}`}>{CLEARANCE_LABEL[c.state]}</td>
-                        <td className="p-3">
+                      <TableRow key={c.memberId} className="border-b last:border-0">
+                        <TableCell className="p-3"><div className="font-medium">{c.memberName}</div>{isDistrict && c.clubName && <div className="text-muted-foreground">{c.clubName}</div>}</TableCell>
+                        <TableCell className="p-3">{c.trainingDate ? fmt.date(c.trainingDate) : ""}</TableCell>
+                        <TableCell className="p-3">{c.checkDate ? fmt.date(c.checkDate) : ""}</TableCell>
+                        <TableCell className="p-3">{c.expiryDate ? fmt.date(c.expiryDate) : ""}</TableCell>
+                        <TableCell className={`p-3 ${c.state === "expired" ? "text-destructive" : c.state === "expiring" ? "font-medium" : ""}`}>{CLEARANCE_LABEL[c.state]}</TableCell>
+                        <TableCell className="p-3">
                           <Button type="button" size="sm" variant="outline" onClick={() => setEditing({
                             memberId: c.memberId, name: c.memberName, trainingDate: dayInput(c.trainingDate), checkDate: dayInput(c.checkDate), expiryDate: dayInput(c.expiryDate),
                           })}>Edit</Button>
-                        </td>
-                      </tr>
+                        </TableCell>
+                      </TableRow>
                     ))}
-                  </tbody>
-                </table>
+                  </TableBody>
+                </Table>
               </CardContent></Card>
             )}
         </div>

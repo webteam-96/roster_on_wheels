@@ -13,6 +13,8 @@ import '../../widgets/common/custom_app_bar.dart';
 import '../../widgets/common/empty_state_widget.dart';
 import '../../widgets/common/loading_widget.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/motion.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/roster_wheel.dart';
 
 /// The member's chats, newest activity first (feature `chat`).
 class ChatListScreen extends StatefulWidget {
@@ -95,7 +97,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
                   icon: Icons.chat_bubble_outline,
                   title: 'No chats yet',
                   subtitle: 'Start a chat with a member of your club.')
-              : RefreshIndicator(
+              : RowRefresh(
                   onRefresh: _load,
                   child: ListView.separated(
   padding: const EdgeInsets.only(bottom: 88),
@@ -192,7 +194,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
   Future<void> _report(Map<String, dynamic> m) async {
     final reason = TextEditingController();
-    final ok = await showDialog<bool>(
+    final ok = await showRowDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Report message'),

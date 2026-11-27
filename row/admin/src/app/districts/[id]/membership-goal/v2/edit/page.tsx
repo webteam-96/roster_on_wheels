@@ -29,6 +29,10 @@
  * the sidebar district indicator and any other consumers stay aligned.
  */
 
+import FieldLabel from "@/components/form/FieldLabel";
+import { Input } from "@/components/ui/input";
+import { NativeSelect } from "@/components/ui/native-select";
+import SectionCard from "@/components/form/SectionCard";
 import { useEffect, useState } from "react";
 import { useParams, useSearchParams } from "next/navigation";
 import { Target, Users, UserPlus, Percent, Calendar } from "@/components/icons";
@@ -49,36 +53,6 @@ import { useSyncDistrictIdFromUrl } from "@/hooks/useSyncDistrictIdFromUrl";
 import { ListPageSkeleton } from "@/components/row/AppKit";
 
 const DEFAULT_BACK = "/district-admin-dashboard/membership";
-
-function FieldLabel({
-  children, hint, dot, required = false,
-}: { children: React.ReactNode; hint?: string; dot: string; required?: boolean }) {
-  return (
-    <div className="flex items-center gap-1.5 mb-1">
-      <span className={`w-1.5 h-1.5 rounded-full ${dot}`} />
-      <label className="text-xs font-semibold text-slate-700">
-        {children}
-        {required && <span className="text-rose-600 ml-0.5">*</span>}
-        {hint && <span className="text-slate-400 font-normal ml-1">{hint}</span>}
-      </label>
-    </div>
-  );
-}
-
-function SectionCard({
-  number, icon: Icon, title, dot, children,
-}: { number: number; icon: React.ElementType; title: string; dot: string; children: React.ReactNode }) {
-  return (
-    <div className="rounded-xl border border-slate-200 mb-4 overflow-hidden">
-      <div className="flex items-center gap-3 px-4 py-2.5 bg-slate-50 border-b border-slate-100">
-        <div className={`flex items-center justify-center h-7 w-7 rounded-full text-white text-xs font-bold ${dot}`}>{number}</div>
-        <Icon className="h-4 w-4 text-slate-500" />
-        <h3 className="text-sm font-semibold text-slate-800">{title}</h3>
-      </div>
-      <div className="p-4">{children}</div>
-    </div>
-  );
-}
 
 export default function DistrictMembershipGoalV2EditPage() {
   useSyncDistrictIdFromUrl();
@@ -301,12 +275,12 @@ export default function DistrictMembershipGoalV2EditPage() {
           onSave={handleSave}
         >
           {/* 1. Rotary year ── */}
-          <SectionCard number={1} icon={Calendar} title="Rotary Year" dot="bg-[#17458F]">
-            <FieldLabel dot="bg-[#17458F]" required>Rotary Year</FieldLabel>
-            <select
+          <SectionCard number={1} icon={Calendar} title="Rotary Year">
+            <FieldLabel required>Rotary Year</FieldLabel>
+            <NativeSelect
               value={selectedYearId || ""}
               onChange={(e) => setSelectedYearId(Number(e.target.value))}
-              className="w-full rounded-[12px] border border-slate-200 bg-card px-3 py-2 text-sm text-slate-700 focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+              
             >
               <option value="" disabled>Select rotary year…</option>
               {allYears.map((y) => (
@@ -314,7 +288,7 @@ export default function DistrictMembershipGoalV2EditPage() {
                   {y.yearLabel}{y.isCurrent ? " (Current)" : ""}
                 </option>
               ))}
-            </select>
+            </NativeSelect>
             <p className="mt-1 text-[11px] text-slate-500">
               Goals are stored one row per (district, year). Switching the year
               loads the saved values for that RY (if any).
@@ -322,13 +296,13 @@ export default function DistrictMembershipGoalV2EditPage() {
           </SectionCard>
 
           {/* 2. Current Total (read-only) ── */}
-          <SectionCard number={2} icon={Users} title="Current Standing" dot="bg-[#17458F]">
-            <FieldLabel dot="bg-[#17458F]">Current Total Members</FieldLabel>
-            <input
+          <SectionCard number={2} icon={Users} title="Current Standing">
+            <FieldLabel>Current Total Members</FieldLabel>
+            <Input
               type="text"
               readOnly
               value={currentTotal == null ? "–" : currentTotal.toLocaleString()}
-              className="w-full rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700"
+              
             />
             <p className="mt-1 text-[11px] text-slate-500">
               Live district-wide member count from the dashboard.
@@ -336,11 +310,11 @@ export default function DistrictMembershipGoalV2EditPage() {
           </SectionCard>
 
           {/* 3. Targets ── */}
-          <SectionCard number={3} icon={Target} title="Membership Targets" dot="bg-[#17458F]">
+          <SectionCard number={3} icon={Target} title="Membership Targets">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <FieldLabel dot="bg-[#17458F]" required>Target Total Members</FieldLabel>
-                <input
+                <FieldLabel required>Target Total Members</FieldLabel>
+                <Input
                   type="number"
                   min={0}
                   step={1}
@@ -348,16 +322,16 @@ export default function DistrictMembershipGoalV2EditPage() {
                   value={targetTotal}
                   onChange={(e) => setTargetTotal(e.target.value)}
                   placeholder="e.g. 1200"
-                  className="w-full rounded-[12px] border border-slate-200 bg-card px-3 py-2 text-sm text-slate-700 focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                  
                 />
               </div>
               <div>
-                <FieldLabel dot="bg-[#17458F]" required>
+                <FieldLabel required>
                   <span className="inline-flex items-center gap-1">
                     <UserPlus size={11} className="text-slate-400" /> Target New Members
                   </span>
                 </FieldLabel>
-                <input
+                <Input
                   type="number"
                   min={0}
                   step={1}
@@ -365,16 +339,16 @@ export default function DistrictMembershipGoalV2EditPage() {
                   value={targetNewMembers}
                   onChange={(e) => setTargetNewMembers(e.target.value)}
                   placeholder="e.g. 150"
-                  className="w-full rounded-[12px] border border-slate-200 bg-card px-3 py-2 text-sm text-slate-700 focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                  
                 />
               </div>
               <div className="sm:col-span-2">
-                <FieldLabel dot="bg-[#17458F]" required hint="(0–100)">
+                <FieldLabel required hint="(0–100)">
                   <span className="inline-flex items-center gap-1">
                     <Percent size={11} className="text-slate-400" /> Target Retention %
                   </span>
                 </FieldLabel>
-                <input
+                <Input
                   type="number"
                   min={0}
                   max={100}
@@ -383,7 +357,7 @@ export default function DistrictMembershipGoalV2EditPage() {
                   value={targetRetentionPercent}
                   onChange={(e) => setTargetRetentionPercent(e.target.value)}
                   placeholder="e.g. 92.5"
-                  className="w-full sm:max-w-[200px] rounded-[12px] border border-slate-200 bg-card px-3 py-2 text-sm text-slate-700 focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                  className="sm:max-w-[200px]"
                 />
               </div>
             </div>

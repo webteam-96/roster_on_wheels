@@ -37,16 +37,15 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { ArrowLeft, Upload, Pencil, Trash2, Download, Eye } from "@/components/icons";
+import { Upload, Pencil, Trash2, Download, Eye } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import ErrorAlert from "@/components/ErrorAlert";
-import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import SearchBox from "@/components/SearchBox";
 
 import { appLocale } from "@/lib/appFormat";
 import { formatMoney } from "@/lib/currency";
-import { ListPageSkeleton } from "@/components/row/AppKit";
+import { PageHeader, ListPageSkeleton } from "@/components/row/AppKit";
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
 export default function OcvCategoryPage() {
@@ -312,21 +311,7 @@ export default function OcvCategoryPage() {
     <ProtectedRoute>
       <div className="space-y-6">
         {/* Header */}
-        <div className="flex items-center gap-3">
-          <Button variant="outline" size="icon" asChild>
-            <Link href={`/clubs/${clubId}/ocv-gov`}>
-              <ArrowLeft className="h-4 w-4" />
-            </Link>
-          </Button>
-          <div>
-            <h2 className="text-2xl font-bold tracking-tight text-primary">
-              {category?.categoryName || "Loading..."}
-            </h2>
-            <p className="text-muted-foreground text-base">
-              Upload and manage documents
-            </p>
-          </div>
-        </div>
+        <PageHeader title={category?.categoryName || "Loading..."} description="Upload and manage documents" back={`/clubs/${clubId}/ocv-gov`} />
 
         {/* Loading */}
         {loading && (
@@ -339,7 +324,7 @@ export default function OcvCategoryPage() {
         {!loading && category && (
           <Card>
             <CardContent className="p-6">
-              <h3 className="text-lg font-semibold mb-4">Upload Document</h3>
+              <h3 className="row-h2 mb-4">Upload Document</h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
                 {/* Document Type */}
                 <div className="space-y-2">
@@ -462,7 +447,7 @@ export default function OcvCategoryPage() {
               {documents.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-16 text-center">
                   <Upload className="h-12 w-12 text-muted-foreground mb-4" />
-                  <h3 className="text-lg font-semibold">No documents uploaded</h3>
+                  <h3 className="row-h2">No documents uploaded</h3>
                   <p className="text-muted-foreground mt-2">
                     Upload your first document using the form above.
                   </p>
@@ -470,39 +455,39 @@ export default function OcvCategoryPage() {
               ) : filteredDocs.length === 0 && searchQuery ? (
                 <div className="flex flex-col items-center justify-center py-16 text-center">
                   <Upload className="h-12 w-12 text-muted-foreground mb-4" />
-                  <h3 className="text-lg font-semibold">No results found</h3>
+                  <h3 className="row-h2">No results found</h3>
                   <p className="text-muted-foreground mt-2">No documents match your filter. Try a different term.</p>
                 </div>
               ) : (
                 <Table>
                   <TableHeader>
-                    <TableRow className="bg-primary hover:bg-primary">
-                      <TableHead className="w-12 text-base font-semibold">
+                    <TableRow>
+                      <TableHead className="w-12">
                         S.No
                       </TableHead>
-                      <TableHead className="text-base font-semibold">
+                      <TableHead>
                         Doc Type
                       </TableHead>
-                      <TableHead className="text-base font-semibold">
+                      <TableHead>
                         File Name
                       </TableHead>
-                      <TableHead className="text-base font-semibold">
+                      <TableHead>
                         Size
                       </TableHead>
                       {isDuesCategory && (
                         <>
-                          <TableHead className="text-base font-semibold">
+                          <TableHead>
                             Amount
                           </TableHead>
-                          <TableHead className="text-base font-semibold">
+                          <TableHead>
                             Paid On
                           </TableHead>
                         </>
                       )}
-                      <TableHead className="text-base font-semibold">
+                      <TableHead>
                         Date & Time
                       </TableHead>
-                      <TableHead className="text-base font-semibold text-center">
+                      <TableHead className="text-center">
                         Actions
                       </TableHead>
                     </TableRow>
@@ -569,7 +554,7 @@ export default function OcvCategoryPage() {
                                 setDeleteDialogOpen(true);
                               }}
                               title="Delete"
-                              className="text-destructive hover:text-destructive"
+                              className="text-destructive"
                             >
                               <Trash2 className="h-4 w-4" />
                             </Button>

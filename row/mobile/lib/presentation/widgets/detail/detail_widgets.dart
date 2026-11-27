@@ -1,4 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/roster_wheel.dart';
 import 'package:flutter/material.dart' hide Text;
 import 'package:url_launcher/url_launcher.dart';
 import '../../../core/constants/api_constants.dart';
@@ -116,8 +117,7 @@ class DetailHeader extends StatelessWidget {
               placeholder: (_, __) => Container(
                 height: 210,
                 color: AppColors.muted,
-                child:
-                    const Center(child: CircularProgressIndicator(strokeWidth: 2)),
+                child: const Center(child: RowLoader(size: 32)),
               ),
               errorWidget: (_, __, ___) => Container(
                 height: 210,
@@ -126,17 +126,15 @@ class DetailHeader extends StatelessWidget {
                     size: 40, color: AppColors.textSecondary),
               ),
             ),
-            Positioned.fill(
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  color: Colors.transparent,
-                ),
-              ),
-            ),
             Positioned(
-              left: 16,
-              right: 16,
-              bottom: 14,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              // A dark band, so the title reads over any photo and when the photo does not load.
+              child: ColoredBox(
+              color: AppColors.textPrimary.withValues(alpha: .72),
+              child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 10, 16, 14),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
@@ -154,7 +152,11 @@ class DetailHeader extends StatelessWidget {
                     Row(
                       children: [
                         if (status != null && status!.isNotEmpty)
-                          DetailStatusChip(label: status!),
+                          // The chip's tint is see-through: white under it keeps its label readable on the band.
+                          DecoratedBox(
+                            decoration: BoxDecoration(color: AppColors.white, borderRadius: BorderRadius.circular(999)),
+                            child: DetailStatusChip(label: status!),
+                          ),
                         if (status != null &&
                             status!.isNotEmpty &&
                             meta != null &&
@@ -176,6 +178,8 @@ class DetailHeader extends StatelessWidget {
                     ),
                   ],
                 ],
+              ),
+              ),
               ),
             ),
           ],
@@ -498,7 +502,7 @@ class DetailImage extends StatelessWidget {
         placeholder: (_, __) => Container(
           height: height,
           color: AppColors.background,
-          child: const Center(child: CircularProgressIndicator(strokeWidth: 2)),
+          child: const Center(child: RowLoader(size: 32)),
         ),
         errorWidget: (_, __, ___) => Container(
           height: height,
@@ -547,8 +551,7 @@ class _DetailPhotoGalleryState extends State<DetailPhotoGallery> {
                 width: double.infinity,
                 placeholder: (_, __) => Container(
                   color: AppColors.background,
-                  child: const Center(
-                      child: CircularProgressIndicator(strokeWidth: 2)),
+                  child: const Center(child: RowLoader(size: 32)),
                 ),
                 errorWidget: (_, __, ___) => Container(
                   color: AppColors.background,

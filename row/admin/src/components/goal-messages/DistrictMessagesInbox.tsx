@@ -4,6 +4,9 @@
 // SuperAdmin. The API returns only what the viewer may read. Two panes: conversations (district + category) on the left, the messages on the
 // right. Opening a conversation marks it read.
 
+import { LinkButton, MenuItemButton } from "@/components/ui/text-buttons";
+import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { useEffect, useState } from "react";
 import { Loader2, Inbox, Search, ChevronLeft } from "@/components/icons";
 import { getDistrictGoalMessageInbox, getDistrictGoalMessages } from "@/services/api";
@@ -73,8 +76,8 @@ export default function DistrictMessagesInbox({
       <div className="p-2.5 border-b border-slate-100 space-y-2">
         <div className="relative">
           <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
-          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search district, name, text…"
-            className="w-full pl-7 pr-2 py-1.5 text-xs border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]" />
+          <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search district, name, text…"
+            className="pl-7 pr-2" />
         </div>
         <label className="inline-flex items-center gap-1.5 text-[11px] text-slate-600 cursor-pointer select-none">
           <input type="checkbox" checked={unreadOnly} onChange={(e) => setUnreadOnly(e.target.checked)} className="h-3.5 w-3.5 accent-red-500" />
@@ -86,12 +89,12 @@ export default function DistrictMessagesInbox({
         {shown.map((c) => {
           const isActive = active?.districtId === c.districtId && active?.categoryId === c.categoryId;
           return (
-            <button key={`${c.districtId}-${c.categoryId}`} onClick={() => open(c)}
-              className={`w-full text-left px-3 py-2.5 ${isActive ? "bg-blue-50" : "hover:bg-slate-50"}`}>
+            <MenuItemButton selected={isActive} key={`${c.districtId}-${c.categoryId}`} onClick={() => open(c)}
+              className="block rounded-none px-3 py-2.5">
               <div className="flex items-center gap-1.5">
                 <span className={`text-sm ${c.unreadCount > 0 ? "font-bold text-slate-900" : "font-semibold text-slate-800"}`}>District {c.districtNumber}</span>
                 <Chip tone="blue">{c.categoryName}</Chip>
-                {c.unreadCount > 0 && <span className="ml-auto text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-red-500 text-white">{c.unreadCount} new</span>}
+                {c.unreadCount > 0 && <span className="ml-auto text-[10px] font-semibold px-1.5 py-0.5 rounded bg-red-500 text-white">{c.unreadCount} new</span>}
               </div>
               <div className="flex items-center gap-1.5 mt-0.5 min-w-0">
                 <span className="text-[11px] text-slate-600 truncate">{c.lastFrom}</span>
@@ -99,7 +102,7 @@ export default function DistrictMessagesInbox({
               </div>
               <p className={`text-xs truncate mt-0.5 ${c.unreadCount > 0 ? "text-slate-700" : "text-slate-400"}`}>{c.lastPreview}</p>
               <p className="text-[10px] text-slate-400 mt-0.5">{c.lastDate} · {c.messageCount} message{c.messageCount === 1 ? "" : "s"}</p>
-            </button>
+            </MenuItemButton>
           );
         })}
       </div>
@@ -109,7 +112,7 @@ export default function DistrictMessagesInbox({
   const pane = active ? (
     <div className="flex flex-col min-h-0 h-full">
       <div className="px-4 py-2.5 border-b border-slate-100 bg-blue-50 flex items-center gap-2 flex-wrap">
-        <button onClick={() => { setActive(null); setThread(null); }} className="md:hidden inline-flex items-center gap-1 text-xs font-semibold text-blue-600"><ChevronLeft size={14} /> Back</button>
+        <LinkButton size="sm" onClick={() => { setActive(null); setThread(null); }} className="md:hidden"><ChevronLeft size={14} /> Back</LinkButton>
         <span className="text-sm font-semibold text-slate-800">District {active.districtNumber}</span>
         <Chip tone="blue">{active.categoryName}</Chip>
         <span className="ml-auto text-[10px] text-slate-400">Read only</span>
@@ -128,9 +131,9 @@ export default function DistrictMessagesInbox({
   );
 
   return (
-    <div className="rounded-[20px] border border-slate-200 bg-card overflow-hidden h-[60vh] min-h-[360px] grid md:grid-cols-[300px_1fr]">
+    <Card className="overflow-hidden h-[60vh] min-h-[360px] grid md:grid-cols-[300px_1fr]">
       <div className={`${active ? "hidden md:flex" : "flex"} flex-col min-h-0 border-r border-slate-100`}>{list}</div>
       <div className={`${active ? "flex" : "hidden md:flex"} flex-col min-h-0`}>{pane}</div>
-    </div>
+    </Card>
   );
 }

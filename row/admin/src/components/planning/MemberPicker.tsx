@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { MenuItemButton } from "@/components/ui/text-buttons";
 
 export interface MemberOption { id: number; name: string; hint?: string; clubId?: number }
 
@@ -49,9 +50,9 @@ export default function MemberPicker({ id, search, value, onChange }: {
           {!busy && results.length === 0 && <li className="px-3 py-2 text-muted-foreground">No member found</li>}
           {results.map((m, i) => (
             <li key={`${m.id}-${i}`} role="option" aria-selected={false}>
-              <button type="button" className="w-full px-3 py-2 text-left hover:bg-muted" onClick={() => { onChange(m); setQ(""); }}>
+              <MenuItemButton onClick={() => { onChange(m); setQ(""); }}>
                 {m.name}{m.hint ? <span className="text-muted-foreground">, {m.hint}</span> : null}
-              </button>
+              </MenuItemButton>
             </li>
           ))}
         </ul>

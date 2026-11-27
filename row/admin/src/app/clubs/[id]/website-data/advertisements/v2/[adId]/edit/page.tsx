@@ -19,6 +19,11 @@
  *     fixed to the value the record was created with.
  */
 
+import FieldLabel from "@/components/form/FieldLabel";
+import { Input } from "@/components/ui/input";
+import { NativeSelect } from "@/components/ui/native-select";
+import { Textarea } from "@/components/ui/textarea";
+import SectionCard from "@/components/form/SectionCard";
 import { useEffect, useRef, useState } from "react";
 import { useParams } from "next/navigation";
 import Image from "next/image";
@@ -48,6 +53,8 @@ import { useImageCropUpload } from "@/hooks/useImageCropUpload";
 import { useSyncClubIdFromUrl } from "@/hooks/useSyncClubIdFromUrl";
 import { ListPageSkeleton } from "@/components/row/AppKit";
 
+import { RemoveBadgeButton } from "@/components/ui/text-buttons"
+import { Button } from "@/components/ui/button"
 const MAX_ACTIVE = 10;
 
 // Ads are sponsor posters/flyers in many shapes, so the crop stays FREE-FORM
@@ -56,36 +63,6 @@ const MAX_ACTIVE = 10;
 const AD_MAX_WIDTH = 2560;
 const TOP_MESSAGE =
   "Edit this advertisement. The Rotary year cannot be changed once saved; delete and re-create to move it.";
-
-function FieldLabel({
-  children, hint, dot, required = false,
-}: { children: React.ReactNode; hint?: string; dot: string; required?: boolean }) {
-  return (
-    <div className="flex items-center gap-1.5 mb-1">
-      <span className={`w-1.5 h-1.5 rounded-full ${dot}`} />
-      <label className="text-xs font-semibold text-slate-700">
-        {children}
-        {required && <span className="text-rose-600 ml-0.5">*</span>}
-        {hint && <span className="text-slate-400 font-normal ml-1">{hint}</span>}
-      </label>
-    </div>
-  );
-}
-
-function SectionCard({
-  number, icon: Icon, title, dot, children,
-}: { number: number; icon: React.ElementType; title: string; dot: string; children: React.ReactNode }) {
-  return (
-    <div className="rounded-xl border border-slate-200 overflow-hidden mb-4">
-      <div className="flex items-center gap-3 px-4 py-2.5 bg-slate-50 border-b border-slate-100">
-        <div className={`flex items-center justify-center h-7 w-7 rounded-full text-white text-xs font-bold ${dot}`}>{number}</div>
-        <Icon className="h-4 w-4 text-slate-500" />
-        <h3 className="text-sm font-semibold text-slate-800">{title}</h3>
-      </div>
-      <div className="p-4">{children}</div>
-    </div>
-  );
-}
 
 export default function AdvertisementsV2EditPage() {
   useSyncClubIdFromUrl();
@@ -272,21 +249,17 @@ export default function AdvertisementsV2EditPage() {
         }
       >
         {/* 1. Advertisement Image */}
-        <SectionCard number={1} icon={ImageIcon} title="Advertisement Image" dot="bg-[#17458F]">
-          <FieldLabel dot="bg-[#17458F]" required hint="(JPG, JPEG, PNG, GIF, WEBP)">
+        <SectionCard number={1} icon={ImageIcon} title="Advertisement Image">
+          <FieldLabel required hint="(JPG, JPEG, PNG, GIF, WEBP)">
             Banner Image
           </FieldLabel>
           {imagePath ? (
             <div className="relative aspect-video w-full overflow-hidden rounded-lg border border-slate-200 bg-slate-50">
               <Image src={getPhotoUrl(imagePath)} alt="Advertisement preview" fill className="object-cover" unoptimized />
-              <button
+              <RemoveBadgeButton
                 type="button"
                 onClick={() => setImagePath("")}
-                className="absolute top-2 right-2 inline-flex h-7 w-7 items-center justify-center rounded-md bg-rose-600 text-white hover:bg-rose-700 shadow"
-                aria-label="Remove image"
-              >
-                <X size={14} />
-              </button>
+                 aria-label="Remove image" />
             </div>
           ) : (
             <div>
@@ -297,14 +270,13 @@ export default function AdvertisementsV2EditPage() {
                 className="hidden"
                 onChange={(e) => { const f = e.target.files?.[0]; if (f) adCrop.startCrop(f); e.target.value = ""; }}
               />
-              <button
+              <Button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
-                className="flex flex-col items-center justify-center gap-1 w-full h-28 border-2 border-dashed border-slate-200 rounded-lg hover:border-blue-300 hover:bg-blue-50/40 transition-colors text-slate-500"
-              >
+                className="flex-col gap-1 w-full h-28 border-dashed" variant="outline">
                 <Upload className="h-5 w-5" />
                 <span className="text-sm">Click to upload banner image</span>
-              </button>
+              </Button>
               <p className="text-xs text-slate-400 mt-1.5">
                 You will be able to crop and zoom before uploading.
               </p>
@@ -314,8 +286,8 @@ export default function AdvertisementsV2EditPage() {
         </SectionCard>
 
         {/* 2. Document or Link (optional) */}
-        <SectionCard number={2} icon={FileText} title="Document or Link (optional)" dot="bg-[#17458F]">
-          <FieldLabel dot="bg-[#17458F]" hint="(document or link. Not both)">
+        <SectionCard number={2} icon={FileText} title="Document or Link (optional)">
+          <FieldLabel hint="(document or link. Not both)">
             Attached Document / Link
           </FieldLabel>
           <DocumentOrLinkField
@@ -327,46 +299,46 @@ export default function AdvertisementsV2EditPage() {
         </SectionCard>
 
         {/* 3. Description */}
-        <SectionCard number={3} icon={Type} title="Description" dot="bg-[#17458F]">
-          <FieldLabel dot="bg-[#17458F]" hint="(optional, max 500 chars)">Caption</FieldLabel>
-          <textarea
+        <SectionCard number={3} icon={Type} title="Description">
+          <FieldLabel hint="(optional, max 500 chars)">Caption</FieldLabel>
+          <Textarea
             value={description}
             onChange={(e) => setDescription(e.target.value.slice(0, 500))}
             placeholder="Optional description for this advertisement"
             rows={3}
             maxLength={500}
-            className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42] resize-none"
+            className="resize-none"
           />
           <p className="text-xs text-slate-400 text-right mt-0.5">{description.length}/500</p>
         </SectionCard>
 
         {/* 4. Status + Rotary Year (year is read-only on Edit, matches v1) */}
-        <SectionCard number={4} icon={Power} title="Status & Rotary Year" dot="bg-[#17458F]">
+        <SectionCard number={4} icon={Power} title="Status & Rotary Year">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <FieldLabel dot="bg-[#17458F]" required>Status</FieldLabel>
-              <select
+              <FieldLabel required>Status</FieldLabel>
+              <NativeSelect
                 value={isActive}
                 onChange={(e) => setIsActive(e.target.value)}
-                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] bg-card focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                
               >
                 <option value="1">Active</option>
                 <option value="0">Inactive</option>
-              </select>
+              </NativeSelect>
               <p className="text-xs text-slate-400 mt-1">
                 Max {MAX_ACTIVE} active ads per year.
               </p>
             </div>
             <div>
-              <FieldLabel dot="bg-[#17458F]">
+              <FieldLabel>
                 <Calendar className="inline h-3 w-3 mr-1 mb-0.5" /> Rotary Year
               </FieldLabel>
-              <input
+              <Input
                 type="text"
                 value={record?.yearLabel || ""}
                 readOnly
                 disabled
-                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg bg-slate-50 text-slate-600 cursor-not-allowed"
+                className="cursor-not-allowed"
               />
               <p className="text-xs text-slate-400 mt-1">Fixed once saved: delete to re-create.</p>
             </div>

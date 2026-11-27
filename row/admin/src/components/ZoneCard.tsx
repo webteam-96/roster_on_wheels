@@ -67,7 +67,7 @@ export default function ZoneCard({ zone, onDelete, isSuperAdmin }: ZoneCardProps
                 <div onClick={(e) => e.stopPropagation()}>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon" className="h-8 w-8 text-white hover:bg-white/20">
+                      <Button variant="ghost" size="icon" className="row-btn-sm">
                         <MoreVertical className="h-4 w-4" />
                       </Button>
                     </DropdownMenuTrigger>

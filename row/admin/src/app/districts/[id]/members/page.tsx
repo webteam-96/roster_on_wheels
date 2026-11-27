@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useParams } from "next/navigation";
 import { DistrictMember } from "@/types/district";
 import { PagedResult } from "@/types/member";
-import { getDistrict, getDistrictMembers, getPhotoUrl, assignDistrictAdmin, removeDistrictAdmin, setDistrictAdminClubAccess } from "@/services/api";
+import { getDistrict, getDistrictMembers, getPhotoUrl, assignDistrictAdmin, removeDistrictAdmin, setDistrictAdminClubAccess, saveAdminYears, adminYearsSavedMessage } from "@/services/api";
 import AdminYearsDialog from "@/components/AdminYearsDialog";
 import { formatDMY } from "@/lib/dateUtils";
 import { useAuth } from "@/contexts/AuthContext";
@@ -21,13 +21,12 @@ import {
 import Pagination from "@/components/Pagination";
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
-import { ArrowLeft, Search, User, Users, MoreVertical, MoreHorizontal, ShieldCheck, ShieldOff, Mail, Phone, IdCard, Calendar, LayoutGrid, List, X, Eye, Building2 } from "@/components/icons";
+import { Search, User, Users, MoreVertical, MoreHorizontal, ShieldCheck, ShieldOff, Mail, Phone, IdCard, Calendar, LayoutGrid, List, X, Building2, CalendarDays } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
-import Link from "next/link";
 import Image from "next/image";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import MemberDetailDialog from "@/components/MemberDetailDialog";
-import { ListPageSkeleton } from "@/components/row/AppKit";
+import { PageHeader, ListPageSkeleton } from "@/components/row/AppKit";
 
 export default function DistrictMembersPage() {
   const params = useParams();
@@ -43,7 +42,7 @@ export default function DistrictMembersPage() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [roleLoading, setRoleLoading] = useState<number | null>(null);
   // District admin rights are per Rotary year — pick them before promoting.
-  const [adminYearTarget, setAdminYearTarget] = useState<{ id: number; name: string } | null>(null);
+  const [adminYearTarget, setAdminYearTarget] = useState<{ id: number; name: string; editing?: boolean } | null>(null);
   const [detailMemberId, setDetailMemberId] = useState<number | null>(null);
 
   useEffect(() => {
@@ -114,6 +113,24 @@ export default function DistrictMembersPage() {
     }
   };
 
+  // "Edit Years": same picker, pre-ticked with what they hold; saves in place.
+  const handleConfirmEditYears = async (picked: { yearIds: number[]; allYears: boolean }) => {
+    if (!adminYearTarget) return;
+    const { id: memberId, name: memberName } = adminYearTarget;
+    setRoleLoading(memberId);
+    try {
+      const res = await saveAdminYears({ kind: "district", districtId }, memberId, picked);
+      setAdminYearTarget(null);
+      setSuccessMessage(adminYearsSavedMessage(memberName, res));
+      fetchMembers();
+    } catch (err: any) {
+      setErrorMessage(err?.response?.data?.message || err?.response?.data || "Failed to update admin years.");
+      throw err;
+    } finally {
+      setRoleLoading(null);
+    }
+  };
+
   const handleRemoveAdmin = async (memberId: number, memberName: string, sendEmail = true) => {
     setRoleLoading(memberId);
     try {
@@ -151,30 +168,19 @@ export default function DistrictMembersPage() {
     <ProtectedRoute>
       <div className="space-y-6">
         {/* Header */}
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-3">
-            <Button variant="outline" size="icon" asChild>
-              <Link href={`/districts/${districtId}/dashboard`}><ArrowLeft className="h-4 w-4" /></Link>
-            </Button>
-            <div>
-              <h2 className="text-2xl font-bold tracking-tight text-primary">District {districtNumber} - Members</h2>
-              <p className="text-muted-foreground text-base">Search by member name, email, or Rotary ID</p>
-              {data && (data.memberCount != null || data.honoraryCount != null) && (
+        <PageHeader title={<>District {districtNumber} - Members</>} description={<>Search by member name, email, or Rotary ID {data && (data.memberCount != null || data.honoraryCount != null) && (
                 <div className="mt-1 flex flex-wrap items-center gap-3 text-sm">
                   <span className="font-medium text-slate-700">Total: {data.totalCount}</span>
                   <span className="text-emerald-700">Paid: {data.memberCount ?? 0}</span>
                   <span className="text-amber-600">Honorary: {data.honoraryCount ?? 0}</span>
                 </div>
-              )}
-            </div>
-          </div>
-        </div>
+              )}</>} back={`/districts/${districtId}/dashboard`} />
 
         {/* Search bar + View toggle */}
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center bg-primary/5 p-4 rounded-lg border border-primary/20">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-primary" />
-            <Input placeholder="Search by member name, email, or Rotary ID..." value={search} onChange={(e) => setSearch(e.target.value)} onKeyDown={handleKeyDown} className="pl-9 border-primary/30 focus:border-primary text-base" />
+            <Input placeholder="Search by member name, email, or Rotary ID..." value={search} onChange={(e) => setSearch(e.target.value)} onKeyDown={handleKeyDown} className="pl-9" />
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <Button onClick={handleSearch} size="sm">
@@ -189,10 +195,10 @@ export default function DistrictMembersPage() {
             )}
 
             <div className="flex items-center rounded-md border ml-auto">
-              <Button variant={viewMode === "grid" ? "default" : "ghost"} size="icon" className="h-9 w-9 rounded-r-none" onClick={() => setViewMode("grid")}>
+              <Button variant={viewMode === "grid" ? "default" : "ghost"} aria-label="Grid view" aria-pressed={viewMode === "grid"} size="icon" className="rounded-r-none" onClick={() => setViewMode("grid")}>
                 <LayoutGrid className="h-4 w-4" />
               </Button>
-              <Button variant={viewMode === "table" ? "default" : "ghost"} size="icon" className="h-9 w-9 rounded-l-none" onClick={() => setViewMode("table")}>
+              <Button variant={viewMode === "table" ? "default" : "ghost"} aria-label="Table view" aria-pressed={viewMode === "table"} size="icon" className="rounded-l-none" onClick={() => setViewMode("table")}>
                 <List className="h-4 w-4" />
               </Button>
             </div>
@@ -205,7 +211,7 @@ export default function DistrictMembersPage() {
         {!loading && data && data.items.length === 0 && (
           <div className="flex flex-col items-center justify-center py-20 text-center">
             <Users className="h-12 w-12 text-muted-foreground mb-4" />
-            <h3 className="text-lg font-semibold">No members found</h3>
+            <h3 className="row-h2">No members found</h3>
             <p className="text-muted-foreground mt-2">Try a different search term.</p>
           </div>
         )}
@@ -244,7 +250,7 @@ export default function DistrictMembersPage() {
                                     return displayRoles && displayRoles.length > 0 ? displayRoles.map((role) => (
                                       <Badge key={role} className="text-xs bg-white/20 text-white border-white/30">{role}</Badge>
                                     )) : (
-                                      <Badge className="text-xs bg-white/20 text-white border-white/30">Member</Badge>
+                                      <Badge className="bg-white/20 text-white border-white/30">Member</Badge>
                                     );
                                   })()}
                                 </div>
@@ -253,7 +259,7 @@ export default function DistrictMembersPage() {
                                 <div onClick={(e) => e.stopPropagation()}>
                                   <DropdownMenu>
                                     <DropdownMenuTrigger asChild>
-                                      <Button variant="ghost" size="icon" className="h-8 w-8 text-white hover:bg-white/20">
+                                      <Button aria-label="More actions" variant="ghost" size="icon" className="row-btn-sm">
                                         <MoreVertical className="h-4 w-4" />
                                       </Button>
                                     </DropdownMenuTrigger>
@@ -261,6 +267,9 @@ export default function DistrictMembersPage() {
                                       {!member.isSuperAdmin && (
                                         member.hasDistrictAdminRole ? (
                                           <>
+                                            <DropdownMenuItem onClick={() => setAdminYearTarget({ id: member.id, name: member.memberName, editing: true })}>
+                                              <CalendarDays className="mr-2 h-4 w-4" />Edit Years
+                                            </DropdownMenuItem>
                                             <DropdownMenuItem onClick={() => handleRemoveAdmin(member.id, member.memberName, true)}>
                                               <ShieldOff className="mr-2 h-4 w-4" />Remove Admin with Email
                                             </DropdownMenuItem>
@@ -327,17 +336,17 @@ export default function DistrictMembersPage() {
               </div>
             ) : (
               /* Table view */
-              <div className="rounded-md border">
+              <Card className="overflow-hidden">
                 <Table>
                   <TableHeader>
-                    <TableRow className="bg-primary hover:bg-primary">
+                    <TableRow>
                       <TableHead className="w-12"></TableHead>
-                      <TableHead className="text-base font-semibold">Member Name</TableHead>
-                      <TableHead className="hidden md:table-cell text-base font-semibold">Rotary ID</TableHead>
-                      <TableHead className="hidden md:table-cell text-base font-semibold">Email</TableHead>
-                      <TableHead className="hidden lg:table-cell text-base font-semibold">Phone</TableHead>
-                      <TableHead className="hidden lg:table-cell text-base font-semibold">Club</TableHead>
-                      <TableHead className="text-base font-semibold">Roles</TableHead>
+                      <TableHead>Member Name</TableHead>
+                      <TableHead className="hidden md:table-cell">Rotary ID</TableHead>
+                      <TableHead className="hidden md:table-cell">Email</TableHead>
+                      <TableHead className="hidden lg:table-cell">Phone</TableHead>
+                      <TableHead className="hidden lg:table-cell">Club</TableHead>
+                      <TableHead>Roles</TableHead>
                       <TableHead className="w-12"></TableHead>
                     </TableRow>
                   </TableHeader>
@@ -369,7 +378,7 @@ export default function DistrictMembersPage() {
                                 return displayRoles && displayRoles.length > 0 ? displayRoles.map((role) => (
                                   <Badge key={role} variant="secondary" className="text-xs">{role}</Badge>
                                 )) : (
-                                  <Badge variant="secondary" className="text-xs">Member</Badge>
+                                  <Badge variant="secondary">Member</Badge>
                                 );
                               })()}
                             </div>
@@ -378,7 +387,7 @@ export default function DistrictMembersPage() {
                             {isSuperAdmin && (
                               <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
-                                  <Button variant="ghost" size="icon" className="h-8 w-8">
+                                  <Button aria-label="More actions" variant="ghost" size="icon" className="row-btn-sm">
                                     <MoreHorizontal className="h-4 w-4" />
                                   </Button>
                                 </DropdownMenuTrigger>
@@ -386,6 +395,9 @@ export default function DistrictMembersPage() {
                                   {!member.isSuperAdmin && (
                                     member.hasDistrictAdminRole ? (
                                       <>
+                                        <DropdownMenuItem onClick={() => setAdminYearTarget({ id: member.id, name: member.memberName, editing: true })}>
+                                          <CalendarDays className="mr-2 h-4 w-4" />Edit Years
+                                        </DropdownMenuItem>
                                         <DropdownMenuItem onClick={() => handleRemoveAdmin(member.id, member.memberName, true)}>
                                           <ShieldOff className="mr-2 h-4 w-4" />Remove Admin with Email
                                         </DropdownMenuItem>
@@ -415,7 +427,7 @@ export default function DistrictMembersPage() {
                     })}
                   </TableBody>
                 </Table>
-              </div>
+              </Card>
             )}
             <Pagination page={data.page} totalPages={data.totalPages} totalCount={data.totalCount} pageSize={data.pageSize} onPageChange={handlePageChange} />
           </>
@@ -432,9 +444,9 @@ export default function DistrictMembersPage() {
             memberId={adminYearTarget.id}
             memberName={adminYearTarget.name}
             scopeName={districtNumber ? `District ${districtNumber}` : undefined}
-            confirmLabel="Make District Admin"
+            confirmLabel={adminYearTarget.editing ? "Save" : "Make District Admin"}
             onCancel={() => setAdminYearTarget(null)}
-            onConfirm={handleConfirmAdminYears}
+            onConfirm={adminYearTarget.editing ? handleConfirmEditYears : handleConfirmAdminYears}
           />
         )}
       </div>

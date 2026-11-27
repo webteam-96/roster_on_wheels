@@ -5,6 +5,7 @@ import { getGoalCategories, getGoalOverview } from "@/services/api";
 import type { GoalCategoryDto, GoalOverviewMatrixDto } from "@/types/goalSetting";
 import type { RotaryYear } from "@/types/rotaryYear";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { MatrixTable } from "@/components/ui/data-table";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
@@ -143,57 +144,36 @@ export default function GoalOverviewMatrix({
               </p>
             </CardHeader>
             <CardContent>
-              <div className="overflow-x-auto border rounded-lg">
-                <table className="w-full text-sm border-collapse">
-                  <thead>
-                    <tr className="bg-muted/60">
-                      <th className="sticky left-0 z-10 bg-muted/60 text-left px-3 py-2 font-semibold min-w-[220px] border-b border-r">Particulars</th>
-                      {matrix.districts.map((d) => (
-                        <th key={d.districtId} className="text-center px-3 py-2 font-semibold whitespace-nowrap border-b border-r min-w-[140px]">
-                          District {d.districtNumber}
-                        </th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {matrix.rows.map((row) => (
-                      <tr key={`${row.groupName}::${row.metricKey}`} className="odd:bg-card even:bg-slate-50/50">
-                        <th className="sticky left-0 z-10 bg-inherit text-left px-3 py-2 font-medium align-top border-b border-r">
-                          <div>{row.label}</div>
-                          {row.groupName && row.groupName !== row.label && (
-                            <div className="text-[11px] font-normal text-muted-foreground">{row.groupName}</div>
-                          )}
-                        </th>
-                        {row.cells.map((cell) => (
-                          <td key={cell.districtId} className="px-3 py-2 align-top border-b border-r text-center">
-                            <div className="flex flex-col gap-0.5 items-center">
-                              {row.hasReference && (
-                                <span className="text-xs">
-                                  <span className="text-muted-foreground">Total: </span>
-                                  <span className="font-semibold text-blue-700">{cell.total ?? "–"}</span>
-                                </span>
-                              )}
-                              {row.hasTarget && (
-                                <span className="text-xs">
-                                  <span className="text-muted-foreground">Target: </span>
-                                  <span className="font-semibold text-slate-800">{cell.target ?? "–"}</span>
-                                </span>
-                              )}
-                              {row.hasAchieved && (
-                                <span className="text-xs">
-                                  <span className="text-muted-foreground">Achieved: </span>
-                                  <span className="font-semibold text-emerald-700">{cell.achieved ?? "–"}</span>
-                                </span>
-                              )}
-                              {!row.hasReference && !row.hasTarget && !row.hasAchieved && <span className="text-muted-foreground">–</span>}
-                            </div>
-                          </td>
-                        ))}
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+              <MatrixTable
+        caption={`${matrix.categoryName} by district`}
+        corner="Particulars"
+        columns={matrix.districts.map((d) => ({ key: String(d.districtId), header: `District ${d.districtNumber}`, className: "min-w-[140px] text-center" }))}
+        rows={matrix.rows.map((row) => ({
+          key: `${row.groupName}::${row.metricKey}`,
+          label: (
+            <>
+              <div>{row.label}</div>
+              {row.groupName && row.groupName !== row.label && (
+                <div className="text-[11px] font-normal text-muted-foreground">{row.groupName}</div>
+              )}
+            </>
+          ),
+          cells: row.cells.map((cell) => (
+            <div key={cell.districtId} className="flex flex-col gap-0.5 items-center">
+              {row.hasReference && (
+                <span className="text-xs"><span className="text-muted-foreground">Total: </span><span className="font-semibold text-blue-700">{cell.total ?? "–"}</span></span>
+              )}
+              {row.hasTarget && (
+                <span className="text-xs"><span className="text-muted-foreground">Target: </span><span className="font-semibold text-slate-800">{cell.target ?? "–"}</span></span>
+              )}
+              {row.hasAchieved && (
+                <span className="text-xs"><span className="text-muted-foreground">Achieved: </span><span className="font-semibold text-emerald-700">{cell.achieved ?? "–"}</span></span>
+              )}
+              {!row.hasReference && !row.hasTarget && !row.hasAchieved && <span className="text-muted-foreground">–</span>}
+            </div>
+          )),
+        }))}
+      />
             </CardContent>
           </Card>
         )

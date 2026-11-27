@@ -29,18 +29,15 @@ import Pagination from "@/components/Pagination";
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
 import AlertModal from "@/components/AlertModal";
-import {
-  ArrowLeft, Search, X, Plus, Pencil, Trash2, Eye,
-  MoreHorizontal, FolderOpen, AlertTriangle, Info,
-} from "@/components/icons";
+import { Search, X, Plus, Pencil, Trash2, Eye, MoreHorizontal, FolderOpen, AlertTriangle, Info } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
-import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { formatMoney } from "@/lib/currency";
 
 import { appLocale } from "@/lib/appFormat";
-import { ListPageSkeleton } from "@/components/row/AppKit";
+import { PageHeader, ListPageSkeleton } from "@/components/row/AppKit";
 import AgreeText from "@/components/AgreeText";
+import { ClearButton } from "@/components/ui/text-buttons";
 const AGREE_MESSAGE = `The data I will enter is for a International Service project conducted by my club that has benefitted my community. E.g., Rotary Youth Exchange, Rotary Friendship Exchange, etc.
 
 Please Note: The content posted here will be displayed on the ROW Website, District Website, Club Monthly Report & ROW Integrated Club Website`;
@@ -155,24 +152,16 @@ export default function InternationalServicePage() {
     <ProtectedRoute>
       <div className="space-y-6">
         {/* Header */}
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-3">
-            <Button variant="outline" size="icon" asChild>
-              <Link href={`/clubs/${clubId}/dashboard`}><ArrowLeft className="h-4 w-4" /></Link>
-            </Button>
-            <div>
-              <h2 className="text-2xl font-bold tracking-tight text-primary">
-                {clubName ? `${clubName} - International Service` : "International Service"}
-              </h2>
-              <p className="text-muted-foreground text-base">Manage international service projects</p>
-            </div>
-          </div>
-          {canManage && (
+        <PageHeader
+          title={clubName ? `${clubName} - International Service` : "International Service"}
+          description="Manage international service projects"
+          back={`/clubs/${clubId}/dashboard`}
+          actions={canManage && (
             <Button onClick={handleAddClick}>
               <Plus className="mr-2 h-4 w-4" />Add Project
             </Button>
           )}
-        </div>
+        />
 
         {isClubAdmin && !canManage && selectedYearId && (
           <ViewOnlyBadge yearLabel={viewingYearLabel} editableYears={editableYears} className="mb-4" />
@@ -208,9 +197,7 @@ export default function InternationalServicePage() {
                 className="pl-9"
               />
               {searchInput && (
-                <button onClick={clearSearch} className="absolute right-3 top-1/2 -translate-y-1/2">
-                  <X className="h-4 w-4 text-muted-foreground hover:text-foreground" />
-                </button>
+                <ClearButton onClick={clearSearch} aria-label="Clear search" />
               )}
             </div>
             <Button onClick={handleSearch} size="sm">Search</Button>
@@ -226,7 +213,7 @@ export default function InternationalServicePage() {
         {!loading && projects.length === 0 && (
           <div className="flex flex-col items-center justify-center py-20 text-center">
             <FolderOpen className="h-12 w-12 text-muted-foreground mb-4" />
-            <h3 className="text-lg font-semibold">No projects found</h3>
+            <h3 className="row-h2">No projects found</h3>
             <p className="text-muted-foreground mt-2">
               {search ? "No projects match your search." : canManage ? `Click "Add Project" to create one.` : "No projects for this year."}
             </p>
@@ -238,13 +225,13 @@ export default function InternationalServicePage() {
             <CardContent className="p-0">
               <Table>
                 <TableHeader>
-                  <TableRow className="bg-primary hover:bg-primary">
-                    <TableHead className="w-12 text-base font-semibold">S.No.</TableHead>
-                    <TableHead className="text-base font-semibold">Title</TableHead>
-                    <TableHead className="text-base font-semibold">Category</TableHead>
-                    <TableHead className="text-base font-semibold">Date</TableHead>
-                    <TableHead className="text-base font-semibold">Location</TableHead>
-                    <TableHead className="text-base font-semibold text-right">Cost</TableHead>
+                  <TableRow>
+                    <TableHead className="w-12">S.No.</TableHead>
+                    <TableHead>Title</TableHead>
+                    <TableHead>Category</TableHead>
+                    <TableHead>Date</TableHead>
+                    <TableHead>Location</TableHead>
+                    <TableHead className="text-right">Cost</TableHead>
                     {canView && (
                       <TableHead className="w-12"></TableHead>
                     )}
@@ -274,7 +261,7 @@ export default function InternationalServicePage() {
                         <TableCell>
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="icon" className="h-8 w-8"><MoreHorizontal className="h-4 w-4" /></Button>
+                              <Button variant="ghost" size="icon" className="row-btn-sm"><MoreHorizontal className="h-4 w-4" /></Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
                               <DropdownMenuItem onClick={() => router.push(`/clubs/${clubId}/international-service/${project.id}?yearId=${selectedYearId}`)}>

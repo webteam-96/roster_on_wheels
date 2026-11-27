@@ -7,6 +7,7 @@ import '../../widgets/common/custom_app_bar.dart';
 import '../../widgets/common/empty_state_widget.dart';
 import '../../widgets/common/loading_widget.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/motion.dart';
 
 /// The member's own Rotary Foundation designations (Paul Harris Fellow and so on; feature `membership_fields`).
 /// Read-only: club and district admins record them on the web.
@@ -50,7 +51,7 @@ class _MyDesignationsScreenState extends State<MyDesignationsScreen> {
                   icon: Icons.workspace_premium_outlined,
                   title: 'No designations recorded',
                   subtitle: 'Your club records Paul Harris Fellow and other Foundation recognitions.')
-              : ListView.separated(
+              : RowListView.separated(
                   itemCount: rows.length,
                   separatorBuilder: (_, __) => const Divider(height: 1),
                   itemBuilder: (_, i) {

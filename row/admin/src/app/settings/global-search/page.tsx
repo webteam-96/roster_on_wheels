@@ -1,16 +1,13 @@
 "use client";
+import { IconButton } from "@/components/ui/icon-button";
 
+import { PageHeader } from "@/components/row/AppKit";
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
-import {
-  ArrowLeft, Search, Globe, Building, MapPin, LayoutDashboard, AlertCircle,
-  Loader2, Inbox, ChevronRight,
-} from "@/components/icons";
+import { Search, Globe, Building, MapPin, LayoutDashboard, AlertCircle, Loader2, Inbox, ChevronRight } from "@/components/icons";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { globalSearchAll, type GlobalSearchResult, type GlobalSearchRow } from "@/services/api";
 import Pagination from "@/components/Pagination";
@@ -162,7 +159,7 @@ export default function GlobalSearchPage() {
       <ProtectedRoute>
         <div className="flex flex-col items-center justify-center py-20">
           <AlertCircle className="h-12 w-12 text-amber-500 mb-4" />
-          <h2 className="text-lg font-semibold">Access Denied</h2>
+          <h2 className="row-h2">Access Denied</h2>
           <p className="text-muted-foreground mt-2">Only SuperAdmin can use Global Search.</p>
         </div>
       </ProtectedRoute>
@@ -190,26 +187,9 @@ export default function GlobalSearchPage() {
 
   return (
     <ProtectedRoute>
-      <div className="container mx-auto p-6 max-w-4xl">
-        <div className="mb-4">
-          <Link href="/settings">
-            <Button variant="ghost" size="sm" className="gap-2">
-              <ArrowLeft className="h-4 w-4" /> Back to Settings
-            </Button>
-          </Link>
-        </div>
+      <div className="max-w-4xl">
 
-        <div className="flex items-center gap-3 mb-6">
-          <div className="flex h-11 w-11 items-center justify-center rounded-full bg-primary/10 text-primary">
-            <Search className="h-6 w-6" />
-          </div>
-          <div>
-            <h1 className="text-2xl font-bold">Global Search</h1>
-            <p className="text-sm text-muted-foreground">
-              Search zones, districts or clubs. Click any result to open its dashboard.
-            </p>
-          </div>
-        </div>
+        <PageHeader title="Global Search" description="Search zones, districts or clubs. Click any result to open its dashboard." />
 
         <Card className="mb-4">
           <CardContent className="p-5">
@@ -274,7 +254,7 @@ export default function GlobalSearchPage() {
               const isRotaract = row.type === "club" && row.clubType === "Rotaract Club";
               // The row itself opens the new dashboard; this icon is the way back to the old one.
               const dashboardIcon = row.type === "zone" ? null : (
-                <button
+                <IconButton
                   type="button"
                   disabled={isNavigating || isNavigatingNew || isOtherNavigating}
                   onClick={(e) => {
@@ -283,14 +263,13 @@ export default function GlobalSearchPage() {
                   }}
                   title={`Open the old ${row.type} dashboard`}
                   aria-label={`Open the old ${row.type} dashboard`}
-                  className="inline-flex items-center text-slate-400 hover:text-slate-600 disabled:opacity-50"
                 >
                   {isNavigating ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
                   ) : (
                     <LayoutDashboard className="h-4 w-4" />
                   )}
-                </button>
+                </IconButton>
               );
               return (
                 <Card

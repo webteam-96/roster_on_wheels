@@ -7,7 +7,6 @@ import '../maintenance/maintenance_dev_bypass.dart';
 import '../../presentation/providers/auth_provider.dart';
 import '../../presentation/screens/maintenance/maintenance_screen.dart';
 import '../../presentation/screens/splash/splash_screen.dart';
-import '../../presentation/screens/login/terms_screen.dart';
 import '../../presentation/screens/login/welcome_screen.dart';
 import '../../presentation/screens/login/login_screen.dart';
 import '../../presentation/screens/login/forgot_password_screen.dart';
@@ -32,6 +31,8 @@ import '../../presentation/screens/clubs/modules/newsletters/newsletters_screen.
 import '../../presentation/screens/clubs/modules/upcoming_events/upcoming_events_screen.dart';
 import '../../presentation/screens/clubs/modules/documents/documents_screen.dart';
 import '../../presentation/screens/clubs/modules/attendance/attendance_screen.dart';
+import '../../presentation/screens/clubs/modules/attendance/attendance_scan_screen.dart';
+import '../../presentation/screens/attendance_qr/my_attendance_qr_screen.dart';
 import '../../presentation/screens/clubs/modules/club_monthly_report/club_monthly_report_screen.dart';
 import '../../presentation/screens/clubs/modules/projects/projects_screen.dart';
 import '../../presentation/screens/clubs/modules/board_of_directors/board_of_directors_screen.dart';
@@ -94,6 +95,7 @@ import '../../presentation/screens/admin/login_logs_screen.dart';
 import '../../presentation/screens/goal_setting/goal_setting_entry_screen.dart';
 import '../../presentation/screens/home/my_club_websites_screen.dart';
 import '../../presentation/screens/home/my_district_websites_screen.dart';
+import '../../presentation/screens/home/all_club_access_screen.dart';
 import '../../presentation/screens/ag_reports/ag_reports_screen.dart';
 import '../../presentation/screens/home/home_screen.dart';
 import '../../presentation/screens/home/helpline_screen.dart';
@@ -183,7 +185,7 @@ class AppRouter {
       AuthProvider authProvider, MaintenanceController maintenance, FeatureController features) {
     // Routes that don't require auth
     const _publicPaths = [
-      '/splash', '/terms', '/login', '/otp-verify', '/welcome',
+      '/splash', '/login', '/welcome',
       '/forgot-password', '/reset-password',
     ];
 
@@ -251,10 +253,9 @@ class AppRouter {
         GoRoute(path: RouteNames.splash, builder: (_, __) => const SplashScreen()),
         GoRoute(path: RouteNames.appLock, builder: (_, __) => const AppLockScreen()),
         GoRoute(path: RouteNames.securitySettings, builder: (_, __) => const SecuritySettingsScreen()),
-        GoRoute(path: RouteNames.terms, builder: (_, __) => const TermsScreen()),
         GoRoute(path: RouteNames.welcome, builder: (_, __) => const WelcomeScreen()),
 
-        // Mobile OTP login (primary flow)
+        // Email + password sign-in
         GoRoute(path: RouteNames.mobileLogin, builder: (_, __) => const LoginScreen()),
 
         // Legacy admin password login (kept as fallback)
@@ -455,6 +456,8 @@ class AppRouter {
         GoRoute(path: '/clubs/:id/documents', builder: (_, state) => DocumentsScreen(clubId: int.parse(state.pathParameters['id']!))),
         GoRoute(path: '/clubs/:id/upcoming-events', builder: (_, state) => UpcomingEventsScreen(clubId: int.parse(state.pathParameters['id']!), autoOpenDetailId: int.tryParse(state.uri.queryParameters['openId'] ?? ''))),
         GoRoute(path: '/clubs/:id/attendance', builder: (_, state) => AttendanceScreen(clubId: int.parse(state.pathParameters['id']!))),
+        GoRoute(path: '/clubs/:id/attendance/scan', builder: (_, state) => AttendanceScanScreen(clubId: int.parse(state.pathParameters['id']!))),
+        GoRoute(path: RouteNames.myAttendanceQr, builder: (_, __) => const MyAttendanceQrScreen()),
         GoRoute(path: '/clubs/:id/club-monthly-report', builder: (_, state) => ClubMonthlyReportScreen(clubId: int.parse(state.pathParameters['id']!))),
         // `openProjectId` + `openYearId` (optional) auto-open that project's
         // detail on load — used by push-notification deep-links.
@@ -572,6 +575,9 @@ class AppRouter {
         // Dashboards and websites
         GoRoute(path: RouteNames.myClubWebsites, builder: (_, __) => const MyClubWebsitesScreen()),
         GoRoute(path: RouteNames.myDistrictWebsites, builder: (_, __) => const MyDistrictWebsitesScreen()),
+        GoRoute(path: '/all-club-access/:districtId', builder: (_, state) => AllClubAccessScreen(
+            districtId: int.parse(state.pathParameters['districtId']!),
+            districtNumber: state.uri.queryParameters['number'] ?? '')),
         GoRoute(path: RouteNames.agReports, builder: (_, __) => const AgReportsScreen()),
         GoRoute(
           path: '/clubs/:id/goal-setting',

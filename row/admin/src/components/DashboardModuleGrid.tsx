@@ -1,5 +1,6 @@
 "use client";
 
+import { MenuItemButton } from "@/components/ui/text-buttons"
 import { useState, useEffect } from "react";
 import { DashboardCategoryGroup } from "@/types/module";
 import { Card, CardContent } from "@/components/ui/card";
@@ -92,8 +93,7 @@ export default function DashboardModuleGrid({
     const dateText = formatComingSoonDate(comingSoonDates[moduleKey]);
     return (
       <Badge
-        variant="secondary"
-        className="absolute top-2 right-2 text-[10px] px-1.5 py-0.5 bg-amber-100 text-amber-700 border-amber-200 max-w-[90%] whitespace-normal text-right leading-tight"
+        variant="secondary" className="absolute top-2 right-2 bg-amber-100 text-amber-700 border-amber-200 max-w-[90%] whitespace-normal text-right leading-tight"
         title={dateText ? `Coming Soon: ${dateText}` : "Coming Soon"}
       >
         Coming Soon{dateText ? <><br />{dateText}</> : null}
@@ -118,7 +118,7 @@ export default function DashboardModuleGrid({
             key={t.key}
             variant={theme === t.key ? "default" : "ghost"}
             size="icon"
-            className="h-8 w-8"
+            className="row-btn-sm"
             onClick={() => handleThemeChange(t.key)}
             title={t.label}
           >
@@ -131,7 +131,7 @@ export default function DashboardModuleGrid({
       {theme === "card-grid" &&
         moduleGroups.map((group) => (
           <div key={group.categoryId} className="space-y-3">
-            <h3 className="text-lg font-semibold text-primary border-b border-primary/20 pb-2">
+            <h3 className="row-h2 border-b border-primary/20 pb-2">
               {group.categoryName}
             </h3>
             <div className="grid gap-4 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
@@ -159,7 +159,7 @@ export default function DashboardModuleGrid({
       {theme === "bento" &&
         moduleGroups.map((group) => (
           <div key={group.categoryId} className="space-y-3">
-            <h3 className="text-lg font-semibold text-primary border-b border-primary/20 pb-2">
+            <h3 className="row-h2 border-b border-primary/20 pb-2">
               {group.categoryName}
             </h3>
             <div className="grid gap-3 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 auto-rows-min">
@@ -213,7 +213,7 @@ export default function DashboardModuleGrid({
       {theme === "compact" &&
         moduleGroups.map((group) => (
           <div key={group.categoryId} className="space-y-3">
-            <h3 className="text-lg font-semibold text-primary border-b border-primary/20 pb-2">
+            <h3 className="row-h2 border-b border-primary/20 pb-2">
               {group.categoryName}
             </h3>
             <div className="grid gap-2 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
@@ -244,7 +244,7 @@ export default function DashboardModuleGrid({
       {theme === "gradient" &&
         moduleGroups.map((group) => (
           <div key={group.categoryId} className="space-y-3">
-            <h3 className="text-lg font-semibold text-primary border-b border-primary/20 pb-2">
+            <h3 className="row-h2 border-b border-primary/20 pb-2">
               {group.categoryName}
             </h3>
             <div className="grid gap-4 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
@@ -276,7 +276,7 @@ export default function DashboardModuleGrid({
       {theme === "metro" &&
         moduleGroups.map((group) => (
           <div key={group.categoryId} className="space-y-3">
-            <h3 className="text-lg font-semibold text-foreground pb-1">
+            <h3 className="row-h2 pb-1">
               {group.categoryName}
             </h3>
             <div className="grid gap-2.5 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
@@ -318,14 +318,9 @@ export default function DashboardModuleGrid({
               {moduleGroups.map((group) => {
                 const isActive = activeCategory === group.categoryId;
                 return (
-                  <button
+                  <MenuItemButton selected={isActive} className="justify-between whitespace-nowrap font-medium"
                     key={group.categoryId}
                     onClick={() => setActiveCategory(group.categoryId)}
-                    className={`flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium whitespace-nowrap text-left transition-all duration-150 ${
-                      isActive
-                        ? "bg-primary/10 text-primary border-l-[3px] border-primary sm:rounded-l-none"
-                        : "text-muted-foreground hover:bg-accent hover:text-foreground border-l-[3px] border-transparent sm:rounded-l-none"
-                    }`}
                   >
                     <span className="truncate">{group.categoryName}</span>
                     <Badge
@@ -334,7 +329,7 @@ export default function DashboardModuleGrid({
                     >
                       {group.modules.length}
                     </Badge>
-                  </button>
+                  </MenuItemButton>
                 );
               })}
             </div>
@@ -346,7 +341,7 @@ export default function DashboardModuleGrid({
               .map((group) => (
                 <div key={group.categoryId} className="space-y-4">
                   <div className="flex flex-wrap items-center justify-between gap-3">
-                    <h3 className="text-xl font-bold text-primary">{group.categoryName}</h3>
+                    <h3 className="row-h2">{group.categoryName}</h3>
                     <span className="text-sm text-muted-foreground">{group.modules.length} modules</span>
                   </div>
                   <div className="grid gap-4 grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">

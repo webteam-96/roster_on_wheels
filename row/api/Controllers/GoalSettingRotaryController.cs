@@ -153,14 +153,14 @@ public class GoalSettingRotaryController : ControllerBase
     // Month wise, same tables) with the new section names and order. districtIds = one district, or a
     // zone's districts (comma separated); oversight = the RI Director / Zone / District Assistant check.
     [HttpGet("report/districts")]
-    public async Task<ActionResult> DistrictReport([FromQuery] string districtIds, [FromQuery] int? yearId, [FromQuery] bool oversight = false)
+    public async Task<ActionResult> DistrictReport([FromQuery] string districtIds, [FromQuery] int? yearId, [FromQuery] bool oversight = false, [FromQuery] bool rccOnly = false)
     {
         var ids = (districtIds ?? "").Split(',', StringSplitOptions.RemoveEmptyEntries)
             .Select(x => int.TryParse(x, out var n) ? n : 0).Where(n => n > 0).Distinct().ToList();
         if (ids.Count == 0) return BadRequest(new { message = "districtIds is required." });
         try
         {
-            var bytes = await _goals.BuildRotaryDistrictReportAsync(GetMemberId(), ids, yearId, oversight);
+            var bytes = await _goals.BuildRotaryDistrictReportAsync(GetMemberId(), ids, yearId, oversight, rccOnly);
             if (bytes == null) return NotFound(new { message = "No data." });
             return File(bytes, XlsxMime, $"District_Goal_Setting_{DateTime.UtcNow:yyyyMMdd-HHmm}.xlsx");
         }
@@ -169,23 +169,23 @@ public class GoalSettingRotaryController : ControllerBase
 
     // Every club of a district, clubs across (user 2026-11-02).
     [HttpGet("report/clubs-all")]
-    public async Task<ActionResult> AllClubsReport([FromQuery] int districtId, [FromQuery] int? yearId, [FromQuery] bool oversight = false)
+    public async Task<ActionResult> AllClubsReport([FromQuery] int districtId, [FromQuery] int? yearId, [FromQuery] bool oversight = false, [FromQuery] bool rccOnly = false)
     {
         try
         {
-            var bytes = await _goals.BuildRotaryAllClubsReportAsync(GetMemberId(), districtId, yearId, oversight);
+            var bytes = await _goals.BuildRotaryAllClubsReportAsync(GetMemberId(), districtId, yearId, oversight, rccOnly);
             if (bytes == null) return NotFound(new { message = "No data." });
-            return File(bytes, XlsxMime, $"Club_Goal_Setting_All_{DateTime.UtcNow:yyyyMMdd-HHmm}.xlsx");
+            return File(bytes, XlsxMime, $"{(rccOnly ? "RCC_Goals_All_Clubs" : "Club_Goal_Setting_All")}_{DateTime.UtcNow:yyyyMMdd-HHmm}.xlsx");
         }
         catch (UnauthorizedAccessException ex) { return StatusCode(403, new { message = ex.Message }); }
     }
 
     [HttpGet("report/clubs/{clubId:int}")]
-    public async Task<ActionResult> ClubReport([FromRoute] int clubId, [FromQuery] int? yearId)
+    public async Task<ActionResult> ClubReport([FromRoute] int clubId, [FromQuery] int? yearId, [FromQuery] bool rccOnly = false)
     {
         try
         {
-            var bytes = await _goals.BuildRotaryClubReportAsync(GetMemberId(), clubId, yearId);
+            var bytes = await _goals.BuildRotaryClubReportAsync(GetMemberId(), clubId, yearId, rccOnly);
             if (bytes == null) return NotFound(new { message = "No data." });
             return File(bytes, XlsxMime, $"Club_Goal_Setting_{DateTime.UtcNow:yyyyMMdd-HHmm}.xlsx");
         }

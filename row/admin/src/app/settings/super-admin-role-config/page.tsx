@@ -1,7 +1,9 @@
 "use client";
+import { MenuItemButton } from "@/components/ui/text-buttons";
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
 
+import { PageHeader } from "@/components/row/AppKit";
 import React, { useEffect, useState } from "react";
-import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -12,7 +14,7 @@ import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
 import RotaryLoader from "@/components/RotaryLoader";
 import ProtectedRoute from "@/components/ProtectedRoute";
-import { ArrowLeft, Plus, Trash2, Search, ShieldCheck, Loader2, Phone, Mail, Building2 } from "@/components/icons";
+import { Plus, Trash2, Search, Loader2, Phone, Mail, Building2 } from "@/components/icons";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   listSuperAdmins,
@@ -79,7 +81,7 @@ export default function SuperAdminRoleConfigPage() {
   if (!isSuperAdmin) return (
     <ProtectedRoute>
       <div className="flex flex-col items-center justify-center py-20">
-        <h3 className="text-lg font-semibold">Access Denied</h3>
+        <h3 className="row-h2">Access Denied</h3>
         <p className="text-muted-foreground mt-2">Only SuperAdmin can access this page.</p>
       </div>
     </ProtectedRoute>
@@ -155,18 +157,16 @@ export default function SuperAdminRoleConfigPage() {
   return (
     <ProtectedRoute>
       <div className="space-y-4">
-        <div className="flex flex-wrap items-center gap-3">
-          <Button variant="outline" size="icon" asChild>
-            <Link href="/settings"><ArrowLeft className="h-4 w-4" /></Link>
-          </Button>
-          <div className="flex-1 min-w-0">
-            <h2 className="text-2xl font-bold tracking-tight text-primary flex items-center gap-2">
-              <ShieldCheck className="h-6 w-6" /> Super Admin Role Config
-            </h2>
-            <p className="text-muted-foreground text-sm">Add or remove SuperAdmin access: OTP-gated by the approver on record.</p>
-          </div>
-          <Button onClick={openAdd}><Plus className="h-4 w-4 mr-2" /> Add SuperAdmin</Button>
-        </div>
+        <PageHeader
+          title="Super Admin Role Config"
+          back="/settings"
+          actions={
+            <>
+<p className="text-muted-foreground text-sm">Add or remove SuperAdmin access: OTP-gated by the approver on record.</p>
+<Button onClick={openAdd}><Plus className="h-4 w-4 mr-2" /> Add SuperAdmin</Button>
+            </>
+          }
+        />
 
         <SuccessAlert open={!!success} title="Done" description={success ?? ""} onOk={() => setSuccess(null)} />
         <ErrorAlert open={!!error} title="Error" description={error ?? ""} onOk={() => setError(null)} />
@@ -178,44 +178,44 @@ export default function SuperAdminRoleConfigPage() {
               <p className="text-sm text-muted-foreground py-6 text-center">No SuperAdmins found.</p>
             ) : (
               <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead className="bg-[#EDF4FB] text-[13px] text-[#64748B]">
-                    <tr>
-                      <th className="px-3 py-2 text-left">Name</th>
-                      <th className="px-3 py-2 text-left">Mobile</th>
-                      <th className="px-3 py-2 text-left">Email</th>
-                      <th className="px-3 py-2 text-left">Promoted On</th>
-                      <th className="px-3 py-2 text-left">Promoted By</th>
-                      <th className="px-3 py-2 text-right">Action</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y">
+                <Table className="w-full text-sm">
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="px-3 text-left">Name</TableHead>
+                      <TableHead className="px-3 text-left">Mobile</TableHead>
+                      <TableHead className="px-3 text-left">Email</TableHead>
+                      <TableHead className="px-3 text-left">Promoted On</TableHead>
+                      <TableHead className="px-3 text-left">Promoted By</TableHead>
+                      <TableHead className="px-3 text-right">Action</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody className="divide-y">
                     {rows.map((r) => {
                       const isSelf = r.memberId === currentUserId;
                       return (
-                        <tr key={r.memberId} className={isSelf ? "bg-primary/5" : ""}>
-                          <td className="px-3 py-2 font-medium">{r.memberName}{isSelf && <Badge variant="outline" className="ml-2 text-xs">You</Badge>}</td>
-                          <td className="px-3 py-2">{r.mobile ?? "–"}</td>
-                          <td className="px-3 py-2">{r.email ?? "–"}</td>
-                          <td className="px-3 py-2">{r.promotedOn ? new Date(r.promotedOn).toLocaleDateString() : "–"}</td>
-                          <td className="px-3 py-2">{r.promotedByName ?? "–"}</td>
-                          <td className="px-3 py-2 text-right">
+                        <TableRow key={r.memberId} className={isSelf ? "bg-primary/5" : ""}>
+                          <TableCell className="px-3 py-2 font-medium">{r.memberName}{isSelf && <Badge variant="outline" className="ml-2">You</Badge>}</TableCell>
+                          <TableCell className="px-3 py-2">{r.mobile ?? "–"}</TableCell>
+                          <TableCell className="px-3 py-2">{r.email ?? "–"}</TableCell>
+                          <TableCell className="px-3 py-2">{r.promotedOn ? new Date(r.promotedOn).toLocaleDateString() : "–"}</TableCell>
+                          <TableCell className="px-3 py-2">{r.promotedByName ?? "–"}</TableCell>
+                          <TableCell className="px-3 py-2 text-right">
                             <Button
                               size="sm"
                               variant="outline"
-                              className="text-red-600 hover:bg-red-50 disabled:opacity-40"
+                              className="text-red-600 disabled:opacity-40"
                               onClick={() => openRemove(r)}
                               disabled={isSelf}
                               title={isSelf ? "Cannot remove yourself" : "Remove SuperAdmin role"}
                             >
                               <Trash2 className="h-4 w-4" />
                             </Button>
-                          </td>
-                        </tr>
+                          </TableCell>
+                        </TableRow>
                       );
                     })}
-                  </tbody>
-                </table>
+                  </TableBody>
+                </Table>
               </div>
             )}
           </CardContent>
@@ -241,7 +241,7 @@ export default function SuperAdminRoleConfigPage() {
                     <div className="p-3 text-sm text-muted-foreground">No members found (or already SuperAdmin).</div>
                   )}
                   {candidates.map((c) => (
-                    <button key={c.memberId} onClick={() => pickCandidate(c)} className="w-full text-left p-3 hover:bg-muted/40 transition-colors">
+                    <MenuItemButton key={c.memberId} onClick={() => pickCandidate(c)} className="block">
                       <div className="font-medium">{c.memberName}</div>
                       <div className="text-xs text-muted-foreground flex flex-wrap gap-x-3 gap-y-0.5 mt-0.5">
                         {c.mobile && <span className="inline-flex items-center gap-1"><Phone className="h-3.5 w-3.5" aria-hidden />{c.mobile}</span>}
@@ -254,7 +254,7 @@ export default function SuperAdminRoleConfigPage() {
                       {c.currentRoles && (
                         <div className="text-xs mt-1"><Badge variant="outline" className="text-amber-700 border-amber-300 bg-amber-50">Has role: {c.currentRoles}</Badge></div>
                       )}
-                    </button>
+                    </MenuItemButton>
                   ))}
                 </div>
               </div>
@@ -266,7 +266,7 @@ export default function SuperAdminRoleConfigPage() {
                   Promoting <strong>{selected.memberName}</strong> to SuperAdmin.
                 </div>
                 <p className="text-sm text-muted-foreground">
-                  An OTP will be sent to the approver on record (their mobile + email). Ask them for the code, then enter it on the next step.
+                  An OTP will be sent to the approver on record (by email). Ask them for the code, then enter it on the next step.
                 </p>
                 <DialogFooter>
                   <Button variant="outline" onClick={() => setStep("search")} disabled={busy}>Back</Button>

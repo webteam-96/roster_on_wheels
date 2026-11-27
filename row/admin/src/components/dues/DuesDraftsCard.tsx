@@ -32,7 +32,7 @@ export default function DuesDraftsCard({ kind, stepLabels }: { kind: DuesDraftKi
       <CardContent className="space-y-2">
         {drafts.map((d) => (
           <div key={d.id} className="flex flex-wrap items-center gap-3 rounded-md border border-amber-200 bg-white px-3 py-2">
-            <Badge className="bg-amber-500 hover:bg-amber-500 text-white">Draft</Badge>
+            <Badge className="bg-amber-100 text-amber-900">Draft</Badge>
             <div className="flex-1 min-w-[200px]">
               <div className="font-medium text-sm">{d.title || "Untitled"}</div>
               <div className="text-xs text-muted-foreground">

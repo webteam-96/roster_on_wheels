@@ -6,6 +6,7 @@
  * merged contact is kept (see the merge history in the contact form).
  */
 
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table"
 import { useCallback, useEffect, useState } from "react";
 import {
   getContactDuplicates, mergeContacts,
@@ -48,43 +49,43 @@ function MergeCard({ group, scope, ownerId, onMerged, onError }: {
   };
 
   return (
-    <section className="rounded-[16px] border border-slate-200 bg-white p-3">
+    <section className="row-card p-3">
       <p className="mb-2 text-xs text-slate-500">{group.reasons.join(", ")}</p>
       <div className="overflow-x-auto">
-        <table className="min-w-full text-sm">
-          <thead>
-            <tr className="text-left text-[13px] text-slate-500">
-              <th className="w-28 px-2 py-1.5 font-medium">Keep</th>
+        <Table className="min-w-full text-sm">
+          <TableHeader>
+            <TableRow>
+              <TableHead className="w-28 px-2">Keep</TableHead>
               {group.contacts.map((c) => (
-                <th key={c.id} className="px-2 py-1.5 font-medium">
+                <TableHead key={c.id} className="px-2">
                   <label className="flex items-center gap-2">
                     <input type="radio" name={`keep-${group.contacts[0].id}`} checked={keepId === c.id} onChange={() => keep(c.id)} />
                     <span className="text-slate-700">Added {new Date(c.createdDate).toLocaleDateString()}</span>
                   </label>
-                </th>
+                </TableHead>
               ))}
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-100">
+            </TableRow>
+          </TableHeader>
+          <TableBody className="divide-y divide-slate-100">
             {FIELDS.map(({ key, title }) => (
-              <tr key={key}>
-                <th scope="row" className="px-2 py-1.5 text-left text-[13px] font-medium text-slate-500">{title}</th>
+              <TableRow key={key}>
+                <TableHead scope="row" className="px-2 text-left">{title}</TableHead>
                 {group.contacts.map((c) => (
-                  <td key={c.id} className="px-2 py-1.5 align-top">
+                  <TableCell key={c.id} className="px-2 py-1.5 align-top">
                     <label className="flex items-start gap-2">
                       <input type="radio" name={`${key}-${group.contacts[0].id}`} aria-label={`${title} from ${c.name}`}
                         checked={sources[key] === c.id} onChange={() => setSources((s) => ({ ...s, [key]: c.id }))} className="mt-1" />
                       <span className={value(c, key) ? "text-slate-800" : "text-slate-400"}>{value(c, key) || "(blank)"}</span>
                     </label>
-                  </td>
+                  </TableCell>
                 ))}
-              </tr>
+              </TableRow>
             ))}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
       </div>
       <div className="mt-2 flex justify-end">
-        <Button size="sm" className="bg-azure text-white hover:bg-mint-ink" disabled={busy} onClick={merge}>
+        <Button size="sm" disabled={busy} onClick={merge}>
           {busy && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}Merge into one contact
         </Button>
       </div>

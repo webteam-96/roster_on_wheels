@@ -5,6 +5,7 @@ import '../../../../../core/theme/app_colors.dart';
 import '../../../../../core/theme/app_text_styles.dart';
 import '../../../../../presentation/widgets/common/custom_app_bar.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/motion.dart';
 
 class RotaryNetworkScreen extends StatelessWidget {
   final int clubId;
@@ -35,7 +36,7 @@ class RotaryNetworkScreen extends StatelessWidget {
       appBar: embedded ? null : const CustomAppBar(title: 'Rotary Network'),
       body: Padding(
         padding: const EdgeInsets.all(16),
-        child: GridView.builder(
+        child: RowGridView.builder(
           shrinkWrap: true,
           itemCount: tiles.length,
           gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(

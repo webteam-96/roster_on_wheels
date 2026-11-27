@@ -3,6 +3,8 @@
 // District target setting (build spec B.29, feature target_dashboard): the district proposes a target per club and
 // metric; the club accepts or counters with its own value and a note; both see the status. No locking (module sheet).
 
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table"
+import { NativeSelect } from "@/components/ui/native-select";
 import { useCallback, useEffect, useState } from "react";
 import {
   answerTargetProposal, getClubTargetProposals, getDistrictClubs, getDistrictTargetProposals, proposeClubTarget,
@@ -24,8 +26,8 @@ export const PROPOSAL_METRICS: { key: ProposalMetric; label: string }[] = [
 ];
 const label = (m: ProposalMetric) => PROPOSAL_METRICS.find((x) => x.key === m)?.label ?? m;
 const STATUS_TEXT: Record<TargetProposal["status"], string> = { proposed: "Waiting for the club", accepted: "Accepted", countered: "Countered" };
-const panel = "rounded-xl border border-slate-200 bg-card p-5";
-const SELECT = "flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm";
+const panel = "row-card p-5";
+const SELECT = "row-field flex w-full";
 
 function Status({ p }: { p: TargetProposal }) {
   return (
@@ -71,20 +73,20 @@ export function DistrictTargetProposals({ districtId, yearId }: { districtId: nu
   return (
     <section className={`${panel} mt-6 space-y-4`} aria-labelledby="proposals-h">
       <div>
-        <h3 id="proposals-h" className="text-lg font-semibold">Target proposals to clubs</h3>
+        <h3 id="proposals-h" className="row-h2">Target proposals to clubs</h3>
         <p className="text-sm text-muted-foreground">Propose a target; the club accepts it or counters. A new value asks the club again.</p>
       </div>
       <div className="grid gap-3 sm:grid-cols-[2fr_2fr_1fr_auto] sm:items-end">
         <label className="space-y-1 text-sm">Club
-          <select className={SELECT} value={form.clubId} onChange={(e) => setForm({ ...form, clubId: Number(e.target.value) })}>
+          <NativeSelect className="flex" value={form.clubId} onChange={(e) => setForm({ ...form, clubId: Number(e.target.value) })}>
             <option value={0}>Pick a club</option>
             {clubs.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
-          </select>
+          </NativeSelect>
         </label>
         <label className="space-y-1 text-sm">Target
-          <select className={SELECT} value={form.metric} onChange={(e) => setForm({ ...form, metric: e.target.value as ProposalMetric })}>
+          <NativeSelect className="flex" value={form.metric} onChange={(e) => setForm({ ...form, metric: e.target.value as ProposalMetric })}>
             {PROPOSAL_METRICS.map((m) => <option key={m.key} value={m.key}>{m.label}</option>)}
-          </select>
+          </NativeSelect>
         </label>
         <label className="space-y-1 text-sm">Value
           <Input type="number" min={0} value={form.value} onChange={(e) => setForm({ ...form, value: e.target.value })} />
@@ -96,26 +98,26 @@ export function DistrictTargetProposals({ districtId, yearId }: { districtId: nu
         <p className="text-sm text-muted-foreground">No proposals for this Rotary year yet.</p>
       ) : (
         <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead><tr className="border-b text-left"><th className="py-2 pr-3">Club</th><th className="pr-3">Target</th><th className="pr-3">Proposed</th><th className="pr-3">Status</th><th /></tr></thead>
-            <tbody>
+          <Table className="w-full text-sm">
+            <TableHeader><TableRow className="border-b"><TableHead className="pr-3">Club</TableHead><TableHead className="pr-3">Target</TableHead><TableHead className="pr-3">Proposed</TableHead><TableHead className="pr-3">Status</TableHead><TableHead /></TableRow></TableHeader>
+            <TableBody>
               {rows.map((p) => (
-                <tr key={p.id} className="border-b last:border-0">
-                  <td className="py-2 pr-3">{p.clubName}</td>
-                  <td className="pr-3">{label(p.metric)}</td>
-                  <td className="pr-3 tabular-nums">{p.proposedValue}</td>
-                  <td className="pr-3"><Status p={p} /></td>
-                  <td className="text-right">
+                <TableRow key={p.id} className="border-b last:border-0">
+                  <TableCell className="py-2 pr-3">{p.clubName}</TableCell>
+                  <TableCell className="pr-3">{label(p.metric)}</TableCell>
+                  <TableCell className="pr-3 tabular-nums">{p.proposedValue}</TableCell>
+                  <TableCell className="pr-3"><Status p={p} /></TableCell>
+                  <TableCell className="text-right">
                     {p.status === "countered" && p.counterValue != null && (
                       <Button size="sm" variant="outline" disabled={busy} onClick={() => propose(p.clubId, p.metric, p.counterValue!)}>
                         Take {p.counterValue}
                       </Button>
                     )}
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               ))}
-            </tbody>
-          </table>
+            </TableBody>
+          </Table>
         </div>
       )}
     </section>
@@ -152,7 +154,7 @@ export function ClubTargetProposals({ clubId, yearId }: { clubId: number | null;
   return (
     <section className={`${panel} mt-6 space-y-4`} aria-labelledby="club-proposals-h">
       <div>
-        <h3 id="club-proposals-h" className="text-lg font-semibold">Targets proposed by the district</h3>
+        <h3 id="club-proposals-h" className="row-h2">Targets proposed by the district</h3>
         <p className="text-sm text-muted-foreground">Accept a target, or counter with the value your club can commit to.</p>
       </div>
       {error && <p role="alert" className="text-sm text-destructive">{error}</p>}

@@ -1,8 +1,10 @@
 "use client";
+import { LinkButton } from "@/components/ui/text-buttons";
 
 // Club membership growth for the Rotary year (spec B.4 #34): target, members joined and left, net growth, and the
 // prospect pipeline by stage. Shown on the club dashboard while the contacts_growth feature is on.
 
+import { Card } from "@/components/ui/card";
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { getClubGrowth, setClubGrowthTarget, type ClubGrowth } from "@/services/api";
@@ -57,11 +59,11 @@ export default function GrowthCard({ clubId, yearId, canManage }: { clubId: numb
   if (!on || growth === null) return null;
   if (growth === undefined) {
     return (
-      <div className="space-y-3 rounded-[20px] border border-slate-200 bg-card p-5">
+      <Card className="space-y-3 p-5">
         <Skeleton className="h-4 w-48" />
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">{[0, 1, 2, 3].map((i) => <Skeleton key={i} className="h-14" />)}</div>
         <Skeleton className="h-2 w-full" />
-      </div>
+      </Card>
     );
   }
 
@@ -73,10 +75,10 @@ export default function GrowthCard({ clubId, yearId, canManage }: { clubId: numb
   };
 
   return (
-    <div className="rounded-[20px] border border-slate-200 bg-card p-5">
+    <Card className="p-5">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h3 className="text-sm font-semibold text-slate-800">Membership growth</h3>
+          <h3 className="row-h3">Membership growth</h3>
           <p className="text-xs text-slate-500">RY {growth.yearLabel}: members who joined minus members who left, against the club target</p>
         </div>
         <div className="flex gap-3 text-xs font-medium">
@@ -100,15 +102,15 @@ export default function GrowthCard({ clubId, yearId, canManage }: { clubId: numb
       )}
 
       {canManage && (target === null ? (
-        <button type="button" className="mt-3 text-xs font-medium text-azure hover:underline" onClick={() => setTarget(String(growth.target ?? ""))}>
+        <LinkButton size="sm" className="mt-3" onClick={() => setTarget(String(growth.target ?? ""))}>
           {growth.target === null ? "Set the growth target" : "Change the target"}
-        </button>
+        </LinkButton>
       ) : (
         <div className="mt-3 flex flex-wrap items-center gap-2">
           <label htmlFor="growth-target" className="text-xs text-slate-600">Net new members this year</label>
-          <Input id="growth-target" type="number" min={0} max={1000} value={target} onChange={(e) => setTarget(e.target.value)} className="h-8 w-24" />
-          <Button size="sm" className="h-8 bg-azure text-white hover:bg-mint-ink" onClick={save}>Save</Button>
-          <Button size="sm" variant="ghost" className="h-8" onClick={() => { setTarget(null); setError(null); }}>Cancel</Button>
+          <Input id="growth-target" type="number" min={0} max={1000} value={target} onChange={(e) => setTarget(e.target.value)} className="row-field-sm w-24" />
+          <Button size="sm" className="row-btn-sm" onClick={save}>Save</Button>
+          <Button size="sm" variant="ghost" className="row-btn-sm" onClick={() => { setTarget(null); setError(null); }}>Cancel</Button>
           {error && <span className="text-xs text-rose-700">{error}</span>}
         </div>
       ))}
@@ -117,6 +119,6 @@ export default function GrowthCard({ clubId, yearId, canManage }: { clubId: numb
         <p className="text-xs font-medium text-slate-500">Prospects by stage</p>
         <StageChips stages={growth.prospectsByStage} />
       </div>
-    </div>
+    </Card>
   );
 }

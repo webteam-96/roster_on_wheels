@@ -6,6 +6,7 @@
  * District Governor hear about it, and the log of every alert sent: who, when, why and at which level.
  */
 
+import { Card } from "@/components/ui/card";
 import { useEffect, useState } from "react";
 import { Bell } from "@/components/icons";
 import { useFeatureLoadedOn } from "@/components/FeatureGate";
@@ -15,7 +16,7 @@ import { fmtDate } from "@/components/dashboard/formatters";
 import { apiMessage, selectCls } from "@/components/membership/FoundationDesignationsCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
 import { EMAIL_STATUS_LABELS, ESCALATION_FEATURE, MAX_DELAY_DAYS, MAX_SHORTFALL, RULE_LABELS, parseWhole } from "@/lib/escalation";
 import { monthLabel } from "@/lib/meetingCompliance";
 import {
@@ -95,9 +96,9 @@ function Rules({ districtId }: { districtId: number }) {
   };
 
   return (
-    <section className="overflow-hidden rounded-[20px] border border-slate-200 bg-card">
+    <section className="row-card row-rise overflow-hidden">
       <header className="border-b border-slate-100 bg-slate-50 px-4 py-2.5">
-        <h2 className="text-sm font-semibold text-slate-800">Rules</h2>
+        <h2 className="row-h2">Rules</h2>
       </header>
       <div className="space-y-4 p-4">
         {!settings && !error ? (
@@ -181,7 +182,7 @@ function AlertLog({ districtId }: { districtId: number }) {
   return (
     <section className="space-y-3">
       <div className="flex flex-wrap items-end justify-between gap-3">
-        <h2 className="text-sm font-semibold text-slate-800">Alert log</h2>
+        <h2 className="row-h2">Alert log</h2>
         <label className="w-56 space-y-1 text-xs font-semibold text-slate-700">
           <span>Show</span>
           <select className={selectCls} value={rule} onChange={(e) => setRule(e.target.value as EscalationRule | "")}>
@@ -195,7 +196,7 @@ function AlertLog({ districtId }: { districtId: number }) {
       {rows === null ? (
         !error && <TableSkeleton rows={5} />
       ) : (
-        <div className="overflow-x-auto rounded-xl border border-slate-200 bg-card">
+        <Card className="overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow>
@@ -229,7 +230,7 @@ function AlertLog({ districtId }: { districtId: number }) {
               )}
             </TableBody>
           </Table>
-        </div>
+        </Card>
       )}
     </section>
   );

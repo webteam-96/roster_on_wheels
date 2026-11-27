@@ -1,212 +1,139 @@
 "use client";
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
 
-import { useState } from "react";
-import Link from "next/link";
-import { useAuth } from "@/contexts/AuthContext";
+import { useState, type FormEvent } from "react";
+import ProtectedRoute from "@/components/ProtectedRoute";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent } from "@/components/ui/card";
-import { ArrowLeft, Smartphone, Search, CheckCircle2, XCircle, AlertCircle, Loader2, User } from "@/components/icons";
-import ProtectedRoute from "@/components/ProtectedRoute";
+import { Label } from "@/components/ui/label";
+import { ErrorState, PageHeader, Panel, SkeletonRows, rowTable } from "@/components/row/AppKit";
+import { CheckCircle2, Loader2, Search, XCircle } from "@/components/icons";
 import { checkMobileLogin, type MobileLoginCheckResult } from "@/services/api";
 
-export default function MobileLoginCheckPage() {
-  const { isSuperAdmin } = useAuth();
-  const [mobile, setMobile] = useState("");
+export default function AppSignInCheckPage() {
+  return (
+    <ProtectedRoute requireSuperAdmin>
+      <AppSignInCheck />
+    </ProtectedRoute>
+  );
+}
+
+/** Would this member get into the app, and which clubs would they see? ROW signs in by email. */
+function AppSignInCheck() {
+  const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<MobileLoginCheckResult | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  if (!isSuperAdmin) {
-    return (
-      <ProtectedRoute>
-        <div className="flex flex-col items-center justify-center py-20">
-          <AlertCircle className="h-12 w-12 text-amber-500 mb-4" />
-          <h2 className="text-lg font-semibold">Access Denied</h2>
-          <p className="text-muted-foreground mt-2">Only SuperAdmin can access Mobile Login Check.</p>
-        </div>
-      </ProtectedRoute>
-    );
-  }
-
-  const onCheck = async () => {
-    const trimmed = mobile.trim();
-    if (!trimmed) {
-      setError("Enter a mobile number.");
-      setResult(null);
-      return;
-    }
+  const check = async (e?: FormEvent) => {
+    e?.preventDefault();
+    const trimmed = email.trim();
+    if (!trimmed) return;
     setError(null);
-    setLoading(true);
     setResult(null);
+    setLoading(true);
     try {
-      const data = await checkMobileLogin(trimmed);
-      setResult(data);
-    } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : "Check failed.";
-      setError(msg);
+      setResult(await checkMobileLogin(trimmed));
+    } catch (err: any) {
+      setError(err?.response?.data?.message || "The check did not run.");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <ProtectedRoute>
-      <div className="container mx-auto p-6 max-w-3xl">
-        {/* Back link */}
-        <div className="mb-4">
-          <Link href="/settings">
-            <Button variant="ghost" size="sm" className="gap-2">
-              <ArrowLeft className="h-4 w-4" /> Back to Settings
-            </Button>
-          </Link>
-        </div>
+    <div className="space-y-6 max-w-4xl">
+      <PageHeader
+        back="/settings"
+        title="App Sign-in Check"
+        description="Enter a member's email to see if they can sign in to the app, and why not. Nothing is sent to them."
+      />
 
-        {/* Header */}
-        <div className="flex items-center gap-3 mb-6">
-          <div className="flex h-11 w-11 items-center justify-center rounded-full bg-primary/10 text-primary">
-            <Smartphone className="h-6 w-6" />
+      <Panel title="Member">
+        <form onSubmit={check} className="flex flex-col gap-3 sm:flex-row sm:items-end">
+          <div className="min-w-0 flex-1 space-y-1.5">
+            <Label htmlFor="check-email">Email</Label>
+            <Input
+              id="check-email"
+              type="email"
+              autoComplete="off"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="name@example.org"
+              disabled={loading}
+            />
           </div>
-          <div>
-            <h1 className="text-2xl font-bold">Mobile Login Check</h1>
-            <p className="text-sm text-muted-foreground">
-              Enter a mobile number to preview what the mobile app would show on login. No OTP is sent.
-            </p>
-          </div>
-        </div>
-
-        {/* Search card */}
-        <Card className="mb-4">
-          <CardContent className="p-5">
-            <label className="text-xs font-semibold text-slate-600 uppercase tracking-wide">
-              Mobile Number
-            </label>
-            <div className="flex gap-2 mt-2">
-              <Input
-                value={mobile}
-                onChange={(e) => setMobile(e.target.value)}
-                placeholder="e.g. 7700900123"
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") onCheck();
-                }}
-                disabled={loading}
-                className="flex-1"
-              />
-              <Button onClick={onCheck} disabled={loading} className="gap-2 min-w-[120px]">
-                {loading ? (
-                  <>
-                    <Loader2 className="h-4 w-4 animate-spin" /> Checking…
-                  </>
-                ) : (
-                  <>
-                    <Search className="h-4 w-4" /> Check
-                  </>
-                )}
-              </Button>
-            </div>
-            {error && (
-              <div className="mt-3 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700 flex items-center gap-2">
-                <AlertCircle className="h-4 w-4" /> {error}
-              </div>
+          <Button type="submit" disabled={loading || !email.trim()} className="sm:min-w-[128px]">
+            {loading ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden />
+            ) : (
+              <Search className="mr-2 h-4 w-4" aria-hidden />
             )}
-          </CardContent>
-        </Card>
+            Check
+          </Button>
+        </form>
+      </Panel>
 
-        {/* Result card */}
-        {result && (
-          <Card>
-            <CardContent className="p-5">
-              {/* Verdict banner */}
-              <div
-                className={`rounded-lg border px-4 py-3 mb-4 flex items-start gap-3 ${
-                  result.allowed
-                    ? "border-emerald-200 bg-emerald-50 text-emerald-900"
-                    : "border-red-200 bg-red-50 text-red-900"
-                }`}
-              >
-                {result.allowed ? (
-                  <CheckCircle2 className="h-5 w-5 mt-0.5 flex-shrink-0" />
-                ) : (
-                  <XCircle className="h-5 w-5 mt-0.5 flex-shrink-0" />
-                )}
-                <div>
-                  <div className="font-semibold">
-                    {result.allowed
-                      ? "Allowed: mobile login would proceed"
-                      : "Not allowed: mobile login would be blocked"}
-                  </div>
-                  {result.reason && (
-                    <div className="text-sm mt-1 opacity-90">{result.reason}</div>
-                  )}
-                </div>
-              </div>
+      {error && <ErrorState message={error} onRetry={() => check()} retryLabel="Try again" />}
+      {loading && <SkeletonRows rows={3} />}
 
-              {/* Member info */}
-              {result.member ? (
-                <div className="mb-4">
-                  <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">
-                    Member
-                  </div>
-                  <div className="flex items-start gap-3 rounded-md border border-slate-200 bg-slate-50 px-3 py-2">
-                    <User className="h-4 w-4 mt-1 text-slate-500" />
-                    <div className="flex-1">
-                      <div className="font-medium text-slate-800">{result.member.name}</div>
-                      <div className="text-xs text-slate-500">
-                        Member ID: {result.member.id}
-                        {result.member.email ? ` · ${result.member.email}` : ""}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <div className="text-sm text-slate-500 italic">No member record matched.</div>
-              )}
-
-              {/* Club list */}
+      {result && (
+        <div className="space-y-4" aria-live="polite">
+          <section
+            className={`row-rise flex items-start gap-3 rounded-xl border px-6 py-5 ${
+              result.allowed
+                ? "border-emerald-200 bg-emerald-50 text-emerald-900"
+                : "border-rose-200 bg-rose-50 text-rose-900"
+            }`}
+          >
+            {result.allowed ? (
+              <CheckCircle2 className="mt-0.5 h-6 w-6 shrink-0" aria-hidden />
+            ) : (
+              <XCircle className="mt-0.5 h-6 w-6 shrink-0" aria-hidden />
+            )}
+            <div className="min-w-0">
+              <h2 className="row-h2">
+                {result.allowed ? "Can sign in" : "Cannot sign in"}
+              </h2>
+              <p className="mt-1 text-[14px]">{result.reason ?? "The right password opens the app with the clubs below."}</p>
               {result.member && (
-                <div>
-                  <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">
-                    Clubs visible on mobile app ({result.clubs.length})
-                  </div>
-                  {result.clubs.length === 0 ? (
-                    <div className="text-sm text-slate-500 italic">
-                      No active clubs assigned to this member (cannot login on mobile).
-                    </div>
-                  ) : (
-                    <div className="overflow-x-auto rounded-md border border-slate-200">
-                      <table className="w-full min-w-[640px] md:min-w-full text-sm">
-                        <thead className="bg-[#EDF4FB]">
-                          <tr>
-                            <th className="px-3 py-2 text-left font-semibold text-slate-600">Club</th>
-                            <th className="px-3 py-2 text-left font-semibold text-slate-600">Code</th>
-                            <th className="px-3 py-2 text-left font-semibold text-slate-600">District</th>
-                            <th className="px-3 py-2 text-left font-semibold text-slate-600">Zone</th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-slate-100">
-                          {result.clubs.map((c) => (
-                            <tr key={c.clubId} className="hover:bg-blue-50/40">
-                              <td className="px-3 py-2 font-medium text-slate-800">
-                                {c.clubName}{" "}
-                                <span className="text-xs text-slate-400">#{c.clubId}</span>
-                              </td>
-                              <td className="px-3 py-2 text-slate-700">{c.clubCode ?? "–"}</td>
-                              <td className="px-3 py-2 text-slate-700">
-                                {c.districtNumber ?? "–"}
-                              </td>
-                              <td className="px-3 py-2 text-slate-700">{c.zoneName ?? "–"}</td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  )}
-                </div>
+                <p className="mt-2 break-words text-[14px]">
+                  <span className="font-semibold">{result.member.name}</span>
+                  {result.member.email ? `, ${result.member.email}` : ""} (member {result.member.id})
+                </p>
               )}
-            </CardContent>
-          </Card>
-        )}
-      </div>
-    </ProtectedRoute>
+            </div>
+          </section>
+
+          {result.clubs.length > 0 && (
+            <section className="row-card row-rise overflow-hidden">
+              <h2 className="row-h2 px-6 pb-3 pt-5">
+                Clubs in the app ({result.clubs.length})
+              </h2>
+              <div className={rowTable.wrap}>
+                <Table className={`${rowTable.table} w-full`}>
+                  <TableHeader className={rowTable.head}>
+                    <TableRow>
+                      <TableHead className={rowTable.th}>Club</TableHead>
+                      <TableHead className={rowTable.th}>District</TableHead>
+                      <TableHead className={rowTable.th}>Zone</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody className={rowTable.body}>
+                    {result.clubs.map((c) => (
+                      <TableRow key={c.clubId} className={rowTable.tr}>
+                        <TableCell className={rowTable.td}>{c.clubName}</TableCell>
+                        <TableCell className={rowTable.tdMuted}>{c.districtNumber ?? "–"}</TableCell>
+                        <TableCell className={rowTable.tdMuted}>{c.zoneName ?? "–"}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </section>
+          )}
+        </div>
+      )}
+    </div>
   );
 }

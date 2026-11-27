@@ -16,14 +16,13 @@ import {
 } from "@/components/ui/dropdown-menu";
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
-import { ArrowLeft, Download, Mail, MoreHorizontal, Receipt, CreditCard } from "@/components/icons";
+import { Download, Mail, MoreHorizontal, Receipt, CreditCard } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
-import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import SearchBox from "@/components/SearchBox";
 
 import { currencySymbol } from "@/lib/appFormat";
-import { ListPageSkeleton } from "@/components/row/AppKit";
+import { PageHeader, ListPageSkeleton } from "@/components/row/AppKit";
 interface EventMember {
   id: number;
   memberName?: string;
@@ -82,7 +81,7 @@ export default function DistrictEventMembersPage() {
   };
 
   if (!isSuperAdmin && !isAdmin) {
-    return (<ProtectedRoute><div className="flex flex-col items-center justify-center py-20"><h3 className="text-lg font-semibold">Access Denied</h3></div></ProtectedRoute>);
+    return (<ProtectedRoute><div className="flex flex-col items-center justify-center py-20"><h3 className="row-h2">Access Denied</h3></div></ProtectedRoute>);
   }
 
   const renderTable = (members: EventMember[], loading: boolean, isPaidTab: boolean) => {
@@ -105,7 +104,7 @@ export default function DistrictEventMembersPage() {
             {isPaidTab && <TableCell className="text-sm">{m.paymentDate ? new Date(m.paymentDate).toLocaleDateString() : "-"}</TableCell>}
             {isPaidTab && <TableCell><Badge variant={m.isOnline ? "default" : "secondary"}>{m.isOnline ? m.transactionId || "Online" : m.offlineTransactionType || "Offline"}</Badge></TableCell>}
             <TableCell>
-              <DropdownMenu><DropdownMenuTrigger asChild><Button variant="ghost" size="icon"><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger>
+              <DropdownMenu><DropdownMenuTrigger asChild><Button aria-label="More actions" variant="ghost" size="icon"><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
                   {isPaidTab ? (
                     <DropdownMenuItem onClick={async () => { try { await sendEventReceipt(m.id); setSuccessMessage("Receipt sent."); } catch { setErrorMessage("Failed."); } }}><Receipt className="h-4 w-4 mr-2" />Send Receipt</DropdownMenuItem>
@@ -127,11 +126,16 @@ export default function DistrictEventMembersPage() {
       <div className="space-y-6">
         <SuccessAlert open={!!successMessage} title="Success" description={successMessage || ""} onOk={() => setSuccessMessage(null)} />
         <ErrorAlert open={!!errorMessage} title="Error" description={errorMessage || ""} onOk={() => setErrorMessage(null)} />
-        <div className="flex items-center gap-3">
-          <Button variant="outline" size="icon" asChild><Link href={`/districts/${districtId}/event-payment-links`}><ArrowLeft className="h-4 w-4" /></Link></Button>
-          <div className="flex-1"><h2 className="text-2xl font-bold tracking-tight text-primary">Event Members</h2><p className="text-muted-foreground">Link #{linkId}</p></div>
-          <Button variant="outline" onClick={handleExport}><Download className="h-4 w-4 mr-2" />Export</Button>
-        </div>
+        <PageHeader
+          title="Event Members"
+          back={`/districts/${districtId}/event-payment-links`}
+          actions={
+            <>
+<p className="text-muted-foreground">Link #{linkId}</p>
+<Button variant="outline" onClick={handleExport}><Download className="h-4 w-4 mr-2" />Export</Button>
+            </>
+          }
+        />
         <SearchBox value={search} onChange={setSearch} placeholder="Search..." />
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <div className="flex items-center justify-between flex-wrap gap-2">

@@ -15,6 +15,8 @@ import '../../../widgets/common/custom_app_bar.dart';
 import '../../../widgets/common/empty_state_widget.dart';
 import '../../../widgets/common/loading_widget.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/motion.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/roster_wheel.dart';
 
 class DistrictOnlineEventLinkScreen extends StatefulWidget {
   final int districtId;
@@ -187,6 +189,7 @@ class _DistrictOnlineEventLinkScreenState
                 suffixIcon: _searchCtrl.text.isEmpty
                     ? null
                     : IconButton(
+                        tooltip: 'Close',
                         icon: const Icon(Icons.close, size: 18),
                         onPressed: () {
                           _searchCtrl.clear();
@@ -219,10 +222,10 @@ class _DistrictOnlineEventLinkScreenState
                                 'No online event payment links found.',
                             icon: Icons.link_outlined,
                           )
-                        : RefreshIndicator(
+                        : RowRefresh(
                             color: AppColors.primary,
                             onRefresh: _fetch,
-                            child: ListView.separated(
+                            child: RowListView.separated(
                               padding: const EdgeInsets.all(16),
                               itemCount: _filtered.length,
                               separatorBuilder: (_, __) =>

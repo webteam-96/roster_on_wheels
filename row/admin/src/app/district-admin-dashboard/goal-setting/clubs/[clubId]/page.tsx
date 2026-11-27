@@ -1,5 +1,7 @@
 "use client";
 
+import { IconButton } from "@/components/ui/icon-button";
+import { Card } from "@/components/ui/card";
 import { useCallback, useEffect, useState } from "react";
 import { useParams, useSearchParams, useRouter } from "next/navigation";
 import { ArrowLeft } from "@/components/icons";
@@ -52,18 +54,18 @@ export default function DistrictAdminGoalClubDetailPage() {
 
   return (
     <div className="space-y-4">
-      <div className="bg-card rounded-2xl border border-slate-200 p-4 flex items-center gap-3">
-        <button
+      <Card className="p-5 flex items-center gap-3">
+        <IconButton
           onClick={goBack}
-          className="inline-flex items-center justify-center h-9 w-9 rounded-full border border-slate-200 text-slate-700 hover:bg-slate-100"
+          
         >
           <ArrowLeft size={16} />
-        </button>
+        </IconButton>
         <div>
-          <h2 className="text-sm font-semibold text-slate-800">Club Goals</h2>
+          <h2 className="row-h2">Club Goals</h2>
           <p className="text-xs text-slate-500">View and edit this club&apos;s goals for the year.</p>
         </div>
-      </div>
+      </Card>
 
       <GoalSettingPanel
         title="Club Goals"

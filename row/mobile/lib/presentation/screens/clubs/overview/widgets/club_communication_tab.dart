@@ -13,6 +13,7 @@ import '../../../../widgets/common/dashboard_refresh.dart';
 import 'club_dashboard_async.dart';
 import 'package:rotary_flutter_app/core/theme/app_fonts.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/motion.dart';
 
 /// "Communication" hub — mirrors the web Communication landing and the District
 /// dashboard's Communication tab: a compact, mobile-friendly icon-led KPI strip
@@ -275,7 +276,7 @@ class _KpiStrip extends StatelessWidget {
     // left, big value + short label on the right. Clean and compact — matches
     // the app's OCV-GOV / District Awards design language and reads far better
     // than a flat block of numbers.
-    return GridView.count(
+    return RowGridView.count(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       crossAxisCount: 2,
@@ -358,8 +359,7 @@ class _MiniKpi extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text(
-                  value,
+                RowCountUp(value,
                   style: AppFonts.body(
                     fontSize: 20,
                     fontWeight: FontWeight.w800,

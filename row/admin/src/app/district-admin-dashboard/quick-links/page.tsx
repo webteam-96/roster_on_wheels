@@ -16,10 +16,12 @@
  * forward so Save/Cancel/Back on any sub-page lands back here.
  */
 
+import { TileButton } from "@/components/ui/text-buttons";
+import { PageHeader } from "@/components/row/AppKit";
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
-import { Zap, Link2, Users, Mail } from "@/components/icons";
+import { Link2, Users, Mail } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 
 type ModuleKey = "web-links" | "sub-groups" | "mass-email";
@@ -59,32 +61,21 @@ export default function QuickLinksPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-start justify-between flex-wrap gap-4">
-        <div className="flex items-start gap-3 min-w-0">
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-azure/10 text-ink">
-            <Zap size={20} />
-          </div>
-          <div className="min-w-0">
-            <h1 className="text-lg font-bold text-slate-800 leading-tight">Quick Links</h1>
-            <p className="text-xs text-slate-500 mt-1">Fast access to Web Links, Sub Groups & Mass Email</p>
-          </div>
-        </div>
-      </div>
+      <PageHeader title="Quick Links" description={<>Fast access to Web Links, Sub Groups & Mass Email</>} />
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {MODULES.map((mod) => {
           const Icon = mod.icon;
           const busy = navigatingKey === mod.key;
           return (
-            <button
+            <TileButton
               key={mod.key}
-              type="button"
               onClick={() => {
                 setNavigatingKey(mod.key);
                 router.push(`/district-admin-dashboard/quick-links/${mod.key}${suffix}`);
               }}
               disabled={busy}
-              className={`group text-left rounded-2xl border border-slate-200 bg-card p-5 shadow-sm transition-all hover:shadow-md ${mod.ring} ${busy ? "opacity-60 pointer-events-none" : ""}`}
+              className={`group ${busy ? "opacity-60 pointer-events-none" : ""}`}
             >
               <div className="flex items-start gap-4">
                 <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl ${mod.accent}`}>
@@ -95,7 +86,7 @@ export default function QuickLinksPage() {
                   <p className="text-xs text-slate-500 mt-0.5 leading-snug">{mod.description}</p>
                 </div>
               </div>
-            </button>
+            </TileButton>
           );
         })}
       </div>

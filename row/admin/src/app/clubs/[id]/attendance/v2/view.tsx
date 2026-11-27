@@ -1,4 +1,5 @@
 "use client";
+import { DataTable } from "@/components/ui/data-table";
 
 /**
  * Attendance v2 listing — meeting / event attendance records.
@@ -10,12 +11,14 @@
  * v2 reads ONLY `?returnTo=` — never any other param name.
  */
 
+import { IconButton } from "@/components/ui/icon-button";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card } from "@/components/ui/card";
 import { useCallback, useEffect, useState, useMemo } from "react";
 import { useParams, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import {
-  CalendarDays, Users, Activity, Loader2, Search, Plus, Edit3, Trash2,
-  Download, ArrowLeft, AlertTriangle, Layers, } from "@/components/icons";
+import { Search, Plus, Edit3, Trash2, Download, AlertTriangle } from "@/components/icons";
 import {
   getClub,
   getAttendanceList,
@@ -40,7 +43,7 @@ import AttendanceViewDialog from "@/components/AttendanceViewDialog";
 import { Eye } from "@/components/icons";
 
 import { appLocale } from "@/lib/appFormat";
-import { SkeletonRows } from "@/components/row/AppKit";
+import { PageHeader, SkeletonRows } from "@/components/row/AppKit";
 import Pagination from "@/components/Pagination";
 function attendancePercentChip(pct: number): string {
   if (pct >= 75) return "bg-emerald-100 text-emerald-700";
@@ -325,23 +328,7 @@ export function AttendanceV2View({ clubId: propClubId, embedded = false }: { clu
 
         {/* Header */}
         {!embedded && (
-        <div className="flex items-start justify-between gap-3">
-          <div className="flex items-start gap-2">
-            <Link
-              href={parentReturnTo ? decodeURIComponent(parentReturnTo) : eGovTabUrl}
-              className="mt-0.5 inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50"
-              aria-label="Back"
-            >
-              <ArrowLeft size={15} />
-            </Link>
-            <div>
-              <h1 className="text-lg font-semibold text-slate-800">Attendance</h1>
-              <p className="text-xs text-slate-500 mt-0.5">
-                RY {yearLabel} · {clubName || "–"}
-              </p>
-            </div>
-          </div>
-        </div>
+        <PageHeader title="Attendance" description={<>RY {yearLabel} · {clubName || "–"}</>} back={parentReturnTo ? decodeURIComponent(parentReturnTo) : eGovTabUrl} />
         )}
 
         {/* KPI row removed per user request 2026-06-12 (item #14). The cards
@@ -350,10 +337,10 @@ export function AttendanceV2View({ clubId: propClubId, embedded = false }: { clu
             E-Gov dashboard, and were noisy on a page that's primarily a list. */}
 
         {/* Table card */}
-        <div className="bg-card rounded-2xl border border-slate-200 overflow-hidden">
+        <Card className="overflow-hidden">
           <div className="px-5 py-3 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div>
-              <h3 className="text-sm font-semibold text-slate-800">Attendance Records</h3>
+              <h3 className="row-h3">Attendance Records</h3>
               <p className="text-xs text-slate-500 mt-0.5">Meetings, fellowship, inter-club &amp; district events · {yearLabel}</p>
             </div>
             <div className="flex flex-wrap items-center gap-2">
@@ -361,32 +348,32 @@ export function AttendanceV2View({ clubId: propClubId, embedded = false }: { clu
                   drives ?yearId= which this page reads on load + on change. */}
               <div className="relative w-full sm:w-auto">
                 <Search size={14} className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-400" />
-                <input
+                <Input
                   type="text"
                   placeholder="Search…"
                   value={searchInput}
                   onChange={(e) => setSearchInput(e.target.value)}
                   onKeyDown={(e) => { if (e.key === "Enter") handleSearchSubmit(); }}
-                  className="pl-7 pr-3 h-10 py-0 text-sm border border-slate-200 rounded-[12px] w-full sm:w-48 focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                  className="pl-7 pr-3 sm:w-48"
                 />
               </div>
-              <button
+              <Button
                 type="button"
                 onClick={handleSearchSubmit}
-                className="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1.5 rounded-full border border-slate-200 text-slate-700 hover:bg-slate-50"
+                variant="outline" size="sm"
               >
                 Search
-              </button>
+              </Button>
               {search && (
-                <button
+                <Button
                   type="button"
                   onClick={handleSearchClear}
-                  className="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1.5 rounded-full border border-slate-200 text-slate-700 hover:bg-slate-50"
+                  variant="outline" size="sm"
                 >
                   Clear
-                </button>
+                </Button>
               )}
-              <button
+              <Button
                 type="button"
                 onClick={async () => {
                   // Export the full year (not just the current page slice).
@@ -401,14 +388,14 @@ export function AttendanceV2View({ clubId: propClubId, embedded = false }: { clu
                     exportToCsv(records, yearLabel, clubName || "club", memberCount);
                   }
                 }}
-                className="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1.5 rounded-full border border-slate-200 text-slate-700 hover:bg-slate-50"
+                variant="outline" size="sm"
               >
                 <Download size={13} /> Export CSV
-              </button>
+              </Button>
               {canManage && (
                 <Link
                   href={addUrl}
-                  className="inline-flex items-center gap-1.5 text-xs font-semibold px-4 h-10 rounded-full bg-[#17458F] text-white hover:bg-[#17458F]"
+                  className="row-btn row-btn-primary"
                 >
                   <Plus size={13} /> Add Attendance
                 </Link>
@@ -421,66 +408,63 @@ export function AttendanceV2View({ clubId: propClubId, embedded = false }: { clu
             {loading ? (
               <SkeletonRows />
             ) : (
-              <table className="w-full min-w-[640px] md:min-w-full text-sm">
-                <thead className="bg-[#EDF4FB] text-[13px] text-[#64748B]">
-                  <tr>
-                    <th className="px-3 py-2.5 text-left w-10">Sr</th>
-                    <th className="px-3 py-2.5 text-left">Title</th>
-                    <th className="px-3 py-2.5 text-left">Date</th>
-                    <th className="px-3 py-2.5 text-left">Type</th>
-                    <th className="px-3 py-2.5 text-left">Attendance</th>
-                    <th className="px-3 py-2.5 text-left">Att %</th>
-                    {canView && <th className="px-3 py-2.5 text-right w-24 whitespace-nowrap">Actions</th>}
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {filtered.map((r, i) => {
-                    const evt = deriveEventType(r);
-                    const total = totalAttendees(r);
-                    const pct = memberCount > 0 ? Math.round((r.membersCount / memberCount) * 100) : 0;
-                    return (
-                      <tr key={r.id} className="hover:bg-blue-50/40">
-                        <td className="px-3 py-2 text-slate-500">{(page - 1) * PAGE_SIZE + i + 1}</td>
-                        <td className="px-3 py-2 font-medium text-slate-800">
+              <DataTable
+                caption="Attendance records"
+                card={false}
+                className="[&_table]:min-w-[640px] md:[&_table]:min-w-full"
+                rows={filtered}
+                rowKey={(r) => r.id}
+                empty={search ? "No records match your search." : "No attendance records for this year."}
+                columns={[
+{ key: "sr", header: "Sr", className: "w-10 text-muted-foreground", cell: (r, i) => (page - 1) * PAGE_SIZE + i + 1 },
+{ key: "title", header: "Title", className: "font-medium", cell: (r, i) => (<>
                           {r.eventName || "–"}
                           {r.meetingMode && r.meetingMode !== "in_person" && (
-                            <span className="ml-2 rounded-full bg-cream-2 px-2 py-0.5 text-xs font-medium text-azure">
+                            <span className="ml-2 rounded bg-cream-2 px-2 py-0.5 text-xs font-medium text-azure">
                               {r.meetingMode === "online" ? "Online" : "Hybrid"}
                             </span>
                           )}
-                        </td>
-                        <td className="px-3 py-2 text-slate-700 whitespace-nowrap">{fmtDate(r.eventDateTime)}</td>
-                        <td className="px-3 py-2">
-                          <span className={`inline-flex items-center text-xs font-medium px-2 py-0.5 rounded-full border ${evt.cls}`}>
+</>) },
+{ key: "date", header: "Date", className: "whitespace-nowrap", cell: (r, i) => fmtDate(r.eventDateTime) },
+{ key: "type", header: "Type", cell: (r, i) => {
+                    const evt = deriveEventType(r);
+return (<>
+                          <span className={`inline-flex items-center text-xs font-medium px-2 py-0.5 rounded border ${evt.cls}`}>
                             {evt.label}
                           </span>
-                        </td>
-                        <td className="px-3 py-2 text-slate-600">
+</>);
+} },
+{ key: "attendance", header: "Attendance", cell: (r, i) => {
+                    const total = totalAttendees(r);
+return (<>
                           {r.membersCount}/{memberCount || "–"} <span className="text-slate-400 text-xs">· {total} total</span>
-                        </td>
-                        <td className="px-3 py-2">
-                          <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${attendancePercentChip(pct)}`}>
+</>);
+} },
+{ key: "pct", header: "Att %", cell: (r, i) => {
+                    const pct = memberCount > 0 ? Math.round((r.membersCount / memberCount) * 100) : 0;
+return (<>
+                          <span className={`text-xs font-semibold px-2 py-0.5 rounded ${attendancePercentChip(pct)}`}>
                             {pct}%
                           </span>
-                        </td>
-                        {canView && (
-                          <td className="px-3 py-2">
+</>);
+} },
+...(canView ? [{ key: "actions", header: "Actions", align: "right" as const, className: "w-24 whitespace-nowrap", cell: (r: (typeof filtered)[number], i: number) => (<>
                             <div className="flex items-center justify-end gap-0.5">
                               {/* V2 has an /edit route but no detail page, so this
                                   dialog is the ONLY way into a record once Edit is
                                   hidden. Opens in place to keep the year + tab. */}
-                              <button
+                              <IconButton
                                 type="button"
                                 onClick={() => setViewTarget({ id: r.id, title: r.eventName })}
-                                className="inline-flex items-center justify-center w-7 h-7 rounded text-slate-500 hover:text-teal-700 hover:bg-teal-50"
+                                
                                 title="View"
                               >
                                 <Eye size={14} />
-                              </button>
+                              </IconButton>
                               {canManage && (
                                 <Link
                                   href={`/clubs/${clubId}/attendance/v2/${r.id}/edit?returnTo=${childReturnTo}`}
-                                  className="inline-flex items-center justify-center w-7 h-7 rounded text-slate-500 hover:text-blue-700 hover:bg-blue-50"
+                                  className="row-icon-btn"
                                   title="Edit"
                                   aria-label="Edit attendance"
                                 >
@@ -488,31 +472,20 @@ export function AttendanceV2View({ clubId: propClubId, embedded = false }: { clu
                                 </Link>
                               )}
                               {canManage && (
-                                <button
+                                <IconButton
                                   type="button"
                                   onClick={() => setDeleteTarget(r)}
-                                  className="inline-flex items-center justify-center w-7 h-7 rounded text-slate-400 hover:text-rose-700 hover:bg-rose-50"
+                                  className="hover:text-red-700"
                                   title="Delete"
                                   aria-label="Delete attendance"
                                 >
                                   <Trash2 size={14} />
-                                </button>
+                                </IconButton>
                               )}
                             </div>
-                          </td>
-                        )}
-                      </tr>
-                    );
-                  })}
-                  {filtered.length === 0 && (
-                    <tr>
-                      <td colSpan={canView ? 7 : 6} className="px-4 py-10 text-center text-slate-400">
-                        {search ? "No records match your search." : "No attendance records for this year."}
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
+</>) }] : []),
+                ]}
+              />
             )}
           </div>
 
@@ -524,7 +497,7 @@ export function AttendanceV2View({ clubId: propClubId, embedded = false }: { clu
             </span>
           </div>
           {totalPages > 1 && <div className="px-5 py-3 border-t border-slate-100"><Pagination page={page} totalPages={totalPages} totalCount={totalCount} pageSize={PAGE_SIZE} onPageChange={setPage} /></div>}
-        </div>
+        </Card>
 
         <CalendarFeedCard clubId={clubId} canManage={canManage} />
 

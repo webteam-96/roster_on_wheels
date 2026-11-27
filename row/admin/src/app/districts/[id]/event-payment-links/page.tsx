@@ -1,4 +1,5 @@
 "use client";
+import { LinkButton } from "@/components/ui/text-buttons";
 
 import { useState, useCallback, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
@@ -14,12 +15,11 @@ import {
 } from "@/components/ui/dropdown-menu";
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
-import { ArrowLeft, Pencil, Users, MoreHorizontal, Copy } from "@/components/icons";
+import { Pencil, Users, MoreHorizontal, Copy } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
-import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import SearchBox from "@/components/SearchBox";
-import { ListPageSkeleton } from "@/components/row/AppKit";
+import { PageHeader, ListPageSkeleton } from "@/components/row/AppKit";
 import { withBase, BASE_PATH } from "@/lib/basePath";
 
 interface PaymentLink {
@@ -70,7 +70,7 @@ export default function DistrictEventPaymentLinksPage() {
   });
 
   if (!isSuperAdmin && !isAdmin) {
-    return (<ProtectedRoute><div className="flex flex-col items-center justify-center py-20"><h3 className="text-lg font-semibold">Access Denied</h3></div></ProtectedRoute>);
+    return (<ProtectedRoute><div className="flex flex-col items-center justify-center py-20"><h3 className="row-h2">Access Denied</h3></div></ProtectedRoute>);
   }
 
   return (
@@ -79,17 +79,15 @@ export default function DistrictEventPaymentLinksPage() {
         <SuccessAlert open={!!successMessage} title="Success" description={successMessage || ""} onOk={() => setSuccessMessage(null)} />
         <ErrorAlert open={!!errorMessage} title="Error" description={errorMessage || ""} onOk={() => setErrorMessage(null)} />
 
-        <div className="flex items-center gap-3">
-          <Button variant="outline" size="icon" asChild>
-            <Link href={`/districts/${districtId}/dashboard`}><ArrowLeft className="h-4 w-4" /></Link>
-          </Button>
-          <div className="flex-1">
-            <h2 className="text-2xl font-bold tracking-tight text-primary">
-              {districtName ? `${districtName} - Event Payment Links` : "Event Payment Links"}
-            </h2>
-            <p className="text-muted-foreground text-base">View and manage event payment links for this district</p>
-          </div>
-        </div>
+        <PageHeader
+          title={districtName ? `${districtName} - Event Payment Links` : "Event Payment Links"}
+          back={`/districts/${districtId}/dashboard`}
+          actions={
+            <>
+<p className="text-muted-foreground text-base">View and manage event payment links for this district</p>
+            </>
+          }
+        />
 
         <SearchBox value={search} onChange={setSearch} placeholder="Search by title..." />
 
@@ -125,21 +123,17 @@ export default function DistrictEventPaymentLinksPage() {
 
                     <TableCell className="text-center">
                       <div className="flex items-center justify-center gap-1">
-                        <button onClick={() => window.open(withBase(`/report/${item.id}`), "_blank")}
-                          className="text-sm text-blue-600 hover:text-blue-800 hover:underline">View</button>
+                        <LinkButton onClick={() => window.open(withBase(`/report/${item.id}`), "_blank")}>View</LinkButton>
                         <span className="text-muted-foreground">|</span>
-                        <button onClick={() => { navigator.clipboard.writeText(`${window.location.origin}${BASE_PATH}/report/${item.id}`); setSuccessMessage("Report link copied."); }}
-                          className="text-sm text-blue-600 hover:text-blue-800 hover:underline">Copy</button>
+                        <LinkButton onClick={() => { navigator.clipboard.writeText(`${window.location.origin}${BASE_PATH}/report/${item.id}`); setSuccessMessage("Report link copied."); }}>Copy</LinkButton>
                       </div>
                     </TableCell>
 
                     <TableCell className="text-center">
                       {item.googleSheetId ? (
                         <div className="flex flex-col items-center gap-0.5 text-sm">
-                          <button onClick={() => window.open(`https://docs.google.com/spreadsheets/d/${item.googleSheetId}`, "_blank")}
-                            className="text-blue-600 hover:text-blue-800 hover:underline">Open</button>
-                          <button onClick={() => { navigator.clipboard.writeText(`https://docs.google.com/spreadsheets/d/${item.googleSheetId}`); setSuccessMessage("Google Sheet URL copied."); }}
-                            className="text-blue-600 hover:text-blue-800 hover:underline">Copy URL</button>
+                          <LinkButton onClick={() => window.open(`https://docs.google.com/spreadsheets/d/${item.googleSheetId}`, "_blank")}>Open</LinkButton>
+                          <LinkButton onClick={() => { navigator.clipboard.writeText(`https://docs.google.com/spreadsheets/d/${item.googleSheetId}`); setSuccessMessage("Google Sheet URL copied."); }}>Copy URL</LinkButton>
                         </div>
                       ) : (
                         <span className="text-muted-foreground">&mdash;</span>
@@ -148,7 +142,7 @@ export default function DistrictEventPaymentLinksPage() {
 
                     <TableCell>
                       <DropdownMenu>
-                        <DropdownMenuTrigger asChild><Button variant="ghost" size="icon"><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger>
+                        <DropdownMenuTrigger asChild><Button aria-label="More actions" variant="ghost" size="icon"><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                           <DropdownMenuItem onClick={() => router.push(`/districts/${districtId}/event-payment-links/${item.id}/members`)}><Users className="h-4 w-4 mr-2" />View Members</DropdownMenuItem>
                           <DropdownMenuItem onClick={() => router.push(`/districts/${districtId}/event-payment-links/edit?editId=${item.id}`)}><Pencil className="h-4 w-4 mr-2" />Edit Details</DropdownMenuItem>

@@ -1,45 +1,58 @@
 "use client";
 
 /**
- * NavigationLoader — a full-screen overlay spinner shown on every in-app navigation.
+ * NavigationLoader: a thin bar at the top of the window while the next page loads. The page in front stays on screen
+ * and softens (globals.css `html[data-navigating]`); it used to be covered by a full-screen loader on every click.
  *
  * How it works (App Router has no built-in router events):
- *  - A capture-phase document click listener detects clicks on internal <a>/<Link>
- *    anchors that will actually navigate (same-origin, different path/query, plain
- *    left-click). It shows the overlay immediately so the click feels responsive.
- *  - When the route (pathname or query string) changes, the navigation is done and the
- *    overlay is hidden.
- *  - Also listens for a custom `nav-loader:show` event so programmatic router.push()
- *    call-sites can trigger it, and a safety timeout guarantees the overlay can never
- *    get stuck if a click resolves to no real navigation.
+ *  - A capture-phase document click listener detects clicks on internal <a>/<Link> anchors that will actually
+ *    navigate (same-origin, different path/query, plain left-click). The bar starts after a short pause, so a page
+ *    that is already loaded changes without any flicker.
+ *  - When the route (pathname or query string) changes, the bar completes and fades.
+ *  - Also listens for a custom `nav-loader:show` event so programmatic router.push() call-sites can trigger it, and
+ *    a safety timeout guarantees the bar can never get stuck if a click resolves to no real navigation.
  */
 
 import { useEffect, useRef, useState } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
-import RotaryLoader from "@/components/RotaryLoader";
+
+type Phase = "idle" | "loading" | "done";
+
+const START_DELAY_MS = 90;
+const FADE_MS = 400;
 
 export default function NavigationLoader() {
-  const [visible, setVisible] = useState(false);
+  const [phase, setPhase] = useState<Phase>("idle");
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const startRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const safetyRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const clearSafety = () => {
-    if (timeoutRef.current) { clearTimeout(timeoutRef.current); timeoutRef.current = null; }
+  const clearTimers = () => {
+    if (startRef.current) clearTimeout(startRef.current);
+    if (safetyRef.current) clearTimeout(safetyRef.current);
+    startRef.current = safetyRef.current = null;
   };
 
-  // Route (path or query) changed → navigation finished → hide.
+  // Route (path or query) changed: navigation finished.
   useEffect(() => {
-    setVisible(false);
-    clearSafety();
+    clearTimers();
+    setPhase((p) => (p === "loading" ? "done" : p));
   }, [pathname, searchParams]);
 
   useEffect(() => {
+    document.documentElement.toggleAttribute("data-navigating", phase === "loading");
+    if (phase !== "done") return;
+    const t = setTimeout(() => setPhase("idle"), FADE_MS);
+    return () => clearTimeout(t);
+  }, [phase]);
+
+  useEffect(() => {
     const show = () => {
-      setVisible(true);
-      clearSafety();
-      // Safety net: never let the overlay linger if navigation didn't actually happen.
-      timeoutRef.current = setTimeout(() => setVisible(false), 12000);
+      clearTimers();
+      startRef.current = setTimeout(() => setPhase("loading"), START_DELAY_MS);
+      // Safety net: never let the bar linger if navigation didn't actually happen.
+      safetyRef.current = setTimeout(() => setPhase("idle"), 12000);
     };
 
     const onClick = (e: MouseEvent) => {
@@ -75,20 +88,17 @@ export default function NavigationLoader() {
     return () => {
       document.removeEventListener("click", onClick, true);
       window.removeEventListener("nav-loader:show", onCustomShow);
-      clearSafety();
+      clearTimers();
+      document.documentElement.removeAttribute("data-navigating");
     };
   }, []);
 
-  if (!visible) return null;
+  if (phase === "idle") return null;
 
   return (
-    <div
-      className="fixed inset-0 z-[9999] flex items-center justify-center bg-card"
-      role="status"
-      aria-live="polite"
-      aria-busy="true"
-    >
-      <RotaryLoader size="lg" label="Loading…" />
+    <div className="pointer-events-none fixed inset-x-0 top-0 z-[9999] h-[3px]" role="status" aria-busy={phase === "loading"}>
+      <span className="sr-only">Loading</span>
+      <div className="row-nav-bar h-full bg-marigold" data-done={phase === "done" ? "" : undefined} />
     </div>
   );
 }

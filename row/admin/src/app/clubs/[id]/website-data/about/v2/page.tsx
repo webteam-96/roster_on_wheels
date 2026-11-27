@@ -22,14 +22,13 @@
  * cards, blue/white gradient header strip, compact KPI tiles at the top.
  */
 
+import { NativeSelect } from "@/components/ui/native-select";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { useParams, useSearchParams } from "next/navigation";
-import Link from "next/link";
 import dynamic from "next/dynamic";
-import {
-  ArrowLeft, FileText, Plus, Pencil, Trash2, AlertTriangle,
-  Eye, EyeOff, Info, Loader2, CheckCircle2, Lock, Hash, Activity, Sparkles,
-} from "@/components/icons";
+import { FileText, Plus, Pencil, Trash2, AlertTriangle, Eye, EyeOff, Info, Loader2, CheckCircle2, Lock, Hash, Activity, Sparkles } from "@/components/icons";
 import type { LucideIcon } from "@/components/icons";
 import { ClubAbout } from "@/types/about";
 import {
@@ -48,7 +47,7 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import ClubAdminShell from "@/components/v2/ClubAdminShell";
 import "react-quill-new/dist/quill.snow.css";
 import { useSyncClubIdFromUrl } from "@/hooks/useSyncClubIdFromUrl";
-import { SkeletonRows } from "@/components/row/AppKit";
+import { PageHeader, SkeletonRows } from "@/components/row/AppKit";
 
 const ReactQuill = dynamic(() => import("react-quill-new"), { ssr: false });
 
@@ -266,27 +265,13 @@ export default function AboutV2Page() {
         <ErrorAlert open={!!errorMessage} title="Error" description={errorMessage || ""} onOk={() => setErrorMessage(null)} />
 
         {/* Header */}
-        <div className="flex items-start justify-between gap-3">
-          <div className="flex items-start gap-2">
-            <Link
-              href={defaultBack}
-              className="mt-0.5 inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50"
-              aria-label="Back"
-            >
-              <ArrowLeft size={15} />
-            </Link>
-            <div>
-              <h1 className="text-lg font-semibold text-slate-800">
-                {clubName ? `${clubName}: About Us` : "About Us"}
-              </h1>
-              <p className="text-xs text-slate-500 mt-0.5">
-                The story that appears on your public website. One record per club.
-              </p>
-            </div>
-          </div>
-          {!loading && about && (
+        <PageHeader
+          title={clubName ? `${clubName}: About Us` : "About Us"}
+          description="The story that appears on your public website. One record per club."
+          back={defaultBack}
+          actions={!loading && about && (
             <span
-              className={`inline-flex items-center gap-1 text-xs font-medium px-2 py-1 rounded-full border ${
+              className={`inline-flex items-center gap-1 text-xs font-medium px-2 py-1 rounded border ${
                 about.isActive
                   ? "bg-emerald-50 text-emerald-700 border-emerald-200"
                   : "bg-slate-100 text-slate-600 border-slate-200"
@@ -296,7 +281,7 @@ export default function AboutV2Page() {
               {about.isActive ? "Active" : "Inactive"}
             </span>
           )}
-        </div>
+        />
 
         {/* Loading */}
         {loading && (
@@ -314,13 +299,13 @@ export default function AboutV2Page() {
 
         {/* Empty state — no record yet */}
         {!loading && !about && (
-          <div className="bg-card rounded-2xl border border-slate-200 overflow-hidden">
+          <Card className="overflow-hidden">
             <div className="px-5 py-3 border-b border-slate-100 flex items-center gap-2 bg-blue-50">
               <div className="w-9 h-9 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center">
                 <Sparkles size={18} />
               </div>
               <div>
-                <h3 className="text-sm font-semibold text-slate-800">Tell visitors who you are</h3>
+                <h3 className="row-h3">Tell visitors who you are</h3>
                 <p className="text-xs text-slate-500">No about content yet · single record per club</p>
               </div>
             </div>
@@ -328,23 +313,23 @@ export default function AboutV2Page() {
               <div className="w-14 h-14 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center mb-3">
                 <Info size={26} />
               </div>
-              <h3 className="text-sm font-semibold text-slate-800">No about content yet</h3>
+              <h3 className="row-h3">No about content yet</h3>
               <p className="text-xs text-slate-500 mt-1 max-w-md">
                 {canManage
                   ? "Add a paragraph or two introducing the club, its history, or its mission. Up to 5,000 characters with rich formatting and inline images."
                   : "An Admin or SuperAdmin will add this soon."}
               </p>
               {canManage && (
-                <button
+                <Button
                   type="button"
                   onClick={openAddDialog}
-                  className="mt-5 inline-flex items-center gap-1 text-sm font-semibold px-4 py-1.5 rounded-full bg-[#17458F] text-white hover:bg-[#17458F]"
+                  size="sm" className="mt-5"
                 >
                   <Plus size={14} /> Add About
-                </button>
+                </Button>
               )}
             </div>
-          </div>
+          </Card>
         )}
 
         {/* Existing record — KPI tiles + preview card */}
@@ -376,40 +361,40 @@ export default function AboutV2Page() {
             </div>
 
             {/* Preview card */}
-            <div className="bg-card rounded-2xl border border-slate-200 overflow-hidden">
+            <Card className="overflow-hidden">
               <div className="px-5 py-3 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-blue-50">
                 <div className="flex flex-wrap items-center gap-2">
                   <div className="w-9 h-9 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center">
                     <FileText size={18} />
                   </div>
                   <div>
-                    <h3 className="text-sm font-semibold text-slate-800">About preview</h3>
+                    <h3 className="row-h3">About preview</h3>
                     <p className="text-xs text-slate-500">Rendered exactly as it appears on the public site</p>
                   </div>
                 </div>
                 {canManage && (
                   <div className="flex flex-wrap items-center gap-2">
-                    <button
+                    <Button
                       type="button"
                       onClick={handleToggleActive}
-                      className="inline-flex items-center gap-1 text-xs font-medium px-3 py-1.5 rounded-full border border-slate-200 text-slate-700 hover:bg-slate-50"
+                      variant="outline" size="sm"
                     >
                       {about.isActive ? <><EyeOff size={13} /> Deactivate</> : <><Eye size={13} /> Activate</>}
-                    </button>
-                    <button
+                    </Button>
+                    <Button
                       type="button"
                       onClick={openEditDialog}
-                      className="inline-flex items-center gap-1 text-xs font-semibold px-3 py-1.5 rounded-full bg-[#17458F] text-white hover:bg-[#17458F]"
+                      size="sm"
                     >
                       <Pencil size={13} /> Edit
-                    </button>
-                    <button
+                    </Button>
+                    <Button
                       type="button"
                       onClick={() => setShowDeleteConfirm(true)}
-                      className="inline-flex items-center gap-1 text-xs font-medium px-3 py-1.5 rounded-full border border-rose-200 text-rose-700 hover:bg-rose-50"
+                      variant="outline" size="sm" className="text-red-700"
                     >
                       <Trash2 size={13} /> Delete
-                    </button>
+                    </Button>
                   </div>
                 )}
               </div>
@@ -420,7 +405,7 @@ export default function AboutV2Page() {
                   dangerouslySetInnerHTML={{ __html: about.content }}
                 />
               </div>
-            </div>
+            </Card>
           </>
         )}
 
@@ -462,34 +447,34 @@ export default function AboutV2Page() {
               </div>
               <div className="space-y-2">
                 <label className="block text-xs font-semibold text-slate-700">Status</label>
-                <select
+                <NativeSelect
                   value={formIsActive}
                   onChange={(e) => setFormIsActive(e.target.value)}
-                  className="w-40 px-3 h-10 py-0 text-sm border border-slate-200 rounded-[12px] bg-card focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                  className="w-40"
                 >
                   <option value="1">Active</option>
                   <option value="0">Inactive</option>
-                </select>
+                </NativeSelect>
               </div>
             </div>
             <DialogFooter>
-              <button
+              <Button
                 type="button"
                 onClick={() => setDialogOpen(false)}
                 disabled={saving}
-                className="inline-flex items-center gap-1 text-sm font-medium px-3 py-1.5 rounded-full border border-slate-200 text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+                variant="outline" size="sm"
               >
                 Cancel
-              </button>
-              <button
+              </Button>
+              <Button
                 type="button"
                 onClick={handleSave}
                 disabled={saving || formCharOver}
-                className="inline-flex items-center gap-1 text-sm font-semibold px-4 py-1.5 rounded-full bg-[#17458F] text-white hover:bg-[#17458F] disabled:opacity-50"
+                size="sm"
               >
                 {saving ? <Loader2 className="animate-spin" size={14} /> : null}
                 {saving ? "Saving…" : editing ? "Update" : "Add"}
-              </button>
+              </Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
@@ -529,7 +514,7 @@ function KpiTile({
     slate:   { bg: "bg-slate-100",   fg: "text-slate-600" },
   }[color];
   return (
-    <div className="bg-card rounded-2xl border border-slate-200 p-4 flex items-center gap-3">
+    <Card className="p-5 flex items-center gap-3">
       <div className={`w-10 h-10 rounded-lg ${palette.bg} ${palette.fg} flex items-center justify-center flex-shrink-0`}>
         <Icon size={18} />
       </div>
@@ -538,6 +523,6 @@ function KpiTile({
         <p className="text-sm font-semibold text-slate-800 truncate">{value}</p>
         {sublabel && <p className="text-[11px] text-slate-400 truncate">{sublabel}</p>}
       </div>
-    </div>
+    </Card>
   );
 }

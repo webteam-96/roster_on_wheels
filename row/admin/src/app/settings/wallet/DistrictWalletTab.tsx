@@ -1,4 +1,5 @@
 "use client";
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
 
 /**
  * SuperAdmin › Wallet › District Wallet.
@@ -7,6 +8,7 @@
  * Credits have a fixed rate (no per-district pricing) — this tab is copy-links only.
  */
 
+import { Card } from "@/components/ui/card";
 import { useCallback, useEffect, useState } from "react";
 import { RefreshCw, Loader2, Copy, Check } from "@/components/icons";
 import { Button } from "@/components/ui/button";
@@ -55,13 +57,13 @@ export default function DistrictWalletTab() {
       <ErrorAlert open={!!errorMessage} title="Error" description={errorMessage || ""} onOk={() => setErrorMessage(null)} />
 
       <div>
-        <h2 className="text-lg font-semibold text-slate-800">District Wallet</h2>
+        <h2 className="row-h2">District Wallet</h2>
         <p className="text-sm text-slate-500">Shareable email credit top-up links per district.</p>
       </div>
 
       {/* Common (pick-a-district) shareable links */}
       {commonLinks && (
-        <div className="rounded-[20px] border border-slate-200 bg-card p-4">
+        <Card className="p-5">
           <div className="text-sm font-medium text-slate-700">Shareable links: any district</div>
           <p className="text-[11px] text-slate-400 mt-0.5 mb-3">Each opens a search: the district admin picks their district, sees its balance, and pays. Copy &amp; share.</p>
           <div className="flex flex-wrap gap-2">
@@ -75,7 +77,7 @@ export default function DistrictWalletTab() {
               );
             })}
           </div>
-        </div>
+        </Card>
       )}
 
       {/* Filter */}
@@ -93,29 +95,29 @@ export default function DistrictWalletTab() {
       </div>
 
       {/* Table */}
-      <div className="overflow-x-auto rounded-xl border border-slate-200 bg-card">
-        <table className="w-full text-sm">
-          <thead className="bg-slate-50 text-slate-600">
-            <tr>
-              <th className="text-left px-3 py-2.5 font-medium">District</th>
-              <th className="text-right px-3 py-2.5 font-medium">Email balance</th>
-              <th className="text-right px-3 py-2.5 font-medium">Copy links</th>
-            </tr>
-          </thead>
-          <tbody>
+      <Card className="overflow-x-auto">
+        <Table className="w-full text-sm">
+          <TableHeader>
+            <TableRow>
+              <TableHead className="text-left px-3">District</TableHead>
+              <TableHead className="text-right px-3">Email balance</TableHead>
+              <TableHead className="text-right px-3">Copy links</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
             {loading ? (
-              <tr><td colSpan={4} className="px-4 py-3"><SkeletonRows /></td></tr>
+              <TableRow><TableCell colSpan={4} className="px-4 py-3"><SkeletonRows /></TableCell></TableRow>
             ) : rows.length === 0 ? (
-              <tr><td colSpan={4} className="px-3 py-10 text-center text-slate-400">No districts found.</td></tr>
+              <TableRow><TableCell colSpan={4} className="px-3 py-10 text-center text-slate-400">No districts found.</TableCell></TableRow>
             ) : rows.map((r) => (
-              <tr key={r.districtId} className="border-t border-slate-100 hover:bg-slate-50/60">
-                <td className="px-3 py-2 font-medium text-slate-800">District {r.districtNumber}</td>
-                <td className="px-3 py-2 text-right whitespace-nowrap">{r.emailBalance.toLocaleString(appLocale())}</td>
-              </tr>
+              <TableRow key={r.districtId} className="border-t border-slate-100 hover:bg-slate-50/60">
+                <TableCell className="px-3 py-2 font-medium text-slate-800">District {r.districtNumber}</TableCell>
+                <TableCell className="px-3 py-2 text-right whitespace-nowrap">{r.emailBalance.toLocaleString(appLocale())}</TableCell>
+              </TableRow>
             ))}
-          </tbody>
-        </table>
-      </div>
+          </TableBody>
+        </Table>
+      </Card>
     </div>
   );
 }

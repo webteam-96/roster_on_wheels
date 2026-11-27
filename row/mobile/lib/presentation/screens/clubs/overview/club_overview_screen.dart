@@ -129,26 +129,26 @@ class _ClubOverviewScreenState extends State<ClubOverviewScreen> {
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.15),
+              color: AppColors.primaryPrime.withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: Colors.white.withValues(alpha: 0.30)),
+              border: Border.all(color: AppColors.primaryPrime.withValues(alpha: 0.30)),
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
                 const Icon(Icons.calendar_today_rounded,
-                    size: 12, color: Colors.white),
+                    size: 12, color: AppColors.primaryPrime),
                 const SizedBox(width: 5),
                 Text(
                   selLabel.isEmpty ? 'Year' : selLabel,
                   style: AppFonts.body(
                     fontSize: 13,
                     fontWeight: FontWeight.w700,
-                    color: Colors.white,
+                    color: AppColors.primaryPrime,
                   ),
                 ),
                 const Icon(Icons.arrow_drop_down_rounded,
-                    size: 18, color: Colors.white),
+                    size: 18, color: AppColors.primaryPrime),
               ],
             ),
           ),
@@ -194,6 +194,7 @@ class _ClubOverviewScreenState extends State<ClubOverviewScreen> {
           elevation: 0,
           centerTitle: false,
           leading: IconButton(
+            tooltip: MaterialLocalizations.of(context).backButtonTooltip,
             icon: const Icon(Icons.arrow_back_ios_new_rounded,
                 color: AppColors.textPrimary),
             onPressed: () => context.pop(),

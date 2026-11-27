@@ -4,6 +4,215 @@ The NestJS backend is a faithful port of the RIZones API. These are places
 where ROW will probably want different behaviour. They are **not** made yet
 unless marked "done"; decide them when the area is worked on.
 
+## 2026-11-27: district websites on the club-site wildcard (owner; not committed)
+
+- Address rule: `d<district number>.test.rosteronwheels.com`. Reason: same as club sites, one wildcard, nothing to set up per district.
+- `club-website/public/web.config`: four "District site" rules first (host `^d\d+\.` -> `district/...`, clean URLs -> `.html`).
+- `DistrictWebsitesController` website-status: parent domain from `ClubWebsiteParentDomain`, as for clubs.
+- Admin `settings/district-websites`: parent domain from settings (was the placeholder `portal.example.org`); picking a district fills `d<number>`.
+- Production: district 5656 Subdomain `rid5656` -> `d5656` (undo: set it back). The named-subdomain plan (`rid5656.test`) is dropped.
+
+## 2026-11-27: RIZones pull port, new goal flow, admin components, OMS ROW-94 to ROW-97 (owner; not committed)
+
+- **RIZones 21-27 Nov pulled and ported** (API 8 commits, app 4 + the Make Admin year picker 5b37693):
+  - OCV/GOV: Static and Additional Documents are free of year-wise admin rights (any admin of the club), API, web, app.
+  - Edit Years for existing club and district admins: `POST api/admin/club-admin-years`,
+    `POST api/districts/{d}/members/{m}/admin-years`, web dialogs, app picker (the app pre-ticks only years the caller can
+    grant; the web dialog always ticks the current year, check in the tester round).
+  - QR Attendance: mobile living QR + admin scanner, Super Admin switch per club (`settings/attendance-qr`, off everywhere).
+    "Today" = within 14 h of the meeting time in UTC, not India time. Script `database/maintenance/2026-11-27-attendance-qr.sql`.
+  - App: All Club Access (My Connections card), iOS 15 / UIScene (not built on a Mac yet).
+  - Not ported: the Institute 2027 assistant bot (RIZones event content; ROW has no Institute bots).
+- **New goal flow** (RIZones 17-23 Nov, owner: whole flow, Disha off): District Set Goals (26 RCC questions, RCC Set Points,
+  batch save of changed goals only), RCC Goals pages, Rotary.org sync per year with cancel, per-unit District Awards points,
+  nightly RISAO fill. Disha Goals built behind feature `disha_goals` (off: API 404, pages hidden). No Goal Setting roles.
+  Script `database/maintenance/2026-11-27-goal-flow.sql`. Not tried on a database or in a browser before wave 2.
+- **Admin components** (plan `docs/plans/2026-11-26-admin-components-finish.md`): new shared `ui/text-buttons`
+  (LinkButton, ToggleButton, FilterChips, ClearButton, RemoveBadgeButton, MenuItemButton) and `ui/data-table` (DataTable,
+  MatrixTable); `Table bare`; hand-written `<button>` 575 to about 130, `<table>` 189 to about 16 (left: print sheets, calendar
+  cells, upload zones, tiles, on-dark banner buttons). Guard counts lowered in `designParts.test.ts`.
+- **OMS:**
+  - ROW-94 Foundation designations: the club page now assigns and removes (member picker + the profile's designation card).
+    API checked as club admin (add, report, remove; non-admin 403).
+  - ROW-95 RI data "Could not load the officer compare": `ri_club_officers` / `ri_club_officer_sync` existed only in a manual
+    script; a database without them answers 500. The API now creates them at start (`DatabaseInitializer.SpecCompletion.cs`).
+    The step also runs on every start, SkipInit or not (`EnsureRiOfficerTablesAsync`, Program.cs): proven locally by hiding the
+    table and restarting with SkipInit=true. Production: deploy the API (needs ALTER/CREATE rights for the DB user).
+  - ROW2-1 Youth Programs 403: by design only the appointed district youth chair (and club youth officers) see participants and
+    clearances (`YouthController.cs`, competitor-gaps plan). The real fault was the page re-requesting on every render (scope
+    object rebuilt each render): memoised in `components/youth/YouthPrograms.tsx`; the "visible only to the youth chair" card shows.
+    Tester: a DG sees the records after appointing a youth chair (themselves or someone else).
+  - ROW2-2 District Dues 500: `club_dues.Currency` / `NotifyEmail` came only from the RIZones-pull schema step, which SkipInit
+    skips. `EnsureDuesColumnsAsync` now runs on every start. The page shows an inline error with "Try again" instead of the
+    generic dialog. Production: deploy the API, or run `_local/deploy/sql/2026-11-23-full-schema-catchup.sql`.
+  - Risk noted: with `Database:SkipInit=true` other later schema steps are probably missing on production too; the catch-up
+    script covers those up to 23 Nov.
+- **Independent review (wave 4) fixes:** District Set Goals answers scored a choose-one option by option id alone, so a club
+  admin could post another question's higher-value option: options are now keyed by (question, option)
+  (`GoalFlowController.SaveClubAnswers`). Rotary.org sync: a running sync of another year is no longer returned as the one asked
+  for (409 instead), and Cancel checks rights for the sync's own year. `rcc-goals/rotary-goals` lost RIZones' "Super Admin until
+  tested" line (scope check decides; no caller yet). Startup warns when `AttendanceQr:Secret` is unset. `sortRows` treats NaN as
+  empty. Not tested automatically: the goal-answer fix (database code inside the controller).
+- **Package:** `_local/deploy-2026-11-27/` (api + admin under /admin + sql, README). Smoke-tested: packaged admin and API start
+  and answer.
+- **Afternoon, finishing the components plan** (owner: the work was called done while plan items were open):
+  - New shared parts: `UploadZone`, `TileButton`, `CalendarCell`, `RadioChips`, `MenuItemButton tone="dark"`,
+    `Button variant="onDark"`; `DialogContent` returns focus to the opener on close. Hand-written `<button>` now 3 (sidebar nav
+    item, CMR v2 step indicator, dev preview) and `<table>` 6 (CMR print sheets); guard lowered to match.
+  - Accessible names: every crawled page has 0 unnamed controls (checkboxes the crawler flags have real `<label>`s).
+  - Every add / edit form run through save, list, edit, delete on the local copy (agents F1-F5, results in
+    `_local/qa/finish-2026-11-27/`). Real faults found and fixed: sub-group edit sent no year (403); payment links for a
+    district could never be created ("No club specified": `EventPaymentLinksController` used the club-only year check for
+    district links, now the district check). Not faults: one dues set per club and year, one custom menu per club, past
+    president one per year, deleting an active payment link needs deactivating first (the API answers that with 500; should
+    be 400, left as is).
+  - Full crawl of all 381 admin pages (4 roles, 1440): no page errors. It found District Set Goals answering 500 on a
+    database without the goal-flow tables (they came only from the SkipInit-skipped step): `EnsureGoalFlowTablesAsync` now runs
+    on every start; proven on a fresh restore of the copy.
+  - Not verified locally: Super Admin role config (its OTP needs `SuperAdminApproval:OtpEmail` and email, server only) and
+    the committee email form (sends real email). The app was not run on the phone emulator.
+  - Owner decisions: club admins see the add-member form but only Super Admin may add (403); terminated members page lets an
+    admin terminate themselves; the dashboard renders two nested `<main>` elements (shared layout).
+  - ROW-96 Engagement empty: no data, not a fault. Cards come only from the hourly job, which does nothing while the feature is
+    off, and it only picks up anniversaries of the last 7 days, PHF of the last 90 days and reached targets. Empty state now
+    says so. Owner: a one-off catch-up of older milestones is a product decision.
+  - ROW-97 Contacts dropdowns: the committed build used a 36px white page-only select; today's change put every Contacts select
+    on the shared field. Tester to confirm against the attachment.
+
+## 2026-11-25: app member test, 24 findings fixed (owner; not committed)
+
+Findings: `_local/qa/app-member-2026-11-25/FINDINGS.md`. Re-tested on the Pixel 7 emulator after the redesign.
+
+- **District and club report** (`district-report`, `club-report` and their `/api/mobile` twins) gave any member every
+  member's phone, email, birth date and address: now the managers only, as on the member export; an AG for their own clubs.
+  A club admin no longer reads the district report. `ocv-gov?clubId=` is held to the district in the URL.
+- **Member modules:** `IsDefaultForMember` was 0 everywhere, so members saw "No modules". 20 modules on:
+  `database/maintenance/2026-11-25-member-modules.sql` (+ down) and the seed. NOT run on production: the owner OKs the list.
+- **Birth year:** a save no longer turns the stored year into 1900; the rule of 85 ignores 1900.
+- **Switched-off fields:** blood group, family and family photo, which the API hides while their switch is off, were cleared by
+  every profile save. Kept now; the app hides the fields.
+- **Profile editor:** locked blank fields no longer block the save, no India default, postal codes with letters, asks before
+  losing edits. Same in the admin's member form (except the question).
+- **Event time:** "your time" was UTC for everybody. **Web links:** members get the list that opens. **Text size:** follows the
+  phone, 120% to 160%. **Back** closes the drawer. **Errors** in sheets and dialogs show on top of them.
+- **No SMS buttons, no OTP wording** in the app. The four home tiles that led to admin pages are gone.
+- Counts (district clubs, Find a Rotarian, app users), blank support rows, offline wording, status bar icons, announcement
+  title, past president photo, dates and amounts, icon names for screen readers, negative project numbers refused, 22 labels
+  translated (`2026-11-25-app-labels.sql`).
+- **Kept as is:** the bare district number (earlier decision in `welcome_screen.dart`); the district directory lists a person
+  once per club.
+- **Server setting to change (owner):** `Brand:Domains:AdminOrigin` = `https://test.rosteronwheels.com/admin`, or the Terms,
+  refund and cookie links stay 404. Support email and hours are still empty.
+
+## 2026-11-25: email-only sign-in, RIZones leftovers, district switcher (owner; not committed)
+
+- **Sign-in is by email only.** `POST /api/auth/login` and password reset still took country code + mobile number (no
+  screen used it): removed, with the DTO fields. The stored procedure `sp_auth_get_member_by_mobile` is left, unused.
+  Settings > Mobile Login Check is now **App Sign-in Check**: by email, with the app's own guards (password set,
+  lock-out, trial, club status). Wording "mobile / OTP" removed from Terms, SuperAdmin config, module forms, app
+  maintenance, dues and event payment pages. Admin and API go out together: the page sends `email`.
+- **District switcher (wrong district):** the sidebar matched an entry on club OR district OR zone, so it showed the first
+  district of the selected zone, whatever district was open, and choosing that one did nothing. Entries now match on
+  their own level and use the header's selected district (`components/dashboard/currentEntry.ts`, tested).
+- **India zones hard-coded:** `ProjectCountRules` (daily report, public project stats, assistant) counted only "Zone 4" to
+  "Zone 8", and the District Membership import wrote only "Zone %" districts, so no ROW district outside the test one
+  would ever have counted. Both follow `Brand:Scope:Zones` (none = all). District 5656 stays exempt by config, so test
+  projects still count 0. Excel banner "Rotary Zones 4, 5, 6, 7 & 8 Admin Portal" is now the product name.
+- **Redesigned:** Performance Report (why a district was skipped, run filter, no test send without recipients), Project
+  Sync, Year-wise Admin Rights (a new setting starts as the opposite of the default: "switch on" under a platform that is
+  on did nothing), App Sign-in Check. Header "Back to District Admin" was white on white.
+- **Editions:** applying is refused while the district's edition, or one of its clubs' editions, has no modules ticked; it
+  switched every module off. `tenant_lifecycle_e2e.py` all pass (on a throwaway clone).
+- **District Governor:** the filters list every district (searchable) and year, not only those with a record.
+- Checked: API 652 tests, admin vitest, pages in a browser with every API call mocked (375 / 768 / 1440), email sign-in and
+  the check against a private API on the local copy.
+
+## 2026-11-25: Daily Statistics Report (owner: table only after a click, Send Email Now fails; not committed)
+
+- **Page** (`settings/daily-stats-report`): figures load on open; headline tiles, grouped panels and avenue tables; figures
+  stay while refreshing or when a refresh fails; SuperAdmin only, as the API already was. The avenue total left out Club
+  Service in the email but not on the page: now the same. `groupStats.ts` never drops a line it does not know.
+- **Send:** blank placeholders in `DailyStatsReport:Recipients` counted as recipients, so the mail went to "". Blanks are
+  ignored and the brand's list is the fallback; with none, a manual send says so (it reported success). An empty
+  `Brevo:ApiKey` counts as missing. A refusal by the mail service answers 502 with a plain message; the reason is in the logs.
+  The old confirm text said no email leaves a dev machine: a manual send always does.
+- **To work on the server:** deploy the API and set real `DailyStatsReport:Recipients` (or `Brand:ReportRecipients`) and the
+  Brevo key in `api\web.config`. Not sent for real from here.
+
+## 2026-11-25: app motion and bento grid (owner: the app is plain, no animation; not committed)
+
+Rules: `website/design.md` 8.8. Presentation only: no API, data or permission change. Method from the 60fps skills
+(`60fps-Design/plugin`, installed globally); their clip library is paid and iOS only, so the motion itself is ROW's own.
+
+- **Shared kit, so about 170 files changed mechanically:** `ListView/GridView.builder|separated|count` ->
+  `RowListView/RowGridView` (not chat), `showDialog` -> `showRowDialog`, `RefreshIndicator` -> `RowRefresh`, lone centred
+  spinners -> `LoadingWidget`, KPI values -> `RowCountUp`, determinate bars -> `RowProgressBar`.
+- **Home and dashboards are bento grids.** Club, district and unified dashboards open on the grid by default; the list
+  stays in the layout picker and a saved choice is kept. One `moduleIcon` replaces three copies of the icon lookup.
+- **Fixed on the way:** buttons that were loading went blank grey, and every `CustomButton` ran an endless ticker
+  (battery); the Admin pill faded to 35% for ever; result messages had white on green / amber below 4.5:1; the year chip
+  on the club and district overviews was white on white; the welcome club list was cut by its button.
+- **Checked:** 119 routes on the emulator with no overflow and no exception (one missing local image), sign-in, dialogs,
+  pull to refresh and card morph filmed on a profile build, reduced motion, 360dp and 800dp widths; 84 app tests pass.
+  Not checked: iOS, a real phone. Tablets: some bento rows leave an uneven edge.
+
+## 2026-11-25: admin fixed layout and shared components (owner: different header on every page, buttons too round, no card design; not committed)
+
+- **Why it drifted:** the admin came from the RIZones frontend, built page by page. 60 copies of `SectionCard`, 58 of `FieldLabel`,
+  937 hand-written buttons, about 8 page headers.
+- **One frame:** `RootShell` puts every signed-in page in the sidebar frame (`AppFrame`); Super Admin has a menu (`superAdminNav.ts`).
+  `AppHeader` is deleted, its parts are in `TopBarAccount`.
+- **Components:** about 360 headers on `PageHeader`; `SectionCard`, `FieldLabel`, `RadioPill`, `DetailRow`, `PublishStatusBadge`, `IconButton`,
+  `NativeSelect` replace the copies; `Button` and `Badge` no longer wrap Astryx. Rules: `website/design.md` 8.9.
+- **Corners:** 4 / 6 / 10px from `--r-*`; the public site keeps its own. KPI tiles are all alike (no azure lead tile).
+- **Guard:** `src/lib/designParts.test.ts`. Source before the change: `_local/backups/admin-src-2026-11-25-pre-layout/`.
+- **App icon and splash:** the ROW mark sits on `#F7F9FC` (it was `#1E1C20`, the blue disappeared). Android and iOS icons regenerated.
+- **App tiles:** no roster wheel behind any tile or connection card (owner); it stays as the loading and pull-to-refresh mark.
+- CMR v3 back button still saves the last tab before leaving. Tab bars are gone from add and edit forms.
+
+## 2026-11-25: currencies, and simulated payments for district 5656 only (owner; not committed)
+
+- **Fault:** the instance offered 13 currencies without INR, so rupees were read as the default and added up 1:1 as
+  dollars (club 1: US$14,053,038 shown; correct is INR 14,341,315). District 5656, stored INR, showed as US Dollar.
+- **Currencies:** `CountryCurrency` gives every district country its currency (checked against the system's region data,
+  `CurrencyTests`); `Brand.Currencies` defaults to all of them (a `Brand:Locale:Currencies` setting still narrows it).
+  `CurrencyHelper.Convert` never relabels a known code. Yen, won and the like print without decimals.
+- **Rates:** live feed (open.er-api.com, 12 h); last live rates if it fails; dated `CurrencySeedRates` (25 Nov 2026) until
+  the first answer after a start. The 1:1 fallback is gone.
+- **Settings > Currency:** rate column and date, "Use country currency" (only districts still on the default, audited),
+  paging. Editing a district without sending a currency keeps it; a new district takes its country's.
+- **Charged in its own currency:** district dues and club dues (were charged in USD with the same number). Invoices, the
+  monthly report (Word, PDF, previews) and project lists print each amount's own currency; page totals are one figure per
+  currency, never mixed. Event links, wallet, website and subscriptions stay in the platform currency.
+- **Website price:** set in USD; the pay pages also show the amount in the district's currency at the day's rate.
+- **Simulator lock:** `Payments:SimulatedDistricts` (district numbers, comma separated). Outside Development an empty list
+  means none. Checked when the order is made and again when it settles. Production still refuses the simulator.
+- **Tests:** `api.Tests/CurrencyTests.cs`; `kb/tools/payments_district_lock_e2e.py` (Staging, list 5656).
+- **Not done:** older (V1) project add/edit pages still label the cost box with the platform sign (the saved currency is right); a
+  member statement over dues in two currencies prints one sign; the mobile app takes the currency list from the API.
+
+## 2026-11-25: admin look and motion (owner: too plain, some AI slop, white too bright; not committed)
+
+Rules: `website/design.md` 8.7. Presentation only: no API, data or permission change.
+
+- **Surfaces:** white steps are softened by token (`globals.css`, `tailwind.config.ts` `v()`, `fellowshipTheme.tsx`);
+  about 110 files used the hexes directly and now use the tokens. Public site (`.site-shell`), print and the CMR PDF
+  (`.row-paper`, `cmrPdfFromPage.ts` onclone) stay white.
+- **Navigation:** the full-screen loader on every click is gone (`NavigationLoader`); `NavigationProgress` and the
+  unused `RouteLoadingIndicator` are deleted.
+- **Shell:** one `ShellFrame` + `Sidebar` for DashboardShell, ClubAdminShell, DistrictAdminShell and GoalOversightShell
+  (they were four hand-kept copies). Menus are grouped with icons (`nav.ts` `group`); items moved, none removed. V2 pages now also hide
+  items whose instance feature is off, as the dashboards already did. Drawer closes with Escape.
+- **Parts:** `KpiTile` lead tile + `CountUp`, `Glide` pill, `PillTabs` (replaces five hand-made strips), skeleton band.
+- **Club overview:** figures first (4 per row); the sync / email / website strip and the Rotary.org card sit below them.
+- **Fixed on the way:** table headers on navy rows had dark grey text (79 places plus inline-styled ones).
+- **Owner's live check, same day:** picking a date (or anything in a popover) inside a dialog closed the dialog:
+  `@radix-ui/react-dialog` 1.3.1 and popover / select / menu had separate copies of `react-dismissable-layer`. Dialog is
+  pinned to 1.1.15, one copy now; do not bump one Radix package alone.
+- Club website pricing form pre-filled 14999 / 10999 (rupees) and tax 18: empty now, a price must be entered.
+- Plesk Tools menus and "Re-apply SSL" show only when Plesk is configured (`pleskConfigured` in club-websites settings).
+- Club website reminder / activation / pay-link emails count a failed send as failed (they counted it as sent).
+
 ## 2026-11-23: admin UI fixes from the owner's live review (not committed)
 
 - **Buttons:** 10px corners (`rounded-go-md`) instead of a pill; a trailing icon (dropdown chevron on Tools / Export)

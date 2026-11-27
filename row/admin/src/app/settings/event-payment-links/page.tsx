@@ -1,5 +1,9 @@
 "use client";
+import { IconButton } from "@/components/ui/icon-button";
+import { LinkButton } from "@/components/ui/text-buttons";
 
+import { Card } from "@/components/ui/card";
+import { NativeSelect } from "@/components/ui/native-select";
 import { useState, useCallback, useEffect } from "react";
 import { eventPayPath, getEventPaymentLinks, deleteEventPaymentLink, toggleEventPaymentLinkActive, exportEventMembers, createGoogleSheetForLink, deleteGoogleSheetForLink, refreshEventSettlements, getEventSettlementReport } from "@/services/api";
 import { fileTimestamp } from "@/lib/dateUtils";
@@ -11,7 +15,7 @@ import {
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
 import AlertModal from "@/components/AlertModal";
-import { ArrowLeft, Plus, Pencil, Trash2, Users, AlertTriangle, FileSpreadsheet, Download, RefreshCw, BarChart3 } from "@/components/icons";
+import { Plus, Pencil, Trash2, Users, AlertTriangle, FileSpreadsheet, RefreshCw, BarChart3 } from "@/components/icons";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
@@ -22,7 +26,7 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import SearchBox from "@/components/SearchBox";
 
 import { appLocale, currencySymbol } from "@/lib/appFormat";
-import { ListPageSkeleton } from "@/components/row/AppKit";
+import { PageHeader, ListPageSkeleton } from "@/components/row/AppKit";
 import { withBase, BASE_PATH } from "@/lib/basePath";
 interface PaymentLink {
   id: number;
@@ -144,7 +148,7 @@ export default function EventPaymentLinksPage() {
   });
 
   if (!isSuperAdmin) {
-    return (<ProtectedRoute><div className="flex flex-col items-center justify-center py-20"><h3 className="text-lg font-semibold">Access Denied</h3></div></ProtectedRoute>);
+    return (<ProtectedRoute><div className="flex flex-col items-center justify-center py-20"><h3 className="row-h2">Access Denied</h3></div></ProtectedRoute>);
   }
 
   return (
@@ -153,37 +157,37 @@ export default function EventPaymentLinksPage() {
         <SuccessAlert open={!!successMessage} title="Success" description={successMessage || ""} onOk={() => setSuccessMessage(null)} />
         <ErrorAlert open={!!errorMessage} title="Error" description={errorMessage || ""} onOk={() => setErrorMessage(null)} />
 
-        <div className="flex items-center gap-3 flex-wrap">
-          <Button variant="outline" size="icon" asChild>
-            <Link href="/settings/payments-and-dues"><ArrowLeft className="h-4 w-4" /></Link>
-          </Button>
-          <div className="flex-1">
-            <h2 className="text-2xl font-bold tracking-tight text-primary">Event Payment Links</h2>
-          </div>
-          <select
+        <PageHeader
+          title="Event Payment Links"
+          back="/settings/payments-and-dues"
+          actions={
+            <>
+<NativeSelect
             value={districtNumberFilter}
             onChange={(e) => setDistrictNumberFilter(e.target.value)}
-            className="h-10 rounded-md border border-input bg-background px-3 text-sm"
+            className="w-auto"
             aria-label="Filter by district number"
           >
             <option value="all">All Districts</option>
             {districtNumberOptions.map((d) => (
               <option key={d} value={d}>District {d}</option>
             ))}
-          </select>
-          <SearchBox value={search} onChange={setSearch} placeholder="Search..." className="w-64" />
-          <Button asChild>
+          </NativeSelect>
+<SearchBox value={search} onChange={setSearch} placeholder="Search..." className="w-64" />
+<Button asChild>
             <Link href="/settings/event-payment-links/create"><Plus className="h-4 w-4 mr-2" />Add</Link>
           </Button>
-        </div>
+            </>
+          }
+        />
 
         {loading ? (
           <div className="flex justify-center py-10"><ListPageSkeleton /></div>
         ) : (
-          <div className="overflow-x-auto border rounded-lg">
+          <Card className="overflow-x-auto">
             <Table>
               <TableHeader>
-                <TableRow className="bg-primary text-primary-foreground hover:bg-primary">
+                <TableRow>
                   <TableHead className="w-[50px]">Sr. No.</TableHead>
                   <TableHead>Form Type</TableHead>
                   <TableHead>District Number</TableHead>
@@ -223,77 +227,70 @@ export default function EventPaymentLinksPage() {
 
                     {/* Edit */}
                     <TableCell className="text-center">
-                      <button onClick={() => router.push(`/settings/event-payment-links/create?editId=${item.id}`)}
-                        className="inline-flex items-center justify-center">
+                      <IconButton aria-label="Edit" onClick={() => router.push(`/settings/event-payment-links/create?editId=${item.id}`)}>
                         <Pencil className="h-5 w-5 text-blue-500 hover:text-blue-700 cursor-pointer" />
-                      </button>
+                      </IconButton>
                     </TableCell>
 
                     {/* Member Details */}
                     <TableCell className="text-center">
-                      <button onClick={() => router.push(`/settings/event-payment-links/${item.id}/members`)}
-                        className="inline-flex items-center justify-center">
+                      <IconButton aria-label="Members" onClick={() => router.push(`/settings/event-payment-links/${item.id}/members`)}>
                         <Users className="h-5 w-5 text-teal-600 hover:text-teal-800 cursor-pointer" />
-                      </button>
+                      </IconButton>
                     </TableCell>
 
                     {/* View | Copy URL */}
                     <TableCell className="text-center">
                       <div className="flex items-center justify-center gap-1 text-sm">
-                        <button onClick={() => window.open(withBase(eventPayPath(item)), "_blank")}
-                          className="text-blue-600 hover:text-blue-800 hover:underline">View</button>
+                        <LinkButton onClick={() => window.open(withBase(eventPayPath(item)), "_blank")}>View</LinkButton>
                         <span className="text-muted-foreground">|</span>
-                        <button onClick={() => handleCopyUrl(item)}
-                          className="text-blue-600 hover:text-blue-800 hover:underline">Copy URL</button>
+                        <LinkButton onClick={() => handleCopyUrl(item)}>Copy URL</LinkButton>
                       </div>
                     </TableCell>
 
                     {/* Delete */}
                     <TableCell className="text-center">
-                      <button onClick={() => !item.isActive && setDeleteItem(item)}
-                        className={`inline-flex items-center justify-center ${item.isActive ? "opacity-30 cursor-not-allowed" : ""}`}
+                      <IconButton onClick={() => !item.isActive && setDeleteItem(item)}
+                        aria-label="Delete"
                         disabled={item.isActive}
                         title={item.isActive ? "Deactivate link first to delete" : "Delete"}>
                         <Trash2 className="h-5 w-5 text-red-500 hover:text-red-700 cursor-pointer" />
-                      </button>
+                      </IconButton>
                     </TableCell>
 
                     {/* Report */}
                     <TableCell className="text-center">
-                      <button onClick={() => handleDownloadReport(item.id)}
-                        className="inline-flex items-center justify-center">
+                      <IconButton aria-label="Download report" onClick={() => handleDownloadReport(item.id)}>
                         <FileSpreadsheet className="h-5 w-5 text-red-600 hover:text-red-800 cursor-pointer" />
-                      </button>
+                      </IconButton>
                     </TableCell>
 
                     {/* Report Link */}
                     <TableCell className="text-center">
-                      <button onClick={() => {
+                      <LinkButton onClick={() => {
                         const url = `${window.location.origin}${BASE_PATH}/report/${item.id}`;
                         navigator.clipboard.writeText(url);
                         setSuccessMessage("Report link copied.");
-                      }} className="text-sm text-blue-600 hover:text-blue-800 hover:underline">
+                      }}>
                         Copy URL
-                      </button>
+                      </LinkButton>
                     </TableCell>
 
                     {/* Disable Link */}
                     <TableCell className="text-center">
-                      <button onClick={() => handleToggle(item)}
-                        className={`text-sm font-medium ${item.isActive ? "text-green-600 hover:text-green-800" : "text-red-600 hover:text-red-800"} hover:underline`}>
+                      <LinkButton onClick={() => handleToggle(item)}
+                        tone={item.isActive ? "primary" : "danger"}>
                         {item.isActive ? "Activate" : "Deactivate"}
-                      </button>
+                      </LinkButton>
                     </TableCell>
 
                     {/* GoogleSheet */}
                     <TableCell className="text-center">
                       {item.googleSheetId ? (
                         <div className="flex flex-col items-center gap-0.5 text-sm">
-                          <button onClick={() => window.open(`https://docs.google.com/spreadsheets/d/${item.googleSheetId}`, "_blank")}
-                            className="text-blue-600 hover:text-blue-800 hover:underline">Open</button>
-                          <button onClick={() => { navigator.clipboard.writeText(`https://docs.google.com/spreadsheets/d/${item.googleSheetId}`); setSuccessMessage("Google Sheet URL copied."); }}
-                            className="text-blue-600 hover:text-blue-800 hover:underline">Copy URL</button>
-                          <button onClick={async () => {
+                          <LinkButton onClick={() => window.open(`https://docs.google.com/spreadsheets/d/${item.googleSheetId}`, "_blank")}>Open</LinkButton>
+                          <LinkButton onClick={() => { navigator.clipboard.writeText(`https://docs.google.com/spreadsheets/d/${item.googleSheetId}`); setSuccessMessage("Google Sheet URL copied."); }}>Copy URL</LinkButton>
+                          <LinkButton tone="danger" onClick={async () => {
                             if (!confirm("Delete this Google Sheet from Drive?")) return;
                             try {
                               setCreatingSheetId(item.id);
@@ -303,12 +300,12 @@ export default function EventPaymentLinksPage() {
                             } catch (err: any) {
                               setErrorMessage(err?.response?.data?.message || "Failed to delete Google Sheet.");
                             } finally { setCreatingSheetId(null); }
-                          }} className="text-red-600 hover:text-red-800 hover:underline">Delete</button>
+                          }}>Delete</LinkButton>
                         </div>
                       ) : creatingSheetId === item.id ? (
                         <div className="flex justify-center"><RotaryLoader size="sm" /></div>
                       ) : (
-                        <button onClick={async () => {
+                        <IconButton aria-label="Create Google Sheet" onClick={async () => {
                           try {
                             setCreatingSheetId(item.id);
                             const res = await createGoogleSheetForLink(item.id);
@@ -320,18 +317,18 @@ export default function EventPaymentLinksPage() {
                           } finally {
                             setCreatingSheetId(null);
                           }
-                        }} className="text-green-600 hover:text-green-800" title="Create Google Sheet">
-                          <FileSpreadsheet className="h-5 w-5 mx-auto" />
-                        </button>
+                        }} title="Create Google Sheet">
+                          <FileSpreadsheet className="h-5 w-5 text-green-600" />
+                        </IconButton>
                       )}
                     </TableCell>
 
                     {/* Settlement Refresh */}
                     <TableCell className="text-center">
-                      <button
+                      <IconButton
                         onClick={() => handleRefreshSettlements(item.id)}
                         disabled={refreshingSettlementId === item.id}
-                        className="inline-flex items-center justify-center"
+                        aria-label="Refresh Settlements"
                         title="Refresh Settlements"
                       >
                         {refreshingSettlementId === item.id ? (
@@ -339,24 +336,24 @@ export default function EventPaymentLinksPage() {
                         ) : (
                           <RefreshCw className="h-5 w-5 text-blue-500 hover:text-blue-700 cursor-pointer" />
                         )}
-                      </button>
+                      </IconButton>
                     </TableCell>
 
                     {/* Settlement Report */}
                     <TableCell className="text-center">
-                      <button
+                      <IconButton
                         onClick={() => handleViewSettlementReport(item.id)}
-                        className="inline-flex items-center justify-center"
+                        aria-label="View Settlement Report"
                         title="View Settlement Report"
                       >
                         <BarChart3 className="h-5 w-5 text-slate-600 hover:text-slate-800 cursor-pointer" />
-                      </button>
+                      </IconButton>
                     </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
             </Table>
-          </div>
+          </Card>
         )}
 
         {/* Settlement Report Dialog */}
@@ -370,10 +367,10 @@ export default function EventPaymentLinksPage() {
             ) : settlementReportData.length === 0 ? (
               <p className="text-center text-muted-foreground py-8">No settlement data found.</p>
             ) : (
-              <div className="overflow-x-auto border rounded-lg">
+              <Card className="overflow-x-auto">
                 <Table>
                   <TableHeader>
-                    <TableRow className="bg-muted">
+                    <TableRow>
                       <TableHead>Member</TableHead>
                       <TableHead>Order ID</TableHead>
                       <TableHead>Vendor</TableHead>
@@ -413,7 +410,7 @@ export default function EventPaymentLinksPage() {
                     ))}
                   </TableBody>
                 </Table>
-              </div>
+              </Card>
             )}
           </DialogContent>
         </Dialog>

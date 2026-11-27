@@ -1,5 +1,6 @@
 "use client";
 
+import { IconButton } from "@/components/ui/icon-button"
 import { useState } from "react";
 import { Upload, X, FileText, Link as LinkIcon } from "@/components/icons";
 
@@ -66,14 +67,13 @@ export default function DocumentOrLinkField({
         <div className="flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2">
           <FileText className="h-4 w-4 text-emerald-700 flex-shrink-0" />
           <span className="text-sm text-emerald-800 truncate flex-1">{documentName || "Document attached"}</span>
-          <button
+          <IconButton
             type="button"
             onClick={() => onChange({ documentPath: undefined, documentName: "", linkUrl })}
-            className="text-slate-500 hover:text-slate-700"
             aria-label="Remove document"
           >
             <X className="h-4 w-4" />
-          </button>
+          </IconButton>
         </div>
       ) : (
         <>

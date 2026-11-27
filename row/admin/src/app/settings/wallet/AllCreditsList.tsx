@@ -1,4 +1,5 @@
 "use client";
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
 
 /**
  * Settings › Wallet — combined email credit list.
@@ -7,6 +8,7 @@
  * 1000 online shows both rows.
  */
 
+import { Card } from "@/components/ui/card";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import DateField from "@/components/DateField";
 import { Download, Loader2, Search } from "@/components/icons";
@@ -254,63 +256,63 @@ export default function AllCreditsList({ refreshKey = 0 }: { refreshKey?: number
         <div className="text-sm text-muted-foreground py-10 text-center">No credit entries found for these filters.</div>
       ) : (
         <>
-          <div className="overflow-x-auto border rounded-lg">
-            <table className="w-full min-w-[640px] md:min-w-full text-sm">
-              <thead className="bg-[#EDF4FB] text-[13px] text-[#64748B]">
-                <tr>
-                  <th className="px-3 py-2.5 text-left whitespace-nowrap">Sr No</th>
-                  <th className="px-3 py-2.5 text-left whitespace-nowrap">Date</th>
-                  <th className="px-3 py-2.5 text-left whitespace-nowrap">Source</th>
-                  <th className="px-3 py-2.5 text-left whitespace-nowrap">District</th>
-                  <th className="px-3 py-2.5 text-left whitespace-nowrap">Club</th>
-                  <th className="px-3 py-2.5 text-left whitespace-nowrap">Type</th>
-                  <th className="px-3 py-2.5 text-right whitespace-nowrap">Credits</th>
-                  <th className="px-3 py-2.5 text-right whitespace-nowrap">Amount Paid</th>
-                  <th className="px-3 py-2.5 text-left whitespace-nowrap">Transaction ID</th>
-                  <th className="px-3 py-2.5 text-left whitespace-nowrap">Expiry</th>
-                  <th className="px-3 py-2.5 text-left whitespace-nowrap">Status</th>
-                  <th className="px-3 py-2.5 text-left whitespace-nowrap">By</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
+          <Card className="overflow-x-auto">
+            <Table className="w-full min-w-[640px] md:min-w-full text-sm">
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="px-3 text-left whitespace-nowrap">Sr No</TableHead>
+                  <TableHead className="px-3 text-left whitespace-nowrap">Date</TableHead>
+                  <TableHead className="px-3 text-left whitespace-nowrap">Source</TableHead>
+                  <TableHead className="px-3 text-left whitespace-nowrap">District</TableHead>
+                  <TableHead className="px-3 text-left whitespace-nowrap">Club</TableHead>
+                  <TableHead className="px-3 text-left whitespace-nowrap">Type</TableHead>
+                  <TableHead className="px-3 text-right whitespace-nowrap">Credits</TableHead>
+                  <TableHead className="px-3 text-right whitespace-nowrap">Amount Paid</TableHead>
+                  <TableHead className="px-3 text-left whitespace-nowrap">Transaction ID</TableHead>
+                  <TableHead className="px-3 text-left whitespace-nowrap">Expiry</TableHead>
+                  <TableHead className="px-3 text-left whitespace-nowrap">Status</TableHead>
+                  <TableHead className="px-3 text-left whitespace-nowrap">By</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody className="divide-y divide-slate-100">
                 {pageRows.map((r, i) => (
-                  <tr key={`${r.source}-${(page - 1) * PAGE_SIZE + i}`} className="hover:bg-blue-50/40 align-top">
-                    <td className="px-3 py-2 text-slate-600 whitespace-nowrap">{(page - 1) * PAGE_SIZE + i + 1}</td>
-                    <td className="px-3 py-2 text-slate-600 whitespace-nowrap">{fmtDateTime(r.entryDate)}</td>
-                    <td className="px-3 py-2 whitespace-nowrap">
+                  <TableRow key={`${r.source}-${(page - 1) * PAGE_SIZE + i}`} className="hover:bg-blue-50/40 align-top">
+                    <TableCell className="px-3 py-2 text-slate-600 whitespace-nowrap">{(page - 1) * PAGE_SIZE + i + 1}</TableCell>
+                    <TableCell className="px-3 py-2 text-slate-600 whitespace-nowrap">{fmtDateTime(r.entryDate)}</TableCell>
+                    <TableCell className="px-3 py-2 whitespace-nowrap">
                       <Badge variant="outline" className={r.source === "Offline" ? "bg-amber-50 text-amber-800 border-amber-200" : "bg-blue-50 text-blue-800 border-blue-200"}>
                         {r.source}
                       </Badge>
                       {r.entryType !== "Added" && r.entryType !== "Purchased" && (
                         <div className="text-[11px] text-slate-400 mt-0.5">{r.entryType}</div>
                       )}
-                    </td>
-                    <td className="px-3 py-2 text-slate-600 whitespace-nowrap">{r.districtNumber || "–"}</td>
-                    <td className="px-3 py-2 font-medium text-slate-800">
+                    </TableCell>
+                    <TableCell className="px-3 py-2 text-slate-600 whitespace-nowrap">{r.districtNumber || "–"}</TableCell>
+                    <TableCell className="px-3 py-2 font-medium text-slate-800">
                       {r.clubName || "–"}
                       {r.note && <div className="text-[11px] font-normal text-amber-700 max-w-xs">{r.note}</div>}
-                    </td>
-                    <td className="px-3 py-2 text-slate-600 whitespace-nowrap">{r.creditType}</td>
-                    <td className={`px-3 py-2 text-right whitespace-nowrap ${r.credits == null ? "text-slate-400 italic" : "text-slate-800 font-medium"}`}>{creditsText(r)}</td>
-                    <td className="px-3 py-2 text-right text-slate-700 whitespace-nowrap">{inr(r.amount)}</td>
-                    <td className="px-3 py-2 text-slate-500 whitespace-nowrap font-mono text-xs">
+                    </TableCell>
+                    <TableCell className="px-3 py-2 text-slate-600 whitespace-nowrap">{r.creditType}</TableCell>
+                    <TableCell className={`px-3 py-2 text-right whitespace-nowrap ${r.credits == null ? "text-slate-400 italic" : "text-slate-800 font-medium"}`}>{creditsText(r)}</TableCell>
+                    <TableCell className="px-3 py-2 text-right text-slate-700 whitespace-nowrap">{inr(r.amount)}</TableCell>
+                    <TableCell className="px-3 py-2 text-slate-500 whitespace-nowrap font-mono text-xs">
                       {r.transactionId || "–"}
                       {r.proofDocumentPath && (
                         <div>
                           <a href={`${API_BASE}${r.proofDocumentPath}`} target="_blank" rel="noopener noreferrer" className="font-sans text-primary underline">Proof</a>
                         </div>
                       )}
-                    </td>
-                    <td className="px-3 py-2 text-slate-600 whitespace-nowrap">{fmtDate(r.expiryDate)}</td>
-                    <td className="px-3 py-2 whitespace-nowrap">
+                    </TableCell>
+                    <TableCell className="px-3 py-2 text-slate-600 whitespace-nowrap">{fmtDate(r.expiryDate)}</TableCell>
+                    <TableCell className="px-3 py-2 whitespace-nowrap">
                       {r.packStatus ? <Badge variant="outline" className={statusClass[r.packStatus] || ""}>{r.packStatus}</Badge> : "–"}
-                    </td>
-                    <td className="px-3 py-2 text-slate-600 whitespace-nowrap">{r.byName || "–"}</td>
-                  </tr>
+                    </TableCell>
+                    <TableCell className="px-3 py-2 text-slate-600 whitespace-nowrap">{r.byName || "–"}</TableCell>
+                  </TableRow>
                 ))}
-              </tbody>
-            </table>
-          </div>
+              </TableBody>
+            </Table>
+          </Card>
           {totalPages > 1 && (
             <Pagination page={page} totalPages={totalPages} totalCount={rows.length} pageSize={PAGE_SIZE} onPageChange={setPage} />
           )}

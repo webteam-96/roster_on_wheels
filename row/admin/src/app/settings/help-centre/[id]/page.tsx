@@ -3,6 +3,8 @@
 // Settings > Help centre > article editor. "new" creates; a number edits. The body uses the shared rich editor; the
 // API sanitizes it on save.
 
+import { NativeSelect } from "@/components/ui/native-select";
+import { PageHeader } from "@/components/row/AppKit";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
@@ -15,7 +17,6 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { TableSkeleton } from "@/components/dashboard/DashboardSkeleton";
 import ErrorAlert from "@/components/ErrorAlert";
-import { ArrowLeft } from "@/components/icons";
 import { getHelpArticle, getHelpCategories, saveHelpArticle, type HelpArticleInput, type HelpCategory } from "@/services/api";
 import { helpArticleUrl } from "@/lib/helpCentre";
 
@@ -70,11 +71,8 @@ export default function HelpArticleEditorPage() {
 
   return (
     <ProtectedRoute>
-      <div className="max-w-4xl space-y-6">
-        <div className="flex items-center gap-3">
-          <Button variant="outline" size="icon" asChild aria-label="Back to the help centre"><Link href="/settings/help-centre"><ArrowLeft className="h-4 w-4" /></Link></Button>
-          <h2 className="text-2xl font-bold tracking-tight text-primary">{id ? "Edit help article" : "New help article"}</h2>
-        </div>
+      <div className="space-y-6 max-w-4xl">
+        <PageHeader title={id ? "Edit help article" : "New help article"} back="/settings/help-centre" />
         {loadError ? (
           <p className="rounded-lg border p-6 text-destructive">{loadError}</p>
         ) : !form || categories === null ? (
@@ -92,10 +90,10 @@ export default function HelpArticleEditorPage() {
               </div>
               <div className="space-y-1">
                 <Label htmlFor="category">Category</Label>
-                <select id="category" className="h-9 w-full rounded-md border border-input bg-background px-2 text-sm"
+                <NativeSelect id="category" 
                   value={form.categoryId} onChange={(e) => set("categoryId", Number(e.target.value))}>
                   {categories.map((k) => <option key={k.id} value={k.id}>{k.name}</option>)}
-                </select>
+                </NativeSelect>
               </div>
               <div className="space-y-1">
                 <Label htmlFor="slug">Web address</Label>

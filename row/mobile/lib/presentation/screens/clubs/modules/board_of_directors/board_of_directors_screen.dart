@@ -18,6 +18,8 @@ import '../../../../../presentation/widgets/common/confirmation_dialog.dart';
 import 'bod_member_detail_screen.dart';
 import 'officer_progression_screen.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/motion.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/roster_wheel.dart';
 
 class BoardOfDirectorsScreen extends StatefulWidget {
   final int clubId;
@@ -320,9 +322,9 @@ class _BoardOfDirectorsScreenState extends State<BoardOfDirectorsScreen> {
                 ? const LoadingWidget()
                 : _directors.isEmpty
                     ? const EmptyStateWidget(title: 'No board members found')
-                    : RefreshIndicator(
+                    : RowRefresh(
                         onRefresh: () => _loadDirectors(),
-                        child: ListView.separated(
+                        child: RowListView.separated(
                           padding: (const EdgeInsets.all(16)).add(const EdgeInsets.only(bottom: 88)),
                           itemCount: _directors.length,
                           separatorBuilder: (_, __) => const SizedBox(height: 10),
@@ -916,7 +918,7 @@ class _BodDirectorFormScreenState extends State<BodDirectorFormScreen> {
         if (_searching)
           const Padding(
             padding: EdgeInsets.all(8),
-            child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
+            child: const LoadingWidget(),
           )
         else if (query.isNotEmpty)
           Container(

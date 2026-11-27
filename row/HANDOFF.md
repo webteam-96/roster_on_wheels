@@ -4,6 +4,47 @@ Last session: **2026-11-17** (audit fixes, UTC storage, legal pages, translation
 below and `ROW-CHANGES.md`). A new session starts here, then continues with **"Next task"** below without
 re-reading whole codebases (use `kb/README.md` and the graphify commands in the root `CLAUDE.md`).
 
+**2026-11-27 (not committed): RIZones 21-27 Nov port, new goal flow (Disha off), admin components plan DONE (all "Done when" lines, see ROW-CHANGES), OMS ROW-94 to
+ROW-97 and ROW2-1 / ROW2-2 fixed.** Details: `ROW-CHANGES.md` 2026-11-27. Proof: `_local/qa/wave2-2026-11-27/`, `_local/qa/wave3-2026-11-27/`
+(39 pages pixel-identical, requests identical before/after the splits), `_local/qa/oms-2026-11-27/`. api.Tests 664 passed, admin vitest
+225 passed, tsc 0, all 5 workers build (GreetingsWorker / RotaryOrgSyncWorker / AwardsAutoCalcWorker now link `CountryCurrency.cs`).
+- **Open, owner:** deploy API + admin together (package `_local/deploy-2026-11-27/`, README inside); production scripts
+  `2026-11-27-attendance-qr.sql`, `2026-11-27-goal-flow.sql` and the pending 23 / 25 Nov ones; production probably runs
+  `Database:SkipInit=true`, so new schema now also comes from always-run startup steps (dues columns, RI officer tables). Decide:
+  Engagement catch-up of older milestones (ROW-96); upcoming events list defaults to "Published", so a new future event is not
+  listed after save; web Edit Years dialog always pre-ticks the current year (app only ticks grantable years).
+- **Local test logins:** 2193 / 2194 / 2195 lost their roles on the copy on 25 Nov. Use club admin 2192 (club 1), district admin /
+  DG 2058 (district 1), AG 2210, Super Admin 1. Local admin is a production build: `bash _local/qa/admin-tools/rebuild3300.sh`.
+- **Agent briefs** for the waves: `_local/qa/briefs/` (the session scratchpad gets cleaned).
+
+Earlier: **26 Nov "continue"** = `docs/plans/2026-11-26-admin-components-finish.md` (now done through wave 3; wave 4 = review, package,
+docs). App: wheel removed from all tiles and cards (owner likes the bento grid and the motion: keep them); debug build on
+`kaizen_phone` points at `https://test.rosteronwheels.com`.
+
+**2026-11-25, admin fixed layout and shared components, app icon on a light field (not committed):** `ROW-CHANGES.md` (search "fixed layout"),
+`website/design.md` 8.9, guard `admin/src/lib/designParts.test.ts`. `_local/deploy-2026-11-25/` is OLDER than this: rebuild the admin before uploading.
+Screenshots `_local/qa/admin-layout-2026-11-25/`. Still hand-written: 189 tables, most small text buttons, pages over 1,000 lines.
+
+**2026-11-25, admin look, currencies, simulator lock (not committed):** `ROW-CHANGES.md` 2026-11-25 (two notes) and
+`website/design.md` 8.7. Upload package with all sessions' work up to 14:17: `_local/deploy-2026-11-25/` (README.txt inside; api 653 and
+admin 209 tests, packaged files started and 14 pages opened). Open, owner decides: website USD prices, Zoom account or a
+manual meeting link for training, "Use country currency" on live. Remove the simulator settings before 30 Nov.
+
+**2026-11-25, app member test fixes (not committed, not deployed):** 24 findings fixed in app and API, `ROW-CHANGES.md`
+2026-11-25. Deploy the API with the app. Production scripts not run: `2026-11-25-member-modules.sql` (owner OKs the list),
+`2026-11-25-app-labels.sql`. The PC restarted at 12:57 and zeroed the git index and 5 files; all restored.
+
+**2026-11-25, app motion and bento grid (not committed):** `ROW-CHANGES.md` 2026-11-25, rules in `website/design.md` 8.8.
+Use the kit in `mobile/lib/presentation/widgets/row/`. Open: check on a real Android phone and on iOS.
+
+**2026-11-27, district website hosting (same way as club sites):** every district is `d<district number>.test.rosteronwheels.com`
+(e.g. `d5656`), served by the club-site `*.test` wildcard: the club `web.config` sends hosts matching `^d\d+\.` to its
+`district/` folder (the 7-theme build). No DNS or Plesk step per district. Production: `district_websites.Subdomain` for
+5656 changed `rid5656` -> `d5656` (live by-host answers). Admin Settings > District Websites now uses the club parent
+domain and fills `d<number>` when a district is picked; the district website-status link uses the same parent.
+Upload (owner): `_local/deploy/club-website/web.config` + `district/` into the `*.test` site. Not yet tested on IIS
+(no IIS on this PC): after upload check `http://d5656.test.rosteronwheels.com/`, `/prism/about`, and a club site.
+
 **2026-11-24, OMS ROW-56 to ROW-69, ROW-93 re-check (not deployed):** every ticket re-run in a browser on `row_prod_copy`; follow-up
 fixes in `ROW-CHANGES.md` (search "2026-11-24"). Deploy API and admin together (growth cards need both); app needs a build. Open,
 owner decides: Credit Management without the Wallet

@@ -10,6 +10,7 @@ import '../../../../widgets/common/custom_app_bar.dart';
 import '../../../../widgets/common/custom_text_field.dart';
 import 'package:rotary_flutter_app/core/theme/app_fonts.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/motion.dart';
 
 /// Search-result row returned by the committee `search-members` endpoint.
 class CommitteeSearchResult {
@@ -504,7 +505,7 @@ class _CommitteeMemberFormScreenState extends State<CommitteeMemberFormScreen> {
             borderRadius: BorderRadius.circular(10),
             color: AppColors.surface,
           ),
-          child: ListView.separated(
+          child: RowListView.separated(
             shrinkWrap: true,
             itemCount: _searchResults.length,
             separatorBuilder: (_, __) =>

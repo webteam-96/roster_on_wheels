@@ -61,7 +61,7 @@ export default function DistrictAdminHeaderSubtitle() {
     <span className="inline-flex items-center gap-1.5 flex-wrap align-middle">
       <span>RY {yearLabel} · District {districtLabel}</span>
       {governor && (
-        <span className="inline-flex items-center gap-1 rounded-full bg-marigold px-2 py-0.5 text-[11px] font-bold leading-none text-ink shadow-sm">
+        <span className="inline-flex items-center gap-1 rounded bg-marigold px-2 py-0.5 text-[11px] font-bold leading-none text-ink shadow-sm">
           DG: {governor}
         </span>
       )}

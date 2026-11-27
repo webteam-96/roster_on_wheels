@@ -1,4 +1,5 @@
 using RotaryApi.Services;
+using System.Data;
 using Dapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -6,12 +7,9 @@ using MySqlConnector;
 
 namespace RotaryApi.Controllers;
 
-// SuperAdmin diagnostic — simulates the first half of the mobile-login flow without
-// sending an OTP or touching the mobile_login_otp table. Given a mobile number, it
-// returns the same member + club-list payload the mobile app would render on its
-// "pick your club" screen, plus an Allowed/Not-allowed verdict (with the reason) so
-// SA can debug "why can't member X log in on the mobile app". No DB writes, no SMS,
-// no email.
+// SuperAdmin diagnostic: would this member get into the app? Runs the app's own sign-in guards for an email, without
+// the password, and returns the member, the clubs the app would show and the reason when the answer is no.
+// No writes, no email.
 [ApiController]
 [Route("api/admin/mobile-login-check")]
 [Authorize]
@@ -27,63 +25,47 @@ public class MobileLoginCheckController : ControllerBase
     private int GetUserId() => int.Parse(User.FindFirst("memberId")?.Value ?? "0");
 
     [HttpGet]
-    public async Task<ActionResult> Check([FromQuery] string mobile, [FromQuery] int? countryId)
+    public async Task<ActionResult> Check([FromQuery] string? email)
     {
         if (!await IsSuperAdminAsync())
             return StatusCode(403, new { message = "SuperAdmin access required." });
 
-        if (string.IsNullOrWhiteSpace(mobile))
-            return BadRequest(new { message = "Mobile number is required." });
-
-        var trimmed = mobile.Trim();
+        var trimmed = (email ?? "").Trim();
+        if (trimmed.Length == 0)
+            return BadRequest(new { message = "Email is required." });
 
         using var conn = RowDb.Connect(_connectionString);
         await conn.OpenAsync();
 
-        // Look up member by mobile. CountryId is optional — if omitted we match on mobile
-        // alone (any country) since the SA tool is a diagnostic, not a login.
-        dynamic? member = null;
-        if (countryId.HasValue)
-        {
-            member = await conn.QueryFirstOrDefaultAsync<dynamic>(@"
-                SELECT pk_member_master_profile_id AS id, MemberName, EmailId,
-                       PrimaryMobileNumber, fk_primary_country_id AS countryId
-                FROM member_master_profile
-                WHERE PrimaryMobileNumber = @Mobile
-                  AND fk_primary_country_id = @CId
-                  AND isdeleted = 0
-                ORDER BY pk_member_master_profile_id ASC LIMIT 1",
-                new { Mobile = trimmed, CId = countryId.Value });
-        }
-        else
-        {
-            member = await conn.QueryFirstOrDefaultAsync<dynamic>(@"
-                SELECT pk_member_master_profile_id AS id, MemberName, EmailId,
-                       PrimaryMobileNumber, fk_primary_country_id AS countryId
-                FROM member_master_profile
-                WHERE PrimaryMobileNumber = @Mobile
-                  AND isdeleted = 0
-                ORDER BY pk_member_master_profile_id ASC LIMIT 1",
-                new { Mobile = trimmed });
-        }
+        var found = await conn.QueryFirstOrDefaultAsync<dynamic>(
+            "sp_auth_get_member_by_email", new { p_Email = trimmed }, commandType: CommandType.StoredProcedure);
+        if (found == null)
+            return Ok(new { allowed = false, reason = "No member has this email.", email = trimmed, member = (object?)null, clubs = Array.Empty<object>() });
 
-        if (member == null)
+        int memberId = (int)found.Id;
+        var member = new { id = memberId, name = (string?)found.MemberName ?? "", email = (string?)found.EmailId };
+        ActionResult Refuse(string reason) =>
+            Ok(new { allowed = false, reason, email = trimmed, member, clubs = Array.Empty<object>() });
+
+        // In the order the app meets them (MobileAuthService.LoginWithPasswordAsync, then IssueSessionAsync).
+        var cred = await conn.QueryFirstOrDefaultAsync<dynamic>(
+            "sp_auth_get_credentials", new { p_MemberId = memberId }, commandType: CommandType.StoredProcedure);
+        if (cred == null)
+            return Refuse("No password yet. The member can set one with \"Forgot password?\" in the app.");
+        int failed = cred.FailedLoginAttempts != null ? Convert.ToInt32(cred.FailedLoginAttempts) : 0;
+        if (failed >= 5 && cred.LockoutEndTime is DateTime lockedUntil && lockedUntil > DateTime.UtcNow)
+            return Refuse("Locked after 5 wrong passwords. It opens again within 15 minutes.");
+        try
         {
-            return Ok(new
-            {
-                allowed = false,
-                reason = "No active rotarian found with this mobile number.",
-                mobile = trimmed,
-                member = (object?)null,
-                clubs = new object[0]
-            });
+            await TrialLock.RefuseIfLockedAsync(conn, memberId);
+            await NonSyncLoginGuardHelper.EnsureCanLoginAsync(conn, memberId);
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return Refuse(ex.Message);
         }
 
-        int memberId = (int)member.id;
-        string memberName = (string?)member.MemberName ?? "";
-        string? memberEmail = (string?)member.EmailId;
-
-        // SuperAdmin-on-mobile policy: SA cannot mobile-login UNLESS they ALSO hold
+        // SuperAdmin-on-mobile policy: a SuperAdmin cannot use the app UNLESS they ALSO hold
         // another usable role (Admin / AG) or have at least
         // one active club membership. SA-only members are web-only.
         var isSuperAdmin = await conn.ExecuteScalarAsync<int>(@"
@@ -110,23 +92,11 @@ public class MobileLoginCheckController : ControllerBase
 
             if (hasOtherUsableRole == 0)
             {
-                return Ok(new
-                {
-                    allowed = false,
-                    reason = "SuperAdmin-only member cannot login on mobile (no other role, no club membership). Web portal only.",
-                    mobile = trimmed,
-                    member = new
-                    {
-                        id = memberId,
-                        name = memberName,
-                        email = memberEmail
-                    },
-                    clubs = new object[0]
-                });
+                return Refuse("SuperAdmin only, with no other role and no club: web portal only.");
             }
         }
 
-        // Kill-switch: same chain check the real mobile-login flow runs. Everyone needs at least one active club→district→zone chain.
+        // Kill-switch: same chain check the real sign-in runs. Everyone needs at least one active club→district→zone chain.
         var hasActiveChain = await conn.ExecuteScalarAsync<int>(@"
             SELECT COUNT(*)
             FROM club_members cm
@@ -142,19 +112,7 @@ public class MobileLoginCheckController : ControllerBase
 
         if (hasActiveChain == 0)
         {
-            return Ok(new
-            {
-                allowed = false,
-                reason = "No active club→district→zone chain. Member has no usable club membership for mobile login.",
-                mobile = trimmed,
-                member = new
-                {
-                    id = memberId,
-                    name = memberName,
-                    email = memberEmail
-                },
-                clubs = new object[0]
-            });
+            return Refuse("No active club in an active district and zone.");
         }
 
         // Fetch the same club list the mobile app would render on its "pick your club" screen:
@@ -183,13 +141,8 @@ public class MobileLoginCheckController : ControllerBase
         {
             allowed = true,
             reason = (string?)null,
-            mobile = trimmed,
-            member = new
-            {
-                id = memberId,
-                name = memberName,
-                email = memberEmail
-            },
+            email = trimmed,
+            member,
             clubs
         });
     }

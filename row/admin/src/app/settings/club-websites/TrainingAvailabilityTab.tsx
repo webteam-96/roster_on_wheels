@@ -1,4 +1,6 @@
 "use client";
+import { IconButton } from "@/components/ui/icon-button";
+import { LinkButton, CalendarCell } from "@/components/ui/text-buttons";
 
 /**
  * SuperAdmin — when the training team is available for website training
@@ -13,6 +15,9 @@
  * out with the reason — it is never hidden, so the club admin can see why a time is gone.
  */
 
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { useCallback, useEffect, useState } from "react";
 import { CalendarX2, Clock, Loader2, Plus, Save, Trash2, X, AlertTriangle } from "@/components/icons";
 import ErrorAlert from "@/components/ErrorAlert";
@@ -156,18 +161,18 @@ export default function TrainingAvailabilityTab() {
       </p>
 
       {/* ── 1. the repeating week ── */}
-      <div className="rounded-[20px] border border-slate-200 bg-card overflow-hidden">
+      <Card className="overflow-hidden">
         <div className="px-4 sm:px-5 py-3 border-b border-slate-100 bg-blue-50 flex flex-wrap items-center gap-2">
           <Clock size={16} className="text-blue-600" />
-          <h3 className="text-sm font-semibold text-slate-800">Working hours</h3>
+          <h3 className="row-h3">Working hours</h3>
           <span className="text-xs text-slate-400">the normal week</span>
-          <button
+          <Button
             onClick={saveWeek}
             disabled={saving}
-            className="ml-auto inline-flex items-center gap-1.5 h-8 rounded-full bg-azure px-3 text-xs font-semibold text-white hover:bg-mint-ink disabled:opacity-40"
+            size="sm" className="ml-auto"
           >
             {saving ? <Loader2 size={13} className="animate-spin" /> : <Save size={13} />} Save hours
-          </button>
+          </Button>
         </div>
 
         <div className="divide-y divide-slate-100">
@@ -192,64 +197,64 @@ export default function TrainingAvailabilityTab() {
                 <div className="flex-1 space-y-2">
                   {d.ranges.map((r, i) => (
                     <div key={i} className="flex items-center gap-2 flex-wrap">
-                      <input
+                      <Input
                         type="time"
                         value={r.start}
                         onChange={(e) => setRange(d.dayOfWeek, i, { start: e.target.value })}
-                        className="h-8 w-28 rounded-[12px] border border-slate-300 px-2 text-sm text-slate-700 focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                        className="row-field-sm w-28"
                       />
                       <span className="text-slate-400 text-sm">–</span>
-                      <input
+                      <Input
                         type="time"
                         value={r.end}
                         onChange={(e) => setRange(d.dayOfWeek, i, { end: e.target.value })}
-                        className="h-8 w-28 rounded-[12px] border border-slate-300 px-2 text-sm text-slate-700 focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                        className="row-field-sm w-28"
                       />
-                      <button
+                      <IconButton
                         onClick={() => setDay(d.dayOfWeek, { ranges: d.ranges.filter((_, ix) => ix !== i) })}
                         title="Remove this time range"
-                        className="text-slate-400 hover:text-rose-600"
+                        aria-label="Remove this time range"
                       >
                         <X size={15} />
-                      </button>
+                      </IconButton>
                       {i === d.ranges.length - 1 && (
-                        <button
+                        <IconButton
                           onClick={() => setDay(d.dayOfWeek, { ranges: [...d.ranges, { ...BLANK_RANGE }] })}
                           title="Add another time range on this day"
-                          className="text-blue-600 hover:text-blue-800"
+                          aria-label="Add another time range on this day"
                         >
                           <Plus size={15} />
-                        </button>
+                        </IconButton>
                       )}
                     </div>
                   ))}
                   {d.ranges.length === 0 && (
-                    <button
+                    <LinkButton
+                      size="sm"
                       onClick={() => setDay(d.dayOfWeek, { ranges: [{ ...BLANK_RANGE }] })}
-                      className="inline-flex items-center gap-1 text-xs font-medium text-blue-600 hover:text-blue-800"
                     >
                       <Plus size={13} /> Add a time range
-                    </button>
+                    </LinkButton>
                   )}
                 </div>
               )}
             </div>
           ))}
         </div>
-      </div>
+      </Card>
 
       {/* ── 2. one-off blocked dates ── */}
-      <div className="rounded-[20px] border border-slate-200 bg-card overflow-hidden">
+      <Card className="overflow-hidden">
         <div className="px-4 sm:px-5 py-3 border-b border-slate-100 bg-amber-50 flex flex-wrap items-center gap-2">
           <CalendarX2 size={16} className="text-amber-600" />
-          <h3 className="text-sm font-semibold text-slate-800">Blocked dates</h3>
+          <h3 className="row-h3">Blocked dates</h3>
           <span className="text-xs text-slate-400">days the team is away, or free only part of the day</span>
-          <button
+          <Button
             onClick={() => { setBlockOpen((v) => !v); setSuccess(null); }}
-            className="ml-auto inline-flex items-center gap-1.5 h-8 rounded-full border border-amber-200 bg-amber-50 px-3 text-xs font-semibold text-amber-800 hover:bg-amber-100"
+            variant="outline" size="sm" className="ml-auto"
           >
             <Plus size={13} /> Block a date
-          </button>
+          </Button>
         </div>
 
         {blockOpen && (
@@ -262,27 +267,25 @@ export default function TrainingAvailabilityTab() {
                   {blockDates.length > 0 && (
                     <>
                       <span className="text-[11px] font-semibold text-ink">{blockDates.length} selected</span>
-                      <button type="button" onClick={() => setBlockDates([])} className="text-[11px] text-slate-500 hover:text-rose-600 underline">
+                      <LinkButton tone="muted" size="sm" onClick={() => setBlockDates([])}>
                         clear
-                      </button>
+                      </LinkButton>
                     </>
                   )}
                 </div>
-                <div className="rounded-[20px] border border-slate-200 bg-card p-4">
+                <Card className="p-5">
                   <div className="flex items-center justify-between mb-2">
-                    <button
+                    <IconButton
                       type="button"
                       onClick={() => { const m = viewMonth - 1; if (m < 0) { setViewMonth(11); setViewYear((y) => y - 1); } else setViewMonth(m); }}
-                      className="h-7 w-7 rounded-md text-slate-500 hover:bg-slate-100"
                       aria-label="Previous month"
-                    >&#8249;</button>
+                    >&#8249;</IconButton>
                     <span className="text-sm font-semibold text-slate-800">{MONTHS[viewMonth]} {viewYear}</span>
-                    <button
+                    <IconButton
                       type="button"
                       onClick={() => { const m = viewMonth + 1; if (m > 11) { setViewMonth(0); setViewYear((y) => y + 1); } else setViewMonth(m); }}
-                      className="h-7 w-7 rounded-md text-slate-500 hover:bg-slate-100"
                       aria-label="Next month"
-                    >&#8250;</button>
+                    >&#8250;</IconButton>
                   </div>
 
                   <div className="grid grid-cols-7 gap-0.5 mb-1">
@@ -300,9 +303,8 @@ export default function TrainingAvailabilityTab() {
                       // A date already blocked is marked, so you can see the month at a glance.
                       const blocked = (data?.overrides ?? []).some((o) => o.date === cell);
                       return (
-                        <button
+                        <CalendarCell
                           key={cell}
-                          type="button"
                           disabled={past}
                           onClick={() => {
                             // Click to add, click again to drop - no modifier key to discover.
@@ -310,25 +312,24 @@ export default function TrainingAvailabilityTab() {
                             setSuccess(null);
                           }}
                           title={blocked ? "Already blocked" : past ? "Past date" : "Click to select, click again to remove"}
-                          className={`relative h-11 rounded-lg text-sm ${
+                          selected={picked}
+                          className={`relative h-11 text-sm ${
                             picked
-                              ? "bg-azure text-white font-semibold"
-                              : past
-                              ? "text-slate-300 cursor-not-allowed"
-                              : blocked
+                              ? "font-semibold"
+                              : !past && blocked
                               ? "bg-amber-50 text-amber-800 hover:bg-amber-100"
-                              : "text-slate-700 hover:bg-slate-100"
+                              : ""
                           }`}
                         >
                           {d}
                           {blocked && !picked && (
                             <span className="absolute bottom-1 left-1/2 -translate-x-1/2 h-1 w-1 rounded-full bg-amber-500" />
                           )}
-                        </button>
+                        </CalendarCell>
                       );
                     })}
                   </div>
-                </div>
+                </Card>
                 <p className="mt-2 text-[11px] text-slate-400">
                   Click any number of dates. Click again to unselect.
                   <span className="inline-block h-2 w-2 rounded-full bg-amber-500 align-middle mx-1" />
@@ -343,11 +344,11 @@ export default function TrainingAvailabilityTab() {
                 ) : (
                   <div className="flex flex-wrap gap-1.5">
                     {[...blockDates].sort().map((d) => (
-                      <span key={d} className="inline-flex items-center gap-1 rounded-full bg-azure text-white text-[11px] px-2 py-0.5">
+                      <span key={d} className="inline-flex items-center gap-1 rounded bg-azure text-white text-[11px] px-2 py-0.5">
                         {new Date(d + "T00:00:00").toLocaleDateString(appLocale(), { weekday: "short", day: "2-digit", month: "short" })}
-                        <button type="button" onClick={() => setBlockDates((p) => p.filter((x) => x !== d))} className="hover:text-rose-300" aria-label="Remove">
+                        <IconButton type="button" onClick={() => setBlockDates((p) => p.filter((x) => x !== d))} className="h-4 w-4 text-white hover:bg-transparent hover:text-rose-300" aria-label="Remove">
                           <X size={11} />
-                        </button>
+                        </IconButton>
                       </span>
                     ))}
                   </div>
@@ -363,22 +364,22 @@ export default function TrainingAvailabilityTab() {
                 <p className="text-xs text-slate-500">Hours the team IS free that day: everything outside these is blocked:</p>
                 {blockRanges.map((r, i) => (
                   <div key={i} className="flex items-center gap-2 flex-wrap">
-                    <input
+                    <Input
                       type="time" value={r.start}
                       onChange={(e) => setBlockRanges((p) => p.map((x, ix) => (ix === i ? { ...x, start: e.target.value } : x)))}
-                      className="h-8 w-28 rounded-[12px] border border-slate-300 px-2 text-sm focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                      className="row-field-sm w-28"
                     />
                     <span className="text-slate-400 text-sm">–</span>
-                    <input
+                    <Input
                       type="time" value={r.end}
                       onChange={(e) => setBlockRanges((p) => p.map((x, ix) => (ix === i ? { ...x, end: e.target.value } : x)))}
-                      className="h-8 w-28 rounded-[12px] border border-slate-300 px-2 text-sm focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                      className="row-field-sm w-28"
                     />
                     {blockRanges.length > 1 && (
-                      <button onClick={() => setBlockRanges((p) => p.filter((_, ix) => ix !== i))} className="text-slate-400 hover:text-rose-600"><X size={15} /></button>
+                      <IconButton aria-label="Remove this range" onClick={() => setBlockRanges((p) => p.filter((_, ix) => ix !== i))}><X size={15} /></IconButton>
                     )}
                     {i === blockRanges.length - 1 && (
-                      <button onClick={() => setBlockRanges((p) => [...p, { ...BLANK_RANGE }])} className="text-blue-600 hover:text-blue-800"><Plus size={15} /></button>
+                      <IconButton aria-label="Add another range" onClick={() => setBlockRanges((p) => [...p, { ...BLANK_RANGE }])}><Plus size={15} /></IconButton>
                     )}
                   </div>
                 ))}
@@ -387,29 +388,29 @@ export default function TrainingAvailabilityTab() {
 
             <label className="flex flex-col gap-1 text-xs text-slate-500 max-w-md">
               Reason (shown to clubs on the blocked slot)
-              <input
+              <Input
                 type="text" value={reason} maxLength={200}
                 onChange={(e) => setReason(e.target.value)}
                 placeholder="e.g. Team training day"
-                className="h-9 rounded-[12px] border border-slate-300 px-2.5 text-sm focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                className="w-auto"
               />
             </label>
 
             <div className="flex flex-wrap items-center gap-2">
-              <button
+              <Button
                 onClick={saveBlock} disabled={saving || blockDates.length === 0}
                 title={blockDates.length > 0 ? undefined : "Pick at least one date on the calendar"}
-                className="inline-flex items-center gap-1.5 h-9 rounded-full bg-azure px-4 text-xs font-semibold text-white hover:bg-mint-ink disabled:opacity-40"
+                size="sm"
               >
                 {saving ? <Loader2 size={13} className="animate-spin" /> : <Save size={13} />}
                 {blockDates.length > 1 ? `Save ${blockDates.length} dates` : "Save date"}
-              </button>
-              <button
+              </Button>
+              <Button
                 onClick={() => setBlockOpen(false)}
-                className="h-9 rounded-full border border-slate-200 px-3 text-xs font-medium text-slate-600 hover:bg-slate-50"
+                variant="outline" size="sm"
               >
                 Cancel
-              </button>
+              </Button>
             </div>
               </div>
             </div>
@@ -431,25 +432,26 @@ export default function TrainingAvailabilityTab() {
                 </span>
                 {o.bookedCount > 0 && (
                   <span
-                    className="inline-flex items-center gap-1 text-[11px] font-medium text-amber-800 bg-amber-50 border border-amber-200 rounded-full px-2 py-0.5"
+                    className="inline-flex items-center gap-1 text-[11px] font-medium text-amber-800 bg-amber-50 border border-amber-200 rounded px-2 py-0.5"
                     title="These were booked before the block. They are NOT cancelled: move them by hand if they clash."
                   >
                     <AlertTriangle size={12} /> {o.bookedCount} already booked
                   </span>
                 )}
-                <button
+                <IconButton
                   onClick={() => removeBlock(o.id, o.dateLabel)}
                   disabled={saving}
                   title="Remove this block"
-                  className="text-slate-400 hover:text-rose-600 disabled:opacity-40 self-end sm:self-auto"
+                  aria-label="Remove this block"
+                  className="self-end sm:self-auto"
                 >
                   <Trash2 size={15} />
-                </button>
+                </IconButton>
               </div>
             ))}
           </div>
         )}
-      </div>
+      </Card>
     </div>
   );
 }

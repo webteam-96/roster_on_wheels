@@ -286,6 +286,7 @@ public class ClubWebsitesController : ControllerBase
         return Ok(new {
             defaultReminderDays = int.TryParse(defaultDays, out var d) ? d : 15,
             parentDomain = parentDomain ?? RotaryApi.Services.Brand.ClubSiteParentDomain,  // Club websites parent — NOT the main portal portal.example.org.
+            pleskConfigured = _plesk.IsConfigured,              // false = the Plesk tools are hidden (sites come from the wildcard host).
             serverIp = _plesk.ServerIp                          // A-record target shown in the third-party domain DNS instructions.
         });
     }
@@ -1185,8 +1186,9 @@ public class ClubWebsitesController : ControllerBase
             }
             catch { failed++; }
         }
-        await conn.ExecuteAsync(
-            "UPDATE club_websites SET LastReminderSent = NOW() WHERE pk_id = @Id", new { Id = id });
+        if (sent > 0)
+            await conn.ExecuteAsync(
+                "UPDATE club_websites SET LastReminderSent = NOW() WHERE pk_id = @Id", new { Id = id });
         await LogAction(conn, id, "ReminderSent", $"Manual reminder — sent: {sent}, failed: {failed}", userId);
         return Ok(new { success = true, sent, failed });
     }

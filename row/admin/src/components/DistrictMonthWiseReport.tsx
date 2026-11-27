@@ -4,6 +4,8 @@
 // metric rows × month columns (cumulative Achieved to each month) + Total. Read-only, used inside the
 // goal-oversight row-click popup. Reuses the same monthly data the report + parent panel use.
 
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table"
+import { Card } from "@/components/ui/card";
 import { useEffect, useState } from "react";
 import { isAnnualOnlyCategory } from "@/lib/goalCategories";
 import { Loader2 } from "@/components/icons";
@@ -90,26 +92,26 @@ export default function DistrictMonthWiseReport(
             {!form || form.fields.length === 0 ? (
               <div className="border border-t-0 border-slate-200 rounded-b-lg px-3 py-4 text-xs text-slate-400">No month-wise data for this category.</div>
             ) : (
-              <div className="overflow-x-auto border border-t-0 border-slate-200 rounded-b-lg">
-                <table className="text-xs border-collapse w-full whitespace-nowrap">
+              <Card className="overflow-x-auto">
+                <Table className="text-xs border-collapse w-full whitespace-nowrap">
                   {/* Every month has a Target | Achieved pair (user 2026-10-09); metrics stay one row each. */}
-                  <thead>
-                    <tr style={{ backgroundColor: "#17458f" }} className="text-white">
-                      <th rowSpan={2} className="px-2 py-1.5 text-left sticky left-0 z-10" style={{ backgroundColor: "#17458f" }}>Particulars</th>
-                      <th rowSpan={2} className="px-2 py-1.5 text-right">As on July 1st</th>
-                      <th rowSpan={2} className="px-2 py-1.5 text-right">Target</th>
-                      {months.map((mo) => <th key={mo.month} colSpan={2} className={`px-2 py-1 text-center border-l border-white/20 ${mo.isAvailable ? "" : "text-white/50"}`}>{mo.label}</th>)}
-                      <th rowSpan={2} className="px-2 py-1.5 text-right border-l border-white/20">Achieved</th>
-                      <th rowSpan={2} className="px-2 py-1.5 text-right">% Achievement</th>
-                    </tr>
-                    <tr style={{ backgroundColor: "#17458f" }} className="text-white/90 text-[10px]">
+                  <TableHeader>
+                    <TableRow style={{ backgroundColor: "#17458f" }}>
+                      <TableHead rowSpan={2} className="px-2 text-left sticky left-0 z-10" style={{ backgroundColor: "#17458f" }}>Particulars</TableHead>
+                      <TableHead rowSpan={2} className="px-2 text-right">As on July 1st</TableHead>
+                      <TableHead rowSpan={2} className="px-2 text-right">Target</TableHead>
+                      {months.map((mo) => <TableHead key={mo.month} colSpan={2} className={`px-2 py-1 text-center border-l border-white/20 ${mo.isAvailable ? "" : "text-white/50"}`}>{mo.label}</TableHead>)}
+                      <TableHead rowSpan={2} className="px-2 text-right border-l border-white/20">Achieved</TableHead>
+                      <TableHead rowSpan={2} className="px-2 text-right">% Achievement</TableHead>
+                    </TableRow>
+                    <TableRow style={{ backgroundColor: "#17458f" }}>
                       {months.map((mo) => [
-                        <th key={`${mo.month}t`} className="px-2 py-1 text-right font-medium border-l border-white/20">Target</th>,
-                        <th key={`${mo.month}a`} className="px-2 py-1 text-right font-medium">Achieved</th>,
+                        <TableHead key={`${mo.month}t`} className="px-2 text-right border-l border-white/20">Target</TableHead>,
+                        <TableHead key={`${mo.month}a`} className="px-2 text-right">Achieved</TableHead>,
                       ])}
-                    </tr>
-                  </thead>
-                  <tbody>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
                     {/* Membership's yearly-only rows (RED / AMBER / GREEN + the 3 Summary totals) have
                         nothing month-wise - hidden here (user 2026-10-09); the YTD screens keep them. */}
                     {form.fields.filter((f) => !(f.monthlyTracked === false && c.name.toLowerCase() === "membership")).map((f) => {
@@ -117,14 +119,14 @@ export default function DistrictMonthWiseReport(
                       // Public Image Other Points + Suggestions): show its value, leave the months empty.
                       if (f.monthlyTracked === false) {
                         return (
-                          <tr key={f.fieldId} className="border-b border-slate-100 hover:bg-slate-50">
-                            <td className="px-2 py-1.5 font-medium text-slate-800 sticky left-0 z-10 bg-card">{monthlyFieldLabel(f)}</td>
-                            <td className="px-2 py-1.5 text-right text-slate-500">–</td>
-                            <td className="px-2 py-1.5 text-right text-slate-700 whitespace-pre-line">{f.displayText ?? fmt(f.annualTarget)}</td>
-                            {months.map((mo) => <td key={mo.month} colSpan={2} className="px-2 py-1.5 border-l border-slate-100" />)}
-                            <td className="px-2 py-1.5 text-right text-slate-400">–</td>
-                            <td className="px-2 py-1.5 text-right text-slate-400">–</td>
-                          </tr>
+                          <TableRow key={f.fieldId} className="border-b border-slate-100 hover:bg-slate-50">
+                            <TableCell className="px-2 py-1.5 font-medium text-slate-800 sticky left-0 z-10 bg-card">{monthlyFieldLabel(f)}</TableCell>
+                            <TableCell className="px-2 py-1.5 text-right text-slate-500">–</TableCell>
+                            <TableCell className="px-2 py-1.5 text-right text-slate-700 whitespace-pre-line">{f.displayText ?? fmt(f.annualTarget)}</TableCell>
+                            {months.map((mo) => <TableCell key={mo.month} colSpan={2} className="px-2 py-1.5 border-l border-slate-100" />)}
+                            <TableCell className="px-2 py-1.5 text-right text-slate-400">–</TableCell>
+                            <TableCell className="px-2 py-1.5 text-right text-slate-400">–</TableCell>
+                          </TableRow>
                         );
                       }
                       // Cumulative Achieved to each month = baseline + Σ additions so far (matches the report).
@@ -139,22 +141,22 @@ export default function DistrictMonthWiseReport(
                       });
                       const tgts = runningTargets(f, months);
                       return (
-                        <tr key={f.fieldId} className="border-b border-slate-100 hover:bg-slate-50">
-                          <td className="px-2 py-1.5 font-medium text-slate-800 sticky left-0 z-10 bg-card">{monthlyFieldLabel(f)}</td>
-                          <td className="px-2 py-1.5 text-right text-slate-500">{fmt(f.baseline)}</td>
-                          <td className="px-2 py-1.5 text-right text-slate-700">{fmt(f.annualTarget)}</td>
+                        <TableRow key={f.fieldId} className="border-b border-slate-100 hover:bg-slate-50">
+                          <TableCell className="px-2 py-1.5 font-medium text-slate-800 sticky left-0 z-10 bg-card">{monthlyFieldLabel(f)}</TableCell>
+                          <TableCell className="px-2 py-1.5 text-right text-slate-500">{fmt(f.baseline)}</TableCell>
+                          <TableCell className="px-2 py-1.5 text-right text-slate-700">{fmt(f.annualTarget)}</TableCell>
                           {cells.map((v, j) => [
-                            <td key={`${j}t`} className="px-2 py-1.5 text-right text-slate-500 border-l border-slate-100">{fmt(tgts[j])}</td>,
-                            <td key={`${j}a`} className="px-2 py-1.5 text-right text-slate-800">{v === null ? "–" : fmt(v)}</td>,
+                            <TableCell key={`${j}t`} className="px-2 py-1.5 text-right text-slate-500 border-l border-slate-100">{fmt(tgts[j])}</TableCell>,
+                            <TableCell key={`${j}a`} className="px-2 py-1.5 text-right text-slate-800">{v === null ? "–" : fmt(v)}</TableCell>,
                           ])}
-                          <td className="px-2 py-1.5 text-right font-semibold text-slate-800">{last === null ? "–" : fmt(last)}</td>
-                          <td className="px-2 py-1.5 text-right font-semibold text-emerald-700">{pctAchieved(f.baseline, f.annualTarget, last)}</td>
-                        </tr>
+                          <TableCell className="px-2 py-1.5 text-right font-semibold text-slate-800">{last === null ? "–" : fmt(last)}</TableCell>
+                          <TableCell className="px-2 py-1.5 text-right font-semibold text-emerald-700">{pctAchieved(f.baseline, f.annualTarget, last)}</TableCell>
+                        </TableRow>
                       );
                     })}
-                  </tbody>
-                </table>
-              </div>
+                  </TableBody>
+                </Table>
+              </Card>
             )}
           </div>
         );

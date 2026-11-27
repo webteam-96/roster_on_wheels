@@ -1,12 +1,14 @@
 "use client";
+import { IconButton } from "@/components/ui/icon-button";
+import { LinkButton, MenuItemButton } from "@/components/ui/text-buttons";
 
+import { NativeSelect } from "@/components/ui/native-select";
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   getDistrictGovernors, createDistrictGovernor, updateDistrictGovernor,
   deleteDistrictGovernor, searchDistrictGovernorMembers,
   getDistricts, getRotaryYears,
-  getDistrictGovernorFilterDistricts, getDistrictGovernorFilterYears,
   uploadDistrictGovernorPhoto, districtGovernorPhotoUrl, DISTRICT_GOVERNOR_PHOTO_PREFIX,
 } from "@/services/api";
 import { Button } from "@/components/ui/button";
@@ -20,13 +22,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
 import AlertModal from "@/components/AlertModal";
-import { ArrowLeft, Plus, Pencil, Trash2, AlertTriangle, Crown, Search, X, Camera } from "@/components/icons";
+import { Plus, Pencil, Trash2, AlertTriangle, Crown, Search, X, Camera } from "@/components/icons";
 import ImageCropDialog from "@/components/ImageCropDialog";
 import { useImageCropUpload } from "@/hooks/useImageCropUpload";
 import RotaryLoader from "@/components/RotaryLoader";
-import Link from "next/link";
+import SearchableCombo from "@/components/SearchableCombo";
 import ProtectedRoute from "@/components/ProtectedRoute";
-import { ListPageSkeleton } from "@/components/row/AppKit";
+import { PageHeader, ListPageSkeleton } from "@/components/row/AppKit";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
@@ -37,14 +39,11 @@ export default function DistrictGovernorPage() {
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  // Full lists for Add/Edit dialog
+  // Every district and year
   const [districts, setDistricts] = useState<any[]>([]);
   const [years, setYears] = useState<any[]>([]);
-  // Data-driven lists for listing-page filters (only districts/years that have DG records)
-  const [filterDistricts, setFilterDistricts] = useState<any[]>([]);
-  const [filterYears, setFilterYears] = useState<any[]>([]);
   const [filterDistrictId, setFilterDistrictId] = useState<string>("all");
-  // Year filter defaults to the CURRENT rotary year — set once filterYears loads.
+  // Year filter defaults to the CURRENT rotary year — set once the years load.
   // "All Years" option intentionally removed; the list is always year-scoped.
   const [filterYearId, setFilterYearId] = useState<string>("");
 
@@ -94,37 +93,19 @@ export default function DistrictGovernorPage() {
     }
   }, [filterDistrictId, filterYearId]);
 
-  // Refreshable: districts/years that actually have DG records (drives the listing-page filter dropdowns).
-  const refreshFilterDropdowns = useCallback(async () => {
-    try {
-      const [fd, fy] = await Promise.all([
-        getDistrictGovernorFilterDistricts(),
-        getDistrictGovernorFilterYears(),
-      ]);
-      setFilterDistricts(Array.isArray(fd) ? fd : []);
-      const yearsArr = Array.isArray(fy) ? fy : [];
-      setFilterYears(yearsArr);
-      // Default the Year filter to the CURRENT year (if any DG records exist for it);
-      // otherwise fall back to the most recent year with data. Only seed when no
-      // year is currently selected — never overwrite the user's choice.
-      setFilterYearId((prev) => {
-        if (prev) return prev;
-        const current = yearsArr.find((y: any) => y.isCurrent);
-        if (current) return String(current.id);
-        return yearsArr.length > 0 ? String(yearsArr[0].id) : "";
-      });
-    } catch { /* non-fatal */ }
-  }, []);
-
   useEffect(() => {
-    // Full lists for the Add/Edit dialog (every district, every year).
+    // Every district and year, for the filters and the Add/Edit dialog.
     Promise.all([getDistricts(1, 1000), getRotaryYears()]).then(([d, y]) => {
       setDistricts((Array.isArray(d) ? d : (d as any).items || []).sort((a: any, b: any) => String(a.districtNumber).localeCompare(String(b.districtNumber), undefined, { numeric: true })));
-      setYears(Array.isArray(y) ? y : []);
-    }).catch(() => {});
-    refreshFilterDropdowns();
-    fetchItems();
-  }, [fetchItems, refreshFilterDropdowns]);
+      const list = Array.isArray(y) ? y : [];
+      setYears(list);
+      const start = list.find((x) => x.isCurrent) ?? list[0];
+      if (start) setFilterYearId((prev) => prev || String(start.id));
+      else setLoading(false);
+    }).catch(() => { setLoading(false); setErrorMessage("Failed to load districts and Rotary years."); });
+  }, []);
+
+  useEffect(() => { if (filterYearId) fetchItems(); }, [fetchItems, filterYearId]);
 
   const handleMemberSearch = (val: string) => {
     setMemberSearch(val);
@@ -249,7 +230,7 @@ export default function DistrictGovernorPage() {
         setSuccessMessage("District Governor added.");
       }
       setDialogOpen(false);
-      await Promise.all([fetchItems(), refreshFilterDropdowns()]);
+      await fetchItems();
     } catch (err: any) {
       setErrorMessage(err?.response?.data?.message || "Failed to save.");
     } finally {
@@ -263,7 +244,7 @@ export default function DistrictGovernorPage() {
       await deleteDistrictGovernor(deleteTarget.id);
       setDeleteTarget(null);
       setSuccessMessage("District Governor deleted.");
-      await Promise.all([fetchItems(), refreshFilterDropdowns()]);
+      await fetchItems();
     } catch (err: any) {
       setErrorMessage(err?.response?.data?.message || "Failed to delete.");
       setDeleteTarget(null);
@@ -279,7 +260,7 @@ export default function DistrictGovernorPage() {
     return (
       <ProtectedRoute>
         <div className="flex flex-col items-center py-20">
-          <h3 className="text-lg font-semibold">Access Denied</h3>
+          <h3 className="row-h2">Access Denied</h3>
           <p className="text-muted-foreground mt-2">Only SuperAdmin can manage District Governors.</p>
         </div>
       </ProtectedRoute>
@@ -292,18 +273,16 @@ export default function DistrictGovernorPage() {
         <SuccessAlert open={!!successMessage} title="Success" description={successMessage || ""} onOk={() => setSuccessMessage(null)} />
         <ErrorAlert open={!!errorMessage} title="Error" description={errorMessage || ""} onOk={() => setErrorMessage(null)} />
 
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <Button variant="outline" size="icon" asChild>
-              <Link href="/settings"><ArrowLeft className="h-4 w-4" /></Link>
-            </Button>
-            <div>
-              <h2 className="text-2xl font-bold tracking-tight text-primary">District Governor</h2>
-              <p className="text-muted-foreground text-base">Manage district governors by rotary year</p>
-            </div>
-          </div>
-          <Button onClick={openAdd}><Plus className="mr-2 h-4 w-4" />Add District Governor</Button>
-        </div>
+        <PageHeader
+          title="District Governor"
+          description="Manage district governors by rotary year"
+          back="/settings"
+          actions={
+            <>
+<Button onClick={openAdd}><Plus className="mr-2 h-4 w-4" />Add District Governor</Button>
+            </>
+          }
+        />
 
         {/* Filters */}
         <Card>
@@ -311,26 +290,26 @@ export default function DistrictGovernorPage() {
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div>
                 <Label className="text-xs">District</Label>
-                <Select value={filterDistrictId} onValueChange={(v) => { setFilterDistrictId(v); }}>
-                  <SelectTrigger><SelectValue placeholder="All districts" /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Districts</SelectItem>
-                    {filterDistricts.map((d: any) => (
-                      <SelectItem key={d.id} value={String(d.id)}>{d.districtNumber}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <SearchableCombo
+                  value={filterDistrictId === "all" ? "" : filterDistrictId}
+                  onChange={(v) => setFilterDistrictId(v || "all")}
+                  options={districts.map((d: any) => ({ value: String(d.id), label: String(d.districtNumber) }))}
+                  placeholder="All Districts"
+                  searchPlaceholder="District number"
+                  emptyText="No district matches."
+                  allowClear
+                />
               </div>
               <div>
                 <Label className="text-xs">Rotary Year</Label>
-                <Select value={filterYearId} onValueChange={(v) => { setFilterYearId(v); }}>
-                  <SelectTrigger><SelectValue placeholder="Select year" /></SelectTrigger>
-                  <SelectContent>
-                    {filterYears.map((y: any) => (
-                      <SelectItem key={y.id} value={String(y.id)}>{y.yearLabel}{y.isCurrent ? " (Current)" : ""}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <SearchableCombo
+                  value={filterYearId}
+                  onChange={(v) => { if (v) setFilterYearId(v); }}
+                  options={years.map((y: any) => ({ value: String(y.id), label: `${y.yearLabel}${y.isCurrent ? " (Current)" : ""}` }))}
+                  placeholder="Select year"
+                  searchPlaceholder="Rotary year"
+                  emptyText="No year matches."
+                />
               </div>
               <div className="flex items-end">
                 <Button onClick={() => fetchItems()} variant="outline" className="w-full">
@@ -347,7 +326,7 @@ export default function DistrictGovernorPage() {
         ) : items.length === 0 ? (
           <div className="flex flex-col items-center py-20 text-center">
             <Crown className="h-12 w-12 text-muted-foreground mb-4" />
-            <h3 className="text-lg font-semibold">No district governors found</h3>
+            <h3 className="row-h2">No district governors found</h3>
             <p className="text-muted-foreground mt-2">Click &quot;Add District Governor&quot; to assign one.</p>
           </div>
         ) : (
@@ -390,17 +369,16 @@ export default function DistrictGovernorPage() {
                       <TableCell><Badge variant="outline">{item.yearLabel}</Badge></TableCell>
                       <TableCell className="text-right">
                         <div className="flex items-center justify-end gap-1">
-                          <Button variant="ghost" size="icon" onClick={() => openEdit(item)}><Pencil className="h-4 w-4" /></Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
+                          <IconButton aria-label="Edit district governor" onClick={() => openEdit(item)}><Pencil className="h-4 w-4" /></IconButton>
+                          <IconButton
+                            aria-label="Delete district governor"
                             className="text-destructive"
                             disabled={rowInactive}
                             title={rowInactive ? "Inactive: reactivate from Districts page" : undefined}
                             onClick={() => setDeleteTarget(item)}
                           >
                             <Trash2 className="h-4 w-4" />
-                          </Button>
+                          </IconButton>
                         </div>
                       </TableCell>
                     </TableRow>
@@ -451,13 +429,12 @@ export default function DistrictGovernorPage() {
                   <div className="space-y-3 p-3 border rounded-lg bg-muted/30">
                     <div className="flex flex-wrap items-center justify-between gap-3">
                       <Badge variant="secondary">Not a member</Badge>
-                      <button
-                        type="button"
+                      <LinkButton
+                        size="sm"
                         onClick={clearMember}
-                        className="text-xs text-primary underline"
                       >
                         Search member instead
-                      </button>
+                      </LinkButton>
                     </div>
                     <div className="flex items-start gap-4">
                       <div className="h-20 w-20 shrink-0 overflow-hidden rounded-full bg-primary/5 border-2 border-dashed border-primary/30 flex items-center justify-center">
@@ -515,7 +492,7 @@ export default function DistrictGovernorPage() {
                     <div className="flex-1">
                       <p className="font-medium text-sm">{formMemberName}</p>
                     </div>
-                    <button onClick={clearMember} className="text-destructive"><X className="h-4 w-4" /></button>
+                    <IconButton aria-label="Remove member" onClick={clearMember} className="text-destructive"><X className="h-4 w-4" /></IconButton>
                   </div>
                 ) : (
                   <div className="relative">
@@ -528,9 +505,9 @@ export default function DistrictGovernorPage() {
                     {memberResults.length > 0 && (
                       <div className="absolute z-50 w-full mt-1 bg-card border rounded-lg shadow-lg max-h-60 overflow-y-auto">
                         {memberResults.map((m: any) => (
-                          <button
+                          <MenuItemButton
                             key={m.memberId}
-                            className="w-full flex items-center gap-3 p-3 hover:bg-muted/50 text-left border-b last:border-0"
+                            className="gap-3 border-b last:border-0"
                             onClick={() => selectMember(m)}
                           >
                             {m.profilePhoto ? (
@@ -542,7 +519,7 @@ export default function DistrictGovernorPage() {
                               <p className="text-sm font-medium truncate">{m.memberName}</p>
                               <p className="text-xs text-muted-foreground">{m.clubName} · {m.districtNumber}</p>
                             </div>
-                          </button>
+                          </MenuItemButton>
                         ))}
                       </div>
                     )}
@@ -576,13 +553,13 @@ export default function DistrictGovernorPage() {
                     if (url) execCommand("insertImage", url);
                   }}>IMG</Button>
                   <span className="w-px bg-border mx-1" />
-                  <select className="text-xs border rounded px-1 h-8" onChange={(e) => { execCommand("fontSize", e.target.value); e.target.value = ""; }}>
+                  <NativeSelect className="row-field-sm w-auto" onChange={(e) => { execCommand("fontSize", e.target.value); e.target.value = ""; }}>
                     <option value="">Size</option>
                     <option value="1">Small</option>
                     <option value="3">Normal</option>
                     <option value="5">Large</option>
                     <option value="7">Huge</option>
-                  </select>
+                  </NativeSelect>
                   <input type="color" className="h-8 w-8 cursor-pointer border rounded" onChange={(e) => execCommand("foreColor", e.target.value)} title="Text Color" />
                 </div>
                 <div

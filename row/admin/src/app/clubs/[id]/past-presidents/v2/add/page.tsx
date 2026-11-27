@@ -16,6 +16,11 @@
  *   - One PP per year (client-side duplicate check before API call)
  */
 
+import FieldLabel from "@/components/form/FieldLabel";
+import { NativeSelect } from "@/components/ui/native-select";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import SectionCard from "@/components/form/SectionCard";
 import { useCallback, useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { Info, User, Search, Crown, Calendar, UserPlus, Camera as ImageIcon } from "@/components/icons";
@@ -41,40 +46,13 @@ import { useImageCropUpload } from "@/hooks/useImageCropUpload";
 import { useSyncClubIdFromUrl } from "@/hooks/useSyncClubIdFromUrl";
 import { ListPageSkeleton } from "@/components/row/AppKit";
 
+import { MenuItemButton } from "@/components/ui/text-buttons"
 // Past-president photos render in round avatars everywhere, so the crop is
 // locked square and stored at 500×500.
 const PHOTO_ASPECT = 1;
 const PHOTO_MAX_WIDTH = 500;
 
 const TOP_MESSAGE = "Search for a current or former club member, or add a historical Non-Member entry if the past president is no longer in the system. Only past Rotary years are selectable, and at most one past president is allowed per year.";
-
-function FieldLabel({ children, hint, dot, required = true }: { children: React.ReactNode; hint?: string; dot: string; required?: boolean }) {
-  return (
-    <div className="flex items-center gap-1.5 mb-1">
-      <span className={`w-1.5 h-1.5 rounded-full ${dot}`} />
-      <label className="text-xs font-semibold text-slate-700">
-        {children}
-        {required && <span className="text-rose-600 ml-0.5">*</span>}
-        {hint && <span className="text-slate-400 font-normal ml-1">{hint}</span>}
-      </label>
-    </div>
-  );
-}
-
-function SectionCard({
-  number, icon: Icon, title, dot, children,
-}: { number: number; icon: React.ElementType; title: string; dot: string; children: React.ReactNode }) {
-  return (
-    <div className="rounded-xl border border-slate-200 mb-4">
-      <div className="flex items-center gap-3 px-4 py-2.5 bg-slate-50 border-b border-slate-100 rounded-t-xl">
-        <div className={`flex items-center justify-center h-7 w-7 rounded-full text-white text-xs font-bold ${dot}`}>{number}</div>
-        <Icon className="h-4 w-4 text-slate-500" />
-        <h3 className="text-sm font-semibold text-slate-800">{title}</h3>
-      </div>
-      <div className="p-4">{children}</div>
-    </div>
-  );
-}
 
 export default function PastPresidentsV2AddPage() {
   useSyncClubIdFromUrl();
@@ -278,8 +256,8 @@ export default function PastPresidentsV2AddPage() {
         }
       >
         {/* 1. Member / Non-Member */}
-        <SectionCard number={1} icon={Crown} title="Past President" dot="bg-[#17458F]">
-          <FieldLabel dot="bg-[#17458F]">Select a Club Member or add a Non-Member</FieldLabel>
+        <SectionCard number={1} icon={Crown} title="Past President">
+          <FieldLabel required>Select a Club Member or add a Non-Member</FieldLabel>
           {selectedMemberId ? (
             <div className="flex items-center gap-3 p-3 border rounded-lg bg-blue-50/60 border-blue-100">
               <div className="relative h-10 w-10 flex-shrink-0 overflow-hidden rounded-full bg-card border border-slate-200">
@@ -298,16 +276,16 @@ export default function PastPresidentsV2AddPage() {
                 )}
               </div>
               <span className="font-medium flex-1 text-slate-800">{selectedMemberName}</span>
-              <span className="inline-flex items-center text-[11px] font-medium px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700">
+              <span className="inline-flex items-center text-[11px] font-medium px-2 py-0.5 rounded bg-emerald-100 text-emerald-700">
                 Member
               </span>
-              <button
+              <Button
                 type="button"
                 onClick={clearSelectedMember}
-                className="text-xs font-medium px-2.5 py-1 rounded-full border border-slate-200 text-slate-600 hover:bg-card"
+                variant="outline" size="sm"
               >
                 Change
-              </button>
+              </Button>
             </div>
           ) : nonMemberName ? (
             <>
@@ -330,21 +308,21 @@ export default function PastPresidentsV2AddPage() {
                     placeholder="Non-member name"
                   />
                 </div>
-                <span className="inline-flex items-center text-[11px] font-medium px-2 py-0.5 rounded-full bg-slate-200 text-slate-700">
+                <span className="inline-flex items-center text-[11px] font-medium px-2 py-0.5 rounded bg-slate-200 text-slate-700">
                   Non-Member
                 </span>
-                <button
+                <Button
                   type="button"
                   onClick={clearSelectedMember}
-                  className="text-xs font-medium px-2.5 py-1 rounded-full border border-slate-200 text-slate-600 hover:bg-card"
+                  variant="outline" size="sm"
                 >
                   Change
-                </button>
+                </Button>
               </div>
 
               {/* Profile photo — NON-MEMBER only */}
               <div className="mt-3">
-                <FieldLabel dot="bg-slate-400" required={false} hint="(optional)">Profile Photo</FieldLabel>
+                <FieldLabel required={false} hint="(optional)">Profile Photo</FieldLabel>
                 <div className="flex items-center gap-3">
                   <div className="relative h-16 w-16 flex-shrink-0 overflow-hidden rounded-full bg-card border border-slate-200">
                     {photoPreview ? (
@@ -356,7 +334,7 @@ export default function PastPresidentsV2AddPage() {
                     )}
                   </div>
                   <div className="flex flex-wrap items-center gap-2">
-                    <label className="cursor-pointer text-xs font-medium px-3 py-1.5 rounded-full border border-slate-200 text-slate-700 hover:bg-slate-50">
+                    <label className="cursor-pointer text-xs font-medium px-3 py-1.5 rounded border border-slate-200 text-slate-700 hover:bg-slate-50">
                       {photoPreview ? "Change photo" : "Upload photo"}
                       <input
                         type="file"
@@ -366,13 +344,13 @@ export default function PastPresidentsV2AddPage() {
                       />
                     </label>
                     {photoPreview && (
-                      <button
+                      <Button
                         type="button"
                         onClick={clearPhoto}
-                        className="text-xs font-medium px-3 py-1.5 rounded-full border border-rose-200 text-rose-600 hover:bg-rose-50"
+                        variant="outline" size="sm" className="text-red-700"
                       >
                         Remove
-                      </button>
+                      </Button>
                     )}
                   </div>
                 </div>
@@ -383,12 +361,12 @@ export default function PastPresidentsV2AddPage() {
           ) : (
             <div className="relative">
               <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
-              <input
+              <Input
                 type="text"
                 placeholder="Search club members by name…"
                 value={memberSearch}
                 onChange={(e) => setMemberSearch(e.target.value)}
-                className="w-full pl-10 pr-3 py-2.5 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                className="pl-10 pr-3"
                 autoFocus
               />
               {searchLoading && (
@@ -401,12 +379,10 @@ export default function PastPresidentsV2AddPage() {
                   {memberResults.map((m) => {
                     const photoUrl = getPhotoUrl(m.profilePhotoPath);
                     return (
-                      <button
+                      <MenuItemButton
                         key={m.id}
                         type="button"
-                        onClick={() => handleSelectMember(m)}
-                        className="flex items-center gap-3 w-full px-3 py-2 hover:bg-blue-50/60 text-left transition-colors"
-                      >
+                        onClick={() => handleSelectMember(m)}>
                         <div className="relative h-8 w-8 flex-shrink-0 overflow-hidden rounded-full bg-slate-100 border border-slate-200">
                           {photoUrl ? (
                             <Image src={photoUrl} alt={m.memberName} fill className="object-cover" unoptimized />
@@ -417,29 +393,28 @@ export default function PastPresidentsV2AddPage() {
                           )}
                         </div>
                         <span className="text-sm font-medium text-slate-800 flex-1">{m.memberName}</span>
-                        <span className="inline-flex items-center text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-emerald-100 text-emerald-700">
+                        <span className="inline-flex items-center text-[10px] font-medium px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700">
                           Member
                         </span>
-                      </button>
+                      </MenuItemButton>
                     );
                   })}
                   {/* Non-Member fallback — always shown when a search term is present */}
                   {memberSearch.trim() && (
-                    <button
+                    <MenuItemButton
                       type="button"
                       onClick={() => handleSelectNonMember(memberSearch)}
-                      className="flex items-center gap-3 w-full px-3 py-2 border-t border-slate-100 bg-slate-50 hover:bg-slate-100 text-left transition-colors"
-                    >
+                      className="border-t">
                       <div className="relative h-8 w-8 flex-shrink-0 overflow-hidden rounded-full bg-card border border-slate-200 flex items-center justify-center">
                         <UserPlus className="h-4 w-4 text-slate-500" />
                       </div>
                       <span className="text-sm text-slate-700 flex-1">
                         Add <span className="font-semibold">&ldquo;{memberSearch.trim()}&rdquo;</span> as Non-Member
                       </span>
-                      <span className="inline-flex items-center text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-slate-200 text-slate-700">
+                      <span className="inline-flex items-center text-[10px] font-medium px-1.5 py-0.5 rounded bg-slate-200 text-slate-700">
                         Non-Member
                       </span>
-                    </button>
+                    </MenuItemButton>
                   )}
                 </div>
               )}
@@ -451,12 +426,12 @@ export default function PastPresidentsV2AddPage() {
         </SectionCard>
 
         {/* 2. Rotary Year */}
-        <SectionCard number={2} icon={Calendar} title="Rotary Year" dot="bg-[#17458F]">
-          <FieldLabel dot="bg-[#17458F]" hint="(past years only)">Year of Presidency</FieldLabel>
-          <select
+        <SectionCard number={2} icon={Calendar} title="Rotary Year">
+          <FieldLabel required hint="(past years only)">Year of Presidency</FieldLabel>
+          <NativeSelect
             value={selectedYearId}
             onChange={(e) => setSelectedYearId(e.target.value)}
-            className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] bg-card focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+            
           >
             <option value="">Select a year…</option>
             {yearOptions.map((y) => (
@@ -464,7 +439,7 @@ export default function PastPresidentsV2AddPage() {
                 {y.yearLabel}
               </option>
             ))}
-          </select>
+          </NativeSelect>
           <p className="text-xs text-slate-400 mt-1">
             Only one past president can be recorded per year.
           </p>

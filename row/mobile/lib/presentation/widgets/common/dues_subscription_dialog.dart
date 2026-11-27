@@ -6,6 +6,7 @@ import '../../../core/theme/app_gradients.dart';
 import '../../../core/theme/app_text_styles.dart';
 import 'package:rotary_flutter_app/core/brand/brand.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/motion.dart';
 
 // Membership Dues support contact — shown when a club has no dues set up
 // (the backend has no separate "subscription" flag, so any club absent from
@@ -20,7 +21,7 @@ String get kDuesSupportHours => Brand.current.supportHours;
 /// the club dashboard so both look identical.
 void showDuesSubscriptionDialog(BuildContext context, {String? clubName}) {
   final club = (clubName ?? '').trim();
-  showDialog<void>(
+  showRowDialog<void>(
     context: context,
     builder: (ctx) => Dialog(
       backgroundColor: AppColors.white,
@@ -79,6 +80,7 @@ void showDuesSubscriptionDialog(BuildContext context, {String? clubName}) {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                if (kDuesSupportPhones.isNotEmpty || kDuesSupportEmail.isNotEmpty)
                 Text(
                   'FOR ACTIVATION, PLEASE CONTACT',
                   style: AppTextStyles.caption.copyWith(
@@ -88,6 +90,9 @@ void showDuesSubscriptionDialog(BuildContext context, {String? clubName}) {
                     letterSpacing: 0.5,
                   ),
                 ),
+                if (kDuesSupportPhones.isEmpty && kDuesSupportEmail.isEmpty)
+                  Text('Contact your club admin.',
+                      style: AppTextStyles.body.copyWith(color: AppColors.textSecondary)),
                 const SizedBox(height: 9),
                 for (final p in kDuesSupportPhones) ...[
                   _DuesContactTile(
@@ -103,6 +108,7 @@ void showDuesSubscriptionDialog(BuildContext context, {String? clubName}) {
                   ),
                   const SizedBox(height: 8),
                 ],
+                if (kDuesSupportEmail.isNotEmpty)
                 _DuesContactTile(
                   icon: Icons.mail_rounded,
                   label: 'Email',
@@ -114,7 +120,8 @@ void showDuesSubscriptionDialog(BuildContext context, {String? clubName}) {
                     noun: 'Email',
                   ),
                 ),
-                const SizedBox(height: 12),
+                if (kDuesSupportHours.isNotEmpty) const SizedBox(height: 12),
+                if (kDuesSupportHours.isNotEmpty)
                 Row(
                   children: [
                     const Icon(Icons.schedule_rounded,

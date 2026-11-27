@@ -70,7 +70,7 @@ public static class ReportExcelWriter
             }
 
             Banner(title, STitle, 28);
-            Banner("Rotary Zones 4, 5, 6, 7 & 8 Admin Portal", SSubtitle);
+            Banner($"{Brand.ProductName} Admin Portal", SSubtitle);
             if (!string.IsNullOrWhiteSpace(subtitle)) Banner(subtitle!, SSubtitle);
             Banner($"Generated: {now:dd MMM yyyy}, {now.ToString("hh:mm tt").ToLowerInvariant()}  |  Total Records: {rowCount}", SInfo);
             r++; // blank separator

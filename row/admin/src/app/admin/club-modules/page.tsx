@@ -1,4 +1,5 @@
 "use client";
+import { MenuItemButton } from "@/components/ui/text-buttons";
 
 import { useState, useEffect, useRef } from "react";
 import { AvailableModule } from "@/types/module";
@@ -10,11 +11,10 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
-import { ArrowLeft, AlertCircle, Save, Search } from "@/components/icons";
+import { AlertCircle, Save, Search } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
-import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
-import { ListPageSkeleton } from "@/components/row/AppKit";
+import { PageHeader, ListPageSkeleton } from "@/components/row/AppKit";
 
 interface CategoryGroup {
   categoryId: number;
@@ -184,7 +184,7 @@ export default function ClubModulesPage() {
     return (
       <ProtectedRoute>
         <div className="flex flex-col items-center justify-center py-20">
-          <h3 className="text-lg font-semibold">Access Denied</h3>
+          <h3 className="row-h2">Access Denied</h3>
           <p className="text-muted-foreground mt-2">Only SuperAdmin can manage club modules.</p>
         </div>
       </ProtectedRoute>
@@ -194,23 +194,17 @@ export default function ClubModulesPage() {
   return (
     <ProtectedRoute>
       <div className="space-y-6">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-3">
-            <Button variant="outline" size="icon" asChild>
-              <Link href="/settings/module-master"><ArrowLeft className="h-4 w-4" /></Link>
-            </Button>
-            <div>
-              <h2 className="text-2xl font-bold tracking-tight text-primary">Club Module Assignment</h2>
-              <p className="text-muted-foreground text-base">Assign modules to clubs</p>
-            </div>
-          </div>
-          {selectedClub && modules.length > 0 && (
+        <PageHeader
+          title="Club Module Assignment"
+          description="Assign modules to clubs"
+          back="/settings/module-master"
+          actions={selectedClub && modules.length > 0 && (
             <Button onClick={handleSave} disabled={saving || !hasChanges}>
               {saving ? <RotaryLoader size="sm" /> : <Save className="mr-2 h-4 w-4" />}
               Save Changes
             </Button>
           )}
-        </div>
+        />
 
         <Card>
           <CardHeader><CardTitle>Search Club</CardTitle></CardHeader>
@@ -235,15 +229,14 @@ export default function ClubModulesPage() {
                   {showDropdown && clubs.length > 0 && (
                     <div className="absolute z-50 w-full mt-1 border rounded-md bg-background shadow-lg max-h-60 overflow-y-auto">
                       {clubs.map((club) => (
-                        <button
+                        <MenuItemButton
                           key={club.id}
-                          type="button"
                           onClick={() => selectClub(club)}
-                          className="w-full text-left px-3 py-2 hover:bg-muted/50 transition-colors border-b last:border-b-0"
+                          className="block border-b last:border-b-0"
                         >
                           <p className="text-sm font-medium">{club.clubName}</p>
                           <p className="text-xs text-muted-foreground">District: {club.districtNumber}</p>
-                        </button>
+                        </MenuItemButton>
                       ))}
                     </div>
                   )}
@@ -272,7 +265,7 @@ export default function ClubModulesPage() {
         {error && (
           <div className="flex flex-col items-center justify-center py-12 text-center">
             <AlertCircle className="h-12 w-12 text-destructive mb-4" />
-            <h3 className="text-lg font-semibold">Error</h3>
+            <h3 className="row-h2">Error</h3>
             <p className="text-muted-foreground mt-2 max-w-md">{error}</p>
           </div>
         )}

@@ -1,4 +1,5 @@
 "use client";
+import { DataTable } from "@/components/ui/data-table";
 
 /**
  * Event Payment Links v2 — Members page (paid / unpaid tabs).
@@ -11,13 +12,11 @@
  * v2 reads `?returnTo=` for the back button.
  */
 
+import { Input } from "@/components/ui/input";
+import { Card } from "@/components/ui/card";
 import { useState, useCallback, useEffect, useMemo } from "react";
 import { useParams, useSearchParams, useRouter } from "next/navigation";
-import Link from "next/link";
-import {
-  ArrowLeft, Download, Mail, Receipt, CreditCard,
-  Loader2, Search, Users, CheckCircle2, XCircle, IndianRupee,
-} from "@/components/icons";
+import { Download, Mail, Receipt, CreditCard, Search, Users, CheckCircle2, XCircle, IndianRupee } from "@/components/icons";
 import { getEventMembers, sendEventReceipt, sendEventReminderEmail, bulkReminderEmail, exportEventMembers } from "@/services/api";
 import { fileTimestamp } from "@/lib/dateUtils";
 import { useAuth } from "@/contexts/AuthContext";
@@ -33,7 +32,7 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import { useSyncClubIdFromUrl } from "@/hooks/useSyncClubIdFromUrl";
 
 import { currencySymbol } from "@/lib/appFormat";
-import { SkeletonRows } from "@/components/row/AppKit";
+import { PageHeader, SkeletonRows } from "@/components/row/AppKit";
 import { stripBase } from "@/lib/basePath";
 interface EventMember {
   id: number;
@@ -141,7 +140,7 @@ export default function EventMembersV2Page() {
           activeNavHref="/club-admin-dashboard/membership-dues"
         >
           <div className="flex flex-col items-center justify-center py-20">
-            <h3 className="text-lg font-semibold text-slate-800">Access Denied</h3>
+            <h3 className="row-h2">Access Denied</h3>
           </div>
         </ClubAdminShell>
       </ProtectedRoute>
@@ -156,44 +155,26 @@ export default function EventMembersV2Page() {
     }
     return (
       <div className="overflow-x-auto">
-        <table className="w-full min-w-[640px] md:min-w-full text-sm">
-          <thead className="bg-[#EDF4FB] text-[13px] text-[#64748B]">
-            <tr>
-              <th className="px-3 py-2.5 text-left">Name</th>
-              <th className="px-3 py-2.5 text-left">Mobile</th>
-              <th className="px-3 py-2.5 text-left">Email</th>
-              <th className="px-3 py-2.5 text-left">Registration</th>
-              <th className="px-3 py-2.5 text-right">Amount</th>
-              {isPaidTab && <th className="px-3 py-2.5 text-left">Payment Date</th>}
-              {isPaidTab && <th className="px-3 py-2.5 text-left">Transaction</th>}
-              <th className="px-3 py-2.5 text-right w-48">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-100">
-            {members.length === 0 ? (
-              <tr>
-                <td colSpan={isPaidTab ? 8 : 6} className="px-4 py-10 text-center text-slate-400">
-                  No members found.
-                </td>
-              </tr>
-            ) : members.map((m) => (
-              <tr key={m.id} className="hover:bg-blue-50/40">
-                <td className="px-3 py-2 font-medium text-slate-800">{m.memberName || "–"}</td>
-                <td className="px-3 py-2 text-slate-700 whitespace-nowrap">{m.mobile || "–"}</td>
-                <td className="px-3 py-2 text-slate-700 max-w-[180px] truncate">{m.email || "–"}</td>
-                <td className="px-3 py-2 text-slate-700">{m.registrationType || "–"}</td>
-                <td className="px-3 py-2 text-right tabular-nums text-slate-700">
+        <DataTable
+          caption="Members"
+          card={false}
+          className="[&_table]:min-w-[640px] md:[&_table]:min-w-full"
+          rows={members}
+          rowKey={(m) => m.id}
+          empty="No members found."
+          columns={[
+{ key: "name", header: "Name", className: "font-medium", cell: (m, _i) => m.memberName || "–" },
+{ key: "mobile", header: "Mobile", className: "whitespace-nowrap", cell: (m, _i) => m.mobile || "–" },
+{ key: "email", header: "Email", className: "max-w-[180px] truncate", cell: (m, _i) => m.email || "–" },
+{ key: "reg", header: "Registration", cell: (m, _i) => m.registrationType || "–" },
+{ key: "amount", header: "Amount", align: "right", className: "tabular-nums", cell: (m, _i) => (<>
                   {m.amount ? `${currencySymbol()}${m.amount.toFixed(2)}` : "–"}
-                </td>
-                {isPaidTab && (
-                  <td className="px-3 py-2 text-xs text-slate-500 whitespace-nowrap">
+</>) },
+...(isPaidTab ? [{ key: "paydate", header: "Payment Date", className: "text-xs whitespace-nowrap", cell: (m: (typeof members)[number], _i: number) => (<>
                     {m.paymentDate ? new Date(m.paymentDate).toLocaleDateString() : "–"}
-                  </td>
-                )}
-                {isPaidTab && (
-                  <td className="px-3 py-2">
+</>) }, { key: "txn", header: "Transaction", cell: (m: (typeof members)[number], _i: number) => (<>
                     <span
-                      className={`inline-flex items-center text-xs font-medium px-2 py-0.5 rounded-full border ${
+                      className={`inline-flex items-center text-xs font-medium px-2 py-0.5 rounded border ${
                         m.isOnline
                           ? "bg-blue-50 text-blue-700 border-blue-200"
                           : "bg-amber-50 text-amber-700 border-amber-200"
@@ -201,9 +182,8 @@ export default function EventMembersV2Page() {
                     >
                       {m.isOnline ? (m.transactionId || "Online") : (m.offlineTransactionType || "Offline")}
                     </span>
-                  </td>
-                )}
-                <td className="px-3 py-2 text-right">
+</>) }] : []),
+{ key: "actions", header: "Actions", align: "right", className: "w-48", cell: (m, _i) => (<>
                   <div className="flex items-center justify-end gap-1 flex-wrap">
                     {isPaidTab ? (
                       <LoadingButton
@@ -216,7 +196,7 @@ export default function EventMembersV2Page() {
                           }
                         }}
                         loadingLabel="Sending…"
-                        className="inline-flex items-center gap-1 text-xs font-medium px-2 py-1 rounded border border-slate-200 text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+                        className="row-btn row-btn-secondary row-btn-sm"
                       >
                         <Receipt size={12} /> Send Receipt
                       </LoadingButton>
@@ -224,7 +204,7 @@ export default function EventMembersV2Page() {
                       <>
                         <LoadingLink
                           href={`/clubs/${clubId}/event-payment-links/${linkId}/members/${m.id}/offline-payment?returnTo=${outboundReturnTo}`}
-                          className="inline-flex items-center gap-1 text-xs font-medium px-2 py-1 rounded border border-slate-200 text-slate-700 hover:bg-slate-50"
+                          className="row-btn row-btn-secondary row-btn-sm"
                         >
                           <CreditCard size={12} /> Offline
                         </LoadingLink>
@@ -238,18 +218,16 @@ export default function EventMembersV2Page() {
                             }
                           }}
                           loadingLabel="Sending…"
-                          className="inline-flex items-center gap-1 text-xs font-medium px-2 py-1 rounded border border-slate-200 text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+                          className="row-btn row-btn-secondary row-btn-sm"
                         >
                           <Mail size={12} /> Email
                         </LoadingButton>
                       </>
                     )}
                   </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+</>) },
+          ]}
+        />
       </div>
     );
   };
@@ -263,28 +241,22 @@ export default function EventMembersV2Page() {
       >
         <div className="space-y-5">
           {/* Header */}
-          <div className="flex items-start justify-between gap-3">
-            <div className="flex items-start gap-2">
-              <Link
-                href={backHref}
-                className="mt-0.5 inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50"
-                aria-label="Back"
-              >
-                <ArrowLeft size={15} />
-              </Link>
-              <div>
-                <h1 className="text-lg font-semibold text-slate-800">Event Members</h1>
-                <p className="text-xs text-slate-500 mt-0.5">Payment link #{linkId}</p>
-              </div>
-            </div>
-            <LoadingButton
+          <PageHeader
+            title="Event Members"
+            description={<>Payment link #{linkId}</>}
+            back={backHref}
+            actions={
+              <>
+<LoadingButton
               onAction={handleExport}
               loadingLabel="Exporting…"
-              className="inline-flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-full border border-slate-200 text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+              className="row-btn row-btn-secondary row-btn-sm"
             >
               <Download size={13} /> Export {activeTab === "paid" ? "Paid" : "Unpaid"}
             </LoadingButton>
-          </div>
+              </>
+            }
+          />
 
           {/* KPI row */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -295,26 +267,26 @@ export default function EventMembersV2Page() {
           </div>
 
           {/* Tabs + table */}
-          <div className="bg-card rounded-2xl border border-slate-200 overflow-hidden">
+          <Card className="overflow-hidden">
             <Tabs value={activeTab} onValueChange={setActiveTab}>
               <div className="px-5 py-3 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                <TabsList className="bg-slate-100 p-1 h-auto">
-                  <TabsTrigger value="paid" className="px-3 py-1.5 text-xs gap-1.5">
+                <TabsList>
+                  <TabsTrigger value="paid" className="gap-1.5">
                     <CheckCircle2 size={13} /> Paid ({totalPaid})
                   </TabsTrigger>
-                  <TabsTrigger value="unpaid" className="px-3 py-1.5 text-xs gap-1.5">
+                  <TabsTrigger value="unpaid" className="gap-1.5">
                     <XCircle size={13} /> Unpaid ({totalUnpaid})
                   </TabsTrigger>
                 </TabsList>
                 <div className="flex flex-wrap items-center gap-2">
                   <div className="relative w-full sm:w-auto">
                     <Search size={14} className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-400" />
-                    <input
+                    <Input
                       type="text"
                       placeholder="Search…"
                       value={search}
                       onChange={(e) => setSearch(e.target.value)}
-                      className="pl-7 pr-3 h-10 py-0 text-sm border border-slate-200 rounded-[12px] w-full sm:w-48 focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                      className="pl-7 pr-3 sm:w-48"
                     />
                   </div>
                   {activeTab === "unpaid" && (
@@ -333,7 +305,7 @@ export default function EventMembersV2Page() {
                         }}
                         forcePending={bulkSending}
                         loadingLabel="Sending…"
-                        className="inline-flex items-center gap-1 text-xs font-medium px-2.5 py-1.5 rounded-full border border-slate-200 text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+                        className="row-btn row-btn-secondary row-btn-sm"
                       >
                         <Mail size={12} /> Bulk Email
                       </LoadingButton>
@@ -355,7 +327,7 @@ export default function EventMembersV2Page() {
                 ? `${paidMembers.length} paid member${paidMembers.length === 1 ? "" : "s"}`
                 : `${unpaidMembers.length} unpaid member${unpaidMembers.length === 1 ? "" : "s"}`}
             </div>
-          </div>
+          </Card>
 
           <SuccessAlert open={!!successMessage} title="Success" description={successMessage || ""} onOk={() => setSuccessMessage(null)} />
           <ErrorAlert open={!!errorMessage} title="Error" description={errorMessage || ""} onOk={() => setErrorMessage(null)} />

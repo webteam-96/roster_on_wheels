@@ -7,6 +7,9 @@ import '../../widgets/common/custom_app_bar.dart';
 import '../../widgets/common/empty_state_widget.dart';
 import 'package:rotary_flutter_app/core/theme/app_fonts.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/motion.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/roster_wheel.dart';
+import 'package:rotary_flutter_app/presentation/widgets/common/loading_widget.dart';
 
 /// `accessibleDistricts` from `/api/auth/my-context` carries only `{id, number}` —
 /// the backend's DistrictScopeDto has no WebsiteUrl. We derive the website URL
@@ -164,7 +167,7 @@ class _MyDistrictWebsitesScreenState extends State<MyDistrictWebsitesScreen> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: const CustomAppBar(title: 'My District Websites'),
-      body: RefreshIndicator(
+      body: RowRefresh(
         color: AppColors.primary,
         onRefresh: _load,
         child: _buildBody(),
@@ -174,7 +177,7 @@ class _MyDistrictWebsitesScreenState extends State<MyDistrictWebsitesScreen> {
 
   Widget _buildBody() {
     if (_loading) {
-      return const Center(child: const CircularProgressIndicator(color: AppColors.primary));
+      return const LoadingWidget();
     }
     if (_error != null) {
       return ErrorStateWidget(message: _error!, onRetry: _load);
@@ -192,7 +195,7 @@ class _MyDistrictWebsitesScreenState extends State<MyDistrictWebsitesScreen> {
         ],
       );
     }
-    return ListView.separated(
+    return RowListView.separated(
       padding: const EdgeInsets.all(16),
       physics: const AlwaysScrollableScrollPhysics(),
       itemCount: _districts.length + 1,

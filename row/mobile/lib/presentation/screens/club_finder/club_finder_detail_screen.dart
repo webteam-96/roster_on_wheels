@@ -17,6 +17,8 @@ import '../../widgets/common/loading_widget.dart';
 import 'package:rotary_flutter_app/core/theme/app_fonts.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
 import 'package:rotary_flutter_app/presentation/widgets/row/skeleton_list.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/motion.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/roster_wheel.dart';
 
 class ClubFinderDetailScreen extends StatefulWidget {
   final int clubId;
@@ -89,11 +91,8 @@ class _ClubFinderDetailScreenState extends State<ClubFinderDetailScreen>
 
   Widget _tabBar() {
     const titles = ['Info', 'Member', 'Events', 'Projects'];
-    return Container(
-      decoration: const BoxDecoration(
-        color: AppColors.white,
-        border: const Border(bottom: const BorderSide(color: AppColors.border)),
-      ),
+    return ColoredBox(
+      color: AppColors.surface,
       child: TabBar(
         controller: _tabCtrl,
         isScrollable: false,
@@ -124,8 +123,7 @@ class _InfoTab extends StatefulWidget {
   State<_InfoTab> createState() => _InfoTabState();
 }
 
-class _InfoTabState extends State<_InfoTab>
-    with AutomaticKeepAliveClientMixin {
+class _InfoTabState extends State<_InfoTab> with AutomaticKeepAliveClientMixin {
   final _api = ApiClient();
   ClubFinderDetail? _detail;
   bool _loading = true;
@@ -273,7 +271,7 @@ class _InfoTabState extends State<_InfoTab>
         icon: Icons.error_outline_rounded,
       );
     }
-    return RefreshIndicator(
+    return RowRefresh(
       onRefresh: _load,
       color: AppColors.primary,
       child: ListView(
@@ -297,104 +295,100 @@ class _InfoTabState extends State<_InfoTab>
 
   Widget _headerCard(ClubFinderDetail d) {
     final logoUrl = _photoUrl(d.clubLogoPath);
+    final stats = <(String, String)>[
+      ('Club ID', d.clubRotaryId ?? '–'),
+      ('District', d.districtNumber ?? '–'),
+      if (_memberCount != null) ('Members', '$_memberCount'),
+      if ((_honoraryCount ?? 0) > 0) ('Honorary', '$_honoraryCount'),
+    ];
     return _card(
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(14),
-            child: Container(
-              width: 88,
-              height: 88,
-              color: AppColors.primaryLight,
-              child: logoUrl == null
-                  ? const Icon(Icons.account_balance_rounded, size: 40, color: AppColors.primary)
-                  : CachedNetworkImage(
-                      imageUrl: logoUrl,
-                      fit: BoxFit.cover,
-                      placeholder: (_, __) => Container(color: AppColors.primaryLight),
-                      errorWidget: (_, __, ___) =>
-                          const Icon(Icons.account_balance_rounded, size: 40, color: AppColors.primary),
-                    ),
+          Row(
+            children: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: Container(
+                  width: 56,
+                  height: 56,
+                  color: AppColors.primaryLight,
+                  child: logoUrl == null
+                      ? const Icon(Icons.account_balance_rounded,
+                          size: 28, color: AppColors.primary)
+                      : CachedNetworkImage(
+                          imageUrl: logoUrl,
+                          fit: BoxFit.cover,
+                          placeholder: (_, __) =>
+                              Container(color: AppColors.primaryLight),
+                          errorWidget: (_, __, ___) => const Icon(
+                              Icons.account_balance_rounded,
+                              size: 28,
+                              color: AppColors.primary),
+                        ),
+                ),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Text(
+                  d.clubName ?? 'Club',
+                  style: AppFonts.display(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.textPrimary,
+                    height: 1.2,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          const Divider(height: 1, color: AppColors.line),
+          const SizedBox(height: 12),
+          IntrinsicHeight(
+            child: Row(
+              children: [
+                for (var i = 0; i < stats.length; i++) ...[
+                  if (i > 0)
+                    const VerticalDivider(
+                        width: 24, thickness: 1, color: AppColors.line),
+                  Expanded(child: _stat(stats[i].$1, stats[i].$2)),
+                ],
+              ],
             ),
           ),
-          const SizedBox(height: 12),
-          Text(
-            d.clubName ?? 'Club',
-            style: AppFonts.display(
-              fontSize: 22,
-              fontWeight: FontWeight.w800,
-              color: AppColors.textPrimary,
-            ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 12),
-          Builder(builder: (context) {
-            final pills = <Widget>[
-              _idPill('Club ID', d.clubRotaryId ?? '–'),
-              _idPill('District ID', d.districtNumber ?? '–'),
-              if (_memberCount != null) _idPill('Members', '$_memberCount'),
-              if ((_honoraryCount ?? 0) > 0)
-                _idPill('Honorary', '$_honoraryCount'),
-            ];
-            // Up to 3 pills fit a single row; a 4th (Honorary) would squeeze
-            // every pill so labels/values wrap — so switch to a 2-per-row grid.
-            if (pills.length <= 3) {
-              return Row(
-                children: [
-                  for (var i = 0; i < pills.length; i++) ...[
-                    if (i > 0) const SizedBox(width: 10),
-                    Expanded(child: pills[i]),
-                  ],
-                ],
-              );
-            }
-            return LayoutBuilder(builder: (context, c) {
-              const gap = 10.0;
-              final w = (c.maxWidth - gap) / 2;
-              return Wrap(
-                spacing: gap,
-                runSpacing: gap,
-                children: [
-                  for (final p in pills) SizedBox(width: w, child: p),
-                ],
-              );
-            });
-          }),
         ],
       ),
     );
   }
 
-  Widget _idPill(String label, String value) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-      decoration: BoxDecoration(
-        color: AppColors.primaryPrime.withValues(alpha: 0.05),
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: AppColors.primaryPrime.withValues(alpha: 0.15)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            label,
-            style: AppFonts.body(
-              fontSize: 13,
-              color: AppColors.textSecondary,
-              fontWeight: FontWeight.w600,
-            ),
+  Widget _stat(String label, String value) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label.toUpperCase(),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: AppFonts.body(
+            fontSize: 11,
+            color: AppColors.textSecondary,
+            fontWeight: FontWeight.w700,
+            letterSpacing: .8,
           ),
-          const SizedBox(height: 2),
-          Text(
-            value,
-            style: AppFonts.body(
-              fontSize: 15,
-              fontWeight: FontWeight.w800,
-              color: AppColors.primaryPrime,
-            ),
+        ),
+        const SizedBox(height: 2),
+        Text(
+          value,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: AppFonts.body(
+            fontSize: 16,
+            fontWeight: FontWeight.w800,
+            color: AppColors.primaryPrime,
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
@@ -402,8 +396,8 @@ class _InfoTabState extends State<_InfoTab>
     final rows = <Widget>[];
     final address = _fullAddress(d);
     if (address.isNotEmpty) {
-      rows.add(_labeledText('Address', address,
-          onTap: () => _openMaps(address)));
+      rows.add(
+          _labeledText('Address', address, onTap: () => _openMaps(address)));
     }
     final meeting = _meetingLine(d);
     if (meeting != null) {
@@ -454,87 +448,76 @@ class _InfoTabState extends State<_InfoTab>
     final url = _photoUrl(officer.profilePhoto);
     final phone = (mobile ?? '').trim();
     final mail = (email ?? '').trim();
-    final hasContact = phone.isNotEmpty || mail.isNotEmpty;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+    return Row(
       children: [
-        Row(
-          children: [
-            ClipOval(
-              child: Container(
-                width: 46,
-                height: 46,
-                color: AppColors.primaryLight,
-                child: url == null
-                    ? const Icon(Icons.person_rounded, color: AppColors.primary)
-                    : CachedNetworkImage(
-                        imageUrl: url,
-                        fit: BoxFit.cover,
-                        placeholder: (_, __) => Container(color: AppColors.primaryLight),
-                        errorWidget: (_, __, ___) =>
-                            const Icon(Icons.person_rounded, color: AppColors.primary),
-                      ),
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    officer.name,
-                    style: AppFonts.body(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.textPrimary,
-                    ),
+        ClipOval(
+          child: Container(
+            width: 44,
+            height: 44,
+            color: AppColors.primaryLight,
+            child: url == null
+                ? const Icon(Icons.person_rounded, color: AppColors.primary)
+                : CachedNetworkImage(
+                    imageUrl: url,
+                    fit: BoxFit.cover,
+                    placeholder: (_, __) =>
+                        Container(color: AppColors.primaryLight),
+                    errorWidget: (_, __, ___) => const Icon(
+                        Icons.person_rounded,
+                        color: AppColors.primary),
                   ),
-                  const SizedBox(height: 2),
-                  Text(
-                    role,
-                    style: AppFonts.body(
-                      fontSize: 13,
-                      color: AppColors.textSecondary,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
+          ),
         ),
-        if (hasContact) ...[
-          const SizedBox(height: 14),
-          Row(
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Expanded(
-                child: _ContactAction(
-                  icon: Icons.call_rounded,
-                  label: 'Call',
-                  enabled: phone.isNotEmpty,
-                  onTap: () => _openUrl('tel:${_digits(phone)}'),
+              Text(
+                officer.name,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: AppFonts.body(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.textPrimary,
                 ),
               ),
-              Expanded(
-                child: _ContactAction(
-                  icon: Icons.chat_bubble_outline_rounded,
-                  label: 'SMS',
-                  enabled: phone.isNotEmpty,
-                  onTap: () => _openUrl('sms:${_digits(phone)}'),
-                ),
-              ),
-              Expanded(
-                child: _ContactAction(
-                  icon: Icons.mail_outline_rounded,
-                  label: 'Email',
-                  enabled: mail.isNotEmpty,
-                  onTap: () => _openUrl('mailto:$mail'),
+              const SizedBox(height: 2),
+              Text(
+                role,
+                style: AppFonts.body(
+                  fontSize: 13,
+                  color: AppColors.textSecondary,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
             ],
           ),
+        ),
+        if (phone.isNotEmpty)
+          _contactIcon(Icons.call_rounded, 'Call ${officer.name}',
+              () => _openUrl('tel:${_digits(phone)}')),
+        if (mail.isNotEmpty) ...[
+          const SizedBox(width: 8),
+          _contactIcon(Icons.mail_outline_rounded, 'Email ${officer.name}',
+              () => _openUrl('mailto:$mail')),
         ],
       ],
+    );
+  }
+
+  Widget _contactIcon(IconData icon, String tooltip, VoidCallback onTap) {
+    return IconButton.filledTonal(
+      tooltip: tooltip,
+      onPressed: onTap,
+      icon: Icon(icon, size: 20),
+      style: IconButton.styleFrom(
+        backgroundColor: AppColors.primaryLight,
+        foregroundColor: AppColors.primaryPrime,
+        fixedSize: const Size(40, 40),
+        minimumSize: const Size(40, 40),
+      ),
     );
   }
 
@@ -542,11 +525,13 @@ class _InfoTabState extends State<_InfoTab>
     final rows = <Widget>[];
     if (d.clubWebsite?.url != null) {
       rows.add(_linkText('Club Portal', d.clubWebsite!.url!,
-          onTap: () => _openUrl(d.clubWebsite!.url!), icon: Icons.public_rounded));
+          onTap: () => _openUrl(d.clubWebsite!.url!),
+          icon: Icons.public_rounded));
     }
     if (d.districtWebsite?.url != null) {
       rows.add(_linkText('District Portal', d.districtWebsite!.url!,
-          onTap: () => _openUrl(d.districtWebsite!.url!), icon: Icons.language_rounded));
+          onTap: () => _openUrl(d.districtWebsite!.url!),
+          icon: Icons.language_rounded));
     }
     if (rows.isEmpty) return const SizedBox.shrink();
     return _card(
@@ -559,12 +544,11 @@ class _InfoTabState extends State<_InfoTab>
 
   Widget _card({required Widget child}) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: AppColors.border),
-
       ),
       child: child,
     );
@@ -610,7 +594,8 @@ class _InfoTabState extends State<_InfoTab>
     );
   }
 
-  Widget _linkText(String label, String value, {required VoidCallback onTap, IconData? icon}) {
+  Widget _linkText(String label, String value,
+      {required VoidCallback onTap, IconData? icon}) {
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(8),
@@ -644,7 +629,8 @@ class _InfoTabState extends State<_InfoTab>
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
-              const Icon(Icons.open_in_new_rounded, size: 15, color: AppColors.primaryPrime),
+              const Icon(Icons.open_in_new_rounded,
+                  size: 15, color: AppColors.primaryPrime),
             ],
           ),
         ],
@@ -659,8 +645,8 @@ class _InfoTabState extends State<_InfoTab>
       out.add(items[i]);
       if (i != items.length - 1) {
         out.add(const Padding(
-          padding: EdgeInsets.symmetric(vertical: 12),
-          child: Divider(height: 1),
+          padding: EdgeInsets.symmetric(vertical: 10),
+          child: Divider(height: 1, color: AppColors.line),
         ));
       }
     }
@@ -698,6 +684,7 @@ class _InfoTabState extends State<_InfoTab>
       final h12 = h % 12 == 0 ? 12 : h % 12;
       return '${h12.toString().padLeft(2, '0')}:${m.toString().padLeft(2, '0')} $period';
     }
+
     final f = fmt(from);
     final t = fmt(to);
     if (f == null && t == null) return null;
@@ -709,7 +696,6 @@ class _InfoTabState extends State<_InfoTab>
     var url = raw.trim();
     if (!url.startsWith('http') &&
         !url.startsWith('tel:') &&
-        !url.startsWith('sms:') &&
         !url.startsWith('mailto:')) {
       url = 'https://$url';
     }
@@ -726,61 +712,6 @@ class _InfoTabState extends State<_InfoTab>
     final url = googleMapsSearchUrl(address);
     if (url == null) return;
     await _openUrl(url);
-  }
-}
-
-class _ContactAction extends StatelessWidget {
-  final IconData? icon;
-  final String? iconAsset;
-  final String label;
-  final bool enabled;
-  final VoidCallback? onTap;
-  const _ContactAction({
-    this.icon,
-    this.iconAsset,
-    required this.label,
-    this.enabled = true,
-    this.onTap,
-  }) : assert(icon != null || iconAsset != null);
-
-  @override
-  Widget build(BuildContext context) {
-    const color = AppColors.primaryPrime;
-    return Opacity(
-      opacity: enabled ? 1 : 0.35,
-      child: InkResponse(
-        onTap: enabled ? onTap : null,
-        radius: 32,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 42,
-              height: 42,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: color.withValues(alpha: 0.10),
-              ),
-              alignment: Alignment.center,
-              child: iconAsset != null
-                  ? Image.asset(iconAsset!, width: 20, height: 20, fit: BoxFit.contain)
-                  : Icon(icon, color: color, size: 20),
-            ),
-            const SizedBox(height: 6),
-            Text(
-              label,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: AppFonts.body(
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-                color: AppColors.textSecondary,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
   }
 }
 
@@ -833,7 +764,8 @@ class _MemberTabState extends State<_MemberTab>
 
   void _onScroll() {
     if (!_scrollCtrl.hasClients) return;
-    if (_scrollCtrl.position.pixels > _scrollCtrl.position.maxScrollExtent - 300 &&
+    if (_scrollCtrl.position.pixels >
+            _scrollCtrl.position.maxScrollExtent - 300 &&
         !_loadingMore &&
         _items.length < _totalCount) {
       _loadMore();
@@ -967,7 +899,8 @@ class _MemberTabState extends State<_MemberTab>
           isDense: true,
           filled: true,
           fillColor: AppColors.muted.withValues(alpha: 0.6),
-          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(10),
             borderSide: BorderSide.none,
@@ -983,11 +916,12 @@ class _MemberTabState extends State<_MemberTab>
       return ErrorStateWidget(message: _error!, onRetry: _fetch);
     }
     if (_items.isEmpty) return const _NotFoundState();
-    return ListView.separated(
+    return RowListView.separated(
       controller: _scrollCtrl,
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
       itemCount: _items.length + (_loadingMore ? 1 : 0),
-      separatorBuilder: (_, __) => const Divider(height: 1, color: AppColors.border),
+      separatorBuilder: (_, __) =>
+          const Divider(height: 1, color: AppColors.border),
       itemBuilder: (_, i) {
         if (i >= _items.length) {
           return const Padding(
@@ -1028,13 +962,16 @@ class _MemberTabState extends State<_MemberTab>
                 height: 44,
                 color: AppColors.primaryLight,
                 child: photo == null
-                    ? const Icon(Icons.person_outline_rounded, color: AppColors.primary)
+                    ? const Icon(Icons.person_outline_rounded,
+                        color: AppColors.primary)
                     : CachedNetworkImage(
                         imageUrl: photo,
                         fit: BoxFit.cover,
-                        placeholder: (_, __) => Container(color: AppColors.primaryLight),
-                        errorWidget: (_, __, ___) =>
-                            const Icon(Icons.person_outline_rounded, color: AppColors.primary),
+                        placeholder: (_, __) =>
+                            Container(color: AppColors.primaryLight),
+                        errorWidget: (_, __, ___) => const Icon(
+                            Icons.person_outline_rounded,
+                            color: AppColors.primary),
                       ),
               ),
             ),
@@ -1061,7 +998,8 @@ class _MemberTabState extends State<_MemberTab>
                 ],
               ),
             ),
-            const Icon(Icons.chevron_right_rounded, color: AppColors.primaryPrime),
+            const Icon(Icons.chevron_right_rounded,
+                color: AppColors.primaryPrime),
           ],
         ),
       ),
@@ -1131,7 +1069,8 @@ class _EventsTabState extends State<_EventsTab>
 
   void _onScroll() {
     if (!_scrollCtrl.hasClients) return;
-    if (_scrollCtrl.position.pixels > _scrollCtrl.position.maxScrollExtent - 300 &&
+    if (_scrollCtrl.position.pixels >
+            _scrollCtrl.position.maxScrollExtent - 300 &&
         !_loadingMore &&
         _items.length < _totalCount) {
       _loadMore();
@@ -1213,7 +1152,8 @@ class _EventsTabState extends State<_EventsTab>
               isDense: true,
               filled: true,
               fillColor: AppColors.muted.withValues(alpha: 0.6),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+              contentPadding:
+                  const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(10),
                 borderSide: BorderSide.none,
@@ -1228,11 +1168,12 @@ class _EventsTabState extends State<_EventsTab>
                   ? ErrorStateWidget(message: _error!, onRetry: _fetch)
                   : filtered.isEmpty
                       ? const _NotFoundState()
-                      : ListView.separated(
+                      : RowListView.separated(
                           controller: _scrollCtrl,
                           padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
                           itemCount: filtered.length + (_loadingMore ? 1 : 0),
-                          separatorBuilder: (_, __) => const Divider(height: 1, color: AppColors.border),
+                          separatorBuilder: (_, __) =>
+                              const Divider(height: 1, color: AppColors.border),
                           itemBuilder: (_, i) {
                             if (i >= filtered.length) {
                               return const Padding(
@@ -1248,7 +1189,8 @@ class _EventsTabState extends State<_EventsTab>
     );
   }
 
-  List<Map<String, dynamic>> _filter(List<Map<String, dynamic>> list, String q) {
+  List<Map<String, dynamic>> _filter(
+      List<Map<String, dynamic>> list, String q) {
     if (q.isEmpty) return list;
     final lq = q.toLowerCase();
     return list.where((e) {
@@ -1294,7 +1236,8 @@ class _EventsTabState extends State<_EventsTab>
             const SizedBox(height: 4),
             Row(
               children: [
-                const Icon(Icons.place_outlined, size: 14, color: AppColors.textSecondary),
+                const Icon(Icons.place_outlined,
+                    size: 14, color: AppColors.textSecondary),
                 const SizedBox(width: 4),
                 Expanded(
                   child: Text(
@@ -1374,7 +1317,8 @@ class _ActivityTabState extends State<_ActivityTab>
 
   void _onScroll() {
     if (!_scrollCtrl.hasClients) return;
-    if (_scrollCtrl.position.pixels > _scrollCtrl.position.maxScrollExtent - 300 &&
+    if (_scrollCtrl.position.pixels >
+            _scrollCtrl.position.maxScrollExtent - 300 &&
         !_loadingMore &&
         _items.length < _totalCount) {
       _loadMore();
@@ -1517,7 +1461,8 @@ class _ActivityTabState extends State<_ActivityTab>
                     isDense: true,
                     filled: true,
                     fillColor: AppColors.muted.withValues(alpha: 0.6),
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                    contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 12, vertical: 12),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
                       borderSide: BorderSide.none,
@@ -1539,11 +1484,12 @@ class _ActivityTabState extends State<_ActivityTab>
                   ? _ProjectsUnavailableState(error: _error!, onRetry: _fetch)
                   : filtered.isEmpty
                       ? const _NotFoundState()
-                      : ListView.separated(
+                      : RowListView.separated(
                           controller: _scrollCtrl,
                           padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
                           itemCount: filtered.length + (_loadingMore ? 1 : 0),
-                          separatorBuilder: (_, __) => const Divider(height: 1, color: AppColors.border),
+                          separatorBuilder: (_, __) =>
+                              const Divider(height: 1, color: AppColors.border),
                           itemBuilder: (_, i) {
                             if (i >= filtered.length) {
                               return const Padding(
@@ -1569,7 +1515,8 @@ class _ActivityTabState extends State<_ActivityTab>
       child: DropdownButtonHideUnderline(
         child: DropdownButton<int>(
           value: _yearId,
-          icon: const Icon(Icons.keyboard_arrow_down_rounded, color: AppColors.primaryPrime),
+          icon: const Icon(Icons.keyboard_arrow_down_rounded,
+              color: AppColors.primaryPrime),
           style: AppFonts.body(
             fontSize: 13,
             color: AppColors.primaryPrime,
@@ -1590,7 +1537,8 @@ class _ActivityTabState extends State<_ActivityTab>
     );
   }
 
-  List<Map<String, dynamic>> _filter(List<Map<String, dynamic>> list, String q) {
+  List<Map<String, dynamic>> _filter(
+      List<Map<String, dynamic>> list, String q) {
     if (q.isEmpty) return list;
     final lq = q.toLowerCase();
     return list.where((p) {
@@ -1631,12 +1579,14 @@ class _ActivityTabState extends State<_ActivityTab>
                   width: 64,
                   height: 64,
                   fit: BoxFit.cover,
-                  placeholder: (_, __) => Container(width: 64, height: 64, color: AppColors.muted),
+                  placeholder: (_, __) =>
+                      Container(width: 64, height: 64, color: AppColors.muted),
                   errorWidget: (_, __, ___) => Container(
                     width: 64,
                     height: 64,
                     color: AppColors.muted,
-                    child: const Icon(Icons.image_outlined, size: 22, color: AppColors.textSecondary),
+                    child: const Icon(Icons.image_outlined,
+                        size: 22, color: AppColors.textSecondary),
                   ),
                 ),
               ),
@@ -1685,7 +1635,8 @@ class _ActivityTabState extends State<_ActivityTab>
               ),
             ),
             const SizedBox(width: 4),
-            const Icon(Icons.chevron_right_rounded, size: 20, color: AppColors.textSecondary),
+            const Icon(Icons.chevron_right_rounded,
+                size: 20, color: AppColors.textSecondary),
           ],
         ),
       ),
@@ -1731,7 +1682,7 @@ class _ProjectsUnavailableState extends StatelessWidget {
         : 'Unable to load projects';
     final subtitle = isServer
         ? 'The server reported an error loading projects for this club. '
-          'Please try again in a moment.'
+            'Please try again in a moment.'
         : error;
     return Center(
       child: Padding(
@@ -1739,7 +1690,8 @@ class _ProjectsUnavailableState extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.cloud_off_rounded, size: 40, color: AppColors.textMuted),
+            const Icon(Icons.cloud_off_rounded,
+                size: 40, color: AppColors.textMuted),
             const SizedBox(height: 10),
             Text(
               title,

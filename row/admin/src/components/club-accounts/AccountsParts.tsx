@@ -2,6 +2,9 @@
 
 /** Parts of Club Admin Dashboard › Accounts (gap agent 2026-11-19). */
 
+import { ToggleButton } from "@/components/ui/text-buttons"
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table"
+import { NativeSelect } from "@/components/ui/native-select";
 import { useEffect, useState } from "react";
 import { Download, FileText, Loader2, Plus, RotateCcw, Save } from "@/components/icons";
 import { Button } from "@/components/ui/button";
@@ -20,9 +23,9 @@ import {
 import type { RotaryYear } from "@/types/rotaryYear";
 import { AgedBalances } from "./AccountsParts2";
 
-const SELECT = "h-10 w-full rounded-md border border-input bg-background px-3 text-sm";
+const SELECT = "row-field w-full";
 const TH = "p-3 font-medium";
-const HEAD = "bg-[#EDF4FB] text-[13px] text-[#64748B]";
+const HEAD = "bg-muted text-[13px] text-muted-foreground";
 
 export const errorText = (err: unknown, fallback: string): string =>
   (err as { response?: { data?: { message?: string } } })?.response?.data?.message || fallback;
@@ -68,57 +71,57 @@ export function EntryTable({ entries, onReverse, voucher }: {
   return (
     <Card>
       <CardContent className="overflow-x-auto p-0">
-        <table className="w-full min-w-[760px] text-sm">
-          <thead className={HEAD}>
-            <tr className="border-b text-left">
-              <th className={TH}>Date</th>
-              <th className={TH}>Description</th>
-              <th className={TH}>Accounts</th>
-              <th className={`${TH} text-right`}>Amount</th>
-              <th className={TH}>Status</th>
-              {actions && <th className={TH}><span className="sr-only">Actions</span></th>}
-            </tr>
-          </thead>
-          <tbody>
+        <Table className="w-full min-w-[760px] text-sm">
+          <TableHeader className={HEAD}>
+            <TableRow className="border-b">
+              <TableHead className={TH}>Date</TableHead>
+              <TableHead className={TH}>Description</TableHead>
+              <TableHead className={TH}>Accounts</TableHead>
+              <TableHead className={`${TH} text-right`}>Amount</TableHead>
+              <TableHead className={TH}>Status</TableHead>
+              {actions && <TableHead className={TH}><span className="sr-only">Actions</span></TableHead>}
+            </TableRow>
+          </TableHeader>
+          <TableBody>
             {entries.map((e) => (
-              <tr key={e.id} className="border-b align-top last:border-0">
-                <td className="whitespace-nowrap p-3">{fmt.date(day(e.entryDate))}</td>
-                <td className="p-3">
+              <TableRow key={e.id} className="border-b align-top last:border-0">
+                <TableCell className="whitespace-nowrap p-3">{fmt.date(day(e.entryDate))}</TableCell>
+                <TableCell className="p-3">
                   <p className="font-medium">{e.memo}</p>
                   <p className="text-xs text-muted-foreground">
                     Entry {e.id}{e.sourceType ? `, ${SOURCE_LABEL[e.sourceType] ?? e.sourceType}` : ""}{e.vendorName ? `, paid to ${e.vendorName}` : ""}
                     {e.reference ? `, ref. ${e.reference}` : ""}{e.createdByName ? `, by ${e.createdByName}` : ""}
                   </p>
-                </td>
-                <td className="p-3">
+                </TableCell>
+                <TableCell className="p-3">
                   {e.lines.map((l, i) => (
                     <p key={i} className="tabular-nums">
                       {l.debit ? "Dr" : "Cr"} {l.code} {l.name} {fmt.money(l.debit || l.credit)}
                     </p>
                   ))}
-                </td>
-                <td className="p-3 text-right tabular-nums">{fmt.money(e.total)}</td>
-                <td className="p-3 text-xs">
+                </TableCell>
+                <TableCell className="p-3 text-right tabular-nums">{fmt.money(e.total)}</TableCell>
+                <TableCell className="p-3 text-xs">
                   {e.reversesEntryId ? `Reverses entry ${e.reversesEntryId}` : e.reversedByEntryId ? `Reversed by entry ${e.reversedByEntryId}` : "Posted"}
-                </td>
+                </TableCell>
                 {actions && (
-                  <td className="space-y-1.5 p-3 text-right">
+                  <TableCell className="space-y-1.5 p-3 text-right">
                     {voucher && isMoneyOut(e, voucher.assetIds) && (
-                      <Button size="sm" variant="outline" className="gap-1.5" disabled={printing === e.id} onClick={() => printVoucher(e)}>
+                      <Button size="sm" variant="outline" disabled={printing === e.id} onClick={() => printVoucher(e)}>
                         {printing === e.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileText className="h-4 w-4" />} Voucher
                       </Button>
                     )}
                     {onReverse && !e.reversesEntryId && !e.reversedByEntryId && (
-                      <Button size="sm" variant="outline" className="gap-1.5" onClick={() => onReverse(e)}>
+                      <Button size="sm" variant="outline" onClick={() => onReverse(e)}>
                         <RotateCcw className="h-4 w-4" /> Reverse
                       </Button>
                     )}
-                  </td>
+                  </TableCell>
                 )}
-              </tr>
+              </TableRow>
             ))}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
       </CardContent>
     </Card>
   );
@@ -163,14 +166,13 @@ export function QuickEntry({ clubId, accounts, vendors, onSaved, onError }: { cl
     <Card>
       <CardContent className="space-y-4 p-5">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <h3 className="text-lg font-semibold">Record money in or out</h3>
+          <h3 className="row-h2">Record money in or out</h3>
           <div className="inline-flex rounded-md border p-0.5" role="group" aria-label="Direction">
             {(["in", "out"] as const).map((k) => (
-              <button key={k} type="button" aria-pressed={kind === k}
-                className={`rounded px-3 py-1.5 text-sm ${kind === k ? "bg-primary text-primary-foreground" : "text-muted-foreground"}`}
+              <ToggleButton pressed={kind === k} key={k} type="button"
                 onClick={() => { setKind(k); setCategoryId(""); setSaved(false); }}>
                 {k === "in" ? "Money in" : "Money out"}
-              </button>
+              </ToggleButton>
             ))}
           </div>
         </div>
@@ -181,16 +183,16 @@ export function QuickEntry({ clubId, accounts, vendors, onSaved, onError }: { cl
           </div>
           <div className="space-y-1.5 md:col-span-2">
             <Label htmlFor="q-cat">{kind === "in" ? "Income account" : "Expense account"}</Label>
-            <select id="q-cat" className={SELECT} required value={categoryId} onChange={(e) => setCategoryId(Number(e.target.value) || "")}>
+            <NativeSelect id="q-cat"  required value={categoryId} onChange={(e) => setCategoryId(Number(e.target.value) || "")}>
               <option value="">Choose</option>
               {categories.map((a) => <option key={a.id} value={a.id}>{a.code} {a.name}</option>)}
-            </select>
+            </NativeSelect>
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="q-bank">{kind === "in" ? "Paid into" : "Paid from"}</Label>
-            <select id="q-bank" className={SELECT} required value={bankId} onChange={(e) => setBankId(Number(e.target.value) || "")}>
+            <NativeSelect id="q-bank"  required value={bankId} onChange={(e) => setBankId(Number(e.target.value) || "")}>
               {banks.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
-            </select>
+            </NativeSelect>
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="q-amount">Amount</Label>
@@ -200,10 +202,10 @@ export function QuickEntry({ clubId, accounts, vendors, onSaved, onError }: { cl
           {kind === "out" && (
             <div className="space-y-1.5 md:col-span-2">
               <Label htmlFor="q-vendor">Paid to</Label>
-              <select id="q-vendor" className={SELECT} value={vendorId} onChange={(e) => setVendorId(Number(e.target.value) || "")}>
+              <NativeSelect id="q-vendor"  value={vendorId} onChange={(e) => setVendorId(Number(e.target.value) || "")}>
                 <option value="">No payee</option>
                 {vendors.filter((v) => v.isActive).map((v) => <option key={v.id} value={v.id}>{v.name}</option>)}
-              </select>
+              </NativeSelect>
             </div>
           )}
           <div className="space-y-1.5">
@@ -215,7 +217,7 @@ export function QuickEntry({ clubId, accounts, vendors, onSaved, onError }: { cl
             <Input id="q-memo" required maxLength={255} value={memo} onChange={(e) => setMemo(e.target.value)} />
           </div>
           <div className="flex items-end">
-            <Button type="submit" className="w-full gap-1.5" disabled={busy || !value || !bankId || !categoryId || !memo.trim()}>
+            <Button type="submit" className="w-full" disabled={busy || !value || !bankId || !categoryId || !memo.trim()}>
               {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />} Record
             </Button>
           </div>
@@ -275,14 +277,14 @@ export function JournalTab({ clubId, accounts, onChanged, onError }: { clubId: n
         </div>
         <div className="min-w-[14rem] space-y-1.5">
           <Label htmlFor="j-acct">Account</Label>
-          <select id="j-acct" className={SELECT} value={accountId} onChange={(e) => setAccountId(Number(e.target.value) || "")}>
+          <NativeSelect id="j-acct"  value={accountId} onChange={(e) => setAccountId(Number(e.target.value) || "")}>
             <option value="">All accounts</option>
             {accounts.map((a) => <option key={a.id} value={a.id}>{a.code} {a.name}</option>)}
-          </select>
+          </NativeSelect>
         </div>
         <div className="ml-auto flex gap-2">
           <ExportButtons clubId={clubId} report="journal" params={{ from, to }} onError={onError} />
-          {!adding && <Button className="gap-1.5" onClick={() => setAdding(true)}><Plus className="h-4 w-4" /> New entry</Button>}
+          {!adding && <Button onClick={() => setAdding(true)}><Plus className="h-4 w-4" /> New entry</Button>}
         </div>
       </div>
       {adding && (
@@ -334,7 +336,7 @@ function EntryForm({ clubId, accounts, onDone, onError }: { clubId: number; acco
   return (
     <Card>
       <CardContent className="space-y-4 p-5">
-        <h3 className="text-lg font-semibold">New journal entry</h3>
+        <h3 className="row-h2">New journal entry</h3>
         <div className="grid gap-3 md:grid-cols-4">
           <div className="space-y-1.5">
             <Label htmlFor="e-date">Date</Label>
@@ -345,35 +347,35 @@ function EntryForm({ clubId, accounts, onDone, onError }: { clubId: number; acco
             <Input id="e-memo" maxLength={255} value={memo} onChange={(e) => setMemo(e.target.value)} />
           </div>
         </div>
-        <table className="w-full text-sm">
-          <thead><tr className="text-left text-muted-foreground"><th className="pb-1 font-medium">Account</th><th className="w-36 pb-1 font-medium">Debit</th><th className="w-36 pb-1 font-medium">Credit</th></tr></thead>
-          <tbody>
+        <Table className="w-full text-sm">
+          <TableHeader><TableRow><TableHead className="pb-1">Account</TableHead><TableHead className="w-36 pb-1">Debit</TableHead><TableHead className="w-36 pb-1">Credit</TableHead></TableRow></TableHeader>
+          <TableBody>
             {lines.map((l, i) => (
-              <tr key={i}>
-                <td className="py-1 pr-2">
-                  <select aria-label={`Account, line ${i + 1}`} className={SELECT} value={l.accountId ?? ""} onChange={(e) => set(i, { accountId: Number(e.target.value) || null })}>
+              <TableRow key={i}>
+                <TableCell className="py-1 pr-2">
+                  <NativeSelect aria-label={`Account, line ${i + 1}`}  value={l.accountId ?? ""} onChange={(e) => set(i, { accountId: Number(e.target.value) || null })}>
                     <option value="">Choose</option>
                     {active.map((a) => <option key={a.id} value={a.id}>{a.code} {a.name}</option>)}
-                  </select>
-                </td>
-                <td className="py-1 pr-2"><Input aria-label={`Debit, line ${i + 1}`} inputMode="decimal" value={l.debit} onChange={(e) => set(i, { debit: e.target.value })} /></td>
-                <td className="py-1"><Input aria-label={`Credit, line ${i + 1}`} inputMode="decimal" value={l.credit} onChange={(e) => set(i, { credit: e.target.value })} /></td>
-              </tr>
+                  </NativeSelect>
+                </TableCell>
+                <TableCell className="py-1 pr-2"><Input aria-label={`Debit, line ${i + 1}`} inputMode="decimal" value={l.debit} onChange={(e) => set(i, { debit: e.target.value })} /></TableCell>
+                <TableCell className="py-1"><Input aria-label={`Credit, line ${i + 1}`} inputMode="decimal" value={l.credit} onChange={(e) => set(i, { credit: e.target.value })} /></TableCell>
+              </TableRow>
             ))}
-            <tr className="font-medium">
-              <td className="pt-2">
-                <Button type="button" variant="outline" size="sm" className="gap-1.5" onClick={() => setLines((ls) => [...ls, { accountId: null, debit: "", credit: "" }])}>
+            <TableRow className="font-medium">
+              <TableCell className="pt-2">
+                <Button type="button" variant="outline" size="sm" onClick={() => setLines((ls) => [...ls, { accountId: null, debit: "", credit: "" }])}>
                   <Plus className="h-4 w-4" /> Add line
                 </Button>
-              </td>
-              <td className="pt-2 tabular-nums">{fmt.money(totals.debit)}</td>
-              <td className="pt-2 tabular-nums">{fmt.money(totals.credit)}</td>
-            </tr>
-          </tbody>
-        </table>
+              </TableCell>
+              <TableCell className="pt-2 tabular-nums">{fmt.money(totals.debit)}</TableCell>
+              <TableCell className="pt-2 tabular-nums">{fmt.money(totals.credit)}</TableCell>
+            </TableRow>
+          </TableBody>
+        </Table>
         {totals.problem && <p className="text-sm text-muted-foreground">{totals.problem}</p>}
         <div className="flex gap-2">
-          <Button disabled={busy || !totals.balanced || !memo.trim()} onClick={submit} className="gap-1.5">
+          <Button disabled={busy || !totals.balanced || !memo.trim()} onClick={submit}>
             {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />} Post entry
           </Button>
           <Button variant="outline" onClick={() => onDone(false)}>Cancel</Button>
@@ -420,7 +422,7 @@ export function ChartTab({ clubId, accounts, onChanged, onError }: { clubId: num
     <div className="space-y-4">
       <div className="flex justify-between gap-3">
         <p className="text-sm text-muted-foreground">Every club starts with this chart. Add accounts, rename them, or switch off ones you do not use. An account with entries keeps its type.</p>
-        {editing === null && <Button className="gap-1.5" onClick={() => open(null)}><Plus className="h-4 w-4" /> Add account</Button>}
+        {editing === null && <Button onClick={() => open(null)}><Plus className="h-4 w-4" /> Add account</Button>}
       </div>
       {editing !== null && (
         <Card>
@@ -436,10 +438,10 @@ export function ChartTab({ clubId, accounts, onChanged, onError }: { clubId: num
               </div>
               <div className="space-y-1.5 md:col-span-2">
                 <Label htmlFor="a-type">Type</Label>
-                <select id="a-type" className={SELECT} value={form.type} disabled={!!current?.used}
+                <NativeSelect id="a-type"  value={form.type} disabled={!!current?.used}
                   onChange={(e) => { const type = e.target.value as ClubAccountType; setForm({ ...form, type, isBank: type === "asset" && form.isBank }); }}>
                   {ACCOUNT_TYPES.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
-                </select>
+                </NativeSelect>
               </div>
               {form.type === "asset" && (
                 <label className="flex items-center gap-2 text-sm md:col-span-2">
@@ -462,7 +464,7 @@ export function ChartTab({ clubId, accounts, onChanged, onError }: { clubId: num
                 <input type="checkbox" checked={form.isActive} disabled={!!current?.systemKey} onChange={(e) => setForm({ ...form, isActive: e.target.checked })} /> In use
               </label>
               <div className="flex gap-2 md:col-span-6">
-                <Button type="submit" disabled={busy} className="gap-1.5">{busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />} Save</Button>
+                <Button type="submit" disabled={busy}>{busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />} Save</Button>
                 <Button type="button" variant="outline" onClick={() => setEditing(null)}>Cancel</Button>
               </div>
             </form>
@@ -471,26 +473,26 @@ export function ChartTab({ clubId, accounts, onChanged, onError }: { clubId: num
       )}
       <Card>
         <CardContent className="overflow-x-auto p-0">
-          <table className="w-full min-w-[640px] text-sm">
-            <thead className={HEAD}>
-              <tr className="border-b text-left"><th className={TH}>Code</th><th className={TH}>Account</th><th className={TH}>Type</th><th className={`${TH} text-right`}>Balance</th><th className={TH}><span className="sr-only">Actions</span></th></tr>
-            </thead>
-            <tbody>
+          <Table className="w-full min-w-[640px] text-sm">
+            <TableHeader className={HEAD}>
+              <TableRow className="border-b"><TableHead className={TH}>Code</TableHead><TableHead className={TH}>Account</TableHead><TableHead className={TH}>Type</TableHead><TableHead className={`${TH} text-right`}>Balance</TableHead><TableHead className={TH}><span className="sr-only">Actions</span></TableHead></TableRow>
+            </TableHeader>
+            <TableBody>
               {accounts.map((a) => (
-                <tr key={a.id} className={`border-b last:border-0 ${a.isActive ? "" : "text-muted-foreground"}`}>
-                  <td className="p-3 tabular-nums">{a.code}</td>
-                  <td className="p-3">
+                <TableRow key={a.id} className={`border-b last:border-0 ${a.isActive ? "" : "text-muted-foreground"}`}>
+                  <TableCell className="p-3 tabular-nums">{a.code}</TableCell>
+                  <TableCell className="p-3">
                     {a.name}
                     {a.isBank && <span className="text-xs text-muted-foreground"> {[a.bankName, a.accountLast4 && `ending ${a.accountLast4}`].filter(Boolean).join(", ")}</span>}
                     {!a.isActive && <span className="text-xs"> (not in use)</span>}
-                  </td>
-                  <td className="p-3">{ACCOUNT_TYPES.find((t) => t.value === a.type)?.label}</td>
-                  <td className="p-3 text-right tabular-nums">{fmt.money(a.balance)}</td>
-                  <td className="p-3 text-right"><Button size="sm" variant="outline" onClick={() => open(a)}>Edit</Button></td>
-                </tr>
+                  </TableCell>
+                  <TableCell className="p-3">{ACCOUNT_TYPES.find((t) => t.value === a.type)?.label}</TableCell>
+                  <TableCell className="p-3 text-right tabular-nums">{fmt.money(a.balance)}</TableCell>
+                  <TableCell className="p-3 text-right"><Button size="sm" variant="outline" onClick={() => open(a)}>Edit</Button></TableCell>
+                </TableRow>
               ))}
-            </tbody>
-          </table>
+            </TableBody>
+          </Table>
         </CardContent>
       </Card>
     </div>
@@ -514,7 +516,7 @@ export function ExportButtons({ clubId, report, params, onError }: { clubId: num
   return (
     <div className="flex gap-1.5">
       {(["csv", "xlsx", "pdf"] as const).map((f) => (
-        <Button key={f} variant="outline" size="sm" className="gap-1.5" disabled={!!busy} onClick={() => go(f)}>
+        <Button key={f} variant="outline" size="sm" disabled={!!busy} onClick={() => go(f)}>
           {busy === f ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
           {f === "xlsx" ? "Excel" : f.toUpperCase()}
         </Button>
@@ -527,12 +529,12 @@ function Section({ title, lines, total, totalLabel }: { title: string; lines: Le
   const fmt = useFormat();
   return (
     <>
-      <tr className="border-b"><td colSpan={2} className="px-3 pb-1 pt-4 font-semibold">{title}</td></tr>
-      {lines.length === 0 && <tr><td colSpan={2} className="px-3 py-2 text-muted-foreground">Nothing in this period.</td></tr>}
+      <TableRow className="border-b"><TableCell colSpan={2} className="px-3 pb-1 pt-4 font-semibold">{title}</TableCell></TableRow>
+      {lines.length === 0 && <TableRow><TableCell colSpan={2} className="px-3 py-2 text-muted-foreground">Nothing in this period.</TableCell></TableRow>}
       {lines.map((l) => (
-        <tr key={l.accountId} className="border-b"><td className="px-3 py-2">{l.code} {l.name}</td><td className="px-3 py-2 text-right tabular-nums">{fmt.money(l.amount)}</td></tr>
+        <TableRow key={l.accountId} className="border-b"><TableCell className="px-3 py-2">{l.code} {l.name}</TableCell><TableCell className="px-3 py-2 text-right tabular-nums">{fmt.money(l.amount)}</TableCell></TableRow>
       ))}
-      <tr className="border-b font-medium"><td className="px-3 py-2">{totalLabel}</td><td className="px-3 py-2 text-right tabular-nums">{fmt.money(total)}</td></tr>
+      <TableRow className="border-b font-medium"><TableCell className="px-3 py-2">{totalLabel}</TableCell><TableCell className="px-3 py-2 text-right tabular-nums">{fmt.money(total)}</TableCell></TableRow>
     </>
   );
 }
@@ -544,8 +546,8 @@ export function ReportsTab({ clubId, accounts, onError }: { clubId: number; acco
     <div className="space-y-4">
       <div className="inline-flex rounded-md border p-0.5" role="group" aria-label="Report">
         {([["profit-loss", "Profit and loss"], ["balance-sheet", "Balance sheet"], ["budget", "Budget against actual"], ["aged", "Dues owed by age"]] as const).map(([k, label]) => (
-          <button key={k} type="button" aria-pressed={report === k} onClick={() => setReport(k)}
-            className={`rounded px-3 py-1.5 text-sm ${report === k ? "bg-primary text-primary-foreground" : "text-muted-foreground"}`}>{label}</button>
+          <ToggleButton pressed={report === k} key={k} type="button" onClick={() => setReport(k)}
+           >{label}</ToggleButton>
         ))}
       </div>
       {report === "profit-loss" && <ProfitLossReport clubId={clubId} today={today} onError={onError} />}
@@ -576,11 +578,11 @@ function ProfitLossReport({ clubId, today, onError }: { clubId: number; today: s
       </div>
       {!data ? <TableSkeleton rows={6} /> : (
         <Card><CardContent className="overflow-x-auto p-0">
-          <table className="w-full text-sm"><tbody>
+          <Table className="w-full text-sm"><TableBody>
             <Section title="Income" lines={data.income} total={data.totalIncome} totalLabel="Total income" />
             <Section title="Expenses" lines={data.expenses} total={data.totalExpenses} totalLabel="Total expenses" />
-            <tr className="font-semibold"><td className="px-3 py-3">{data.net < 0 ? "Deficit" : "Surplus"}</td><td className="px-3 py-3 text-right tabular-nums">{fmt.money(data.net)}</td></tr>
-          </tbody></table>
+            <TableRow className="font-semibold"><TableCell className="px-3 py-3">{data.net < 0 ? "Deficit" : "Surplus"}</TableCell><TableCell className="px-3 py-3 text-right tabular-nums">{fmt.money(data.net)}</TableCell></TableRow>
+          </TableBody></Table>
         </CardContent></Card>
       )}
     </div>
@@ -604,16 +606,16 @@ function BalanceSheetReport({ clubId, today, onError }: { clubId: number; today:
       </div>
       {!data ? <TableSkeleton rows={6} /> : (
         <Card><CardContent className="overflow-x-auto p-0">
-          <table className="w-full text-sm"><tbody>
+          <Table className="w-full text-sm"><TableBody>
             <Section title="Assets" lines={data.assets} total={data.totalAssets} totalLabel="Total assets" />
             <Section title="Liabilities" lines={data.liabilities} total={data.totalLiabilities} totalLabel="Total liabilities" />
             <Section title="Club funds" lines={[...data.equity, { accountId: -1, code: "", name: "Surplus to date", amount: data.currentEarnings }]}
               total={data.totalEquity} totalLabel="Total club funds" />
-            <tr className="font-semibold">
-              <td className="px-3 py-3">Liabilities and club funds</td>
-              <td className="px-3 py-3 text-right tabular-nums">{fmt.money(data.totalLiabilities + data.totalEquity)}</td>
-            </tr>
-          </tbody></table>
+            <TableRow className="font-semibold">
+              <TableCell className="px-3 py-3">Liabilities and club funds</TableCell>
+              <TableCell className="px-3 py-3 text-right tabular-nums">{fmt.money(data.totalLiabilities + data.totalEquity)}</TableCell>
+            </TableRow>
+          </TableBody></Table>
           {!data.balanced && <p className="p-3 text-sm text-destructive">The books do not balance. Tell ROW support.</p>}
         </CardContent></Card>
       )}
@@ -673,13 +675,13 @@ function BudgetVsActual({ clubId, accounts, onError }: { clubId: number; account
       <div className="flex flex-wrap items-end gap-3">
         <div className="min-w-[10rem] space-y-1.5">
           <Label htmlFor="b-year">Rotary year</Label>
-          <select id="b-year" className={SELECT} value={yearId ?? ""} onChange={(e) => { setYearId(Number(e.target.value)); setSaved(false); }}>
+          <NativeSelect id="b-year"  value={yearId ?? ""} onChange={(e) => { setYearId(Number(e.target.value)); setSaved(false); }}>
             {years.map((y) => <option key={y.id} value={y.id}>{y.yearLabel}</option>)}
-          </select>
+          </NativeSelect>
         </div>
         <div className="ml-auto flex gap-2">
           {yearId && <ExportButtons clubId={clubId} report="budget" params={{ yearId }} onError={onError} />}
-          <Button className="gap-1.5" disabled={busy || invalid || Object.keys(edits).length === 0} onClick={save}>
+          <Button disabled={busy || invalid || Object.keys(edits).length === 0} onClick={save}>
             {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />} Save budget
           </Button>
         </div>
@@ -687,27 +689,27 @@ function BudgetVsActual({ clubId, accounts, onError }: { clubId: number; account
       {saved && <p className="text-sm text-muted-foreground" role="status">Budget saved.</p>}
       {!data ? <TableSkeleton rows={8} /> : (
         <Card><CardContent className="overflow-x-auto p-0">
-          <table className="w-full min-w-[720px] text-sm">
-            <thead className={HEAD}>
-              <tr className="border-b text-left">
-                <th className={TH}>Account</th><th className={`${TH} w-40`}>Budget</th><th className={`${TH} text-right`}>Actual</th>
-                <th className={`${TH} text-right`}>Variance</th><th className={`${TH} text-right`}>Used</th>
-              </tr>
-            </thead>
-            <tbody>
+          <Table className="w-full min-w-[720px] text-sm">
+            <TableHeader className={HEAD}>
+              <TableRow className="border-b">
+                <TableHead className={TH}>Account</TableHead><TableHead className={`${TH} w-40`}>Budget</TableHead><TableHead className={`${TH} text-right`}>Actual</TableHead>
+                <TableHead className={`${TH} text-right`}>Variance</TableHead><TableHead className={`${TH} text-right`}>Used</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
               {(["income", "expense"] as const).map((type) => (
                 <BudgetRows key={type} title={type === "income" ? "Income" : "Expenses"}
                   accounts={budgetable.filter((a) => a.type === type)} lineFor={lineFor} edits={edits}
                   onEdit={(id, v) => { setEdits((e) => ({ ...e, [id]: v })); setSaved(false); }} money={fmt.money} />
               ))}
-              <tr className="font-medium">
-                <td className="p-3">Planned surplus / actual surplus</td>
-                <td className="p-3 tabular-nums">{fmt.money(data.report.budgetIncome - data.report.budgetExpenses)}</td>
-                <td className="p-3 text-right tabular-nums">{fmt.money(data.report.actualIncome - data.report.actualExpenses)}</td>
-                <td colSpan={2} />
-              </tr>
-            </tbody>
-          </table>
+              <TableRow className="font-medium">
+                <TableCell className="p-3">Planned surplus / actual surplus</TableCell>
+                <TableCell className="p-3 tabular-nums">{fmt.money(data.report.budgetIncome - data.report.budgetExpenses)}</TableCell>
+                <TableCell className="p-3 text-right tabular-nums">{fmt.money(data.report.actualIncome - data.report.actualExpenses)}</TableCell>
+                <TableCell colSpan={2} />
+              </TableRow>
+            </TableBody>
+          </Table>
           <p className="p-3 text-xs text-muted-foreground">Variance is positive when it helps the club: more income than planned, or less spent.</p>
         </CardContent></Card>
       )}
@@ -721,18 +723,18 @@ function BudgetRows({ title, accounts, lineFor, edits, onEdit, money }: {
 }) {
   return (
     <>
-      <tr className="border-b"><td colSpan={5} className="px-3 pb-1 pt-4 font-semibold">{title}</td></tr>
+      <TableRow className="border-b"><TableCell colSpan={5} className="px-3 pb-1 pt-4 font-semibold">{title}</TableCell></TableRow>
       {accounts.map((a) => {
         const l = lineFor(a.id);
         const value = edits[a.id] ?? (l?.budget ? String(l.budget) : "");
         return (
-          <tr key={a.id} className="border-b">
-            <td className="p-3">{a.code} {a.name}</td>
-            <td className="p-2"><Input aria-label={`Budget for ${a.name}`} inputMode="decimal" value={value} onChange={(e) => onEdit(a.id, e.target.value)} /></td>
-            <td className="p-3 text-right tabular-nums">{money(l?.actual ?? 0)}</td>
-            <td className={`p-3 text-right tabular-nums ${(l?.variance ?? 0) < 0 ? "text-destructive" : ""}`}>{l ? money(l.variance) : ""}</td>
-            <td className="p-3 text-right tabular-nums">{l?.percentUsed != null ? `${l.percentUsed}%` : ""}</td>
-          </tr>
+          <TableRow key={a.id} className="border-b">
+            <TableCell className="p-3">{a.code} {a.name}</TableCell>
+            <TableCell className="p-2"><Input aria-label={`Budget for ${a.name}`} inputMode="decimal" value={value} onChange={(e) => onEdit(a.id, e.target.value)} /></TableCell>
+            <TableCell className="p-3 text-right tabular-nums">{money(l?.actual ?? 0)}</TableCell>
+            <TableCell className={`p-3 text-right tabular-nums ${(l?.variance ?? 0) < 0 ? "text-destructive" : ""}`}>{l ? money(l.variance) : ""}</TableCell>
+            <TableCell className="p-3 text-right tabular-nums">{l?.percentUsed != null ? `${l.percentUsed}%` : ""}</TableCell>
+          </TableRow>
         );
       })}
     </>

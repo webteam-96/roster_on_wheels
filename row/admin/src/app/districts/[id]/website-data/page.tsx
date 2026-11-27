@@ -3,13 +3,12 @@
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { getDistrict } from "@/services/api";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { ArrowLeft, AlertCircle, Globe, ImageIcon, Megaphone, Share2, Phone, List, Info, Languages } from "@/components/icons";
+import { AlertCircle, Globe, ImageIcon, Megaphone, Share2, Phone, List, Info, Languages } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { useIsPathOff } from "@/components/FeatureGate";
-import { ListPageSkeleton } from "@/components/row/AppKit";
+import { PageHeader, ListPageSkeleton } from "@/components/row/AppKit";
 
 const DISTRICT_WEBSITE_MODULES = [
   { key: "banners", name: "Banner Photos", icon: "ImageIcon", route: "banners" },
@@ -63,23 +62,7 @@ export default function DistrictWebsiteDataPage() {
   return (
     <ProtectedRoute>
       <div className="space-y-6">
-        <div className="flex items-center gap-3">
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={() => router.push(`/districts/${districtId}/dashboard`)}
-          >
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
-          <div>
-            <h2 className="text-2xl font-bold tracking-tight text-primary">
-              {districtNumber ? `District ${districtNumber} - Website Data` : "Website Data"}
-            </h2>
-            <p className="text-muted-foreground text-base">
-              Manage district website content
-            </p>
-          </div>
-        </div>
+        <PageHeader title={districtNumber ? `District ${districtNumber} - Website Data` : "Website Data"} description="Manage district website content" back={() => router.push(`/districts/${districtId}/dashboard`)} />
 
         {loading && (
           <div className="flex items-center justify-center py-20">
@@ -90,7 +73,7 @@ export default function DistrictWebsiteDataPage() {
         {error && (
           <div className="flex flex-col items-center justify-center py-20 text-center">
             <AlertCircle className="h-12 w-12 text-destructive mb-4" />
-            <h3 className="text-lg font-semibold">Error</h3>
+            <h3 className="row-h2">Error</h3>
             <p className="text-muted-foreground mt-2 max-w-md">{error}</p>
           </div>
         )}

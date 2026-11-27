@@ -1,5 +1,6 @@
 "use client";
 
+import { IconButton } from "@/components/ui/icon-button";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useParams } from "next/navigation";
 import {
@@ -18,12 +19,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogD
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
-import { ArrowLeft, Plus, Pencil, Trash2, AlertTriangle, UserCog, Search, Building2, Calendar, X } from "@/components/icons";
+import { Plus, Pencil, Trash2, AlertTriangle, UserCog, Search, Building2, Calendar, X } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
-import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import type { RotaryYear } from "@/types/rotaryYear";
-import { ListPageSkeleton } from "@/components/row/AppKit";
+import { PageHeader, ListPageSkeleton } from "@/components/row/AppKit";
 
 interface AGGroup {
   memberId: number;
@@ -300,20 +300,13 @@ export default function AGPage() {
   return (
     <ProtectedRoute>
       <div className="space-y-6">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-3">
-            <Button variant="outline" size="icon" asChild>
-              <Link href={`/districts/${districtId}/dashboard`}><ArrowLeft className="h-4 w-4" /></Link>
-            </Button>
-            <div>
-              <h2 className="text-2xl font-bold tracking-tight text-primary">
-                {districtName ? `${districtName} - Assistant Governor (AG)` : "Assistant Governor (AG)"}
-              </h2>
-              <p className="text-muted-foreground text-base">Assign assistant governors to clubs</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-3">
-            {!loading && dataYears.length > 0 && (
+        <PageHeader
+          title={districtName ? `${districtName} - Assistant Governor (AG)` : "Assistant Governor (AG)"}
+          description="Assign assistant governors to clubs"
+          back={`/districts/${districtId}/dashboard`}
+          actions={
+            <>
+{!loading && dataYears.length > 0 && (
               <div className="flex flex-wrap items-center gap-2">
                 <Calendar className="h-4 w-4 text-muted-foreground shrink-0" />
                 <Select value={selectedYearId} onValueChange={setSelectedYearId}>
@@ -329,15 +322,16 @@ export default function AGPage() {
             {canManage && (
               <Button onClick={openAddDialog}><Plus className="mr-2 h-4 w-4" />Add AG</Button>
             )}
-          </div>
-        </div>
+            </>
+          }
+        />
 
         {(loading || loadingList) && <div className="flex items-center justify-center py-20"><ListPageSkeleton /></div>}
 
         {!loading && !loadingList && agList.length === 0 && (
           <div className="flex flex-col items-center justify-center py-20 text-center">
             <UserCog className="h-12 w-12 text-muted-foreground mb-4" />
-            <h3 className="text-lg font-semibold">No assistant governors</h3>
+            <h3 className="row-h2">No assistant governors</h3>
             <p className="text-muted-foreground mt-2">{canManage ? 'Click "Add AG" to assign.' : "No assistant governors assigned."}</p>
           </div>
         )}
@@ -345,7 +339,7 @@ export default function AGPage() {
         {!loading && !loadingList && agList.length > 0 && (
           <div className="space-y-4">
             {agList.map((ag) => (
-              <Card key={ag.memberId} className="hover:shadow-md transition-all">
+              <Card key={ag.memberId} className="transition-all">
                 <CardContent className="p-5">
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex min-w-0 items-center gap-4">
@@ -361,8 +355,8 @@ export default function AGPage() {
                     </div>
                     {canManage && (
                       <div className="flex shrink-0 items-center gap-1">
-                        <Button variant="ghost" size="icon" onClick={() => openEditDialog(ag)}><Pencil className="h-4 w-4" /></Button>
-                        <Button variant="ghost" size="icon" className="text-destructive" onClick={() => setDeleteTarget(ag)}><Trash2 className="h-4 w-4" /></Button>
+                        <Button variant="ghost" size="icon" aria-label="Edit assistant governor" onClick={() => openEditDialog(ag)}><Pencil className="h-4 w-4" /></Button>
+                        <Button variant="ghost" size="icon" aria-label="Delete assistant governor" className="text-destructive" onClick={() => setDeleteTarget(ag)}><Trash2 className="h-4 w-4" /></Button>
                       </div>
                     )}
                   </div>
@@ -455,15 +449,15 @@ export default function AGPage() {
                     <p className="font-medium text-sm text-green-800">{formMemberName}</p>
                     <p className="text-xs text-green-600">Selected as Assistant Governor</p>
                   </div>
-                  <button
+                  <IconButton
                     type="button"
                     onClick={clearSelectedMember}
                     title="Remove & search again"
                     aria-label="Remove selected member"
-                    className="ml-auto shrink-0 text-green-700 hover:text-red-600 hover:bg-red-100 rounded-full p-1.5 transition"
+                    className="hover:text-red-700 ml-auto"
                   >
                     <X className="h-4 w-4" />
-                  </button>
+                  </IconButton>
                 </div>
               )}
 
@@ -514,7 +508,7 @@ export default function AGPage() {
             </DialogHeader>
             <DialogFooter>
               <Button variant="outline" onClick={() => setDeleteTarget(null)} disabled={deleting}>Cancel</Button>
-              <Button className="bg-destructive text-destructive-foreground hover:bg-destructive/90" onClick={handleDelete} disabled={deleting}>
+              <Button className="text-destructive-foreground" onClick={handleDelete} disabled={deleting}>
                 {deleting ? <><RotaryLoader size="sm" /><span className="ml-2">Removing...</span></> : "Remove"}
               </Button>
             </DialogFooter>

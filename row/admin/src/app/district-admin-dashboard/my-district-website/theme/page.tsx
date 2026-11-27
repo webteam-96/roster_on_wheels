@@ -12,9 +12,10 @@
  * needs current-year rights (canEditYearless), like About and Menu List.
  */
 
+import { Card } from "@/components/ui/card";
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { ArrowLeft, Lock, Palette, AlertTriangle } from "@/components/icons";
+import { Lock, Palette, AlertTriangle } from "@/components/icons";
 import { getDistrict, getDistrictWebsiteTheme, updateDistrictWebsiteTheme } from "@/services/api";
 import { useAuth } from "@/contexts/AuthContext";
 import { districtYearRights, canEditYearless } from "@/lib/adminYears";
@@ -24,7 +25,7 @@ import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { Button } from "@/components/ui/button";
-import { SkeletonRows } from "@/components/row/AppKit";
+import { PageHeader, SkeletonRows } from "@/components/row/AppKit";
 
 // Keys match DistrictWebsiteThemes.Keys on the API and the folders under row/district-website/.
 const THEMES: { key: string; name: string; description: string }[] = [
@@ -118,35 +119,18 @@ export default function DistrictAdminWebsiteThemePage() {
         <SuccessAlert open={!!successMessage} title="Saved" description={successMessage || ""} onOk={() => setSuccessMessage(null)} />
         <ErrorAlert open={!!errorMessage} title="Error" description={errorMessage || ""} onOk={() => setErrorMessage(null)} />
 
-        <div className="flex items-start gap-3">
-          <button
-            type="button"
-            onClick={goBack}
-            className="mt-0.5 inline-flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 bg-card text-slate-600 hover:bg-slate-50 hover:text-slate-800"
-            aria-label="Back"
-          >
-            <ArrowLeft className="h-4 w-4" />
-          </button>
-          <div>
-            <h2 className="text-2xl font-bold tracking-tight text-ink">
-              {districtName ? `${districtName} · Website Theme` : "Website Theme"}
-            </h2>
-            <p className="text-slate-500 text-sm mt-0.5">
-              The look of your public district website. Content stays the same in every theme.
-            </p>
-          </div>
-        </div>
+        <PageHeader title={districtName ? `${districtName} · Website Theme` : "Website Theme"} description="The look of your public district website. Content stays the same in every theme." back={() => goBack()} />
 
         {loading && <SkeletonRows rows={7} />}
 
         {!loading && loadError && (
-          <div className="bg-card rounded-2xl border border-slate-200 shadow-sm p-5 flex items-start gap-3" role="alert">
+          <Card className="p-5 flex items-start gap-3" role="alert">
             <AlertTriangle className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
             <div className="space-y-3">
               <p className="text-sm text-slate-700">{loadError}</p>
               <Button variant="outline" size="sm" onClick={load}>Try again</Button>
             </div>
-          </div>
+          </Card>
         )}
 
         {!loading && !loadError && (
@@ -164,7 +148,7 @@ export default function DistrictAdminWebsiteThemePage() {
               </div>
             )}
 
-            <div className="bg-card rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+            <Card className="overflow-hidden">
               <div className="px-5 py-3 border-b border-slate-100 flex items-center gap-2 bg-azure/5">
                 <div className="w-9 h-9 rounded-lg bg-azure/10 text-ink flex items-center justify-center">
                   <Palette size={18} />
@@ -196,7 +180,7 @@ export default function DistrictAdminWebsiteThemePage() {
                         <span className="flex items-center gap-2">
                           <span className="text-sm font-semibold text-slate-800">{t.name}</span>
                           {t.key === savedKey && (
-                            <span className="inline-flex items-center text-[11px] font-medium px-2 py-0.5 rounded-full border bg-emerald-50 text-emerald-700 border-emerald-200">
+                            <span className="inline-flex items-center text-[11px] font-medium px-2 py-0.5 rounded border bg-emerald-50 text-emerald-700 border-emerald-200">
                               Current
                             </span>
                           )}
@@ -207,7 +191,7 @@ export default function DistrictAdminWebsiteThemePage() {
                   );
                 })}
               </div>
-            </div>
+            </Card>
 
             {editable && (
               <div className="flex justify-end gap-2">

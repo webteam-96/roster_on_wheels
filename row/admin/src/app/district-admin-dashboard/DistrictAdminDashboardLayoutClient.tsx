@@ -61,7 +61,6 @@ export default function DistrictAdminDashboardLayoutClient({ children }: { child
         <DistrictAdminDashboardCacheProvider>
           <DashboardShell
             brand="District Dashboard"
-            identityLabel="Signed in"
             identityName={name}
             identityRole="District Admin"
             initials={initials || "DA"}
@@ -69,7 +68,6 @@ export default function DistrictAdminDashboardLayoutClient({ children }: { child
             footerText={<DashboardYearFooterText />}
             pageTitle={title}
             pageSubtitle={<DistrictAdminHeaderSubtitle />}
-            variant="dot"
             switcherKind="district-admin"
             topbarStart={<DistrictAdminTopbarStatus />}
             topbarCenter={HIDE_YEAR_SELECTOR_PATHS.has(pathname) ? undefined : <DistrictAdminYearSelector />}

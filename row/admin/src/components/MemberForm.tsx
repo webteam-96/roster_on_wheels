@@ -1,5 +1,6 @@
 "use client";
 
+import { PageHeader } from "@/components/row/AppKit";
 import { sameAddressType, onePerAddressType, isHomeAddressType } from "@/lib/memberAddress";
 import TshirtSizeSelect from "@/components/TshirtSizeSelect";
 import { useState, useEffect } from "react";
@@ -28,7 +29,7 @@ import {
   LANGUAGES,
   RELATIONS,
 } from "@/lib/constants";
-import { Plus, Trash2, Save, ArrowLeft } from "@/components/icons";
+import { Plus, Trash2, Save } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import Link from "next/link";
 import { DayMonthPicker } from "@/components/DayMonthPicker";
@@ -536,25 +537,12 @@ export default function MemberForm({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" asChild>
-            <Link href={backUrl}>
-              <ArrowLeft className="h-4 w-4" />
-            </Link>
-          </Button>
-          <div>
-            <h2 className="font-display text-[24px] font-semibold leading-[1.1] tracking-[-0.02em] text-foreground md:text-[28px]">
-              {isEdit ? "Edit Member" : "Add New Member"}
-            </h2>
-            <p className="mt-1 text-[15px] text-muted-foreground">
-              {isEdit
-                ? "Update member information"
-                : "Fill in the details to add a new member"}
-            </p>
-          </div>
-        </div>
-        <div className="flex flex-wrap gap-2">
+      <PageHeader
+        title={isEdit ? "Edit Member" : "Add New Member"}
+        description={isEdit ? "Update member information" : "Fill in the details to add a new member"}
+        back={backUrl}
+        actions={
+          <>
           <Button variant="outline" asChild>
             <Link href={backUrl}>Cancel</Link>
           </Button>
@@ -566,16 +554,17 @@ export default function MemberForm({
             )}
             {saving ? "Saving..." : "Save"}
           </Button>
-        </div>
-      </div>
+          </>
+        }
+      />
 
       <Tabs defaultValue="personal" className="w-full">
         <TabsList className={`grid w-full grid-cols-3 ${showFamily ? "lg:grid-cols-5" : "lg:grid-cols-4"} h-12`}>
-          <TabsTrigger value="personal" className="text-[15px]">Personal</TabsTrigger>
-          <TabsTrigger value="social" className="text-[15px]">Social</TabsTrigger>
-          <TabsTrigger value="residential" className="text-[15px]">Residential</TabsTrigger>
-          <TabsTrigger value="business" className="text-[15px]">Business</TabsTrigger>
-          {showFamily && <TabsTrigger value="family" className="text-[15px]">Family</TabsTrigger>}
+          <TabsTrigger value="personal">Personal</TabsTrigger>
+          <TabsTrigger value="social">Social</TabsTrigger>
+          <TabsTrigger value="residential">Residential</TabsTrigger>
+          <TabsTrigger value="business">Business</TabsTrigger>
+          {showFamily && <TabsTrigger value="family">Family</TabsTrigger>}
         </TabsList>
 
         <TabsContent value="personal" className="space-y-6 mt-6">
@@ -841,7 +830,7 @@ export default function MemberForm({
               <Separator />
 
               <div className="flex flex-wrap items-center justify-between gap-3">
-                <h3 className="text-lg font-semibold text-primary">Family Members</h3>
+                <h3 className="row-h2">Family Members</h3>
                 <Button type="button" variant="outline" onClick={addFamilyMember}>
                   <Plus className="mr-2 h-4 w-4" />
                   Add Family Member
@@ -850,17 +839,17 @@ export default function MemberForm({
 
               {errors.family && <p className="text-sm text-destructive">{errors.family}</p>}
               {formData.familyMembers?.map((fm, index) => (
-                <Card key={index} className="border-dashed border-primary/30">
+                <Card key={index} className="border-dashed">
                   <CardContent className="pt-6">
                     <div className="flex items-start justify-between mb-4">
-                      <h4 className="font-semibold text-sm text-primary">
+                      <h4 className="row-h3">
                         Family Member #{index + 1}
                       </h4>
                       <Button
                         type="button"
                         variant="ghost"
                         size="icon"
-                        className="h-8 w-8 text-destructive"
+                        className="text-destructive row-btn-sm"
                         onClick={() => removeFamilyMember(index)}
                       >
                         <Trash2 className="h-4 w-4" />

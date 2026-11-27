@@ -1,15 +1,14 @@
+import 'package:rotary_flutter_app/presentation/widgets/row/handshake_logo.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/motion.dart';
 import 'package:flutter/material.dart' hide Text;
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
-import '../../../core/constants/app_constants.dart';
 import '../../../core/routing/route_names.dart';
 import '../../../core/security/biometric_controller.dart';
 import '../../../core/services/mobile_version_service.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../providers/auth_provider.dart';
 import '../../widgets/force_update_dialog.dart';
-import 'package:rotary_flutter_app/core/brand/brand.dart';
 import 'package:rotary_flutter_app/core/theme/app_fonts.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
 
@@ -20,40 +19,11 @@ class SplashScreen extends StatefulWidget {
   State<SplashScreen> createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderStateMixin {
-  final _storage =
-      const FlutterSecureStorage(
-    aOptions: AndroidOptions(resetOnError: false),
-    iOptions: IOSOptions(accessibility: KeychainAccessibility.first_unlock),
-  );
-  late AnimationController _controller;
-  late Animation<double> _fadeAnimation;
-  late Animation<double> _scaleAnimation;
-
+class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 1500),
-    );
-
-    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _controller, curve: const Interval(0.0, 0.5, curve: Curves.easeIn)),
-    );
-
-    _scaleAnimation = Tween<double>(begin: 0.8, end: 1.0).animate(
-      CurvedAnimation(parent: _controller, curve: const Interval(0.0, 0.5, curve: Curves.easeOutBack)),
-    );
-
-    _controller.forward();
     _navigate();
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
   }
 
   Future<void> _navigate() async {
@@ -96,23 +66,6 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
         if (!mounted) return;
       }
 
-      // Timeout-guarded: a stalled read resolves to null → treated as
-      // "terms not accepted" → routes to the terms screen (then login).
-      String? termsAccepted;
-      try {
-        termsAccepted = await _storage
-            .read(key: AppConstants.termsAcceptedKey)
-            .timeout(const Duration(seconds: 5), onTimeout: () => null);
-      } catch (_) {
-        termsAccepted = null;
-      }
-
-      if (!mounted) return;
-
-      if (termsAccepted != 'true') {
-        context.go(RouteNames.terms);
-        return;
-      }
       if (!auth.isLoggedIn) {
         context.go(RouteNames.mobileLogin);
         return;
@@ -146,68 +99,24 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
   Widget build(BuildContext context) {
     return Scaffold(
       key: const Key('splash_screen_root'),
-      body: Container(
-        width: double.infinity,
-        color: AppColors.lightBg,
-        child: SafeArea(
+      backgroundColor: AppColors.lightBg,
+      body: SafeArea(
+        child: Center(
           child: Column(
+            mainAxisSize: MainAxisSize.min,
             children: [
-              Expanded(
-                child: FadeTransition(
-                  opacity: _fadeAnimation,
-                  child: ScaleTransition(
-                    scale: _scaleAnimation,
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        // ROW lockup, full colour on the light field
-                        Image.asset(
-                          'assets/images/row-logo.png',
-                          width: 220,
-                          semanticLabel: Brand.current.productName,
-                        ),
-                        const SizedBox(height: 48),
-                        const SizedBox(
-                          width: 40,
-                          height: 2,
-                          child: const LinearProgressIndicator(
-                            backgroundColor: AppColors.line,
-                            valueColor: const AlwaysStoppedAnimation<Color>(AppColors.goldPrime),
-                          ),
-                        ),
-                        const SizedBox(height: 25),
-                        Text(
-                          'CONNECTING MEMBERS',
-                          style: AppFonts.body(
-                            color: AppColors.textSecondary,
-                            fontSize: 13,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-
-              // Footer
-              FadeTransition(
-                opacity: _fadeAnimation,
-                child: const Padding(
-                  padding: EdgeInsets.only(bottom: 32),
-                  child: const Column(
-                    children: const [
-                      // Text(
-                      //   'CONNECTING MEMBERS',
-                      //   style: AppFonts.body(
-                      //     color: AppColors.white.withOpacity(0.6),
-                      //     fontSize: 13,
-                      //     fontWeight: FontWeight.w700,
-                      //,
-                      //   ),
-                      // ),
-                      // const SizedBox(height: 24),
-                    ],
+              // ROW lockup, full colour on the light field
+              const HandshakeLogo(width: 240),
+              const SizedBox(height: 24),
+              RowReveal(
+                delay: const Duration(
+                    milliseconds: 1000), // after the hands have met
+                child: Text(
+                  'CONNECTING MEMBERS',
+                  style: AppFonts.body(
+                    color: AppColors.textSecondary,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
               ),
@@ -217,5 +126,4 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
       ),
     );
   }
-
 }

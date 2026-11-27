@@ -1,5 +1,8 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
+import { Download } from "@/components/icons";
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { getEventReport } from "@/services/api";
@@ -190,76 +193,72 @@ export default function PublicReportPage() {
 
       {/* Actions */}
       <div className="max-w-7xl mx-auto px-4 py-4 flex justify-end">
-        <button
+        <Button
           onClick={() => downloadCSV(data)}
-          className="inline-flex items-center gap-2 px-4 py-2 bg-azure text-white rounded-full hover:bg-mint-ink transition-colors text-sm font-medium"
+          type="button"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-            <polyline points="7 10 12 15 17 10" />
-            <line x1="12" y1="15" x2="12" y2="3" />
-          </svg>
+          <Download className="h-4 w-4" aria-hidden />
           Download Report
-        </button>
+        </Button>
       </div>
 
       {/* Table */}
       <div className="max-w-7xl mx-auto px-4 pb-8">
         <div className="bg-card rounded-lg shadow overflow-x-auto">
-          <table className="w-full min-w-[640px] md:min-w-full text-sm">
-            <thead className="bg-[#EDF4FB] text-[13px] text-[#64748B]">
-              <tr className="bg-azure text-white">
-                <th className="px-3 py-3 text-left font-medium whitespace-nowrap">Sr.No</th>
-                <th className="px-3 py-3 text-left font-medium whitespace-nowrap">Member Name</th>
-                <th className="px-3 py-3 text-left font-medium whitespace-nowrap">District</th>
-                <th className="px-3 py-3 text-left font-medium whitespace-nowrap">Club</th>
-                <th className="px-3 py-3 text-left font-medium whitespace-nowrap">Mobile</th>
-                <th className="px-3 py-3 text-left font-medium whitespace-nowrap">Email</th>
-                <th className="px-3 py-3 text-left font-medium whitespace-nowrap">Registration</th>
-                <th className="px-3 py-3 text-right font-medium whitespace-nowrap">Amount</th>
-                <th className="px-3 py-3 text-left font-medium whitespace-nowrap">Payment Date</th>
-                <th className="px-3 py-3 text-left font-medium whitespace-nowrap">Source</th>
-                <th className="px-3 py-3 text-left font-medium whitespace-nowrap">Partner Name</th>
-                <th className="px-3 py-3 text-left font-medium whitespace-nowrap">T-Shirt</th>
-                <th className="px-3 py-3 text-left font-medium whitespace-nowrap">Food</th>
-                <th className="px-3 py-3 text-left font-medium whitespace-nowrap">Remark 1</th>
-                <th className="px-3 py-3 text-left font-medium whitespace-nowrap">Remark 2</th>
-                <th className="px-3 py-3 text-left font-medium whitespace-nowrap">Remark 3</th>
-                <th className="px-3 py-3 text-left font-medium whitespace-nowrap">Designation</th>
-              </tr>
-            </thead>
-            <tbody>
+          <Table bare className="min-w-[640px] md:min-w-full">
+            <TableHeader className="bg-muted text-[13px] text-muted-foreground">
+              <TableRow>
+                <TableHead className="px-3 py-3 text-left font-medium whitespace-nowrap">Sr.No</TableHead>
+                <TableHead className="px-3 py-3 text-left font-medium whitespace-nowrap">Member Name</TableHead>
+                <TableHead className="px-3 py-3 text-left font-medium whitespace-nowrap">District</TableHead>
+                <TableHead className="px-3 py-3 text-left font-medium whitespace-nowrap">Club</TableHead>
+                <TableHead className="px-3 py-3 text-left font-medium whitespace-nowrap">Mobile</TableHead>
+                <TableHead className="px-3 py-3 text-left font-medium whitespace-nowrap">Email</TableHead>
+                <TableHead className="px-3 py-3 text-left font-medium whitespace-nowrap">Registration</TableHead>
+                <TableHead className="px-3 py-3 text-right font-medium whitespace-nowrap">Amount</TableHead>
+                <TableHead className="px-3 py-3 text-left font-medium whitespace-nowrap">Payment Date</TableHead>
+                <TableHead className="px-3 py-3 text-left font-medium whitespace-nowrap">Source</TableHead>
+                <TableHead className="px-3 py-3 text-left font-medium whitespace-nowrap">Partner Name</TableHead>
+                <TableHead className="px-3 py-3 text-left font-medium whitespace-nowrap">T-Shirt</TableHead>
+                <TableHead className="px-3 py-3 text-left font-medium whitespace-nowrap">Food</TableHead>
+                <TableHead className="px-3 py-3 text-left font-medium whitespace-nowrap">Remark 1</TableHead>
+                <TableHead className="px-3 py-3 text-left font-medium whitespace-nowrap">Remark 2</TableHead>
+                <TableHead className="px-3 py-3 text-left font-medium whitespace-nowrap">Remark 3</TableHead>
+                <TableHead className="px-3 py-3 text-left font-medium whitespace-nowrap">Designation</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
               {members.length === 0 ? (
-                <tr>
-                  <td colSpan={17} className="px-3 py-8 text-center text-gray-500">
+                <TableRow>
+                  <TableCell colSpan={17} className="px-3 py-8 text-center text-gray-500">
                     No paid members found.
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               ) : (
                 members.map((m) => (
-                  <tr key={m.srNo} className="border-b border-gray-100 hover:bg-gray-50">
-                    <td className="px-3 py-2.5 whitespace-nowrap">{m.srNo}</td>
-                    <td className="px-3 py-2.5 whitespace-nowrap font-medium">{m.memberName || "-"}</td>
-                    <td className="px-3 py-2.5 whitespace-nowrap">{m.districtNumber || "-"}</td>
-                    <td className="px-3 py-2.5 whitespace-nowrap">{m.clubName || "-"}</td>
-                    <td className="px-3 py-2.5 whitespace-nowrap">{m.mobile || "-"}</td>
-                    <td className="px-3 py-2.5 whitespace-nowrap">{m.email || "-"}</td>
-                    <td className="px-3 py-2.5 whitespace-nowrap">{m.registrationName || "-"}</td>
-                    <td className="px-3 py-2.5 whitespace-nowrap text-right">{formatMoney(m.amount)}</td>
-                    <td className="px-3 py-2.5 whitespace-nowrap">{formatDate(m.paymentDate)}</td>
-                    <td className="px-3 py-2.5 whitespace-nowrap">{m.paidSource || "-"}</td>
-                    <td className="px-3 py-2.5 whitespace-nowrap">{m.partnerName || "-"}</td>
-                    <td className="px-3 py-2.5 whitespace-nowrap">{m.tshirtSize || "-"}</td>
-                    <td className="px-3 py-2.5 whitespace-nowrap">{m.foodPreference || "-"}</td>
-                    <td className="px-3 py-2.5 whitespace-nowrap">{m.remark1 || "-"}</td>
-                    <td className="px-3 py-2.5 whitespace-nowrap">{m.remark2 || "-"}</td>
-                    <td className="px-3 py-2.5 whitespace-nowrap">{m.remark3 || "-"}</td>
-                    <td className="px-3 py-2.5 whitespace-nowrap">{m.designationName || "-"}</td>
-                  </tr>
+                  <TableRow key={m.srNo}>
+                    <TableCell className="px-3 py-2.5 whitespace-nowrap">{m.srNo}</TableCell>
+                    <TableCell className="px-3 py-2.5 whitespace-nowrap font-medium">{m.memberName || "-"}</TableCell>
+                    <TableCell className="px-3 py-2.5 whitespace-nowrap">{m.districtNumber || "-"}</TableCell>
+                    <TableCell className="px-3 py-2.5 whitespace-nowrap">{m.clubName || "-"}</TableCell>
+                    <TableCell className="px-3 py-2.5 whitespace-nowrap">{m.mobile || "-"}</TableCell>
+                    <TableCell className="px-3 py-2.5 whitespace-nowrap">{m.email || "-"}</TableCell>
+                    <TableCell className="px-3 py-2.5 whitespace-nowrap">{m.registrationName || "-"}</TableCell>
+                    <TableCell className="px-3 py-2.5 whitespace-nowrap text-right">{formatMoney(m.amount)}</TableCell>
+                    <TableCell className="px-3 py-2.5 whitespace-nowrap">{formatDate(m.paymentDate)}</TableCell>
+                    <TableCell className="px-3 py-2.5 whitespace-nowrap">{m.paidSource || "-"}</TableCell>
+                    <TableCell className="px-3 py-2.5 whitespace-nowrap">{m.partnerName || "-"}</TableCell>
+                    <TableCell className="px-3 py-2.5 whitespace-nowrap">{m.tshirtSize || "-"}</TableCell>
+                    <TableCell className="px-3 py-2.5 whitespace-nowrap">{m.foodPreference || "-"}</TableCell>
+                    <TableCell className="px-3 py-2.5 whitespace-nowrap">{m.remark1 || "-"}</TableCell>
+                    <TableCell className="px-3 py-2.5 whitespace-nowrap">{m.remark2 || "-"}</TableCell>
+                    <TableCell className="px-3 py-2.5 whitespace-nowrap">{m.remark3 || "-"}</TableCell>
+                    <TableCell className="px-3 py-2.5 whitespace-nowrap">{m.designationName || "-"}</TableCell>
+                  </TableRow>
                 ))
               )}
-            </tbody>
-          </table>
+            </TableBody>
+          </Table>
         </div>
 
         {members.length > 0 && (

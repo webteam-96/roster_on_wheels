@@ -130,6 +130,7 @@ class WebsiteProvisioningBanner extends StatelessWidget {
               // Provisioning has no dismiss (like the web) — only terminal states.
               if (!provisioning)
                 IconButton(
+                  tooltip: 'Close',
                   visualDensity: VisualDensity.compact,
                   padding: EdgeInsets.zero,
                   constraints: const BoxConstraints(minWidth: 32, minHeight: 32),

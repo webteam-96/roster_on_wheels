@@ -15,6 +15,7 @@
  *   - Design palette: navy #17458f, gold #F7A81B, slate borders/text.
  */
 
+import { Card } from "@/components/ui/card";
 import { useState, useEffect, useMemo } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import {
@@ -33,12 +34,10 @@ import AlertModal from "@/components/AlertModal";
 import RotaryLoader from "@/components/RotaryLoader";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import CampaignTrackingCard from "@/components/comms/CampaignTrackingCard";
-import {
-  ArrowLeft, Send, Pencil, Trash2, CheckCircle2, XCircle, Clock, Loader2, AlertTriangle,
-} from "@/components/icons";
+import { Send, Pencil, Trash2, CheckCircle2, XCircle, Clock, Loader2, AlertTriangle } from "@/components/icons";
 
 import { appLocale } from "@/lib/appFormat";
-import { ListPageSkeleton } from "@/components/row/AppKit";
+import { PageHeader, ListPageSkeleton } from "@/components/row/AppKit";
 const BASE = "/district-admin-dashboard/quick-links/mass-email";
 
 function withSearch(base: string, extra: Record<string, string | null | undefined>) {
@@ -132,7 +131,7 @@ export default function DistrictAdminMassEmailDetailPage() {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "Draft": return <Badge variant="outline" className="border-slate-200 bg-slate-50 text-slate-600">Draft</Badge>;
-      case "Sending": return <Badge variant="outline" className="border-blue-200 bg-blue-50 text-blue-700">Sending</Badge>;
+      case "Sending": return <Badge variant="outline" className="border-blue-200 bg-blue-100 text-azure-50 text-blue-700">Sending</Badge>;
       case "Sent": return <Badge variant="outline" className="border-emerald-200 bg-emerald-50 text-emerald-700">Sent</Badge>;
       case "Failed": return <Badge variant="outline" className="border-red-200 bg-red-50 text-red-700">Failed</Badge>;
       default: return <Badge variant="outline" className="border-slate-200 bg-slate-50 text-slate-600">{status}</Badge>;
@@ -157,39 +156,27 @@ export default function DistrictAdminMassEmailDetailPage() {
         <ViewOnlyBadge currentYearOnly={ywarCurrentYearLabel} className="mb-4" />
       )}
 
-      <div className="space-y-6 max-w-5xl mx-auto">
+      <div className="space-y-6">
         {/* Header */}
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-3">
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={goBack}
-              className="border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-slate-800"
-              aria-label="Back"
-            >
-              <ArrowLeft className="h-4 w-4" />
-            </Button>
-            <div>
-              <h2 className="text-2xl font-bold tracking-tight text-ink">Mass Email Detail</h2>
-              <p className="text-slate-500 text-sm mt-0.5">{districtName}</p>
-            </div>
-          </div>
-          {canManage && isDraft && (
+        <PageHeader
+          title="Mass Email Detail"
+          description={districtName}
+          back={() => goBack()}
+          actions={canManage && isDraft && (
             <div className="flex flex-wrap items-center gap-2">
               <Button
                 variant="outline"
-                className="border-slate-200 text-slate-700 hover:bg-slate-50"
+               
                 onClick={() => router.push(withSearch(`${BASE}/compose`, { editId: String(detail.id), returnTo, yearId }))}
               >
                 <Pencil className="h-4 w-4 mr-2" />Edit
               </Button>
-              <Button className="bg-azure hover:bg-mint-ink text-white" onClick={() => setConfirmSend(true)} disabled={processing}>
+              <Button onClick={() => setConfirmSend(true)} disabled={processing}>
                 {processing ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Send className="h-4 w-4 mr-2" />}Send
               </Button>
               <Button
                 variant="outline"
-                className="border-red-200 text-red-700 hover:bg-red-50"
+                className="text-red-700"
                 onClick={() => setConfirmDelete(true)}
                 disabled={processing}
               >
@@ -197,12 +184,12 @@ export default function DistrictAdminMassEmailDetailPage() {
               </Button>
             </div>
           )}
-        </div>
+        />
 
         {/* Summary card */}
-        <div className="rounded-2xl border border-slate-200 shadow-sm bg-card overflow-hidden">
+        <Card className="overflow-hidden">
           <div className="px-5 py-3 border-b border-slate-100 flex items-center justify-between gap-3 bg-azure/5">
-            <h3 className="text-sm font-semibold text-slate-800 truncate">{detail.subject}</h3>
+            <h3 className="row-h3 truncate">{detail.subject}</h3>
             {getStatusBadge(detail.status)}
           </div>
           <div className="p-5 space-y-4">
@@ -236,24 +223,24 @@ export default function DistrictAdminMassEmailDetailPage() {
               </div>
             )}
           </div>
-        </div>
+        </Card>
 
         <CampaignTrackingCard scope="districts" ownerId={districtId} emailId={emailId} />
 
         {/* Recipients table */}
-        <div className="rounded-2xl border border-slate-200 shadow-sm bg-card overflow-hidden">
+        <Card className="overflow-hidden">
           <div className="px-5 py-3 border-b border-slate-100 bg-azure/5">
-            <h3 className="text-sm font-semibold text-slate-800">Recipients ({detail.recipients.length})</h3>
+            <h3 className="row-h3">Recipients ({detail.recipients.length})</h3>
           </div>
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow className="hover:opacity-100 border-b-2 border-marigold" style={{ backgroundColor: "#17458f" }}>
-                  <TableHead className="text-xs font-semibold uppercase tracking-wide">Name</TableHead>
-                  <TableHead className="text-xs font-semibold uppercase tracking-wide">Email</TableHead>
-                  <TableHead className="text-xs font-semibold uppercase tracking-wide">Status</TableHead>
-                  <TableHead className="text-xs font-semibold uppercase tracking-wide">Sent Date</TableHead>
-                  <TableHead className="text-xs font-semibold uppercase tracking-wide">Error</TableHead>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Email</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Sent Date</TableHead>
+                  <TableHead>Error</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -271,7 +258,7 @@ export default function DistrictAdminMassEmailDetailPage() {
               </TableBody>
             </Table>
           </div>
-        </div>
+        </Card>
       </div>
 
       <AlertModal

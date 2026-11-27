@@ -13,6 +13,10 @@
  * v2 reads ONLY `?returnTo=` — no `returnUrl`, no `backUrl`.
  */
 
+import FieldLabel from "@/components/form/FieldLabel";
+import { NativeSelect } from "@/components/ui/native-select";
+import { Textarea } from "@/components/ui/textarea";
+import SectionCard from "@/components/form/SectionCard";
 import { useEffect, useRef, useState } from "react";
 import { useParams } from "next/navigation";
 import Image from "next/image";
@@ -40,6 +44,8 @@ import { useImageCropUpload } from "@/hooks/useImageCropUpload";
 import { useSyncClubIdFromUrl } from "@/hooks/useSyncClubIdFromUrl";
 import { ListPageSkeleton } from "@/components/row/AppKit";
 
+import { RemoveBadgeButton } from "@/components/ui/text-buttons"
+import { Button } from "@/components/ui/button"
 const MAX_ACTIVE = 6;
 
 const BANNER_ASPECT = 8 / 3;
@@ -47,36 +53,6 @@ const BANNER_MAX_WIDTH = 1920;
 // Banners render full-bleed (~1920 px) on the public site, so a narrower crop
 // would be upscaled by the browser and look blurry. Rejected rather than stored.
 const BANNER_MIN_WIDTH = 1200;
-
-function FieldLabel({
-  children, hint, dot, required = false,
-}: { children: React.ReactNode; hint?: string; dot: string; required?: boolean }) {
-  return (
-    <div className="flex items-center gap-1.5 mb-1">
-      <span className={`w-1.5 h-1.5 rounded-full ${dot}`} />
-      <label className="text-xs font-semibold text-slate-700">
-        {children}
-        {required && <span className="text-rose-600 ml-0.5">*</span>}
-        {hint && <span className="text-slate-400 font-normal ml-1">{hint}</span>}
-      </label>
-    </div>
-  );
-}
-
-function SectionCard({
-  number, icon: Icon, title, dot, children,
-}: { number: number; icon: React.ElementType; title: string; dot: string; children: React.ReactNode }) {
-  return (
-    <div className="rounded-xl border border-slate-200 overflow-hidden mb-4">
-      <div className="flex items-center gap-3 px-4 py-2.5 bg-slate-50 border-b border-slate-100">
-        <div className={`flex items-center justify-center h-7 w-7 rounded-full text-white text-xs font-bold ${dot}`}>{number}</div>
-        <Icon className="h-4 w-4 text-slate-500" />
-        <h3 className="text-sm font-semibold text-slate-800">{title}</h3>
-      </div>
-      <div className="p-4">{children}</div>
-    </div>
-  );
-}
 
 export default function BannerPhotosV2AddPage() {
   useSyncClubIdFromUrl();
@@ -258,19 +234,15 @@ export default function BannerPhotosV2AddPage() {
         }
       >
         {/* 1. Banner Image */}
-        <SectionCard number={1} icon={ImageIcon} title="Banner Image" dot="bg-[#17458F]">
-          <FieldLabel dot="bg-[#17458F]" required>Image</FieldLabel>
+        <SectionCard number={1} icon={ImageIcon} title="Banner Image">
+          <FieldLabel required>Image</FieldLabel>
           {imagePath ? (
             <div className="relative aspect-[8/3] w-full overflow-hidden rounded-lg border border-slate-200 bg-slate-100">
               <Image src={getPhotoUrl(imagePath)} alt="Banner preview" fill className="object-cover" unoptimized />
-              <button
+              <RemoveBadgeButton
                 type="button"
                 onClick={() => setImagePath("")}
-                className="absolute top-2 right-2 inline-flex items-center justify-center h-7 w-7 rounded-full bg-rose-600 text-white shadow hover:bg-rose-700"
-                aria-label="Remove image"
-              >
-                <X size={13} />
-              </button>
+                 aria-label="Remove image" />
             </div>
           ) : (
             <div>
@@ -281,54 +253,53 @@ export default function BannerPhotosV2AddPage() {
                 className="hidden"
                 onChange={(e) => { const f = e.target.files?.[0]; if (f) bannerCrop.startCrop(f); e.target.value = ""; }}
               />
-              <button
+              <Button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
-                className="flex h-28 w-full flex-col items-center justify-center gap-1 rounded-lg border-2 border-dashed border-slate-200 text-slate-500 hover:bg-slate-50"
-              >
+                className="h-28 w-full flex-col gap-1 border-dashed" variant="outline">
                 <Upload size={20} />
                 <span className="text-sm font-medium">Click to upload image</span>
                 <span className="text-xs text-slate-400">Allowed: JPG, JPEG, PNG, GIF, WEBP</span>
-              </button>
+              </Button>
               {bannerCrop.error && <p className="text-xs text-rose-600 mt-1.5">{bannerCrop.error}</p>}
             </div>
           )}
         </SectionCard>
 
         {/* 2. Description */}
-        <SectionCard number={2} icon={FileText} title="Description" dot="bg-[#17458F]">
-          <FieldLabel dot="bg-[#17458F]" hint="(max 500 chars)">Description</FieldLabel>
-          <textarea
+        <SectionCard number={2} icon={FileText} title="Description">
+          <FieldLabel hint="(max 500 chars)">Description</FieldLabel>
+          <Textarea
             placeholder="Optional description for this banner"
             value={description}
             onChange={(e) => setDescription(e.target.value.slice(0, 500))}
             rows={3}
             maxLength={500}
-            className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42] resize-y"
+            className="resize-y"
           />
           <p className="text-xs text-slate-400 text-right mt-1">{description.length}/500</p>
         </SectionCard>
 
         {/* 3. Status */}
-        <SectionCard number={3} icon={ToggleLeft} title="Status" dot="bg-[#17458F]">
-          <FieldLabel dot="bg-[#17458F]">Visibility</FieldLabel>
-          <select
+        <SectionCard number={3} icon={ToggleLeft} title="Status">
+          <FieldLabel>Visibility</FieldLabel>
+          <NativeSelect
             value={isActive}
             onChange={(e) => setIsActive(e.target.value)}
-            className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42] bg-card"
+            
           >
             <option value="1">Active (shown on website)</option>
             <option value="0">Inactive (hidden)</option>
-          </select>
+          </NativeSelect>
         </SectionCard>
 
         {/* 4. Rotary Year */}
-        <SectionCard number={4} icon={Calendar} title="Rotary Year" dot="bg-[#17458F]">
-          <FieldLabel dot="bg-[#17458F]" required>Rotary Year</FieldLabel>
-          <select
+        <SectionCard number={4} icon={Calendar} title="Rotary Year">
+          <FieldLabel required>Rotary Year</FieldLabel>
+          <NativeSelect
             value={yearId}
             onChange={(e) => setYearId(e.target.value)}
-            className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42] bg-card"
+            
           >
             <option value="">Select a year</option>
             {allYears.map((y) => (
@@ -336,12 +307,12 @@ export default function BannerPhotosV2AddPage() {
                 {y.yearLabel}{y.isCurrent ? " (Current)" : ""}
               </option>
             ))}
-          </select>
+          </NativeSelect>
         </SectionCard>
 
         {/* 5. Document or Link (optional) */}
-        <SectionCard number={5} icon={FileText} title="Document or Link (optional)" dot="bg-[#17458F]">
-          <FieldLabel dot="bg-[#17458F]" hint="(document or link. Not both)">Attached Document / Link</FieldLabel>
+        <SectionCard number={5} icon={FileText} title="Document or Link (optional)">
+          <FieldLabel hint="(document or link. Not both)">Attached Document / Link</FieldLabel>
           <DocumentOrLinkField
             value={{ documentPath, documentName, linkUrl }}
             onChange={(v) => { setDocumentPath(v.documentPath); setDocumentName(v.documentName); setLinkUrl(v.linkUrl); }}

@@ -186,7 +186,7 @@ public static partial class ClubMonthlyReportWordBuilder
                         t.Append(new TableRow(
                             TextCell(w[0], (i++).ToString(), color: Muted), TextCell(w[1], Day(p.ProjectDate)), carded.Contains(p.ProjectId) ? LinkCell(w[2], p.Title, ItemAnchor(p.ProjectId)) : TextCell(w[2], p.Title),
                             TextCell(w[3], Dash(p.AreaOfFocusName)), TextCell(w[4], p.DirectBeneficiaries?.ToString() ?? "—", right: true),
-                            TextCell(w[5], p.ProjectCost is > 0 ? Brand.Money(p.ProjectCost.Value, null, 0) : "—", right: true)));
+                            TextCell(w[5], p.ProjectCost is > 0 ? Brand.Money(p.ProjectCost.Value, p.Currency, 0) : "—", right: true)));
                 }
                 body.Append(t);
                 // Every project, all its details and photos (user 2026-11-13: keep everything, new design only).
@@ -272,7 +272,7 @@ public static partial class ClubMonthlyReportWordBuilder
             var focus = FirstNonEmpty(p.AreaOfFocusName, p.OtherAreaOfFocus);
             if (focus != null) facts.Add(("Area of Focus", focus));
             if (!string.IsNullOrWhiteSpace(p.Location)) facts.Add(("Location", p.Location!));
-            if (p.ProjectCost is > 0) facts.Add(("Cost", Brand.Money(p.ProjectCost!.Value, null, 0)));
+            if (p.ProjectCost is > 0) facts.Add(("Cost", Brand.Money(p.ProjectCost!.Value, p.Currency, 0)));
             if (!string.IsNullOrWhiteSpace(p.FundingName)) facts.Add(("Funding", p.FundingName!));
             if (p.DirectBeneficiaries is > 0) facts.Add(("Beneficiaries", p.DirectBeneficiaries!.Value.ToString()));
             if (p.ManHours is > 0) facts.Add(("Man-hours", p.ManHours!.Value.ToString()));

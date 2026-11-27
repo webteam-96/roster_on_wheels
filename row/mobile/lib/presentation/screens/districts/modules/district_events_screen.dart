@@ -25,6 +25,8 @@ import '../../../widgets/detail/detail_widgets.dart';
 import '../../../widgets/detail/detail_hero_layout.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
 import 'package:rotary_flutter_app/presentation/widgets/row/form_action_bar.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/motion.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/roster_wheel.dart';
 
 // District events mirror the web add/edit form: Title (English, ≤50),
 // Description (English, ≤1000), Date, and 1-5 photos (each with an optional
@@ -375,10 +377,10 @@ class _DistrictEventsScreenState extends State<DistrictEventsScreen> {
                             actionLabel: canManage ? 'Add Event' : null,
                             onAction: canManage ? () => _showForm() : null,
                           )
-                        : RefreshIndicator(
+                        : RowRefresh(
                             color: AppColors.primary,
                             onRefresh: () => _fetch(reset: true),
-                            child: ListView.separated(
+                            child: RowListView.separated(
                               padding: (const EdgeInsets.all(16)).add(const EdgeInsets.only(bottom: 88)),
                               itemCount: _items.length + 1,
                               separatorBuilder: (_, __) => const SizedBox(height: 10),
@@ -423,7 +425,7 @@ class _DistrictEventsScreenState extends State<DistrictEventsScreen> {
   /// header + list (or loading / error / empty) as slivers, so everything
   /// scrolls together and pull-to-refresh works even when the list is short.
   Widget _buildEmbeddedScroll(bool canManage) {
-    return RefreshIndicator(
+    return RowRefresh(
       color: AppColors.primary,
       onRefresh: () => _fetch(reset: true),
       child: CustomScrollView(
@@ -613,12 +615,14 @@ class _EventCard extends StatelessWidget {
                   ),
                 if (canManage) ...[
                   IconButton(
+                    tooltip: 'Edit',
                     icon: const Icon(Icons.edit_outlined, size: 18, color: AppColors.primary),
                     onPressed: onEdit,
                     constraints: const BoxConstraints(),
                     padding: const EdgeInsets.all(6),
                   ),
                   IconButton(
+                    tooltip: 'Delete',
                     icon: const Icon(Icons.delete_outline, size: 18, color: AppColors.error),
                     onPressed: onDelete,
                     constraints: const BoxConstraints(),
@@ -1237,6 +1241,7 @@ class _EventPhotoCardState extends State<_EventPhotoCard> {
                     ),
                     const Spacer(),
                     IconButton(
+                      tooltip: 'Delete',
                       icon: const Icon(Icons.delete_outline, size: 20, color: AppColors.error),
                       visualDensity: VisualDensity.compact,
                       onPressed: widget.onRemove,

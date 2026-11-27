@@ -19,6 +19,8 @@
  * gets that district's year list.
  */
 
+import { MenuItemButton } from "@/components/ui/text-buttons"
+import { Button } from "@/components/ui/button"
 import { useEffect, useState, useRef } from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { ChevronDown, Calendar } from "@/components/icons";
@@ -116,15 +118,10 @@ export default function AgYearSelector() {
 
   return (
     <div ref={popRef} className="relative">
-      <button
+      <Button variant="outline" className="gap-2"
         type="button"
         disabled={locked}
         onClick={() => { if (!locked) setOpen((o) => !o); }}
-        className={`inline-flex items-center gap-2 h-9 px-3 rounded-md border border-slate-200 text-sm font-medium transition-colors ${
-          locked
-            ? "bg-slate-50 text-slate-500 cursor-default"
-            : "bg-card hover:bg-slate-50 text-slate-700"
-        }`}
         title={locked ? `Rotary Year ${labelText}` : "Rotary Year"}
       >
         <Calendar className="h-4 w-4 text-slate-400" />
@@ -132,21 +129,18 @@ export default function AgYearSelector() {
         {!locked && (
           <ChevronDown className={`h-4 w-4 text-slate-400 transition-transform ${open ? "rotate-180" : ""}`} />
         )}
-      </button>
+      </Button>
       {open && !locked && (
         <div className="absolute right-0 top-full mt-1 z-50 min-w-[160px] bg-card border border-slate-200 rounded-md shadow-lg py-1 max-h-72 overflow-y-auto">
           {options.map((o) => (
-            <button
+            <MenuItemButton selected={o.id === selectedYearId} className="justify-between gap-3"
               key={o.id}
               type="button"
               onClick={() => pick(o.id)}
-              className={`w-full text-left px-3 py-1.5 text-sm hover:bg-slate-50 flex items-center justify-between gap-3 ${
-                o.id === selectedYearId ? "bg-amber-50 text-amber-900 font-medium" : "text-slate-700"
-              }`}
             >
               <span>{o.yearLabel}</span>
               {o.isCurrent && <span className="text-[10px] text-emerald-600 font-semibold uppercase">Current</span>}
-            </button>
+            </MenuItemButton>
           ))}
         </div>
       )}

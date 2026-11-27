@@ -1,7 +1,10 @@
 "use client";
+import { IconButton } from "@/components/ui/icon-button";
+import { ClearButton } from "@/components/ui/text-buttons";
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
 
+import { Textarea } from "@/components/ui/textarea";
 import { useCallback, useEffect, useState } from "react";
-import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -9,14 +12,14 @@ import { Badge } from "@/components/ui/badge";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { useAuth } from "@/contexts/AuthContext";
-import { ArrowLeft, Loader2, Smartphone, Mail, Search, X, Download, StickyNote, Pencil } from "@/components/icons";
+import { Loader2, Smartphone, Mail, Search, X, Download, StickyNote, Pencil } from "@/components/icons";
 import { getDuplicateList, getAllDuplicates, saveDuplicateRemark, getMergeHistory, revertMerge, type DupPair, type MergeHistoryRow } from "@/services/api";
 import { exportToCSV } from "@/utils/csvExport";
 import MergeDialog from "./MergeDialog";
 
 import { appLocale } from "@/lib/appFormat";
 import Pagination from "@/components/Pagination";
-import { SkeletonRows } from "@/components/row/AppKit";
+import { PageHeader, SkeletonRows } from "@/components/row/AppKit";
 const PAGE_SIZE = 20;
 type FilterType = "all" | "mobile" | "email" | "both";
 
@@ -26,7 +29,7 @@ function TypeBadge({ matchTypes }: { matchTypes: string }) {
   return (
     <div className="flex flex-wrap gap-1">
       {hasMobile && (
-        <Badge variant="outline" className="border-blue-200 bg-blue-50 text-blue-700 gap-1">
+        <Badge variant="outline" className="border-blue-200 bg-blue-100 text-azure-50 text-blue-700 gap-1">
           <Smartphone className="h-3 w-3" /> Mobile
         </Badge>
       )}
@@ -152,7 +155,7 @@ export default function DuplicatesPage() {
     return (
       <ProtectedRoute>
         <div className="flex flex-col items-center justify-center py-20">
-          <h3 className="text-lg font-semibold">Access Denied</h3>
+          <h3 className="row-h2">Access Denied</h3>
           <p className="text-muted-foreground mt-2">Only SuperAdmin can access this page.</p>
         </div>
       </ProtectedRoute>
@@ -170,17 +173,7 @@ export default function DuplicatesPage() {
   return (
     <ProtectedRoute>
       <div className="space-y-6">
-        <div className="flex items-center gap-3">
-          <Button variant="outline" size="icon" asChild>
-            <Link href="/settings/rotary-org"><ArrowLeft className="h-4 w-4" /></Link>
-          </Button>
-          <div>
-            <h2 className="text-2xl font-bold tracking-tight text-primary">Duplicate Mobile / Email</h2>
-            <p className="text-muted-foreground text-base">
-              Members sharing a mobile or email: one holds it as primary, the other as secondary. Review each pair, then merge or keep both.
-            </p>
-          </div>
-        </div>
+        <PageHeader title="Duplicate Mobile / Email" description="Members sharing a mobile or email: one holds it as primary, the other as secondary. Review each pair, then merge or keep both." back="/settings/rotary-org" />
 
         {/* Search */}
         <div className="relative max-w-xl">
@@ -192,14 +185,11 @@ export default function DuplicatesPage() {
             className="pl-9 pr-9"
           />
           {searchInput && (
-            <button
-              type="button"
+            <ClearButton
               onClick={() => setSearchInput("")}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-slate-700"
               title="Clear"
             >
-              <X className="h-4 w-4" />
-            </button>
+            </ClearButton>
           )}
         </div>
 
@@ -243,37 +233,37 @@ export default function DuplicatesPage() {
           <Card>
             <CardContent className="p-0">
               <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead className="bg-[#EDF4FB] text-[13px] text-[#64748B]">
-                    <tr className="border-b bg-slate-50 text-left text-muted-foreground">
-                      <th className="py-3 px-4 font-medium">Merged on</th>
-                      <th className="py-3 px-4 font-medium">Kept</th>
-                      <th className="py-3 px-4 font-medium">Deleted (restore this)</th>
-                      <th className="py-3 px-4 font-medium w-28">Status</th>
-                      <th className="py-3 px-4 font-medium text-right w-28">Action</th>
-                    </tr>
-                  </thead>
-                  <tbody>
+                <Table className="w-full text-sm">
+                  <TableHeader>
+                    <TableRow className="border-b">
+                      <TableHead className="px-4">Merged on</TableHead>
+                      <TableHead className="px-4">Kept</TableHead>
+                      <TableHead className="px-4">Deleted (restore this)</TableHead>
+                      <TableHead className="px-4 w-28">Status</TableHead>
+                      <TableHead className="px-4 text-right w-28">Action</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
                     {loading ? (
-                      <tr><td colSpan={5} className="px-4 py-3"><SkeletonRows /></td></tr>
+                      <TableRow><TableCell colSpan={5} className="px-4 py-3"><SkeletonRows /></TableCell></TableRow>
                     ) : history.length === 0 ? (
-                      <tr><td colSpan={5} className="py-16 text-center text-muted-foreground">No merges recorded.</td></tr>
+                      <TableRow><TableCell colSpan={5} className="py-16 text-center text-muted-foreground">No merges recorded.</TableCell></TableRow>
                     ) : (
                       history.map((h) => (
-                        <tr key={h.id} className="border-b hover:bg-slate-50/60">
-                          <td className="py-3 px-4 align-top text-slate-600">{h.mergedOn ? new Date(h.mergedOn).toLocaleString(appLocale()) : "–"}</td>
-                          <td className="py-3 px-4 align-top"><MemberCell rid={h.keptRid} name={h.keptName} club={null} /></td>
-                          <td className="py-3 px-4 align-top">
+                        <TableRow key={h.id} className="border-b hover:bg-slate-50/60">
+                          <TableCell className="py-3 px-4 align-top text-slate-600">{h.mergedOn ? new Date(h.mergedOn).toLocaleString(appLocale()) : "–"}</TableCell>
+                          <TableCell className="py-3 px-4 align-top"><MemberCell rid={h.keptRid} name={h.keptName} club={null} /></TableCell>
+                          <TableCell className="py-3 px-4 align-top">
                             <MemberCell rid={h.deletedRid} name={h.deletedName} club={h.deletedMobile ? h.deletedMobile : null} />
-                          </td>
-                          <td className="py-3 px-4 align-top">
+                          </TableCell>
+                          <TableCell className="py-3 px-4 align-top">
                             {h.deletedStillGone ? (
                               <Badge variant="outline" className="border-rose-200 bg-rose-50 text-rose-700">Deleted</Badge>
                             ) : (
                               <Badge variant="outline" className="border-emerald-200 bg-emerald-50 text-emerald-700">Restored</Badge>
                             )}
-                          </td>
-                          <td className="py-3 px-4 align-top text-right">
+                          </TableCell>
+                          <TableCell className="py-3 px-4 align-top text-right">
                             <Button
                               size="sm"
                               disabled={reverting === h.id || !h.deletedStillGone}
@@ -282,12 +272,12 @@ export default function DuplicatesPage() {
                             >
                               {reverting === h.id ? <Loader2 className="h-4 w-4 animate-spin" /> : "Revert"}
                             </Button>
-                          </td>
-                        </tr>
+                          </TableCell>
+                        </TableRow>
                       ))
                     )}
-                  </tbody>
-                </table>
+                  </TableBody>
+                </Table>
               </div>
             </CardContent>
           </Card>
@@ -298,60 +288,60 @@ export default function DuplicatesPage() {
         <Card>
           <CardContent className="p-0">
             <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead className="bg-[#EDF4FB] text-[13px] text-[#64748B]">
-                  <tr className="border-b bg-slate-50 text-left text-muted-foreground">
-                    <th className="py-3 px-4 font-medium w-28">Type</th>
-                    <th className="py-3 px-4 font-medium">Member A</th>
-                    <th className="py-3 px-4 font-medium">Member B</th>
-                    <th className="py-3 px-4 font-medium">Shared value</th>
-                    <th className="py-3 px-4 font-medium w-64">Remark</th>
-                    <th className="py-3 px-4 font-medium text-right w-28">Action</th>
-                  </tr>
-                </thead>
-                <tbody>
+              <Table className="w-full text-sm">
+                <TableHeader>
+                  <TableRow className="border-b">
+                    <TableHead className="px-4 w-28">Type</TableHead>
+                    <TableHead className="px-4">Member A</TableHead>
+                    <TableHead className="px-4">Member B</TableHead>
+                    <TableHead className="px-4">Shared value</TableHead>
+                    <TableHead className="px-4 w-64">Remark</TableHead>
+                    <TableHead className="px-4 text-right w-28">Action</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
                   {loading ? (
-                    <tr><td colSpan={6} className="px-4 py-3"><SkeletonRows /></td></tr>
+                    <TableRow><TableCell colSpan={6} className="px-4 py-3"><SkeletonRows /></TableCell></TableRow>
                   ) : items.length === 0 ? (
-                    <tr><td colSpan={6} className="py-16 text-center text-muted-foreground">No duplicate pairs found.</td></tr>
+                    <TableRow><TableCell colSpan={6} className="py-16 text-center text-muted-foreground">No duplicate pairs found.</TableCell></TableRow>
                   ) : (
                     items.map((p) => (
-                      <tr key={`${p.memberAId}-${p.memberBId}`} className="border-b hover:bg-slate-50/60">
-                        <td className="py-3 px-4 align-top"><TypeBadge matchTypes={p.matchTypes} /></td>
-                        <td className="py-3 px-4 align-top"><MemberCell rid={p.ridA} name={p.nameA} club={p.clubA} /></td>
-                        <td className="py-3 px-4 align-top"><MemberCell rid={p.ridB} name={p.nameB} club={p.clubB} /></td>
-                        <td className="py-3 px-4 align-top">
+                      <TableRow key={`${p.memberAId}-${p.memberBId}`} className="border-b hover:bg-slate-50/60">
+                        <TableCell className="py-3 px-4 align-top"><TypeBadge matchTypes={p.matchTypes} /></TableCell>
+                        <TableCell className="py-3 px-4 align-top"><MemberCell rid={p.ridA} name={p.nameA} club={p.clubA} /></TableCell>
+                        <TableCell className="py-3 px-4 align-top"><MemberCell rid={p.ridB} name={p.nameB} club={p.clubB} /></TableCell>
+                        <TableCell className="py-3 px-4 align-top">
                           {p.sharedMobile && <div className="flex items-center gap-1.5 text-slate-700"><Smartphone className="h-3.5 w-3.5 text-blue-500" />{p.sharedMobile}</div>}
                           {p.sharedEmail && <div className="flex items-center gap-1.5 text-slate-700 break-all"><Mail className="h-3.5 w-3.5 text-slate-500" />{p.sharedEmail}</div>}
-                        </td>
-                        <td className="py-3 px-4 align-top">
+                        </TableCell>
+                        <TableCell className="py-3 px-4 align-top">
                           {p.remark ? (
                             <div className="flex items-start gap-1.5 max-w-[15rem]">
                               <span className="line-clamp-2 whitespace-pre-wrap text-slate-700">{p.remark}</span>
-                              <button
+                              <IconButton
                                 type="button"
                                 onClick={() => openRemark(p)}
                                 title="Edit remark"
                                 aria-label="Edit remark"
-                                className="mt-0.5 shrink-0 text-slate-400 hover:text-primary"
+                                className="h-6 w-6"
                               >
                                 <Pencil className="h-3.5 w-3.5" />
-                              </button>
+                              </IconButton>
                             </div>
                           ) : (
-                            <Button variant="outline" size="sm" className="gap-1" onClick={() => openRemark(p)}>
+                            <Button variant="outline" size="sm" onClick={() => openRemark(p)}>
                               <StickyNote className="h-3.5 w-3.5" /> Add remark
                             </Button>
                           )}
-                        </td>
-                        <td className="py-3 px-4 align-top text-right">
+                        </TableCell>
+                        <TableCell className="py-3 px-4 align-top text-right">
                           <Button size="sm" onClick={() => setActive(p)}>Review</Button>
-                        </td>
-                      </tr>
+                        </TableCell>
+                      </TableRow>
                     ))
                   )}
-                </tbody>
-              </table>
+                </TableBody>
+              </Table>
             </div>
           </CardContent>
         </Card>
@@ -383,14 +373,14 @@ export default function DuplicatesPage() {
               <p className="text-xs text-muted-foreground">
                 {remarkTarget.nameA || "–"} (RID {remarkTarget.ridA || "–"}) &amp; {remarkTarget.nameB || "–"} (RID {remarkTarget.ridB || "–"})
               </p>
-              <textarea
+              <Textarea
                 value={remarkText}
                 onChange={(e) => setRemarkText(e.target.value)}
                 rows={4}
                 maxLength={1000}
                 autoFocus
                 placeholder="Add a remark for this duplicate pair…"
-                className="w-full rounded-md border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                
               />
               <p className="text-[11px] text-muted-foreground">Leave blank and save to clear the remark. Max 1000 characters.</p>
             </div>

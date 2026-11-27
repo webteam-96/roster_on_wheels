@@ -21,6 +21,9 @@
  * v2 reads ONLY `?returnTo=` — no `returnUrl`, no `backUrl`.
  */
 
+import FieldLabel from "@/components/form/FieldLabel";
+import { Input } from "@/components/ui/input";
+import SectionCard from "@/components/form/SectionCard";
 import { getCurrencySymbol } from "@/lib/currency";
 import { useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
@@ -45,38 +48,6 @@ const ReactQuill = dynamic(() => import("react-quill-new"), { ssr: false });
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
-function FieldLabel({
-  children, hint, dot, required,
-}: { children: React.ReactNode; hint?: string; dot: string; required?: boolean }) {
-  return (
-    <div className="flex items-center gap-1.5 mb-1">
-      <span className={`w-1.5 h-1.5 rounded-full ${dot}`} />
-      <label className="text-xs font-semibold text-slate-700">
-        {children}
-        {required && <span className="text-rose-600 ml-0.5">*</span>}
-        {hint && <span className="text-slate-400 font-normal ml-1">{hint}</span>}
-      </label>
-    </div>
-  );
-}
-
-function SectionCard({
-  number, icon: Icon, title, dot, children,
-}: { number: number; icon: React.ElementType; title: string; dot: string; children: React.ReactNode }) {
-  return (
-    <div className="rounded-xl border border-slate-200 overflow-hidden mb-4">
-      <div className="flex items-center gap-3 px-4 py-2.5 bg-slate-50 border-b border-slate-100">
-        <div className={`flex items-center justify-center h-7 w-7 rounded-full text-white text-xs font-bold ${dot}`}>
-          {number}
-        </div>
-        <Icon className="h-4 w-4 text-slate-500" />
-        <h3 className="text-sm font-semibold text-slate-800">{title}</h3>
-      </div>
-      <div className="p-4">{children}</div>
-    </div>
-  );
-}
-
 function ImageUploadField({
   label, preview, onChange, dot,
 }: {
@@ -87,14 +58,14 @@ function ImageUploadField({
 }) {
   return (
     <div>
-      <FieldLabel dot={dot}>{label}</FieldLabel>
+      <FieldLabel>{label}</FieldLabel>
       {preview && (
         <div className="relative w-40 h-28 mb-2 border border-slate-200 rounded-lg overflow-hidden bg-slate-50">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={preview} alt={label} className="w-full h-full object-contain" />
         </div>
       )}
-      <label className="inline-flex items-center gap-2 px-3 py-2 rounded-full border border-slate-200 text-sm text-slate-700 hover:bg-slate-50 cursor-pointer">
+      <label className="inline-flex items-center gap-2 px-3 py-2 rounded border border-slate-200 text-sm text-slate-700 hover:bg-slate-50 cursor-pointer">
         <Upload className="h-4 w-4" />
         {preview ? "Change image" : "Upload image"}
         <input
@@ -249,7 +220,7 @@ export default function ClubMembershipDuesV2EditPage() {
           activeNavHref="/club-admin-dashboard/membership-dues"
         >
           <div className="flex flex-col items-center justify-center py-20">
-            <h3 className="text-lg font-semibold text-slate-700">Access Denied</h3>
+            <h3 className="row-h2">Access Denied</h3>
           </div>
         </ClubAdminShell>
       </ProtectedRoute>
@@ -290,20 +261,20 @@ export default function ClubMembershipDuesV2EditPage() {
           onSave={handleSave}
         >
           {/* 1. Basic Information */}
-          <SectionCard number={1} icon={FileText} title="Basic Information" dot="bg-[#17458F]">
+          <SectionCard number={1} icon={FileText} title="Basic Information">
             <div className="grid grid-cols-1 gap-4">
               <div>
-                <FieldLabel dot="bg-[#17458F]" required>Purpose / Title</FieldLabel>
-                <input
+                <FieldLabel required>Purpose / Title</FieldLabel>
+                <Input
                   type="text"
                   value={purpose}
                   onChange={(e) => setPurpose(e.target.value)}
                   placeholder="Title / Purpose"
-                  className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                  
                 />
               </div>
               <div>
-                <FieldLabel dot="bg-[#17458F]">Description</FieldLabel>
+                <FieldLabel>Description</FieldLabel>
                 <ReactQuill
                   theme="snow"
                   value={description}
@@ -316,7 +287,7 @@ export default function ClubMembershipDuesV2EditPage() {
           </SectionCard>
 
           {/* 2. Images */}
-          <SectionCard number={2} icon={ImageIcon} title="Images" dot="bg-[#17458F]">
+          <SectionCard number={2} icon={ImageIcon} title="Images">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <ImageUploadField
                 label="Logo"
@@ -340,26 +311,26 @@ export default function ClubMembershipDuesV2EditPage() {
           </SectionCard>
 
           {/* 3. Email Settings */}
-          <SectionCard number={3} icon={Mail} title="Email Settings" dot="bg-[#17458F]">
+          <SectionCard number={3} icon={Mail} title="Email Settings">
             <div className="grid grid-cols-1 gap-4">
               <div>
-                <FieldLabel dot="bg-[#17458F]">Email CC</FieldLabel>
-                <input
+                <FieldLabel>Email CC</FieldLabel>
+                <Input
                   type="text"
                   value={emailCc}
                   onChange={(e) => setEmailCc(e.target.value)}
                   placeholder="CC email address"
-                  className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                  
                 />
               </div>
               <div>
-                <FieldLabel dot="bg-[#17458F]">Email Subject</FieldLabel>
-                <input
+                <FieldLabel>Email Subject</FieldLabel>
+                <Input
                   type="text"
                   value={emailSubject}
                   onChange={(e) => setEmailSubject(e.target.value)}
                   placeholder="Subject"
-                  className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                  
                 />
               </div>
               <div>
@@ -376,7 +347,7 @@ Date and time : ****
 Method of payment : ****
 Transaction ID : ****`}</pre>
                 </div>
-                <FieldLabel dot="bg-[#17458F]">Email Body</FieldLabel>
+                <FieldLabel>Email Body</FieldLabel>
                 <ReactQuill
                   theme="snow"
                   value={emailBody}
@@ -386,13 +357,13 @@ Transaction ID : ****`}</pre>
                 />
               </div>
               <div>
-                <FieldLabel dot="bg-[#17458F]">Reminder Email Subject</FieldLabel>
-                <input
+                <FieldLabel>Reminder Email Subject</FieldLabel>
+                <Input
                   type="text"
                   value={emailReminderSubject}
                   onChange={(e) => setEmailReminderSubject(e.target.value)}
                   placeholder="Reminder subject"
-                  className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                  
                 />
               </div>
               <div>
@@ -407,7 +378,7 @@ Outstanding amount : ${dueCur}****${dueCur === "$" ? "" : "/-"}
 Status : ****
 Click on the link : ****`}</pre>
                 </div>
-                <FieldLabel dot="bg-[#17458F]">Reminder Email Body</FieldLabel>
+                <FieldLabel>Reminder Email Body</FieldLabel>
                 <ReactQuill
                   theme="snow"
                   value={emailReminderBody}

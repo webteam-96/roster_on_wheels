@@ -584,6 +584,42 @@ public class AdminYearGuard
     private bool ElectWriteFor(bool isClub, int scopeId) =>
         _http?.HttpContext?.Items[PlanningAccess.ElectWriteItemKey] is (bool c, int s) && c == isClub && s == scopeId;
 
+    /// <summary>
+    /// Data the year rule deliberately does NOT apply to (OCV Static Documents and
+    /// Additional Documents): any admin of the club may change it, whichever
+    /// Rotary year(s) they hold. Still refuses a non-admin.
+    /// </summary>
+    public async Task<ObjectResult?> ClubAnyYearAsync(ClaimsPrincipal user, int clubId)
+    {
+        var memberId = MemberId(user);
+        if (memberId <= 0) return Denied("Not signed in.");
+        if (clubId <= 0) return Denied("No club specified.");
+
+        await using var conn = await OpenAsync();
+        var rights = await _years.GetClubRightsAsync(conn, memberId, clubId);
+        return rights.Any ? null : Denied("You are not an admin of this club.");
+    }
+
+    /// <summary>
+    /// OCV categories exempt from Year-wise Admin Rights — see <see cref="ClubAnyYearAsync"/>.
+    /// Mirrored on web (ocv-gov v2 category view) and in the Flutter OCV screen.
+    /// </summary>
+    public static readonly HashSet<string> OcvYearFreeCategories =
+        new(StringComparer.OrdinalIgnoreCase) { "static_documents", "additional_documents" };
+
+    /// <summary>The OCV category code for a category id, or for an existing document.</summary>
+    public async Task<string?> OcvCategoryCodeAsync(int? categoryId, int? documentId)
+    {
+        await using var conn = await OpenAsync();
+        return categoryId is int c
+            ? await conn.ExecuteScalarAsync<string?>(
+                "SELECT CategoryCode FROM ocv_document_category WHERE pk_category_id = @Id", new { Id = c })
+            : await conn.ExecuteScalarAsync<string?>(
+                @"SELECT c.CategoryCode FROM ocv_documents d
+                  INNER JOIN ocv_document_category c ON c.pk_category_id = d.fk_category_id
+                  WHERE d.pk_document_id = @Id", new { Id = documentId });
+    }
+
     public async Task<ObjectResult?> ClubYearlessAsync(ClaimsPrincipal user, int clubId)
     {
         if (ElectWriteFor(true, clubId)) return null;

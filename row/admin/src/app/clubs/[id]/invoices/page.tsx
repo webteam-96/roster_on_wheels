@@ -1,9 +1,10 @@
 "use client";
+import { LinkButton } from "@/components/ui/text-buttons";
 
 // Club invoices and statements (gap #7): dues and item invoices, recorded payments, balances, statements, products
 // and the QuickBooks export. All rules (numbering, splits, validation) live in the API; this page only collects input.
+import { NativeSelect } from "@/components/ui/native-select";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import Link from "next/link";
 import { useParams } from "next/navigation";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { Button } from "@/components/ui/button";
@@ -14,7 +15,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { ArrowLeft, Download, Mail, Plus, Receipt } from "@/components/icons";
+import { Download, Mail, Plus, Receipt } from "@/components/icons";
 import { ErrorState, PageHeader, SkeletonRows } from "@/components/row/AppKit";
 import { useFormat, useToday } from "@/hooks/useFormat";
 import { getClubMembersForAttendance, getMembershipDuesList } from "@/services/api";
@@ -28,7 +29,7 @@ import type { ClubMemberSimple } from "@/types/attendance";
 import MealsTab from "./MealsTab";
 
 const STATUS_LABEL: Record<InvoiceStatus, string> = { open: "Open", part_paid: "Part paid", paid: "Paid", void: "Void" };
-const SELECT = "w-full border border-input bg-background rounded-md h-9 px-2 text-sm";
+const SELECT = "row-field w-full";
 
 function errText(e: unknown, fallback: string): string {
   const m = (e as { response?: { data?: { message?: string } } })?.response?.data?.message;
@@ -107,23 +108,20 @@ export default function ClubInvoicesPage() {
   return (
     <ProtectedRoute>
       <div className="space-y-6">
-        <div className="flex items-start gap-3">
-          <Button variant="outline" size="icon" asChild aria-label="Back to club dashboard">
-            <Link href={`/clubs/${clubId}/dashboard`}><ArrowLeft className="h-4 w-4" /></Link>
-          </Button>
-          <div className="flex-1">
-            <PageHeader title="Invoices and statements" description="Bill members for dues, meals and items, record payments, and send statements."
-              actions={<>
+        <PageHeader
+          title="Invoices and statements"
+          description="Bill members for dues, meals and items, record payments, and send statements."
+          back={`/clubs/${clubId}/dashboard`}
+          actions={<>
                 <Button variant="outline" onClick={() => setDialog("dues")}>Invoice dues</Button>
                 <Button variant="outline" onClick={() => setDialog("new")}><Plus className="mr-2 h-4 w-4" />New invoice</Button>
                 <Button onClick={() => setDialog("pay")}><Receipt className="mr-2 h-4 w-4" />Record payment</Button>
-              </>} />
-          </div>
-        </div>
+              </>}
+        />
 
         {notice && (
           <div role="status" className={`rounded-md border px-4 py-3 text-sm ${notice.ok ? "border-green-200 bg-green-50 text-green-800" : "border-red-200 bg-red-50 text-red-800"}`}>
-            {notice.text} <button type="button" className="ml-2 underline" onClick={() => setNotice(null)}>Dismiss</button>
+            {notice.text} <LinkButton type="button" onClick={() => setNotice(null)} className="ml-2">Dismiss</LinkButton>
           </div>
         )}
 
@@ -141,10 +139,10 @@ export default function ClubInvoicesPage() {
             <div className="flex flex-wrap items-end gap-3">
               <div className="w-48">
                 <Label htmlFor="inv-status">Status</Label>
-                <select id="inv-status" className={SELECT} value={status} onChange={(e) => setStatus(e.target.value as InvoiceStatus | "")}>
+                <NativeSelect id="inv-status"  value={status} onChange={(e) => setStatus(e.target.value as InvoiceStatus | "")}>
                   <option value="">All</option>
                   {(Object.keys(STATUS_LABEL) as InvoiceStatus[]).map((s) => <option key={s} value={s}>{STATUS_LABEL[s]}</option>)}
-                </select>
+                </NativeSelect>
               </div>
               <Button variant="outline" disabled={selected.size === 0 || busy} onClick={() => email([...selected])}>
                 <Mail className="mr-2 h-4 w-4" />Email selected ({selected.size})
@@ -164,7 +162,7 @@ export default function ClubInvoicesPage() {
                       {rows.map((i) => (
                         <TableRow key={i.id}>
                           <TableCell><Checkbox aria-label={`Select ${i.invoiceNo}`} checked={selected.has(i.id)} disabled={i.status === "void"} onCheckedChange={() => toggle(i.id)} /></TableCell>
-                          <TableCell><button type="button" className="font-medium underline-offset-2 hover:underline" onClick={() => setDetailId(i.id)}>{i.invoiceNo}</button></TableCell>
+                          <TableCell><LinkButton onClick={() => setDetailId(i.id)}>{i.invoiceNo}</LinkButton></TableCell>
                           <TableCell>{i.memberName}</TableCell>
                           <TableCell className="max-w-[240px] truncate" title={i.description ?? ""}>{i.description}</TableCell>
                           <TableCell>{i.dueDate}</TableCell>
@@ -173,9 +171,9 @@ export default function ClubInvoicesPage() {
                           <TableCell><StatusBadge status={i.status} /></TableCell>
                           <TableCell className="text-sm text-muted-foreground">{i.emailCount ? `${i.emailCount}x` : "Not yet"}</TableCell>
                           <TableCell className="space-x-2 whitespace-nowrap text-sm">
-                            <button type="button" className="underline" onClick={() => download(`${i.id}/pdf`, `${i.invoiceNo}.pdf`)}>PDF</button>
-                            {i.status !== "void" && <button type="button" className="underline" disabled={busy} onClick={() => email([i.id])}>{i.emailCount ? "Resend" : "Email"}</button>}
-                            {i.status !== "void" && i.paidAmount === 0 && <button type="button" className="underline text-red-700" onClick={() => setVoidId(i.id)}>Void</button>}
+                            <LinkButton type="button" onClick={() => download(`${i.id}/pdf`, `${i.invoiceNo}.pdf`)}>PDF</LinkButton>
+                            {i.status !== "void" && <LinkButton type="button" disabled={busy} onClick={() => email([i.id])}>{i.emailCount ? "Resend" : "Email"}</LinkButton>}
+                            {i.status !== "void" && i.paidAmount === 0 && <LinkButton type="button" onClick={() => setVoidId(i.id)} tone="danger">Void</LinkButton>}
                           </TableCell>
                         </TableRow>
                       ))}
@@ -276,7 +274,7 @@ function BalancesTab({ clubId, state, money, today, download }: { clubId: number
                     <TableCell>{b.memberName}</TableCell><TableCell className="text-right">{b.openInvoices}</TableCell>
                     <TableCell className="text-right">{money(b.outstanding)}</TableCell><TableCell className="text-right">{money(b.credit)}</TableCell>
                     <TableCell>{b.oldestDue?.slice(0, 10) ?? ""}</TableCell>
-                    <TableCell><button type="button" className="underline" onClick={() => setMember(b)}>View</button></TableCell>
+                    <TableCell><LinkButton type="button" onClick={() => setMember(b)}>View</LinkButton></TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -286,9 +284,9 @@ function BalancesTab({ clubId, state, money, today, download }: { clubId: number
       </Async>
 
       {member && (
-        <section className="space-y-3 rounded-[20px] border border-[color:var(--row-line)] p-5">
+        <section className="space-y-3 rounded-xl border border-[color:var(--row-line)] p-5">
           <div className="flex flex-wrap items-end gap-3">
-            <h3 className="mr-auto text-lg font-semibold">Statement for {member.memberName}</h3>
+            <h3 className="row-h2 mr-auto">Statement for {member.memberName}</h3>
             <div><Label htmlFor="st-from">From</Label><Input id="st-from" type="date" value={from} onChange={(e) => setFrom(e.target.value)} /></div>
             <div><Label htmlFor="st-to">To</Label><Input id="st-to" type="date" value={to} onChange={(e) => setTo(e.target.value)} /></div>
             <Button variant="outline" onClick={() => download(`members/${member.memberId}/statement/pdf`, `statement-${member.memberId}.pdf`, { from, to })}>
@@ -346,7 +344,7 @@ function ProductsTab({ clubId, state, money, onError }: { clubId: number; state:
                 <TableRow key={p.id}>
                   <TableCell>{p.name}</TableCell><TableCell>{p.description}</TableCell><TableCell className="text-right">{money(p.unitAmount)}</TableCell>
                   <TableCell><Badge variant={p.isActive ? "default" : "secondary"}>{p.isActive ? "Active" : "Hidden"}</Badge></TableCell>
-                  <TableCell><button type="button" className="underline" onClick={() => setEdit({ id: p.id, name: p.name, description: p.description ?? "", unitAmount: String(p.unitAmount), isActive: p.isActive })}>Edit</button></TableCell>
+                  <TableCell><LinkButton type="button" onClick={() => setEdit({ id: p.id, name: p.name, description: p.description ?? "", unitAmount: String(p.unitAmount), isActive: p.isActive })}>Edit</LinkButton></TableCell>
                 </TableRow>
               ))}
             </TableBody>
@@ -439,14 +437,14 @@ function DuesDialog({ clubId, today, onClose, onDone }: { clubId: number; today:
         {(rows) => (
           <div className="space-y-3">
             <div><Label htmlFor="d-dues">Dues</Label>
-              <select id="d-dues" className={SELECT} value={duesId} onChange={(e) => setDuesId(e.target.value)}>
+              <NativeSelect id="d-dues"  value={duesId} onChange={(e) => setDuesId(e.target.value)}>
                 <option value="">Choose dues</option>
                 {rows.map((d) => <option key={d.id} value={d.id}>{[d.purpose || "Club dues", d.rotaryYear].filter(Boolean).join(", ")}</option>)}
-              </select></div>
+              </NativeSelect></div>
             <div><Label htmlFor="d-fee">Fee</Label>
-              <select id="d-fee" className={SELECT} value={feeType} onChange={(e) => setFeeType(e.target.value)}>
+              <NativeSelect id="d-fee"  value={feeType} onChange={(e) => setFeeType(e.target.value)}>
                 <option value="1">Annual</option><option value="2">Semi Annual 1</option><option value="3">Semi Annual 2</option>
-              </select></div>
+              </NativeSelect></div>
             <div className="grid grid-cols-2 gap-3">
               <div><Label htmlFor="d-issue">Issue date</Label><Input id="d-issue" type="date" value={issue} onChange={(e) => setIssue(e.target.value)} /></div>
               <div><Label htmlFor="d-due">Due date</Label><Input id="d-due" type="date" value={due} onChange={(e) => setDue(e.target.value)} /></div>
@@ -510,10 +508,10 @@ function NewInvoiceDialog({ clubId, today, members, products, money, onClose, on
           <Label>Items</Label>
           {lines.map((l, i) => (
             <div key={i} className="grid grid-cols-12 gap-2">
-              <select aria-label="Product" className={`${SELECT} col-span-3`} value={l.productId} onChange={(e) => pickProduct(i, e.target.value)}>
+              <NativeSelect aria-label="Product" className="col-span-3" value={l.productId} onChange={(e) => pickProduct(i, e.target.value)}>
                 <option value="">Other item</option>
                 {products.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
-              </select>
+              </NativeSelect>
               <Input aria-label="Description" className="col-span-4" maxLength={300} placeholder="Description" value={l.description} onChange={(e) => setLine(i, { description: e.target.value })} />
               <Input aria-label="Quantity" className="col-span-2" type="number" min="0" step="1" value={l.quantity} onChange={(e) => setLine(i, { quantity: e.target.value })} />
               <Input aria-label="Unit price" className="col-span-2" type="number" min="0" step="0.01" placeholder="Price" value={l.unitAmount} onChange={(e) => setLine(i, { unitAmount: e.target.value })} />
@@ -572,17 +570,17 @@ function PaymentDialog({ clubId, today, members, money, onClose, onDone }: {
       footer={<><Button variant="outline" onClick={onClose}>Cancel</Button><Button disabled={saving || !memberId || !(Number(amount) > 0)} onClick={submit}>Record payment</Button></>}>
       <div className="space-y-4">
         <div><Label htmlFor="pay-member">Member</Label>
-          <select id="pay-member" className={SELECT} value={memberId} onChange={(e) => setMemberId(e.target.value)}>
+          <NativeSelect id="pay-member"  value={memberId} onChange={(e) => setMemberId(e.target.value)}>
             <option value="">Choose a member</option>
             {members.map((m) => <option key={m.id} value={m.id}>{m.memberName}</option>)}
-          </select></div>
+          </NativeSelect></div>
         <div className="grid grid-cols-2 gap-3">
           <div><Label htmlFor="pay-amount">Amount</Label><Input id="pay-amount" type="number" min="0" step="0.01" value={amount} onChange={(e) => setAmount(e.target.value)} /></div>
           <div><Label htmlFor="pay-date">Date received</Label><Input id="pay-date" type="date" max={today} value={date} onChange={(e) => setDate(e.target.value)} /></div>
           <div><Label htmlFor="pay-method">Method</Label>
-            <select id="pay-method" className={SELECT} value={method} onChange={(e) => setMethod(e.target.value as "cash" | "cheque" | "bank")}>
+            <NativeSelect id="pay-method"  value={method} onChange={(e) => setMethod(e.target.value as "cash" | "cheque" | "bank")}>
               <option value="cash">Cash</option><option value="cheque">Cheque</option><option value="bank">Bank transfer</option>
-            </select></div>
+            </NativeSelect></div>
           <div><Label htmlFor="pay-ref">{method === "cheque" ? "Cheque number" : "Reference"}</Label><Input id="pay-ref" maxLength={100} value={reference} onChange={(e) => setReference(e.target.value)} /></div>
         </div>
         {memberId && (open.loading ? <SkeletonRows rows={2} /> : open.data.length === 0 ? (

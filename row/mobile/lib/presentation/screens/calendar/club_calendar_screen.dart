@@ -7,6 +7,8 @@ import '../../widgets/common/empty_state_widget.dart';
 import '../../widgets/common/loading_widget.dart';
 import 'calendar_widgets.dart';
 import 'package:rotary_flutter_app/core/theme/app_fonts.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/motion.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/roster_wheel.dart';
 
 class ClubCalendarScreen extends StatefulWidget {
   /// When set, the screen is scoped to a single club (the chooser is hidden).
@@ -88,7 +90,8 @@ class _ClubCalendarScreenState extends State<ClubCalendarScreen> {
   }
 
   List<CalendarEvent> get _eventsToday => (_data?.upcomingEvents ?? const [])
-      .where((e) => e.eventDate != null && _sameDay(e.eventDate!, _selectedDate))
+      .where(
+          (e) => e.eventDate != null && _sameDay(e.eventDate!, _selectedDate))
       .toList();
 
   void _onDateChanged(DateTime d) {
@@ -273,14 +276,14 @@ class _ClubCalendarScreenState extends State<ClubCalendarScreen> {
           ],
         ),
         TabBar(
-          isScrollable: true,
-          tabAlignment: TabAlignment.start,
-          labelStyle:
-              AppFonts.body(fontSize: 13, fontWeight: FontWeight.w700),
+          labelStyle: AppFonts.body(fontSize: 13, fontWeight: FontWeight.w700),
           tabs: [
-            Tab(text: _tabLabel('Birthdays', _data == null ? null : _birthdaysToday.length)),
-            Tab(text: _tabLabel('Anniversaries', _data == null ? null : _anniversariesToday.length)),
-            Tab(text: _tabLabel('Events', _data == null ? null : _eventsToday.length)),
+            CalendarTabLabel(
+                'Birthdays', _data == null ? null : _birthdaysToday.length),
+            CalendarTabLabel('Anniversaries',
+                _data == null ? null : _anniversariesToday.length),
+            CalendarTabLabel(
+                'Events', _data == null ? null : _eventsToday.length),
           ],
         ),
         Expanded(child: _buildTabViews()),
@@ -290,7 +293,8 @@ class _ClubCalendarScreenState extends State<ClubCalendarScreen> {
 
   Widget _buildTabViews() {
     if (_loadingData) return const LoadingWidget();
-    if (_error != null) return ErrorStateWidget(message: _error!, onRetry: _loadCalendar);
+    if (_error != null)
+      return ErrorStateWidget(message: _error!, onRetry: _loadCalendar);
     final d = _data;
     if (d == null) return const SizedBox.shrink();
 
@@ -298,7 +302,7 @@ class _ClubCalendarScreenState extends State<ClubCalendarScreen> {
     // ("Spouse of Siva(PDG 2017 - 18)"); plain elsewhere.
     final isCog = _isCog;
 
-    return RefreshIndicator(
+    return RowRefresh(
       color: AppColors.primary,
       onRefresh: _loadCalendar,
       child: TabBarView(
@@ -341,14 +345,9 @@ class _ClubCalendarScreenState extends State<ClubCalendarScreen> {
     required Widget Function(T) builder,
   }) {
     if (items.isEmpty) {
-      return ListView(
-        children: [
-          const SizedBox(height: 60),
-          EmptyStateWidget(icon: icon, title: empty),
-        ],
-      );
+      return CalendarDayEmpty(icon: icon, text: empty);
     }
-    return ListView.separated(
+    return RowListView.separated(
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
       itemCount: items.length,
       separatorBuilder: (_, __) => const SizedBox(height: 10),
@@ -359,7 +358,7 @@ class _ClubCalendarScreenState extends State<ClubCalendarScreen> {
   // Selection page shown when the user belongs to more than one club. Lists
   // the clubs by name only; tapping one opens its calendar on its own page.
   Widget _picker() {
-    return ListView.separated(
+    return RowListView.separated(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
       itemCount: _clubs.length,
       separatorBuilder: (_, __) => const SizedBox(height: 10),
@@ -368,7 +367,7 @@ class _ClubCalendarScreenState extends State<ClubCalendarScreen> {
         return CalendarChoiceTile(
           label: c.clubName,
           icon: Icons.calendar_month_rounded,
-          index: i,
+          subtitle: 'Club calendar',
           onTap: () => Navigator.of(context).push(MaterialPageRoute(
             builder: (_) => ClubCalendarScreen(
               onlyClubId: c.clubId,
@@ -379,7 +378,4 @@ class _ClubCalendarScreenState extends State<ClubCalendarScreen> {
       },
     );
   }
-
-  String _tabLabel(String base, int? count) =>
-      count == null ? base : '$base ($count)';
 }

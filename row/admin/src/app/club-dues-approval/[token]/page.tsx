@@ -50,7 +50,7 @@ export default function ClubDuesApprovalPage() {
   return (
     <div className="min-h-screen bg-muted/30 flex items-center justify-center p-4">
       <div className="bg-background rounded-xl shadow-lg w-full max-w-md p-6 space-y-5">
-        <h1 className="text-xl font-bold text-primary text-center">District Dues: Approval</h1>
+        <h1 className="row-h1 text-center">District Dues: Approval</h1>
         {result ? (
           <div className="text-center py-6 space-y-2">
             {/* Icon derives from the outcome message so it works for both a fresh

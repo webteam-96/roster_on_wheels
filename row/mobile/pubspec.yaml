@@ -116,6 +116,9 @@ dependencies:
   flutter_contacts: ^2.1.0
   # Contact exchange: scan another member's ROW QR (the app had no scanner, only qr_flutter to draw codes)
   mobile_scanner: ^7.5.0
+  # QR attendance (RIZones 5180c0e): HMAC for the living QR; block screenshots of it
+  crypto: ^3.0.8
+  screen_protector: ^1.5.3
 
 dev_dependencies:
   flutter_test:
@@ -131,10 +134,10 @@ flutter_launcher_icons:
   image_path_android: "assets/images/row-app-icon.png"
   image_path_ios: "assets/images/row-app-icon.png"
   remove_alpha_ios: true
-  # The ROW favicon's field (row/website/app/icon.png); sources built from the website brand files.
+  # Light field: the blue of the mark disappears on a dark one (owner 2026-11-25). Sources built from the website brand files.
   # shortcut: the 1024px master is scaled up from the 640px website logo, replace it with a 1024px master from the designer before the store release.
-  background_color_ios: "#1E1C20"
-  adaptive_icon_background: "#1E1C20"
+  background_color_ios: "#F7F9FC"
+  adaptive_icon_background: "#F7F9FC"
   adaptive_icon_foreground: "assets/images/row-app-icon-foreground.png"
   min_sdk_android: 21
   web:

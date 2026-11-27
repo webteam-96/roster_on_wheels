@@ -1,13 +1,27 @@
+import 'package:flutter/cupertino.dart' show CupertinoPageTransitionsBuilder;
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show SystemUiOverlayStyle;
 import 'app_fonts.dart';
 import 'row_tokens.dart';
 import 'app_colors.dart';
 import 'app_text_styles.dart';
+import 'row_page_transitions.dart';
 
 /// Fellowship theme (row/website/design.md): explicit colours (no seed), Bricolage
 /// display / Figtree body, pill buttons, flat cards with a hairline, no elevation.
 class AppTheme {
   static const Color _line = Color(0x1F1B2C42); // rgba(27,44,66,.12)
+
+  /// Every button answers the finger: its label sinks a little while pressed.
+  static Widget _press(BuildContext context, Set<WidgetState> states, Widget? child) {
+    final pressed = states.contains(WidgetState.pressed) && !RowMotion.still(context);
+    return AnimatedScale(
+      scale: pressed ? .95 : 1,
+      duration: pressed ? RowMotion.micro : RowMotion.ui,
+      curve: pressed ? RowMotion.easeOut : RowMotion.spring,
+      child: child,
+    );
+  }
 
   static ThemeData get lightTheme {
     const pill = StadiumBorder();
@@ -35,6 +49,11 @@ class AppTheme {
         outlineVariant: _line,
       ),
       scaffoldBackgroundColor: AppColors.lightBg,
+      // iOS keeps its own push, so the swipe-back gesture stays.
+      pageTransitionsTheme: const PageTransitionsTheme(builders: {
+        TargetPlatform.android: RowPageTransitionsBuilder(),
+        TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
+      }),
       textTheme: TextTheme(
         displayLarge: AppTextStyles.h1,
         displayMedium: AppTextStyles.h2,
@@ -50,6 +69,8 @@ class AppTheme {
       ),
       appBarTheme: AppBarTheme(
         backgroundColor: AppColors.transparent,
+        // A transparent bar reads as dark, which made the status bar icons white on the light page.
+        systemOverlayStyle: SystemUiOverlayStyle.dark.copyWith(statusBarColor: AppColors.transparent),
         foregroundColor: AppColors.textPrimary,
         elevation: 0,
         scrolledUnderElevation: 0,
@@ -76,7 +97,7 @@ class AppTheme {
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
           shape: pill,
           textStyle: AppTextStyles.button,
-        ),
+        ).copyWith(foregroundBuilder: _press),
       ),
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
@@ -85,7 +106,7 @@ class AppTheme {
           minimumSize: const Size(0, 52),
           shape: pill,
           textStyle: AppTextStyles.button,
-        ),
+        ).copyWith(foregroundBuilder: _press),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
@@ -95,7 +116,7 @@ class AppTheme {
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
           shape: pill,
           textStyle: AppTextStyles.button,
-        ),
+        ).copyWith(foregroundBuilder: _press),
       ),
       // One field style across the app (design.md 8.6): outlined, label always shown on the border.
       inputDecorationTheme: InputDecorationTheme(
@@ -125,13 +146,19 @@ class AppTheme {
       ),
       // Light tabs (design.md 8.6): ink labels, the active tab on a sky pill, no band, no divider.
       tabBarTheme: TabBarThemeData(
-        labelColor: AppColors.textPrimary,
+        // Active tab: azure label over a 3 px azure underline; the bar sits on a hairline (owner 2026-11-27: no filled pill).
+        labelColor: AppColors.primaryPrime,
         unselectedLabelColor: AppColors.textSecondary,
-        indicator: BoxDecoration(color: RowTone.sky.fill, borderRadius: BorderRadius.circular(RowRadii.pill)),
-        indicatorSize: TabBarIndicatorSize.tab,
-        dividerColor: AppColors.transparent,
+        indicator: const UnderlineTabIndicator(
+          borderSide: BorderSide(color: AppColors.primaryPrime, width: 3),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(3)),
+        ),
+        indicatorSize: TabBarIndicatorSize.label,
+        indicatorAnimation: TabIndicatorAnimation.elastic,
+        dividerColor: AppColors.line,
+        dividerHeight: 1,
         labelPadding: const EdgeInsets.symmetric(horizontal: 16),
-        labelStyle: AppTextStyles.bodySemiBold,
+        labelStyle: AppTextStyles.bodySemiBold.copyWith(fontWeight: FontWeight.w700),
         unselectedLabelStyle: AppTextStyles.body,
       ),
       // One primary action per screen: a flat azure pill, bottom right (design.md 8.6).

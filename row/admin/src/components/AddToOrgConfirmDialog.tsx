@@ -51,7 +51,7 @@ export default function AddToOrgConfirmDialog({
           <Button variant="outline" onClick={onCancel}>Cancel</Button>
           <Button
             onClick={onConfirm}
-            className="bg-amber-400 font-semibold text-blue-950 hover:bg-amber-500"
+           
           >
             <Send className="mr-1.5 h-4 w-4" /> Add To Rotary Org
           </Button>

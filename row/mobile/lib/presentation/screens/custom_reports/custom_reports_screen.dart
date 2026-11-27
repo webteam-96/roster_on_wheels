@@ -6,6 +6,8 @@ import '../../widgets/common/custom_app_bar.dart';
 import '../../widgets/common/empty_state_widget.dart';
 import '../../widgets/common/loading_widget.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/motion.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/roster_wheel.dart';
 
 /// The club's or district's saved custom reports (`api/{clubs|districts}/{id}/custom-reports`), for its officers:
 /// run one and read it, or email it to the officers now. Reports are built and saved on the web admin.
@@ -56,9 +58,9 @@ class _CustomReportsScreenState extends State<CustomReportsScreen> {
                       icon: Icons.table_chart_outlined,
                       title: 'No saved reports',
                       subtitle: 'Build and save a report in the web admin under Report Builder.')
-                  : RefreshIndicator(
+                  : RowRefresh(
                       onRefresh: _load,
-                      child: ListView.separated(
+                      child: RowListView.separated(
                         padding: const EdgeInsets.all(12),
                         itemCount: list.length,
                         separatorBuilder: (_, __) => const Divider(height: 1),

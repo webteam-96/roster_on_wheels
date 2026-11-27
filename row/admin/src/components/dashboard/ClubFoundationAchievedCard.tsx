@@ -53,10 +53,10 @@ export default function ClubFoundationAchievedCard({ clubId, yearId }: { clubId:
       {/* Header — the "As on" date must be clearly visible (user 2026-10-08). */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
         <div>
-          <h2 className="text-lg font-semibold text-slate-800">Foundation Achieved</h2>
+          <h2 className="row-h2">Foundation Achieved</h2>
           {form && <p className="text-xs text-slate-500 mt-0.5">RY {form.yearLabel} · {form.entityName}</p>}
         </div>
-        <span className="inline-flex items-center gap-1.5 self-start sm:self-auto px-3 py-1.5 rounded-full bg-blue-50 border border-blue-200 text-blue-800 text-sm font-semibold">
+        <span className="inline-flex items-center gap-1.5 self-start sm:self-auto px-3 py-1.5 rounded bg-blue-50 border border-blue-200 text-blue-800 text-sm font-semibold">
           <CalendarCheck size={15} /> {asOn}
         </span>
       </div>

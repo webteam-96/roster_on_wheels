@@ -197,8 +197,10 @@ try:
     time.sleep(max(0, 31 - (time.time() - flags_on_at)))  # the API caches the module switches for 30 seconds
     base = "/api/mobile/district-admin/district-report"
     for sub in ("", "/ocv-gov", "/club-officers-ri", "/avenue-of-service-all-clubs", "/avenue-of-service-club-count"):
+        # every member's contact details: the district's managers only, not its club admins
         pair(base + sub, f"{base}{sub}?districtId={district}&yearId={year}", f"{base}{sub}?districtId={other_district}&yearId={year}",
-             t_admin, "club admin")
+             t_da, "district admin")
+        denied(f"{base}{sub}: club admin", f"{base}{sub}?districtId={district}&yearId={year}", t_admin)
     pair(f"{base}/available-years", f"{base}/available-years?districtId={district}",
          f"{base}/available-years?districtId={other_district}", t_admin, "club admin")
     for sub, q in (("categories", ""), ("description", f"?yearId={year}"), ("auto-questions", ""),

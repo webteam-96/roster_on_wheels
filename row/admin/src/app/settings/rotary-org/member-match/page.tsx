@@ -11,8 +11,8 @@
  * `RotaryOrgSyncWorker.exe --member-sweep --club-id <id>`.
  */
 
+import { PageHeader } from "@/components/row/AppKit";
 import { useEffect, useMemo, useRef, useState } from "react";
-import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -24,7 +24,7 @@ import ErrorAlert from "@/components/ErrorAlert";
 import RotaryLoader from "@/components/RotaryLoader";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { useAuth } from "@/contexts/AuthContext";
-import { ArrowLeft, CheckCircle2, AlertTriangle, RefreshCw, Loader2 } from "@/components/icons";
+import { CheckCircle2, AlertTriangle, RefreshCw, Loader2 } from "@/components/icons";
 import {
   getDistricts, getDistrictSyncClubsForMatch, getClubOrgMemberCount,
   sweepMembersForClub, sweepMembersForDistrict,
@@ -187,7 +187,7 @@ export default function MemberMatchPage() {
     return (
       <ProtectedRoute>
         <div className="flex flex-col items-center justify-center py-20">
-          <h3 className="text-lg font-semibold">Access Denied</h3>
+          <h3 className="row-h2">Access Denied</h3>
           <p className="text-muted-foreground mt-2">Only SuperAdmin can access this page.</p>
         </div>
       </ProtectedRoute>
@@ -198,17 +198,7 @@ export default function MemberMatchPage() {
     <ProtectedRoute>
       <div className="space-y-6">
         {/* Header */}
-        <div className="flex items-center gap-3">
-          <Button variant="outline" size="icon" asChild>
-            <Link href="/settings/rotary-org"><ArrowLeft className="h-4 w-4" /></Link>
-          </Button>
-          <div>
-            <h2 className="text-2xl font-bold tracking-tight text-primary">Check Member Matched or not</h2>
-            <p className="text-muted-foreground text-base">
-              ROW vs Rotary.org member count per sync club. Rotary.org count is live (Active + Honorary).
-            </p>
-          </div>
-        </div>
+        <PageHeader title="Check Member Matched or not" description="ROW vs Rotary.org member count per sync club. Rotary.org count is live (Active + Honorary)." back="/settings/rotary-org" />
 
         {/* District picker + district sync */}
         <Card>
@@ -386,7 +376,7 @@ function DiffDialog({ club, onClose, onSoftDeleted, onError }: {
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" onClick={onClose}>
       <div className="bg-background rounded-lg shadow-lg w-full max-w-lg max-h-[85vh] overflow-y-auto p-5 space-y-4" onClick={(e) => e.stopPropagation()}>
         <div>
-          <h3 className="text-lg font-semibold">{club.clubName}</h3>
+          <h3 className="row-h2">{club.clubName}</h3>
           {data && !data.error && (
             <p className="text-sm text-muted-foreground">ROW <b>{data.localCount}</b> vs Rotary.org <b>{data.orgCount}</b>: here&apos;s exactly who differs.</p>
           )}
@@ -405,7 +395,7 @@ function DiffDialog({ club, onClose, onSoftDeleted, onError }: {
                 <ul className="mt-1 divide-y rounded-md border">
                   {data.toAdd.map((m) => (
                     <li key={m.rotaryId} className="flex items-center justify-between px-3 py-1.5">
-                      <span>{m.name || "(no name)"} {m.isHonorary && <Badge variant="secondary" className="ml-1 text-[10px]">Honorary</Badge>}</span>
+                      <span>{m.name || "(no name)"} {m.isHonorary && <Badge variant="secondary" className="ml-1">Honorary</Badge>}</span>
                       <span className="text-xs text-muted-foreground">RID {m.rotaryId}</span>
                     </li>
                   ))}
@@ -437,8 +427,8 @@ function DiffDialog({ club, onClose, onSoftDeleted, onError }: {
                     <li key={m.memberId} className="flex items-center justify-between px-3 py-1.5">
                       <span>{m.name || "(no name)"}</span>
                       {m.willSoftDelete
-                        ? <Badge variant="destructive" className="text-[10px]">will soft-delete</Badge>
-                        : <Badge variant="secondary" className="text-[10px]">kept: {m.keepReason}</Badge>}
+                        ? <Badge variant="destructive">will soft-delete</Badge>
+                        : <Badge variant="secondary">kept: {m.keepReason}</Badge>}
                     </li>
                   ))}
                 </ul>

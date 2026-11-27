@@ -2,6 +2,8 @@
 
 /** The surveys of a club or district (api/Controllers/SurveysController.cs), shared by both admin dashboards. */
 
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table"
+import { PageHeader } from "@/components/row/AppKit";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Plus } from "@/components/icons";
@@ -44,19 +46,18 @@ export default function SurveysList({ scope, scopeId, basePath }: Props) {
   const audience = scope === "clubs" ? "the club's members (or one sub group)" : "the district's officers (this year's committee and Assistant Governors)";
 
   return (
-    <div className="space-y-6 p-6">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h2 className="text-2xl font-bold tracking-tight text-primary">Surveys and polls</h2>
-          <p className="text-base text-muted-foreground">
-            Ask {audience} a question. They get a notification and answer in the app. Results come in as they answer,
-            with charts and a CSV download.
-          </p>
-        </div>
-        <Button asChild className="gap-1.5">
+    <div className="space-y-6">
+      <PageHeader
+        title="Surveys and polls"
+        description={<>Ask {audience} a question. They get a notification and answer in the app. Results come in as they answer, with charts and a CSV download.</>}
+        actions={
+          <>
+<Button asChild>
           <Link href={`${basePath}/new`}><Plus className="h-4 w-4" /> New survey</Link>
         </Button>
-      </div>
+          </>
+        }
+      />
 
       {failed ? (
         <Card><CardContent className="p-5 text-sm text-destructive">The surveys could not be loaded. Refresh the page to try again.</CardContent></Card>
@@ -67,33 +68,33 @@ export default function SurveysList({ scope, scopeId, basePath }: Props) {
       ) : (
         <Card>
           <CardContent className="overflow-x-auto p-0">
-            <table className="w-full min-w-[720px] text-sm">
-              <thead className="bg-muted text-[13px]">
-                <tr className="border-b text-left text-muted-foreground">
-                  <th className="p-3 font-medium">Survey</th>
-                  <th className="p-3 font-medium">Status</th>
-                  <th className="p-3 font-medium">Opens</th>
-                  <th className="p-3 font-medium">Closes</th>
-                  <th className="p-3 text-right font-medium">Responses</th>
-                </tr>
-              </thead>
-              <tbody>
+            <Table className="w-full min-w-[720px] text-sm">
+              <TableHeader>
+                <TableRow className="border-b">
+                  <TableHead className="p-3">Survey</TableHead>
+                  <TableHead className="p-3">Status</TableHead>
+                  <TableHead className="p-3">Opens</TableHead>
+                  <TableHead className="p-3">Closes</TableHead>
+                  <TableHead className="p-3 text-right">Responses</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
                 {surveys.map((s) => (
-                  <tr key={s.id} className="border-b last:border-0">
-                    <td className="p-3">
+                  <TableRow key={s.id} className="border-b last:border-0">
+                    <TableCell className="p-3">
                       <Link href={`${basePath}/${s.id}`} className="font-medium text-primary hover:underline">{s.title}</Link>
                       <div className="text-xs text-muted-foreground">
                         {[s.isAnonymous ? "Anonymous" : null, s.subGroupName].filter(Boolean).join(", ")}
                       </div>
-                    </td>
-                    <td className="p-3">{STATE_LABEL[s.state]}</td>
-                    <td className="p-3">{fmt.dateTime(s.opensAt)}</td>
-                    <td className="p-3">{fmt.dateTime(s.closesAt)}</td>
-                    <td className="p-3 text-right tabular-nums">{fmt.number(s.responseCount)}</td>
-                  </tr>
+                    </TableCell>
+                    <TableCell className="p-3">{STATE_LABEL[s.state]}</TableCell>
+                    <TableCell className="p-3">{fmt.dateTime(s.opensAt)}</TableCell>
+                    <TableCell className="p-3">{fmt.dateTime(s.closesAt)}</TableCell>
+                    <TableCell className="p-3 text-right tabular-nums">{fmt.number(s.responseCount)}</TableCell>
+                  </TableRow>
                 ))}
-              </tbody>
-            </table>
+              </TableBody>
+            </Table>
           </CardContent>
         </Card>
       )}

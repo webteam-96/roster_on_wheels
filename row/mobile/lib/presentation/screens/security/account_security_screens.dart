@@ -12,6 +12,7 @@ import '../../widgets/common/custom_app_bar.dart';
 import '../../widgets/common/custom_button.dart';
 import '../../widgets/row/skeleton_list.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/roster_wheel.dart';
 
 // Account security (gap agent 2026-11-19): authenticator-app second step at sign-in, emailed one-time sign-in
 // codes, and turning multi-factor sign-in on or off. Server: AccountSecurityController.
@@ -414,7 +415,7 @@ class _AccountSecurityScreenState extends State<AccountSecurityScreen> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: const CustomAppBar(title: 'Multi-factor sign-in'),
-      body: RefreshIndicator(
+      body: RowRefresh(
         onRefresh: _load,
         child: ListView(
           padding: const EdgeInsets.all(16),

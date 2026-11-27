@@ -9,6 +9,8 @@ import '../../widgets/common/custom_app_bar.dart';
 import '../../widgets/common/empty_state_widget.dart';
 import '../../widgets/common/loading_widget.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/motion.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/roster_wheel.dart';
 
 String _hours(num? h) {
   final v = (h ?? 0).toDouble();
@@ -53,7 +55,7 @@ class _ServiceHoursScreenState extends State<ServiceHoursScreen> {
   }
 
   Future<void> _remove(Map<String, dynamic> e) async {
-    final ok = await showDialog<bool>(
+    final ok = await showRowDialog<bool>(
       context: context,
       builder: (c) => AlertDialog(
         title: const Text('Remove this entry?'),
@@ -95,7 +97,7 @@ class _ServiceHoursScreenState extends State<ServiceHoursScreen> {
                       icon: Icons.handshake_outlined,
                       title: 'No service hours yet',
                       subtitle: 'Log the hours you give to club projects and other service. Your club officers approve them.')
-                  : RefreshIndicator(
+                  : RowRefresh(
                       onRefresh: _load,
                       child: ListView(
                         padding: const EdgeInsets.fromLTRB(12, 12, 12, 88),

@@ -1,4 +1,5 @@
 "use client";
+import { LinkButton } from "@/components/ui/text-buttons";
 
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useParams } from "next/navigation";
@@ -39,15 +40,11 @@ import SearchBox from "@/components/SearchBox";
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
 import AlertModal from "@/components/AlertModal";
-import {
-  ArrowLeft, Plus, Pencil, Trash2, MoreHorizontal, Users, User,
-  Search, AlertTriangle, X, Eye,
-} from "@/components/icons";
+import { Plus, Pencil, Trash2, MoreHorizontal, Users, User, Search, AlertTriangle, X, Eye } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
-import Link from "next/link";
 import Image from "next/image";
 import ProtectedRoute from "@/components/ProtectedRoute";
-import { ListPageSkeleton } from "@/components/row/AppKit";
+import { PageHeader, ListPageSkeleton } from "@/components/row/AppKit";
 
 export default function SubGroupsPage() {
   const params = useParams();
@@ -273,10 +270,9 @@ export default function SubGroupsPage() {
     try {
       const memberIds = Array.from(selectedMemberIds);
       if (editingGroup) {
-        await updateSubGroup(clubId, editingGroup.id, {
-          groupName: groupName.trim(),
-          memberIds,
-        });
+        // The API's year guard needs the group's year (PUT without it is a 403); the group is listed under selectedYearId.
+        const body = { yearId: Number(selectedYearId), groupName: groupName.trim(), memberIds };
+        await updateSubGroup(clubId, editingGroup.id, body);
         setSuccessMessage("Sub group updated successfully.");
       } else {
         if (!dialogYearId) {
@@ -335,24 +331,16 @@ export default function SubGroupsPage() {
     <ProtectedRoute>
       <div className="space-y-6">
         {/* Header */}
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-3">
-            <Button variant="outline" size="icon" asChild>
-              <Link href={`/clubs/${clubId}/dashboard`}><ArrowLeft className="h-4 w-4" /></Link>
-            </Button>
-            <div>
-              <h2 className="text-2xl font-bold tracking-tight text-primary">
-                {clubName ? `${clubName} - Sub Groups` : "Sub Groups"}
-              </h2>
-              <p className="text-muted-foreground text-base">Manage club sub groups and their members</p>
-            </div>
-          </div>
-          {canManage && !loading && selectedYearId && (
+        <PageHeader
+          title={clubName ? `${clubName} - Sub Groups` : "Sub Groups"}
+          description="Manage club sub groups and their members"
+          back={`/clubs/${clubId}/dashboard`}
+          actions={canManage && !loading && selectedYearId && (
             <Button onClick={openAddDialog}>
               <Plus className="mr-2 h-4 w-4" />Add Sub Group
             </Button>
           )}
-        </div>
+        />
 
         {loading && (
           <div className="flex items-center justify-center py-20">
@@ -387,7 +375,7 @@ export default function SubGroupsPage() {
         {!loading && !loadingGroups && selectedYearId && groups.length === 0 && (
           <div className="flex flex-col items-center justify-center py-20 text-center">
             <Users className="h-12 w-12 text-muted-foreground mb-4" />
-            <h3 className="text-lg font-semibold">No sub groups found</h3>
+            <h3 className="row-h2">No sub groups found</h3>
             <p className="text-muted-foreground mt-2">
               {canManage ? 'Click "Add Sub Group" to create one.' : "No sub groups have been created yet."}
             </p>
@@ -405,7 +393,7 @@ export default function SubGroupsPage() {
         {!loading && !loadingGroups && filteredGroups.length === 0 && groups.length > 0 && searchQuery && (
           <div className="flex flex-col items-center justify-center py-12 text-center">
             <Users className="h-12 w-12 text-muted-foreground mb-4" />
-            <h3 className="text-lg font-semibold">No results found</h3>
+            <h3 className="row-h2">No results found</h3>
             <p className="text-muted-foreground mt-2">No sub groups match your search &quot;{searchQuery}&quot;.</p>
           </div>
         )}
@@ -415,16 +403,16 @@ export default function SubGroupsPage() {
             {/* Mobile card view */}
             <div className="block sm:hidden space-y-3">
               {filteredGroups.map((group) => (
-                <Card key={group.id} className="border-primary/20">
+                <Card key={group.id}>
                   <CardContent className="p-4">
                     <div className="flex flex-wrap items-center justify-between gap-3">
                       <div className="flex-1 min-w-0">
-                        <button
-                          className="font-semibold text-primary truncate hover:underline text-left"
+                        <LinkButton className="truncate text-left"
+                         
                           onClick={() => openViewDialog(group)}
                         >
                           {group.groupName}
-                        </button>
+                        </LinkButton>
                         <div className="flex items-center gap-2 mt-1">
                           <Badge variant="secondary">
                             <Users className="mr-1 h-3 w-3" />
@@ -434,7 +422,7 @@ export default function SubGroupsPage() {
                       </div>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon" className="h-8 w-8">
+                          <Button variant="ghost" size="icon" className="row-btn-sm" aria-label="More actions">
                             <MoreHorizontal className="h-4 w-4" />
                           </Button>
                         </DropdownMenuTrigger>
@@ -461,12 +449,12 @@ export default function SubGroupsPage() {
             </div>
 
             {/* Desktop table view */}
-            <div className="hidden sm:block rounded-md border">
+            <Card className="hidden sm:block overflow-hidden">
               <Table>
                 <TableHeader>
-                  <TableRow className="bg-primary hover:bg-primary">
-                    <TableHead className="text-base font-semibold">Group Name</TableHead>
-                    <TableHead className="text-base font-semibold text-center">Members</TableHead>
+                  <TableRow>
+                    <TableHead>Group Name</TableHead>
+                    <TableHead className="text-center">Members</TableHead>
                     <TableHead className="w-12"></TableHead>
                   </TableRow>
                 </TableHeader>
@@ -474,12 +462,12 @@ export default function SubGroupsPage() {
                   {filteredGroups.map((group) => (
                     <TableRow key={group.id} className="hover:bg-primary/5 transition-colors">
                       <TableCell>
-                        <button
-                          className="font-semibold text-primary hover:underline text-left"
+                        <LinkButton className="text-left"
+                         
                           onClick={() => openViewDialog(group)}
                         >
                           {group.groupName}
-                        </button>
+                        </LinkButton>
                       </TableCell>
                       <TableCell className="text-center">
                         <Badge variant="secondary">
@@ -490,7 +478,7 @@ export default function SubGroupsPage() {
                       <TableCell>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon" className="h-8 w-8">
+                            <Button variant="ghost" size="icon" className="row-btn-sm" aria-label="More actions">
                               <MoreHorizontal className="h-4 w-4" />
                             </Button>
                           </DropdownMenuTrigger>
@@ -515,7 +503,7 @@ export default function SubGroupsPage() {
                   ))}
                 </TableBody>
               </Table>
-            </div>
+            </Card>
           </>
         )}
 
@@ -584,13 +572,14 @@ export default function SubGroupsPage() {
                             placeholder="Search by name, mobile, email..."
                             value={memberSearchQuery}
                             onChange={(e) => setMemberSearchQuery(e.target.value)}
-                            className="pl-8 h-8 text-sm"
+                            className="row-field-sm pl-8"
                           />
                           {memberSearchQuery && (
                             <Button
                               variant="ghost"
                               size="icon"
                               className="absolute right-1 top-1/2 -translate-y-1/2 h-5 w-5"
+                              aria-label="Clear search"
                               onClick={() => setMemberSearchQuery("")}
                             >
                               <X className="h-3 w-3" />
@@ -655,7 +644,7 @@ export default function SubGroupsPage() {
                     <div className="border rounded-md flex flex-col overflow-hidden">
                       <div className="px-3 py-2 border-b bg-muted/50 flex items-center justify-between">
                         <span className="text-sm font-semibold">Selected Members</span>
-                        <Badge variant="secondary" className="text-xs">
+                        <Badge variant="secondary">
                           {selectedMemberIds.size} selected
                         </Badge>
                       </div>
@@ -685,7 +674,8 @@ export default function SubGroupsPage() {
                                 <Button
                                   variant="ghost"
                                   size="icon"
-                                  className="h-6 w-6 text-muted-foreground hover:text-destructive"
+                                  className="w-6 text-muted-foreground row-btn-sm"
+                                  aria-label="Remove member"
                                   onClick={() => removeMember(member.memberId)}
                                 >
                                   <X className="h-3.5 w-3.5" />

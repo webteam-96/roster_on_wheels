@@ -1,5 +1,9 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card } from "@/components/ui/card";
+import { PageHeader } from "@/components/row/AppKit";
 import { useCallback, useEffect, useState } from "react";
 import { getClubCreditBalance, getDistrictCreditBalance, createWalletTopupOrder, verifyWalletTopup, walletQuote } from "@/services/api";
 
@@ -126,36 +130,33 @@ export default function WalletTopup({ scope, clubId, districtId }: { scope: Scop
   const emailRemaining = balance?.emailRemaining ?? 0;
 
   return (
-    <div className="max-w-3xl space-y-6">
+    <div className="space-y-6 max-w-4xl">
       <CheckoutReturnNotice onPaid={loadBalance} />
-      <div>
-        <h1 className="text-2xl font-bold text-azure">Wallet &amp; Credits</h1>
-        <p className="text-sm text-gray-500">Top up your {scope === "club" ? "club" : "district"} email notification credits.</p>
-      </div>
+      <PageHeader title={<>Wallet &amp; Credits</>} description={<>Top up your {scope === "club" ? "club" : "district"} email notification credits.</>} />
 
       {/* Balances */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div className="rounded-[20px] border bg-card p-5">
+        <Card className="p-5">
           <div className="text-sm text-gray-500">Email balance</div>
           <div className="text-3xl font-bold text-blue-600">{loadingBalance ? "…" : emailRemaining}</div>
           <div className="text-xs text-gray-400">credits remaining</div>
-        </div>
+        </Card>
       </div>
 
       {/* Top-up card */}
-      <div className="rounded-[20px] border bg-card p-5 space-y-4">
+      <Card className="p-5 space-y-4">
         <div className="font-semibold text-gray-800">Add balance</div>
 
         {/* Amount */}
         <div className="space-y-1.5">
           <label className="text-sm font-medium text-gray-700">Amount ({currencySymbol()}) <span className="text-gray-400">,  minimum {currencySymbol()}{cfg.min}</span></label>
-          <input
+          <Input
             type="number"
             min={cfg.min}
             step={50}
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
-            className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-azure focus:outline-none"
+            
           />
           {belowMin && amount !== "" && <p className="text-xs text-red-600">Minimum for {cfg.label} is {currencySymbol()}{cfg.min}.</p>}
         </div>
@@ -171,16 +172,16 @@ export default function WalletTopup({ scope, clubId, districtId }: { scope: Scop
         {error && <div className="rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm p-3">{error}</div>}
         {success && <div className="rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-700 text-sm p-3">{success}</div>}
 
-        <button
+        <Button
           type="button"
           disabled={busy || belowMin || !scopeId}
           onClick={handlePay}
-          className="w-full sm:w-auto px-6 py-2.5 rounded-lg bg-azure text-white font-medium disabled:opacity-50"
+          className="w-full sm:w-auto"
         >
           {busy ? "Processing…" : `Pay ${inr(total)}`}
-        </button>
+        </Button>
         <p className="text-xs text-gray-400">Credits are valid for 1 year from purchase.</p>
-      </div>
+      </Card>
     </div>
   );
 }

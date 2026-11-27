@@ -1,5 +1,6 @@
 "use client";
 
+import { PageHeader } from "@/components/row/AppKit";
 import { useState, useEffect, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import {
@@ -22,11 +23,8 @@ import SearchBox from "@/components/SearchBox";
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
 import AlertModal from "@/components/AlertModal";
-import {
-  ArrowLeft, Plus, MoreHorizontal, Eye, Pencil, Trash2, Send, Loader2, MailPlus, AlertTriangle,
-} from "@/components/icons";
+import { MoreHorizontal, Eye, Pencil, Trash2, Send, MailPlus, AlertTriangle } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
-import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
 
 import { appLocale } from "@/lib/appFormat";
@@ -117,8 +115,8 @@ export default function MassEmailsPage() {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "Draft": return <Badge variant="secondary">Draft</Badge>;
-      case "Sending": return <Badge className="bg-blue-500 hover:bg-blue-600">Sending</Badge>;
-      case "Sent": return <Badge className="bg-green-500 hover:bg-green-600">Sent</Badge>;
+      case "Sending": return <Badge className="bg-blue-100 text-azure">Sending</Badge>;
+      case "Sent": return <Badge className="bg-green-100 text-green-800">Sent</Badge>;
       case "Failed": return <Badge variant="destructive">Failed</Badge>;
       default: return <Badge variant="secondary">{status}</Badge>;
     }
@@ -138,19 +136,11 @@ export default function MassEmailsPage() {
   return (
     <ProtectedRoute>
       <div className="space-y-6">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <Button variant="outline" size="icon" asChild>
-              <Link href={`/clubs/${clubId}/dashboard`}><ArrowLeft className="h-4 w-4" /></Link>
-            </Button>
-            <div>
-              <h2 className="text-2xl font-bold tracking-tight text-primary">
-                {clubName ? `${clubName} - Mass Emails` : "Mass Emails"}
-              </h2>
-              <p className="text-muted-foreground text-base">Send bulk emails to club members</p>
-            </div>
-          </div>
-          {canManage && (
+        <PageHeader
+          title={clubName ? `${clubName} - Mass Emails` : "Mass Emails"}
+          description="Send bulk emails to club members"
+          back={`/clubs/${clubId}/dashboard`}
+          actions={canManage && (
             <div className="flex flex-wrap gap-2">
               <Button variant="outline" onClick={() => router.push(`/clubs/${clubId}/bulletins`)}>
                 Bulletins
@@ -161,7 +151,7 @@ export default function MassEmailsPage() {
               </Button>
             </div>
           )}
-        </div>
+        />
 
         {/* Filters */}
         <Card>

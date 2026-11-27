@@ -7,6 +7,7 @@ import '../../core/routing/route_names.dart';
 import '../../core/services/privacy_api.dart';
 import '../providers/auth_provider.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/motion.dart';
 
 /// Consent at first sign-in after the policy version changes (WS7-05), as the web
 /// ConsentGate: a blocking dialog; declining signs the member out. Never locks a
@@ -22,7 +23,7 @@ Future<void> checkAndShowConsent(BuildContext context, {PrivacyApi? api}) async 
   }
   if (version == null || !context.mounted) return;
   final policyVersion = version;
-  await showDialog<void>(
+  await showRowDialog<void>(
     context: context,
     barrierDismissible: false,
     builder: (ctx) => PopScope(

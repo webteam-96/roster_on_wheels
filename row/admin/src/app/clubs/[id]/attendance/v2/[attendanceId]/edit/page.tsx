@@ -1,4 +1,5 @@
 "use client";
+import { MenuItemButton } from "@/components/ui/text-buttons";
 
 /**
  * Attendance v2 — Edit.
@@ -12,6 +13,10 @@
  * v2 reads ONLY `?returnTo=` — no `returnUrl`, no `backUrl`.
  */
 
+import FieldLabel from "@/components/form/FieldLabel";
+import { IconButton } from "@/components/ui/icon-button";
+import { Textarea } from "@/components/ui/textarea";
+import SectionCard from "@/components/form/SectionCard";
 import { useEffect, useMemo, useState } from "react";
 import { useParams } from "next/navigation";
 import {
@@ -53,48 +58,21 @@ function genId() {
   return Math.random().toString(36).substring(2, 10);
 }
 
-function FieldLabel({ children, hint, dot, required = true }: { children: React.ReactNode; hint?: string; dot: string; required?: boolean }) {
-  return (
-    <div className="flex items-center gap-1.5 mb-1">
-      <span className={`w-1.5 h-1.5 rounded-full ${dot}`} />
-      <label className="text-xs font-semibold text-slate-700">
-        {children}{required && <span className="text-rose-600 ml-0.5">*</span>}
-        {hint && <span className="text-slate-400 font-normal ml-1">{hint}</span>}
-      </label>
-    </div>
-  );
-}
-
-function SectionCard({
-  number, icon: Icon, title, dot, children,
-}: { number: number; icon: React.ElementType; title: string; dot: string; children: React.ReactNode }) {
-  return (
-    <div className="rounded-xl border border-slate-200 overflow-hidden mb-4">
-      <div className="flex items-center gap-3 px-4 py-2.5 bg-slate-50 border-b border-slate-100">
-        <div className={`flex items-center justify-center h-7 w-7 rounded-full text-white text-xs font-bold ${dot}`}>{number}</div>
-        <Icon className="h-4 w-4 text-slate-500" />
-        <h3 className="text-sm font-semibold text-slate-800">{title}</h3>
-      </div>
-      <div className="p-4">{children}</div>
-    </div>
-  );
-}
-
 function CountTile({
   onClick, icon: Icon, label, count, accent,
 }: { onClick: () => void; icon: React.ElementType; label: string; count: number; accent: string }) {
   return (
-    <button
+    <MenuItemButton
       type="button"
       onClick={onClick}
-      className={`flex items-center gap-3 p-3 border rounded-lg hover:border-blue-300 hover:bg-blue-50/30 cursor-pointer transition-colors w-full text-left`}
+      className="border"
     >
       <Icon className={`h-5 w-5 ${accent}`} />
       <span className="font-medium text-sm flex-1 text-slate-700">{label}</span>
-      <span className={`inline-flex items-center justify-center h-6 min-w-[1.5rem] px-1.5 rounded-full text-xs font-bold ${accent.replace("text-", "bg-").replace("-600", "-100")} ${accent.replace("-600", "-700")}`}>
+      <span className={`inline-flex items-center justify-center h-6 min-w-[1.5rem] px-1.5 rounded text-xs font-bold ${accent.replace("text-", "bg-").replace("-600", "-100")} ${accent.replace("-600", "-700")}`}>
         {count}
       </span>
-    </button>
+    </MenuItemButton>
   );
 }
 
@@ -293,39 +271,36 @@ export default function AttendanceV2EditPage() {
         onSave={handleSave}
       >
         {/* 1. Event Details */}
-        <SectionCard number={1} icon={FileText} title="Event Details" dot="bg-[#17458F]">
+        <SectionCard number={1} icon={FileText} title="Event Details">
           <div className="grid grid-cols-1 gap-4">
             <div>
-              <FieldLabel hint="(max 500 chars)" dot="bg-[#17458F]">Event Name</FieldLabel>
-              <input
+              <FieldLabel required hint="(max 500 chars)">Event Name</FieldLabel>
+              <Input
                 type="text"
                 value={eventName}
                 onChange={handleEventNameChange}
                 placeholder="Event name"
                 maxLength={500}
-                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
               />
               <p className="text-xs text-slate-400 text-right mt-0.5">{eventName.length}/500</p>
             </div>
             <div>
-              <FieldLabel hint="(max 10000 chars)" dot="bg-[#17458F]">Description</FieldLabel>
-              <textarea
+              <FieldLabel required hint="(max 10000 chars)">Description</FieldLabel>
+              <Textarea
                 value={description}
                 onChange={handleDescriptionChange}
                 placeholder="Describe the event…"
                 rows={4}
                 maxLength={10000}
-                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
               />
               <p className="text-xs text-slate-400 text-right mt-0.5">{description.length}/10000</p>
             </div>
             <div>
-              <FieldLabel dot="bg-[#17458F]">Event Date &amp; Time</FieldLabel>
-              <input
+              <FieldLabel required>Event Date &amp; Time</FieldLabel>
+              <Input
                 type="datetime-local"
                 value={eventDateTime}
                 onChange={(e) => setEventDateTime(e.target.value)}
-                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
               />
             </div>
             <MeetingModeFields mode={meetingMode} link={meetingLink} onModeChange={setMeetingMode} onLinkChange={setMeetingLink} />
@@ -333,7 +308,7 @@ export default function AttendanceV2EditPage() {
         </SectionCard>
 
         {/* 2. Attendance Sub-records */}
-        <SectionCard number={2} icon={Users} title="Attendance" dot="bg-[#17458F]">
+        <SectionCard number={2} icon={Users} title="Attendance">
           <p className="text-xs text-slate-500 mb-3">Click any tile to manage attendees of that category.</p>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             <CountTile onClick={() => setMembersDialogOpen(true)}   icon={Users}     label="Members"               count={selectedMemberIds.length} accent="text-blue-600" />
@@ -560,7 +535,7 @@ function SimpleListDialog<T extends { tempId: string }>({
                     value={editValue}
                     onChange={(e) => setEditValue(e.target.value)}
                     onKeyDown={(e) => { if (e.key === "Enter") saveEdit(item.tempId); }}
-                    className="flex-1 h-8"
+                    className="row-field-sm flex-1"
                     autoFocus
                   />
                   <Button variant="ghost" size="sm" onClick={() => saveEdit(item.tempId)}>Save</Button>
@@ -568,12 +543,12 @@ function SimpleListDialog<T extends { tempId: string }>({
               ) : (
                 <>
                   <span className="text-sm flex-1">{(item as Record<string, string>)[nameKey]}</span>
-                  <button onClick={() => startEdit(item)} className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-foreground">
+                  <IconButton aria-label="Edit" onClick={() => startEdit(item)} >
                     <Pencil className="h-3.5 w-3.5" />
-                  </button>
-                  <button onClick={() => onRemove(item.tempId)} className="p-1 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive">
+                  </IconButton>
+                  <IconButton aria-label="Remove" onClick={() => onRemove(item.tempId)} className="hover:text-red-700">
                     <X className="h-3.5 w-3.5" />
-                  </button>
+                  </IconButton>
                 </>
               )}
             </div>
@@ -644,20 +619,20 @@ function VisitorsDialog({
             <div key={item.tempId} className="flex items-center gap-2 py-1.5 px-2 rounded hover:bg-muted/50">
               {editingId === item.tempId ? (
                 <>
-                  <Input value={editName} onChange={(e) => setEditName(e.target.value)} className="flex-1 h-8" autoFocus />
-                  <Input value={editInvitedBy} onChange={(e) => setEditInvitedBy(e.target.value)} className="flex-1 h-8" />
+                  <Input value={editName} onChange={(e) => setEditName(e.target.value)} className="row-field-sm flex-1" autoFocus />
+                  <Input value={editInvitedBy} onChange={(e) => setEditInvitedBy(e.target.value)} className="row-field-sm flex-1" />
                   <Button variant="ghost" size="sm" onClick={() => saveEdit(item.tempId)}>Save</Button>
                 </>
               ) : (
                 <>
                   <span className="text-sm flex-1">{item.visitorName}</span>
                   <span className="text-xs text-muted-foreground flex-1">{item.invitedBy && `Invited by: ${item.invitedBy}`}</span>
-                  <button onClick={() => startEdit(item)} className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-foreground">
+                  <IconButton aria-label="Edit" onClick={() => startEdit(item)} >
                     <Pencil className="h-3.5 w-3.5" />
-                  </button>
-                  <button onClick={() => onRemove(item.tempId)} className="p-1 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive">
+                  </IconButton>
+                  <IconButton aria-label="Remove" onClick={() => onRemove(item.tempId)} className="hover:text-red-700">
                     <X className="h-3.5 w-3.5" />
-                  </button>
+                  </IconButton>
                 </>
               )}
             </div>
@@ -728,20 +703,20 @@ function RotariansDialog({
             <div key={item.tempId} className="flex items-center gap-2 py-1.5 px-2 rounded hover:bg-muted/50">
               {editingId === item.tempId ? (
                 <>
-                  <Input value={editName} onChange={(e) => setEditName(e.target.value)} className="flex-1 h-8" autoFocus />
-                  <Input value={editClub} onChange={(e) => setEditClub(e.target.value)} className="flex-1 h-8" />
+                  <Input value={editName} onChange={(e) => setEditName(e.target.value)} className="row-field-sm flex-1" autoFocus />
+                  <Input value={editClub} onChange={(e) => setEditClub(e.target.value)} className="row-field-sm flex-1" />
                   <Button variant="ghost" size="sm" onClick={() => saveEdit(item.tempId)}>Save</Button>
                 </>
               ) : (
                 <>
                   <span className="text-sm flex-1">{item.rotarianName}</span>
                   <span className="text-xs text-muted-foreground flex-1">{item.clubName && `Club: ${item.clubName}`}</span>
-                  <button onClick={() => startEdit(item)} className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-foreground">
+                  <IconButton aria-label="Edit" onClick={() => startEdit(item)} >
                     <Pencil className="h-3.5 w-3.5" />
-                  </button>
-                  <button onClick={() => onRemove(item.tempId)} className="p-1 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive">
+                  </IconButton>
+                  <IconButton aria-label="Remove" onClick={() => onRemove(item.tempId)} className="hover:text-red-700">
                     <X className="h-3.5 w-3.5" />
-                  </button>
+                  </IconButton>
                 </>
               )}
             </div>
@@ -817,9 +792,9 @@ function DelegatesDialog({
             <div key={item.tempId} className="flex items-center gap-2 py-1.5 px-2 rounded hover:bg-muted/50">
               {editingId === item.tempId ? (
                 <div className="flex gap-2 flex-1 flex-wrap">
-                  <Input value={editName} onChange={(e) => setEditName(e.target.value)} className="flex-1 h-8 min-w-[100px]" autoFocus />
-                  <Input value={editDesignation} onChange={(e) => setEditDesignation(e.target.value)} className="flex-1 h-8 min-w-[100px]" />
-                  <Input value={editClub} onChange={(e) => setEditClub(e.target.value)} className="flex-1 h-8 min-w-[100px]" />
+                  <Input value={editName} onChange={(e) => setEditName(e.target.value)} className="row-field-sm flex-1 min-w-[100px]" autoFocus />
+                  <Input value={editDesignation} onChange={(e) => setEditDesignation(e.target.value)} className="row-field-sm flex-1 min-w-[100px]" />
+                  <Input value={editClub} onChange={(e) => setEditClub(e.target.value)} className="row-field-sm flex-1 min-w-[100px]" />
                   <Button variant="ghost" size="sm" onClick={() => saveEdit(item.tempId)}>Save</Button>
                 </div>
               ) : (
@@ -827,12 +802,12 @@ function DelegatesDialog({
                   <span className="text-sm flex-1">{item.rotarianName}</span>
                   <span className="text-xs text-muted-foreground">{item.districtDesignation && `${item.districtDesignation}`}</span>
                   <span className="text-xs text-muted-foreground">{item.clubName && `(${item.clubName})`}</span>
-                  <button onClick={() => startEdit(item)} className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-foreground">
+                  <IconButton aria-label="Edit" onClick={() => startEdit(item)} >
                     <Pencil className="h-3.5 w-3.5" />
-                  </button>
-                  <button onClick={() => onRemove(item.tempId)} className="p-1 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive">
+                  </IconButton>
+                  <IconButton aria-label="Remove" onClick={() => onRemove(item.tempId)} className="hover:text-red-700">
                     <X className="h-3.5 w-3.5" />
-                  </button>
+                  </IconButton>
                 </>
               )}
             </div>

@@ -1,9 +1,9 @@
 "use client";
 
+import { PageHeader } from "@/components/row/AppKit";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { ArrowLeft, FolderOpen, LayoutGrid, Building2 } from "@/components/icons";
+import { FolderOpen, LayoutGrid, Building2 } from "@/components/icons";
 import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
 
@@ -41,7 +41,7 @@ export default function ModuleMasterPage() {
     return (
       <ProtectedRoute>
         <div className="flex flex-col items-center justify-center py-20">
-          <h3 className="text-lg font-semibold">Access Denied</h3>
+          <h3 className="row-h2">Access Denied</h3>
           <p className="text-muted-foreground mt-2">Only SuperAdmin can access this page.</p>
         </div>
       </ProtectedRoute>
@@ -51,25 +51,17 @@ export default function ModuleMasterPage() {
   return (
     <ProtectedRoute>
       <div className="space-y-6">
-        <div className="flex items-center gap-3">
-          <Button variant="outline" size="icon" asChild>
-            <Link href="/settings"><ArrowLeft className="h-4 w-4" /></Link>
-          </Button>
-          <div>
-            <h2 className="text-2xl font-bold tracking-tight text-primary">Module Master</h2>
-            <p className="text-muted-foreground text-base">Manage modules, categories & assignments</p>
-          </div>
-        </div>
+        <PageHeader title="Module Master" description={<>Manage modules, categories & assignments</>} back="/settings" />
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {moduleCards.map((card) => (
             <Link key={card.href} href={card.href}>
-              <Card className="hover:border-primary/50 hover:shadow-md transition-all cursor-pointer h-full">
+              <Card className="hover:border-primary/50 transition-all cursor-pointer h-full">
                 <CardContent className="p-6 flex flex-col items-center text-center gap-3">
                   <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 text-primary">
                     <card.icon className="h-7 w-7" />
                   </div>
-                  <h3 className="text-lg font-semibold text-primary">{card.title}</h3>
+                  <h3 className="row-h2">{card.title}</h3>
                   <p className="text-sm text-muted-foreground">{card.description}</p>
                 </CardContent>
               </Card>

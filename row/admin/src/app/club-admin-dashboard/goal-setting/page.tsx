@@ -1,5 +1,6 @@
 "use client";
 
+import { Card } from "@/components/ui/card";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
@@ -66,9 +67,9 @@ export default function ClubAdminGoalSettingPage() {
   // the screen just shows the placeholder until CLUB_GOAL_SETTING_COMING_SOON is turned off.
   if (CLUB_GOAL_SETTING_COMING_SOON) {
     return (
-      <div className="bg-card rounded-2xl border border-slate-200">
+      <Card>
         <ClubGoalComingSoon />
-      </div>
+      </Card>
     );
   }
 

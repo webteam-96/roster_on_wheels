@@ -1729,9 +1729,11 @@ own separate approval request.</p>
             var merchantOrderId = $"{receipt}_{paymentId}";
             var frontend = (_config["FrontendUrl"] ?? "http://localhost:3000").TrimEnd('/');
             var clubName = (string?)club?.ClubName ?? "";
+            var currency = DuesCurrency.Normalize(await conn.ExecuteScalarAsync<string?>(
+                "SELECT Currency FROM club_dues WHERE pk_club_dues_id=@Id", new { Id = duesId }));
             var session = await _checkout.CreateAsync(new CheckoutRequest(PaymentSettlementService.FlowClubDues, paymentId, merchantOrderId,
-                onlineOwed, Brand.DefaultCurrency, $"District dues: {clubName}",
-                $"{frontend}/pay/club-dues/{duesId}/thank-you?paid=1&amount={onlineOwed.ToString(System.Globalization.CultureInfo.InvariantCulture)}&club={Uri.EscapeDataString(clubName)}",
+                onlineOwed, currency, $"District dues: {clubName}",
+                $"{frontend}/pay/club-dues/{duesId}/thank-you?paid=1&amount={onlineOwed.ToString(System.Globalization.CultureInfo.InvariantCulture)}&currency={currency}&club={Uri.EscapeDataString(clubName)}",
                 null));
             await conn.ExecuteAsync("UPDATE club_dues_payments SET RazorpayOrderId=@Rid WHERE pk_club_dues_payment_id=@Id",
                 new { Rid = merchantOrderId, Id = paymentId });

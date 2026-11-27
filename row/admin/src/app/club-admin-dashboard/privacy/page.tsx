@@ -6,12 +6,14 @@
  * Shown when the instance sets privacy.enabled (ROW); the server re-checks every rule.
  */
 
+import { Card } from "@/components/ui/card";
+import { PageHeader } from "@/components/row/AppKit";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Search, Trash2 } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
 import EraseMemberDialog from "@/components/privacy/EraseMemberDialog";
 import { useSelectedClub } from "@/contexts/AuthContext";
 import { useFormat } from "@/hooks/useFormat";
@@ -55,11 +57,8 @@ export default function ClubPrivacyPage() {
   if (!clubId) return <p className="p-6 text-sm text-slate-500">{t("noClub")}</p>;
 
   return (
-    <div className="space-y-5 p-6">
-      <div className="min-w-0">
-        <h2 className="text-xl font-semibold text-slate-900">{t("title")}</h2>
-        <p className="mt-1 max-w-2xl text-sm text-slate-600">{t("intro")}</p>
-      </div>
+    <div className="space-y-5">
+      <PageHeader title={t("title")} description={t("intro")} />
 
       <div className="relative max-w-sm">
         <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
@@ -76,9 +75,9 @@ export default function ClubPrivacyPage() {
           ))}
         </div>
       ) : rows.length === 0 ? (
-        !error && <div className="rounded-[20px] border border-dashed bg-white p-8 text-center text-sm text-slate-600">{t("empty")}</div>
+        !error && <div className="rounded-xl border border-dashed bg-white p-8 text-center text-sm text-slate-600">{t("empty")}</div>
       ) : (
-        <div className="overflow-x-auto rounded-xl border bg-white">
+        <Card className="overflow-x-auto">
           <Table className="min-w-[520px]">
             <TableHeader>
               <TableRow>
@@ -93,7 +92,7 @@ export default function ClubPrivacyPage() {
                   <TableCell className="font-medium text-slate-900">{r.name}</TableCell>
                   <TableCell>{r.leftOn ? fmt.date(r.leftOn) : <span className="text-slate-500">{t("unknownDate")}</span>}</TableCell>
                   <TableCell className="text-right">
-                    <Button size="sm" variant="outline" className="gap-1.5 text-red-700" onClick={() => setErasing(r.memberId)}>
+                    <Button size="sm" variant="outline" className="text-red-700" onClick={() => setErasing(r.memberId)}>
                       <Trash2 className="h-3.5 w-3.5" />
                       {t("erase")}
                     </Button>
@@ -102,7 +101,7 @@ export default function ClubPrivacyPage() {
               ))}
             </TableBody>
           </Table>
-        </div>
+        </Card>
       )}
 
       <EraseMemberDialog

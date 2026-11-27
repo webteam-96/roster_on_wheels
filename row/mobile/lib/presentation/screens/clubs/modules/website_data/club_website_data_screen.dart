@@ -21,6 +21,7 @@ import '../../../../../presentation/widgets/common/confirmation_dialog.dart';
 import 'package:rotary_flutter_app/core/brand/brand.dart';
 import 'package:rotary_flutter_app/core/theme/app_fonts.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/motion.dart';
 
 /// Max banners that may be Active on the live site at once (web parity: lowered
 /// 10 -> 6). Uploads are unlimited; this only caps how many can be shown. Ads
@@ -708,7 +709,7 @@ class _BannersTabState extends State<_BannersTab>
           Expanded(
             child: _banners.isEmpty
                 ? const EmptyStateWidget(title: 'No banners added')
-                : ListView.separated(
+                : RowListView.separated(
                     padding: (const EdgeInsets.all(16)).add(const EdgeInsets.only(bottom: 88)),
                     itemCount: _banners.length,
                     separatorBuilder: (_, __) => const SizedBox(height: 8),
@@ -959,7 +960,7 @@ class _AdsTabState extends State<_AdsTab> with AutomaticKeepAliveClientMixin {
           Expanded(
             child: _ads.isEmpty
                 ? const EmptyStateWidget(title: 'No ads configured')
-                : ListView.separated(
+                : RowListView.separated(
                     padding: (const EdgeInsets.all(16)).add(const EdgeInsets.only(bottom: 88)),
                     itemCount: _ads.length,
                     separatorBuilder: (_, __) => const SizedBox(height: 8),
@@ -1309,7 +1310,7 @@ class _MenuTabState extends State<_MenuTab> with AutomaticKeepAliveClientMixin {
           Expanded(
             child: _menus.isEmpty
                 ? const EmptyStateWidget(title: 'No menu items')
-                : ListView.builder(
+                : RowListView.builder(
                     padding: (const EdgeInsets.all(16)).add(const EdgeInsets.only(bottom: 88)),
                     itemCount: _menus.length,
                     itemBuilder: (_, i) {
@@ -1717,7 +1718,7 @@ class _SocialLinksTabState extends State<_SocialLinksTab>
           : null,
       body: _links.isEmpty
           ? const EmptyStateWidget(title: 'No social links added')
-          : ListView.separated(
+          : RowListView.separated(
               padding: (const EdgeInsets.all(16)).add(const EdgeInsets.only(bottom: 88)),
               itemCount: _links.length,
               separatorBuilder: (_, __) => const SizedBox(height: 8),
@@ -3423,6 +3424,7 @@ class _AboutFormPageState extends State<_AboutFormPage> {
       appBar: CustomAppBar(
         title: _isEdit ? 'Edit About' : 'Add About',
         leading: IconButton(
+          tooltip: 'Close',
           icon: const Icon(Icons.close, color: Colors.white),
           onPressed: _saving ? null : () => Navigator.pop(context),
         ),

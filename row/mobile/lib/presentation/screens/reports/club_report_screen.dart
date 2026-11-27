@@ -18,6 +18,7 @@ import '../../widgets/common/rotary_year_bar.dart';
 import 'package:rotary_flutter_app/core/brand/brand.dart';
 import 'package:rotary_flutter_app/core/theme/app_fonts.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/roster_wheel.dart';
 
 /// Club Report — mobile port of the web "Section Exports" page.
 ///
@@ -982,7 +983,7 @@ class _ClubReportScreenState extends State<ClubReportScreen> {
     final attMeeting = _rows(r['attendanceMeetingWise']);
     final hasAttendance = attMeeting.isNotEmpty;
 
-    return RefreshIndicator(
+    return RowRefresh(
       onRefresh: _load,
       child: ListView(
         padding: const EdgeInsets.fromLTRB(14, 14, 14, 28),

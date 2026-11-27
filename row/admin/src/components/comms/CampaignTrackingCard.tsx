@@ -5,6 +5,7 @@
  * Renders nothing while the "communication" feature is off or the email is still a draft.
  */
 
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table"
 import { useEffect, useState } from "react";
 import { useFeatureLoadedOn } from "@/components/FeatureGate";
 import { TableSkeleton } from "@/components/dashboard/DashboardSkeleton";
@@ -34,7 +35,7 @@ export default function CampaignTrackingCard({ scope, ownerId, emailId }: { scop
 
   return (
     <div className={card}>
-      <h2 className="text-base font-semibold text-slate-800">Delivery and engagement</h2>
+      <h2 className="row-h2">Delivery and engagement</h2>
       <p className="mt-1 text-sm text-slate-500">
         Opens are counted when the reader&apos;s mail app loads images, so the real number is usually higher.
         Skipped members unsubscribed or have an address that bounced before.
@@ -52,31 +53,31 @@ export default function CampaignTrackingCard({ scope, ownerId, emailId }: { scop
             ))}
           </div>
           <div className="mt-4 max-h-96 overflow-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-slate-200 text-left text-slate-500">
-                  <th className="py-2 pr-3 font-medium">Member</th>
-                  <th className="py-2 pr-3 font-medium">Language</th>
-                  <th className="py-2 pr-3 font-medium">Result</th>
-                  <th className="py-2 pr-3 text-right font-medium">Opens</th>
-                  <th className="py-2 text-right font-medium">Clicks</th>
-                </tr>
-              </thead>
-              <tbody>
+            <Table className="w-full text-sm">
+              <TableHeader>
+                <TableRow className="border-b border-slate-200">
+                  <TableHead className="pr-3">Member</TableHead>
+                  <TableHead className="pr-3">Language</TableHead>
+                  <TableHead className="pr-3">Result</TableHead>
+                  <TableHead className="pr-3 text-right">Opens</TableHead>
+                  <TableHead className="text-right">Clicks</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
                 {data.recipientRows.map((r, i) => (
-                  <tr key={i} className="border-b border-slate-100 last:border-0">
-                    <td className="py-2 pr-3">
+                  <TableRow key={i} className="border-b border-slate-100 last:border-0">
+                    <TableCell className="py-2 pr-3">
                       <span className="text-slate-800">{r.memberName ?? "-"}</span>
                       <span className="block text-xs text-slate-500">{r.email}</span>
-                    </td>
-                    <td className="py-2 pr-3">{r.language ?? "-"}</td>
-                    <td className="py-2 pr-3" title={r.errorMessage ?? undefined}>{deliveryLabel(r.status, r.deliveryStatus, r.openCount, r.clickCount)}</td>
-                    <td className="py-2 pr-3 text-right">{r.openCount}</td>
-                    <td className="py-2 text-right">{r.clickCount}</td>
-                  </tr>
+                    </TableCell>
+                    <TableCell className="py-2 pr-3">{r.language ?? "-"}</TableCell>
+                    <TableCell className="py-2 pr-3" title={r.errorMessage ?? undefined}>{deliveryLabel(r.status, r.deliveryStatus, r.openCount, r.clickCount)}</TableCell>
+                    <TableCell className="py-2 pr-3 text-right">{r.openCount}</TableCell>
+                    <TableCell className="py-2 text-right">{r.clickCount}</TableCell>
+                  </TableRow>
                 ))}
-              </tbody>
-            </table>
+              </TableBody>
+            </Table>
           </div>
         </>
       )}

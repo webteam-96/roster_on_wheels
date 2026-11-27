@@ -39,7 +39,7 @@ export default function AcceptPlanningInvitePage() {
     <div className="mx-auto max-w-lg py-10">
       <Card>
         <CardContent className="space-y-4 p-6">
-          <h2 className="text-xl font-bold tracking-tight text-primary">Plan next year</h2>
+          <h2 className="row-h2">Plan next year</h2>
           {role ? (
             <>
               <p className="text-sm">

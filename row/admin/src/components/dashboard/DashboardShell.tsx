@@ -1,9 +1,9 @@
 "use client";
 
-import { ReactNode, useEffect, useState } from "react";
+import { PageHeader } from "@/components/row/AppKit";
+import { ReactNode, useCallback, useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
-import { Menu, X, ArrowLeft, type LucideIcon } from "@/components/icons";
-import HelplineBar from "@/components/v2/HelplineBar";
+import { ArrowLeft, type LucideIcon } from "@/components/icons";
 import {
   useAuth,
   useSelectedClub,
@@ -13,10 +13,13 @@ import {
   useAgDistricts,
   decodeJwt,
 } from "@/contexts/AuthContext";
-import { cn } from "@/lib/utils";
 import Sidebar from "./Sidebar";
+import ShellFrame from "./ShellFrame";
 import ComingSoonStub from "./ComingSoonStub";
 import ScopePicker from "./ScopePicker";
+import TopBar, { ScopeLabel } from "./TopBar";
+import TopBarAccount from "./TopBarAccount";
+import { Button } from "@/components/ui/button";
 import { useComingSoonModules } from "@/hooks/useComingSoonModules";
 import { useBrand } from "@/contexts/BrandContext";
 import { isFeatureOn } from "@/lib/brand";
@@ -27,6 +30,8 @@ export interface NavItem {
   to: string;
   label: string;
   icon?: LucideIcon;
+  /** Sidebar heading; consecutive items with the same group share one. */
+  group?: string;
   /** Optional module_master.moduleKey — when set and the module is Coming Soon
    *  (and the user is NOT SuperAdmin), the item is hidden from the sidebar and
    *  visiting its URL directly shows a ComingSoonStub instead of the page. */
@@ -58,7 +63,6 @@ export interface NavItem {
 
 export interface DashboardShellProps {
   brand: string;
-  identityLabel: string;
   identityName: string;
   identityRole: string;
   initials: string;
@@ -66,7 +70,6 @@ export interface DashboardShellProps {
   footerText: ReactNode;
   pageTitle: string;
   pageSubtitle?: ReactNode;
-  variant?: "icon" | "dot";
   switcherKind?: "ag" | "club-admin" | "district-admin";
   /** Optional element rendered between the page title (left) and the scope
    *  picker (right) in the topbar. Used by Club Admin Dashboard to host the
@@ -83,15 +86,8 @@ export interface DashboardShellProps {
   children: ReactNode;
 }
 
-// ROW "Fellowship": a light sidebar so the full-colour ROW mark sits on its natural
-// white surface; azure (Rotary Royal Blue) marks the selected item.
-const SIDEBAR_BG = "#EDF4FB";
-const ACTIVE_BG = "#17458F";
-const ACTIVE_TEXT = "#FCFDFE";
-
 export default function DashboardShell({
   brand,
-  identityLabel,
   identityName,
   identityRole,
   initials,
@@ -99,7 +95,6 @@ export default function DashboardShell({
   footerText,
   pageTitle,
   pageSubtitle,
-  variant = "dot",
   switcherKind,
   topbarCenter,
   topbarStart,
@@ -108,6 +103,7 @@ export default function DashboardShell({
 }: DashboardShellProps) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
+  const closeMenu = useCallback(() => setOpen(false), []);
   const { logout, user, selectScope, selectedClubId, token } = useAuth();
   // The JWT keeps SuperAdmin even when a borrowed scope strips it from user.roles.
   const isSuperAdminLogin = !!token && (decodeJwt(token)?.roles ?? []).includes("SuperAdmin");
@@ -228,127 +224,41 @@ export default function DashboardShell({
       brand={brand}
       identityName={identityName}
       identityRole={fromSuperAdminSearch ? "Super Admin" : identityRole}
-      identityLabel={identityLabel}
       initials={initials}
       nav={visibleNav}
       pathname={pathname}
-      variant={variant}
       footerText={footerText}
       switcherTop={switcherTop}
       switcherKind={switcherKind}
       fromSuperAdminSearch={fromSuperAdminSearch}
-      onNavigate={() => setOpen(false)}
+      onNavigate={closeMenu}
       onSignOut={() => logout()}
     />
   );
 
   return (
-    <div
-      className="fixed inset-0 z-[60] flex h-screen overflow-hidden bg-[#F7F9FC]"
-      style={{ top: 0, left: 0 }}
-    >
-      {/* Desktop sidebar */}
-      <aside
-        className="hidden lg:flex flex-col w-[264px] flex-shrink-0 border-r border-[color:var(--row-line)]"
-        style={{ background: SIDEBAR_BG }}
-      >
-        {sidebar}
-      </aside>
-
-      {/* Mobile overlay */}
-      {open && (
-        <div className="lg:hidden fixed inset-0 z-50 flex">
-          <div
-            className="absolute inset-0 bg-[#1B2C42]/50"
-            onClick={() => setOpen(false)}
-          />
-          <aside
-            className="relative flex flex-col w-[264px] z-10 border-r border-[color:var(--row-line)]"
-            style={{ background: SIDEBAR_BG }}
-          >
-            <button
-              className="absolute top-3 right-3 text-muted-foreground hover:text-foreground"
-              onClick={() => setOpen(false)}
-            >
-              <X size={20} />
-            </button>
-            {sidebar}
-          </aside>
-        </div>
-      )}
-
-      {/* Main */}
-      <div className="flex-1 flex flex-col overflow-hidden">
-        {/* Support helpline strip — pinned above the header on every authenticated dashboard
-            (Club Admin / District Admin / AG all render through this shell). */}
-        <HelplineBar />
-
-        <header
-          className="bg-[#F7F9FC] border-b border-[color:var(--row-line)] px-4 md:px-8 min-h-16 py-2 flex flex-wrap items-center justify-between flex-shrink-0 gap-x-3 gap-y-2"
-        >
-          <div className="flex items-center gap-3 min-w-0">
-            <button
-              className="lg:hidden flex h-11 w-11 items-center justify-center rounded-full text-[#1B2C42] hover:bg-[#EDF4FB]" aria-label="Open menu"
-              onClick={() => setOpen(true)}
-            >
-              <Menu size={20} />
-            </button>
-            <div className="min-w-0">
-              <p className="font-display text-[20px] font-semibold leading-tight tracking-[-0.02em] text-[#1B2C42] truncate">
-                {pageTitle}
-              </p>
-              {pageSubtitle && (
-                <p className="text-[13px] text-[#64748B] mt-0.5 truncate">{pageSubtitle}</p>
-              )}
-            </div>
-          </div>
-          {/* Right-side cluster.
-              Order per switcherKind:
-                • club-admin:      Club picker → Year picker
-                  (user request 2026-06-12 — "Club Name → Year")
-                • district-admin:  District picker → Year picker
-                  (user request 2026-07-09 — swap: district on left, year on right)
-                • ag:              Year picker → District picker
-                  (user request 2026-07-03 — "first rotary year then district")
-              Hidden on mobile so the picker stays the prominent control. */}
-          {/* Wraps under the title when both do not fit: it used to cover it (ROW-93). */}
-          <div className="ml-auto flex flex-wrap items-center gap-3 justify-end min-w-0">
-            <div className="hidden md:flex flex-wrap items-center justify-end gap-3">
-          {topbarStart}
-          {switcherKind === "club-admin" ? (
-            <>
-              {urlClub ? (
-                <span className="hidden sm:block text-xs font-semibold text-slate-700 truncate max-w-[260px]">
-                  {urlClub.name}
-                </span>
-              ) : viewingDaClub ? (
-                // District Admin viewing a district-access club — show that club's name.
-                <span className="hidden sm:block text-xs font-semibold text-slate-700 truncate max-w-[260px]">
-                  {daActiveClub!.name}
-                </span>
+    <ShellFrame
+      sidebar={sidebar}
+      open={open}
+      onClose={closeMenu}
+      title={pageTitle}
+      subtitle={pageSubtitle}
+      header={
+        <TopBar
+          onMenu={() => setOpen(true)}
+          left={
+            switcherKind === "club-admin" ? (
+              urlClub || viewingDaClub ? (
+                <ScopeLabel label="Club" name={urlClub?.name ?? daActiveClub!.name} />
               ) : clubAdminClubs.length > 0 ? (
-                <ScopePicker
-                  label="Club"
-                  items={clubAdminClubs}
-                  selectedId={selectedClub?.id ?? null}
-                  onSelect={(id) => selectScope({ clubId: id })}
-                />
+                <ScopePicker label="Club" items={clubAdminClubs} selectedId={selectedClub?.id ?? null} onSelect={(id) => selectScope({ clubId: id })} />
               ) : selectedClub ? (
-                <span className="hidden sm:block text-xs text-slate-500 truncate max-w-[260px]">
-                  {selectedClub.name}
-                </span>
-              ) : null}
-              {topbarCenter}
-            </>
-          ) : switcherKind === "district-admin" ? (
-            <>
-              {fromSuperAdminSearch && saActiveDistrict ? (
-                // SuperAdmin borrowed THIS district from global search. Their own district
-                // picker would show accessibleDistricts[0] (the SA's own district), so show
-                // the borrowed one read-only instead.
-                <span className="hidden sm:block text-xs font-semibold text-slate-700 truncate max-w-[260px]">
-                  {saActiveDistrict.name}
-                </span>
+                <ScopeLabel label="Club" name={selectedClub.name} />
+              ) : null
+            ) : switcherKind === "district-admin" ? (
+              // A SuperAdmin's borrowed district is shown read-only: the picker would list their own.
+              fromSuperAdminSearch && saActiveDistrict ? (
+                <ScopeLabel label="District" name={saActiveDistrict.name} />
               ) : districtAdminDistricts.length > 0 ? (
                 <ScopePicker
                   label="District"
@@ -357,55 +267,37 @@ export default function DashboardShell({
                   onSelect={(id) => selectScope({ districtId: id })}
                 />
               ) : selectedDistrict ? (
-                <span className="hidden sm:block text-xs text-slate-500 truncate max-w-[260px]">
-                  {selectedDistrict.number}
-                </span>
-              ) : null}
-              {topbarCenter}
-            </>
-          ) : switcherKind === "ag" ? (
+                <ScopeLabel label="District" name={selectedDistrict.number} />
+              ) : null
+            ) : switcherKind === "ag" && agDistricts.length > 1 ? (
+              <ScopePicker
+                label="District"
+                items={agDistricts.map((d) => ({ id: d.id, name: d.number }))}
+                selectedId={selectedDistrict?.id ?? null}
+                onSelect={(id) => selectScope({ districtId: id })}
+              />
+            ) : null
+          }
+          right={
             <>
-              {topbarCenter}
-              {agDistricts.length > 1 ? (
-                // Only render when there is a real choice to make. A single-district AG
-                // used to get a static district-number label here — noise, since they
-                // can't act on it. Multi-district AGs still need the picker to scope data.
-                <ScopePicker
-                  label="District"
-                  items={agDistricts.map((d) => ({ id: d.id, name: d.number }))}
-                  selectedId={selectedDistrict?.id ?? null}
-                  onSelect={(id) => selectScope({ districtId: id })}
-                />
-              ) : null}
-            </>
-          ) : (
-            <>{topbarCenter}</>
-          )}
-            </div>
-            {/* Back — SuperAdmin global-search flow only. Right corner so it's the clear
-                way out of a borrowed dashboard; stays visible on mobile. */}
-            {(fromSuperAdminSearch || isSuperAdminLogin) && (
-              <button
-                onClick={handleBack}
-                title="Back to search"
-                className="flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold shadow-sm ring-1 ring-black/5 hover:brightness-95 active:brightness-90 transition-all flex-shrink-0"
-                style={{ background: ACTIVE_BG, color: ACTIVE_TEXT }}
-              >
-                <ArrowLeft size={16} strokeWidth={2.5} />
-                <span>Back to Search</span>
-              </button>
-            )}
-          </div>
-        </header>
-
-        <main className="flex-1 overflow-y-auto px-4 py-6 md:px-8 md:py-8">
-          {currentItem?.feature && !isFeatureOn(brandInfo, currentItem.feature) ? (
-            <div className="flex min-h-[60vh] items-center justify-center text-center">
-              <div className="max-w-md rounded-2xl border bg-card p-8 shadow-sm">
-                <h2 className="text-xl font-bold text-slate-800">{currentItem.label}</h2>
-                <p className="mt-3 text-sm text-slate-600">This section is not available on {brandInfo.productName}.</p>
+              <div className="hidden flex-wrap items-center justify-end gap-2 md:flex">
+                {topbarStart}
+                {topbarCenter}
               </div>
-            </div>
+              {/* The way out of a dashboard borrowed from global search. */}
+              {(fromSuperAdminSearch || isSuperAdminLogin) && (
+                <Button type="button" variant="outline" size="sm" onClick={handleBack}>
+                  <ArrowLeft /> Back to Search
+                </Button>
+              )}
+              <TopBarAccount />
+            </>
+          }
+        />
+      }
+    >
+          {currentItem?.feature && !isFeatureOn(brandInfo, currentItem.feature) ? (
+            <PageHeader title={currentItem.label} description={<>This section is not available on {brandInfo.productName}.</>} />
           ) : currentIsComingSoon && currentItem ? (
             <ComingSoonStub
               moduleName={currentItem.label}
@@ -414,8 +306,6 @@ export default function DashboardShell({
           ) : (
             children
           )}
-        </main>
-      </div>
-    </div>
+    </ShellFrame>
   );
 }

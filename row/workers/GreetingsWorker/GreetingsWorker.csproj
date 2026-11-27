@@ -35,6 +35,7 @@
   <ItemGroup>
     <!-- ROW instance brand, shared with the API (Brand section / Brand__* environment variables). -->
     <Compile Include="../../api/Services/Brand.cs" Link="Brand.cs" />
+    <Compile Include="../../api/Services/CountryCurrency.cs" Link="CountryCurrency.cs" />
     <!-- N5 communication: templates per language, Governor note, consent and suppression filter (same code as the API). -->
     <Compile Include="../../api/Services/CommsTemplates.cs" Link="CommsTemplates.cs" />
     <!-- Masks email addresses in log lines (same code as the API). -->

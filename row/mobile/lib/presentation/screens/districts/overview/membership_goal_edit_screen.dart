@@ -5,6 +5,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../data/models/district_admin_dashboard_models.dart';
 import 'package:rotary_flutter_app/core/theme/app_fonts.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
+import 'package:rotary_flutter_app/presentation/widgets/common/loading_widget.dart';
 
 /// "Set Membership Goal" editor — mobile twin of the web
 /// `/districts/[id]/membership-goal/v2/edit` page.
@@ -194,6 +195,7 @@ class _MembershipGoalEditScreenState extends State<MembershipGoalEditScreen> {
         foregroundColor: AppColors.textPrimary,
         elevation: 0,
         leading: IconButton(
+          tooltip: MaterialLocalizations.of(context).backButtonTooltip,
           icon: const Icon(Icons.arrow_back_ios_new_rounded,
               color: AppColors.textPrimary, size: 20),
           onPressed: () => Navigator.of(context).pop(),
@@ -208,7 +210,7 @@ class _MembershipGoalEditScreenState extends State<MembershipGoalEditScreen> {
         ),
       ),
       body: _loading
-          ? const Center(child: CircularProgressIndicator(strokeWidth: 2.4))
+          ? const LoadingWidget()
           : _bootError != null
               ? _errorView(_bootError!)
               : _form(),

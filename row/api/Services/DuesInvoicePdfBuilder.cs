@@ -29,6 +29,7 @@ public static class DuesInvoicePdfBuilder
     public static byte[] Invoice(DuesInvoiceService.InvoiceRow inv, IReadOnlyList<DuesInvoiceService.InvoiceLine> lines, DuesInvoiceService.ClubInfo club) =>
         Page(club.ClubName, col =>
         {
+            string IM(decimal v) => DuesCurrency.Money(v, inv.Currency);
             col.Item().Text("Invoice").Bold().FontSize(16).FontColor(Navy);
             Meta(col, new (string, string?)[]
             {
@@ -38,7 +39,7 @@ public static class DuesInvoicePdfBuilder
             });
             col.Item().PaddingTop(10).Text("Items").Bold().FontSize(12).FontColor(Navy);
             Table(col, new[] { ("Sr No", 34f, false), ("Description", 0f, false), ("Qty", 50f, true), ("Unit Amount", 90f, true), ("Amount", 90f, true) },
-                lines.Select((l, i) => new[] { (i + 1).ToString(), l.Description, l.Quantity.ToString("0.##"), M(l.UnitAmount), M(l.Amount) }));
+                lines.Select((l, i) => new[] { (i + 1).ToString(), l.Description, l.Quantity.ToString("0.##"), IM(l.UnitAmount), IM(l.Amount) }));
             col.Item().PaddingTop(8).AlignRight().Width(240).Table(t =>
             {
                 t.ColumnsDefinition(c => { c.RelativeColumn(); c.RelativeColumn(); });
@@ -48,9 +49,9 @@ public static class DuesInvoicePdfBuilder
                     var v = t.Cell().Border(0.7f).BorderColor(Border).Padding(5).AlignRight().Text(value);
                     if (bold) v.Bold();
                 }
-                Row("Total", M(inv.Amount));
-                Row("Paid", M(inv.PaidAmount));
-                Row("Balance Due", M(inv.Status == DuesInvoiceMath.Voided ? 0 : inv.Amount - inv.PaidAmount), bold: true);
+                Row("Total", IM(inv.Amount));
+                Row("Paid", IM(inv.PaidAmount));
+                Row("Balance Due", IM(inv.Status == DuesInvoiceMath.Voided ? 0 : inv.Amount - inv.PaidAmount), bold: true);
             });
         });
 

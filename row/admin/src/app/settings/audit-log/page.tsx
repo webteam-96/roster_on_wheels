@@ -1,5 +1,6 @@
 "use client";
 
+import { PageHeader } from "@/components/row/AppKit";
 import { useState, useEffect, useCallback } from "react";
 import DateField from "@/components/DateField";
 import { getAuditLog, type AuditLogFilter } from "@/services/api";
@@ -12,10 +13,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import ErrorAlert from "@/components/ErrorAlert";
-import { ArrowLeft, History, Search, Filter, RotateCcw, Download } from "@/components/icons";
+import { History, Search, Filter, RotateCcw, Download } from "@/components/icons";
 import { exportToCSV } from "@/utils/csvExport";
 import RotaryLoader from "@/components/RotaryLoader";
-import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
 
 import { appLocale } from "@/lib/appFormat";
@@ -104,7 +104,7 @@ export default function AuditLogPage() {
     return (
       <ProtectedRoute>
         <div className="flex flex-col items-center py-20">
-          <h3 className="text-lg font-semibold">Access Denied</h3>
+          <h3 className="row-h2">Access Denied</h3>
           <p className="text-muted-foreground mt-2">Only SuperAdmin can view audit logs.</p>
         </div>
       </ProtectedRoute>
@@ -116,15 +116,7 @@ export default function AuditLogPage() {
       <div className="space-y-6">
         <ErrorAlert open={!!errorMessage} title="Error" description={errorMessage || ""} onOk={() => setErrorMessage(null)} />
 
-        <div className="flex items-center gap-3">
-          <Button variant="outline" size="icon" asChild>
-            <Link href="/settings"><ArrowLeft className="h-4 w-4" /></Link>
-          </Button>
-          <div>
-            <h2 className="text-2xl font-bold tracking-tight text-primary">Audit Log</h2>
-            <p className="text-muted-foreground text-base">Complete system-wide activity log for all CRUD operations</p>
-          </div>
-        </div>
+        <PageHeader title="Audit Log" description="Complete system-wide activity log for all CRUD operations" back="/settings" />
 
         {/* Filters */}
         <Card>
@@ -211,7 +203,7 @@ export default function AuditLogPage() {
             ) : (
               <Table>
                 <TableHeader>
-                  <TableRow className="bg-muted/50">
+                  <TableRow>
                     <TableHead>District</TableHead>
                     <TableHead>Club</TableHead>
                     <TableHead>Module</TableHead>
@@ -231,7 +223,7 @@ export default function AuditLogPage() {
                       <TableCell className="text-xs max-w-[160px] truncate" title={log.clubName || ""}>{log.clubName || "–"}</TableCell>
                       <TableCell className="text-xs font-medium">{log.entityType}</TableCell>
                       <TableCell className="text-sm font-medium">{log.memberName || "–"}</TableCell>
-                      <TableCell><Badge variant="secondary" className="text-xs">{log.roleName || "–"}</Badge></TableCell>
+                      <TableCell><Badge variant="secondary">{log.roleName || "–"}</Badge></TableCell>
                       <TableCell>
                         <Badge className={`text-xs text-white ${actionColors[log.action] || "bg-gray-500"}`}>
                           {log.action}

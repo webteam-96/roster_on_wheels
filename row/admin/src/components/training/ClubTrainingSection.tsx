@@ -6,6 +6,8 @@
  * the next upcoming session with its Zoom link + a reschedule option.
  */
 
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { useCallback, useEffect, useState } from "react";
 import { Calendar, Video } from "@/components/icons";
 import { getClubTrainingAppointments } from "@/services/api";
@@ -29,21 +31,21 @@ export default function ClubTrainingSection({ clubId, active }: { clubId: number
   const upcoming = appts[0]; // service returns upcoming sessions ascending
 
   return (
-    <div className="bg-card rounded-2xl border border-slate-200 p-5">
+    <Card className="p-5">
       <div className="flex items-start justify-between gap-4 flex-wrap">
         <div className="flex items-start gap-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-azure/10 text-azure"><Calendar size={20} /></div>
           <div>
-            <h2 className="text-base font-semibold text-slate-800">Website Training</h2>
+            <h2 className="row-h2">Website Training</h2>
             <p className="text-xs text-slate-500 mt-0.5">Book a free 30-minute session with our team to learn to manage your website.</p>
           </div>
         </div>
-        <button
+        <Button
           onClick={() => { setRescheduleId(null); setOpen(true); }}
-          className="inline-flex items-center gap-2 rounded-full bg-azure px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-azure"
+          
         >
           <Calendar size={16} /> Request a Training Date
-        </button>
+        </Button>
       </div>
 
       {upcoming && (
@@ -57,12 +59,12 @@ export default function ClubTrainingSection({ clubId, active }: { clubId: number
               </a>
             )}
           </div>
-          <button
+          <Button
             onClick={() => { setRescheduleId(upcoming.id); setOpen(true); }}
-            className="px-3 py-1.5 rounded-lg border border-slate-300 text-sm text-slate-700 hover:bg-card"
+            variant="outline" size="sm"
           >
             Reschedule
-          </button>
+          </Button>
         </div>
       )}
 
@@ -74,6 +76,6 @@ export default function ClubTrainingSection({ clubId, active }: { clubId: number
         appointmentId={rescheduleId ?? undefined}
         onDone={load}
       />
-    </div>
+    </Card>
   );
 }

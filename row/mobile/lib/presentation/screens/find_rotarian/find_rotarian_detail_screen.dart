@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart' hide Text;
+import 'package:flutter/services.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
@@ -18,6 +19,7 @@ import '../../widgets/common/maps_action_button.dart';
 import '../../widgets/common/loading_widget.dart';
 import 'package:rotary_flutter_app/core/theme/app_fonts.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/roster_wheel.dart';
 
 class FindRotarianDetailScreen extends StatefulWidget {
   final int memberId;
@@ -146,7 +148,7 @@ class _FindRotarianDetailScreenState extends State<FindRotarianDetailScreen> {
     final contactClubName = (heroClubName ?? '').trim();
     final canContact = m.isPersonalDetailsVisible && _hasContact(m);
 
-    return RefreshIndicator(
+    return RowRefresh(
       onRefresh: _load,
       color: AppColors.primary,
       child: CustomScrollView(
@@ -222,13 +224,6 @@ class _FindRotarianDetailScreenState extends State<FindRotarianDetailScreen> {
             color: AppColors.primaryPrime,
             enabled: hasPhone,
             onTap: hasPhone ? () => _openUrl('tel:${_digitsOnly(primary)}') : null,
-          ),
-          _ContactAction(
-            icon: Icons.chat_bubble_outline_rounded,
-            label: 'SMS',
-            color: AppColors.primaryPrime,
-            enabled: hasPhone,
-            onTap: hasPhone ? () => _openUrl('sms:${_digitsOnly(primary)}') : null,
           ),
           _ContactAction(
             icon: Icons.mail_outline_rounded,
@@ -598,7 +593,9 @@ class _HeroAppBar extends StatelessWidget {
       pinned: true,
       stretch: true,
       backgroundColor: AppColors.primaryPrime,
+      systemOverlayStyle: SystemUiOverlayStyle.light.copyWith(statusBarColor: Colors.transparent),
       leading: IconButton(
+        tooltip: MaterialLocalizations.of(context).backButtonTooltip,
         icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white),
         onPressed: () {
           if (context.canPop()) {

@@ -6,6 +6,12 @@
  * Sub Groups module.
  */
 
+import { MenuItemButton } from "@/components/ui/text-buttons"
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table"
+import { NativeSelect } from "@/components/ui/native-select";
+import { Textarea } from "@/components/ui/textarea";
+import { IconButton } from "@/components/ui/icon-button";
+import { Card } from "@/components/ui/card";
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import {
@@ -35,9 +41,9 @@ import MergeHistory from "./MergeHistory";
 import TagChip from "@/components/member-flex/TagChip";
 
 const PAGE_SIZE = 25;
-const SELECT = "h-9 rounded-md border border-input bg-background px-3 text-sm";
+const SELECT = "row-field";
 const EMPTY: SaveContact = { name: "", email: "", mobile: "", contactType: "guest", organisation: "", notes: "", groupIds: [] };
-const LINK = "inline-flex h-9 items-center gap-1.5 rounded-full border border-slate-200 px-3 text-sm font-medium text-slate-700 hover:bg-slate-50";
+const LINK = "inline-flex h-9 items-center gap-1.5 rounded-md border border-slate-200 px-3 text-sm font-medium text-slate-700 hover:bg-slate-50";
 
 /** friendsOnly: the separate Friends of the club list (contacts of type friend). */
 export default function ContactsManager({ scope, ownerId, friendsOnly = false }: { scope: ContactScope; ownerId: number; friendsOnly?: boolean }) {
@@ -149,7 +155,7 @@ export default function ContactsManager({ scope, ownerId, friendsOnly = false }:
           <Button variant="outline" size="sm" disabled={exporting} onClick={() => download("xlsx")}><Download className="mr-1.5 h-4 w-4" />Excel</Button>
           <Button variant="outline" size="sm" disabled={exporting} onClick={() => download("csv")}><Download className="mr-1.5 h-4 w-4" />CSV</Button>
           <Button variant="outline" size="sm" onClick={() => setDupesOpen(true)}><Copy className="mr-1.5 h-4 w-4" />Find duplicates</Button>
-          <Button size="sm" className="bg-azure text-white hover:bg-mint-ink" onClick={newContact}>
+          <Button size="sm" onClick={newContact}>
             <Plus className="mr-1.5 h-4 w-4" />{friendsOnly ? "Add friend" : "Add contact"}
           </Button>
         </div>
@@ -161,119 +167,119 @@ export default function ContactsManager({ scope, ownerId, friendsOnly = false }:
             <div className="relative">
               <Search className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
               <Input value={searchInput} onChange={(e) => setSearchInput(e.target.value)} placeholder="Search name, email, phone, organisation"
-                onKeyDown={(e) => { if (e.key === "Enter") { setPage(1); setSearch(searchInput.trim()); } }} className="h-9 w-72 pl-8" />
+                onKeyDown={(e) => { if (e.key === "Enter") { setPage(1); setSearch(searchInput.trim()); } }} className="w-72 pl-8" />
             </div>
             {!friendsOnly && (
-              <select aria-label="Type" value={type} onChange={(e) => { setPage(1); setType(e.target.value); }} className={SELECT}>
+              <NativeSelect aria-label="Type" value={type} onChange={(e) => { setPage(1); setType(e.target.value); }} className="w-auto">
                 <option value="">All types</option>
                 {CONTACT_TYPES.map((t) => <option key={t} value={t}>{label(t)}</option>)}
-              </select>
+              </NativeSelect>
             )}
-            <select aria-label="Group" value={groupId} onChange={(e) => { setPage(1); setGroupId(Number(e.target.value)); }} className={SELECT}>
+            <NativeSelect aria-label="Group" value={groupId} onChange={(e) => { setPage(1); setGroupId(Number(e.target.value)); }} className="w-auto">
               <option value={0}>All groups</option>
               {groups?.map((g) => <option key={g.id} value={g.id}>{g.name}</option>)}
-            </select>
+            </NativeSelect>
             {tags.length > 0 && (
-              <select aria-label="Tag" value={tagId} onChange={(e) => { setPage(1); setTagId(Number(e.target.value)); }} className={SELECT}>
+              <NativeSelect aria-label="Tag" value={tagId} onChange={(e) => { setPage(1); setTagId(Number(e.target.value)); }} className="w-auto">
                 <option value={0}>All tags</option>
                 {tags.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
-              </select>
+              </NativeSelect>
             )}
           </div>
 
           {data === null ? <TableSkeleton rows={8} /> : (
-            <div className="overflow-hidden rounded-[20px] border border-slate-200 bg-card">
+            <Card className="overflow-hidden">
               <div className="overflow-x-auto">
-                <table className="min-w-full text-sm">
-                  <thead className="bg-[#EDF4FB] text-[13px] text-[#64748B]">
-                    <tr>
-                      <th className="px-3 py-2.5 text-left">Name</th>
-                      <th className="px-3 py-2.5 text-left">Type</th>
-                      <th className="px-3 py-2.5 text-left">Email</th>
-                      <th className="px-3 py-2.5 text-left">Phone</th>
-                      <th className="px-3 py-2.5 text-left">Groups</th>
-                      <th className="w-20 px-3 py-2.5 text-right"><span className="sr-only">Actions</span></th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
+                <Table className="min-w-full text-sm">
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="px-3 text-left">Name</TableHead>
+                      <TableHead className="px-3 text-left">Type</TableHead>
+                      <TableHead className="px-3 text-left">Email</TableHead>
+                      <TableHead className="px-3 text-left">Phone</TableHead>
+                      <TableHead className="px-3 text-left">Groups</TableHead>
+                      <TableHead className="w-20 px-3 text-right"><span className="sr-only">Actions</span></TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody className="divide-y divide-slate-100">
                     {data.items.map((c) => (
-                      <tr key={c.id} className="hover:bg-slate-50">
-                        <td className="px-3 py-2">
+                      <TableRow key={c.id} className="hover:bg-slate-50">
+                        <TableCell className="px-3 py-2">
                           <p className="font-medium text-slate-800">{c.name}</p>
                           {c.organisation && <p className="text-xs text-slate-500">{c.organisation}</p>}
-                        </td>
-                        <td className="px-3 py-2 text-slate-600">{label(c.contactType)}</td>
-                        <td className="px-3 py-2 text-slate-600">{c.email || "-"}</td>
-                        <td className="whitespace-nowrap px-3 py-2 text-slate-600">{c.mobile || "-"}</td>
-                        <td className="px-3 py-2 text-xs text-slate-600">
+                        </TableCell>
+                        <TableCell className="px-3 py-2 text-slate-600">{label(c.contactType)}</TableCell>
+                        <TableCell className="px-3 py-2 text-slate-600">{c.email || "-"}</TableCell>
+                        <TableCell className="whitespace-nowrap px-3 py-2 text-slate-600">{c.mobile || "-"}</TableCell>
+                        <TableCell className="px-3 py-2 text-xs text-slate-600">
                           {c.groupIds.map(groupName).filter(Boolean).join(", ") || "-"}
                           {!!c.tagIds?.length && (
                             <div className="mt-1 flex flex-wrap gap-1">
                               {c.tagIds.map((t) => tags.find((x) => x.id === t)).filter((t): t is ClubTag => !!t).map((t) => <TagChip key={t.id} tag={t} />)}
                             </div>
                           )}
-                        </td>
-                        <td className="px-3 py-2 text-right">
-                          <button type="button" aria-label={`Edit ${c.name}`} className="inline-flex h-7 w-7 items-center justify-center rounded text-slate-500 hover:bg-slate-100"
+                        </TableCell>
+                        <TableCell className="px-3 py-2 text-right">
+                          <IconButton type="button" aria-label={`Edit ${c.name}`} 
                             onClick={() => { setEditTags(c.tagIds ?? []); setEditing({ id: c.id, form: { name: c.name, email: c.email ?? "", mobile: c.mobile ?? "",
                               contactType: c.contactType, organisation: c.organisation ?? "", notes: c.notes ?? "", groupIds: c.groupIds } }); }}>
                             <Pencil className="h-3.5 w-3.5" />
-                          </button>
-                          <button type="button" aria-label={`Delete ${c.name}`} className="inline-flex h-7 w-7 items-center justify-center rounded text-slate-400 hover:bg-rose-50 hover:text-rose-700"
+                          </IconButton>
+                          <IconButton type="button" aria-label={`Delete ${c.name}`} className="hover:text-red-700"
                             onClick={() => setToDelete(c)}>
                             <Trash2 className="h-3.5 w-3.5" />
-                          </button>
-                        </td>
-                      </tr>
+                          </IconButton>
+                        </TableCell>
+                      </TableRow>
                     ))}
                     {data.items.length === 0 && (
-                      <tr><td colSpan={6} className="px-4 py-10 text-center text-slate-400">
+                      <TableRow><TableCell colSpan={6} className="px-4 py-10 text-center text-slate-400">
                         {friendsOnly
                           ? (search || groupId || tagId ? "No friends match these filters." : "No friends of the club yet. Add one, or set a contact's type to Friend of the club.")
                           : search || type || groupId || tagId ? "No contacts match these filters." : "No contacts yet. Add one or import a spreadsheet."}
-                      </td></tr>
+                      </TableCell></TableRow>
                     )}
-                  </tbody>
-                </table>
+                  </TableBody>
+                </Table>
               </div>
               {totalPages > 1 && (
                 <div className="border-t border-slate-100 px-3 py-2">
                   <Pagination page={page} totalPages={totalPages} totalCount={data.totalCount} pageSize={PAGE_SIZE} onPageChange={setPage} />
                 </div>
               )}
-            </div>
+            </Card>
           )}
         </div>
 
-        <aside className="h-fit rounded-[20px] border border-slate-200 bg-card p-4">
-          <h3 className="text-sm font-semibold text-slate-800">Groups</h3>
+        <aside className="row-card row-rise h-fit p-5">
+          <h3 className="row-h3">Groups</h3>
           <p className="mt-0.5 text-xs text-slate-500">Pick a group as the recipients of a mass email or an event invite.</p>
           <div className="mt-3 space-y-1">
             {groups === null ? Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-7 w-full" />) : groups.map((g) => (
               <div key={g.id} className="flex items-center gap-1 rounded-md px-1 py-1 hover:bg-slate-50">
                 {renaming?.id === g.id ? (
                   <>
-                    <Input autoFocus value={renaming.name} onChange={(e) => setRenaming({ id: g.id, name: e.target.value })} className="h-7 flex-1 text-sm" />
-                    <button type="button" aria-label="Save name" className="p-1 text-emerald-700"
+                    <Input autoFocus value={renaming.name} onChange={(e) => setRenaming({ id: g.id, name: e.target.value })} className="row-field-sm flex-1" />
+                    <IconButton type="button" aria-label="Save name" 
                       onClick={() => run(() => renameContactGroup(scope, ownerId, g.id, renaming.name).then(() => setRenaming(null)), "Group renamed.", "Could not rename the group.")}>
                       <Check className="h-4 w-4" />
-                    </button>
-                    <button type="button" aria-label="Cancel" className="p-1 text-slate-400" onClick={() => setRenaming(null)}><X className="h-4 w-4" /></button>
+                    </IconButton>
+                    <IconButton type="button" aria-label="Cancel"  onClick={() => setRenaming(null)}><X className="h-4 w-4" /></IconButton>
                   </>
                 ) : (
                   <>
-                    <button type="button" className={`flex-1 truncate text-left text-sm ${groupId === g.id ? "font-semibold text-azure" : "text-slate-700"}`}
+                    <MenuItemButton selected={groupId === g.id} className="flex-1 truncate" type="button"
                       onClick={() => { setPage(1); setGroupId(groupId === g.id ? 0 : g.id); }}>
                       {g.name} <span className="text-xs text-slate-400">({g.contactCount})</span>
-                    </button>
-                    <button type="button" aria-label={`Rename ${g.name}`} className="p-1 text-slate-400 hover:text-slate-700" onClick={() => setRenaming({ id: g.id, name: g.name })}>
+                    </MenuItemButton>
+                    <IconButton type="button" aria-label={`Rename ${g.name}`}  onClick={() => setRenaming({ id: g.id, name: g.name })}>
                       <Pencil className="h-3.5 w-3.5" />
-                    </button>
+                    </IconButton>
                     {/* the friends list follows the contacts' type, so it is not deleted by hand */}
                     {!g.systemKey && (
-                      <button type="button" aria-label={`Delete ${g.name}`} className="p-1 text-slate-400 hover:text-rose-700" onClick={() => setGroupToDelete(g)}>
+                      <IconButton type="button" aria-label={`Delete ${g.name}`} className="hover:text-red-700" onClick={() => setGroupToDelete(g)}>
                         <Trash2 className="h-3.5 w-3.5" />
-                      </button>
+                      </IconButton>
                     )}
                   </>
                 )}
@@ -285,8 +291,8 @@ export default function ContactsManager({ scope, ownerId, friendsOnly = false }:
             e.preventDefault();
             if (newGroup.trim()) run(() => createContactGroup(scope, ownerId, newGroup.trim()).then(() => setNewGroup("")), "Group added.", "Could not add the group.");
           }}>
-            <Input value={newGroup} onChange={(e) => setNewGroup(e.target.value)} placeholder="New group" maxLength={100} className="h-8 text-sm" />
-            <Button type="submit" size="sm" variant="outline" disabled={!newGroup.trim()}><Plus className="h-4 w-4" /></Button>
+            <Input value={newGroup} onChange={(e) => setNewGroup(e.target.value)} placeholder="New group" maxLength={100} className="row-field-sm" />
+            <Button type="submit" size="sm" variant="outline" aria-label="Add group" disabled={!newGroup.trim()}><Plus className="h-4 w-4" /></Button>
           </form>
         </aside>
       </div>
@@ -305,14 +311,14 @@ export default function ContactsManager({ scope, ownerId, friendsOnly = false }:
               <div className="space-y-1"><Label htmlFor="c-mobile">Phone</Label>
                 <Input id="c-mobile" value={editing.form.mobile ?? ""} maxLength={30} onChange={(e) => set({ mobile: e.target.value })} /></div>
               <div className="space-y-1"><Label htmlFor="c-type">Type</Label>
-                <select id="c-type" value={editing.form.contactType} onChange={(e) => set({ contactType: e.target.value })} className={`${SELECT} w-full`}>
+                <NativeSelect id="c-type" value={editing.form.contactType} onChange={(e) => set({ contactType: e.target.value })} >
                   {CONTACT_TYPES.map((t) => <option key={t} value={t}>{label(t)}</option>)}
-                </select></div>
+                </NativeSelect></div>
               <div className="space-y-1"><Label htmlFor="c-org">Organisation</Label>
                 <Input id="c-org" value={editing.form.organisation ?? ""} maxLength={200} onChange={(e) => set({ organisation: e.target.value })} /></div>
               <div className="space-y-1 sm:col-span-2"><Label htmlFor="c-notes">Notes</Label>
-                <textarea id="c-notes" rows={3} maxLength={1000} value={editing.form.notes ?? ""} onChange={(e) => set({ notes: e.target.value })}
-                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm" /></div>
+                <Textarea id="c-notes" rows={3} maxLength={1000} value={editing.form.notes ?? ""} onChange={(e) => set({ notes: e.target.value })}
+                   /></div>
               {!!groups?.some((g) => !g.systemKey) && (
                 <div className="space-y-1 sm:col-span-2">
                   <Label>Groups</Label>
@@ -346,7 +352,7 @@ export default function ContactsManager({ scope, ownerId, friendsOnly = false }:
           )}
           <DialogFooter>
             <Button variant="outline" onClick={() => setEditing(null)}>Cancel</Button>
-            <Button className="bg-azure text-white hover:bg-mint-ink" disabled={saving} onClick={save}>
+            <Button disabled={saving} onClick={save}>
               {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}Save
             </Button>
           </DialogFooter>

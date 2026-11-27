@@ -1,5 +1,8 @@
 "use client";
 
+import { MenuItemButton } from "@/components/ui/text-buttons"
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { useCallback, useEffect, useState } from "react";
 import { Puzzle, Zap, ExternalLink } from "@/components/icons";
 import { useExtensionStatus } from "@/hooks/useExtensionStatus";
@@ -79,11 +82,10 @@ export default function SyncProjectsToRotaryOrgCard({ clubId }: { clubId: number
 
   return (
     <>
-      <div className="rounded-xl border border-slate-200 bg-card shadow-sm transition-shadow hover:border-blue-300 hover:shadow-md">
-        <button
+      <Card className="transition-shadow hover:border-blue-300">
+        <MenuItemButton className="p-4"
           type="button"
           onClick={() => setOpen(true)}
-          className="flex w-full items-center gap-3 p-4 text-left"
         >
           <div className="relative shrink-0">
             <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-50">
@@ -98,7 +100,7 @@ export default function SyncProjectsToRotaryOrgCard({ clubId }: { clubId: number
             <div className="text-xs text-slate-500">ROW -&gt; Rotary.org</div>
           </div>
           <span className="hidden shrink-0 text-xs font-semibold text-blue-600 sm:block">Manage setup</span>
-        </button>
+        </MenuItemButton>
 
         <div className="flex flex-wrap items-center gap-x-3 gap-y-2 border-t border-slate-100 px-4 py-2.5">
           <StatusChip tone={extTone} label={extLabel} />
@@ -109,22 +111,22 @@ export default function SyncProjectsToRotaryOrgCard({ clubId }: { clubId: number
               href={ADD_TO_ORG_WEBSTORE_URL}
               target="_blank"
               rel="noopener noreferrer"
-              className="ml-auto inline-flex items-center gap-1 rounded-full border border-amber-300 bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-800 hover:bg-amber-100"
+              className="row-btn row-btn-secondary row-btn-sm ml-auto"
             >
               Install extension <ExternalLink className="h-3 w-3" />
             </a>
           )}
           {installed === true && creds === "no" && (
-            <button
+            <Button
               type="button"
               onClick={() => setOpen(true)}
-              className="ml-auto inline-flex items-center gap-1 rounded-full border border-amber-300 bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-800 hover:bg-amber-100"
+              variant="outline" size="sm" className="ml-auto"
             >
               Add Rotary.org login
-            </button>
+            </Button>
           )}
         </div>
-      </div>
+      </Card>
 
       <AddToOrgInstallDialog
         clubId={clubId}

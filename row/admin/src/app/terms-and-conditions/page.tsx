@@ -54,7 +54,7 @@ export default async function TermsPage() {
         <h2>3. User Accounts &amp; Security</h2>
         <ul>
           <li>Accounts are created by your Club Secretary, District Administrator, or a duly authorised officer of the Platform; you may not self-register.</li>
-          <li>You are responsible for keeping your credentials (mobile number / email, password, OTP) confidential and for every action taken under your account.</li>
+          <li>You are responsible for keeping your credentials (email, password, sign-in codes) confidential and for every action taken under your account.</li>
           <li>You must immediately notify us at <a href={`mailto:${MERCHANT.email}`}>{MERCHANT.email}</a> if you suspect unauthorised access.</li>
           <li>We may suspend or terminate accounts that are inactive, compromised, or used in breach of these Terms.</li>
         </ul>

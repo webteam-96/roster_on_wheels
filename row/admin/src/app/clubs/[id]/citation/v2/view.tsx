@@ -16,13 +16,13 @@
  * Save is further gated on (isSuperAdmin || isAdmin), matching v1.
  */
 
+import { Textarea } from "@/components/ui/textarea";
+import { Card } from "@/components/ui/card";
+import { ToggleButton } from "@/components/ui/text-buttons";
+import { Table, TableHeader, TableBody, TableFooter, TableRow, TableHead, TableCell } from "@/components/ui/table";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useParams, useSearchParams } from "next/navigation";
-import Link from "next/link";
-import {
-  Award, Calculator, RefreshCw, Save, ArrowLeft, Loader2, Trophy,
-  CheckCircle2, FileText,
-} from "@/components/icons";
+import { Award, Calculator, RefreshCw, Save, Trophy, CheckCircle2, FileText } from "@/components/icons";
 import {
   getClub,
   getClubCitation,
@@ -46,7 +46,7 @@ import { useCurrentRotaryYear } from "@/hooks/useCurrentRotaryYear";
 import ViewOnlyBadge from "@/components/ViewOnlyBadge";
 
 import { appLocale } from "@/lib/appFormat";
-import { SkeletonRows } from "@/components/row/AppKit";
+import { PageHeader, SkeletonRows } from "@/components/row/AppKit";
 // ── Types ───────────────────────────────────────────────────────────────────
 // Citation responses are loosely typed in the v1 API, so we mirror that shape
 // with permissive `any`-shaped helpers rather than introducing a new type file.
@@ -350,25 +350,7 @@ export function ClubCitationV2View({ clubId: propClubId, embedded = false, readO
 
         {/* ── Header ──────────────────────────────────────────────────── */}
         {!embedded && (
-        <div className="flex items-start justify-between gap-3">
-          <div className="flex items-start gap-2">
-            <Link
-              href={backUrl}
-              className="mt-0.5 inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50"
-              aria-label="Back"
-            >
-              <ArrowLeft size={15} />
-            </Link>
-            <div>
-              <h1 className="text-lg font-semibold text-slate-800">
-                {clubName ? `${clubName} · District Awards` : "District Awards"}
-              </h1>
-              <p className="text-xs text-slate-500 mt-0.5">
-                RY {yearLabel}{readOnly ? " · District view (read-only)" : ""}
-              </p>
-            </div>
-          </div>
-        </div>
+        <PageHeader title={clubName ? `${clubName} · District Awards` : "District Awards"} description={<>RY {yearLabel}{readOnly ? " · District view (read-only)" : ""}</>} back={backUrl} />
         )}
 
         {/* ── Summary gradient band ───────────────────────────────────── */}
@@ -415,43 +397,27 @@ export function ClubCitationV2View({ clubId: propClubId, embedded = false, readO
 
         {/* ── Description (optional, HTML from API) ───────────────────── */}
         {citationData?.descriptionHtml && (
-          <div className="bg-card rounded-2xl border border-slate-200 overflow-hidden">
+          <Card className="overflow-hidden">
             <div className="px-5 py-3 border-b border-slate-100 flex items-center gap-2">
               <FileText size={14} className="text-slate-500" />
-              <h3 className="text-sm font-semibold text-slate-800">About these awards</h3>
+              <h3 className="row-h3">About these awards</h3>
             </div>
             <div
               className="px-5 py-4 text-sm text-slate-700 leading-relaxed prose prose-sm max-w-none"
               dangerouslySetInnerHTML={{ __html: citationData.descriptionHtml }}
             />
-          </div>
+          </Card>
         )}
 
         {/* ── Tab strip ───────────────────────────────────────────────── */}
-        <div className="bg-card rounded-2xl border border-slate-200 p-1.5 inline-flex w-full sm:w-auto">
-          <button
-            type="button"
-            onClick={() => setActiveTab("auto")}
-            className={`px-4 py-1.5 text-xs font-medium rounded-lg transition flex-1 sm:flex-initial ${
-              activeTab === "auto"
-                ? "bg-blue-600 text-white shadow-sm"
-                : "text-slate-600 hover:bg-blue-50 hover:text-blue-700"
-            }`}
-          >
+        <Card className="p-1.5 inline-flex w-full sm:w-auto">
+          <ToggleButton pressed={activeTab === "auto"} onClick={() => setActiveTab("auto")} className="flex-1 sm:flex-initial">
             Auto Points
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveTab("manual")}
-            className={`px-4 py-1.5 text-xs font-medium rounded-lg transition flex-1 sm:flex-initial ${
-              activeTab === "manual"
-                ? "bg-blue-600 text-white shadow-sm"
-                : "text-slate-600 hover:bg-blue-50 hover:text-blue-700"
-            }`}
-          >
+          </ToggleButton>
+          <ToggleButton pressed={activeTab === "manual"} onClick={() => setActiveTab("manual")} className="flex-1 sm:flex-initial">
             Manual Points
-          </button>
-        </div>
+          </ToggleButton>
+        </Card>
 
         {/* ── Auto Points tab ─────────────────────────────────────────── */}
         {activeTab === "auto" && (
@@ -512,10 +478,10 @@ function AutoPointsPanel({
 
   return (
     <div className="space-y-4">
-      <div className="bg-card rounded-2xl border border-slate-200 overflow-hidden">
+      <Card className="overflow-hidden">
         <div className="px-5 py-3 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
-            <h3 className="text-sm font-semibold text-slate-800">Auto-calculated Points</h3>
+            <h3 className="row-h3">Auto-calculated Points</h3>
             <p className="text-xs text-slate-500 mt-0.5">
               Derived from system data (projects, meetings, members, etc.)
             </p>
@@ -526,7 +492,7 @@ function AutoPointsPanel({
               forcePending={refreshing}
               loadingLabel="Refreshing…"
               spinnerSize={13}
-              className="inline-flex items-center gap-1.5 text-xs font-semibold px-4 h-10 rounded-full border border-blue-200 text-blue-700 hover:bg-blue-50 disabled:opacity-50"
+              className="row-btn row-btn-secondary"
             >
               {!refreshing && <RefreshCw size={13} />}
               Refresh Auto Points
@@ -542,21 +508,20 @@ function AutoPointsPanel({
             </p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[640px] md:min-w-full text-sm">
-              <thead className="bg-[#EDF4FB] text-[13px] text-[#64748B]">
-                <tr>
-                  <th className="px-3 py-2.5 text-left w-10">#</th>
-                  <th className="px-3 py-2.5 text-left">Category</th>
-                  <th className="px-3 py-2.5 text-left">Activity</th>
-                  <th className="px-3 py-2.5 text-left">Sub Item</th>
-                  <th className="px-3 py-2.5 text-right">Base Points</th>
-                  <th className="px-3 py-2.5 text-center">Count</th>
-                  <th className="px-3 py-2.5 text-right">Bonus</th>
-                  <th className="px-3 py-2.5 text-right">Total</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
+            <Table className="min-w-[640px] md:min-w-full">
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="text-left w-10">#</TableHead>
+                  <TableHead className="text-left">Category</TableHead>
+                  <TableHead className="text-left">Activity</TableHead>
+                  <TableHead className="text-left">Sub Item</TableHead>
+                  <TableHead className="text-right">Base Points</TableHead>
+                  <TableHead className="text-center">Count</TableHead>
+                  <TableHead className="text-right">Bonus</TableHead>
+                  <TableHead className="text-right">Total</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
                 {entries.map((e, i) => {
                   const pts = Number(e.pointsEarned || 0);
                   const bns = Number(e.bonusEarned || 0);
@@ -573,32 +538,31 @@ function AutoPointsPanel({
                       : (e.basePoints ?? 0)
                   );
                   return (
-                    <tr key={e.id ?? i} className="hover:bg-blue-50/40">
-                      <td className="px-3 py-2 text-slate-500">{i + 1}</td>
-                      <td className="px-3 py-2 font-medium text-slate-800">{e.categoryName || "–"}</td>
-                      <td className="px-3 py-2 text-slate-700">{e.activityName || "–"}</td>
-                      <td className="px-3 py-2 text-slate-600 whitespace-normal break-words">{subItemText}</td>
-                      <td className="px-3 py-2 text-right tabular-nums text-slate-700">{fmtPts(basePts)}</td>
-                      <td className="px-3 py-2 text-center text-slate-700 tabular-nums">{e.answerValue || "–"}</td>
-                      <td className="px-3 py-2 text-right tabular-nums text-amber-700">{bns > 0 ? fmtPts(bns) : "–"}</td>
-                      <td className="px-3 py-2 text-right font-semibold tabular-nums text-blue-700">{fmtPts(pts + bns)}</td>
-                    </tr>
+                    <TableRow key={e.id ?? i}>
+                      <TableCell className="py-2 text-slate-500">{i + 1}</TableCell>
+                      <TableCell className="py-2 font-medium text-slate-800">{e.categoryName || "–"}</TableCell>
+                      <TableCell className="py-2 text-slate-700">{e.activityName || "–"}</TableCell>
+                      <TableCell className="py-2 text-slate-600 whitespace-normal break-words">{subItemText}</TableCell>
+                      <TableCell className="py-2 text-right tabular-nums text-slate-700">{fmtPts(basePts)}</TableCell>
+                      <TableCell className="py-2 text-center text-slate-700 tabular-nums">{e.answerValue || "–"}</TableCell>
+                      <TableCell className="py-2 text-right tabular-nums text-amber-700">{bns > 0 ? fmtPts(bns) : "–"}</TableCell>
+                      <TableCell className="py-2 text-right font-semibold tabular-nums text-blue-700">{fmtPts(pts + bns)}</TableCell>
+                    </TableRow>
                   );
                 })}
-              </tbody>
-              <tfoot className="bg-slate-800 text-white">
-                <tr>
-                  <td className="px-3 py-2.5 font-bold" colSpan={6}>Total Auto Points</td>
-                  <td className="px-3 py-2.5 text-right tabular-nums">{fmtPts(sumBonus)}</td>
-                  <td className="px-3 py-2.5 text-right tabular-nums" style={{ color: "#F7A81B" }}>
+              </TableBody>
+              <TableFooter>
+                <TableRow>
+                  <TableCell className="py-2.5 font-bold" colSpan={6}>Total Auto Points</TableCell>
+                  <TableCell className="py-2.5 text-right tabular-nums">{fmtPts(sumBonus)}</TableCell>
+                  <TableCell className="py-2.5 text-right tabular-nums font-bold text-blue-700">
                     {fmtPts(totalAuto)}
-                  </td>
-                </tr>
-              </tfoot>
-            </table>
-          </div>
+                  </TableCell>
+                </TableRow>
+              </TableFooter>
+            </Table>
         )}
-      </div>
+      </Card>
     </div>
   );
 }
@@ -617,24 +581,24 @@ function ManualPointsPanel({
 
   if (categories.length === 0) {
     return (
-      <div className="bg-card rounded-2xl border border-slate-200">
+      <Card>
         <div className="flex flex-col items-center py-14 text-slate-400">
           <Calculator size={32} className="mb-3 opacity-60" />
           <p className="text-xs">No manual questions configured for this year.</p>
         </div>
-      </div>
+      </Card>
     );
   }
 
   return (
     <div className="space-y-4">
       {categories.map((mc) => (
-        <div key={mc.criteriaId} className="bg-card rounded-2xl border border-slate-200 overflow-hidden">
+        <Card key={mc.criteriaId} className="overflow-hidden">
           <div className="px-5 py-3 border-b border-slate-100 bg-blue-50 flex items-center gap-2">
             <div className="w-7 h-7 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center">
               <Award size={14} />
             </div>
-            <h3 className="text-sm font-semibold text-slate-800">{mc.categoryName}</h3>
+            <h3 className="row-h3">{mc.categoryName}</h3>
           </div>
           <div className="p-4 space-y-3">
             {(mc.subCriteria || []).map((sc: any) => {
@@ -650,7 +614,7 @@ function ManualPointsPanel({
               );
             })}
           </div>
-        </div>
+        </Card>
       ))}
 
       {canManage && (
@@ -660,7 +624,7 @@ function ManualPointsPanel({
             forcePending={saving}
             loadingLabel="Saving…"
             spinnerSize={13}
-            className="inline-flex items-center gap-1.5 text-xs font-semibold px-4 py-2 rounded-full bg-amber-500 text-white hover:bg-amber-600 disabled:opacity-50"
+            className="row-btn row-btn-secondary row-btn-sm"
           >
             {!saving && <Save size={13} />}
             Save Manual Points
@@ -693,7 +657,7 @@ function ManualRow({
           <p className="text-sm font-medium text-slate-800">{sc.title}</p>
           {sc.remark && <p className="text-xs text-slate-500 mt-0.5">{sc.remark}</p>}
         </div>
-        <span className={`shrink-0 inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full border tabular-nums ${earnedChipClass}`}>
+        <span className={`shrink-0 inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded border tabular-nums ${earnedChipClass}`}>
           {earned > 0 && <CheckCircle2 size={11} />}
           {fmtPts(earned)}
         </span>
@@ -724,40 +688,20 @@ function ManualRow({
 
       {normalizedType === "yesno" && (
         <div className="flex items-center gap-4 flex-wrap">
-          <div className="inline-flex rounded-lg border border-slate-200 p-0.5 bg-slate-50">
-            <button
-              type="button"
-              disabled={!canManage}
-              onClick={() => onChange(sc.id, "yes", sc)}
-              className={`px-3 py-1 text-xs font-medium rounded-md transition ${
-                answer.value === "yes"
-                  ? "bg-emerald-600 text-white shadow-sm"
-                  : "text-slate-600 hover:bg-card"
-              } disabled:opacity-60 disabled:cursor-not-allowed`}
-            >
+          <div className="inline-flex gap-2">
+            <ToggleButton pressed={answer.value === "yes"} disabled={!canManage} onClick={() => onChange(sc.id, "yes", sc)}>
               Yes
-            </button>
-            <button
-              type="button"
-              disabled={!canManage}
-              onClick={() => onChange(sc.id, "no", sc)}
-              className={`px-3 py-1 text-xs font-medium rounded-md transition ${
-                answer.value === "no" || answer.value === ""
-                  ? answer.value === "no"
-                    ? "bg-rose-500 text-white shadow-sm"
-                    : "text-slate-600 hover:bg-card"
-                  : "text-slate-600 hover:bg-card"
-              } disabled:opacity-60 disabled:cursor-not-allowed`}
-            >
+            </ToggleButton>
+            <ToggleButton pressed={answer.value === "no"} disabled={!canManage} onClick={() => onChange(sc.id, "no", sc)}>
               No
-            </button>
+            </ToggleButton>
           </div>
           <span className="text-xs text-slate-500">{fmtInt(Number(sc.points))} if Yes</span>
         </div>
       )}
 
       {normalizedType === "text" && (
-        <textarea
+        <Textarea
           id={`award-answer-${sc.id}`}
           rows={2}
           maxLength={500}
@@ -765,7 +709,7 @@ function ManualRow({
           onChange={(e) => onChange(sc.id, e.target.value, sc)}
           disabled={!canManage}
           placeholder="Type your answer..."
-          className="w-full px-3 py-1.5 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-slate-50 disabled:text-slate-500 disabled:cursor-not-allowed resize-y"
+          className="disabled:bg-slate-50 disabled:text-slate-500 disabled:cursor-not-allowed resize-y"
         />
       )}
 

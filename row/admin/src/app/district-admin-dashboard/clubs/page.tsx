@@ -18,6 +18,7 @@
  *   Slate  text/backgrounds/rings
  */
 
+import { Card } from "@/components/ui/card";
 import { useState, useEffect, useCallback } from "react";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import Image from "next/image";
@@ -77,7 +78,7 @@ function ClubTableDA({
   };
 
   return (
-    <div className="rounded-2xl border border-slate-200 shadow-sm overflow-hidden bg-card">
+    <Card className="overflow-hidden">
       <Table>
         <TableHeader>
           <TableRow
@@ -85,20 +86,20 @@ function ClubTableDA({
             style={{ backgroundColor: "#17458f" }}
           >
             <TableHead className="w-12/90"></TableHead>
-            <TableHead className="text-xs font-semibold uppercase tracking-wide">Club Name</TableHead>
-            <TableHead className="hidden md:table-cell text-xs font-semibold uppercase tracking-wide">Club ID</TableHead>
-            <TableHead className="hidden md:table-cell text-xs font-semibold uppercase tracking-wide">District</TableHead>
-            <TableHead className="hidden lg:table-cell text-xs font-semibold uppercase tracking-wide">Meeting Day</TableHead>
-            <TableHead className="hidden md:table-cell text-xs font-semibold uppercase tracking-wide">City</TableHead>
-            <TableHead className="text-xs font-semibold uppercase tracking-wide">Members</TableHead>
+            <TableHead>Club Name</TableHead>
+            <TableHead className="hidden md:table-cell">Club ID</TableHead>
+            <TableHead className="hidden md:table-cell">District</TableHead>
+            <TableHead className="hidden lg:table-cell">Meeting Day</TableHead>
+            <TableHead className="hidden md:table-cell">City</TableHead>
+            <TableHead>Members</TableHead>
             {meetings !== undefined && (
-              <TableHead className="text-xs font-semibold uppercase tracking-wide">
+              <TableHead>
                 Meetings{meetingsMonth ? ` ${monthLabel(meetingsMonth)}` : ""}
               </TableHead>
             )}
-            <TableHead className="text-xs font-semibold uppercase tracking-wide">Sync</TableHead>
-            <TableHead className="min-w-[240px] text-xs font-semibold uppercase tracking-wide">Website</TableHead>
-            <TableHead className="text-xs font-semibold uppercase tracking-wide">Status</TableHead>
+            <TableHead>Sync</TableHead>
+            <TableHead className="min-w-[240px]">Website</TableHead>
+            <TableHead>Status</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -178,7 +179,7 @@ function ClubTableDA({
                   {(() => {
                     if (!club.websiteSubdomain) {
                       return (
-                        <Badge variant="outline" className="text-[10px] font-medium border-slate-200 bg-slate-50 text-slate-600">
+                        <Badge variant="outline" className="border-slate-200 bg-slate-50 text-slate-600">
                           No
                         </Badge>
                       );
@@ -188,7 +189,7 @@ function ClubTableDA({
                     const expired = !!end && end < now;
                     if (expired) {
                       return (
-                        <Badge variant="outline" className="text-[10px] font-medium border-red-200 bg-red-50 text-red-700">
+                        <Badge variant="outline" className="border-red-200 bg-red-50 text-red-700">
                           Expired
                         </Badge>
                       );
@@ -204,7 +205,7 @@ function ClubTableDA({
                       : clubWebsiteUrl(club.websiteSubdomain);
                     if (!url) {
                       return (
-                        <Badge variant="outline" className="text-[10px] font-medium border-slate-200 bg-slate-50 text-slate-600">
+                        <Badge variant="outline" className="border-slate-200 bg-slate-50 text-slate-600">
                           No
                         </Badge>
                       );
@@ -241,7 +242,7 @@ function ClubTableDA({
           })}
         </TableBody>
       </Table>
-    </div>
+    </Card>
   );
 }
 
@@ -375,7 +376,7 @@ export default function DistrictAdminClubsPage() {
         <DistrictMembershipTabBar />
 
         {/* Search */}
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center bg-slate-50 p-4 rounded-2xl border border-slate-200">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
             <Input
@@ -383,14 +384,14 @@ export default function DistrictAdminClubsPage() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               onKeyDown={handleKeyDown}
-              className="pl-9 border-slate-200 bg-card focus:border-azure focus:ring-azure/20 text-sm"
+              className="pl-9"
             />
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <Button
               onClick={handleSearch}
               size="sm"
-              className="bg-azure hover:bg-mint-ink text-white"
+             
             >
               <Search className="mr-2 h-4 w-4" />Search
             </Button>
@@ -404,7 +405,7 @@ export default function DistrictAdminClubsPage() {
             {meetingsOn && (
               <Link
                 href="/district-admin-dashboard/meeting-compliance"
-                className="inline-flex items-center rounded-full border border-slate-200 bg-card px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50"
+                className="row-btn row-btn-secondary row-btn-sm"
               >
                 Meeting rule
               </Link>
@@ -422,26 +423,26 @@ export default function DistrictAdminClubsPage() {
         )}
 
         {error && (
-          <div className="flex flex-col items-center justify-center py-20 text-center bg-card rounded-2xl border border-slate-200 shadow-sm">
+          <Card className="flex flex-col items-center justify-center py-20 text-center">
             <AlertCircle className="h-12 w-12 text-red-500 mb-4" />
-            <h3 className="text-lg font-semibold text-slate-800">Error</h3>
+            <h3 className="row-h2">Error</h3>
             <p className="text-slate-500 mt-2 max-w-md">{error}</p>
             <Button
               variant="outline"
-              className="mt-4 border-slate-200"
+              className="mt-4"
               onClick={() => fetchClubs()}
             >
               Try Again
             </Button>
-          </div>
+          </Card>
         )}
 
         {!loading && !error && data && data.items.length === 0 && (
-          <div className="flex flex-col items-center justify-center py-20 text-center bg-card rounded-2xl border border-slate-200 shadow-sm">
+          <Card className="flex flex-col items-center justify-center py-20 text-center">
             <Building2 className="h-12 w-12 text-slate-400 mb-4" />
-            <h3 className="text-lg font-semibold text-slate-800">No clubs found</h3>
+            <h3 className="row-h2">No clubs found</h3>
             <p className="text-slate-500 mt-2">No clubs in this district yet.</p>
-          </div>
+          </Card>
         )}
 
         {!loading && !error && data && data.items.length > 0 && (

@@ -5369,6 +5369,7 @@ public partial class DatabaseInitializer
                 // RIZones pull 9-17 Nov (dues email/currency, club Rotary.org sync): DatabaseInitializer.RizonesPull1117.cs.
                 await EnsureRizonesPull1117SchemaAsync(connection);
                 await EnsureGoalModuleSchemaAsync(connection);
+                await EnsureGoalFlowSchemaAsync(connection); // new goal flow: DatabaseInitializer.GoalFlow.cs
 
                 // Never reset any user's password on boot: passwords change only through
                 // explicit SuperAdmin reset flows.
@@ -5396,7 +5397,6 @@ public partial class DatabaseInitializer
                 // Group 1: Auth & system (rendered locked in UI).
                 ("/splash", "Splash"),
                 ("/login", "Login"),
-                ("/otp-verify", "OTP Verify"),
                 ("/welcome", "Welcome"),
                 ("/terms", "Terms"),
                 ("/admin-login", "Admin Login"),
@@ -6338,6 +6338,15 @@ public partial class DatabaseInitializer
     // columns they need — are always current without a full ~900-op initializer run. Cheap: two
     // ALTER-if-missing checks + ~90 field upserts. Assumes the goal_* tables already exist (created
     // by InitializeAsync); on a brand-new DB the caller's try/catch logs and InitializeAsync creates them.
+    // Dues NotifyEmail/Currency (every dues list and email selects cd.Currency): also run on EVERY startup, so a
+    // server started with SkipInit=true does not 500 District Dues with "Unknown column cd.Currency" (OMS ROW2-2).
+    public async Task EnsureDuesColumnsAsync()
+    {
+        using var connection = RowDb.Connect(_connectionString);
+        await connection.OpenAsync();
+        await EnsureRizonesPull1117SchemaAsync(connection);
+    }
+
     public async Task EnsureGoalSettingSchemaAndSeedAsync()
     {
         using var connection = RowDb.Connect(_connectionString);

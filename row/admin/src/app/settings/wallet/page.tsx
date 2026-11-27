@@ -10,10 +10,11 @@
  *   • Otherwise, always on screen: every credit entry, Offline and Online, in one list.
  */
 
+import { Card } from "@/components/ui/card";
+import { PageHeader } from "@/components/row/AppKit";
 import { Suspense, useState } from "react";
-import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { ArrowLeft, Globe, HandCoins, X } from "@/components/icons";
+import { Globe, HandCoins, X } from "@/components/icons";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -35,29 +36,27 @@ function WalletContent() {
   const toggle = (v: Exclude<View, "">) => setView((cur) => (cur === v ? "" : v));
 
   return (
-    <div className="p-4 sm:p-6 space-y-6">
-      <div className="flex flex-wrap items-center gap-3">
-        <Button variant="outline" size="icon" asChild>
-          <Link href="/settings" aria-label="Back to Settings"><ArrowLeft className="h-4 w-4" /></Link>
-        </Button>
-        <div className="flex-1 min-w-0">
-          <h1 className="text-xl font-bold tracking-tight text-primary">Wallet</h1>
-          <p className="text-sm text-muted-foreground">Email credits: given offline or bought online. And club-website pricing</p>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <Button variant={view === "offline" ? "default" : "outline"} onClick={() => toggle("offline")}>
+    <div className="space-y-6">
+      <PageHeader
+        title="Wallet"
+        description="Email credits, given offline or bought online, and club website pricing"
+        back="/settings"
+        actions={
+          <>
+<Button variant={view === "offline" ? "default" : "outline"} onClick={() => toggle("offline")}>
             <HandCoins className="h-4 w-4 mr-1.5" /> Offline
           </Button>
           <Button variant={view === "online" ? "default" : "outline"} onClick={() => toggle("online")}>
             <Globe className="h-4 w-4 mr-1.5" /> Online
           </Button>
-        </div>
-      </div>
+          </>
+        }
+      />
 
       {view !== "" && (
-        <div className="rounded-lg border p-4">
+        <Card className="p-5">
           <div className="mb-3 flex items-center justify-between">
-            <h2 className="font-semibold">
+            <h2 className="row-h2">
               {view === "offline" ? "Offline credit: given by Super Admin" : "Online: wallet, top-up links & purchase reports"}
             </h2>
             <Button variant="ghost" size="sm" onClick={() => setView("")}>
@@ -78,12 +77,12 @@ function WalletContent() {
               <TabsContent value="reports"><WalletReportsTab /></TabsContent>
             </Tabs>
           )}
-        </div>
+        </Card>
       )}
 
       <div className="space-y-3">
         <div>
-          <h2 className="text-lg font-semibold">All Email Credits</h2>
+          <h2 className="row-h2">All Email Credits</h2>
           <p className="text-sm text-muted-foreground">
             Every credit entry for clubs and districts: <b>Offline</b> (given by Super Admin) and <b>Online</b> (bought by the club or district).
           </p>

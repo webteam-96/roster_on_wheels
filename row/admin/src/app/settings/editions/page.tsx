@@ -1,7 +1,7 @@
 "use client";
 
+import { PageHeader } from "@/components/row/AppKit";
 import { useEffect, useMemo, useState } from "react";
-import Link from "next/link";
 import { getEditions, getModules, updateEdition, type Edition } from "@/services/api";
 import type { Module } from "@/types/module";
 import { useAuth } from "@/contexts/AuthContext";
@@ -12,7 +12,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent } from "@/components/ui/card";
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
-import { ArrowLeft, Loader2, Save } from "@/components/icons";
+import { Loader2, Save } from "@/components/icons";
 import ProtectedRoute from "@/components/ProtectedRoute";
 
 // Super Admin > Editions (ROW Wave 1, build spec item 5): an edition is the set of modules a tenant gets.
@@ -78,7 +78,7 @@ export default function EditionsPage() {
     return (
       <ProtectedRoute>
         <div className="flex flex-col items-center justify-center py-20">
-          <h3 className="text-lg font-semibold">Access Denied</h3>
+          <h3 className="row-h2">Access Denied</h3>
           <p className="text-muted-foreground mt-2">Only SuperAdmin can access settings.</p>
         </div>
       </ProtectedRoute>
@@ -88,15 +88,7 @@ export default function EditionsPage() {
   return (
     <ProtectedRoute>
       <div className="space-y-6">
-        <div className="flex items-center gap-3">
-          <Button variant="outline" size="icon" asChild>
-            <Link href="/settings" aria-label="Back to settings"><ArrowLeft className="h-4 w-4" /></Link>
-          </Button>
-          <div>
-            <h2 className="text-2xl font-bold tracking-tight text-primary">Editions</h2>
-            <p className="text-muted-foreground text-base">Choose which modules each edition switches on</p>
-          </div>
-        </div>
+        <PageHeader title="Editions" description="Choose which modules each edition switches on" back="/settings" />
 
         {loading ? (
           <div className="space-y-3" aria-busy="true">

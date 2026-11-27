@@ -54,7 +54,7 @@ const CmrReportDesignC = forwardRef<HTMLDivElement, CmrReportProps>(function Cmr
           <p className="text-[22px] font-light text-[#C9D6EE]">{calendarYear ?? ""} · RY {report.yearLabel}</p>
           <p className="mt-5 text-[15px] font-semibold">{report.clubName}</p>
           <p className="text-[12px] text-[#C9D6EE]">Assistant Governor: {report.assistantGovernor || "N/A"}</p>
-          <p className={`mt-4 inline-block rounded-full px-3 py-1 text-[11px] font-bold ${uploadedLabel ? "bg-emerald-400/20 text-emerald-100" : "bg-white/10 text-[#C9D6EE]"}`}>
+          <p className={`mt-4 inline-block rounded px-3 py-1 text-[11px] font-bold ${uploadedLabel ? "bg-emerald-400/20 text-emerald-100" : "bg-white/10 text-[#C9D6EE]"}`}>
             {uploadedLabel ? `Uploaded to District · ${uploadedLabel}` : "Preview · not uploaded to District"}
           </p>
         </div>

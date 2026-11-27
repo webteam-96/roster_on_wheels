@@ -12,13 +12,12 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { ArrowLeft, Calendar, Download, Eye, FileSpreadsheet } from "@/components/icons";
+import { Calendar, Download, Eye, FileSpreadsheet } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import ErrorAlert from "@/components/ErrorAlert";
-import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { useFeatureLoadedOn } from "@/components/FeatureGate";
-import { ListPageSkeleton } from "@/components/row/AppKit";
+import { PageHeader, ListPageSkeleton } from "@/components/row/AppKit";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
@@ -176,17 +175,7 @@ export default function OcvReportPage() {
     <ProtectedRoute>
       <div className="space-y-6">
         {/* Header */}
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-3">
-            <Button variant="outline" size="icon" asChild>
-              <Link href={`/clubs/${clubId}/ocv-gov?yearId=${selectedYearId}`}><ArrowLeft className="h-4 w-4" /></Link>
-            </Button>
-            <div>
-              <h2 className="text-2xl font-bold tracking-tight text-primary">OCV Report</h2>
-              <p className="text-muted-foreground text-base">{clubName}: Document compliance report</p>
-            </div>
-          </div>
-        </div>
+        <PageHeader title="OCV Report" description={<>{clubName}: Document compliance report</>} back={`/clubs/${clubId}/ocv-gov?yearId=${selectedYearId}`} />
 
         {/* Filters */}
         <Card>
@@ -250,7 +239,7 @@ export default function OcvReportPage() {
         {!isLoading && filteredItems.length === 0 && (
           <div className="flex flex-col items-center justify-center py-20 text-center">
             <Calendar className="h-12 w-12 text-muted-foreground mb-4" />
-            <h3 className="text-lg font-semibold">No report data</h3>
+            <h3 className="row-h2">No report data</h3>
             <p className="text-muted-foreground mt-2">No documents found for the selected filters.</p>
           </div>
         )}
@@ -260,7 +249,7 @@ export default function OcvReportPage() {
           <Card key={group.categoryName}>
             <CardContent className="p-0">
               <div className="px-6 py-3 bg-muted/50 border-b flex items-center justify-between">
-                <h3 className="text-sm font-semibold text-primary">{group.categoryName}</h3>
+                <h3 className="row-h3">{group.categoryName}</h3>
                 <Badge variant="secondary">{group.items.filter(i => i.isUploaded).length}/{group.items.length} uploaded</Badge>
               </div>
               <Table>
@@ -274,17 +263,17 @@ export default function OcvReportPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {group.items.map((item) => {
+                  {group.items.map((item, idx) => {
                     serialCounter++;
                     return (
-                      <TableRow key={`${item.categoryId}-${item.typeId}`}>
+                      <TableRow key={`${item.categoryId}-${item.typeId}-${item.documentId ?? idx}`}>
                         <TableCell className="font-medium">{serialCounter}</TableCell>
                         <TableCell>{item.typeName}</TableCell>
                         <TableCell className="text-center">
                           {item.isUploaded ? (
-                            <Badge className="bg-green-100 text-green-800 hover:bg-green-100">Uploaded</Badge>
+                            <Badge className="bg-green-100 text-green-800">Uploaded</Badge>
                           ) : (
-                            <Badge variant="destructive" className="bg-red-100 text-red-800 hover:bg-red-100">Pending</Badge>
+                            <Badge variant="destructive" className="bg-red-100 text-red-800">Pending</Badge>
                           )}
                         </TableCell>
                         <TableCell className="text-sm text-muted-foreground max-w-[200px] truncate">
@@ -317,11 +306,11 @@ export default function OcvReportPage() {
         {!isLoading && filteredItems.length > 0 && (
           <div className="flex gap-4 text-sm flex-wrap">
             <div className="flex flex-wrap items-center gap-2">
-              <Badge className="bg-green-100 text-green-800 hover:bg-green-100">Uploaded</Badge>
+              <Badge className="bg-green-100 text-green-800">Uploaded</Badge>
               <span className="text-muted-foreground">{uploadedCount}</span>
             </div>
             <div className="flex flex-wrap items-center gap-2">
-              <Badge variant="destructive" className="bg-red-100 text-red-800 hover:bg-red-100">Pending</Badge>
+              <Badge variant="destructive" className="bg-red-100 text-red-800">Pending</Badge>
               <span className="text-muted-foreground">{pendingCount}</span>
             </div>
             <div className="flex flex-wrap items-center gap-2">

@@ -20,6 +20,9 @@ import 'district_citation_category_form_screen.dart';
 import 'district_citation_manual_form_screen.dart';
 import 'district_citation_question_form_screen.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/motion.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/roster_wheel.dart';
+import 'package:rotary_flutter_app/presentation/widgets/common/loading_widget.dart';
 
 // ============================================================================
 // Models
@@ -339,7 +342,7 @@ class _DistrictCitationScreenState extends State<DistrictCitationScreen> {
         backgroundColor: AppColors.background,
         appBar: widget.embedded ? null : CustomAppBar(title: title),
         body: _loading
-            ? const Center(child: const CircularProgressIndicator(color: AppColors.primary))
+            ? const LoadingWidget()
             : _error != null
                 ? ErrorStateWidget(message: _error!, onRetry: _loadInitial)
                 : Column(
@@ -567,7 +570,7 @@ class _CategoriesTabState extends State<_CategoriesTab> {
   }
 
   Future<void> _confirmDelete(_Category c) async {
-    final ok = await showDialog<bool>(
+    final ok = await showRowDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Delete Category'),
@@ -600,7 +603,7 @@ class _CategoriesTabState extends State<_CategoriesTab> {
   @override
   Widget build(BuildContext context) {
     if (_loading) {
-      return const Center(child: const CircularProgressIndicator(color: AppColors.primary));
+      return const LoadingWidget();
     }
     if (_error != null) {
       return ErrorStateWidget(message: _error!, onRetry: _fetch);
@@ -616,10 +619,10 @@ class _CategoriesTabState extends State<_CategoriesTab> {
             icon: Icons.category_outlined,
           )
         else
-          RefreshIndicator(
+          RowRefresh(
             color: AppColors.primary,
             onRefresh: _fetch,
-            child: ListView.separated(
+            child: RowListView.separated(
               padding: const EdgeInsets.all(16),
               itemCount: _items.length,
               separatorBuilder: (_, __) => const SizedBox(height: 8),
@@ -832,7 +835,7 @@ class _DescriptionTabState extends State<_DescriptionTab> {
   @override
   Widget build(BuildContext context) {
     if (_loading) {
-      return const Center(child: const CircularProgressIndicator(color: AppColors.primary));
+      return const LoadingWidget();
     }
     if (_error != null) {
       return ErrorStateWidget(message: _error!, onRetry: _fetch);
@@ -1157,7 +1160,7 @@ class _AutoQuestionsTabState extends State<_AutoQuestionsTab> {
   }
 
   Future<void> _confirmDelete(_AutoQuestion q) async {
-    final ok = await showDialog<bool>(
+    final ok = await showRowDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Delete Question'),
@@ -1191,7 +1194,7 @@ class _AutoQuestionsTabState extends State<_AutoQuestionsTab> {
   @override
   Widget build(BuildContext context) {
     if (_loading) {
-      return const Center(child: const CircularProgressIndicator(color: AppColors.primary));
+      return const LoadingWidget();
     }
     if (_error != null) {
       return ErrorStateWidget(message: _error!, onRetry: _fetch);
@@ -1214,7 +1217,7 @@ class _AutoQuestionsTabState extends State<_AutoQuestionsTab> {
             icon: Icons.quiz_outlined,
           )
         else
-          RefreshIndicator(
+          RowRefresh(
             color: AppColors.primary,
             onRefresh: _fetch,
             child: ListView(
@@ -1458,7 +1461,7 @@ class _ManualCriteriaTabState extends State<_ManualCriteriaTab> {
   }
 
   Future<void> _confirmDelete(_ManualCriterion m) async {
-    final ok = await showDialog<bool>(
+    final ok = await showRowDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Delete Criterion'),
@@ -1536,7 +1539,7 @@ class _ManualCriteriaTabState extends State<_ManualCriteriaTab> {
   @override
   Widget build(BuildContext context) {
     if (_loading) {
-      return const Center(child: const CircularProgressIndicator(color: AppColors.primary));
+      return const LoadingWidget();
     }
     if (_error != null) {
       return ErrorStateWidget(message: _error!, onRetry: _fetch);
@@ -1552,10 +1555,10 @@ class _ManualCriteriaTabState extends State<_ManualCriteriaTab> {
             icon: Icons.rule,
           )
         else
-          RefreshIndicator(
+          RowRefresh(
             color: AppColors.primary,
             onRefresh: _fetch,
-            child: ListView.separated(
+            child: RowListView.separated(
               padding: const EdgeInsets.all(16),
               itemCount: _items.length,
               separatorBuilder: (_, __) => const SizedBox(height: 8),
@@ -1803,7 +1806,7 @@ class _ClubPointsTabState extends State<_ClubPointsTab> {
   @override
   Widget build(BuildContext context) {
     if (_loading) {
-      return const Center(child: const CircularProgressIndicator(color: AppColors.primary));
+      return const LoadingWidget();
     }
     if (_error != null) {
       return ErrorStateWidget(message: _error!, onRetry: _fetch);
@@ -1815,7 +1818,7 @@ class _ClubPointsTabState extends State<_ClubPointsTab> {
         icon: Icons.emoji_events_outlined,
       );
     }
-    return RefreshIndicator(
+    return RowRefresh(
       color: AppColors.primary,
       onRefresh: _fetch,
       child: Column(
@@ -1839,7 +1842,7 @@ class _ClubPointsTabState extends State<_ClubPointsTab> {
             ),
           ),
           Expanded(
-            child: ListView.separated(
+            child: RowListView.separated(
               padding: const EdgeInsets.all(16),
               itemCount: _items.length,
               separatorBuilder: (_, __) => const SizedBox(height: 8),

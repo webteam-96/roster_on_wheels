@@ -6,6 +6,7 @@
  * the volunteer list, archiving, and copying the sheet as a new one.
  */
 
+import { NativeSelect } from "@/components/ui/native-select";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Archive, Copy, Loader2, Mail, Plus, RotateCcw, Save, Trash2 } from "@/components/icons";
@@ -23,7 +24,7 @@ import {
 import { emptyFollowup, followupWhen, toExtrasBody, toFollowupRows, type FollowupRow } from "@/lib/volunteerExtras";
 import type { FollowupKind, VolunteerSheetExtras as Extras } from "@/types/volunteers";
 
-const SELECT = "h-10 w-full rounded-md border border-input bg-background px-3 text-sm";
+const SELECT = "row-field w-full";
 const message = (err: unknown, fallback: string): string =>
   (err as { response?: { data?: { message?: string } } })?.response?.data?.message || fallback;
 
@@ -128,7 +129,7 @@ export default function VolunteerSheetExtras({ clubId, sheetId, onNotice, onErro
       <Card>
         <CardContent className="space-y-5 p-5">
           <div>
-            <h3 className="text-base font-semibold">Emails to volunteers</h3>
+            <h3 className="row-h2">Emails to volunteers</h3>
             <p className="text-sm text-muted-foreground">
               Each email adds the person&apos;s slot, date and time below your text. Follow-ups go once to each volunteer.
             </p>
@@ -140,15 +141,15 @@ export default function VolunteerSheetExtras({ clubId, sheetId, onNotice, onErro
           </div>
 
           <div className="space-y-3">
-            <h4 className="text-sm font-semibold">Follow-up emails</h4>
+            <h4 className="row-h3">Follow-up emails</h4>
             {rows.length === 0 && <p className="text-sm text-muted-foreground">No follow-ups. Add a reminder before the slot or a thank-you after it.</p>}
             {rows.map((r, i) => (
               <div key={r.id ?? `new-${i}`} className="space-y-2 rounded-md border p-3">
                 <div className="grid gap-2 md:grid-cols-[160px_110px_1fr_auto]">
-                  <select aria-label="When" className={SELECT} value={r.kind} onChange={(e) => setRow(i, { kind: e.target.value as FollowupKind })}>
+                  <NativeSelect aria-label="When"  value={r.kind} onChange={(e) => setRow(i, { kind: e.target.value as FollowupKind })}>
                     <option value="before">Reminder before</option>
                     <option value="after">Thank-you after</option>
-                  </select>
+                  </NativeSelect>
                   <Input aria-label="Days" type="number" min={r.kind === "before" ? 1 : 0} max={90} value={r.days}
                     onChange={(e) => setRow(i, { days: e.target.value })} />
                   <Input aria-label="Subject" placeholder="Subject" maxLength={200} value={r.subject} onChange={(e) => setRow(i, { subject: e.target.value })} />
@@ -164,17 +165,17 @@ export default function VolunteerSheetExtras({ clubId, sheetId, onNotice, onErro
               </div>
             ))}
             <div className="flex flex-wrap gap-2">
-              <Button type="button" variant="outline" size="sm" className="gap-1.5" disabled={rows.length >= 5} onClick={() => add("before")}>
+              <Button type="button" variant="outline" size="sm" disabled={rows.length >= 5} onClick={() => add("before")}>
                 <Plus className="h-3.5 w-3.5" /> Add a reminder
               </Button>
-              <Button type="button" variant="outline" size="sm" className="gap-1.5" disabled={rows.length >= 5} onClick={() => add("after")}>
+              <Button type="button" variant="outline" size="sm" disabled={rows.length >= 5} onClick={() => add("after")}>
                 <Plus className="h-3.5 w-3.5" /> Add a thank-you
               </Button>
             </div>
           </div>
 
           <div className="space-y-2">
-            <h4 className="text-sm font-semibold">Coordinators</h4>
+            <h4 className="row-h3">Coordinators</h4>
             <p className="text-sm text-muted-foreground">
               Members who run this sheet. They can be sent the volunteer list by email (up to 10).
               {coordinators.length > 0 && ` Chosen: ${coordinators.map((id) => named.get(id)?.name ?? id).join(", ")}.`}
@@ -197,10 +198,10 @@ export default function VolunteerSheetExtras({ clubId, sheetId, onNotice, onErro
           </div>
 
           <div className="flex flex-wrap gap-2">
-            <Button onClick={save} disabled={busy} className="gap-1.5">
+            <Button onClick={save} disabled={busy}>
               {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />} Save emails and coordinators
             </Button>
-            <Button variant="outline" onClick={emailList} disabled={busy || savedCoordinators === 0} className="gap-1.5"
+            <Button variant="outline" onClick={emailList} disabled={busy || savedCoordinators === 0}
               title={savedCoordinators === 0 ? "Save at least one coordinator first" : undefined}>
               <Mail className="h-4 w-4" /> Email the volunteer list to coordinators
             </Button>
@@ -211,7 +212,7 @@ export default function VolunteerSheetExtras({ clubId, sheetId, onNotice, onErro
       <Card>
         <CardContent className="space-y-4 p-5">
           <div>
-            <h3 className="text-base font-semibold">Archive or reuse</h3>
+            <h3 className="row-h2">Archive or reuse</h3>
             <p className="text-sm text-muted-foreground">
               {extras.archivedAt
                 ? `Archived on ${fmt.dateTime(extras.archivedAt)}. It takes no sign-ups and is listed under archived sheets.`
@@ -220,11 +221,11 @@ export default function VolunteerSheetExtras({ clubId, sheetId, onNotice, onErro
           </div>
           <div className="flex flex-wrap items-end gap-2">
             {extras.archivedAt ? (
-              <Button variant="outline" onClick={() => archive(false)} disabled={busy} className="gap-1.5">
+              <Button variant="outline" onClick={() => archive(false)} disabled={busy}>
                 <RotateCcw className="h-4 w-4" /> Bring back from the archive
               </Button>
             ) : (
-              <Button variant="outline" onClick={() => archive(true)} disabled={busy} className="gap-1.5">
+              <Button variant="outline" onClick={() => archive(true)} disabled={busy}>
                 <Archive className="h-4 w-4" /> Archive sheet
               </Button>
             )}
@@ -232,7 +233,7 @@ export default function VolunteerSheetExtras({ clubId, sheetId, onNotice, onErro
               <Label htmlFor="shift">Move the copy&apos;s slots by (days)</Label>
               <Input id="shift" type="number" min={0} max={730} className="w-32" value={shiftDays} onChange={(e) => setShiftDays(e.target.value)} />
             </div>
-            <Button variant="outline" onClick={copy} disabled={busy} className="gap-1.5">
+            <Button variant="outline" onClick={copy} disabled={busy}>
               <Copy className="h-4 w-4" /> Copy as a new sheet
             </Button>
           </div>

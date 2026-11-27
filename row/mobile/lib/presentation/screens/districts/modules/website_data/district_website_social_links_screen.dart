@@ -9,6 +9,8 @@ import '../../../../widgets/common/custom_app_bar.dart';
 import '../../../../widgets/common/empty_state_widget.dart';
 import 'district_website_social_link_form_screen.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/motion.dart';
+import 'package:rotary_flutter_app/presentation/widgets/common/loading_widget.dart';
 
 // design-allow: third-party brand colours (data, must match each network's own mark).
 const _SOCIAL_PLATFORMS = <(String, String, Color)>[
@@ -196,7 +198,7 @@ class _DistrictWebsiteSocialLinksScreenState extends State<DistrictWebsiteSocial
 
 
   Future<void> _confirmDelete(_SocialLink link) async {
-    final ok = await showDialog<bool>(
+    final ok = await showRowDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Delete Social Link'),
@@ -238,7 +240,7 @@ class _DistrictWebsiteSocialLinksScreenState extends State<DistrictWebsiteSocial
         ],
       ),
       body: _loading
-          ? const Center(child: const CircularProgressIndicator(color: AppColors.primary))
+          ? const LoadingWidget()
           : _error != null
               ? ErrorStateWidget(message: _error!, onRetry: _loadInitial)
               : _buildBody(canManage),
@@ -267,7 +269,7 @@ class _DistrictWebsiteSocialLinksScreenState extends State<DistrictWebsiteSocial
             )
           else
             Expanded(
-              child: ListView.separated(
+              child: RowListView.separated(
                 itemCount: _links.length,
                 separatorBuilder: (_, __) => const SizedBox(height: 8),
                 itemBuilder: (ctx, i) => _LinkTile(
@@ -351,8 +353,9 @@ class _LinkTile extends StatelessWidget {
             ),
             if (canManage) ...[
               const SizedBox(width: 4),
-              IconButton(icon: const Icon(Icons.edit_outlined, size: 18), onPressed: onEdit, visualDensity: VisualDensity.compact),
+              IconButton(tooltip: 'Edit', icon: const Icon(Icons.edit_outlined, size: 18), onPressed: onEdit, visualDensity: VisualDensity.compact),
               IconButton(
+                tooltip: 'Delete',
                 icon: const Icon(Icons.delete_outline, size: 18, color: AppColors.error),
                 onPressed: onDelete,
                 visualDensity: VisualDensity.compact,

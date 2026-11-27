@@ -9,6 +9,8 @@ import '../../widgets/common/loading_widget.dart';
 import 'club_dues_pay_screen.dart';
 import 'package:rotary_flutter_app/core/theme/app_fonts.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/motion.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/roster_wheel.dart';
 
 /// Lists the district dues campaigns the signed-in officer (current-year Club
 /// President / Secretary / Treasurer) may pay for. The server returns only the
@@ -58,7 +60,7 @@ class _ClubDuesMyClubsScreenState extends State<ClubDuesMyClubsScreen> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: const CustomAppBar(title: 'Pay District Dues'),
-      body: RefreshIndicator(onRefresh: _load, child: _body()),
+      body: RowRefresh(onRefresh: _load, child: _body()),
     );
   }
 
@@ -81,7 +83,7 @@ class _ClubDuesMyClubsScreenState extends State<ClubDuesMyClubsScreen> {
         ],
       );
     }
-    return ListView.separated(
+    return RowListView.separated(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
       itemCount: _items.length,
       separatorBuilder: (_, __) => const SizedBox(height: 10),

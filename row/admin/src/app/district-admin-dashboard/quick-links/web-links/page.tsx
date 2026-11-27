@@ -1,4 +1,5 @@
 "use client";
+import { LinkButton } from "@/components/ui/text-buttons";
 
 /**
  * V2 — Web Links listing under the District Admin dashboard shell.
@@ -18,6 +19,7 @@
  *   - Palette: navy #17458f / gold #F7A81B / slate tokens; rounded-2xl cards.
  */
 
+import { Card } from "@/components/ui/card";
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Weblink, WeblinkTree } from "@/types/weblink";
@@ -45,11 +47,8 @@ import AlertModal from "@/components/AlertModal";
 import SearchBox from "@/components/SearchBox";
 import RotaryLoader from "@/components/RotaryLoader";
 import ProtectedRoute from "@/components/ProtectedRoute";
-import {
-  ArrowLeft, Plus, Pencil, Trash2, MoreHorizontal, FolderOpen,
-  AlertTriangle, ChevronRight, ChevronDown, Link2, Folder, ExternalLink,
-} from "@/components/icons";
-import { ListPageSkeleton } from "@/components/row/AppKit";
+import { Plus, Pencil, Trash2, MoreHorizontal, FolderOpen, AlertTriangle, ChevronRight, ChevronDown, Folder, ExternalLink } from "@/components/icons";
+import { PageHeader, ListPageSkeleton } from "@/components/row/AppKit";
 
 const WEB_LINKS_BASE = "/district-admin-dashboard/quick-links/web-links";
 
@@ -82,7 +81,7 @@ function TypeBadge({ w }: { w: Weblink }) {
     PDF: "border-rose-200 bg-rose-50 text-rose-700",
   };
   return (
-    <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-medium ${colors[type] || colors.None}`}>
+    <span className={`inline-flex items-center rounded border px-2 py-0.5 text-xs font-medium ${colors[type] || colors.None}`}>
       {type}
     </span>
   );
@@ -237,52 +236,33 @@ export default function DistrictAdminWebLinksPage() {
 
       <div className="space-y-6">
         {/* ── Header ────────────────────────────────────────────────── */}
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-start gap-3 min-w-0">
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={goBack}
-              className="border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-slate-800 shrink-0"
-              aria-label="Back"
-            >
-              <ArrowLeft className="h-4 w-4" />
-            </Button>
-            <div className="flex items-start gap-3 min-w-0">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-azure/10 text-ink">
-                <Link2 size={20} />
-              </div>
-              <div className="min-w-0">
-                <h1 className="text-lg font-bold text-slate-800 leading-tight">Web Links</h1>
-                {breadcrumb.length > 0 ? (
+        <PageHeader
+          title="Web Links"
+          description={<>{breadcrumb.length > 0 ? (
                   <div className="mt-1 flex items-center gap-1 flex-wrap text-xs">
-                    <button onClick={() => navTo(null)} className="text-slate-500 hover:text-ink hover:underline">Home</button>
+                    <LinkButton tone="muted" onClick={() => navTo(null)}>Home</LinkButton>
                     {breadcrumb.map((item, index) => (
                       <span key={item.id} className="flex items-center gap-1">
                         <ChevronRight className="h-3 w-3 text-slate-400" />
-                        <button
+                        <LinkButton
                           onClick={() => navTo(item.id)}
-                          className={index === breadcrumb.length - 1
-                            ? "font-semibold text-ink"
-                            : "text-slate-500 hover:text-ink hover:underline"}
+                          tone={index === breadcrumb.length - 1 ? "primary" : "muted"}
                         >
                           {item.title}
-                        </button>
+                        </LinkButton>
                       </span>
                     ))}
                   </div>
                 ) : (
                   <p className="text-xs text-slate-500 mt-1">Manage web links and folder navigation</p>
-                )}
-              </div>
-            </div>
-          </div>
-          {canManage && (
-            <Button onClick={goAdd} className="bg-azure hover:bg-mint-ink text-white shrink-0">
+                )}</>}
+          back={() => goBack()}
+          actions={<>{canManage && (
+            <Button onClick={goAdd} className="shrink-0">
               <Plus className="mr-2 h-4 w-4" />Add Link
             </Button>
-          )}
-        </div>
+          )}</>}
+        />
 
         {loading && (
           <div className="flex items-center justify-center py-20">
@@ -291,13 +271,13 @@ export default function DistrictAdminWebLinksPage() {
         )}
 
         {!loading && weblinks.length === 0 && (
-          <div className="flex flex-col items-center justify-center py-20 text-center rounded-2xl border border-slate-200 bg-card shadow-sm">
+          <Card className="flex flex-col items-center justify-center py-20 text-center">
             <FolderOpen className="h-12 w-12 text-slate-400 mb-4" />
-            <h3 className="text-lg font-semibold text-slate-800">No web links here</h3>
+            <h3 className="row-h2">No web links here</h3>
             <p className="text-slate-500 mt-2 text-sm">
               {canManage ? 'Click "Add Link" to create one.' : "No web links available."}
             </p>
-          </div>
+          </Card>
         )}
 
         {!loading && weblinks.length > 0 && (
@@ -314,15 +294,15 @@ export default function DistrictAdminWebLinksPage() {
                 No results found for &quot;{searchQuery}&quot;
               </p>
             ) : (
-              <div className="rounded-2xl border border-slate-200 shadow-sm overflow-hidden bg-card">
+              <Card className="overflow-hidden">
                 <Table>
                   <TableHeader>
                     <TableRow className="hover:opacity-100 border-b-2 border-marigold" style={{ backgroundColor: "#17458f" }}>
-                      <TableHead className="w-12 text-xs font-semibold uppercase tracking-wide">#</TableHead>
-                      <TableHead className="text-xs font-semibold uppercase tracking-wide">Title</TableHead>
-                      <TableHead className="w-28 text-xs font-semibold uppercase tracking-wide">Type</TableHead>
-                      <TableHead className="text-xs font-semibold uppercase tracking-wide">Target</TableHead>
-                      <TableHead className="w-24 text-xs font-semibold uppercase tracking-wide text-center">Status</TableHead>
+                      <TableHead className="w-12">#</TableHead>
+                      <TableHead>Title</TableHead>
+                      <TableHead className="w-28">Type</TableHead>
+                      <TableHead>Target</TableHead>
+                      <TableHead className="w-24 text-center">Status</TableHead>
                       {canManage && <TableHead className="w-12/90"></TableHead>}
                     </TableRow>
                   </TableHeader>
@@ -335,26 +315,24 @@ export default function DistrictAdminWebLinksPage() {
                           <TableCell className="font-medium text-slate-500">{index + 1}</TableCell>
                           <TableCell className="font-semibold text-slate-800">
                             {isFolder ? (
-                              <button
+                              <LinkButton
                                 type="button"
                                 onClick={() => navTo(w.id)}
-                                className="inline-flex items-center gap-2 text-ink hover:underline text-left"
                                 title="Open folder"
                               >
                                 <Folder className="h-4 w-4 shrink-0 text-amber-500" />
                                 {w.title}
                                 <ChevronDown className="h-3.5 w-3.5 -rotate-90 text-slate-400" />
-                              </button>
+                              </LinkButton>
                             ) : isUrl ? (
-                              <button
+                              <LinkButton
                                 type="button"
                                 onClick={() => openTarget(w)}
-                                className="inline-flex items-center gap-2 text-ink hover:underline text-left"
                                 title="Open link"
                               >
                                 {w.title}
                                 <ExternalLink className="h-3.5 w-3.5 text-slate-400" />
-                              </button>
+                              </LinkButton>
                             ) : (
                               <span>{w.title}</span>
                             )}
@@ -369,6 +347,7 @@ export default function DistrictAdminWebLinksPage() {
                             <Switch
                               checked={w.isActive}
                               onCheckedChange={() => handleToggleActive(w)}
+                              aria-label={`Active: ${w.title}`}
                               disabled={!canManage}
                             />
                           </TableCell>
@@ -376,7 +355,7 @@ export default function DistrictAdminWebLinksPage() {
                             <TableCell>
                               <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
-                                  <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-500 hover:text-slate-800 hover:bg-slate-100">
+                                  <Button aria-label="More actions" variant="ghost" size="icon" className="row-btn-sm">
                                     <MoreHorizontal className="h-4 w-4" />
                                   </Button>
                                 </DropdownMenuTrigger>
@@ -401,7 +380,7 @@ export default function DistrictAdminWebLinksPage() {
                     })}
                   </TableBody>
                 </Table>
-              </div>
+              </Card>
             )}
           </>
         )}

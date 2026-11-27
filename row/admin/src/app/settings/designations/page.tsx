@@ -1,5 +1,7 @@
 "use client";
 
+import { NativeSelect } from "@/components/ui/native-select";
+import { Card } from "@/components/ui/card";
 import { useState, useCallback, useEffect } from "react";
 import { Designation, RI_OFFICER_TITLES } from "@/types/boardDirector";
 import {
@@ -26,13 +28,12 @@ import {
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
 import AlertModal from "@/components/AlertModal";
-import { ArrowLeft, Plus, Pencil, Trash2, MoreHorizontal, Settings, AlertTriangle, GripVertical, Download } from "@/components/icons";
+import { Plus, Pencil, Trash2, MoreHorizontal, Settings, AlertTriangle, GripVertical, Download } from "@/components/icons";
 import { exportToCSV } from "@/utils/csvExport";
 import RotaryLoader from "@/components/RotaryLoader";
-import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import SearchBox from "@/components/SearchBox";
-import { ListPageSkeleton } from "@/components/row/AppKit";
+import { PageHeader, ListPageSkeleton } from "@/components/row/AppKit";
 
 export default function DesignationsPage() {
   const { isSuperAdmin } = useAuth();
@@ -135,7 +136,7 @@ export default function DesignationsPage() {
     return (
       <ProtectedRoute>
         <div className="flex flex-col items-center justify-center py-20">
-          <h3 className="text-lg font-semibold">Access Denied</h3>
+          <h3 className="row-h2">Access Denied</h3>
           <p className="text-muted-foreground mt-2">Only SuperAdmin can manage designations.</p>
         </div>
       </ProtectedRoute>
@@ -146,18 +147,13 @@ export default function DesignationsPage() {
     <ProtectedRoute>
       <div className="space-y-6">
         {/* Header */}
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-3">
-            <Button variant="outline" size="icon" asChild>
-              <Link href="/settings"><ArrowLeft className="h-4 w-4" /></Link>
-            </Button>
-            <div>
-              <h2 className="text-2xl font-bold tracking-tight text-primary">Designations</h2>
-              <p className="text-muted-foreground text-base">Manage board of directors designations</p>
-            </div>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <Button variant="outline" onClick={() => exportToCSV(
+        <PageHeader
+          title="Designations"
+          description="Manage board of directors designations"
+          back="/settings"
+          actions={
+            <>
+<Button variant="outline" onClick={() => exportToCSV(
               designations.map((d, i) => ({ ...d, srNo: i + 1 })),
               "designations",
               [
@@ -168,8 +164,9 @@ export default function DesignationsPage() {
             <Button onClick={openAddDialog}>
               <Plus className="mr-2 h-4 w-4" />Add Designation
             </Button>
-          </div>
-        </div>
+            </>
+          }
+        />
 
         {loading && (
           <div className="flex items-center justify-center py-20">
@@ -180,7 +177,7 @@ export default function DesignationsPage() {
         {!loading && designations.length === 0 && (
           <div className="flex flex-col items-center justify-center py-20 text-center">
             <Settings className="h-12 w-12 text-muted-foreground mb-4" />
-            <h3 className="text-lg font-semibold">No designations found</h3>
+            <h3 className="row-h2">No designations found</h3>
             <p className="text-muted-foreground mt-2">Click &quot;Add Designation&quot; to create your first one.</p>
           </div>
         )}
@@ -212,7 +209,7 @@ export default function DesignationsPage() {
                   </div>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon" className="h-8 w-8"><MoreHorizontal className="h-4 w-4" /></Button>
+                      <Button aria-label="More actions" variant="ghost" size="icon" className="row-btn-sm"><MoreHorizontal className="h-4 w-4" /></Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
                       <DropdownMenuItem onClick={() => openEditDialog(des)}>
@@ -228,14 +225,14 @@ export default function DesignationsPage() {
             </div>
 
             {/* Desktop table view */}
-            <div className="hidden sm:block rounded-md border">
+            <Card className="hidden sm:block overflow-hidden">
               <Table>
                 <TableHeader>
-                  <TableRow className="bg-primary hover:bg-primary">
+                  <TableRow>
                     <TableHead className="w-12">#</TableHead>
-                    <TableHead className="text-base font-semibold">Designation Name</TableHead>
-                    <TableHead className="w-32 text-base font-semibold text-center">BOD Members</TableHead>
-                    <TableHead className="w-20 text-base font-semibold text-center">Sorting</TableHead>
+                    <TableHead>Designation Name</TableHead>
+                    <TableHead className="w-32 text-center">BOD Members</TableHead>
+                    <TableHead className="w-20 text-center">Sorting</TableHead>
                     <TableHead className="w-12"></TableHead>
                   </TableRow>
                 </TableHeader>
@@ -265,7 +262,7 @@ export default function DesignationsPage() {
                         <TableCell>
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="icon" className="h-8 w-8"><MoreHorizontal className="h-4 w-4" /></Button>
+                              <Button aria-label="More actions" variant="ghost" size="icon" className="row-btn-sm"><MoreHorizontal className="h-4 w-4" /></Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
                               <DropdownMenuItem onClick={() => openEditDialog(des)}>
@@ -287,7 +284,7 @@ export default function DesignationsPage() {
                   })}
                 </TableBody>
               </Table>
-            </div>
+            </Card>
             </>
             )}
           </>
@@ -310,11 +307,11 @@ export default function DesignationsPage() {
               {editingDesignation && (
                 <div className="space-y-2">
                   <Label htmlFor="ri-title">RI officer title</Label>
-                  <select id="ri-title" value={desRiTitle} onChange={(e) => setDesRiTitle(e.target.value)}
-                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
+                  <NativeSelect id="ri-title" value={desRiTitle} onChange={(e) => setDesRiTitle(e.target.value)}
+                    className="flex">
                     <option value="">Not sent to RI</option>
                     {RI_OFFICER_TITLES.map((t) => <option key={t} value={t}>{t}</option>)}
-                  </select>
+                  </NativeSelect>
                   <p className="text-xs text-muted-foreground">The title this designation is reported as in the Rotary.org sync.</p>
                 </div>
               )}

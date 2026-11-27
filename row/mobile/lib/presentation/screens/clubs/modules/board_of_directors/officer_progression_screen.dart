@@ -9,6 +9,7 @@ import '../../../../../presentation/widgets/common/custom_app_bar.dart';
 import '../../../../../presentation/widgets/common/empty_state_widget.dart';
 import '../../../../../presentation/widgets/common/loading_widget.dart';
 import '../../../../providers/auth_provider.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/roster_wheel.dart';
 
 /// Officer progression (gap agent): the club's named President-Nominee and the
 /// suggested chain PN, PE, P, IPP. Members see it; club admins confirm or
@@ -95,7 +96,7 @@ class _OfficerProgressionScreenState extends State<OfficerProgressionScreen> {
                       subtitle:
                           'When the club names one, the following years appear here.',
                     )
-                  : RefreshIndicator(
+                  : RowRefresh(
                       onRefresh: _load,
                       child: ListView(
                         padding: const EdgeInsets.all(16),

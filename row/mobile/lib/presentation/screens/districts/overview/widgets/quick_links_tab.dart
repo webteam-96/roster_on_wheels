@@ -5,6 +5,7 @@ import '../../../../../core/features/feature_controller.dart';
 import '../../../../../core/theme/app_colors.dart';
 import 'package:rotary_flutter_app/core/theme/app_fonts.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/motion.dart';
 
 /// "Quick Links" tab of the District Admin dashboard — mirrors the web landing:
 /// a list of cards (Web Links / Sub Groups / Mass Email). Tapping a card opens
@@ -68,7 +69,7 @@ class QuickLinksTab extends StatelessWidget {
       ),
     ];
 
-    return ListView.separated(
+    return RowListView.separated(
       padding: const EdgeInsets.all(16),
       itemCount: items.length,
       separatorBuilder: (_, __) => const SizedBox(height: 12),

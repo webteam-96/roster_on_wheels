@@ -1,5 +1,9 @@
-﻿"use client";
+"use client";
+import { IconButton } from "@/components/ui/icon-button";
+import { LinkButton } from "@/components/ui/text-buttons";
 
+import { Card } from "@/components/ui/card";
+import { NativeSelect } from "@/components/ui/native-select";
 import { useState, useCallback, useEffect, useMemo } from "react";
 import DuesDraftsCard from "@/components/dues/DuesDraftsCard";
 import { duesPayPath, getMembershipDuesList, deleteMembershipDues, toggleMembershipDuesActive, createMembershipDuesGoogleSheet, deleteMembershipDuesGoogleSheet, refreshMembershipDuesSettlements, getMembershipDuesSettlementReport, bulkMembershipDuesReminderEmail } from "@/services/api";
@@ -15,7 +19,7 @@ import {
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
 import AlertModal from "@/components/AlertModal";
-import { ArrowLeft, Plus, Pencil, Trash2, Users, AlertTriangle, FileSpreadsheet, Mail, RefreshCw, BarChart3, Send } from "@/components/icons";
+import { Plus, Pencil, Trash2, AlertTriangle, FileSpreadsheet, Mail, RefreshCw, BarChart3, Send } from "@/components/icons";
 import { Input } from "@/components/ui/input";
 
 import { Label } from "@/components/ui/label";
@@ -26,7 +30,7 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import SearchBox from "@/components/SearchBox";
 
 import { appLocale, currencySymbol } from "@/lib/appFormat";
-import { ListPageSkeleton } from "@/components/row/AppKit";
+import { PageHeader, ListPageSkeleton } from "@/components/row/AppKit";
 import { withBase, BASE_PATH } from "@/lib/basePath";
 interface MembershipDuesItem {
   id: number;
@@ -160,7 +164,7 @@ export default function MembershipDuesPage() {
   });
 
   if (!isSuperAdmin) {
-    return (<ProtectedRoute><div className="flex flex-col items-center justify-center py-20"><h3 className="text-lg font-semibold">Access Denied</h3></div></ProtectedRoute>);
+    return (<ProtectedRoute><div className="flex flex-col items-center justify-center py-20"><h3 className="row-h2">Access Denied</h3></div></ProtectedRoute>);
   }
 
   return (
@@ -169,57 +173,57 @@ export default function MembershipDuesPage() {
         <SuccessAlert open={!!successMessage} title="Success" description={successMessage || ""} onOk={() => setSuccessMessage(null)} />
         <ErrorAlert open={!!errorMessage} title="Error" description={errorMessage || ""} onOk={() => setErrorMessage(null)} />
 
-        <div className="flex items-center gap-3 flex-wrap">
-          <Button variant="outline" size="icon" asChild>
-            <Link href="/settings/payments-and-dues"><ArrowLeft className="h-4 w-4" /></Link>
-          </Button>
-          <div className="flex-1">
-            <h2 className="text-2xl font-bold tracking-tight text-primary">Club Dues</h2>
-          </div>
-          <select
+        <PageHeader
+          title="Club Dues"
+          back="/settings/payments-and-dues"
+          actions={
+            <>
+<NativeSelect
             value={districtFilter}
             onChange={(e) => setDistrictFilter(e.target.value)}
-            className="h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+            className="w-auto"
           >
             <option value="">All Districts</option>
             {availableDistricts.map(d => (
               <option key={d} value={d}>{d}</option>
             ))}
-          </select>
-          <select
+          </NativeSelect>
+<NativeSelect
             value={yearFilter}
             onChange={(e) => setYearFilter(e.target.value)}
-            className="h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+            className="w-auto"
           >
             <option value="">All Years</option>
             {availableYears.map(y => (
               <option key={y} value={y}>{y}</option>
             ))}
-          </select>
-          <select
+          </NativeSelect>
+<NativeSelect
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+            className="w-auto"
           >
             <option value="all">All Status</option>
             <option value="active">Active</option>
             <option value="inactive">Inactive</option>
-          </select>
-          <SearchBox value={search} onChange={setSearch} placeholder="Search..." className="w-64" />
-          <Button asChild>
+          </NativeSelect>
+<SearchBox value={search} onChange={setSearch} placeholder="Search..." className="w-64" />
+<Button asChild>
             <Link href="/settings/membership-dues/create"><Plus className="h-4 w-4 mr-2" />Add</Link>
           </Button>
-        </div>
+            </>
+          }
+        />
 
         <DuesDraftsCard kind="club" stepLabels={["Basic Info & Payment", "Fee Types & Amounts", "Vendor Splits", "Member List", "Images & Email"]} />
 
         {loading ? (
           <div className="flex justify-center py-10"><ListPageSkeleton /></div>
         ) : (
-          <div className="overflow-x-auto border rounded-lg">
+          <Card className="overflow-x-auto">
             <Table>
               <TableHeader>
-                <TableRow className="bg-primary text-primary-foreground hover:bg-primary">
+                <TableRow>
                   <TableHead className="w-[50px]">Sr. No.</TableHead>
                   <TableHead>District Number</TableHead>
                   <TableHead>Club Name</TableHead>
@@ -259,70 +263,67 @@ export default function MembershipDuesPage() {
 
                     {/* Edit */}
                     <TableCell className="text-center">
-                      <button onClick={() => router.push(`/settings/membership-dues/create?editId=${item.id}`)}
-                        className="inline-flex items-center justify-center">
+                      <IconButton aria-label="Edit" onClick={() => router.push(`/settings/membership-dues/create?editId=${item.id}`)}>
                         <Pencil className="h-5 w-5 text-blue-500 hover:text-blue-700 cursor-pointer" />
-                      </button>
+                      </IconButton>
                     </TableCell>
 
                     {/* View | Copy URL */}
                     <TableCell className="text-center">
                       <div className="flex items-center justify-center gap-1 text-sm">
-                        <button onClick={() => {
+                        <LinkButton onClick={() => {
                           window.open(withBase(duesPayPath(item)), "_blank");
-                        }}
-                          className="text-blue-600 hover:text-blue-800 hover:underline">View</button>
+                        }}>View</LinkButton>
                         <span className="text-muted-foreground">|</span>
-                        <button onClick={() => handleCopyUrl(item)}
-                          className="text-blue-600 hover:text-blue-800 hover:underline">Copy URL</button>
+                        <LinkButton onClick={() => handleCopyUrl(item)}>Copy URL</LinkButton>
                       </div>
                     </TableCell>
 
                     {/* Delete */}
                     <TableCell className="text-center">
-                      <button onClick={() => !item.isActive && setDeleteItem(item)}
-                        className={`inline-flex items-center justify-center ${item.isActive ? "opacity-30 cursor-not-allowed" : ""}`}
+                      <IconButton onClick={() => !item.isActive && setDeleteItem(item)}
+                        aria-label="Delete"
                         disabled={item.isActive}
                         title={item.isActive ? "Deactivate link first to delete" : "Delete"}>
                         <Trash2 className="h-5 w-5 text-red-500 hover:text-red-700 cursor-pointer" />
-                      </button>
+                      </IconButton>
                     </TableCell>
 
                     {/* Report — opens the public dues report page (which has its own Download button) */}
                     <TableCell className="text-center">
-                      <button
+                      <IconButton
                         onClick={() => window.open(`${window.location.origin}${BASE_PATH}/report/dues/${item.id}`, "_blank", "noopener,noreferrer")}
                         title="Open dues report"
-                        className="inline-flex items-center justify-center">
+                        aria-label="Open dues report">
                         <FileSpreadsheet className="h-5 w-5 text-red-600 hover:text-red-800 cursor-pointer" />
-                      </button>
+                      </IconButton>
                     </TableCell>
 
                     {/* Report Link */}
                     <TableCell className="text-center">
-                      <button onClick={() => {
+                      <LinkButton onClick={() => {
                         const url = `${window.location.origin}${BASE_PATH}/report/dues/${item.id}`;
                         navigator.clipboard.writeText(url);
                         setSuccessMessage("Report link copied.");
-                      }} className="text-sm text-blue-600 hover:text-blue-800 hover:underline">
+                      }}>
                         Copy URL
-                      </button>
+                      </LinkButton>
                     </TableCell>
 
                     {/* Disable Link */}
                     <TableCell className="text-center">
-                      <button onClick={() => handleToggle(item)}
-                        className={`text-sm font-medium ${item.isActive ? "text-green-600 hover:text-green-800" : "text-red-600 hover:text-red-800"} hover:underline`}>
+                      <LinkButton onClick={() => handleToggle(item)}
+                        tone={item.isActive ? "primary" : "danger"}>
                         {item.isActive ? "Activate" : "Deactivate"}
-                      </button>
+                      </LinkButton>
                     </TableCell>
 
                     {/* Settlement Refresh */}
                     <TableCell className="text-center">
-                      <button
+                      <IconButton
                         onClick={() => handleRefreshSettlements(item.id)}
                         disabled={refreshingSettlementId === item.id}
-                        className="inline-flex items-center justify-center"
+                        aria-label="Refresh Settlements"
                         title="Refresh Settlements"
                       >
                         {refreshingSettlementId === item.id ? (
@@ -330,29 +331,27 @@ export default function MembershipDuesPage() {
                         ) : (
                           <RefreshCw className="h-5 w-5 text-blue-500 hover:text-blue-700 cursor-pointer" />
                         )}
-                      </button>
+                      </IconButton>
                     </TableCell>
 
                     {/* Settlement Report */}
                     <TableCell className="text-center">
-                      <button
+                      <IconButton
                         onClick={() => handleViewSettlementReport(item.id)}
-                        className="inline-flex items-center justify-center"
+                        aria-label="View Settlement Report"
                         title="View Settlement Report"
                       >
                         <BarChart3 className="h-5 w-5 text-slate-500 hover:text-slate-700 cursor-pointer" />
-                      </button>
+                      </IconButton>
                     </TableCell>
 
                     {/* GoogleSheet */}
                     <TableCell className="text-center">
                       {item.googleSheetId ? (
                         <div className="flex flex-col items-center gap-0.5 text-sm">
-                          <button onClick={() => window.open(`https://docs.google.com/spreadsheets/d/${item.googleSheetId}`, "_blank")}
-                            className="text-blue-600 hover:text-blue-800 hover:underline">Open</button>
-                          <button onClick={() => { navigator.clipboard.writeText(`https://docs.google.com/spreadsheets/d/${item.googleSheetId}`); setSuccessMessage("Google Sheet URL copied."); }}
-                            className="text-blue-600 hover:text-blue-800 hover:underline">Copy URL</button>
-                          <button onClick={async () => {
+                          <LinkButton onClick={() => window.open(`https://docs.google.com/spreadsheets/d/${item.googleSheetId}`, "_blank")}>Open</LinkButton>
+                          <LinkButton onClick={() => { navigator.clipboard.writeText(`https://docs.google.com/spreadsheets/d/${item.googleSheetId}`); setSuccessMessage("Google Sheet URL copied."); }}>Copy URL</LinkButton>
+                          <LinkButton tone="danger" onClick={async () => {
                             if (!confirm("Delete this Google Sheet from Drive?")) return;
                             try {
                               setCreatingSheetId(item.id);
@@ -362,12 +361,12 @@ export default function MembershipDuesPage() {
                             } catch (err: any) {
                               setErrorMessage(err?.response?.data?.message || "Failed to delete Google Sheet.");
                             } finally { setCreatingSheetId(null); }
-                          }} className="text-red-600 hover:text-red-800 hover:underline">Delete</button>
+                          }}>Delete</LinkButton>
                         </div>
                       ) : creatingSheetId === item.id ? (
                         <div className="flex justify-center"><RotaryLoader size="sm" /></div>
                       ) : (
-                        <button onClick={async () => {
+                        <IconButton aria-label="Create Google Sheet" onClick={async () => {
                           try {
                             setCreatingSheetId(item.id);
                             const res = await createMembershipDuesGoogleSheet(item.id);
@@ -379,19 +378,19 @@ export default function MembershipDuesPage() {
                           } finally {
                             setCreatingSheetId(null);
                           }
-                        }} className="text-green-600 hover:text-green-800" title="Create Google Sheet">
-                          <FileSpreadsheet className="h-5 w-5 mx-auto" />
-                        </button>
+                        }} title="Create Google Sheet">
+                          <FileSpreadsheet className="h-5 w-5 text-green-600" />
+                        </IconButton>
                       )}
                     </TableCell>
 
                     <TableCell className="text-center">
                       <div className="flex gap-2 justify-center">
                         {item.notifyEmail !== false && (
-                        <button className="text-orange-600 hover:text-orange-800" title="Bulk Email Reminder"
+                        <IconButton aria-label="Bulk Email Reminder" title="Bulk Email Reminder"
                           onClick={() => { setBulkEmailRemarkDuesId(item.id); setBulkEmailRemark(""); setBulkEmailRemarkOpen(true); }}>
-                          <Mail className="h-4 w-4" />
-                        </button>
+                          <Mail className="h-4 w-4 text-orange-600" />
+                        </IconButton>
                         )}
                       </div>
                     </TableCell>
@@ -399,7 +398,7 @@ export default function MembershipDuesPage() {
                 ))}
               </TableBody>
             </Table>
-          </div>
+          </Card>
         )}
 
         <AlertModal
@@ -427,10 +426,10 @@ export default function MembershipDuesPage() {
             ) : settlementReportData.length === 0 ? (
               <p className="text-center text-muted-foreground py-8">No settlement data found.</p>
             ) : (
-              <div className="overflow-x-auto border rounded-lg">
+              <Card className="overflow-x-auto">
                 <Table>
                   <TableHeader>
-                    <TableRow className="bg-muted">
+                    <TableRow>
                       <TableHead>Member</TableHead>
                       <TableHead>Order ID</TableHead>
                       <TableHead>Vendor</TableHead>
@@ -470,7 +469,7 @@ export default function MembershipDuesPage() {
                     ))}
                   </TableBody>
                 </Table>
-              </div>
+              </Card>
             )}
           </DialogContent>
         </Dialog>

@@ -18,11 +18,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
 import AlertModal from "@/components/AlertModal";
-import { ArrowLeft, Plus, Pencil, Trash2, AlertTriangle, Eye, EyeOff, Phone, Mail } from "@/components/icons";
+import { Plus, Pencil, Trash2, AlertTriangle, Eye, EyeOff, Phone, Mail } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
-import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
-import { ListPageSkeleton } from "@/components/row/AppKit";
+import { PageHeader, ListPageSkeleton } from "@/components/row/AppKit";
 
 export default function DistrictContactDetailsPage() {
   const params = useParams();
@@ -114,18 +113,14 @@ export default function DistrictContactDetailsPage() {
   return (
     <ProtectedRoute>
       <div className="space-y-6">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-3">
-            <Button variant="outline" size="icon" asChild><Link href={`/districts/${districtId}/website-data`}><ArrowLeft className="h-4 w-4" /></Link></Button>
-            <div>
-              <h2 className="text-2xl font-bold tracking-tight text-primary">{districtName ? `${districtName} - Contact Details` : "Contact Details"}</h2>
-              <p className="text-muted-foreground text-base">Manage district contact details by year</p>
-            </div>
-          </div>
-          {canManage && !contact && !loading && !loadingContact && selectedYearId && (
+        <PageHeader
+          title={districtName ? `${districtName} - Contact Details` : "Contact Details"}
+          description="Manage district contact details by year"
+          back={`/districts/${districtId}/website-data`}
+          actions={canManage && !contact && !loading && !loadingContact && selectedYearId && (
             <Button onClick={openAddDialog}><Plus className="mr-2 h-4 w-4" />Add Contact</Button>
           )}
-        </div>
+        />
 
         {loading && <div className="flex items-center justify-center py-20"><ListPageSkeleton /></div>}
 
@@ -145,13 +140,13 @@ export default function DistrictContactDetailsPage() {
         {!loading && !loadingContact && selectedYearId && !contact && (
           <div className="flex flex-col items-center justify-center py-20 text-center">
             <Phone className="h-12 w-12 text-muted-foreground mb-4" />
-            <h3 className="text-lg font-semibold">No contact details yet</h3>
+            <h3 className="row-h2">No contact details yet</h3>
             <p className="text-muted-foreground mt-2">{canManage ? 'Click "Add Contact" to add contact details.' : "No contact details added yet."}</p>
           </div>
         )}
 
         {!loading && !loadingContact && contact && (
-          <Card className="border-primary/20 max-w-lg">
+          <Card className="max-w-lg">
             <CardContent className="p-6 space-y-4">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <Badge variant={contact.isActive ? "default" : "secondary"}>{contact.isActive ? "Active" : "Inactive"}</Badge>
@@ -159,7 +154,7 @@ export default function DistrictContactDetailsPage() {
                   <div className="flex flex-wrap items-center gap-2">
                     <Button variant="outline" size="sm" onClick={handleToggleActive}>{contact.isActive ? <><EyeOff className="mr-1 h-4 w-4" />Deactivate</> : <><Eye className="mr-1 h-4 w-4" />Activate</>}</Button>
                     <Button variant="outline" size="sm" onClick={openEditDialog}><Pencil className="mr-1 h-4 w-4" />Edit</Button>
-                    <Button variant="outline" size="sm" className="text-destructive hover:text-destructive" onClick={() => setShowDeleteConfirm(true)}><Trash2 className="mr-1 h-4 w-4" />Delete</Button>
+                    <Button variant="outline" size="sm" className="text-destructive" onClick={() => setShowDeleteConfirm(true)}><Trash2 className="mr-1 h-4 w-4" />Delete</Button>
                   </div>
                 )}
               </div>

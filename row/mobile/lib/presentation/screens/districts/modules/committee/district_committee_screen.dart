@@ -17,6 +17,8 @@ import 'committee_member_form_screen.dart';
 import 'district_committee_group_form_screen.dart';
 import 'district_committee_member_detail_screen.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/motion.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/roster_wheel.dart';
 
 // ---------------------------------------------------------------------------
 // Combined District Committee screen.
@@ -593,7 +595,7 @@ class _DistrictCommitteeScreenState extends State<DistrictCommitteeScreen> {
   }
 
   Future<bool> _confirm(String title, String message) async {
-    final ok = await showDialog<bool>(
+    final ok = await showRowDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
         title: Text(title),
@@ -681,6 +683,7 @@ class _DistrictCommitteeScreenState extends State<DistrictCommitteeScreen> {
                   suffixIcon: _query.isEmpty
                       ? null
                       : IconButton(
+                          tooltip: 'Close',
                           icon: const Icon(Icons.close_rounded, size: 18),
                           onPressed: () {
                             _searchCtrl.clear();
@@ -708,7 +711,7 @@ class _DistrictCommitteeScreenState extends State<DistrictCommitteeScreen> {
         Expanded(
           child: _loadingData
               ? const LoadingWidget()
-              : RefreshIndicator(
+              : RowRefresh(
                   color: AppColors.primary,
                   onRefresh: () => _selectedYearId != null
                       ? _loadData(_selectedYearId!)

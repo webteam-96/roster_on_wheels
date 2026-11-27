@@ -76,6 +76,22 @@ public class DistrictReportController : ControllerBase
         return ids;
     }
 
+    // The report lists every member's contact details, birth date and address, so a plain member of the district may
+    // not read it: the district's managers, or an AG asking for their own clubs (clubId, when given, is one of them).
+    private async Task<bool> MayReadAsync(int districtId, int yearId, int? agMemberId, int? clubId = null)
+    {
+        var me = int.TryParse(User.FindFirst("memberId")?.Value, out var id) ? id : 0;
+        if (me <= 0) return false;
+        if (await ScopeWriteGuardMiddleware.ReadAllowedAsync(_connectionString, me, false, districtId, members: false)) return true;
+        if (agMemberId != me) return false;
+        using var conn = CreateConnection();
+        await conn.OpenAsync();
+        var clubs = await ResolveAgScopeClubIdsAsync(conn, districtId, yearId, me);
+        return clubs is { Count: > 0 } && (clubId is not > 0 || clubs.Contains(clubId.Value));
+    }
+
+    private ObjectResult ReportRefused() => StatusCode(403, new { message = "Only the district's managers can see this report." });
+
     // agMemberId (optional): scopes the whole report to that AG's clubs. Omitted by the
     // District Admin report, so its behaviour is unchanged.
     [HttpGet]
@@ -83,6 +99,7 @@ public class DistrictReportController : ControllerBase
     {
         if (!await RotaryApi.Services.KillSwitchHelper.IsDistrictDrillReachableAsync(_connectionString, districtId)) return StatusCode(403, new { message = "This district or its zone is inactive. Reactivate it first to access this data." });
         if (yearId <= 0) return BadRequest(new { message = "yearId is required." });
+        if (!await MayReadAsync(districtId, yearId, agMemberId)) return ReportRefused();
 
         using var conn = CreateConnection();
         await conn.OpenAsync();
@@ -877,6 +894,7 @@ public class DistrictReportController : ControllerBase
         if (!await RotaryApi.Services.KillSwitchHelper.IsDistrictDrillReachableAsync(_connectionString, districtId))
             return StatusCode(403, new { message = "This district or its zone is inactive." });
         if (yearId <= 0) return BadRequest(new { message = "yearId is required." });
+        if (!await MayReadAsync(districtId, yearId, agMemberId, clubId)) return ReportRefused();
         using var conn = CreateConnection();
         await conn.OpenAsync();
 
@@ -896,8 +914,8 @@ public class DistrictReportController : ControllerBase
 
         if (clubIds.Count > 0)
             clubIds = (await conn.QueryAsync<int>(
-                $"SELECT c.pk_club_id FROM club_master c WHERE c.pk_club_id IN @Ids AND {HierarchyScopeSql.ClubLive("c")}",
-                new { Ids = clubIds })).ToList();
+                $"SELECT c.pk_club_id FROM club_master c WHERE c.pk_club_id IN @Ids AND c.fk_district_id = @D AND {HierarchyScopeSql.ClubLive("c")}",
+                new { Ids = clubIds, D = districtId })).ToList();
         if (clubIds.Count == 0) return Ok(new { districtNumber = "", clubs = new List<object>() });
 
         var districtNumber = await conn.ExecuteScalarAsync<string>(
@@ -963,6 +981,7 @@ public class DistrictReportController : ControllerBase
         if (!await RotaryApi.Services.KillSwitchHelper.IsDistrictDrillReachableAsync(_connectionString, districtId))
             return StatusCode(403, new { message = "This district or its zone is inactive." });
         if (yearId <= 0) return BadRequest(new { message = "yearId is required." });
+        if (!await MayReadAsync(districtId, yearId, agMemberId, clubId)) return ReportRefused();
         using var conn = CreateConnection();
         await conn.OpenAsync();
 
@@ -1117,6 +1136,7 @@ public class DistrictReportController : ControllerBase
         if (!await RotaryApi.Services.KillSwitchHelper.IsDistrictDrillReachableAsync(_connectionString, districtId))
             return StatusCode(403, new { message = "This district or its zone is inactive. Reactivate it first to access this data." });
         if (yearId <= 0) return BadRequest(new { message = "yearId is required." });
+        if (!await MayReadAsync(districtId, yearId, agMemberId)) return ReportRefused();
 
         using var conn = CreateConnection();
         await conn.OpenAsync();
@@ -1189,6 +1209,7 @@ public class DistrictReportController : ControllerBase
         if (!await RotaryApi.Services.KillSwitchHelper.IsDistrictDrillReachableAsync(_connectionString, districtId))
             return StatusCode(403, new { message = "This district or its zone is inactive. Reactivate it first to access this data." });
         if (yearId <= 0) return BadRequest(new { message = "yearId is required." });
+        if (!await MayReadAsync(districtId, yearId, agMemberId)) return ReportRefused();
 
         using var conn = CreateConnection();
         await conn.OpenAsync();

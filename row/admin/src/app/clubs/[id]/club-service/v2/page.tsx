@@ -1,4 +1,5 @@
 "use client";
+import { DataTable } from "@/components/ui/data-table";
 
 /**
  * Club Service v2 listing — pilot module for the frontend overhaul.
@@ -10,13 +11,15 @@
  * v2 reads ONLY `?returnTo=` — never any other param name.
  */
 
+import { IconButton } from "@/components/ui/icon-button";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { NativeSelect } from "@/components/ui/native-select";
+import { Card } from "@/components/ui/card";
 import { useCallback, useEffect, useState } from "react";
 import { useRouter, useParams, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import {
-  CalendarDays, Users, Loader2, Search, Plus, Edit3, Trash2,
-  Download, ArrowLeft, AlertTriangle, Info,
-} from "@/components/icons";
+import { CalendarDays, Users, Search, Plus, Edit3, Trash2, Download, AlertTriangle, Info } from "@/components/icons";
 import {
   getClub,
   getModules,
@@ -36,7 +39,7 @@ import ErrorAlert from "@/components/ErrorAlert";
 import ClubAdminShell from "@/components/v2/ClubAdminShell";
 import { fileTimestamp } from "@/lib/dateUtils";
 import { useSyncClubIdFromUrl } from "@/hooks/useSyncClubIdFromUrl";
-import { SkeletonRows } from "@/components/row/AppKit";
+import { PageHeader, SkeletonRows } from "@/components/row/AppKit";
 
 import AgreeText from "@/components/AgreeText";
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
@@ -220,23 +223,7 @@ export default function ClubServiceV2Page() {
       >
       <div className="space-y-5">
         {/* Header */}
-        <div className="flex items-start justify-between gap-3">
-          <div className="flex items-start gap-2">
-            <Link
-              href={`/clubs/${clubId}/dashboard`}
-              className="mt-0.5 inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50"
-              aria-label="Back"
-            >
-              <ArrowLeft size={15} />
-            </Link>
-            <div>
-              <h1 className="text-lg font-semibold text-slate-800">Club Service Meetings</h1>
-              <p className="text-xs text-slate-500 mt-0.5">
-                RY {yearLabel} · {clubName || "–"}
-              </p>
-            </div>
-          </div>
-        </div>
+        <PageHeader title="Club Service Meetings" description={<>RY {yearLabel} · {clubName || "–"}</>} back={`/clubs/${clubId}/dashboard`} />
 
         {/* KPI row — "Avg Attendance Stayed" tile intentionally dropped: the
             underlying field is only available on the dashboard's KPI endpoint
@@ -249,17 +236,17 @@ export default function ClubServiceV2Page() {
         </div>
 
         {/* Table card */}
-        <div className="bg-card rounded-2xl border border-slate-200 overflow-hidden">
+        <Card className="overflow-hidden">
           <div className="px-5 py-3 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div>
-              <h3 className="text-sm font-semibold text-slate-800">Meeting Records</h3>
+              <h3 className="row-h3">Meeting Records</h3>
               <p className="text-xs text-slate-500 mt-0.5">Weekly meetings, fellowship, BOD &amp; more · {yearLabel}</p>
             </div>
             <div className="flex flex-wrap items-center gap-2">
-              <select
+              <NativeSelect
                 value={selectedYearId ?? ""}
                 onChange={(e) => { setSelectedYearId(e.target.value ? Number(e.target.value) : null); setPage(1); }}
-                className="px-2 h-10 py-0 text-sm border border-slate-200 rounded-[12px] bg-card focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                className="w-auto"
               >
                 {years.length === 0 && <option value="">No years</option>}
                 {years.map((y) => (
@@ -267,40 +254,39 @@ export default function ClubServiceV2Page() {
                     {y.yearLabel}{y.isCurrent ? " · current" : ""}
                   </option>
                 ))}
-              </select>
+              </NativeSelect>
               <div className="relative w-full sm:w-auto">
                 <Search size={14} className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-400" />
-                <input
+                <Input
                   type="text"
                   placeholder="Search…"
                   value={searchInput}
                   onChange={(e) => setSearchInput(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-                  className="pl-7 pr-3 h-10 py-0 text-sm border border-slate-200 rounded-[12px] w-full sm:w-48 focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                  className="pl-7 pr-3 sm:w-48"
                 />
               </div>
-              <button
+              <Button
                 type="button"
                 onClick={handleSearch}
-                className="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1.5 rounded-full border border-slate-200 text-slate-700 hover:bg-slate-50"
+                variant="outline" size="sm"
               >
                 Search
-              </button>
-              <button
+              </Button>
+              <Button
                 type="button"
                 onClick={() => exportToCsv(projects, yearLabel, clubName || "club")}
-                className="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1.5 rounded-full border border-slate-200 text-slate-700 hover:bg-slate-50"
+                variant="outline" size="sm"
               >
                 <Download size={13} /> Export CSV
-              </button>
+              </Button>
               {canManage && (
-                <button
+                <Button
                   type="button"
                   onClick={handleAddClick}
-                  className="inline-flex items-center gap-1.5 text-xs font-semibold px-4 h-10 rounded-full bg-[#17458F] text-white hover:bg-[#17458F]"
                 >
                   <Plus size={13} /> Add Meeting
-                </button>
+                </Button>
               )}
             </div>
           </div>
@@ -310,33 +296,25 @@ export default function ClubServiceV2Page() {
             {loading ? (
               <SkeletonRows />
             ) : (
-              <table className="w-full min-w-[640px] md:min-w-full text-sm">
-                <thead className="bg-[#EDF4FB] text-[13px] text-[#64748B]">
-                  <tr>
-                    <th className="px-3 py-2.5 text-left w-10">Sr</th>
-                    <th className="px-3 py-2.5 text-left">Date</th>
-                    <th className="px-3 py-2.5 text-left">Meeting Type</th>
-                    <th className="px-3 py-2.5 text-left">Type</th>
-                    <th className="px-3 py-2.5 text-left">Attendance</th>
-                    <th className="px-3 py-2.5 text-left">Att %</th>
-                    {canManage && <th className="px-3 py-2.5 text-right w-16">Edit</th>}
-                    {canManage && <th className="px-3 py-2.5 text-right w-16">Delete</th>}
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {projects.map((m, i) => {
+              <DataTable
+                caption="Club service meetings"
+                card={false}
+                className="[&_table]:min-w-[640px] md:[&_table]:min-w-full"
+                rows={projects}
+                rowKey={(m) => m.id}
+                empty={search ? "No meetings match your search." : "No meetings recorded for this year."}
+                columns={[
+{ key: "sr", header: "Sr", className: "w-10 text-muted-foreground", cell: (m, i) => (page - 1) * pageSize + i + 1 },
+{ key: "date", header: "Date", className: "whitespace-nowrap", cell: (m, i) => fmtDate(m.projectDate) },
+{ key: "meetingType", header: "Meeting Type", cell: (m, i) => {
                     const meetingLabel = MEETING_TYPE_LABELS[m.meetingType || ""] || m.meetingType || "–";
-                    const pct = Number(m.attendancePercentage ?? 0);
-                    return (
-                      <tr key={m.id} className="hover:bg-blue-50/40">
-                        <td className="px-3 py-2 text-slate-500">{(page - 1) * pageSize + i + 1}</td>
-                        <td className="px-3 py-2 text-slate-700 whitespace-nowrap">{fmtDate(m.projectDate)}</td>
-                        <td className="px-3 py-2">
-                          <span className={`inline-flex items-center text-xs font-medium px-2 py-0.5 rounded-full border ${meetingTypeChipStyle(m.meetingType || "")}`}>
+return (<>
+                          <span className={`inline-flex items-center text-xs font-medium px-2 py-0.5 rounded border ${meetingTypeChipStyle(m.meetingType || "")}`}>
                             {meetingLabel}
                           </span>
-                        </td>
-                        <td className="px-3 py-2 font-medium text-slate-800">
+</>);
+} },
+{ key: "type", header: "Type", className: "font-medium", cell: (m, i) => (<>
                           <div className="flex flex-wrap items-center gap-2">
                             {m.primaryPhotoPath && (
                               // eslint-disable-next-line @next/next/no-img-element
@@ -348,61 +326,49 @@ export default function ClubServiceV2Page() {
                             )}
                             <span>{m.title || "–"}</span>
                           </div>
-                        </td>
-                        <td className="px-3 py-2 text-slate-600">
+</>) },
+{ key: "attendance", header: "Attendance", cell: (m, i) => (<>
                           {/* No member-on-roll denominator: ProjectListItem has no
                               membersOnRoll field and the current club count is
                               misleading for past years / BOD meetings. v1 just
                               showed the raw attendance value. */}
                           {m.attendance ?? "–"}
-                        </td>
-                        <td className="px-3 py-2">
-                          <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${attendancePercentChip(pct)}`}>
+</>) },
+{ key: "pct", header: "Att %", cell: (m, i) => {
+                    const pct = Number(m.attendancePercentage ?? 0);
+return (<>
+                          <span className={`text-xs font-semibold px-2 py-0.5 rounded ${attendancePercentChip(pct)}`}>
                             {Math.round(pct)}%
                           </span>
-                        </td>
-                        {canManage && (
-                          <td className="px-3 py-2 text-right">
+</>);
+} },
+...(canManage ? [{ key: "edit", header: "Edit", align: "right" as const, className: "w-16", cell: (m: (typeof projects)[number], i: number) => (<>
                             <Link
                               href={`/clubs/${clubId}/club-service/v2/${m.id}/edit?returnTo=${returnTo}&yearId=${selectedYearId}`}
-                              className="inline-flex items-center justify-center w-7 h-7 rounded text-slate-500 hover:text-blue-700 hover:bg-blue-50"
+                              className="row-icon-btn"
                               aria-label="Edit meeting"
                             >
                               <Edit3 size={13} />
                             </Link>
-                          </td>
-                        )}
-                        {canManage && (
-                          <td className="px-3 py-2 text-right">
-                            <button
+</>) }, { key: "delete", header: "Delete", align: "right" as const, className: "w-16", cell: (m: (typeof projects)[number], i: number) => (<>
+                            <IconButton
                               type="button"
                               onClick={() => setDeleteTarget(m)}
-                              className="inline-flex items-center justify-center w-7 h-7 rounded text-slate-400 hover:text-rose-700 hover:bg-rose-50"
+                              className="hover:text-red-700"
                               aria-label="Delete meeting"
                             >
                               <Trash2 size={13} />
-                            </button>
-                          </td>
-                        )}
-                      </tr>
-                    );
-                  })}
-                  {projects.length === 0 && (
-                    <tr>
-                      <td colSpan={canManage ? 8 : 6} className="px-4 py-10 text-center text-slate-400">
-                        {search ? "No meetings match your search." : "No meetings recorded for this year."}
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
+                            </IconButton>
+</>) }] : []),
+                ]}
+              />
             )}
           </div>
 
           <div className="px-5 py-2.5 border-t border-slate-100 text-xs text-slate-500">
             {totalCount} meeting{totalCount === 1 ? "" : "s"} · {yearLabel}
           </div>
-        </div>
+        </Card>
 
         {!loading && totalPages > 1 && (
           <Pagination

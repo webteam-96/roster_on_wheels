@@ -6,6 +6,8 @@
  * server sync stored; nothing here calls Rotary.org.
  */
 
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table"
+import { NativeSelect } from "@/components/ui/native-select";
 import { useCallback, useEffect, useState } from "react";
 import { useSelectedClub } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -22,21 +24,21 @@ const STATUS: Record<RiOfficerStatus, { label: string; cls: string }> = {
   different: { label: "Differs from RI", cls: "bg-amber-50 text-amber-800" },
   missing_in_row: { label: "Missing in ROW", cls: "bg-red-50 text-red-800" },
   missing_in_ri: { label: "Missing in RI", cls: "bg-red-50 text-red-800" },
-  empty: { label: "Not set in either", cls: "bg-[#EDF4FB] text-[#64748B]" },
-  not_synced: { label: "RI data not synced", cls: "bg-[#EDF4FB] text-[#64748B]" },
+  empty: { label: "Not set in either", cls: "bg-muted text-muted-foreground" },
+  not_synced: { label: "RI data not synced", cls: "bg-muted text-muted-foreground" },
 };
 
 const when = (utc: string | null) => (utc ? new Date(utc).toLocaleString() : null);
 
 function Holders({ list, other }: { list: RiHolder[]; other: RiHolder[] }) {
-  if (list.length === 0) return <span className="text-[#64748B]">None</span>;
+  if (list.length === 0) return <span className="text-muted-foreground">None</span>;
   const otherIds = new Set(other.map((h) => h.rotaryId));
   return (
     <ul className="space-y-1">
       {list.map((h, i) => (
         <li key={`${h.rotaryId ?? h.name}-${i}`} className={otherIds.has(h.rotaryId) && h.rotaryId ? "" : "font-semibold"}>
           {h.name || "Unnamed"}
-          <span className="ml-2 text-[12px] text-[#64748B]">{h.rotaryId ? `RI ${h.rotaryId}` : "No RI member id in ROW"}</span>
+          <span className="ml-2 text-[12px] text-muted-foreground">{h.rotaryId ? `RI ${h.rotaryId}` : "No RI member id in ROW"}</span>
         </li>
       ))}
     </ul>
@@ -67,15 +69,15 @@ function OfficerCompare({ clubId }: { clubId: number }) {
       title="Officers: ROW and Rotary International"
       subtitle="The six club officer positions RI records. Names in bold are not in the other list."
       headerRight={data && (
-        <label className="flex items-center gap-2 text-[13px] text-[#64748B]">
+        <label className="flex items-center gap-2 text-[13px] text-muted-foreground">
           <span>Rotary year</span>
-          <select
-            className="h-10 rounded-[12px] border border-[color:var(--row-line)] bg-[#FCFDFE] px-3 text-[14px] text-[#1B2C42]"
+          <NativeSelect
+            className="text-[#1B2C42] w-auto"
             value={data.year.id}
             onChange={(e) => setYearId(Number(e.target.value))}
           >
             {data.years.map((y) => <option key={y.id} value={y.id}>{y.label}</option>)}
-          </select>
+          </NativeSelect>
         </label>
       )}
     >
@@ -91,7 +93,7 @@ function OfficerCompare({ clubId }: { clubId: number }) {
               {differences === 0 ? "ROW and RI agree for this year." : `${differences} of 6 positions need attention.`}
             </p>
           ) : (
-            <p role="status" className="rounded-[12px] border border-[color:var(--row-line)] bg-[#EDF4FB] px-4 py-3 text-[14px] text-[#1B2C42]">
+            <p role="status" className="rounded-md border border-[color:var(--row-line)] bg-muted px-4 py-3 text-[14px] text-[#1B2C42]">
               {data.sync.status === "error"
                 ? `The last RI officer sync failed${data.sync.syncedAtUtc ? ` (${when(data.sync.syncedAtUtc)})` : ""}. ROW shows its own officers; the RI column fills in after the next successful server sync.`
                 : !data.riClubId
@@ -100,32 +102,32 @@ function OfficerCompare({ clubId }: { clubId: number }) {
             </p>
           )}
           <div className={t.wrap}>
-            <table className={t.table}>
-              <thead className={t.head}>
-                <tr>
-                  <th className={t.th}>Position</th>
-                  <th className={t.th}>In ROW ({data.year.label})</th>
-                  <th className={t.th}>In RI</th>
-                  <th className={t.th}>Result</th>
-                </tr>
-              </thead>
-              <tbody className={t.body}>
+            <Table className={t.table}>
+              <TableHeader className={t.head}>
+                <TableRow>
+                  <TableHead className={t.th}>Position</TableHead>
+                  <TableHead className={t.th}>In ROW ({data.year.label})</TableHead>
+                  <TableHead className={t.th}>In RI</TableHead>
+                  <TableHead className={t.th}>Result</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody className={t.body}>
                 {data.rows.map((r) => (
-                  <tr key={r.title} className={t.tr}>
-                    <td className={`${t.td} font-semibold`}>{r.title}</td>
-                    <td className={t.td}><Holders list={r.row} other={r.ri} /></td>
-                    <td className={t.td}>{synced ? <Holders list={r.ri} other={r.row} /> : <span className="text-[#64748B]">Not synced</span>}</td>
-                    <td className={t.td}>
-                      <span className={`inline-block rounded-[6px] px-2 py-1 text-[12px] font-semibold ${STATUS[r.status].cls}`}>
+                  <TableRow key={r.title} className={t.tr}>
+                    <TableCell className={`${t.td} font-semibold`}>{r.title}</TableCell>
+                    <TableCell className={t.td}><Holders list={r.row} other={r.ri} /></TableCell>
+                    <TableCell className={t.td}>{synced ? <Holders list={r.ri} other={r.row} /> : <span className="text-muted-foreground">Not synced</span>}</TableCell>
+                    <TableCell className={t.td}>
+                      <span className={`inline-block rounded-md px-2 py-1 text-[12px] font-semibold ${STATUS[r.status].cls}`}>
                         {STATUS[r.status].label}
                       </span>
-                    </td>
-                  </tr>
+                    </TableCell>
+                  </TableRow>
                 ))}
-              </tbody>
-            </table>
+              </TableBody>
+            </Table>
           </div>
-          <p className="text-[13px] text-[#64748B]">
+          <p className="text-[13px] text-muted-foreground">
             Change ROW officers under Board of Directors. Change RI&apos;s record in My Rotary (club administration).
             A ROW officer with no RI member id can never match: add the id on the member&apos;s profile.
           </p>
@@ -203,7 +205,7 @@ function TransferInWizard({ clubId }: { clubId: number }) {
     <Panel
       title="Transfer-in from Rotary International"
       subtitle="People RI lists for this club who are not members of it in ROW"
-      headerRight={data && <span className="text-[13px] text-[#64748B]">Step {step} of 4: {steps[step - 1]}</span>}
+      headerRight={data && <span className="text-[13px] text-muted-foreground">Step {step} of 4: {steps[step - 1]}</span>}
     >
       {error ? (
         <ErrorState message={error} onRetry={load} retryLabel="Try again" />
@@ -212,7 +214,7 @@ function TransferInWizard({ clubId }: { clubId: number }) {
       ) : !data.riClubId ? (
         <p className="text-[14px] text-[#1B2C42]">This club has no RI club id in ROW, so its RI member list cannot be read.</p>
       ) : data.riCount === 0 ? (
-        <p role="status" className="rounded-[12px] border border-[color:var(--row-line)] bg-[#EDF4FB] px-4 py-3 text-[14px] text-[#1B2C42]">
+        <p role="status" className="rounded-md border border-[color:var(--row-line)] bg-muted px-4 py-3 text-[14px] text-[#1B2C42]">
           No RI member list is stored for this club yet. It is filled by the Rotary.org member sync on the server
           (ROW support runs it). Once it has run, the people RI lists here who are missing in ROW appear in this wizard.
         </p>
@@ -225,28 +227,28 @@ function TransferInWizard({ clubId }: { clubId: number }) {
           {data.missing.length > 0 && (
             <>
               <div className={t.wrap}>
-                <table className={t.table}>
-                  <thead className={t.head}>
-                    <tr>
-                      <th className={t.th}>
+                <Table className={t.table}>
+                  <TableHeader className={t.head}>
+                    <TableRow>
+                      <TableHead className={t.th}>
                         <input
                           type="checkbox"
                           aria-label="Select everyone"
                           checked={picked.size === data.missing.length}
                           onChange={(e) => setPicked(new Set(e.target.checked ? data.missing.map((m) => m.rotaryMemberId) : []))}
                         />
-                      </th>
-                      <th className={t.th}>Name in RI</th>
-                      <th className={t.th}>RI member id</th>
-                      <th className={t.th}>Type</th>
-                      <th className={t.th}>Admitted</th>
-                      <th className={t.th}>Found in ROW</th>
-                    </tr>
-                  </thead>
-                  <tbody className={t.body}>
+                      </TableHead>
+                      <TableHead className={t.th}>Name in RI</TableHead>
+                      <TableHead className={t.th}>RI member id</TableHead>
+                      <TableHead className={t.th}>Type</TableHead>
+                      <TableHead className={t.th}>Admitted</TableHead>
+                      <TableHead className={t.th}>Found in ROW</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody className={t.body}>
                     {data.missing.map((m) => (
-                      <tr key={m.rotaryMemberId} className={t.tr}>
-                        <td className={t.td}>
+                      <TableRow key={m.rotaryMemberId} className={t.tr}>
+                        <TableCell className={t.td}>
                           <input
                             type="checkbox"
                             aria-label={`Select ${m.name}`}
@@ -257,18 +259,18 @@ function TransferInWizard({ clubId }: { clubId: number }) {
                               setPicked(next);
                             }}
                           />
-                        </td>
-                        <td className={`${t.td} font-semibold`}>{m.name}</td>
-                        <td className={t.tdMuted}>{m.rotaryMemberId}</td>
-                        <td className={t.tdMuted}>{m.memberType ?? ""}</td>
-                        <td className={t.tdMuted}>{m.admissionDate ? fmtDate(m.admissionDate) : ""}</td>
-                        <td className={t.tdMuted}>
+                        </TableCell>
+                        <TableCell className={`${t.td} font-semibold`}>{m.name}</TableCell>
+                        <TableCell className={t.tdMuted}>{m.rotaryMemberId}</TableCell>
+                        <TableCell className={t.tdMuted}>{m.memberType ?? ""}</TableCell>
+                        <TableCell className={t.tdMuted}>{m.admissionDate ? fmtDate(m.admissionDate) : ""}</TableCell>
+                        <TableCell className={t.tdMuted}>
                           {m.sameRiId ? `Yes, ${m.sameRiId.name} (another club)` : m.matches.length > 0 ? `Possible: ${m.matches.map((x) => x.name).join(", ")}` : "No"}
-                        </td>
-                      </tr>
+                        </TableCell>
+                      </TableRow>
                     ))}
-                  </tbody>
-                </table>
+                  </TableBody>
+                </Table>
               </div>
               <div className="flex justify-end">
                 <Button disabled={picked.size === 0} onClick={() => setStep(2)}>Next: choose an action</Button>
@@ -283,8 +285,8 @@ function TransferInWizard({ clubId }: { clubId: number }) {
             const set = (v: Choice) => setChoices({ ...choices, [m.rotaryMemberId]: v });
             const name = `ri-choice-${m.rotaryMemberId}`;
             return (
-              <fieldset key={m.rotaryMemberId} className="rounded-[12px] border border-[color:var(--row-line)] px-4 py-3">
-                <legend className="px-1 text-[14px] font-semibold text-[#1B2C42]">{m.name} <span className="font-normal text-[#64748B]">RI {m.rotaryMemberId}{m.email ? `, ${m.email}` : ""}</span></legend>
+              <fieldset key={m.rotaryMemberId} className="rounded-md border border-[color:var(--row-line)] px-4 py-3">
+                <legend className="px-1 text-[14px] font-semibold text-[#1B2C42]">{m.name} <span className="font-normal text-muted-foreground">RI {m.rotaryMemberId}{m.email ? `, ${m.email}` : ""}</span></legend>
                 <div className="space-y-2 text-[14px] text-[#1B2C42]">
                   {m.sameRiId && (
                     <label className="flex items-center gap-2">
@@ -323,7 +325,7 @@ function TransferInWizard({ clubId }: { clubId: number }) {
           <ul className="list-disc space-y-1 pl-6 text-[14px] text-[#1B2C42]">
             {toRun.map((m) => <li key={m.rotaryMemberId}><strong>{m.name}</strong>: {choiceLabel(m, choices[m.rotaryMemberId])}</li>)}
           </ul>
-          <p className="text-[13px] text-[#64748B]">New members get the default Member role. Each change is written to the audit log.</p>
+          <p className="text-[13px] text-muted-foreground">New members get the default Member role. Each change is written to the audit log.</p>
           <div className="flex justify-between">
             <Button variant="outline" disabled={running} onClick={() => setStep(2)}>Back</Button>
             <Button disabled={running} onClick={run}>{running ? "Working" : `Bring in ${toRun.length} ${toRun.length === 1 ? "person" : "people"}`}</Button>

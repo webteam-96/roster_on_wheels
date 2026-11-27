@@ -1,4 +1,5 @@
 "use client";
+import { ToggleButton } from "@/components/ui/text-buttons";
 
 import { useState, useEffect } from "react";
 import { useParams, useSearchParams } from "next/navigation";
@@ -15,9 +16,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
-import { ArrowLeft, CheckCircle2, XCircle, Send, Mail, Building2, AlertTriangle, RefreshCw, FileText, FileSpreadsheet, Loader2 } from "@/components/icons";
+import { CheckCircle2, XCircle, Send, Mail, Building2, AlertTriangle, RefreshCw, FileText, FileSpreadsheet, Loader2 } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
-import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import DistrictAdminShell from "@/components/v2/DistrictAdminShell";
 import DistrictEgovernanceTabBar from "@/components/dashboard/DistrictEgovernanceTabBar";
@@ -25,7 +25,7 @@ import DistrictEgovernanceKpis from "@/components/dashboard/DistrictEgovernanceK
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 import { appLocale } from "@/lib/appFormat";
-import { ListPageSkeleton } from "@/components/row/AppKit";
+import { PageHeader, ListPageSkeleton } from "@/components/row/AppKit";
 function formatDate(d: string | null) {
   if (!d) return "-";
   try { return new Date(d).toLocaleDateString(appLocale(), { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" }); } catch { return d; }
@@ -211,6 +211,18 @@ export default function MonthDetailPage() {
 
   const content = (
       <div className="space-y-6">
+        <PageHeader
+          title={monthName || "Monthly Report"}
+          description={<>{districtName} - {yearLabel}</>}
+          back={backHref}
+          actions={
+            <>
+<Button variant="outline" size="sm" onClick={fetchData} disabled={loading}>
+              <RefreshCw className={`h-4 w-4 mr-1 ${loading ? "animate-spin" : ""}`} />Refresh
+            </Button>
+            </>
+          }
+        />
         {/* Static E-Governance KPI cards + tab bar when opened from the CMR tab. */}
         {fromEgov && (
           <div className="space-y-4">
@@ -218,24 +230,6 @@ export default function MonthDetailPage() {
             <DistrictEgovernanceTabBar />
           </div>
         )}
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-3">
-            <Button variant="outline" size="icon" asChild>
-              <Link href={backHref}><ArrowLeft className="h-4 w-4" /></Link>
-            </Button>
-            <div>
-              <h2 className="text-2xl font-bold tracking-tight text-primary">
-                {monthName || "Monthly Report"}
-              </h2>
-              <p className="text-muted-foreground text-base">{districtName} - {yearLabel}</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-2 flex-wrap">
-            <Button variant="outline" size="sm" onClick={fetchData} disabled={loading}>
-              <RefreshCw className={`h-4 w-4 mr-1 ${loading ? "animate-spin" : ""}`} />Refresh
-            </Button>
-          </div>
-        </div>
 
         {loading && <div className="flex items-center justify-center py-20"><ListPageSkeleton /></div>}
 
@@ -274,23 +268,13 @@ export default function MonthDetailPage() {
 
             {/* Toolbar — view radio (Submitted / Not Submitted) + AG filter (applies to both). */}
             <div className="flex flex-wrap items-center justify-between gap-3">
-              <div className="flex flex-wrap items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => setView("submitted")}
-                  className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-semibold border transition ${view === "submitted" ? "bg-emerald-600 text-white border-emerald-600" : "border-slate-200 text-slate-700 hover:bg-slate-50"}`}
-                >
-                  <span className={`h-3.5 w-3.5 rounded-full ${view === "submitted" ? "bg-card ring-2 ring-emerald-600" : "border border-slate-400"}`} />
+              <div role="group" aria-label="Report status" className="flex flex-wrap items-center gap-2">
+                <ToggleButton pressed={view === "submitted"} onClick={() => setView("submitted")}>
                   Submitted ({filteredSubmitted.length})
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setView("notSubmitted")}
-                  className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-semibold border transition ${view === "notSubmitted" ? "bg-rose-600 text-white border-rose-600" : "border-slate-200 text-slate-700 hover:bg-slate-50"}`}
-                >
-                  <span className={`h-3.5 w-3.5 rounded-full ${view === "notSubmitted" ? "bg-card ring-2 ring-rose-600" : "border border-slate-400"}`} />
+                </ToggleButton>
+                <ToggleButton pressed={view === "notSubmitted"} onClick={() => setView("notSubmitted")}>
                   Not Submitted ({filteredNotSubmitted.length})
-                </button>
+                </ToggleButton>
               </div>
               <div className="flex items-center gap-2 flex-wrap">
                 <Select value={agId} onValueChange={setAgId}>
@@ -301,7 +285,7 @@ export default function MonthDetailPage() {
                   </SelectContent>
                 </Select>
                 {canManage && view === "notSubmitted" && filteredNotSubmitted.length > 0 && (
-                  <Button onClick={() => setReminderOpen(true)} className="bg-amber-600 hover:bg-amber-700">
+                  <Button onClick={() => setReminderOpen(true)}>
                     <Send className="mr-2 h-4 w-4" />Send Reminder ({filteredNotSubmitted.length} Clubs)
                   </Button>
                 )}
@@ -311,7 +295,7 @@ export default function MonthDetailPage() {
             {/* Not Submitted Section */}
             {view === "notSubmitted" && (
             <div>
-              <h3 className="text-lg font-semibold mb-3 flex items-center gap-2 text-red-600">
+              <h3 className="row-h2 mb-3 flex items-center gap-2 text-red-600">
                 <XCircle className="h-5 w-5" />Not Submitted ({filteredNotSubmitted.length})
               </h3>
               {filteredNotSubmitted.length === 0 ? (
@@ -371,7 +355,7 @@ export default function MonthDetailPage() {
             {view === "submitted" && (
             <div>
               <div className="flex items-center justify-between flex-wrap gap-2 mb-3">
-                <h3 className="text-lg font-semibold flex items-center gap-2 text-green-600">
+                <h3 className="row-h2 flex items-center gap-2 text-green-600">
                   <CheckCircle2 className="h-5 w-5" />Submitted ({filteredSubmitted.length})
                 </h3>
               </div>
@@ -468,7 +452,7 @@ export default function MonthDetailPage() {
             </div>
             <DialogFooter>
               <Button variant="outline" onClick={() => setReminderOpen(false)} disabled={sending}>Cancel</Button>
-              <Button onClick={handleSendReminder} disabled={sending || !sendEmail} className="bg-amber-600 hover:bg-amber-700">
+              <Button onClick={handleSendReminder} disabled={sending || !sendEmail}>
                 {sending ? "Sending..." : "Send Reminder"}
               </Button>
             </DialogFooter>

@@ -1,10 +1,13 @@
 "use client";
+import { DataTable } from "@/components/ui/data-table";
 
 /**
  * District Admin Dashboard › Service Hours (flagged module "service_hours"): approved service hours, volunteer sheet
  * hours and contributions per club for a Rotary year, with an Excel export. Clubs approve their members' entries.
  */
 
+import { NativeSelect } from "@/components/ui/native-select";
+import { PageHeader } from "@/components/row/AppKit";
 import { useEffect, useState } from "react";
 import { Download, Loader2 } from "@/components/icons";
 import { Button } from "@/components/ui/button";
@@ -18,7 +21,6 @@ import { moneyLine, reportFileName, saveBlob } from "@/lib/serviceHours";
 import { exportServiceReport, getDistrictServiceReport } from "@/services/api";
 import type { ServiceReport } from "@/types/serviceHours";
 
-const TH = "p-3 font-medium";
 const message = (err: unknown, fallback: string): string =>
   (err as { response?: { data?: { message?: string } } })?.response?.data?.message || fallback;
 
@@ -56,28 +58,23 @@ export default function DistrictServiceHoursPage() {
   };
 
   return (
-    <div className="space-y-6 p-6">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h2 className="text-2xl font-bold tracking-tight text-primary">Service Hours</h2>
-          <p className="text-base text-muted-foreground">
-            Hours members logged and their clubs approved, hours recorded on volunteer sheets, and cash and in-kind
-            contributions, per club.
-          </p>
-        </div>
-        {report && (
+    <div className="space-y-6">
+      <PageHeader
+        title="Service Hours"
+        description="Hours members logged and their clubs approved, hours recorded on volunteer sheets, and cash and in-kind contributions, per club."
+        actions={report && (
           <div className="flex items-center gap-2">
             <Label htmlFor="dsh-year" className="text-sm">Rotary year</Label>
-            <select id="dsh-year" className="h-10 rounded-md border border-input bg-background px-3 text-sm" value={report.yearId}
+            <NativeSelect id="dsh-year" className="w-auto" value={report.yearId}
               onChange={(e) => setYearId(Number(e.target.value))}>
               {report.years.map((y) => <option key={y.id} value={y.id}>{y.label}</option>)}
-            </select>
-            <Button variant="outline" className="gap-1.5" onClick={download} disabled={downloading}>
+            </NativeSelect>
+            <Button variant="outline" onClick={download} disabled={downloading}>
               {downloading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />} Excel
             </Button>
           </div>
         )}
-      </div>
+      />
 
       {!report ? (
         failed
@@ -96,34 +93,20 @@ export default function DistrictServiceHoursPage() {
           {report.byClub.length === 0 ? (
             <Card><CardContent className="p-5 text-sm text-muted-foreground">No club has approved service hours or contributions in {report.yearLabel} yet.</CardContent></Card>
           ) : (
-            <Card>
-              <CardContent className="overflow-x-auto p-0">
-                <table className="w-full min-w-[760px] text-sm">
-                  <thead className="bg-[#EDF4FB] text-[13px] text-[#64748B]">
-                    <tr className="border-b text-left">
-                      <th className={TH}>Club</th>
-                      <th className={`${TH} text-right`}>Logged hours</th>
-                      <th className={`${TH} text-right`}>Volunteer sheet hours</th>
-                      <th className={`${TH} text-right`}>Members</th>
-                      <th className={TH}>Cash</th>
-                      <th className={TH}>In kind</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {report.byClub.map((c) => (
-                      <tr key={c.clubId} className="border-b last:border-0">
-                        <td className="p-3 font-medium">{c.clubName}</td>
-                        <td className="p-3 text-right tabular-nums">{fmt.number(c.hours)}</td>
-                        <td className="p-3 text-right tabular-nums">{fmt.number(c.volunteerHours)}</td>
-                        <td className="p-3 text-right tabular-nums">{fmt.number(c.members)}</td>
-                        <td className="p-3">{money(c.cash)}</td>
-                        <td className="p-3">{money(c.inKind)}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </CardContent>
-            </Card>
+            <DataTable
+              caption="Service hours by club"
+              rows={report.byClub}
+              rowKey={(c) => c.clubId}
+              className="[&_table]:min-w-[760px]"
+              columns={[
+                { key: "club", header: "Club", className: "font-medium", cell: (c) => c.clubName },
+                { key: "hours", header: "Logged hours", align: "right", className: "tabular-nums", cell: (c) => fmt.number(c.hours) },
+                { key: "volunteer", header: "Volunteer sheet hours", align: "right", className: "tabular-nums", cell: (c) => fmt.number(c.volunteerHours) },
+                { key: "members", header: "Members", align: "right", className: "tabular-nums", cell: (c) => fmt.number(c.members) },
+                { key: "cash", header: "Cash", cell: (c) => money(c.cash) },
+                { key: "inKind", header: "In kind", cell: (c) => money(c.inKind) },
+              ]}
+            />
           )}
         </>
       )}

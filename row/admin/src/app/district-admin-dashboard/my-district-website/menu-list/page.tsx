@@ -1,5 +1,4 @@
 "use client";
-
 /**
  * Menu List — District Admin Dashboard V2 route
  * ---------------------------------------------------------------------------
@@ -23,491 +22,51 @@
  * mobile card view + desktop table view, admin-role gating (SA || Admin).
  * ---------------------------------------------------------------------------
  */
-
-import { useState, useEffect, useCallback, useRef, Fragment, useMemo } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { LinkButton } from "@/components/ui/text-buttons";
+import { IconButton } from "@/components/ui/icon-button";
+import { Card } from "@/components/ui/card";
+import { Fragment } from "react";
 import { ClubMenu, ClubSubMenu, LINK_TYPES, isHomeMenu } from "@/types/menu";
-import {
-  getDistrictMenus,
-  createDistrictMenu,
-  updateDistrictMenu,
-  setDistrictMenuActive,
-  deleteDistrictMenu,
-  reorderDistrictMenusBulk,
-  uploadDistrictMenuDocument,
-  getDistrictSubMenus,
-  createDistrictSubMenu,
-  updateDistrictSubMenu,
-  deleteDistrictSubMenu,
-  reorderDistrictSubMenusBulk,
-  getDistrict,
-} from "@/services/api";
-import { useDragSort } from "@/hooks/useDragSort";
-import { useAuth } from "@/contexts/AuthContext";
-import { districtYearRights, canEditYearless } from "@/lib/adminYears";
-import { useRotaryYears } from "@/hooks/useRotaryYears";
 import ViewOnlyBadge from "@/components/ViewOnlyBadge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import {
-  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
-} from "@/components/ui/table";
-import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription,
-} from "@/components/ui/dialog";
-import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-} from "@/components/ui/select";
-import {
-  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
 import AlertModal from "@/components/AlertModal";
 import {
-  ArrowLeft, Plus, Pencil, Trash2, MoreHorizontal,
-  AlertTriangle, ExternalLink, Eye, EyeOff, ChevronDown, ChevronRight,
-  GripVertical, List, Upload, X, FileText, PlusCircle,
+  Plus,
+  Pencil,
+  Trash2,
+  MoreHorizontal,
+  AlertTriangle,
+  Eye,
+  EyeOff,
+  ChevronDown,
+  ChevronRight,
+  GripVertical,
+  List,
+  Upload,
+  X,
+  FileText,
+  PlusCircle,
 } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import SearchBox from "@/components/SearchBox";
-import { ListPageSkeleton } from "@/components/row/AppKit";
+import { PageHeader, ListPageSkeleton } from "@/components/row/AppKit";
+import { LinkTypeBadgeWithView } from "./menuListHelpers";
+import { useMenuList } from "./useMenuList";
 
-function getLinkTypeLabel(value: string): string {
-  return LINK_TYPES.find((t) => t.value === value)?.label || value;
-}
-
-function getLinkTypeBadgeVariant(value: string): "default" | "secondary" | "outline" {
-  switch (value) {
-    case "page": return "default";
-    case "external": return "secondary";
-    case "document": return "outline";
-    default: return "secondary";
-  }
-}
-
-// Build a URL openable in a new tab — used by LinkTypeBadgeWithView so the
-// admin can preview any uploaded document / external URL. Document/file/pdf
-// values are prepended with the API base if relative. External URLs are
-// passed through (with https:// auto-prepended). Page/html → null.
-function resolveOpenUrl(linkType: string, linkValue: string | null | undefined): string | null {
-  if (!linkValue || !linkValue.trim()) return null;
-  const v = linkValue.trim();
-  if (linkType === "document" || linkType === "file" || linkType === "pdf") {
-    if (v.startsWith("http://") || v.startsWith("https://")) return v;
-    const base = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000").replace(/\/$/, "");
-    return base + (v.startsWith("/") ? v : "/" + v);
-  }
-  if (linkType === "external" || linkType === "url" || linkType === "weblink") {
-    if (v.startsWith("http://") || v.startsWith("https://")) return v;
-    return "https://" + v;
-  }
-  return null;
-}
-
-function LinkTypeBadgeWithView({ linkType, linkValue, className }: {
-  linkType: string;
-  linkValue: string | null | undefined;
-  className?: string;
-}) {
-  const openUrl = resolveOpenUrl(linkType, linkValue);
-  return (
-    <span className="inline-flex items-center gap-1.5">
-      <Badge variant={getLinkTypeBadgeVariant(linkType)} className={className}>
-        {getLinkTypeLabel(linkType)}
-      </Badge>
-      {openUrl && (
-        <a
-          href={openUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          title="Open uploaded file / link in a new tab"
-          className="inline-flex items-center justify-center w-6 h-6 rounded text-slate-500 hover:text-ink hover:bg-slate-100"
-        >
-          <ExternalLink size={13} />
-        </a>
-      )}
-    </span>
-  );
-}
 
 export default function DistrictAdminMenuListPage() {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const returnTo = searchParams.get("returnTo");
-  const currentYearId = searchParams.get("yearId");
-
-  const goBack = () => {
-    const dest = returnTo || "/district-admin-dashboard/my-district-website";
-    if (!currentYearId) { router.push(dest); return; }
-    const sep = dest.includes("?") ? "&" : "?";
-    router.push(`${dest}${sep}yearId=${encodeURIComponent(currentYearId)}`);
-  };
-
-  const { isSuperAdmin, isAdmin, selectedDistrictId, user } = useAuth();
-  const districtId = selectedDistrictId ?? 0;
-
-  const [districtNumber, setDistrictNumber] = useState("");
-  const [menus, setMenus] = useState<ClubMenu[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [searchQuery, setSearchQuery] = useState("");
-
-  // Expanded menus & sub-menu cache
-  const [expandedMenuIds, setExpandedMenuIds] = useState<Set<number>>(new Set());
-  const [subMenusMap, setSubMenusMap] = useState<Record<number, ClubSubMenu[]>>({});
-  const [loadingSubMenus, setLoadingSubMenus] = useState<Set<number>>(new Set());
-
-  // Dialog state
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [dialogMode, setDialogMode] = useState<"menu" | "submenu">("menu");
-  const [editingMenu, setEditingMenu] = useState<ClubMenu | null>(null);
-  const [editingSubMenu, setEditingSubMenu] = useState<ClubSubMenu | null>(null);
-  const [parentMenuId, setParentMenuId] = useState<number | null>(null);
-  const [saving, setSaving] = useState(false);
-
-  // Form fields
-  const [formName, setFormName] = useState("");
-  const [formLinkType, setFormLinkType] = useState("page");
-  const [formLinkValue, setFormLinkValue] = useState("");
-  const [formSortOrder, setFormSortOrder] = useState(1);
-  const [formIsActive, setFormIsActive] = useState("1");
-  const [uploading, setUploading] = useState(false);
-
-  // Delete
-  const [deleteTarget, setDeleteTarget] = useState<{ type: "menu" | "submenu"; item: ClubMenu | ClubSubMenu; menuId?: number } | null>(null);
-
-  // No Rotary year on this data — one menu, one set of links, one About page,
-  // all live now — so changing it needs CURRENT-year rights.
-  // Named siteCurrentYearId: this page already has its own currentYearId.
-  const { years: rotaryYears, currentYearId: siteCurrentYearId } = useRotaryYears();
-  const siteRights = useMemo(() => districtYearRights(user?.scopedRoles, districtId), [user?.scopedRoles, districtId]);
-  const canManage = (isSuperAdmin || isAdmin) && canEditYearless(siteRights, siteCurrentYearId, isSuperAdmin);
-  // YWAR-BADGE-YEARLESS — name the CURRENT year, not the years held.
-  // This data is not filed by Rotary year, so "you can make changes in
-  // 2025-26" is untrue: those years cannot help here. See ViewOnlyBadge.
-  const ywarCurrentYearLabel =
-    rotaryYears.find((y) => y.id === siteCurrentYearId)?.yearLabel ?? "";
-
-  const filteredMenus = menus.filter((menu) => {
-    if (!searchQuery.trim()) return true;
-    const q = searchQuery.toLowerCase();
-    return (
-      menu.menuName.toLowerCase().includes(q) ||
-      getLinkTypeLabel(menu.linkType).toLowerCase().includes(q) ||
-      (menu.isActive ? "active" : "inactive").includes(q)
-    );
-  });
-
-  const fetchMenus = useCallback(async () => {
-    try {
-      const data = await getDistrictMenus(districtId);
-      setMenus(data);
-    } catch (err: any) {
-      setErrorMessage(err?.response?.data?.message || err?.response?.data || "Failed to load menus.");
-    }
-  }, [districtId]);
-
-  useEffect(() => {
-    if (!districtId) return;
-    async function fetchInitial() {
-      setLoading(true);
-      try {
-        const districtData = await getDistrict(districtId);
-        setDistrictNumber(districtData.districtNumber);
-        await fetchMenus();
-      } catch (err: any) {
-        setErrorMessage(err?.response?.data?.message || err?.response?.data || "Failed to load data.");
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchInitial();
-  }, [districtId, fetchMenus]);
-
-  const fetchSubMenus = useCallback(async (menuId: number) => {
-    setLoadingSubMenus((prev) => new Set(prev).add(menuId));
-    try {
-      const data = await getDistrictSubMenus(districtId, menuId);
-      setSubMenusMap((prev) => ({ ...prev, [menuId]: data }));
-    } catch (err: any) {
-      setErrorMessage(err?.response?.data?.message || err?.response?.data || "Failed to load sub-menus.");
-    } finally {
-      setLoadingSubMenus((prev) => {
-        const next = new Set(prev);
-        next.delete(menuId);
-        return next;
-      });
-    }
-  }, [districtId]);
-
-  const toggleExpand = (menuId: number) => {
-    setExpandedMenuIds((prev) => {
-      const next = new Set(prev);
-      if (next.has(menuId)) {
-        next.delete(menuId);
-      } else {
-        next.add(menuId);
-        if (!subMenusMap[menuId]) {
-          fetchSubMenus(menuId);
-        }
-      }
-      return next;
-    });
-  };
-
-  // ===== Menu Dialog =====
-
-  const openAddMenuDialog = () => {
-    setDialogMode("menu");
-    setEditingMenu(null);
-    setEditingSubMenu(null);
-    setParentMenuId(null);
-    setFormName("");
-    setFormLinkType("page");
-    setFormLinkValue("");
-    setFormSortOrder(menus.length + 1);
-    setFormIsActive("1");
-    setDialogOpen(true);
-  };
-
-  const openEditMenuDialog = (menu: ClubMenu) => {
-    setDialogMode("menu");
-    setEditingMenu(menu);
-    setEditingSubMenu(null);
-    setParentMenuId(null);
-    setFormName(menu.menuName);
-    setFormLinkType(menu.linkType);
-    setFormLinkValue(menu.linkValue);
-    setFormSortOrder(menu.sortOrder);
-    setFormIsActive(menu.isActive ? "1" : "0");
-    setDialogOpen(true);
-  };
-
-  // ===== SubMenu Dialog =====
-
-  const openAddSubMenuDialog = (menuId: number) => {
-    setDialogMode("submenu");
-    setEditingMenu(null);
-    setEditingSubMenu(null);
-    setParentMenuId(menuId);
-    setFormName("");
-    setFormLinkType("page");
-    setFormLinkValue("");
-    const subs = subMenusMap[menuId] || [];
-    setFormSortOrder(subs.length + 1);
-    setFormIsActive("1");
-    setDialogOpen(true);
-  };
-
-  const openEditSubMenuDialog = (sub: ClubSubMenu) => {
-    setDialogMode("submenu");
-    setEditingMenu(null);
-    setEditingSubMenu(sub);
-    setParentMenuId(sub.menuId);
-    setFormName(sub.subMenuName);
-    setFormLinkType(sub.linkType);
-    setFormLinkValue(sub.linkValue);
-    setFormSortOrder(sub.sortOrder);
-    setFormIsActive(sub.isActive ? "1" : "0");
-    setDialogOpen(true);
-  };
-
-  // ===== File Upload =====
-
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setUploading(true);
-    try {
-      const result = await uploadDistrictMenuDocument(districtId, file);
-      setFormLinkValue(result.path);
-    } catch (err: any) {
-      setErrorMessage(err?.response?.data?.message || err?.response?.data || "Failed to upload document.");
-    } finally {
-      setUploading(false);
-    }
-    e.target.value = "";
-  };
-
-  // ===== Save =====
-
-  const handleSave = async () => {
-    if (!formName.trim()) {
-      setErrorMessage("Please enter a name.");
-      return;
-    }
-
-    // Enforce 9-menu cap on save (not just on the Add button). Only
-    // gates CREATE — edits of existing rows are always allowed.
-    if (dialogMode === "menu" && !editingMenu && menus.length >= 9) {
-      setErrorMessage(`Menu limit reached (${menus.length}/9). Delete an existing menu before adding a new one.`);
-      return;
-    }
-
-    setSaving(true);
-    try {
-      if (dialogMode === "menu") {
-        if (editingMenu) {
-          await updateDistrictMenu(districtId, editingMenu.id, {
-            menuName: formName.trim(),
-            linkType: formLinkType,
-            linkValue: formLinkValue,
-            sortOrder: formSortOrder,
-            isActive: formIsActive === "1",
-          });
-          setSuccessMessage("Menu updated successfully.");
-        } else {
-          await createDistrictMenu(districtId, {
-            menuName: formName.trim(),
-            linkType: formLinkType,
-            linkValue: formLinkValue,
-            sortOrder: formSortOrder,
-            isActive: formIsActive === "1",
-          });
-          setSuccessMessage("Menu added successfully.");
-        }
-        setDialogOpen(false);
-        await fetchMenus();
-      } else {
-        if (editingSubMenu && parentMenuId) {
-          await updateDistrictSubMenu(districtId, parentMenuId, editingSubMenu.id, {
-            subMenuName: formName.trim(),
-            linkType: formLinkType,
-            linkValue: formLinkValue,
-            sortOrder: formSortOrder,
-            isActive: formIsActive === "1",
-          });
-          setSuccessMessage("Sub-menu updated successfully.");
-        } else if (parentMenuId) {
-          await createDistrictSubMenu(districtId, parentMenuId, {
-            subMenuName: formName.trim(),
-            linkType: formLinkType,
-            linkValue: formLinkValue,
-            sortOrder: formSortOrder,
-            isActive: formIsActive === "1",
-          });
-          setSuccessMessage("Sub-menu added successfully.");
-        }
-        setDialogOpen(false);
-        if (parentMenuId) {
-          await fetchSubMenus(parentMenuId);
-          await fetchMenus();
-        }
-      }
-    } catch (err: unknown) {
-      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message || "Failed to save.";
-      setErrorMessage(msg);
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  // ===== Delete =====
-
-  const handleDelete = async () => {
-    if (!deleteTarget) return;
-    try {
-      if (deleteTarget.type === "menu") {
-        await deleteDistrictMenu(districtId, (deleteTarget.item as ClubMenu).id);
-        setSuccessMessage("Menu deleted successfully.");
-        await fetchMenus();
-      } else {
-        const sub = deleteTarget.item as ClubSubMenu;
-        await deleteDistrictSubMenu(districtId, sub.menuId, sub.id);
-        setSuccessMessage("Sub-menu deleted successfully.");
-        await fetchSubMenus(sub.menuId);
-        await fetchMenus();
-      }
-      setDeleteTarget(null);
-    } catch {
-      setDeleteTarget(null);
-      setErrorMessage("Failed to delete.");
-    }
-  };
-
-  // ===== Toggle Active =====
-
-  const handleToggleMenuActive = async (menu: ClubMenu) => {
-    try {
-      await setDistrictMenuActive(districtId, menu.id, !menu.isActive);
-      setSuccessMessage(menu.isActive ? "Menu deactivated." : "Menu activated.");
-      await fetchMenus();
-    } catch (err: any) {
-      setErrorMessage(err?.response?.data?.message || err?.response?.data || "Failed to update menu status.");
-    }
-  };
-
-  const handleToggleSubMenuActive = async (sub: ClubSubMenu) => {
-    try {
-      await updateDistrictSubMenu(districtId, sub.menuId, sub.id, {
-        subMenuName: sub.subMenuName,
-        linkType: sub.linkType,
-        linkValue: sub.linkValue,
-        sortOrder: sub.sortOrder,
-        isActive: !sub.isActive,
-      });
-      setSuccessMessage(sub.isActive ? "Sub-menu deactivated." : "Sub-menu activated.");
-      await fetchSubMenus(sub.menuId);
-    } catch (err: any) {
-      setErrorMessage(err?.response?.data?.message || err?.response?.data || "Failed to update sub-menu status.");
-    }
-  };
-
-  // ===== Drag-and-drop reorder =====
-
-  const isSearching = searchQuery.trim() !== "";
-
-  const { dragProps: menuDragProps } = useDragSort(
-    menus,
-    setMenus,
-    async (orderedIds) => {
-      try {
-        await reorderDistrictMenusBulk(districtId, orderedIds);
-      } catch (err: any) {
-        setErrorMessage(err?.response?.data?.message || err?.response?.data || "Failed to reorder menus.");
-        await fetchMenus();
-      }
-    }
-  );
-
-  const subDragItem = useRef<{ menuId: number; idx: number } | null>(null);
-  const subDragOverItem = useRef<{ menuId: number; idx: number } | null>(null);
-
-  const handleSubMenuDragEnd = async (menuId: number) => {
-    const start = subDragItem.current;
-    const end = subDragOverItem.current;
-    subDragItem.current = null;
-    subDragOverItem.current = null;
-    if (!start || !end || start.menuId !== menuId || end.menuId !== menuId || start.idx === end.idx) return;
-
-    const subs = subMenusMap[menuId] || [];
-    const reordered = [...subs];
-    const [removed] = reordered.splice(start.idx, 1);
-    reordered.splice(end.idx, 0, removed);
-    setSubMenusMap((prev) => ({ ...prev, [menuId]: reordered }));
-
-    try {
-      await reorderDistrictSubMenusBulk(districtId, menuId, reordered.map((s) => s.id));
-    } catch (err: any) {
-      setErrorMessage(err?.response?.data?.message || err?.response?.data || "Failed to reorder sub-menus.");
-      await fetchSubMenus(menuId);
-    }
-  };
-
-  const subDragProps = (menuId: number, idx: number) => ({
-    draggable: true,
-    onDragStart: () => { subDragItem.current = { menuId, idx }; },
-    onDragEnter: () => { subDragOverItem.current = { menuId, idx }; },
-    onDragEnd: () => handleSubMenuDragEnd(menuId),
-    onDragOver: (e: React.DragEvent) => e.preventDefault(),
-    style: { cursor: "grab" } as React.CSSProperties,
-  });
-
+  const r = useMenuList();
+  const { goBack, districtId, districtNumber, menus, loading, successMessage, setSuccessMessage, errorMessage, setErrorMessage, searchQuery, setSearchQuery, expandedMenuIds, subMenusMap, loadingSubMenus, dialogOpen, setDialogOpen, dialogMode, editingMenu, editingSubMenu, saving, formName, setFormName, formLinkType, setFormLinkType, formLinkValue, setFormLinkValue, formSortOrder, setFormSortOrder, formIsActive, setFormIsActive, uploading, deleteTarget, setDeleteTarget, canManage, ywarCurrentYearLabel, filteredMenus, toggleExpand, openAddMenuDialog, openEditMenuDialog, openAddSubMenuDialog, openEditSubMenuDialog, handleFileUpload, handleSave, handleDelete, handleToggleMenuActive, handleToggleSubMenuActive, isSearching, menuDragProps, subDragProps } = r;
   // ===== Render helpers =====
 
   const renderLinkValueInput = () => {
@@ -522,7 +81,7 @@ export default function DistrictAdminMenuListPage() {
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-6 w-6 text-slate-500 hover:text-slate-800 hover:bg-slate-100"
+                className="w-6 row-btn-sm"
                 onClick={() => setFormLinkValue("")}
               >
                 <X className="h-3 w-3" />
@@ -556,7 +115,7 @@ export default function DistrictAdminMenuListPage() {
       <div className="space-y-2">
         <Label className="text-slate-600 text-sm">Link Value *</Label>
         <Input
-          className="border-slate-200 bg-card focus:border-azure focus:ring-azure/20"
+         
           placeholder={formLinkType === "external" ? "https://..." : "Enter page name (e.g., About Us)"}
           value={formLinkValue}
           onChange={(e) => setFormLinkValue(e.target.value)}
@@ -593,7 +152,7 @@ export default function DistrictAdminMenuListPage() {
         <TableCell>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-500 hover:text-ink hover:bg-slate-100">
+              <Button aria-label="More actions" variant="ghost" size="icon" className="row-btn-sm">
                 <MoreHorizontal className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
@@ -644,7 +203,7 @@ export default function DistrictAdminMenuListPage() {
           {canManage && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-500 hover:text-ink hover:bg-slate-100">
+                <Button aria-label="More actions" variant="ghost" size="icon" className="row-btn-sm">
                   <MoreHorizontal className="h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
@@ -683,37 +242,20 @@ export default function DistrictAdminMenuListPage() {
 
       <div className="space-y-6">
         {/* ── Header card ────────────────────────────────────────────── */}
-        <div className="bg-card rounded-2xl border border-slate-200 shadow-sm p-5">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex items-center gap-3">
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={goBack}
-                className="border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-slate-800"
-                aria-label="Back"
-              >
-                <ArrowLeft className="h-4 w-4" />
-              </Button>
-              <div>
-                <h2 className="text-2xl font-bold tracking-tight text-ink">
-                  {districtNumber ? `District ${districtNumber} - Menu List` : "Menu List"}
-                </h2>
-                <div className="h-0.5 w-16 bg-marigold rounded mt-1.5" />
-                <p className="text-sm text-slate-500 mt-1.5">Manage website navigation menus</p>
-              </div>
-            </div>
-            {canManage && (
+        <PageHeader
+          title={districtNumber ? `District ${districtNumber} - Menu List` : "Menu List"}
+          description="Manage website navigation menus"
+          back={() => goBack()}
+          actions={canManage && (
               <Button
                 onClick={openAddMenuDialog}
                 disabled={menus.length >= 9}
-                className="bg-azure hover:bg-mint-ink text-white disabled:bg-slate-300 disabled:text-slate-500"
+                className="disabled:text-slate-500"
               >
                 <Plus className="mr-2 h-4 w-4" />Add Menu
               </Button>
             )}
-          </div>
-        </div>
+        />
 
         {loading && (
           <div className="flex items-center justify-center py-20">
@@ -743,15 +285,15 @@ export default function DistrictAdminMenuListPage() {
 
         {/* Empty state */}
         {!loading && menus.length === 0 && (
-          <div className="bg-card rounded-2xl border border-slate-200 shadow-sm">
+          <Card>
             <div className="flex flex-col items-center justify-center py-20 text-center">
               <List className="h-12 w-12 text-slate-400 mb-4" />
-              <h3 className="text-lg font-semibold text-slate-800">No menus yet</h3>
+              <h3 className="row-h2">No menus yet</h3>
               <p className="text-sm text-slate-500 mt-2">
                 {canManage ? 'Click "Add Menu" to create your first navigation menu.' : "No menus have been added yet."}
               </p>
             </div>
-          </div>
+          </Card>
         )}
 
         {/* Menus list */}
@@ -763,11 +305,11 @@ export default function DistrictAdminMenuListPage() {
               placeholder="Search menus..."
             />
             {filteredMenus.length === 0 && searchQuery.trim() !== "" ? (
-              <div className="bg-card rounded-2xl border border-slate-200 shadow-sm">
+              <Card>
                 <p className="text-slate-500 text-sm py-8 text-center">
                   No results found for &quot;{searchQuery}&quot;
                 </p>
-              </div>
+              </Card>
             ) : (
             <>
             {/* Mobile card view */}
@@ -780,12 +322,12 @@ export default function DistrictAdminMenuListPage() {
                 const dragHandlers = canManage && !isSearching ? menuDragProps(realIndex) : {};
                 return (
                   <div key={menu.id}>
-                    <div className="bg-card rounded-2xl border border-slate-200 shadow-sm" {...dragHandlers}>
+                    <Card {...dragHandlers}>
                       <div className="p-4">
                         <div className="flex items-center gap-3">
-                          <button onClick={() => toggleExpand(menu.id)} className="flex-shrink-0 text-slate-500 hover:text-ink">
+                          <IconButton type="button" onClick={() => toggleExpand(menu.id)} aria-label={isExpanded ? "Collapse" : "Expand"} aria-expanded={isExpanded} className="flex-shrink-0">
                             {isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-                          </button>
+                          </IconButton>
                           <div className="flex-1 min-w-0">
                             <p className="font-medium text-sm text-slate-800">{menu.menuName}</p>
                             <div className="flex gap-1 mt-1 flex-wrap items-center">
@@ -794,7 +336,7 @@ export default function DistrictAdminMenuListPage() {
                                 {menu.isActive ? "Active" : "Inactive"}
                               </Badge>
                               {menu.subMenuCount > 0 && (
-                                <Badge variant="outline" className="text-xs border-slate-200 bg-card text-slate-700">
+                                <Badge variant="outline" className="border-slate-200 bg-card text-slate-700">
                                   {menu.subMenuCount} sub
                                 </Badge>
                               )}
@@ -806,7 +348,7 @@ export default function DistrictAdminMenuListPage() {
                           {canManage && (
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-500 hover:text-ink hover:bg-slate-100">
+                                <Button aria-label="More actions" variant="ghost" size="icon" className="row-btn-sm">
                                   <MoreHorizontal className="h-4 w-4" />
                                 </Button>
                               </DropdownMenuTrigger>
@@ -841,7 +383,7 @@ export default function DistrictAdminMenuListPage() {
                           )}
                         </div>
                       </div>
-                    </div>
+                    </Card>
                     {/* Expanded sub-menus */}
                     {isExpanded && (
                       <div className="space-y-2 mt-2">
@@ -862,15 +404,15 @@ export default function DistrictAdminMenuListPage() {
             </div>
 
             {/* Desktop table view */}
-            <div className="hidden sm:block bg-card rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+            <Card className="hidden sm:block overflow-hidden">
               <Table>
                 <TableHeader>
-                  <TableRow className="bg-azure hover:bg-azure">
-                    <TableHead className="text-base font-semibold">Menu Name</TableHead>
-                    <TableHead className="w-32 text-base font-semibold">Link Type</TableHead>
-                    <TableHead className="w-24 text-base font-semibold">Status</TableHead>
-                    <TableHead className="w-24 text-base font-semibold">Sub-Menus</TableHead>
-                    {canManage && <TableHead className="w-16 text-center text-base font-semibold">Sort</TableHead>}
+                  <TableRow>
+                    <TableHead>Menu Name</TableHead>
+                    <TableHead className="w-32">Link Type</TableHead>
+                    <TableHead className="w-24">Status</TableHead>
+                    <TableHead className="w-24">Sub-Menus</TableHead>
+                    {canManage && <TableHead className="w-16 text-center">Sort</TableHead>}
                     {canManage && <TableHead className="w-12"></TableHead>}
                   </TableRow>
                 </TableHeader>
@@ -885,13 +427,10 @@ export default function DistrictAdminMenuListPage() {
                       <Fragment key={menu.id}>
                         <TableRow className="hover:bg-slate-50/70 transition-colors" {...dragHandlers}>
                           <TableCell>
-                            <button
-                              onClick={() => toggleExpand(menu.id)}
-                              className="flex items-center gap-2 font-medium text-slate-800 hover:text-ink"
-                            >
+                            <LinkButton onClick={() => toggleExpand(menu.id)} aria-expanded={isExpanded}>
                               {isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
                               {menu.menuName}
-                            </button>
+                            </LinkButton>
                           </TableCell>
                           <TableCell>
                             <LinkTypeBadgeWithView linkType={menu.linkType} linkValue={menu.linkValue} />
@@ -919,7 +458,7 @@ export default function DistrictAdminMenuListPage() {
                             <TableCell>
                               <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
-                                  <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-500 hover:text-ink hover:bg-slate-100">
+                                  <Button aria-label="More actions" variant="ghost" size="icon" className="row-btn-sm">
                                     <MoreHorizontal className="h-4 w-4" />
                                   </Button>
                                 </DropdownMenuTrigger>
@@ -977,7 +516,7 @@ export default function DistrictAdminMenuListPage() {
                   })}
                 </TableBody>
               </Table>
-            </div>
+            </Card>
             </>
             )}
           </>
@@ -1005,7 +544,7 @@ export default function DistrictAdminMenuListPage() {
                   {dialogMode === "menu" ? "Menu Name" : "Sub-Menu Name"} *
                 </Label>
                 <Input
-                  className="border-slate-200 bg-card focus:border-azure focus:ring-azure/20"
+                 
                   placeholder={dialogMode === "menu" ? "Enter menu name" : "Enter sub-menu name"}
                   value={formName}
                   onChange={(e) => setFormName(e.target.value)}
@@ -1016,7 +555,7 @@ export default function DistrictAdminMenuListPage() {
               <div className="space-y-2">
                 <Label className="text-slate-600 text-sm">Link Type *</Label>
                 <Select value={formLinkType} onValueChange={(val) => { setFormLinkType(val); setFormLinkValue(""); }}>
-                  <SelectTrigger className="border-slate-200 bg-card focus:border-azure focus:ring-azure/20">
+                  <SelectTrigger>
                     <SelectValue placeholder="Select link type" />
                   </SelectTrigger>
                   <SelectContent>
@@ -1036,7 +575,7 @@ export default function DistrictAdminMenuListPage() {
               <div className="space-y-2">
                 <Label className="text-slate-600 text-sm">Sort Order</Label>
                 <Input
-                  className="border-slate-200 bg-card focus:border-azure focus:ring-azure/20"
+                 
                   type="number"
                   min={1}
                   value={formSortOrder}
@@ -1048,7 +587,7 @@ export default function DistrictAdminMenuListPage() {
               <div className="space-y-2">
                 <Label className="text-slate-600 text-sm">Status</Label>
                 <Select value={formIsActive} onValueChange={setFormIsActive}>
-                  <SelectTrigger className="border-slate-200 bg-card focus:border-azure focus:ring-azure/20">
+                  <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -1063,14 +602,14 @@ export default function DistrictAdminMenuListPage() {
                 variant="outline"
                 onClick={() => setDialogOpen(false)}
                 disabled={saving}
-                className="border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-slate-800"
+               
               >
                 Cancel
               </Button>
               <Button
                 onClick={handleSave}
                 disabled={saving || !formName.trim()}
-                className="bg-azure hover:bg-mint-ink text-white disabled:bg-slate-300 disabled:text-slate-500"
+                className="disabled:text-slate-500"
               >
                 {saving ? "Saving..." : (editingMenu || editingSubMenu) ? "Update" : "Add"}
               </Button>
@@ -1113,3 +652,4 @@ export default function DistrictAdminMenuListPage() {
     </ProtectedRoute>
   );
 }
+

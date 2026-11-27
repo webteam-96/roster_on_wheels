@@ -14,6 +14,8 @@ import '../../../widgets/common/empty_state_widget.dart';
 import '../../../widgets/common/loading_widget.dart';
 import 'package:rotary_flutter_app/core/utils/money_format.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/motion.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/roster_wheel.dart';
 
 enum _StatusFilter { all, paid, unpaid, pending }
 
@@ -126,7 +128,7 @@ class _DistrictEventPaymentLinkMembersScreenState
   }
 
   Future<void> _openRecordPayment(Map<String, dynamic> member) async {
-    final saved = await showDialog<bool>(
+    final saved = await showRowDialog<bool>(
       context: context,
       builder: (_) => _RecordPaymentDialog(
         linkId: widget.linkId,
@@ -186,10 +188,10 @@ class _DistrictEventPaymentLinkMembersScreenState
                             subtitle: 'No registrations match the selected filter.',
                             icon: Icons.people_outline,
                           )
-                        : RefreshIndicator(
+                        : RowRefresh(
                             color: AppColors.primary,
                             onRefresh: _fetch,
-                            child: ListView.separated(
+                            child: RowListView.separated(
                               padding: const EdgeInsets.all(16),
                               itemCount: _filtered.length,
                               separatorBuilder: (_, __) =>

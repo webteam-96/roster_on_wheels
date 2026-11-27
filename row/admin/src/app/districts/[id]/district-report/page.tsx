@@ -10,10 +10,8 @@
  * URL ?yearId= forwarding stay here.
  */
 
+import { PageHeader } from "@/components/row/AppKit";
 import { useParams, useSearchParams } from "next/navigation";
-import { Button } from "@/components/ui/button";
-import { ArrowLeft } from "@/components/icons";
-import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import DistrictReportContent from "@/components/dashboard/DistrictReportContent";
 
@@ -27,15 +25,7 @@ export default function DistrictReportPage() {
   return (
     <ProtectedRoute>
       <div className="space-y-6">
-        <div className="flex items-center gap-3">
-          <Button variant="outline" size="icon" asChild>
-            <Link href={`/districts/${districtId}/dashboard`}><ArrowLeft className="h-4 w-4" /></Link>
-          </Button>
-          <div>
-            <h2 className="text-2xl font-bold tracking-tight text-primary">District Report</h2>
-            <p className="text-muted-foreground text-base">Consolidated report across all clubs</p>
-          </div>
-        </div>
+        <PageHeader title="District Report" description="Consolidated report across all clubs" back={`/districts/${districtId}/dashboard`} />
 
         <DistrictReportContent districtId={districtId} initialYearId={urlYearId} />
       </div>

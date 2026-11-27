@@ -1,4 +1,5 @@
 "use client";
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
 
 /**
  * SuperAdmin › Club Websites › Pricing & Reminders (per Rotary year).
@@ -12,6 +13,7 @@
  * and on the server). The reminder link's amount is always re-resolved server-side.
  */
 
+import { Card } from "@/components/ui/card";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import DateField from "@/components/DateField";
 import { RefreshCw, Loader2, Send, Pencil, Layers, Copy, Check, Wallet, Download } from "@/components/icons";
@@ -44,7 +46,7 @@ import {
   type WebsiteDefaultPricing,
 } from "@/services/api";
 
-import { appLocale, currencySymbol, todayLocal } from "@/lib/appFormat";
+import { appLocale, currencySymbol, todayLocal, defaultCurrency } from "@/lib/appFormat";
 import { SkeletonRows } from "@/components/row/AppKit";
 const inr = (n: number) => `${currencySymbol()}${Number(n || 0).toLocaleString(appLocale(), { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 const fmtDate = (s?: string | null) => (s ? new Date(s).toLocaleDateString(appLocale(), { day: "2-digit", month: "short", year: "numeric" }) : "–");
@@ -61,8 +63,12 @@ type EditState = {
   gatewayType: "normal" | "route";
 };
 
+// A price is never guessed: 0 or nothing means "not set" and shows an empty box (it used to pre-fill RIZones rupee
+// amounts, which were then saved and charged as that many dollars).
+const priceText = (amount: number | null | undefined) => (amount && amount > 0 ? String(amount) : "");
+
 const emptyEdit: EditState = {
-  open: false, mode: "single", baseAmount: "14999", renewalAmount: "10999", gstPercent: "0",
+  open: false, mode: "single", baseAmount: "", renewalAmount: "", gstPercent: "0",
   gatewayType: "normal",
 };
 
@@ -101,9 +107,9 @@ export default function PricingRemindersTab() {
   // System-wide DEFAULT pricing (New/Renewal/GST) — the fallback for clubs with no override. OTP-gated edit.
   const [defPricing, setDefPricing] = useState<WebsiteDefaultPricing | null>(null);
   const [defOpen, setDefOpen] = useState(false);
-  const [defNew, setDefNew] = useState("14999");
-  const [defRenewal, setDefRenewal] = useState("10999");
-  const [defGst, setDefGst] = useState("18");
+  const [defNew, setDefNew] = useState("");
+  const [defRenewal, setDefRenewal] = useState("");
+  const [defGst, setDefGst] = useState("0");
   const [defOtp, setDefOtp] = useState("");
   const [defOtpSent, setDefOtpSent] = useState(false);
   const [defOtpInfo, setDefOtpInfo] = useState("");
@@ -115,8 +121,8 @@ export default function PricingRemindersTab() {
   }, []);
 
   const openDefaultEdit = () => {
-    setDefNew(String(defPricing?.newAmount ?? 14999));
-    setDefRenewal(String(defPricing?.renewalAmount ?? 10999));
+    setDefNew(priceText(defPricing?.newAmount));
+    setDefRenewal(priceText(defPricing?.renewalAmount));
     setDefGst(String(defPricing?.gstPercent ?? 0));
     setDefOtp(""); setDefOtpSent(false); setDefOtpInfo("");
     setDefOpen(true);
@@ -277,8 +283,8 @@ export default function PricingRemindersTab() {
   const openSingle = (r: ClubWebsitePricingRow) => {
     setEdit({
       open: true, mode: "single", clubId: r.clubId, clubName: r.clubName, orderType: r.orderType,
-      baseAmount: String(r.baseAmount ?? 10999),
-      renewalAmount: String(r.renewalAmount ?? r.baseAmount ?? 10999),
+      baseAmount: priceText(r.baseAmount),
+      renewalAmount: priceText(r.renewalAmount ?? r.baseAmount),
       gstPercent: String(r.gstPercent ?? 0),
       gatewayType: (r.gatewayType === "route" ? "route" : "normal"),
     });
@@ -291,8 +297,8 @@ export default function PricingRemindersTab() {
     try { d = await getWebsiteDefaultPricing(); setDefPricing(d); } catch { /* keep last-known */ }
     setEdit({
       ...emptyEdit, open: true, mode: "batch",
-      baseAmount: String(d?.newAmount ?? emptyEdit.baseAmount),
-      renewalAmount: String(d?.renewalAmount ?? emptyEdit.renewalAmount),
+      baseAmount: priceText(d?.newAmount),
+      renewalAmount: priceText(d?.renewalAmount),
       gstPercent: String(d?.gstPercent ?? emptyEdit.gstPercent),
     });
   };
@@ -300,8 +306,10 @@ export default function PricingRemindersTab() {
   // The Route account is the single global one below.
   const editValid = useMemo(() => {
     const base = Number(edit.baseAmount), renewal = Number(edit.renewalAmount), gst = Number(edit.gstPercent);
-    if (Number.isNaN(base) || base < 0) return false;
-    if (Number.isNaN(renewal) || renewal < 0) return false;
+    // Only the amounts shown have to be filled; an empty hidden one stays "not set" (0).
+    if (Number.isNaN(base) || base < 0 || Number.isNaN(renewal) || renewal < 0) return false;
+    if ((edit.mode === "batch" || edit.orderType !== "Renewal") && base <= 0) return false;
+    if ((edit.mode === "batch" || edit.orderType === "Renewal") && renewal <= 0) return false;
     if (Number.isNaN(gst) || gst < 0 || gst > 100) return false;
     if (edit.gatewayType === "route" && !routeAccountId) return false;   // a global Route account must be selected
     return true;
@@ -331,8 +339,9 @@ export default function PricingRemindersTab() {
     setErrorMessage(null);
     const payload = {
       yearId: Number(yearId),
-      baseAmount: Number(edit.baseAmount),
-      renewalAmount: Number(edit.renewalAmount),
+      // The API needs both; for one club the amount that does not apply to it follows the one entered.
+      baseAmount: Number(edit.baseAmount) || Number(edit.renewalAmount),
+      renewalAmount: Number(edit.renewalAmount) || Number(edit.baseAmount),
       gstPercent: Number(edit.gstPercent),
       gatewayType: edit.gatewayType,
     };
@@ -386,7 +395,7 @@ export default function PricingRemindersTab() {
 
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h2 className="text-lg font-semibold text-slate-800">Club Wallet</h2>
+          <h2 className="row-h2">Club Wallet</h2>
           <p className="text-sm text-slate-500">Club-website pricing &amp; pay-link reminders, plus shareable email credit top-up links.</p>
         </div>
         <Button variant="outline" onClick={openDefaultEdit} className="shrink-0">
@@ -397,7 +406,7 @@ export default function PricingRemindersTab() {
 
       {/* Common (pick-a-club) shareable links — open a search, payer picks their club, sees status, pays. */}
       {commonLinks && (
-        <div className="rounded-[20px] border border-slate-200 bg-card p-4">
+        <Card className="p-5">
           <div className="text-sm font-medium text-slate-700">Shareable links: any club</div>
           <p className="text-[11px] text-slate-400 mt-0.5 mb-3">Each opens a search: the club leader picks their club, sees its status, and pays. Copy &amp; share. These links have no expiry.</p>
           <div className="flex flex-wrap gap-2">
@@ -411,11 +420,11 @@ export default function PricingRemindersTab() {
               );
             })}
           </div>
-        </div>
+        </Card>
       )}
 
       {/* One global Route account for ALL club-website Route payments */}
-      <div className="hidden rounded-[20px] border border-slate-200 bg-card p-4">
+      <Card className="hidden p-5">
         <div className="flex flex-wrap items-end gap-3">
           <div className="space-y-1">
             <Label className="text-xs text-slate-500">Club-website Route account</Label>
@@ -441,7 +450,7 @@ export default function PricingRemindersTab() {
             : <>Only clubs whose gateway is <span className="font-medium">Route</span> settle to this one linked account.</>}
           {routeAccounts.length === 0 && <> No active accounts yet: add one in Settings → Razorpay Route Accounts.</>}
         </p>
-      </div>
+      </Card>
 
       {/* Filters */}
       <div className="flex flex-wrap items-end gap-3">
@@ -508,73 +517,73 @@ export default function PricingRemindersTab() {
       </div>
 
       {/* Table */}
-      <div className="overflow-x-auto rounded-xl border border-slate-200 bg-card">
-        <table className="w-full text-sm">
-          <thead className="bg-slate-50 text-slate-600">
-            <tr>
-              <th className="px-3 py-2.5 w-8"><Checkbox checked={allChecked} onCheckedChange={toggleAll} /></th>
-              <th className="text-left px-3 py-2.5 font-medium">Club</th>
-              <th className="text-left px-3 py-2.5 font-medium">Type</th>
-              <th className="text-right px-3 py-2.5 font-medium">Amount</th>
-              <th className="text-right px-3 py-2.5 font-medium">Tax %</th>
-              <th className="text-right px-3 py-2.5 font-medium">Total</th>
-              <th className="hidden text-left px-3 py-2.5 font-medium">Gateway</th>
-              <th className="text-left px-3 py-2.5 font-medium">President / Secretary</th>
-              <th className="text-right px-3 py-2.5 font-medium">
+      <Card className="overflow-x-auto">
+        <Table className="w-full text-sm">
+          <TableHeader>
+            <TableRow>
+              <TableHead className="px-3 w-8"><Checkbox checked={allChecked} onCheckedChange={toggleAll} /></TableHead>
+              <TableHead className="text-left px-3">Club</TableHead>
+              <TableHead className="text-left px-3">Type</TableHead>
+              <TableHead className="text-right px-3">Amount</TableHead>
+              <TableHead className="text-right px-3">Tax %</TableHead>
+              <TableHead className="text-right px-3">Total</TableHead>
+              <TableHead className="hidden text-left px-3">Gateway</TableHead>
+              <TableHead className="text-left px-3">President / Secretary</TableHead>
+              <TableHead className="text-right px-3">
                 Copy links
                 <div className="text-[10px] font-normal text-slate-400">Valid for 30 days</div>
-              </th>
-            </tr>
-          </thead>
-          <tbody>
+              </TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
             {loading ? (
-              <tr><td colSpan={9} className="px-4 py-3"><SkeletonRows /></td></tr>
+              <TableRow><TableCell colSpan={9} className="px-4 py-3"><SkeletonRows /></TableCell></TableRow>
             ) : rows.length === 0 ? (
-              <tr><td colSpan={9} className="px-3 py-10 text-center text-slate-400">Pick a district, search, or set an “expiring within” filter to list clubs.</td></tr>
+              <TableRow><TableCell colSpan={9} className="px-3 py-10 text-center text-slate-400">Pick a district, search, or set an “expiring within” filter to list clubs.</TableCell></TableRow>
             ) : rows.map((r) => (
-              <tr key={r.clubId} className="border-t border-slate-100 hover:bg-slate-50/60">
-                <td className="px-3 py-2 align-top"><Checkbox checked={selected.has(r.clubId)} onCheckedChange={() => toggleOne(r.clubId)} /></td>
-                <td className="px-3 py-2">
+              <TableRow key={r.clubId} className="border-t border-slate-100 hover:bg-slate-50/60">
+                <TableCell className="px-3 py-2 align-top"><Checkbox checked={selected.has(r.clubId)} onCheckedChange={() => toggleOne(r.clubId)} /></TableCell>
+                <TableCell className="px-3 py-2">
                   <div className="font-medium text-slate-800">{r.clubName}</div>
                   <div className="text-xs text-slate-400">D{r.districtNumber} · {r.clubRotaryId || "–"}</div>
-                </td>
-                <td className="px-3 py-2">
+                </TableCell>
+                <TableCell className="px-3 py-2">
                   <span className={`inline-block rounded px-1.5 py-0.5 text-xs ${r.orderType === "Renewal" ? "bg-amber-50 text-amber-700" : "bg-emerald-50 text-emerald-700"}`}>{r.orderType}</span>
                   {r.orderType === "Renewal" && r.endDate && <div className="text-xs text-slate-400 mt-0.5">exp {fmtDate(r.endDate)}</div>}
-                </td>
-                <td className="px-3 py-2 text-right whitespace-nowrap">
+                </TableCell>
+                <TableCell className="px-3 py-2 text-right whitespace-nowrap">
                   {inr(r.orderType === "Renewal" ? r.renewalAmount : r.baseAmount)}
                   {!r.isCustom && <span className="text-[10px] text-slate-400 ml-1">(default)</span>}
-                </td>
-                <td className="px-3 py-2 text-right">{Number(r.gstPercent)}%</td>
-                <td className="px-3 py-2 text-right font-medium whitespace-nowrap">
+                </TableCell>
+                <TableCell className="px-3 py-2 text-right">{Number(r.gstPercent)}%</TableCell>
+                <TableCell className="px-3 py-2 text-right font-medium whitespace-nowrap">
                   {inr(r.orderType === "Renewal" ? r.renewalTotalAmount : r.totalAmount)}
-                </td>
-                <td className="hidden px-3 py-2">
+                </TableCell>
+                <TableCell className="hidden px-3 py-2">
                   <span className={`text-xs ${(routeAll || r.gatewayType === "route") ? "text-slate-700" : "text-slate-600"}`}>{gatewayLabel(r)}</span>
-                </td>
-                <td className="px-3 py-2 text-xs text-slate-600">
+                </TableCell>
+                <TableCell className="px-3 py-2 text-xs text-slate-600">
                   <div>{r.presidentName || "–"} {r.presidentMobile ? `· ${r.presidentMobile}` : ""}</div>
                   <div className="text-slate-400">{r.secretaryName || "–"} {r.secretaryMobile ? `· ${r.secretaryMobile}` : ""}</div>
-                </td>
-                <td className="px-3 py-2 text-right whitespace-nowrap">
+                </TableCell>
+                <TableCell className="px-3 py-2 text-right whitespace-nowrap">
                   <div className="inline-flex items-center gap-0.5">
                     {([["Web", "website", r.payLink], ["Email", "email", r.emailPayLink]] as const).map(([lbl, kind, url]) => {
                       const key = `row:${r.clubId}:${kind}`;
                       return (
-                        <Button key={kind} variant="ghost" size="sm" className="h-7 px-2 text-xs" title={`Copy ${lbl} link`} onClick={() => copyText(key, url)}>
+                        <Button key={kind} variant="ghost" size="sm" className="row-btn-sm" title={`Copy ${lbl} link`} onClick={() => copyText(key, url)}>
                           {copiedKey === key ? <Check className="h-3.5 w-3.5 text-emerald-600" /> : <><Copy className="h-3.5 w-3.5 mr-1" />{lbl}</>}
                         </Button>
                       );
                     })}
-                    <Button variant="ghost" size="sm" className="h-7 px-2" title="Edit price" onClick={() => openSingle(r)}><Pencil className="h-4 w-4" /></Button>
+                    <Button variant="ghost" size="sm" className="row-btn-sm" title="Edit price" onClick={() => openSingle(r)}><Pencil className="h-4 w-4" /></Button>
                   </div>
-                </td>
-              </tr>
+                </TableCell>
+              </TableRow>
             ))}
-          </tbody>
-        </table>
-      </div>
+          </TableBody>
+        </Table>
+      </Card>
 
       {/* Edit / batch dialog */}
       <Dialog open={edit.open} onOpenChange={(o) => !o && setEdit(emptyEdit)}>
@@ -601,13 +610,13 @@ export default function PricingRemindersTab() {
             <div className="grid grid-cols-2 gap-3">
               {showNew && (
               <div className="space-y-1">
-                <Label className="text-xs text-slate-500">New amount (excl. tax)</Label>
+                <Label className="text-xs text-slate-500">New amount in {defaultCurrency()} (excl. tax)</Label>
                 <Input type="number" min={0} value={edit.baseAmount} onChange={(e) => setEdit((s) => ({ ...s, baseAmount: e.target.value }))} />
               </div>
               )}
               {showRenewal && (
               <div className="space-y-1">
-                <Label className="text-xs text-slate-500">Renewal amount (excl. tax)</Label>
+                <Label className="text-xs text-slate-500">Renewal amount in {defaultCurrency()} (excl. tax)</Label>
                 <Input type="number" min={0} value={edit.renewalAmount} onChange={(e) => setEdit((s) => ({ ...s, renewalAmount: e.target.value }))} />
               </div>
               )}
@@ -672,11 +681,11 @@ export default function PricingRemindersTab() {
             <p className="text-xs text-slate-500">These prices apply to every club that has no district- or club-specific override. Saving requires an OTP sent to the authorised approver.</p>
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1">
-                <Label className="text-xs text-slate-500">New amount (excl. tax)</Label>
+                <Label className="text-xs text-slate-500">New amount in {defaultCurrency()} (excl. tax)</Label>
                 <Input type="number" min={0} value={defNew} onChange={(e) => setDefNew(e.target.value)} />
               </div>
               <div className="space-y-1">
-                <Label className="text-xs text-slate-500">Renewal amount (excl. tax)</Label>
+                <Label className="text-xs text-slate-500">Renewal amount in {defaultCurrency()} (excl. tax)</Label>
                 <Input type="number" min={0} value={defRenewal} onChange={(e) => setDefRenewal(e.target.value)} />
               </div>
               <div className="space-y-1">
@@ -736,43 +745,43 @@ export default function PricingRemindersTab() {
               <Download className="h-4 w-4 mr-1.5" /> Download CSV
             </Button>
           </div>
-          <div className="max-h-[60vh] overflow-auto rounded-lg border border-slate-200">
-            <table className="w-full text-sm">
-              <thead className="bg-slate-50 text-slate-600 sticky top-0">
-                <tr>
-                  <th className="text-left px-3 py-2 font-medium">Club</th>
-                  <th className="text-right px-3 py-2 font-medium">Email</th>
-                  <th className="text-left px-3 py-2 font-medium">President</th>
-                  <th className="text-left px-3 py-2 font-medium">Secretary</th>
-                </tr>
-              </thead>
-              <tbody>
+          <Card className="[&>div]:max-h-[60vh]">
+            <Table className="w-full text-sm">
+              <TableHeader className="sticky top-0">
+                <TableRow>
+                  <TableHead className="text-left px-3">Club</TableHead>
+                  <TableHead className="text-right px-3">Email</TableHead>
+                  <TableHead className="text-left px-3">President</TableHead>
+                  <TableHead className="text-left px-3">Secretary</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
                 {balanceLoading ? (
-                  <tr><td colSpan={4} className="px-4 py-3"><SkeletonRows /></td></tr>
+                  <TableRow><TableCell colSpan={4} className="px-4 py-3"><SkeletonRows /></TableCell></TableRow>
                 ) : balanceRows.length === 0 ? (
-                  <tr><td colSpan={4} className="px-3 py-10 text-center text-slate-400">No clubs with a credit balance.</td></tr>
+                  <TableRow><TableCell colSpan={4} className="px-3 py-10 text-center text-slate-400">No clubs with a credit balance.</TableCell></TableRow>
                 ) : balanceRows.map((r) => (
-                  <tr key={r.clubId} className="border-t border-slate-100 align-top">
-                    <td className="px-3 py-2">
+                  <TableRow key={r.clubId} className="border-t border-slate-100 align-top">
+                    <TableCell className="px-3 py-2">
                       <div className="font-medium text-slate-800">{r.clubName}</div>
                       <div className="text-xs text-slate-400">D{r.districtNumber}</div>
-                    </td>
-                    <td className="px-3 py-2 text-right whitespace-nowrap">{r.emailBalance.toLocaleString(appLocale())}</td>
-                    <td className="px-3 py-2 text-xs text-slate-600">
+                    </TableCell>
+                    <TableCell className="px-3 py-2 text-right whitespace-nowrap">{r.emailBalance.toLocaleString(appLocale())}</TableCell>
+                    <TableCell className="px-3 py-2 text-xs text-slate-600">
                       <div className="font-medium text-slate-700">{r.presidentName || "–"}</div>
                       <div>{r.presidentMobile || ""}</div>
                       <div className="text-slate-400 break-all">{r.presidentEmail || ""}</div>
-                    </td>
-                    <td className="px-3 py-2 text-xs text-slate-600">
+                    </TableCell>
+                    <TableCell className="px-3 py-2 text-xs text-slate-600">
                       <div className="font-medium text-slate-700">{r.secretaryName || "–"}</div>
                       <div>{r.secretaryMobile || ""}</div>
                       <div className="text-slate-400 break-all">{r.secretaryEmail || ""}</div>
-                    </td>
-                  </tr>
+                    </TableCell>
+                  </TableRow>
                 ))}
-              </tbody>
-            </table>
-          </div>
+              </TableBody>
+            </Table>
+          </Card>
         </DialogContent>
       </Dialog>
     </div>

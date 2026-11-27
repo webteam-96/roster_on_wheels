@@ -1,7 +1,9 @@
 "use client";
 
+import { NativeSelect } from "@/components/ui/native-select";
+import { Textarea } from "@/components/ui/textarea";
+import { PageHeader } from "@/components/row/AppKit";
 import { useEffect, useMemo, useState } from "react";
-import Link from "next/link";
 import { deleteI18nOverride, getI18nOverrides, saveI18nOverride } from "@/services/api";
 import type { Messages, Override } from "@/i18n/messages";
 import { SUPPORTED_LOCALES, nativeLanguageName } from "@/i18n/config";
@@ -12,7 +14,6 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent } from "@/components/ui/card";
 import ErrorAlert from "@/components/ErrorAlert";
-import { ArrowLeft } from "@/components/icons";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import TranslationMemoryPanel from "@/components/i18n/TranslationMemoryPanel";
 import common from "../../../../messages/en/common.json";
@@ -24,7 +25,7 @@ import privacy from "../../../../messages/en/privacy.json";
 // replaces one string for one locale. A key with no override shows English (or the machine translation).
 // shortcut: namespaces listed by hand, add a line here when a messages/en/*.json file is added.
 const ENGLISH: Record<string, Messages> = { common, errors, payments, privacy };
-const SELECT = "h-10 w-full rounded-md border border-input bg-background px-3 text-sm";
+const SELECT = "row-field w-full";
 
 function flatten(m: Messages, prefix = ""): [string, string][] {
   return Object.entries(m).flatMap(([k, v]) =>
@@ -97,7 +98,7 @@ export default function TranslationsPage() {
     return (
       <ProtectedRoute>
         <div className="flex flex-col items-center justify-center py-20">
-          <h3 className="text-lg font-semibold">Access Denied</h3>
+          <h3 className="row-h2">Access Denied</h3>
           <p className="text-muted-foreground mt-2">Only SuperAdmin can access settings.</p>
         </div>
       </ProtectedRoute>
@@ -107,36 +108,28 @@ export default function TranslationsPage() {
   return (
     <ProtectedRoute>
       <div className="space-y-6">
-        <div className="flex items-center gap-3">
-          <Button variant="outline" size="icon" asChild>
-            <Link href="/settings" aria-label="Back to settings"><ArrowLeft className="h-4 w-4" /></Link>
-          </Button>
-          <div>
-            <h2 className="text-2xl font-bold tracking-tight text-primary">Translations</h2>
-            <p className="text-muted-foreground text-base">Override any interface string for one language. Empty keys show English.</p>
-          </div>
-        </div>
+        <PageHeader title="Translations" description="Override any interface string for one language. Empty keys show English." back="/settings" />
 
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <div className="space-y-2">
             <Label htmlFor="locale">Language</Label>
-            <select id="locale" className={SELECT} value={locale} onChange={(e) => setLocale(e.target.value)}>
+            <NativeSelect id="locale"  value={locale} onChange={(e) => setLocale(e.target.value)}>
               {SUPPORTED_LOCALES.map((c) => <option key={c} value={c}>{nativeLanguageName(c)} ({c})</option>)}
-            </select>
+            </NativeSelect>
           </div>
           <div className="space-y-2">
             <Label htmlFor="namespace">Area</Label>
-            <select id="namespace" className={SELECT} value={namespace} onChange={(e) => setNamespace(e.target.value)}>
+            <NativeSelect id="namespace"  value={namespace} onChange={(e) => setNamespace(e.target.value)}>
               {Object.keys(ENGLISH).map((ns) => <option key={ns} value={ns}>{ns}</option>)}
-            </select>
+            </NativeSelect>
           </div>
           <div className="space-y-2">
             <Label htmlFor="filter">Show</Label>
-            <select id="filter" className={SELECT} value={filter} onChange={(e) => setFilter(e.target.value as Filter)}>
+            <NativeSelect id="filter"  value={filter} onChange={(e) => setFilter(e.target.value as Filter)}>
               <option value="all">All strings</option>
               <option value="missing">No override yet</option>
               <option value="unreviewed">Not reviewed</option>
-            </select>
+            </NativeSelect>
           </div>
           <div className="space-y-2">
             <Label htmlFor="search">Search</Label>
@@ -161,9 +154,9 @@ export default function TranslationsPage() {
                       <p className="break-all font-mono text-xs text-muted-foreground">{key}</p>
                       <p className="mt-1 text-sm">{english}</p>
                     </div>
-                    <textarea
+                    <Textarea
                       aria-label={`${key} in ${locale}`}
-                      className="min-h-[2.5rem] w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                      className="min-h-[2.5rem]"
                       value={draft}
                       placeholder="Uses English"
                       onChange={(e) => setDrafts((d) => ({ ...d, [key]: e.target.value }))}

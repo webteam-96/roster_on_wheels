@@ -1,17 +1,17 @@
 "use client";
 
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table"
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import {
   downloadWebsiteQr, getWebsiteExtras, saveWebsiteExtras, type WebsiteExtrasView, type WebsiteScope,
 } from "@/services/api";
 import { EMPTY_EXTRAS_FORM, qrFileName, toForm, toSettings, type WebsiteExtrasForm } from "@/lib/websiteExtras";
-import { ErrorState, Panel, SkeletonRows, rowTable } from "@/components/row/AppKit";
+import { PageHeader, ErrorState, Panel, SkeletonRows, rowTable } from "@/components/row/AppKit";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ArrowLeft, Download } from "@/components/icons";
+import { Download } from "@/components/icons";
 
 const apiMessage = (err: unknown, fallback: string) =>
   (err as { response?: { data?: { message?: string } } })?.response?.data?.message || fallback;
@@ -93,15 +93,7 @@ export default function WebsiteExtrasEditor({ scope, ownerId, fallbackBack }: Pr
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-3">
-        <Link href={back} className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[color:var(--row-line)]" aria-label="Back">
-          <ArrowLeft size={18} />
-        </Link>
-        <div>
-          <h1 className="font-display text-[24px] font-semibold leading-tight text-[#1B2C42]">Website extras</h1>
-          <p className="text-[14px] text-[#64748B]">Social media feeds, visitor statistics, search engines and QR codes</p>
-        </div>
-      </div>
+      <PageHeader title="Website extras" description="Social media feeds, visitor statistics, search engines and QR codes" back={back} />
 
       {loadError ? (
         <ErrorState message={loadError} onRetry={() => setReload((n) => n + 1)} retryLabel="Try again" />
@@ -110,12 +102,12 @@ export default function WebsiteExtrasEditor({ scope, ownerId, fallbackBack }: Pr
       ) : (
         <>
           {error && <ErrorState message={error} />}
-          {notice && <p role="status" className="rounded-[12px] border border-green-200 bg-green-50 px-4 py-3 text-[14px] text-green-800">{notice}</p>}
+          {notice && <p role="status" className="rounded-md border border-green-200 bg-green-50 px-4 py-3 text-[14px] text-green-800">{notice}</p>}
 
           <Panel title="Social media and analytics"
             subtitle={scope === "clubs" ? "Feeds show on the website's Social media page (/social). Leave a field empty to turn it off." : "Leave a field empty to turn it off."}
             footer={<>
-              <span className="text-[#64748B]">Feeds and analytics load only for visitors who allow cookies.</span>
+              <span className="text-muted-foreground">Feeds and analytics load only for visitors who allow cookies.</span>
               <Button onClick={save} disabled={saving || !changed}>{saving ? "Saving" : "Save"}</Button>
             </>}>
             <div className="grid gap-5 md:grid-cols-2">
@@ -124,7 +116,7 @@ export default function WebsiteExtrasEditor({ scope, ownerId, fallbackBack }: Pr
                   <Label htmlFor={`we-${f.key}`}>{f.label}</Label>
                   <Input id={`we-${f.key}`} value={form[f.key]} placeholder={f.placeholder} maxLength={300}
                     onChange={(e) => setForm((prev) => ({ ...prev, [f.key]: e.target.value }))} />
-                  <p className="text-[13px] text-[#64748B]">{f.hint}</p>
+                  <p className="text-[13px] text-muted-foreground">{f.hint}</p>
                 </div>
               ))}
             </div>
@@ -139,28 +131,28 @@ export default function WebsiteExtrasEditor({ scope, ownerId, fallbackBack }: Pr
                   <li>Site search: <a className="font-semibold underline" href={`${siteUrl}/search`} target="_blank" rel="noopener noreferrer">{siteUrl}/search</a>. Add it to the menu with the link value &quot;search&quot;, and the feeds page with &quot;social&quot;.</li>
                 </ul>
               ) : (
-                <p className="text-[14px] text-[#64748B]">The website has no address yet, so there is nothing for search engines to read.</p>
+                <p className="text-[14px] text-muted-foreground">The website has no address yet, so there is nothing for search engines to read.</p>
               )}
             </Panel>
           )}
 
           <Panel title="QR codes" subtitle="Print one on a poster or flyer: scanning it opens that page of the website.">
             {!siteUrl ? (
-              <p className="text-[14px] text-[#64748B]">The website has no address yet. QR codes are ready once it has one.</p>
+              <p className="text-[14px] text-muted-foreground">The website has no address yet. QR codes are ready once it has one.</p>
             ) : view.pages.length === 0 ? (
-              <p className="text-[14px] text-[#64748B]">No pages yet.</p>
+              <p className="text-[14px] text-muted-foreground">No pages yet.</p>
             ) : (
               <div className={rowTable.wrap}>
-                <table className={rowTable.table}>
-                  <thead className={rowTable.head}>
-                    <tr><th className={rowTable.th}>Page</th><th className={rowTable.th}>Address</th><th className={rowTable.th}>Download</th></tr>
-                  </thead>
-                  <tbody className={rowTable.body}>
+                <Table className={rowTable.table}>
+                  <TableHeader className={rowTable.head}>
+                    <TableRow><TableHead className={rowTable.th}>Page</TableHead><TableHead className={rowTable.th}>Address</TableHead><TableHead className={rowTable.th}>Download</TableHead></TableRow>
+                  </TableHeader>
+                  <TableBody className={rowTable.body}>
                     {view.pages.map((p) => (
-                      <tr key={p.path} className={rowTable.tr}>
-                        <td className={rowTable.td}>{p.title}</td>
-                        <td className={rowTable.tdMuted}>{siteUrl}{p.path === "/" ? "" : p.path}</td>
-                        <td className={rowTable.td}>
+                      <TableRow key={p.path} className={rowTable.tr}>
+                        <TableCell className={rowTable.td}>{p.title}</TableCell>
+                        <TableCell className={rowTable.tdMuted}>{siteUrl}{p.path === "/" ? "" : p.path}</TableCell>
+                        <TableCell className={rowTable.td}>
                           <div className="flex gap-2">
                             {(["png", "svg"] as const).map((fmt) => (
                               <Button key={fmt} variant="outline" size="sm" disabled={busyQr !== null}
@@ -169,11 +161,11 @@ export default function WebsiteExtrasEditor({ scope, ownerId, fallbackBack }: Pr
                               </Button>
                             ))}
                           </div>
-                        </td>
-                      </tr>
+                        </TableCell>
+                      </TableRow>
                     ))}
-                  </tbody>
-                </table>
+                  </TableBody>
+                </Table>
               </div>
             )}
           </Panel>

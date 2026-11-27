@@ -5,6 +5,12 @@
 // filter), but scoped to a caller-supplied districtId via the goal-oversight-scoped endpoints
 // (getScopedDistrictClubs*Matrix) so the SuperAdmin Goal Overview can view any district.
 
+import { Table } from "@/components/ui/table";
+import { LinkButton, ToggleButton } from "@/components/ui/text-buttons";
+import { Input } from "@/components/ui/input";
+import { NativeSelect } from "@/components/ui/native-select";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { useEffect, useState, useCallback, useMemo } from "react";
 import { isAnnualOnlyCategory } from "@/lib/goalCategories";
 import { Building2, AlertCircle, Search, Table2, CalendarDays, Download, Loader2 } from "@/components/icons";
@@ -151,60 +157,55 @@ export default function ClubGoalSettingPanel(
         ) : categories && categories.length > 0 && (
           <div className="flex flex-wrap gap-1.5">
             {categories.map((c) => (
-              <button
+              <ToggleButton pressed={activeCategoryId === c.id}
                 key={c.id}
                 onClick={() => setActiveCategoryId(c.id)}
-                className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition ${
-                  activeCategoryId === c.id ? "bg-azure text-white" : "bg-card border border-slate-200 text-slate-600 hover:bg-slate-100"
-                }`}
-              >
+>
                 {c.name}
-              </button>
+              </ToggleButton>
             ))}
           </div>
         )}
         <div className="flex flex-wrap items-center gap-2">
-          <div className="inline-flex rounded-lg border border-slate-200 bg-card p-0.5">
-            <button
+          <Card className="inline-flex p-0.5">
+            <ToggleButton pressed={view === "goals"}
               onClick={() => setView("goals")}
-              className={`inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold rounded-md transition ${view === "goals" ? "bg-azure text-white" : "text-slate-600 hover:bg-slate-100"}`}
-            >
+>
               <Table2 size={13} /> Goals
-            </button>
+            </ToggleButton>
             {/* Youth Service / Public Image are annual only - no Month-wise at all (user 2026-09-25). */}
             {!annualOnly && (
-            <button
+            <ToggleButton pressed={view === "monthly"}
               onClick={() => setView("monthly")}
-              className={`inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold rounded-md transition ${view === "monthly" ? "bg-azure text-white" : "text-slate-600 hover:bg-slate-100"}`}
-            >
+>
               <CalendarDays size={13} /> Month-wise
-            </button>
+            </ToggleButton>
             )}
-          </div>
-          <button
+          </Card>
+          <Button
             type="button"
             onClick={() => dl.run("all-clubs", downloadReport)}
             disabled={dl.busy}
-            className="inline-flex items-center gap-1.5 h-9 rounded-full border border-blue-200 bg-blue-50 px-3 text-xs font-medium text-blue-700 hover:bg-blue-100 disabled:opacity-40"
+            variant="outline" size="sm"
             title="Download the Club Goal Setting report (all clubs of this district)"
           >
             {dl.is("all-clubs") ? dl.bar("all-clubs") : <><Download size={13} /> Download report</>}
-          </button>
+          </Button>
         </div>
       </div>
 
       {view === "monthly" && !loading && !error && monthly && monthly.fields.length > 0 && (
         <div className="flex flex-wrap items-center gap-2">
           <span className="text-xs font-medium text-slate-500">Metric:</span>
-          <select
+          <NativeSelect
             value={metricKey ?? ""}
             onChange={(e) => setMetricKey(e.target.value || null)}
-            className="h-9 rounded-[12px] border border-slate-300 bg-card px-3 text-sm focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+            className="w-auto"
           >
             {monthly.fields.map((f) => (
               <option key={f.fieldKey} value={f.fieldKey}>{metricLabel(f, monthly?.fields || [])}</option>
             ))}
-          </select>
+          </NativeSelect>
         </div>
       )}
 
@@ -216,15 +217,15 @@ export default function ClubGoalSettingPanel(
           <div className="shrink-0 flex flex-wrap items-center gap-2">
             <div className="relative flex-1 min-w-[220px] max-w-sm">
               <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-              <input
+              <Input
                 value={clubQuery}
                 onChange={(e) => setClubQuery(e.target.value)}
                 placeholder="Filter clubs by name…"
-                className="w-full h-9 pl-8 pr-3 rounded-[12px] border border-slate-300 bg-card text-sm focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                className="pl-8 pr-3"
               />
             </div>
             <span className="text-xs text-slate-500">{shown} of {total} club{total === 1 ? "" : "s"}</span>
-            {clubQuery && <button onClick={() => setClubQuery("")} className="text-xs text-blue-600 hover:underline">Clear</button>}
+            {clubQuery && <LinkButton size="sm" onClick={() => setClubQuery("")}>Clear</LinkButton>}
           </div>
         );
       })()}
@@ -232,21 +233,21 @@ export default function ClubGoalSettingPanel(
       {loading && <div className="flex items-center justify-center py-16"><RotaryLoader size="lg" /></div>}
 
       {!loading && error && (
-        <div className="flex flex-col items-center justify-center py-16 text-center bg-card rounded-2xl border border-slate-200">
+        <Card className="flex flex-col items-center justify-center py-16 text-center">
           <AlertCircle className="h-10 w-10 text-red-500 mb-3" />
           <p className="text-slate-500">{error}</p>
-        </div>
+        </Card>
       )}
 
       {!loading && !error && (view === "goals" ? matrix?.clubs.length === 0 : monthly?.clubs.length === 0) && (
-        <div className="flex flex-col items-center justify-center py-16 text-center bg-card rounded-2xl border border-slate-200">
+        <Card className="flex flex-col items-center justify-center py-16 text-center">
           <Building2 className="h-10 w-10 text-slate-400 mb-3" />
           <p className="text-slate-500">No clubs found in this district.</p>
-        </div>
+        </Card>
       )}
 
       {view === "goals" && !loading && !error && matrix && matrix.clubs.length > 0 && (
-        <div className="flex-1 min-h-0 flex flex-col bg-card rounded-2xl border border-slate-200 overflow-hidden">
+        <Card className="flex-1 min-h-0 flex flex-col overflow-hidden">
           {isMembership && (
             <div className="shrink-0 px-4 py-2 border-b border-slate-100 flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-slate-500">
               <span className="font-semibold text-slate-600">RAG (active members):</span>
@@ -257,22 +258,22 @@ export default function ClubGoalSettingPanel(
             </div>
           )}
           <ScrollBox>
-            <table className="text-sm border-collapse">
+            <Table bare className="text-sm border-collapse w-auto">
               <thead>
                 <tr className="border-b border-marigold" style={{ backgroundColor: "#17458f" }}>
-                  <th rowSpan={2} className="sticky left-0 top-0 z-40 bg-azure text-left px-4 py-2 text-white text-xs font-semibold uppercase tracking-wide border-r border-white/20">Club</th>
+                  <th rowSpan={2} className="sticky left-0 top-0 z-40 text-left px-4 border-r border-white/20">Club</th>
                   {isMembership && (
-                    <th rowSpan={2} className="sticky top-0 z-30 bg-azure px-3 py-2 text-white text-xs font-semibold uppercase tracking-wide border-r border-white/20 text-left">RAG</th>
+                    <th rowSpan={2} className="sticky top-0 z-30 px-3 border-r border-white/20 text-left">RAG</th>
                   )}
                   {groups.map((g, gi) => (
-                    <th key={gi} colSpan={g.cols.length} className="sticky top-0 z-30 bg-azure px-3 py-2 text-white text-[11px] font-semibold uppercase tracking-wide text-center border-l border-white/20">
+                    <th key={gi} colSpan={g.cols.length} className="sticky top-0 z-30 px-3 text-center border-l border-white/20">
                       {g.name}
                     </th>
                   ))}
                 </tr>
                 <tr style={{ backgroundColor: "#17458f" }}>
                   {columns.map((col) => (
-                    <th key={col.fieldKey} className="sticky top-[37px] z-30 bg-azure px-3 py-1.5 text-white text-[11px] font-medium text-right whitespace-nowrap border-l border-white/10">
+                    <th key={col.fieldKey} className="sticky top-[37px] z-30 px-3 text-right whitespace-nowrap border-l border-white/10">
                       {col.fieldLabel}{col.unit ? ` (${col.unit})` : ""}
                     </th>
                   ))}
@@ -308,27 +309,27 @@ export default function ClubGoalSettingPanel(
                   );
                 })}
               </tbody>
-            </table>
+            </Table>
           </ScrollBox>
-        </div>
+        </Card>
       )}
 
       {view === "monthly" && !loading && !error && monthly && monthly.clubs.length > 0 && selectedMetric && (
-        <div className="flex-1 min-h-0 flex flex-col bg-card rounded-2xl border border-slate-200 overflow-hidden">
+        <Card className="flex-1 min-h-0 flex flex-col overflow-hidden">
           <div className="shrink-0 px-4 py-2 border-b border-slate-100 text-[11px] text-slate-500">
             <span className="font-semibold text-slate-600">{selectedMetric.groupName ? `${selectedMetric.groupName}: ${selectedMetric.fieldLabel}` : selectedMetric.fieldLabel}</span> collected per month{monthly.yearLabel ? ` · RY ${monthly.yearLabel}` : ""}: future months of the current year show &ldquo;, &rdquo;.
           </div>
           <ScrollBox>
-            <table className="text-sm border-collapse">
+            <Table bare className="text-sm border-collapse w-auto">
               <thead>
                 <tr className="border-b border-marigold" style={{ backgroundColor: "#17458f" }}>
-                  <th className="sticky left-0 top-0 z-40 bg-azure text-left px-4 py-2 text-white text-xs font-semibold uppercase tracking-wide border-r border-white/20">Club</th>
+                  <th className="sticky left-0 top-0 z-40 text-left px-4 border-r border-white/20">Club</th>
                   {monthly.months.map((m) => (
                     <th key={m.month} className={`sticky top-0 z-30 bg-azure px-3 py-2 text-[11px] font-semibold uppercase tracking-wide text-right border-l border-white/10 whitespace-nowrap ${m.isAvailable ? "text-white" : "text-white/40"}`}>
                       {m.label}
                     </th>
                   ))}
-                  <th className="sticky top-0 z-30 bg-azure px-3 py-2 text-white text-[11px] font-semibold uppercase tracking-wide text-right border-l border-white/20">Total</th>
+                  <th className="sticky top-0 z-30 px-3 text-right border-l border-white/20">Total</th>
                 </tr>
               </thead>
               <tbody>
@@ -358,15 +359,15 @@ export default function ClubGoalSettingPanel(
                   );
                 })}
               </tbody>
-            </table>
+            </Table>
           </ScrollBox>
-        </div>
+        </Card>
       )}
 
       {view === "monthly" && !loading && !error && monthly && monthly.fields.length === 0 && monthly.clubs.length > 0 && (
-        <div className="bg-card rounded-2xl border border-slate-200 py-10 text-center text-sm text-slate-400">
+        <Card className="py-10 text-center text-sm text-slate-400">
           This category has no month-wise metrics.
-        </div>
+        </Card>
       )}
     </div>
   );

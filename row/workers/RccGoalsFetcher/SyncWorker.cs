@@ -141,7 +141,7 @@ CREATE TABLE IF NOT EXISTS rotary_org_sync_requests (
         await using var db = await OpenAsync();
         var n = await db.ExecuteAsync(@"UPDATE rotary_org_sync_requests
             SET Status = 'FAILED', Stage = 'Failed', ErrorMessage = 'worker restarted', FinishedAt = NOW(), OneTimeEmail = NULL, OneTimePasswordEnc = NULL
-            WHERE Status = 'RUNNING' AND (StartedAt IS NULL OR StartedAt < NOW() - INTERVAL 2 HOUR)");
+            WHERE Status IN ('RUNNING', 'CANCELLING') AND (StartedAt IS NULL OR StartedAt < NOW() - INTERVAL 2 HOUR)");
         if (n > 0) Log.Warn($"{n} request(s) stuck in RUNNING for over 2 h marked FAILED (worker restarted).");
     }
 
@@ -174,12 +174,14 @@ CREATE TABLE IF NOT EXISTS rotary_org_sync_requests (
         try
         {
             await using var db = await OpenAsync();
-            var (yearId, yearLabel) = await CurrentYearAsync(db);
-            if (req.fk_year_id != yearId)
-            {
-                await FinishAsync(req, "FAILED", "Failed", $"This request is for another Rotary year - only the current year ({yearLabel}) is synced.");
-                return;
-            }
+            // The request's own Rotary year (user 2026-11-20): each DG syncs the year they are DG for. Past year =
+            // Achieved + a goal only where none is saved; current year = everything; next year = goals only.
+            var (currentYearId, _) = await CurrentYearAsync(db);
+            var yearId = req.fk_year_id;
+            var yearLabel = await db.ExecuteScalarAsync<string?>("SELECT YearLabel FROM rotary_year_master WHERE pk_year_id = @Y", new { Y = yearId });
+            if (string.IsNullOrWhiteSpace(yearLabel)) { await FinishAsync(req, "FAILED", "Failed", "This request's Rotary year was not found."); return; }
+            var mode = yearId < currentYearId ? DbWriter.YearMode.Past : yearId > currentYearId ? DbWriter.YearMode.Next : DbWriter.YearMode.Current;
+            _mode = mode;
 
             // Which Rotary.org login.
             string? email;
@@ -188,7 +190,7 @@ CREATE TABLE IF NOT EXISTS rotary_org_sync_requests (
                 login = await db.QuerySingleOrDefaultAsync<SavedLogin>(@"SELECT pk_id, fk_district_id, fk_club_id, fk_year_id, fk_member_id, RotaryEmail, PasswordEnc, Status,
                     ExpiredMailSentAt, isdeleted FROM rotary_org_sync_logins WHERE pk_id = @lid", new { lid });
                 var why = login == null || login.isdeleted ? "The saved Rotary.org login was removed."
-                    : login.Status == "DISABLED" || login.fk_year_id != yearId ? "The saved Rotary.org login is for an earlier Rotary year - the District Governor must save it again."
+                    : login.Status == "DISABLED" || login.fk_year_id != yearId ? "The saved Rotary.org login is for another Rotary year - the District Governor must save it again."
                     : login.fk_district_id != req.fk_district_id || login.fk_club_id != req.fk_club_id
                         ? (req.fk_club_id > 0 ? "The saved Rotary.org login belongs to another club." : "The saved Rotary.org login belongs to another district.")
                     : null;
@@ -261,6 +263,7 @@ CREATE TABLE IF NOT EXISTS rotary_org_sync_requests (
                 return;
             }
 
+            if (await CancelledAsync(req)) return;
             var progress = new ProgressWriter(this, req.pk_id);
             YearResult res;
             try { res = await fetcher.FetchYearAsync(fy.Id, fy.End, new[] { num }, resume: false, progress: progress.Report, useCheckpoint: false); }
@@ -277,6 +280,8 @@ CREATE TABLE IF NOT EXISTS rotary_org_sync_requests (
                 return;
             }
 
+            if (await CancelledAsync(req)) return;
+
             await StageAsync(req.pk_id, "Saving to ROW");
             var values = DbWriter.BuildRows(ExcelOut.BuildSheets(res), res.Label)
                 .Where(v => v.YearLabel == yearLabel && string.Equals(v.District, num, StringComparison.OrdinalIgnoreCase)).ToList();
@@ -287,11 +292,11 @@ CREATE TABLE IF NOT EXISTS rotary_org_sync_requests (
                 return;
             }
             var source = $"RCC sync {DateTime.UtcNow:yyyy-MM-dd}";
-            var (written, kept) = await DbWriter.WriteAsync(db, resolved.Rows, source);
+            var (written, kept) = await DbWriter.WriteAsync(db, resolved.Rows, source, mode);
             // The district sync covers its clubs (user 2026-11-10): their Foundation month-wise too.
-            var monthly = await ClubFoundationWriter.ApplyAsync(db, yearId, resolved.Rows, req.fk_member_id ?? 0, DateTime.UtcNow);
+            var monthly = mode == DbWriter.YearMode.Current ? await ClubFoundationWriter.ApplyAsync(db, yearId, resolved.Rows, req.fk_member_id ?? 0, DateTime.UtcNow) : 0;
             Log.Info($"Request {req.pk_id}: district {num}: {res.Clubs.Count} clubs, {resolved.Rows.Count} values -> {written} rows written, " +
-                     $"{kept} existing targets left unchanged, {monthly} club Foundation month-wise values, {resolved.UnknownClubs.Count} clubs not in ROW skipped" +
+                     $"{kept} existing goals refreshed from Rotary.org, {monthly} club Foundation month-wise values, {resolved.UnknownClubs.Count} clubs not in ROW skipped" +
                      (resolved.UnknownClubs.Count > 0 ? $" ({string.Join(", ", resolved.UnknownClubs.Take(20))})" : "") +
                      $", {res.Errors.Count} Rotary.org errors, {(DateTime.UtcNow - started).TotalMinutes:0.0} min.");
 
@@ -358,14 +363,16 @@ CREATE TABLE IF NOT EXISTS rotary_org_sync_requests (
             return;
         }
 
+        if (await CancelledAsync(req)) return;
+
         await StageAsync(req.pk_id, "Saving to ROW");
         var values = DbWriter.BuildRows(ExcelOut.BuildSheets(res), res.Label)
             .Where(v => v.YearLabel == yearLabel && v.EntityType == "Club" && string.Equals(v.RiClubId, club.Rid, StringComparison.OrdinalIgnoreCase)).ToList();
         var resolved = await DbWriter.ResolveAsync(db, values);
         var rows = resolved.Rows.Where(r => r.ClubId == club.Id).ToList();   // this club only, never another
-        var (written, kept) = await DbWriter.WriteAsync(db, rows, $"RCC club sync {DateTime.UtcNow:yyyy-MM-dd}");
-        var monthly = await ClubFoundationWriter.ApplyAsync(db, yearId, rows, req.fk_member_id ?? 0, DateTime.UtcNow);
-        Log.Info($"Request {req.pk_id}: club {club.Name} ({club.Rid}): {rows.Count} values -> {written} rows written, {kept} existing targets left unchanged, " +
+        var (written, kept) = await DbWriter.WriteAsync(db, rows, $"RCC club sync {DateTime.UtcNow:yyyy-MM-dd}", _mode);
+        var monthly = _mode == DbWriter.YearMode.Current ? await ClubFoundationWriter.ApplyAsync(db, yearId, rows, req.fk_member_id ?? 0, DateTime.UtcNow) : 0;
+        Log.Info($"Request {req.pk_id}: club {club.Name} ({club.Rid}): {rows.Count} values -> {written} rows written, {kept} existing goals refreshed from Rotary.org, " +
                  $"{monthly} Foundation month-wise values, {res.Errors.Count} Rotary.org errors, {(DateTime.UtcNow - started).TotalMinutes:0.0} min.");
         await SucceededAsync(db, req, login, email, password, written, res.Errors);
     }
@@ -386,8 +393,9 @@ CREATE TABLE IF NOT EXISTS rotary_org_sync_requests (
                 // "Save my login" (user 2026-11-06): saved ONLY now - after this login proved it is this district's
                 // (a wrong district's login never replaces the real DG's saved one). Same for a club (fk_club_id).
                 var enc = CredentialCrypto.Encrypt(password, s.CredentialKey);
-                var existing = await db.ExecuteScalarAsync<int?>("SELECT pk_id FROM rotary_org_sync_logins WHERE fk_district_id = @D AND fk_club_id = @C AND isdeleted = 0 ORDER BY pk_id DESC LIMIT 1",
-                    new { D = req.fk_district_id, C = req.fk_club_id });
+                // One saved login per district / club per Rotary year (user 2026-11-20).
+                var existing = await db.ExecuteScalarAsync<int?>("SELECT pk_id FROM rotary_org_sync_logins WHERE fk_district_id = @D AND fk_club_id = @C AND fk_year_id = @Y AND isdeleted = 0 ORDER BY pk_id DESC LIMIT 1",
+                    new { D = req.fk_district_id, C = req.fk_club_id, Y = req.fk_year_id });
                 if (existing != null)
                     await db.ExecuteAsync(@"UPDATE rotary_org_sync_logins SET fk_year_id = @Y, fk_member_id = @M, RotaryEmail = @E, PasswordEnc = @P, AllowNightly = @N,
                         Status = 'OK', StatusMessage = NULL, LastOkAt = NOW(), ExpiredMailSentAt = NULL, modified_date = NOW() WHERE pk_id = @Id",
@@ -441,6 +449,19 @@ CREATE TABLE IF NOT EXISTS rotary_org_sync_requests (
             await db.ExecuteAsync("UPDATE rotary_org_sync_logins SET ExpiredMailSentAt = NOW() WHERE pk_id = @id", new { id = login.pk_id });
     }
 
+    // Cancel (user 2026-11-23): the API marks a running request CANCELLING; checked before the fetch and again
+    // before saving, so a cancelled sync never saves anything.
+    private DbWriter.YearMode _mode = DbWriter.YearMode.Current;   // the request being processed (one at a time)
+
+    private async Task<bool> CancelledAsync(Req req)
+    {
+        await using var db = await OpenAsync();
+        var st = await db.ExecuteScalarAsync<string?>("SELECT Status FROM rotary_org_sync_requests WHERE pk_id = @id", new { id = req.pk_id });
+        if (st != "CANCELLING") return false;
+        await FinishAsync(req, "CANCELLED", "Cancelled", "Cancelled by user");
+        return true;
+    }
+
     private async Task FinishAsync(Req req, string status, string stage, string? error)
     {
         await using var db = await OpenAsync();
@@ -463,7 +484,7 @@ CREATE TABLE IF NOT EXISTS rotary_org_sync_requests (
     }
 
     // AUTO-SYNC (user 2026-11-10). Every saved login that allows it (District Governor or club officer):
-    //   - WEEKLY on its zone's day (ZoneDays: Zone 4 Saturday, 5 Sunday, 6 Monday, 7 Tuesday, 8 Wednesday;
+    //   - WEEKLY on its zone's day (ZoneDays: Zone 4 Monday, 5 Tuesday, 6 Wednesday, 7 Thursday, 8 Friday;
     //     any other zone = WeeklyDay), in the hour NightlyHour (or the 2 hours after it);
     //   - on the LAST DAY OF EVERY MONTH at MonthEndHour, so each month closes with its final figure.
     // No duplicates: a club's own auto-sync is skipped when its district's DG auto-sync is on (that one covers
@@ -539,7 +560,7 @@ CREATE TABLE IF NOT EXISTS rotary_org_sync_requests (
         {
             if (l.Club > 0 && districtAuto.Contains(l.District)) { covered++; continue; }   // the DG's sync covers this club
             var busy = await db.ExecuteScalarAsync<long>(@"SELECT COUNT(*) FROM rotary_org_sync_requests WHERE fk_district_id = @d AND fk_club_id = @c
-                AND (Status IN ('QUEUED', 'RUNNING') OR (Status = 'DONE' AND FinishedAt >= NOW() - INTERVAL @h HOUR))", new { d = l.District, c = l.Club, h = recentHours });
+                AND (Status IN ('QUEUED', 'RUNNING', 'CANCELLING') OR (Status = 'DONE' AND FinishedAt >= NOW() - INTERVAL @h HOUR))", new { d = l.District, c = l.Club, h = recentHours });
             if (busy > 0) { skipped++; continue; }
             await db.ExecuteAsync(@"INSERT INTO rotary_org_sync_requests (fk_district_id, fk_club_id, DistrictNumber, fk_year_id, fk_member_id, TriggerType, fk_login_id, Status)
                 VALUES (@d, @c, @num, @yearId, @m, @t, @lid, 'QUEUED')", new { d = l.District, c = l.Club, num = l.Num, yearId, m = l.Member, t = trigger, lid = l.Id });

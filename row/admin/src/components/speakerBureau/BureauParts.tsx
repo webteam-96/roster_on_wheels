@@ -5,6 +5,8 @@
  * the search filters, the speaker list and a speaker's profile with its ratings.
  */
 
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table"
+import { NativeSelect } from "@/components/ui/native-select";
 import type { ReactNode } from "react";
 import { Loader2, Plus, Save } from "@/components/icons";
 import { Button } from "@/components/ui/button";
@@ -19,7 +21,7 @@ import { modeText, ratingText, tagList } from "@/lib/speakerBureau";
 import type { BureauEntry, BureauProfile, BureauSearch, SaveBureauEntry } from "@/types/speakerBureau";
 
 const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
-export const SELECT = "h-10 w-full rounded-md border border-input bg-background px-3 text-sm";
+export const SELECT = "row-field w-full";
 
 export function EntryForm({ form, onChange, onSubmit, onCancel, busy, editing, submitLabel, extra }: {
   form: SaveBureauEntry; onChange: (f: SaveBureauEntry) => void; onSubmit: () => void; onCancel?: () => void;
@@ -68,7 +70,7 @@ export function EntryForm({ form, onChange, onSubmit, onCancel, busy, editing, s
       </div>
       {extra}
       <div className="flex flex-wrap items-center gap-2 md:col-span-2">
-        <Button type="submit" disabled={busy} className="gap-1.5">
+        <Button type="submit" disabled={busy}>
           {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : editing ? <Save className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
           {submitLabel}
         </Button>
@@ -94,32 +96,32 @@ export function SearchFilters({ value, onChange, withStatus }: {
       </div>
       <div className="space-y-1.5">
         <Label htmlFor="sb-f-mode">How</Label>
-        <select id="sb-f-mode" className={SELECT} value={value.mode ?? ""} onChange={(e) => set({ mode: e.target.value as BureauSearch["mode"] })}>
+        <NativeSelect id="sb-f-mode"  value={value.mode ?? ""} onChange={(e) => set({ mode: e.target.value as BureauSearch["mode"] })}>
           <option value="">Online or in person</option>
           <option value="online">Online</option>
           <option value="in_person">In person</option>
-        </select>
+        </NativeSelect>
       </div>
       <div className="space-y-1.5">
         <Label htmlFor="sb-f-rating">Rating</Label>
-        <select id="sb-f-rating" className={SELECT} value={value.minRating ?? ""}
+        <NativeSelect id="sb-f-rating"  value={value.minRating ?? ""}
           onChange={(e) => set({ minRating: e.target.value ? Number(e.target.value) : undefined })}>
           <option value="">Any rating</option>
           <option value="3">3 or more</option>
           <option value="4">4 or more</option>
           <option value="4.5">4.5 or more</option>
-        </select>
+        </NativeSelect>
       </div>
       {withStatus && (
         <div className="space-y-1.5">
           <Label htmlFor="sb-f-status">Status</Label>
-          <select id="sb-f-status" className={SELECT} value={value.status ?? ""}
+          <NativeSelect id="sb-f-status"  value={value.status ?? ""}
             onChange={(e) => set({ status: e.target.value as BureauSearch["status"] })}>
             <option value="">All</option>
             <option value="pending">Waiting for approval</option>
             <option value="approved">Listed</option>
             <option value="rejected">Rejected</option>
-          </select>
+          </NativeSelect>
         </div>
       )}
     </div>
@@ -139,21 +141,21 @@ export function EntryTable({ list, empty, actions, showStatus }: {
   return (
     <Card>
       <CardContent className="overflow-x-auto p-0">
-        <table className="w-full min-w-[760px] text-sm">
-          <thead className="bg-muted/50 text-[13px]">
-            <tr className="border-b text-left text-muted-foreground">
-              <th className="p-3 font-medium">Speaker</th>
-              <th className="p-3 font-medium">Topics</th>
-              <th className="p-3 font-medium">Languages and area</th>
-              <th className="p-3 font-medium">Rating</th>
-              {showStatus && <th className="p-3 font-medium">Status</th>}
-              <th className="p-3"><span className="sr-only">Actions</span></th>
-            </tr>
-          </thead>
-          <tbody>
+        <Table className="w-full min-w-[760px] text-sm">
+          <TableHeader>
+            <TableRow className="border-b">
+              <TableHead className="p-3">Speaker</TableHead>
+              <TableHead className="p-3">Topics</TableHead>
+              <TableHead className="p-3">Languages and area</TableHead>
+              <TableHead className="p-3">Rating</TableHead>
+              {showStatus && <TableHead className="p-3">Status</TableHead>}
+              <TableHead className="p-3"><span className="sr-only">Actions</span></TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
             {list.map((e) => (
-              <tr key={e.id} className="border-b last:border-0 align-top">
-                <td className="p-3">
+              <TableRow key={e.id} className="border-b last:border-0 align-top">
+                <TableCell className="p-3">
                   <div className="flex items-start gap-3">
                     {e.photoPath && (
                       // eslint-disable-next-line @next/next/no-img-element
@@ -165,19 +167,19 @@ export function EntryTable({ list, empty, actions, showStatus }: {
                       {e.proposedByClubName && <p className="text-xs text-muted-foreground">Proposed by {e.proposedByClubName}</p>}
                     </div>
                   </div>
-                </td>
-                <td className="p-3">{tagList(e.topics).join(", ")}</td>
-                <td className="p-3">{[tagList(e.languages).join(", "), e.city].filter(Boolean).join(". ")}</td>
-                <td className="p-3 whitespace-nowrap">
+                </TableCell>
+                <TableCell className="p-3">{tagList(e.topics).join(", ")}</TableCell>
+                <TableCell className="p-3">{[tagList(e.languages).join(", "), e.city].filter(Boolean).join(". ")}</TableCell>
+                <TableCell className="p-3 whitespace-nowrap">
                   {ratingText(e)}
                   <p className="text-xs text-muted-foreground">{e.talkCount} {e.talkCount === 1 ? "talk" : "talks"} booked</p>
-                </td>
-                {showStatus && <td className="p-3">{STATUS_TEXT[e.status]}</td>}
-                <td className="p-3 whitespace-nowrap text-right">{actions(e)}</td>
-              </tr>
+                </TableCell>
+                {showStatus && <TableCell className="p-3">{STATUS_TEXT[e.status]}</TableCell>}
+                <TableCell className="p-3 whitespace-nowrap text-right">{actions(e)}</TableCell>
+              </TableRow>
             ))}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
       </CardContent>
     </Card>
   );
@@ -195,7 +197,7 @@ export function ProfilePanel({ profile, onClose, onHide }: {
       <CardContent className="space-y-4 p-5">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
-            <h4 className="text-lg font-semibold">{e.name}</h4>
+            <h4 className="row-h2">{e.name}</h4>
             <p className="text-sm text-muted-foreground">{ratingText(e)}. {modeText(e)}.</p>
           </div>
           <Button variant="outline" size="sm" onClick={onClose}>Close</Button>
@@ -208,7 +210,7 @@ export function ProfilePanel({ profile, onClose, onHide }: {
           <div><dt className="text-muted-foreground">Contact</dt><dd>{[e.email, e.phone].filter(Boolean).join(", ") || "Not given"}</dd></div>
         </dl>
         <div>
-          <h5 className="mb-2 font-medium">Ratings from clubs</h5>
+          <h5 className="row-h3 mb-2">Ratings from clubs</h5>
           {profile.ratings.length === 0 ? (
             <p className="text-sm text-muted-foreground">No club has rated this speaker yet.</p>
           ) : (

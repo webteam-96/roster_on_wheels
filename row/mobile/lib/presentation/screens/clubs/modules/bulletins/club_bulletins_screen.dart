@@ -7,6 +7,8 @@ import '../../../../widgets/common/custom_app_bar.dart';
 import '../../../../widgets/common/empty_state_widget.dart';
 import '../../../../widgets/common/loading_widget.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/motion.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/roster_wheel.dart';
 
 /// Archive of the club's sent email bulletins (gap #6, `api/clubs/{id}/bulletins`). Members of the club read past
 /// issues here; managers build and send them on the web admin. Drafts are not listed.
@@ -63,9 +65,9 @@ class _ClubBulletinsScreenState extends State<ClubBulletinsScreen> {
           title: 'No bulletins yet',
           subtitle: 'Bulletins the club sends by email appear here.');
     }
-    return RefreshIndicator(
+    return RowRefresh(
       onRefresh: _load,
-      child: ListView.separated(
+      child: RowListView.separated(
         padding: const EdgeInsets.only(bottom: 24),
         itemCount: items.length,
         separatorBuilder: (_, __) => const Divider(height: 1),

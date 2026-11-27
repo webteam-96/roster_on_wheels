@@ -1,5 +1,9 @@
 "use client";
 
+import DetailRow from "@/components/DetailRow";
+import PublishStatusBadge from "@/components/PublishStatusBadge";
+import SectionCard from "@/components/form/SectionCard";
+import { Card } from "@/components/ui/card";
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { UpcomingEventDetail } from "@/types/upcomingEvent";
@@ -10,51 +14,11 @@ import ErrorAlert from "@/components/ErrorAlert";
 import RotaryLoader from "@/components/RotaryLoader";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import Link from "next/link";
-import {
-  ArrowLeft, Pencil, FileText, Bell, ExternalLink, Calendar,
-} from "@/components/icons";
+import { ArrowLeft, Pencil, FileText, Bell, ExternalLink, Calendar } from "@/components/icons";
 
 import { appLocale } from "@/lib/appFormat";
-import { ListPageSkeleton } from "@/components/row/AppKit";
+import { PageHeader, ListPageSkeleton } from "@/components/row/AppKit";
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
-
-function Section({ icon: Icon, title, number, children }: {
-  icon: React.ElementType; title: string; number: number; children: React.ReactNode;
-}) {
-  return (
-    <div className="relative bg-card rounded-[20px] border shadow-sm overflow-hidden">
-      <div className="flex items-center gap-3 px-5 py-3.5 bg-primary/5 border-b">
-        <div className="flex items-center justify-center h-8 w-8 rounded-full bg-primary text-primary-foreground text-sm font-bold shrink-0">{number}</div>
-        <Icon className="h-5 w-5 text-primary shrink-0" />
-        <h3 className="text-base font-semibold text-foreground">{title}</h3>
-      </div>
-      <div className="p-5">{children}</div>
-    </div>
-  );
-}
-
-function DetailRow({ label, value }: { label: string; value: React.ReactNode }) {
-  if (!value || value === "-") return null;
-  return (
-    <div className="space-y-0.5">
-      <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">{label}</p>
-      <p className="text-sm font-medium">{value}</p>
-    </div>
-  );
-}
-
-function StatusBadge({ status }: { status: string }) {
-  const colors: Record<string, string> = {
-    Published: "bg-green-100 text-green-700",
-    Expired: "bg-red-100 text-red-700",
-    Unpublished: "bg-yellow-100 text-yellow-700",
-  };
-  return (
-    <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${colors[status] || "bg-gray-100 text-gray-700"}`}>
-      {status}
-    </span>
-  );
-}
 
 function formatDate(dateStr: string): string {
   return new Date(dateStr).toLocaleDateString(appLocale(), {
@@ -128,23 +92,13 @@ export default function UpcomingEventViewPage() {
 
   return (
     <ProtectedRoute>
-      <div className="space-y-5 max-w-4xl mx-auto pb-10">
+      <div className="space-y-5 max-w-4xl">
         {/* Header */}
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-3">
-            <Button variant="outline" size="icon" asChild>
-              <Link href={`/clubs/${clubId}/upcoming-events`}>
-                <ArrowLeft className="h-4 w-4" />
-              </Link>
-            </Button>
-            <div>
-              <h2 className="text-2xl font-bold tracking-tight text-primary">
-                {clubName ? `${clubName} - Upcoming Events` : "Upcoming Events"}
-              </h2>
-              <p className="text-muted-foreground text-base">Event Details</p>
-            </div>
-          </div>
-          {canManage && event.status !== "Expired" && (
+        <PageHeader
+          title={clubName ? `${clubName} - Upcoming Events` : "Upcoming Events"}
+          description="Event Details"
+          back={`/clubs/${clubId}/upcoming-events`}
+          actions={canManage && event.status !== "Expired" && (
             <Button
               variant="outline"
               size="sm"
@@ -153,13 +107,13 @@ export default function UpcomingEventViewPage() {
               <Pencil className="mr-2 h-4 w-4" />Edit
             </Button>
           )}
-        </div>
+        />
 
         {/* 1. Event Details */}
-        <Section icon={FileText} title="Event Details" number={1}>
+        <SectionCard icon={FileText} title="Event Details" number={1}>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <DetailRow label="Title" value={event.title} />
-            <DetailRow label="Status" value={<StatusBadge status={event.status} />} />
+            <DetailRow label="Status" value={<PublishStatusBadge status={event.status} />} />
             {event.imagePath && (
               <div className="sm:col-span-2">
                 <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">Image</p>
@@ -176,10 +130,10 @@ export default function UpcomingEventViewPage() {
               </div>
             )}
           </div>
-        </Section>
+        </SectionCard>
 
         {/* 2. Dates & Venue */}
-        <Section icon={Calendar} title="Dates & Venue" number={2}>
+        <SectionCard icon={Calendar} title="Dates & Venue" number={2}>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <DetailRow label="Event Date" value={formatDateTime(event.eventDate)} />
             <DetailRow label="Publish Date" value={formatDateTime(event.publishDate)} />
@@ -202,10 +156,10 @@ export default function UpcomingEventViewPage() {
               </div>
             )}
           </div>
-        </Section>
+        </SectionCard>
 
         {/* 3. Notification Settings */}
-        <Section icon={Bell} title="Notification Settings" number={3}>
+        <SectionCard icon={Bell} title="Notification Settings" number={3}>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <DetailRow label="Send Email" value={event.isSendEmail ? "Yes" : "No"} />
             <DetailRow label="Repeat Notification" value={event.isRepeatNotification ? "Yes" : "No"} />
@@ -223,7 +177,7 @@ export default function UpcomingEventViewPage() {
               </div>
             )}
           </div>
-        </Section>
+        </SectionCard>
 
         <ErrorAlert open={!!errorMessage} title="Error" description={errorMessage || ""} onOk={() => setErrorMessage(null)} />
       </div>

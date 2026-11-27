@@ -5,6 +5,7 @@ import '../../../core/theme/app_text_styles.dart';
 import '../../../core/utils/money_format.dart';
 import '../../../data/models/club_admin_dashboard_models.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/motion.dart';
 
 /// The four money KPI cards — Total Amount / Collected / Pending / Collection
 /// Rate — plus a full-width collection-progress bar, mirroring the web
@@ -90,7 +91,7 @@ class DuesKpiCards extends StatelessWidget {
           Icons.trending_up_rounded,
           AppColors.warningDark),
     ];
-    return GridView.count(
+    return RowGridView.count(
       crossAxisCount: 2,
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
@@ -136,7 +137,7 @@ class DuesKpiCards extends StatelessWidget {
           const SizedBox(height: 8),
           ClipRRect(
             borderRadius: BorderRadius.circular(99),
-            child: LinearProgressIndicator(
+            child: RowProgressBar(
               value: rate,
               minHeight: 8,
               backgroundColor: AppColors.muted,

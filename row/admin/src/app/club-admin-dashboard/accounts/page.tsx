@@ -7,6 +7,7 @@
  * sheet, budget against actual, dues owed by age) with CSV, Excel and PDF downloads. Paid membership dues post themselves.
  */
 
+import { PageHeader } from "@/components/row/AppKit";
 import { useCallback, useEffect, useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
@@ -39,13 +40,8 @@ export default function ClubAccountsPage() {
   if (!clubId) return <p className="p-6 text-sm text-muted-foreground">Choose a club first.</p>;
 
   return (
-    <div className="space-y-6 p-6">
-      <div>
-        <h2 className="text-2xl font-bold tracking-tight text-primary">Accounts</h2>
-        <p className="text-base text-muted-foreground">
-          The club's books in double entry. Paid membership dues are posted for you. A posted entry is never changed: reverse it and post it again.
-        </p>
-      </div>
+    <div className="space-y-6">
+      <PageHeader title="Accounts" description="The club's books in double entry. Paid membership dues are posted for you. A posted entry is never changed: reverse it and post it again." />
 
       {loadError ? (
         <Card><CardContent className="p-5 text-sm text-destructive">{loadError}</CardContent></Card>
@@ -87,7 +83,7 @@ export default function ClubAccountsPage() {
             </section>
             <QuickEntry clubId={clubId} accounts={accounts} vendors={vendors} onSaved={reload} onError={setError} />
             <section className="space-y-3">
-              <h3 className="text-lg font-semibold">Latest entries</h3>
+              <h3 className="row-h2">Latest entries</h3>
               {summary.recent.length === 0 ? (
                 <Card><CardContent className="p-5 text-sm text-muted-foreground">Nothing posted yet. Record money in or out above, or post an opening balance in the Journal tab.</CardContent></Card>
               ) : (

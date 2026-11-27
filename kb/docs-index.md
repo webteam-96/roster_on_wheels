@@ -76,7 +76,7 @@ open the file for the text. Do not edit by hand.
 
 ## row (75 documents)
 
-- **row/HANDOFF.md** (28 KB)
+- **row/HANDOFF.md** (33 KB)
   - ROW: session handoff (read this first)
   -   Ground rules (from the user)
   -   Done on 2026-10-19
@@ -113,8 +113,17 @@ open the file for the text. Do not edit by hand.
   -   Configuration (set per server as environment variables; never commit values)
   -   Checks
   -   Refreshing from a newer RIZones copy
-- **row/ROW-CHANGES.md** (122 KB)
+- **row/ROW-CHANGES.md** (142 KB)
   - ROW changes to consider later
+  -   2026-11-27: district websites on the club-site wildcard (owner; not committed)
+  -   2026-11-27: RIZones pull port, new goal flow, admin components, OMS ROW-94 to ROW-97 (owner; not committed)
+  -   2026-11-25: app member test, 24 findings fixed (owner; not committed)
+  -   2026-11-25: email-only sign-in, RIZones leftovers, district switcher (owner; not committed)
+  -   2026-11-25: Daily Statistics Report (owner: table only after a click, Send Email Now fails; not committed)
+  -   2026-11-25: app motion and bento grid (owner: the app is plain, no animation; not committed)
+  -   2026-11-25: admin fixed layout and shared components (owner: different header on every page, buttons too round, no card design; not committed)
+  -   2026-11-25: currencies, and simulated payments for district 5656 only (owner; not committed)
+  -   2026-11-25: admin look and motion (owner: too plain, some AI slop, white too bright; not committed)
   -   2026-11-23: admin UI fixes from the owner's live review (not committed)
   -   2026-11-23: test-site sign-in fails with 500 (found; fix waits for the server)
   -   2026-11-23: district website = the 7 designed themes on ROW data (not committed)
@@ -130,16 +139,7 @@ open the file for the text. Do not edit by hand.
   -   Ported with gaps
   -   Behaviour quirks kept from RIZones
   -   Reports (ported 2026-10-09)
-  -   Goal Setting (ported 2026-10-10)
-  -   District Performance Report (ported 2026-10-10)
-  -   RI Director group (ported 2026-10-10)
-  -   Mobile group (ported 2026-10-10)
-  -   Admin tools and OCV group (ported 2026-10-10)
-  -   Public site group (ported 2026-10-10)
-  -   Rotary.org group (ported 2026-10-10)
-  -   Testing against the .NET API (2026-10-10)
-  -   Background services (2026-10-10)
-  - … 19 more headings
+  - … 28 more headings
 - **row/STATUS-REPORT.md** (6 KB)
   - ROW status report (updated 2026-10-23, evening)
   -   Done (verified on a local copy of production, `row_prod_copy`)
@@ -341,7 +341,7 @@ open the file for the text. Do not edit by hand.
   - ROW mobile app (Flutter)
   -   Build and run
   -   Checks
-- **row/mobile/WORK_LOG.txt** (359 KB)
+- **row/mobile/WORK_LOG.txt** (363 KB)
   - _========================================_
 - **row/mobile/rotary_ui_redesign_prompt.md** (14 KB)
   - Rotary Zones 4,5,6,7 & 8 Admin — UI Redesign & Dynamic Theme System Prompt
@@ -621,7 +621,7 @@ open the file for the text. Do not edit by hand.
   -   Deploy (IIS)
   -   Contact form email
   -   Where things are
-- **row/website/design.md** (18 KB)
+- **row/website/design.md** (24 KB)
   - ROW Design System — "Fellowship" (Concept 03)
   -   1. Colour
   -   2. Typography
@@ -2566,7 +2566,7 @@ open the file for the text. Do not edit by hand.
 - **reference/rotary_zones_45678_flutter/README.md** (0 KB)
   - rotary_flutter_app
   -   Getting Started
-- **reference/rotary_zones_45678_flutter/WORK_LOG.txt** (542 KB)
+- **reference/rotary_zones_45678_flutter/WORK_LOG.txt** (551 KB)
   - _========================================_
 - **reference/rotary_zones_45678_flutter/rotary_ui_redesign_prompt.md** (14 KB)
   - Rotary Zones 4,5,6,7 & 8 Admin — UI Redesign & Dynamic Theme System Prompt

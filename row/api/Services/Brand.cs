@@ -49,7 +49,7 @@ public static class Brand
     public static string[] Languages { get; private set; } = { "en" };
     public static string NumberLocale { get; private set; } = "en-US";
     public static string DefaultCurrency { get; private set; } = "USD";
-    public static string[] Currencies { get; private set; } = { "USD", "CAD", "EUR", "GBP", "BRL", "MXN", "JPY", "KRW", "AUD", "PHP", "ZAR", "NGN", "KES" };
+    public static string[] Currencies { get; private set; } = CountryCurrency.All; // districts are in some 90 countries
     public static string DefaultTimeZone { get; private set; } = "UTC";
     public static string InstanceTimeZone { get; private set; } = "UTC";
     /// <summary>0 = no default country: forms ask.</summary>
@@ -282,6 +282,7 @@ public static class Brand
         try { culture = (System.Globalization.CultureInfo)System.Globalization.CultureInfo.GetCultureInfo(NumberLocale).Clone(); }
         catch { culture = (System.Globalization.CultureInfo)System.Globalization.CultureInfo.InvariantCulture.Clone(); }
         culture.NumberFormat.CurrencySymbol = CurrencySymbol(code);
+        if (!CountryCurrency.HasDecimals(code)) decimals = 0;
         return value.ToString("C" + decimals, culture);
     }
 

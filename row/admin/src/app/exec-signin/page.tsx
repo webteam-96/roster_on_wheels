@@ -1,4 +1,5 @@
 "use client";
+import { LinkButton } from "@/components/ui/text-buttons";
 
 /**
  * KIS/ROW/SUB/01 sections 4.1 / 4.2: a club executive (President, President-Elect, Past President, Secretary,
@@ -99,7 +100,7 @@ export default function ExecutiveSignInPage() {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4 py-10">
-      <Card className="w-full max-w-md overflow-hidden rounded-[20px] border border-[color:var(--row-line)]">
+      <Card className="w-full max-w-md overflow-hidden border-[color:var(--row-line)]">
         <CardHeader className="gap-6 px-7 pb-2 pt-7">
           <div className="flex items-start justify-between gap-3">
             <BrandLogo className="h-14" />
@@ -142,10 +143,10 @@ export default function ExecutiveSignInPage() {
                 {busy && <RotaryLoader size="sm" />}
                 Sign in
               </Button>
-              <button type="button" className="text-sm font-semibold text-primary hover:underline" disabled={busy}
+              <LinkButton disabled={busy}
                 onClick={() => { setCode(""); void sendCode(); }}>
                 Send a new code
-              </button>
+              </LinkButton>
             </form>
           )}
           <p className="mt-6 text-sm text-muted-foreground">

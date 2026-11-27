@@ -10,6 +10,8 @@ import '../../../../../data/models/training_appointment_models.dart';
 import '../../../../../presentation/widgets/common/custom_app_bar.dart';
 import 'package:rotary_flutter_app/core/theme/app_fonts.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/motion.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/roster_wheel.dart';
 
 /// "Website Training" — a club admin books a Calendly-style 30-minute Zoom
 /// training slot for their club website. Lists upcoming appointments (Join +
@@ -139,7 +141,7 @@ class _WebsiteTrainingScreenState extends State<WebsiteTrainingScreen> {
   }
 
   void _showLocked(String message) {
-    showDialog<void>(
+    showRowDialog<void>(
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: AppColors.white,
@@ -188,7 +190,7 @@ class _WebsiteTrainingScreenState extends State<WebsiteTrainingScreen> {
                     message: _errMsg(snap.error!), onRetry: _reload);
               }
               final appts = snap.data ?? const <TrainingAppointment>[];
-              return RefreshIndicator(
+              return RowRefresh(
                 color: AppColors.rotaryBlue,
                 onRefresh: _refresh,
                 child: ListView(
@@ -731,6 +733,7 @@ class _SlotPickerSheetState extends State<_SlotPickerSheet> {
                     ),
                   ),
                   IconButton(
+                    tooltip: 'Close',
                     onPressed: () => Navigator.of(context).pop(),
                     icon: const Icon(Icons.close_rounded, size: 20),
                     color: AppColors.slate500,
@@ -750,7 +753,7 @@ class _SlotPickerSheetState extends State<_SlotPickerSheet> {
                     const SizedBox(height: 8),
                     SizedBox(
                       height: 40,
-                      child: ListView.separated(
+                      child: RowListView.separated(
                         scrollDirection: Axis.horizontal,
                         itemCount: days.length,
                         separatorBuilder: (_, __) => const SizedBox(width: 8),

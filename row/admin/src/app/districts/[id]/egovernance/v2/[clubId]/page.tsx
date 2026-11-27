@@ -1,4 +1,5 @@
 "use client";
+import { MenuItemButton } from "@/components/ui/text-buttons";
 
 /**
  * District Admin ▸ E-Governance ▸ Per-Club Drill (V2 — Wave 13D)
@@ -51,24 +52,11 @@
  *   • V1 untouched.
  */
 
+import { Card } from "@/components/ui/card";
+import { NativeSelect } from "@/components/ui/native-select";
 import { useEffect, useMemo, useState } from "react";
 import { useParams, useSearchParams } from "next/navigation";
-import {
-  ArrowLeft,
-  Calendar,
-  CheckCircle2,
-  Clock,
-  AlertCircle,
-  ChevronDown,
-  ChevronRight,
-  ClipboardList,
-  Award,
-  Users,
-  FileText,
-  IndianRupee,
-  Loader2,
-  ExternalLink,
-} from "@/components/icons";
+import { Calendar, CheckCircle2, Clock, AlertCircle, ChevronDown, ChevronRight, ClipboardList, Award, Users, FileText, IndianRupee, Loader2, ExternalLink } from "@/components/icons";
 import {
   getClub,
   getMonthlyReportYears,
@@ -89,7 +77,7 @@ import RotaryLoader from "@/components/RotaryLoader";
 import ErrorAlert from "@/components/ErrorAlert";
 import LoadingLink from "@/components/v2/LoadingLink";
 import ProtectedRoute from "@/components/ProtectedRoute";
-import { ListPageSkeleton, SkeletonRows } from "@/components/row/AppKit";
+import { PageHeader, ListPageSkeleton, SkeletonRows } from "@/components/row/AppKit";
 
 /* ------------------------------------------------------------------ types */
 
@@ -375,36 +363,19 @@ function DistrictAdminEGovClubDetailInner() {
     >
       <div className="space-y-5">
         {/* Header strip */}
-        <div className="flex items-start justify-between gap-3 flex-wrap">
-          <div className="flex items-start gap-2">
-            <LoadingLink
-              href={backHref}
-              className="mt-0.5 inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50"
-              aria-label="Back"
-            >
-              <ArrowLeft size={15} />
-            </LoadingLink>
-            <div>
-              <h1 className="text-lg font-semibold text-slate-800">
-                {clubName || "Club"}: E-Governance Detail
-              </h1>
-              <p className="text-xs text-slate-500 mt-0.5">
-                Per-month CMR submission and citation overview
-                {selectedYear ? ` · RY ${selectedYear.yearLabel}` : ""}
-              </p>
-            </div>
-          </div>
-
-          {/* Year picker — data only */}
-          {!loadingTop && years.length > 0 && (
-            <select
+        <PageHeader
+          title={<>{clubName || "Club"}: E-Governance Detail</>}
+          description={<>Per-month CMR submission and citation overview {selectedYear ? ` · RY ${selectedYear.yearLabel}` : ""}</>}
+          back={backHref}
+          actions={!loadingTop && years.length > 0 && (
+            <NativeSelect
               value={selectedYearId ?? ""}
               onChange={(e) =>
                 setSelectedYearId(
                   e.target.value ? Number(e.target.value) : null,
                 )
               }
-              className="px-3 h-10 py-0 text-sm border border-slate-200 rounded-[12px] bg-card focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+              className="w-auto"
             >
               {years.map((y) => (
                 <option key={y.id} value={y.id}>
@@ -412,9 +383,9 @@ function DistrictAdminEGovClubDetailInner() {
                   {y.isCurrent ? " · current" : ""}
                 </option>
               ))}
-            </select>
+            </NativeSelect>
           )}
-        </div>
+        />
 
         {/* Loading / error guards */}
         {loadingTop ? (
@@ -456,10 +427,10 @@ function DistrictAdminEGovClubDetailInner() {
             </div>
 
             {/* Per-Month detail */}
-            <div className="bg-card rounded-2xl border border-slate-200 overflow-hidden">
+            <Card className="overflow-hidden">
               <div className="px-5 py-3 border-b border-slate-100 flex items-center justify-between gap-3 flex-wrap">
                 <div>
-                  <h3 className="text-sm font-semibold text-slate-800">
+                  <h3 className="row-h3">
                     Per-Month Detail
                   </h3>
                   <p className="text-[11px] text-slate-500 mt-0.5">
@@ -516,10 +487,9 @@ function DistrictAdminEGovClubDetailInner() {
                     const cached = detailCache[m.month];
                     return (
                       <li key={m.month}>
-                        <button
-                          type="button"
+                        <MenuItemButton
                           onClick={() => handleToggle(m)}
-                          className="w-full flex items-center gap-3 px-5 py-3 text-left hover:bg-blue-50/40 transition"
+                          className="gap-3 rounded-none px-5 py-3"
                         >
                           {open ? (
                             <ChevronDown
@@ -540,7 +510,7 @@ function DistrictAdminEGovClubDetailInner() {
                             {m.monthName}
                           </span>
                           <span
-                            className={`inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full border ${STATUS_CHIP[status]}`}
+                            className={`inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded border ${STATUS_CHIP[status]}`}
                           >
                             <StatusIcon s={status} /> {STATUS_LABEL[status]}
                           </span>
@@ -560,7 +530,7 @@ function DistrictAdminEGovClubDetailInner() {
                           >
                             {/* visual cue — actual link lives in expanded panel */}
                           </span>
-                        </button>
+                        </MenuItemButton>
 
                         {open && (
                           <div className="px-5 pb-4 pt-1 bg-slate-50/50">
@@ -576,7 +546,7 @@ function DistrictAdminEGovClubDetailInner() {
                   })}
                 </ul>
               )}
-            </div>
+            </Card>
 
             {/* Citation Status panel */}
             <CitationPanel
@@ -636,7 +606,7 @@ function ExpandedDetail({
         {item.isCreated && (
           <LoadingLink
             href={cmrHref}
-            className="inline-flex items-center gap-1.5 text-xs font-semibold px-4 h-10 rounded-full border border-slate-200 text-blue-700 bg-card hover:bg-blue-50"
+            className="row-btn row-btn-secondary"
           >
             <ExternalLink size={12} /> View CMR
           </LoadingLink>
@@ -692,7 +662,7 @@ function ExpandedDetail({
       <div className="flex items-center justify-end">
         <LoadingLink
           href={cmrHref}
-          className="inline-flex items-center gap-1.5 text-xs font-semibold px-4 h-10 rounded-full border border-slate-200 text-blue-700 bg-card hover:bg-blue-50"
+          className="row-btn row-btn-secondary"
         >
           <ExternalLink size={12} /> View CMR
         </LoadingLink>
@@ -808,10 +778,10 @@ function CitationPanel({
   yearLabel: string;
 }) {
   return (
-    <div className="bg-card rounded-2xl border border-slate-200 overflow-hidden">
+    <Card className="overflow-hidden">
       <div className="px-5 py-3 border-b border-slate-100 flex items-center justify-between gap-3 flex-wrap">
         <div>
-          <h3 className="text-sm font-semibold text-slate-800 flex items-center gap-2">
+          <h3 className="row-h3 flex items-center gap-2">
             <Award size={14} className="text-amber-500" />
             Awards Status
           </h3>
@@ -821,7 +791,7 @@ function CitationPanel({
           </p>
         </div>
         {citation?.status && (
-          <span className="inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full border border-amber-200 bg-amber-50 text-amber-700">
+          <span className="inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded border border-amber-200 bg-amber-50 text-amber-700">
             {citation.status}
           </span>
         )}
@@ -877,7 +847,7 @@ function CitationPanel({
                 {citation.categories.map((c, i) => (
                   <span
                     key={`${c.category}-${i}`}
-                    className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-medium text-slate-700"
+                    className="inline-flex items-center gap-1 rounded bg-slate-100 px-2.5 py-1 text-[11px] font-medium text-slate-700"
                   >
                     {c.category}
                     <span className="tabular-nums text-slate-900">
@@ -890,7 +860,7 @@ function CitationPanel({
           )}
         </div>
       )}
-    </div>
+    </Card>
   );
 }
 

@@ -6,6 +6,8 @@
  * the profile address once its domain passes all four, otherwise from the platform address.
  */
 
+import { Button } from "@/components/ui/button"
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table"
 import { useCallback, useEffect, useState } from "react";
 import { TableSkeleton } from "@/components/dashboard/DashboardSkeleton";
 import {
@@ -13,7 +15,7 @@ import {
   type CommSettings, type CommsScope, type SenderDomain,
 } from "@/services/api";
 import { appLocale } from "@/lib/appFormat";
-import { btnPrimary, btnSecondary, card, errorOf, input } from "./ui";
+import { card, errorOf, input } from "./ui";
 
 const CHECKS: [keyof SenderDomain, string][] = [["ownershipOk", "Ownership"], ["spfOk", "SPF"], ["dkimOk", "DKIM"], ["dmarcOk", "DMARC"]];
 
@@ -80,7 +82,7 @@ export default function SenderSection({ scope, id, settings, onSaved }: {
   return (
     <div className="space-y-4">
       <div className={card}>
-        <h2 className="text-base font-semibold text-slate-800">Sender profile</h2>
+        <h2 className="row-h2">Sender profile</h2>
         <p className="mt-1 max-w-2xl text-sm text-slate-500">
           Used for mass emails. The from address must be on one of your verified domains below; until then mail goes out
           from the platform address with your from name. A from name typed on a mass email wins over this one.
@@ -107,7 +109,7 @@ export default function SenderSection({ scope, id, settings, onSaved }: {
             <input type="email" className={`${input} mt-1 w-full`} value={replyTo} onChange={(e) => setReplyTo(e.target.value)} />
           </label>
         </div>
-        <button type="button" className={`${btnPrimary} mt-4`} disabled={busy} onClick={saveProfile}>Save sender profile</button>
+        <Button className="mt-4" type="button" disabled={busy} onClick={saveProfile}>Save sender profile</Button>
       </div>
 
       {(error || notice) && (
@@ -118,7 +120,7 @@ export default function SenderSection({ scope, id, settings, onSaved }: {
       )}
 
       <div className={card}>
-        <h2 className="text-base font-semibold text-slate-800">Sender domains</h2>
+        <h2 className="row-h2">Sender domains</h2>
         <p className="mt-1 max-w-2xl text-sm text-slate-500">
           Add your domain, publish the DNS records shown for it, then press Check DNS. Only DNS is read.
         </p>
@@ -131,14 +133,14 @@ export default function SenderSection({ scope, id, settings, onSaved }: {
             DKIM selector (optional)
             <input className={`${input} mt-1 block w-40`} value={selector} placeholder="mail" onChange={(e) => setSelector(e.target.value)} />
           </label>
-          <button type="button" className={btnPrimary} disabled={busy || !newDomain.trim()}
+          <Button type="button" disabled={busy || !newDomain.trim()}
             onClick={() => run(async () => {
               const d = await addSenderDomain(scope, id, newDomain.trim(), selector.trim());
               setNewDomain(""); setSelector(""); setOpen(d.id);
               await load();
             }, "Domain added. Publish its DNS records, then check DNS.", "The domain could not be added.")}>
             Add domain
-          </button>
+          </Button>
         </div>
 
         <div className="mt-4">
@@ -161,43 +163,43 @@ export default function SenderSection({ scope, id, settings, onSaved }: {
                       {d.checkedAt ? `Checked ${new Date(d.checkedAt).toLocaleString(appLocale())}` : "Not checked yet"}
                     </span>
                     <span className="ml-auto flex gap-2">
-                      <button type="button" className={btnSecondary} onClick={() => setOpen(open === d.id ? null : d.id)}>
+                      <Button variant="outline" type="button" onClick={() => setOpen(open === d.id ? null : d.id)}>
                         {open === d.id ? "Hide records" : "DNS records"}
-                      </button>
-                      <button type="button" className={btnSecondary} disabled={busy} onClick={() => checkDns(d)}>
+                      </Button>
+                      <Button variant="outline" type="button" disabled={busy} onClick={() => checkDns(d)}>
                         Check DNS
-                      </button>
-                      <button type="button" className={btnSecondary} disabled={busy}
+                      </Button>
+                      <Button variant="outline" type="button" disabled={busy}
                         onClick={() => window.confirm(`Remove ${d.domain}?`) && run(async () => {
                           await deleteSenderDomain(scope, id, d.id);
                           await load();
                         }, "Domain removed.", "The domain could not be removed.")}>
                         Remove
-                      </button>
+                      </Button>
                     </span>
                   </div>
                   {open === d.id && (
                     <div className="mt-3 overflow-x-auto">
-                      <table className="w-full text-xs">
-                        <thead>
-                          <tr className="text-left text-slate-500">
-                            <th className="py-1 pr-3 font-medium">Type</th>
-                            <th className="py-1 pr-3 font-medium">Host</th>
-                            <th className="py-1 pr-3 font-medium">Value</th>
-                            <th className="py-1 font-medium">Why</th>
-                          </tr>
-                        </thead>
-                        <tbody>
+                      <Table className="w-full text-xs">
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead className="pr-3">Type</TableHead>
+                            <TableHead className="pr-3">Host</TableHead>
+                            <TableHead className="pr-3">Value</TableHead>
+                            <TableHead>Why</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
                           {d.records.map((r) => (
-                            <tr key={r.host + r.value} className="align-top">
-                              <td className="py-1 pr-3">{r.type}</td>
-                              <td className="py-1 pr-3 font-mono break-all">{r.host}</td>
-                              <td className="py-1 pr-3 font-mono break-all">{r.value}</td>
-                              <td className="py-1 text-slate-500">{r.purpose}</td>
-                            </tr>
+                            <TableRow key={r.host + r.value} className="align-top">
+                              <TableCell className="py-1 pr-3">{r.type}</TableCell>
+                              <TableCell className="py-1 pr-3 font-mono break-all">{r.host}</TableCell>
+                              <TableCell className="py-1 pr-3 font-mono break-all">{r.value}</TableCell>
+                              <TableCell className="py-1 text-slate-500">{r.purpose}</TableCell>
+                            </TableRow>
                           ))}
-                        </tbody>
-                      </table>
+                        </TableBody>
+                      </Table>
                     </div>
                   )}
                 </li>

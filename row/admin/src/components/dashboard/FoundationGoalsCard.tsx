@@ -1,5 +1,9 @@
 "use client";
 
+import { TileButton } from "@/components/ui/text-buttons";
+import { Textarea } from "@/components/ui/textarea";
+import { NativeSelect } from "@/components/ui/native-select";
+import { Card } from "@/components/ui/card";
 import { useEffect, useMemo, useState } from "react";
 import {
   Target, Save, Trash2, Lock, Loader2, Pencil, Plus, CheckCircle2,
@@ -159,9 +163,9 @@ export default function FoundationGoalsCard() {
 
   if (loading) {
     return (
-      <div className="bg-card rounded-2xl border border-slate-200 p-6 flex items-center justify-center text-slate-500">
+      <Card className="p-5 flex items-center justify-center text-slate-500">
         <Loader2 className="animate-spin mr-2" size={16} /> Loading Foundation Goals…
-      </div>
+      </Card>
     );
   }
   if (!data) return null;
@@ -171,22 +175,22 @@ export default function FoundationGoalsCard() {
 
   return (
     <div className="space-y-4">
-      <div className="bg-card rounded-2xl border border-slate-200 overflow-hidden">
+      <Card className="overflow-hidden">
         <div className="px-5 py-3 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-blue-50">
           <div className="flex flex-wrap items-center gap-2">
             <div className="w-9 h-9 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center">
               <Target size={18} />
             </div>
             <div>
-              <h3 className="text-sm font-semibold text-slate-800">Set Foundation Collection Goals</h3>
+              <h3 className="row-h3">Set Foundation Collection Goals</h3>
               <p className="text-xs text-slate-500">One goal per Rotary year · {data.clubName}</p>
             </div>
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            <select
+            <NativeSelect
               value={selectedYearId ?? ""}
               onChange={(e) => setSelectedYearId(e.target.value ? Number(e.target.value) : null)}
-              className="px-2 py-1.5 text-sm border border-slate-200 rounded-[12px] bg-card focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+              className="w-auto"
             >
               {data.years.length === 0 && <option value="">No years</option>}
               {data.years.map((y) => (
@@ -196,14 +200,14 @@ export default function FoundationGoalsCard() {
                   {!y.isEditable ? " · past" : ""}
                 </option>
               ))}
-            </select>
+            </NativeSelect>
             {!isEditable && (
-              <span className="inline-flex items-center gap-1 text-xs font-medium px-2 py-1 rounded-full bg-slate-100 text-slate-600 border border-slate-200">
+              <span className="inline-flex items-center gap-1 text-xs font-medium px-2 py-1 rounded bg-slate-100 text-slate-600 border border-slate-200">
                 <Lock size={11} /> Read only · Past year
               </span>
             )}
             {isEditable && (
-              <span className="inline-flex items-center gap-1 text-xs font-medium px-2 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+              <span className="inline-flex items-center gap-1 text-xs font-medium px-2 py-1 rounded bg-emerald-50 text-emerald-700 border border-emerald-200">
                 <Pencil size={11} /> Editable
               </span>
             )}
@@ -252,12 +256,12 @@ export default function FoundationGoalsCard() {
 
         <div className="px-5 pb-3">
           <label className="block text-xs font-medium text-slate-600 mb-1">Remarks (optional)</label>
-          <textarea
+          <Textarea
             rows={2}
             value={form.remarks}
             disabled={!isEditable || saving}
             onChange={(e) => onChange("remarks", e.target.value)}
-            className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42] disabled:bg-slate-50 disabled:cursor-not-allowed"
+            className="disabled:bg-slate-50 disabled:cursor-not-allowed"
             placeholder={isEditable ? "Add context for this goal…" : "No remarks recorded."}
           />
         </div>
@@ -285,7 +289,7 @@ export default function FoundationGoalsCard() {
                 onAction={handleDelete}
                 forcePending={saving}
                 spinnerSize={13}
-                className="inline-flex items-center gap-1 text-xs font-medium px-3 py-1.5 rounded-full border border-rose-200 text-rose-700 hover:bg-rose-50 disabled:opacity-50"
+                className="row-btn row-btn-secondary row-btn-sm text-red-700"
               >
                 {!saving && <Trash2 size={13} />} Delete
               </LoadingButton>
@@ -296,7 +300,7 @@ export default function FoundationGoalsCard() {
                 forcePending={saving}
                 loadingLabel="Saving…"
                 spinnerSize={13}
-                className="inline-flex items-center gap-1 text-xs font-semibold px-3 py-1.5 rounded-full bg-amber-500 text-white hover:bg-amber-600 disabled:opacity-50"
+                className="row-btn row-btn-secondary row-btn-sm"
               >
                 {selection?.goalId == null ? <Plus size={13} /> : <Save size={13} />}
                 {selection?.goalId == null ? "Activate Goal" : "Save Goal"}
@@ -304,7 +308,7 @@ export default function FoundationGoalsCard() {
             )}
           </div>
         </div>
-      </div>
+      </Card>
 
       {/* Past goals — read-only */}
       {data.pastGoals.length > 0 && (
@@ -375,9 +379,9 @@ function PastGoalsList({
   onSelect: (yearId: number) => void;
 }) {
   return (
-    <div className="bg-card rounded-2xl border border-slate-200 overflow-hidden">
+    <Card className="overflow-hidden">
       <div className="px-5 py-3 border-b border-slate-100">
-        <h3 className="text-sm font-semibold text-slate-800">Past Year Goals (Read Only)</h3>
+        <h3 className="row-h3">Past Year Goals (Read Only)</h3>
         <p className="text-xs text-slate-500">Historical foundation collection targets</p>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 p-4">
@@ -386,14 +390,14 @@ function PastGoalsList({
           const total = g.apfGoal + g.polioPlusGoal + g.endowmentFundGoal + g.otherGoal;
           const yearRow = years.find((y) => y.yearId === g.yearId);
           return (
-            <button
+            <TileButton
               key={g.yearId}
               onClick={() => onSelect(g.yearId)}
-              className="text-left rounded-xl border border-slate-200 p-3 hover:border-blue-300 hover:bg-blue-50/30 transition"
+              className="p-3"
             >
               <div className="flex items-center justify-between mb-2">
                 <span className="text-xs font-semibold text-slate-800">RY {g.yearLabel}</span>
-                <span className="inline-flex items-center gap-1 text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-slate-100 text-slate-500 border border-slate-200">
+                <span className="inline-flex items-center gap-1 text-[10px] font-medium px-1.5 py-0.5 rounded bg-slate-100 text-slate-500 border border-slate-200">
                   <Lock size={9} /> Read only
                 </span>
               </div>
@@ -409,10 +413,10 @@ function PastGoalsList({
                 <dt className="text-slate-500">Other</dt>
                 <dd className="text-right tabular-nums text-slate-700">{sym}{g.otherGoal.toLocaleString("en-US", { maximumFractionDigits: 0 })}</dd>
               </dl>
-            </button>
+            </TileButton>
           );
         })}
       </div>
-    </div>
+    </Card>
   );
 }

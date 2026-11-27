@@ -14,6 +14,8 @@
  * ---------------------------------------------------------------------------
  */
 
+import { IconButton } from "@/components/ui/icon-button";
+import { Card } from "@/components/ui/card";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import {
@@ -31,11 +33,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogD
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
-import { ArrowLeft, Plus, Pencil, Trash2, AlertTriangle, UserCog, Search, Building2, Calendar, X } from "@/components/icons";
+import { Plus, Pencil, Trash2, AlertTriangle, UserCog, Search, Building2, Calendar, X } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import type { RotaryYear } from "@/types/rotaryYear";
-import { ListPageSkeleton } from "@/components/row/AppKit";
+import { PageHeader, ListPageSkeleton } from "@/components/row/AppKit";
 
 interface AGGroup {
   memberId: number;
@@ -316,31 +318,17 @@ export default function AGV2Page() {
     <ProtectedRoute>
       <div className="space-y-6">
         {/* ── Header card ────────────────────────────────────────────── */}
-        <div className="bg-card rounded-2xl border border-slate-200 shadow-sm p-5">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex items-center gap-3">
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={goBack}
-                className="border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-slate-800"
-                aria-label="Back"
-              >
-                <ArrowLeft className="h-4 w-4" />
-              </Button>
-              <div>
-                <h2 className="text-2xl font-bold tracking-tight text-slate-800">
-                  {districtName ? `${districtName} - Assistant Governor (AG)` : "Assistant Governor (AG)"}
-                </h2>
-                <p className="text-sm text-slate-500 mt-0.5">Assign assistant governors to clubs</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-3 flex-wrap">
-              {!loading && dataYears.length > 0 && (
+        <PageHeader
+          title={districtName ? `${districtName} - Assistant Governor (AG)` : "Assistant Governor (AG)"}
+          description="Assign assistant governors to clubs"
+          back={() => goBack()}
+          actions={
+            <>
+{!loading && dataYears.length > 0 && (
                 <div className="flex flex-wrap items-center gap-2">
                   <Calendar className="h-4 w-4 text-slate-500 shrink-0" />
                   <Select value={selectedYearId} onValueChange={setSelectedYearId}>
-                    <SelectTrigger className="w-[180px] border-slate-200 bg-card focus:border-azure focus:ring-azure/20 text-sm">
+                    <SelectTrigger className="w-[180px]">
                       <SelectValue placeholder="Select year" />
                     </SelectTrigger>
                     <SelectContent>
@@ -354,14 +342,14 @@ export default function AGV2Page() {
               {canManage && (
                 <Button
                   onClick={openAddDialog}
-                  className="bg-azure hover:bg-mint-ink text-white"
+                 
                 >
                   <Plus className="mr-2 h-4 w-4" />Add AG
                 </Button>
               )}
-            </div>
-          </div>
-        </div>
+            </>
+          }
+        />
 
         {(loading || loadingList) && (
           <div className="flex items-center justify-center py-20">
@@ -370,21 +358,21 @@ export default function AGV2Page() {
         )}
 
         {!loading && !loadingList && agList.length === 0 && (
-          <div className="bg-card rounded-2xl border border-slate-200 shadow-sm">
+          <Card>
             <div className="flex flex-col items-center justify-center py-20 text-center">
               <UserCog className="h-12 w-12 text-slate-400 mb-4" />
-              <h3 className="text-lg font-semibold text-slate-800">No assistant governors</h3>
+              <h3 className="row-h2">No assistant governors</h3>
               <p className="text-sm text-slate-500 mt-2">{canManage ? 'Click "Add AG" to assign.' : "No assistant governors assigned."}</p>
             </div>
-          </div>
+          </Card>
         )}
 
         {!loading && !loadingList && agList.length > 0 && (
           <div className="space-y-3">
             {agList.map((ag) => (
-              <div
+              <Card
                 key={ag.memberId}
-                className="bg-card rounded-2xl border border-slate-200 shadow-sm hover:shadow-md hover:border-slate-300 transition-all"
+                className="hover:border-slate-300 transition-all"
               >
                 <div className="p-5">
                   <div className="flex items-start justify-between gap-3">
@@ -414,7 +402,7 @@ export default function AGV2Page() {
                           variant="ghost"
                           size="icon"
                           onClick={() => openEditDialog(ag)}
-                          className="text-slate-500 hover:text-ink hover:bg-slate-100"
+                         
                           aria-label="Edit"
                         >
                           <Pencil className="h-4 w-4" />
@@ -422,7 +410,7 @@ export default function AGV2Page() {
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                          className="text-red-500"
                           onClick={() => setDeleteTarget(ag)}
                           aria-label="Delete"
                         >
@@ -443,7 +431,7 @@ export default function AGV2Page() {
                     ))}
                   </div>
                 </div>
-              </div>
+              </Card>
             ))}
           </div>
         )}
@@ -464,7 +452,7 @@ export default function AGV2Page() {
               <div className="space-y-2">
                 <Label className="text-slate-600 text-sm">Rotary Year *</Label>
                 <Select value={formYearId} onValueChange={handleFormYearChange}>
-                  <SelectTrigger className="border-slate-200 bg-card focus:border-azure focus:ring-azure/20">
+                  <SelectTrigger>
                     <SelectValue placeholder="Select year" />
                   </SelectTrigger>
                   <SelectContent>
@@ -483,7 +471,7 @@ export default function AGV2Page() {
                   <div className="relative">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                     <Input
-                      className="pl-9 border-slate-200 bg-card focus:border-azure focus:ring-azure/20"
+                      className="pl-9"
                       placeholder="Search by name, mobile, email..."
                       value={memberSearch}
                       onChange={(e) => handleMemberSearch(e.target.value)}
@@ -541,15 +529,15 @@ export default function AGV2Page() {
                     <p className="font-medium text-sm text-emerald-800">{formMemberName}</p>
                     <p className="text-xs text-emerald-600">Selected as Assistant Governor</p>
                   </div>
-                  <button
+                  <IconButton
                     type="button"
                     onClick={clearSelectedMember}
                     title="Remove & search again"
                     aria-label="Remove selected member"
-                    className="ml-auto shrink-0 text-emerald-700 hover:text-red-600 hover:bg-red-100 rounded-full p-1.5 transition"
+                    className="hover:text-red-700 ml-auto"
                   >
                     <X className="h-4 w-4" />
-                  </button>
+                  </IconButton>
                 </div>
               )}
 
@@ -562,7 +550,7 @@ export default function AGV2Page() {
                   <div className="relative">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                     <Input
-                      className="pl-9 border-slate-200 bg-card focus:border-azure focus:ring-azure/20"
+                      className="pl-9"
                       placeholder="Search clubs..."
                       value={clubSearchQuery}
                       onChange={(e) => setClubSearchQuery(e.target.value)}
@@ -605,14 +593,14 @@ export default function AGV2Page() {
                 variant="outline"
                 onClick={() => setDialogOpen(false)}
                 disabled={saving}
-                className="border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-slate-800"
+               
               >
                 Cancel
               </Button>
               <Button
                 onClick={handleSave}
                 disabled={saving || !formYearId || !formMemberId || formSelectedClubIds.size === 0}
-                className="bg-azure hover:bg-mint-ink text-white"
+               
               >
                 {saving ? "Saving..." : editing ? "Update" : "Add"}
               </Button>
@@ -636,12 +624,12 @@ export default function AGV2Page() {
                 variant="outline"
                 onClick={() => setDeleteTarget(null)}
                 disabled={deleting}
-                className="border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-slate-800"
+               
               >
                 Cancel
               </Button>
               <Button
-                className="bg-red-600 hover:bg-red-700 text-white"
+               
                 onClick={handleDelete}
                 disabled={deleting}
               >

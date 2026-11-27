@@ -14,6 +14,8 @@ import '../../widgets/common/loading_widget.dart';
 import '../../widgets/common/custom_app_bar.dart';
 import 'package:rotary_flutter_app/core/theme/app_fonts.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/motion.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/roster_wheel.dart';
 
 /// One entry in the merged notifications feed served by
 /// `GET /api/mobile/notifications`. The feed spans every club/district the
@@ -365,13 +367,13 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     }
 
     final groups = _grouped();
-    return RefreshIndicator(
+    return RowRefresh(
       color: AppColors.primaryPrime,
       onRefresh: () => _load(reset: true),
       child: ListView(
         controller: _scrollCtrl,
         padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
-        children: [
+        children: revealAll([
           for (final entry in groups.entries) ...[
             _GroupHeader(label: entry.key),
             ...entry.value.map((item) => _NotifCard(item: item, onTap: _onTap)),
@@ -388,7 +390,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
               ),
             ),
           const SizedBox(height: AppSpacing.xl),
-        ],
+        ]),
       ),
     );
   }
@@ -407,7 +409,7 @@ class _FilterBar extends StatelessWidget {
       padding: const EdgeInsets.only(top: 4, bottom: 8),
       child: SizedBox(
         height: 40,
-        child: ListView.separated(
+        child: RowListView.separated(
           scrollDirection: Axis.horizontal,
           padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
           itemCount: _kTypes.length,

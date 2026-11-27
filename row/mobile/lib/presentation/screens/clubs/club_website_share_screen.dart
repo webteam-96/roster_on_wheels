@@ -11,6 +11,7 @@ import '../../widgets/common/custom_app_bar.dart';
 import '../../widgets/common/empty_state_widget.dart';
 import '../../widgets/common/loading_widget.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/roster_wheel.dart';
 
 /// Share the member's club website: any public page as a link or a QR code to show or print (website extras).
 class ClubWebsiteShareScreen extends StatefulWidget {
@@ -116,7 +117,7 @@ class _ClubWebsiteShareScreenState extends State<ClubWebsiteShareScreen> {
                       icon: Icons.language_outlined,
                       title: 'No club website yet',
                       subtitle: 'When your club has a website, you can share its pages here.')
-                  : RefreshIndicator(
+                  : RowRefresh(
                       onRefresh: _load,
                       child: ListView(
                         padding: const EdgeInsets.all(12),

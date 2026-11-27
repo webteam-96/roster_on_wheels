@@ -1,5 +1,6 @@
 "use client";
 
+import { Card } from "@/components/ui/card";
 import { useState, useCallback, useEffect } from "react";
 import { RotaryYear } from "@/types/rotaryYear";
 import { getRotaryYears, addNextRotaryYear } from "@/services/api";
@@ -12,12 +13,11 @@ import {
 import ErrorAlert from "@/components/ErrorAlert";
 import SuccessAlert from "@/components/SuccessAlert";
 import AlertModal from "@/components/AlertModal";
-import { ArrowLeft, Calendar, Plus } from "@/components/icons";
+import { Calendar, Plus } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
-import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import SearchBox from "@/components/SearchBox";
-import { ListPageSkeleton } from "@/components/row/AppKit";
+import { PageHeader, ListPageSkeleton } from "@/components/row/AppKit";
 
 export default function RotaryYearsPage() {
   const { isSuperAdmin } = useAuth();
@@ -73,7 +73,7 @@ export default function RotaryYearsPage() {
     return (
       <ProtectedRoute>
         <div className="flex flex-col items-center justify-center py-20">
-          <h3 className="text-lg font-semibold">Access Denied</h3>
+          <h3 className="row-h2">Access Denied</h3>
           <p className="text-muted-foreground mt-2">Only SuperAdmin can access this page.</p>
         </div>
       </ProtectedRoute>
@@ -84,21 +84,19 @@ export default function RotaryYearsPage() {
     <ProtectedRoute>
       <div className="space-y-6">
         {/* Header */}
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-3">
-            <Button variant="outline" size="icon" asChild>
-              <Link href="/settings"><ArrowLeft className="h-4 w-4" /></Link>
-            </Button>
-            <div>
-              <h2 className="text-2xl font-bold tracking-tight text-primary">Rotary Years</h2>
-              <p className="text-muted-foreground text-base">Auto-generated from 1980 to current year</p>
-            </div>
-          </div>
-          <Button onClick={() => setConfirmOpen(true)} disabled={adding}>
+        <PageHeader
+          title="Rotary Years"
+          description="Auto-generated from 1980 to current year"
+          back="/settings"
+          actions={
+            <>
+<Button onClick={() => setConfirmOpen(true)} disabled={adding}>
             <Plus className="mr-2 h-4 w-4" />
             {adding ? "Adding..." : "Add Next Year"}
           </Button>
-        </div>
+            </>
+          }
+        />
 
         {loading && (
           <div className="flex items-center justify-center py-20">
@@ -109,7 +107,7 @@ export default function RotaryYearsPage() {
         {!loading && years.length === 0 && (
           <div className="flex flex-col items-center justify-center py-20 text-center">
             <Calendar className="h-12 w-12 text-muted-foreground mb-4" />
-            <h3 className="text-lg font-semibold">No rotary years found</h3>
+            <h3 className="row-h2">No rotary years found</h3>
           </div>
         )}
 
@@ -138,15 +136,15 @@ export default function RotaryYearsPage() {
             </div>
 
             {/* Desktop table view */}
-            <div className="hidden sm:block rounded-md border">
+            <Card className="hidden sm:block overflow-hidden">
               <Table>
                 <TableHeader>
-                  <TableRow className="bg-primary hover:bg-primary">
+                  <TableRow>
                     <TableHead className="w-12">#</TableHead>
-                    <TableHead className="text-base font-semibold">Year Label</TableHead>
-                    <TableHead className="text-base font-semibold">Start Date</TableHead>
-                    <TableHead className="text-base font-semibold">End Date</TableHead>
-                    <TableHead className="w-24 text-base font-semibold">Status</TableHead>
+                    <TableHead>Year Label</TableHead>
+                    <TableHead>Start Date</TableHead>
+                    <TableHead>End Date</TableHead>
+                    <TableHead className="w-24">Status</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -167,7 +165,7 @@ export default function RotaryYearsPage() {
                   ))}
                 </TableBody>
               </Table>
-            </div>
+            </Card>
             </>
             )}
           </>

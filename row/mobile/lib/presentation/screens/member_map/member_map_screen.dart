@@ -11,6 +11,7 @@ import '../../widgets/common/custom_app_bar.dart';
 import '../../widgets/common/empty_state_widget.dart';
 import '../../widgets/common/loading_widget.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/roster_wheel.dart';
 
 /// Member map (`api/member-map/me`, `api/clubs|districts/{id}/member-map`): the member chooses whether to show their
 /// area (the server keeps the point rounded to about 1 km, never an address), then sees the club or district map with
@@ -85,7 +86,7 @@ class _MemberMapScreenState extends State<MemberMapScreen> {
               : _clubs.isEmpty
                   ? const EmptyStateWidget(
                       icon: Icons.map_outlined, title: 'No club yet', subtitle: 'The map shows the members of your club.')
-                  : RefreshIndicator(
+                  : RowRefresh(
                       onRefresh: _load,
                       child: ListView(
                         padding: const EdgeInsets.all(16),

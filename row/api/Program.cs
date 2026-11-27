@@ -660,6 +660,15 @@ catch (Exception ex)
 {
     app.Logger.LogError(ex, "Goal-setting schema/seed ensure failed.");
 }
+try { await app.Services.GetRequiredService<DatabaseInitializer>().EnsureDuesColumnsAsync(); }
+catch (Exception ex) { app.Logger.LogError(ex, "Dues NotifyEmail/Currency columns not ensured; District Dues will fail until they exist."); }
+try { await app.Services.GetRequiredService<DatabaseInitializer>().EnsureRiOfficerTablesAsync(); }
+catch (Exception ex) { app.Logger.LogError(ex, "RI officer tables not ensured; RI data officer compare will fail until they exist."); }
+try { await app.Services.GetRequiredService<DatabaseInitializer>().EnsureGoalFlowTablesAsync(); }
+catch (Exception ex) { app.Logger.LogError(ex, "Goal flow tables not ensured; District Set Goals will fail until they exist."); }
+// QR attendance day keys fall back to a key derived from the JWT secret; rotating that secret would void every day key.
+if (string.IsNullOrWhiteSpace(app.Configuration["AttendanceQr:Secret"]))
+    app.Logger.LogWarning("AttendanceQr:Secret is not set; QR attendance keys are derived from JwtSettings:Secret. Set its own secret before go-live.");
 
 // One-time backfill of auto-managed CP/CS groups in District Committee from existing BOD rows.
 // Idempotent — safe to run on every startup. Creates groups for ALL years that have BOD entries,

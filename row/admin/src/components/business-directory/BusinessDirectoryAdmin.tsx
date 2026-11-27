@@ -88,7 +88,7 @@ function ReviewSection({ scope, id, onError }: { scope: MapScope; id: number; on
   return (
     <section className="space-y-4">
       <div>
-        <h3 className="text-xl font-semibold">Listings to review</h3>
+        <h3 className="row-h2">Listings to review</h3>
         <p className="text-sm text-muted-foreground">
           Members add their business from the app. A listing shows in the directory only after you approve it, and goes
           back here whenever the member edits it.
@@ -159,7 +159,7 @@ function SearchSection({ scope, id, onError }: { scope: MapScope; id: number; on
   return (
     <section className="space-y-4">
       <div>
-        <h3 className="text-xl font-semibold">District business directory</h3>
+        <h3 className="row-h2">District business directory</h3>
         <p className="text-sm text-muted-foreground">Approved listings of every club in the district.</p>
       </div>
       <form className="flex max-w-xl gap-2" onSubmit={(e) => { e.preventDefault(); search(q); }}>

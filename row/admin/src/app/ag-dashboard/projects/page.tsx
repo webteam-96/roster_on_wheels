@@ -1,5 +1,10 @@
 "use client";
+import { Table, TableHeader, TableBody, TableFooter, TableRow, TableHead, TableCell } from "@/components/ui/table";
 
+import { Input } from "@/components/ui/input";
+import { NativeSelect } from "@/components/ui/native-select";
+import { Card } from "@/components/ui/card";
+import { IconButton } from "@/components/ui/icon-button";
 import { useEffect, useMemo, useState } from "react";
 import {
   Briefcase, Users, Clock, IndianRupee, Search,
@@ -23,7 +28,7 @@ const isManHoursPending = (r: AgProjectRow): boolean =>
   (r as ProjectRowExt).manHoursIsPending === true;
 import KpiCard from "@/components/dashboard/KpiCard";
 import { fmtInt, fmtInr, fmtDate, ROTARY_BLUE, ROTARY_GOLD, CLUB_PALETTE } from "@/components/dashboard/formatters";
-import { formatMoney } from "@/lib/currency";
+import { formatMoney, moneyTotals } from "@/lib/currency";
 import { ListPageSkeleton } from "@/components/row/AppKit";
 import Pagination from "@/components/Pagination";
 
@@ -53,7 +58,7 @@ function ClubChip({ name, index }: { name: string; index: number }) {
   const color = CLUB_PALETTE[index % CLUB_PALETTE.length];
   return (
     <span
-      className="inline-flex items-center px-2.5 py-1 rounded-full text-white text-[11px] font-semibold leading-none whitespace-nowrap shadow-sm"
+      className="inline-flex items-center px-2.5 py-1 rounded text-white text-[11px] font-semibold leading-none whitespace-nowrap shadow-sm"
       style={{ backgroundColor: color }}
       title={name}
     >
@@ -145,20 +150,20 @@ function ProjectDetailModal({
       >
         <div className="px-5 py-4 border-b border-slate-100 flex items-start justify-between gap-3 sticky top-0 bg-card rounded-t-xl z-10">
           <div className="min-w-0">
-            <h3 className="text-base font-bold text-slate-800 leading-tight">{d?.title || row.title}</h3>
+            <h3 className="row-h2">{d?.title || row.title}</h3>
             <p className="text-xs text-slate-500 mt-0.5">
               {d?.clubName || row.clubName}
               {d?.yearLabel ? ` · RY ${d.yearLabel}` : ""}
             </p>
           </div>
-          <button
+          <IconButton
             type="button"
             onClick={onClose}
             aria-label="Close"
-            className="text-slate-400 hover:text-slate-700 p-1 -m-1 flex-shrink-0"
+            className="-m-1"
           >
             <X size={18} />
-          </button>
+          </IconButton>
         </div>
 
         {loading ? (
@@ -215,11 +220,10 @@ function ProjectDetailModal({
               ) : (
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                   {d.photos.map((ph, i) => (
-                    <button
+                    <IconButton aria-label={ph.description || "View photo"}
                       key={i}
-                      type="button"
                       onClick={() => setLightbox(getPhotoUrl(ph.url))}
-                      className="group relative block rounded-lg overflow-hidden border border-slate-200 aspect-[4/3] bg-slate-50"
+                      className="group relative block h-auto w-full p-0 rounded-lg overflow-hidden border border-slate-200 aspect-[4/3] bg-slate-50"
                       title={ph.description || "View photo"}
                     >
                       {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -234,7 +238,7 @@ function ProjectDetailModal({
                           Primary
                         </span>
                       )}
-                    </button>
+                    </IconButton>
                   ))}
                 </div>
               )}
@@ -251,14 +255,14 @@ function ProjectDetailModal({
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={lightbox} alt="Project photo" className="max-h-full max-w-full object-contain rounded-lg" />
-          <button
+          <IconButton
             type="button"
             onClick={(e) => { e.stopPropagation(); setLightbox(null); }}
             aria-label="Close photo"
-            className="absolute top-4 right-4 text-white/80 hover:text-white"
+            className="absolute top-4 right-4 text-white"
           >
             <X size={24} />
-          </button>
+          </IconButton>
         </div>
       )}
     </div>
@@ -412,15 +416,15 @@ export default function AgProjectsPage() {
 
       {/* ───────── Two-up charts: Projects by Club + Monthly Trend ───────── */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-card rounded-[20px] border border-slate-200 p-5 shadow-sm">
-          <h3 className="text-sm font-semibold text-slate-800">Projects by Club</h3>
+        <Card className="p-5">
+          <h3 className="row-h3">Projects by Club</h3>
           <p className="text-[11px] text-slate-500 mb-3">Total projects executed per club</p>
           {clubBarData.length === 0 ? (
             <p className="text-xs text-slate-400 py-8 text-center">No projects yet.</p>
           ) : (
             <ResponsiveContainer width="100%" height={Math.max(220, clubBarData.length * 50)}>
               <BarChart data={clubBarData} layout="vertical" margin={{ top: 4, right: 56, left: 8, bottom: 4 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#edf4fb" horizontal={false} />
+                <CartesianGrid strokeDasharray="3 3" stroke="#d3dde8" horizontal={false} />
                 <XAxis type="number" tick={{ fontSize: 11, fill: "#64748b" }} allowDecimals={false} />
                 <YAxis type="category" dataKey="name" width={180} tick={{ fontSize: 11, fill: "#4A5A70" }} />
                 <Tooltip contentStyle={{ fontSize: 12, borderRadius: 8 }} />
@@ -433,17 +437,17 @@ export default function AgProjectsPage() {
               </BarChart>
             </ResponsiveContainer>
           )}
-        </div>
+        </Card>
 
-        <div className="bg-card rounded-[20px] border border-slate-200 p-5 shadow-sm">
-          <h3 className="text-sm font-semibold text-slate-800">Monthly Projects Trend</h3>
+        <Card className="p-5">
+          <h3 className="row-h3">Monthly Projects Trend</h3>
           <p className="text-[11px] text-slate-500 mb-3">Project count by month (RY {yearLabel})</p>
           {monthlyData.length === 0 ? (
             <p className="text-xs text-slate-400 py-8 text-center">No monthly data.</p>
           ) : (
             <ResponsiveContainer width="100%" height={260}>
               <BarChart data={monthlyData} margin={{ top: 16, right: 16, left: 0, bottom: 4 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#edf4fb" vertical={false} />
+                <CartesianGrid strokeDasharray="3 3" stroke="#d3dde8" vertical={false} />
                 <XAxis dataKey="month" tick={{ fontSize: 11, fill: "#64748b" }} />
                 <YAxis tick={{ fontSize: 11, fill: "#64748b" }} allowDecimals={false} />
                 <Tooltip contentStyle={{ fontSize: 12, borderRadius: 8 }} />
@@ -456,14 +460,14 @@ export default function AgProjectsPage() {
               </BarChart>
             </ResponsiveContainer>
           )}
-        </div>
+        </Card>
       </div>
 
       {/* ───────── All Projects table ───────── */}
-      <div className="bg-card rounded-[20px] border border-slate-200 overflow-hidden shadow-sm">
+      <Card className="overflow-hidden">
         <div className="px-5 py-4 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
-            <h3 className="text-sm font-semibold text-slate-800">All Projects: Detailed View</h3>
+            <h3 className="row-h3">All Projects: Detailed View</h3>
             <p className="text-[11px] text-slate-500 mt-0.5">
               Showing {sortedRows.length === 0 ? 0 : (safePage - 1) * PAGE_SIZE + 1}
               –{Math.min(safePage * PAGE_SIZE, sortedRows.length)} of {sortedRows.length} project
@@ -473,70 +477,70 @@ export default function AgProjectsPage() {
           </div>
           <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
             {/* Avenue of Service filter — options built from the rows on screen. */}
-            <select
+            <NativeSelect
               value={avenue}
               onChange={(e) => setAvenue(e.target.value)}
-              className="border border-slate-200 rounded-[12px] px-3 py-1.5 text-sm bg-card text-slate-700 focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42] focus:border-blue-500"
+              className="w-auto"
               aria-label="Filter by Avenue of Service"
             >
               <option value="all">All Avenues of Service</option>
               {avenueOptions.map((a) => <option key={a} value={a}>{a}</option>)}
               <option value="(none)">(No avenue set)</option>
-            </select>
+            </NativeSelect>
             <div className="relative w-full sm:w-72">
               <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-              <input
+              <Input
                 type="text"
                 placeholder="Search projects, clubs…"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="border border-slate-200 rounded-[12px] pl-8 pr-3 py-1.5 text-sm w-full focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42] focus:border-blue-500"
+                className="pl-8 pr-3"
               />
             </div>
           </div>
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead className="bg-[#EDF4FB] text-slate-500 text-[11px] border-b border-slate-200">
-              <tr>
-                <th className="px-3 py-3 text-left font-semibold whitespace-nowrap">Club</th>
-                <th className="px-3 py-3 text-left font-semibold whitespace-nowrap">Date</th>
-                <th className="px-3 py-3 text-left font-semibold">Title</th>
-                <th className="px-3 py-3 text-right font-semibold whitespace-nowrap">Cost</th>
-                <th className="px-3 py-3 text-right font-semibold whitespace-nowrap">Beneficiaries</th>
-                <th className="px-3 py-3 text-right font-semibold whitespace-nowrap">Man Hours</th>
-                <th className="px-3 py-3 text-left font-semibold whitespace-nowrap">Funding</th>
-              </tr>
-            </thead>
-            <tbody>
+          <Table className="w-full text-sm">
+            <TableHeader className="border-b border-slate-200">
+              <TableRow>
+                <TableHead className="px-3 text-left whitespace-nowrap">Club</TableHead>
+                <TableHead className="px-3 text-left whitespace-nowrap">Date</TableHead>
+                <TableHead className="px-3 text-left">Title</TableHead>
+                <TableHead className="px-3 text-right whitespace-nowrap">Cost</TableHead>
+                <TableHead className="px-3 text-right whitespace-nowrap">Beneficiaries</TableHead>
+                <TableHead className="px-3 text-right whitespace-nowrap">Man Hours</TableHead>
+                <TableHead className="px-3 text-left whitespace-nowrap">Funding</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
               {pageRows.map((row, idx) => {
                 const clubIdx = clubsList.indexOf(row.clubName);
                 return (
-                  <tr
+                  <TableRow
                     key={`${row.clubId}-${idx}-${safePage}`}
                     onClick={() => setDetailRow(row)}
                     className="border-t border-slate-100 hover:bg-blue-50/50 cursor-pointer"
                     title="Click for full project details"
                   >
-                    <td className="px-3 py-2.5">
+                    <TableCell className="px-3 py-2.5">
                       <ClubChip name={row.clubName} index={clubIdx >= 0 ? clubIdx : idx} />
-                    </td>
-                    <td className="px-3 py-2.5 text-slate-600 whitespace-nowrap text-xs">
+                    </TableCell>
+                    <TableCell className="px-3 py-2.5 text-slate-600 whitespace-nowrap text-xs">
                       {fmtDate(row.date)}
-                    </td>
-                    <td className="px-3 py-2.5 text-slate-800 font-medium max-w-[280px]">
+                    </TableCell>
+                    <TableCell className="px-3 py-2.5 text-slate-800 font-medium max-w-[280px]">
                       <span title={row.title}>
                         {row.title.length > 56 ? row.title.slice(0, 54) + "…" : row.title}
                       </span>
-                    </td>
-                    <td className="px-3 py-2.5 text-right text-slate-700 whitespace-nowrap tabular-nums">
+                    </TableCell>
+                    <TableCell className="px-3 py-2.5 text-right text-slate-700 whitespace-nowrap tabular-nums">
                       {row.cost > 0 ? formatMoney(row.cost, row.currency) : <span className="text-slate-300">–</span>}
-                    </td>
-                    <td className="px-3 py-2.5 text-right text-slate-700 tabular-nums">
+                    </TableCell>
+                    <TableCell className="px-3 py-2.5 text-right text-slate-700 tabular-nums">
                       {row.beneficiaries > 0 ? fmtInt(row.beneficiaries) : <span className="text-slate-300">–</span>}
-                    </td>
-                    <td className="px-3 py-2.5 text-right tabular-nums">
+                    </TableCell>
+                    <TableCell className="px-3 py-2.5 text-right tabular-nums">
                       {isManHoursPending(row) ? (
                         <PendingCell />
                       ) : row.manHours > 0 ? (
@@ -544,50 +548,50 @@ export default function AgProjectsPage() {
                       ) : (
                         <span className="text-slate-300">–</span>
                       )}
-                    </td>
-                    <td className="px-3 py-2.5">
+                    </TableCell>
+                    <TableCell className="px-3 py-2.5">
                       <FundingChip funding={row.funding} />
-                    </td>
-                  </tr>
+                    </TableCell>
+                  </TableRow>
                 );
               })}
               {pageRows.length === 0 && (
-                <tr>
-                  <td colSpan={7} className="px-6 py-10 text-center text-slate-400 text-sm">
+                <TableRow>
+                  <TableCell colSpan={7} className="px-6 py-10 text-center text-slate-400 text-sm">
                     {search ? "No projects match your search." : "No projects yet."}
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               )}
-            </tbody>
+            </TableBody>
             {pageRows.length > 0 && (
-              <tfoot>
-                <tr className="border-t-2 border-slate-300 bg-slate-50 font-bold text-slate-800 text-xs">
-                  <td className="px-3 py-3" colSpan={3}>
+              <TableFooter>
+                <TableRow className="border-t-2 border-slate-300 bg-slate-50 font-bold text-slate-800 text-xs">
+                  <TableCell className="px-3 py-3" colSpan={3}>
                     Page totals ({pageRows.length} project{pageRows.length === 1 ? "" : "s"})
-                  </td>
-                  <td className="px-3 py-3 text-right tabular-nums">
-                    {formatMoney(pageRows.reduce((s, r) => s + (r.cost || 0), 0), data.targetCurrency)}
-                  </td>
-                  <td className="px-3 py-3 text-right tabular-nums">
+                  </TableCell>
+                  <TableCell className="px-3 py-3 text-right tabular-nums">
+                    {moneyTotals(pageRows.map((r) => ({ amount: r.cost, currency: r.currency })), formatMoney)}
+                  </TableCell>
+                  <TableCell className="px-3 py-3 text-right tabular-nums">
                     {fmtInt(pageRows.reduce((s, r) => s + (r.beneficiaries || 0), 0))}
-                  </td>
-                  <td className="px-3 py-3 text-right tabular-nums">
+                  </TableCell>
+                  <TableCell className="px-3 py-3 text-right tabular-nums">
                     {pageRows.every(isManHoursPending)
                       ? <PendingCell />
                       : fmtInt(pageRows.reduce((s, r) => s + (isManHoursPending(r) ? 0 : r.manHours || 0), 0))}
-                  </td>
-                  <td className="px-3 py-3 text-slate-400">–</td>
-                </tr>
-              </tfoot>
+                  </TableCell>
+                  <TableCell className="px-3 py-3 text-slate-400">–</TableCell>
+                </TableRow>
+              </TableFooter>
             )}
-          </table>
+          </Table>
         </div>
 
         {/* Pagination */}
         {sortedRows.length > 0 && (
           <div className="px-5 py-3 border-t border-slate-100"><Pagination page={safePage} totalPages={totalPages} totalCount={sortedRows.length} pageSize={PAGE_SIZE} onPageChange={setPage} /></div>
         )}
-      </div>
+      </Card>
 
       {detailRow && (
         <ProjectDetailModal

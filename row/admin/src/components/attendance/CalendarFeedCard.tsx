@@ -1,5 +1,8 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card } from "@/components/ui/card";
 import { useEffect, useState } from "react";
 import { Copy, RefreshCw } from "@/components/icons";
 import { useFeatureLoadedOn } from "@/components/FeatureGate";
@@ -50,8 +53,8 @@ export default function CalendarFeedCard({ clubId, canManage }: { clubId: number
   };
 
   return (
-    <div className="rounded-2xl border border-slate-200 bg-card px-5 py-4">
-      <h3 className="text-sm font-semibold text-slate-800">Calendar feed</h3>
+    <Card className="px-5 py-4">
+      <h3 className="row-h3">Calendar feed</h3>
       <p className="mt-0.5 text-xs text-slate-500">
         A private link to the club&apos;s meetings and their join links, for Google, Outlook or Apple Calendar. Share it
         with members only.
@@ -61,36 +64,36 @@ export default function CalendarFeedCard({ clubId, canManage }: { clubId: number
           <Skeleton className="h-8 w-full max-w-md" />
         ) : url ? (
           <>
-            <input
+            <Input
               readOnly
               value={url}
               aria-label="Calendar feed link"
               onFocus={(e) => e.currentTarget.select()}
-              className="min-w-0 flex-1 rounded-lg border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs text-slate-700"
+              className="min-w-0 flex-1"
             />
-            <button
+            <Button
               type="button"
               onClick={copy}
-              className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 px-2.5 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50"
+              variant="outline" size="sm"
             >
               <Copy size={13} /> Copy
-            </button>
+            </Button>
           </>
         ) : (
           <span className="text-xs text-slate-500">No link yet.</span>
         )}
         {canManage && url !== undefined && (
-          <button
+          <Button
             type="button"
             onClick={issue}
             disabled={busy}
-            className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 px-2.5 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-60"
+            variant="outline" size="sm"
           >
             <RefreshCw size={13} /> {url ? "New link" : "Create link"}
-          </button>
+          </Button>
         )}
       </div>
       {msg && <p role="status" className="mt-2 text-xs text-slate-600">{msg}</p>}
-    </div>
+    </Card>
   );
 }

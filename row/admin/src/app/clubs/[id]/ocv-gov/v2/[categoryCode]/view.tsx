@@ -26,14 +26,15 @@
  * sibling page.tsx) is a prop-less wrapper so it still satisfies Next's PageProps.
  */
 
+import { Button } from "@/components/ui/button";
+import { IconButton } from "@/components/ui/icon-button";
+import { Input } from "@/components/ui/input";
+import { NativeSelect } from "@/components/ui/native-select";
+import { Card } from "@/components/ui/card";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import DateField from "@/components/DateField";
 import { useParams, useSearchParams } from "next/navigation";
-import Link from "next/link";
-import {
-  ArrowLeft, Upload, Search, FileText, Banknote, ShieldCheck, Gift,
-  FilePlus2, IndianRupee, Eye, Download, Edit3, Trash2, Loader2, AlertTriangle, FolderUp,
-} from "@/components/icons";
+import { Upload, Search, FileText, Banknote, ShieldCheck, Gift, FilePlus2, IndianRupee, Eye, Download, Edit3, Trash2, AlertTriangle, FolderUp } from "@/components/icons";
 import type { LucideIcon } from "@/components/icons";
 import {
   getOcvCategories,
@@ -63,7 +64,8 @@ import ViewOnlyBadge from "@/components/ViewOnlyBadge";
 
 import { appLocale } from "@/lib/appFormat";
 import { formatMoney } from "@/lib/currency";
-import { SkeletonRows } from "@/components/row/AppKit";
+import { PageHeader, SkeletonRows } from "@/components/row/AppKit";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
 const CATEGORY_VISUAL: Record<
@@ -130,7 +132,13 @@ export function OcvCategoryV2View({
   // one needs rights for THAT year. Viewing and downloading never do.
   const { user, isSuperAdmin } = useAuth();
   const yearRights = useMemo(() => clubYearRights(user?.scopedRoles, clubId), [user?.scopedRoles, clubId]);
-  const canManage = canEditYear(yearRights, yearId, isSuperAdmin);
+  // Static & Additional Documents are exempt from the year rule: any admin of
+  // this club may manage them, whichever year(s) they hold. Mirrors
+  // AdminYearGuard.OcvYearFreeCategories on the server.
+  const yearFree = categoryCode === "static_documents" || categoryCode === "additional_documents";
+  const canManage = yearFree
+    ? isSuperAdmin || yearRights.allYears || yearRights.unknown || yearRights.yearIds.length > 0
+    : canEditYear(yearRights, yearId, isSuperAdmin);
 
   const backHref = inboundReturnTo || `/clubs/${clubId}/ocv-gov/v2`;
   const visual = CATEGORY_VISUAL[categoryCode] ?? CATEGORY_VISUAL.additional_documents;
@@ -364,34 +372,13 @@ export function OcvCategoryV2View({
         )}
 
         {/* Header */}
-        <div className="flex items-start justify-between gap-3 flex-wrap">
-          <div className="flex items-start gap-2 min-w-0">
-            {!embedded && (
-              <Link
-                href={backHref}
-                className="mt-0.5 inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50"
-                aria-label="Back"
-              >
-                <ArrowLeft size={15} />
-              </Link>
-            )}
-            <div className="min-w-0">
-              <div className="flex flex-wrap items-center gap-2">
-                <span className={`inline-flex h-8 w-8 items-center justify-center rounded-lg ${visual.bg} ${visual.accent}`}>
-                  <Icon size={16} />
-                </span>
-                <h1 className="text-lg font-semibold text-slate-800 leading-tight">
-                  {category?.categoryName || "Loading…"}
-                </h1>
-              </div>
-              <p className="text-xs text-slate-500 mt-1">
-                {canManage
+        <PageHeader
+          title={category?.categoryName || "Loading…"}
+          description={canManage
                   ? "Upload and manage documents for this section."
                   : "Documents filed under this section. Open or download any of them."}
-              </p>
-            </div>
-          </div>
-        </div>
+          back={!embedded ? backHref : undefined}
+        />
 
         {/* KPI tiles */}
         {!loading && (
@@ -429,9 +416,9 @@ export function OcvCategoryV2View({
 
         {/* Upload card — only for a year this member may file into. */}
         {!loading && category && canManage && (
-          <div className={`bg-card rounded-2xl border border-slate-200 overflow-hidden`}>
+          <Card className="overflow-hidden">
             <div className={`px-5 py-3 border-b border-slate-100 ${visual.tint}`}>
-              <h2 className="text-sm font-semibold text-slate-800">Upload a document</h2>
+              <h2 className="row-h2">Upload a document</h2>
               <p className="text-xs text-slate-500 mt-0.5">
                 Allowed file types: PDF, DOC, DOCX, XLS, XLSX, JPG, JPEG, PNG, GIF.
               </p>
@@ -441,28 +428,28 @@ export function OcvCategoryV2View({
                 {/* Type */}
                 <div className="space-y-1.5">
                   <label className="text-xs font-medium text-slate-600">Document Type</label>
-                  <select
+                  <NativeSelect
                     value={typeId}
                     onChange={(e) => setTypeId(e.target.value)}
-                    className="w-full px-2 h-10 py-0 text-sm border border-slate-200 rounded-[12px] bg-card focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                    
                   >
                     <option value="">Select type…</option>
                     {docTypes.filter((t) => t.isActive).map((t) => (
                       <option key={t.id} value={t.id}>{t.typeName}</option>
                     ))}
-                  </select>
+                  </NativeSelect>
                 </div>
 
                 {/* Custom type (Others) */}
                 {typeId && isOthers(typeId) && (
                   <div className="space-y-1.5">
                     <label className="text-xs font-medium text-slate-600">Document Name</label>
-                    <input
+                    <Input
                       type="text"
                       placeholder="Enter document name"
                       value={customName}
                       onChange={(e) => setCustomName(e.target.value)}
-                      className="w-full px-2 h-10 py-0 text-sm border border-slate-200 rounded-[12px] bg-card focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                      
                     />
                   </div>
                 )}
@@ -483,20 +470,20 @@ export function OcvCategoryV2View({
                 {isDues && (
                   <div className="space-y-1.5">
                     <label className="text-xs font-medium text-slate-600">Amount</label>
-                    <input
+                    <Input
                       type="number"
                       step="0.01"
                       placeholder="0.00"
                       value={amount}
                       onChange={(e) => setAmount(e.target.value)}
-                      className="w-full px-2 h-10 py-0 text-sm border border-slate-200 rounded-[12px] bg-card focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                      
                     />
                   </div>
                 )}
                 {isDues && (
                   <div className="space-y-1.5">
                     <label className="text-xs font-medium text-slate-600">Paid On</label>
-                    <DateField value={paidOn} onChange={setPaidOn} className="w-full px-2 h-10 py-0 text-sm border border-slate-200 rounded-[12px] bg-card focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]" />
+                    <DateField value={paidOn} onChange={setPaidOn} className="row-field w-full" />
                   </div>
                 )}
 
@@ -509,7 +496,7 @@ export function OcvCategoryV2View({
                     loadingLabel="Uploading…"
                     spinnerSize={14}
                     disabled={!typeId || !file || duplicateBlock}
-                    className="inline-flex w-full items-center justify-center gap-1.5 text-sm font-semibold px-3 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50"
+                    className="row-btn row-btn-primary w-full"
                   >
                     {!uploading && <Upload size={14} />}
                     Upload
@@ -524,27 +511,27 @@ export function OcvCategoryV2View({
                 </div>
               )}
             </div>
-          </div>
+          </Card>
         )}
 
         {/* Documents table */}
         {!loading && category && (
-          <div className="bg-card rounded-2xl border border-slate-200 overflow-hidden">
+          <Card className="overflow-hidden">
             <div className="px-5 py-3 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
               <div>
-                <h2 className="text-sm font-semibold text-slate-800">Documents</h2>
+                <h2 className="row-h2">Documents</h2>
                 <p className="text-xs text-slate-500 mt-0.5">
                   {documents.length} record{documents.length === 1 ? "" : "s"} · {coveredTypes}/{activeTypes} types covered
                 </p>
               </div>
               <div className="relative w-full sm:w-64">
                 <Search size={14} className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-400" />
-                <input
+                <Input
                   type="text"
                   placeholder="Filter documents…"
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  className="w-full pl-7 pr-3 h-10 py-0 text-sm border border-slate-200 rounded-[12px] bg-card focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                  className="pl-7 pr-3"
                 />
               </div>
             </div>
@@ -564,86 +551,86 @@ export function OcvCategoryV2View({
                   <p className="text-sm font-medium text-slate-600">No documents match your filter</p>
                 </div>
               ) : (
-                <table className="min-w-full text-sm">
-                  <thead className="bg-[#EDF4FB] text-[13px] text-[#64748B]">
-                    <tr>
-                      <th className="px-3 py-2.5 text-left w-10">Sr</th>
-                      <th className="px-3 py-2.5 text-left">Document Type</th>
-                      <th className="px-3 py-2.5 text-left">File Name</th>
-                      <th className="px-3 py-2.5 text-left w-24">Size</th>
-                      {isDues && <th className="px-3 py-2.5 text-left w-28">Amount</th>}
-                      {isDues && <th className="px-3 py-2.5 text-left w-32">Paid On</th>}
-                      <th className="px-3 py-2.5 text-left w-44 whitespace-nowrap">Uploaded</th>
-                      <th className="px-3 py-2.5 text-right w-40">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
+                <Table className="min-w-full">
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="text-left w-10">Sr</TableHead>
+                      <TableHead className="text-left">Document Type</TableHead>
+                      <TableHead className="text-left">File Name</TableHead>
+                      <TableHead className="text-left w-24">Size</TableHead>
+                      {isDues && <TableHead className="text-left w-28">Amount</TableHead>}
+                      {isDues && <TableHead className="text-left w-32">Paid On</TableHead>}
+                      <TableHead className="text-left w-44 whitespace-nowrap">Uploaded</TableHead>
+                      <TableHead className="text-right w-40">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
                     {filtered.map((doc, i) => (
-                      <tr key={doc.id} className="hover:bg-blue-50/40">
-                        <td className="px-3 py-2 text-slate-500">{i + 1}</td>
-                        <td className="px-3 py-2 font-medium text-slate-800">
+                      <TableRow key={doc.id}>
+                        <TableCell>{i + 1}</TableCell>
+                        <TableCell className="font-medium">
                           {doc.customTypeName ? `${doc.typeName}: ${doc.customTypeName}` : doc.typeName}
-                        </td>
-                        <td className="px-3 py-2 text-slate-600 max-w-[240px] truncate" title={doc.originalFileName}>
+                        </TableCell>
+                        <TableCell className="max-w-[240px] truncate" title={doc.originalFileName}>
                           {doc.originalFileName}
-                        </td>
-                        <td className="px-3 py-2 text-slate-500 tabular-nums">{formatBytes(doc.fileSize)}</td>
+                        </TableCell>
+                        <TableCell className="tabular-nums">{formatBytes(doc.fileSize)}</TableCell>
                         {isDues && (
-                          <td className="px-3 py-2 text-slate-700 tabular-nums">
+                          <TableCell className="tabular-nums">
                             {doc.amount != null ? formatMoney(doc.amount) : "–"}
-                          </td>
+                          </TableCell>
                         )}
                         {isDues && (
-                          <td className="px-3 py-2 text-slate-600 whitespace-nowrap">{formatDate(doc.paidOn)}</td>
+                          <TableCell className="whitespace-nowrap">{formatDate(doc.paidOn)}</TableCell>
                         )}
-                        <td className="px-3 py-2 text-xs text-slate-500 whitespace-nowrap">{formatDateTime(doc.createdDate)}</td>
-                        <td className="px-3 py-2">
+                        <TableCell className="text-xs whitespace-nowrap">{formatDateTime(doc.createdDate)}</TableCell>
+                        <TableCell>
                           <div className="flex items-center justify-end gap-1">
-                            <button
+                            <IconButton
                               type="button"
                               onClick={() => handleView(doc.filePath)}
                               title="View"
-                              className="inline-flex items-center justify-center w-7 h-7 rounded text-slate-500 hover:text-blue-700 hover:bg-blue-50"
+                              
                             >
                               <Eye size={13} />
-                            </button>
-                            <button
+                            </IconButton>
+                            <IconButton
                               type="button"
                               onClick={() => handleDownload(doc)}
                               title="Download"
-                              className="inline-flex items-center justify-center w-7 h-7 rounded text-slate-500 hover:text-slate-700 hover:bg-slate-50"
+                              
                             >
                               <Download size={13} />
-                            </button>
+                            </IconButton>
                             {canManage && (
-                              <button
+                              <IconButton
                                 type="button"
                                 onClick={() => openEdit(doc)}
                                 title="Edit"
-                                className="inline-flex items-center justify-center w-7 h-7 rounded text-slate-500 hover:text-blue-700 hover:bg-blue-50"
+                                
                               >
                                 <Edit3 size={13} />
-                              </button>
+                              </IconButton>
                             )}
                             {canManage && (
-                              <button
+                              <IconButton
                                 type="button"
                                 onClick={() => setDeleteTarget(doc)}
                                 title="Delete"
-                                className="inline-flex items-center justify-center w-7 h-7 rounded text-slate-400 hover:text-rose-700 hover:bg-rose-50"
+                                className="hover:text-red-700"
                               >
                                 <Trash2 size={13} />
-                              </button>
+                              </IconButton>
                             )}
                           </div>
-                        </td>
-                      </tr>
+                        </TableCell>
+                      </TableRow>
                     ))}
-                  </tbody>
-                </table>
+                  </TableBody>
+                </Table>
               )}
             </div>
-          </div>
+          </Card>
         )}
 
         {/* Edit dialog */}
@@ -657,27 +644,27 @@ export function OcvCategoryV2View({
             <div className="space-y-3 py-2">
               <div className="space-y-1.5">
                 <label className="text-xs font-medium text-slate-600">Document Type</label>
-                <select
+                <NativeSelect
                   value={editTypeId}
                   onChange={(e) => setEditTypeId(e.target.value)}
-                  className="w-full px-2 h-10 py-0 text-sm border border-slate-200 rounded-[12px] bg-card focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                  
                 >
                   <option value="">Select type…</option>
                   {docTypes.filter((t) => t.isActive).map((t) => (
                     <option key={t.id} value={t.id}>{t.typeName}</option>
                   ))}
-                </select>
+                </NativeSelect>
               </div>
 
               {editTypeId && isOthers(editTypeId) && (
                 <div className="space-y-1.5">
                   <label className="text-xs font-medium text-slate-600">Document Name</label>
-                  <input
+                  <Input
                     type="text"
                     placeholder="Enter document name"
                     value={editCustomName}
                     onChange={(e) => setEditCustomName(e.target.value)}
-                    className="w-full px-2 h-10 py-0 text-sm border border-slate-200 rounded-[12px] bg-card focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                    
                   />
                 </div>
               )}
@@ -700,39 +687,39 @@ export function OcvCategoryV2View({
                 <>
                   <div className="space-y-1.5">
                     <label className="text-xs font-medium text-slate-600">Amount</label>
-                    <input
+                    <Input
                       type="number"
                       step="0.01"
                       placeholder="0.00"
                       value={editAmount}
                       onChange={(e) => setEditAmount(e.target.value)}
-                      className="w-full px-2 h-10 py-0 text-sm border border-slate-200 rounded-[12px] bg-card focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                      
                     />
                   </div>
                   <div className="space-y-1.5">
                     <label className="text-xs font-medium text-slate-600">Paid On</label>
-                    <DateField value={editPaidOn} onChange={setEditPaidOn} className="w-full px-2 h-10 py-0 text-sm border border-slate-200 rounded-[12px] bg-card focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]" />
+                    <DateField value={editPaidOn} onChange={setEditPaidOn} className="row-field w-full" />
                   </div>
                 </>
               )}
             </div>
 
             <DialogFooter>
-              <button
+              <Button
                 type="button"
                 onClick={() => setEditDoc(null)}
                 disabled={saving}
-                className="inline-flex items-center gap-1 text-sm font-medium px-3 py-1.5 rounded-full border border-slate-200 text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+                variant="outline" size="sm"
               >
                 Cancel
-              </button>
+              </Button>
               <LoadingButton
                 type="button"
                 onAction={handleEditSave}
                 forcePending={saving}
                 loadingLabel="Saving…"
                 spinnerSize={14}
-                className="inline-flex items-center gap-1 text-sm font-semibold px-4 py-1.5 rounded-full bg-[#17458F] text-white hover:bg-[#17458F] disabled:opacity-50"
+                className="row-btn row-btn-primary row-btn-sm"
               >
                 Save Changes
               </LoadingButton>

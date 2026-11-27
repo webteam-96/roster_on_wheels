@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import 'package:rotary_flutter_app/core/theme/row_tokens.dart';
 
 /// Filled-arc donut chart. Reusable across cards that need a percentage ring
 /// with a center label (TRF Goal, District Citation, etc.).
@@ -37,15 +38,22 @@ class DonutChart extends StatelessWidget {
     return SizedBox(
       width: size,
       height: size,
-      child: CustomPaint(
-        painter: _DonutPainter(
-          percent: percent.clamp(0.0, 100.0),
-          trackColor: trackColor,
-          fillColor: fillColor,
-          strokeWidth: strokeWidth,
-          strokeCap: strokeCap,
-        ),
+      // The ring sweeps to its value, like the bars and counters beside it.
+      child: TweenAnimationBuilder<double>(
+        tween: Tween(begin: RowMotion.still(context) ? percent : 0, end: percent),
+        duration: RowMotion.still(context) ? Duration.zero : RowMotion.count,
+        curve: RowMotion.easeOut,
         child: center == null ? null : Center(child: center),
+        builder: (_, v, child) => CustomPaint(
+          painter: _DonutPainter(
+            percent: v.clamp(0.0, 100.0),
+            trackColor: trackColor,
+            fillColor: fillColor,
+            strokeWidth: strokeWidth,
+            strokeCap: strokeCap,
+          ),
+          child: child,
+        ),
       ),
     );
   }

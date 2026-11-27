@@ -1,4 +1,5 @@
 "use client";
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
 
 /**
  * District Projects V2 — listing.
@@ -17,12 +18,15 @@
  * in sync — mirrors useSyncClubIdFromUrl's pattern.
  */
 
+import { IconButton } from "@/components/ui/icon-button";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { NativeSelect } from "@/components/ui/native-select";
+import { Card } from "@/components/ui/card";
 import { useCallback, useEffect, useState } from "react";
 import { useParams, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import {
-  ArrowLeft, Plus, Search, Edit3, Eye, Trash2, AlertTriangle, Loader2, FolderKanban,
-} from "@/components/icons";
+import { Plus, Search, Edit3, Eye, Trash2, AlertTriangle, FolderKanban } from "@/components/icons";
 import {
   getDistrict,
   getDistrictProjects,
@@ -41,7 +45,7 @@ import Pagination from "@/components/Pagination";
 import { formatMoney } from "@/lib/currency";
 
 import { appLocale, currencySymbol } from "@/lib/appFormat";
-import { SkeletonRows } from "@/components/row/AppKit";
+import { PageHeader, SkeletonRows } from "@/components/row/AppKit";
 // Inline mirror of useSyncClubIdFromUrl for district scope. Kept here (not a
 // shared hook) until a second v2 district page needs it.
 function useSyncDistrictIdFromUrl(): void {
@@ -179,67 +183,51 @@ export default function DistrictProjectsV2Page() {
       >
         <div className="space-y-5">
           {/* Header */}
-          <div className="flex items-start justify-between gap-3">
-            <div className="flex items-start gap-2">
-              <Link
-                href={`/districts/${districtId}/dashboard`}
-                className="mt-0.5 inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50"
-                aria-label="Back"
-              >
-                <ArrowLeft size={15} />
-              </Link>
-              <div>
-                <h1 className="text-lg font-semibold text-slate-800">District Projects</h1>
-                <p className="text-xs text-slate-500 mt-0.5">
-                  Post all the Projects executed by your District · {districtName || "–"}
-                </p>
-              </div>
-            </div>
-          </div>
+          <PageHeader title="District Projects" description={<>Post all the Projects executed by your District · {districtName || "–"}</>} back={`/districts/${districtId}/dashboard`} />
 
           {/* Table card */}
-          <div className="bg-card rounded-2xl border border-slate-200 overflow-hidden">
+          <Card className="overflow-hidden">
             <div className="px-5 py-3 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
               <div className="flex items-center gap-2 text-slate-500">
                 <FolderKanban size={16} />
                 <div>
-                  <h3 className="text-sm font-semibold text-slate-800">Project Library</h3>
+                  <h3 className="row-h3">Project Library</h3>
                   <p className="text-xs text-slate-500 mt-0.5">Filter by rotary year · search across titles</p>
                 </div>
               </div>
               <div className="flex flex-wrap items-center gap-2">
-                <select
+                <NativeSelect
                   value={yearId}
                   onChange={(e) => { setYearId(e.target.value); setPage(1); }}
-                  className="px-2 h-10 py-0 text-sm border border-slate-200 rounded-[12px] bg-card focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                  className="w-auto"
                 >
                   {years.map((y) => (
                     <option key={y.id} value={String(y.id)}>
                       {y.yearLabel}{y.isCurrent ? " (Current)" : ""}
                     </option>
                   ))}
-                </select>
+                </NativeSelect>
                 <div className="relative w-full sm:w-auto">
                   <Search size={14} className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-400" />
-                  <input
+                  <Input
                     type="text"
                     placeholder="Search by title…"
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
                     onKeyDown={(e) => { if (e.key === "Enter") { setPage(1); fetchData(); } }}
-                    className="pl-7 pr-3 h-10 py-0 text-sm border border-slate-200 rounded-[12px] w-full sm:w-52 focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                    className="pl-7 pr-3 sm:w-52"
                   />
                 </div>
-                <button
+                <Button
                   type="button"
                   onClick={() => { setPage(1); fetchData(); }}
-                  className="inline-flex items-center gap-1.5 text-xs font-semibold px-4 h-10 rounded-full border border-slate-200 text-slate-700 hover:bg-slate-50"
+                  variant="outline"
                 >
                   <Search size={13} /> Search
-                </button>
+                </Button>
                 <Link
                   href={addUrl}
-                  className="inline-flex items-center gap-1.5 text-xs font-semibold px-4 h-10 rounded-full bg-[#17458F] text-white hover:bg-[#17458F]"
+                  className="row-btn row-btn-primary"
                 >
                   <Plus size={13} /> Add Project
                 </Link>
@@ -251,92 +239,92 @@ export default function DistrictProjectsV2Page() {
               {loading ? (
                 <SkeletonRows />
               ) : (
-                <table className="w-full min-w-[640px] md:min-w-full text-sm">
-                  <thead className="bg-[#EDF4FB] text-[13px] text-[#64748B]">
-                    <tr>
-                      <th className="px-3 py-2.5 text-left w-10">Sr</th>
-                      <th className="px-3 py-2.5 text-left">Title</th>
-                      <th className="px-3 py-2.5 text-left">Date</th>
-                      <th className="px-3 py-2.5 text-right">Cost ({currencySymbol()})</th>
-                      <th className="px-3 py-2.5 text-center">Beneficiaries</th>
-                      <th className="px-3 py-2.5 text-left">Area of Focus</th>
-                      <th className="px-3 py-2.5 text-right w-16">View</th>
-                      <th className="px-3 py-2.5 text-right w-16">Edit</th>
-                      <th className="px-3 py-2.5 text-right w-16">Delete</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
+                <Table className="w-full min-w-[640px] md:min-w-full text-sm">
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="px-3 text-left w-10">Sr</TableHead>
+                      <TableHead className="px-3 text-left">Title</TableHead>
+                      <TableHead className="px-3 text-left">Date</TableHead>
+                      <TableHead className="px-3 text-right">Cost ({currencySymbol()})</TableHead>
+                      <TableHead className="px-3 text-center">Beneficiaries</TableHead>
+                      <TableHead className="px-3 text-left">Area of Focus</TableHead>
+                      <TableHead className="px-3 text-right w-16">View</TableHead>
+                      <TableHead className="px-3 text-right w-16">Edit</TableHead>
+                      <TableHead className="px-3 text-right w-16">Delete</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody className="divide-y divide-slate-100">
                     {items.map((item, i) => (
-                      <tr key={item.id} className="hover:bg-blue-50/40">
-                        <td className="px-3 py-2 text-slate-500">{(page - 1) * PAGE_SIZE + i + 1}</td>
-                        <td className="px-3 py-2 font-medium text-slate-800">
+                      <TableRow key={item.id} className="hover:bg-blue-50/40">
+                        <TableCell className="px-3 py-2 text-slate-500">{(page - 1) * PAGE_SIZE + i + 1}</TableCell>
+                        <TableCell className="px-3 py-2 font-medium text-slate-800">
                           {item.title || "–"}
-                        </td>
-                        <td className="px-3 py-2 text-slate-600 whitespace-nowrap">
+                        </TableCell>
+                        <TableCell className="px-3 py-2 text-slate-600 whitespace-nowrap">
                           {item.projectDate
                             ? new Date(item.projectDate).toLocaleDateString(appLocale())
                             : "–"}
-                        </td>
-                        <td className="px-3 py-2 text-right text-slate-600 whitespace-nowrap">
+                        </TableCell>
+                        <TableCell className="px-3 py-2 text-right text-slate-600 whitespace-nowrap">
                           {item.projectCost
                             ? formatMoney(item.projectCost, item.currency)
                             : "–"}
-                        </td>
-                        <td className="px-3 py-2 text-center text-slate-600">
+                        </TableCell>
+                        <TableCell className="px-3 py-2 text-center text-slate-600">
                           {item.directBeneficiaries ?? "–"}
-                        </td>
-                        <td className="px-3 py-2 text-slate-600">
+                        </TableCell>
+                        <TableCell className="px-3 py-2 text-slate-600">
                           {item.areaOfFocusName || "–"}
-                        </td>
-                        <td className="px-3 py-2 text-right">
-                          <button
+                        </TableCell>
+                        <TableCell className="px-3 py-2 text-right">
+                          <IconButton
                             type="button"
                             onClick={() => setViewId(item.id)}
-                            className="inline-flex items-center justify-center w-7 h-7 rounded text-slate-500 hover:text-blue-700 hover:bg-blue-50"
+                            
                             aria-label="View project"
                           >
                             <Eye size={13} />
-                          </button>
-                        </td>
-                        <td className="px-3 py-2 text-right">
+                          </IconButton>
+                        </TableCell>
+                        <TableCell className="px-3 py-2 text-right">
                           <Link
                             href={`/districts/${districtId}/projects/v2/${item.id}/edit?yearId=${yearId}&returnTo=${childReturnTo}`}
-                            className="inline-flex items-center justify-center w-7 h-7 rounded text-slate-500 hover:text-blue-700 hover:bg-blue-50"
+                            className="row-icon-btn"
                             aria-label="Edit project"
                           >
                             <Edit3 size={13} />
                           </Link>
-                        </td>
-                        <td className="px-3 py-2 text-right">
-                          <button
+                        </TableCell>
+                        <TableCell className="px-3 py-2 text-right">
+                          <IconButton
                             type="button"
                             onClick={() => setDeleteTarget(item)}
-                            className="inline-flex items-center justify-center w-7 h-7 rounded text-slate-400 hover:text-rose-700 hover:bg-rose-50"
+                            className="hover:text-red-700"
                             aria-label="Delete project"
                           >
                             <Trash2 size={13} />
-                          </button>
-                        </td>
-                      </tr>
+                          </IconButton>
+                        </TableCell>
+                      </TableRow>
                     ))}
                     {items.length === 0 && (
-                      <tr>
-                        <td colSpan={9} className="px-4 py-10 text-center text-slate-400">
+                      <TableRow>
+                        <TableCell colSpan={9} className="px-4 py-10 text-center text-slate-400">
                           {search
                             ? "No projects match your search."
                             : "No projects found. Click \"Add Project\" to create one."}
-                        </td>
-                      </tr>
+                        </TableCell>
+                      </TableRow>
                     )}
-                  </tbody>
-                </table>
+                  </TableBody>
+                </Table>
               )}
             </div>
 
             <div className="px-5 py-2.5 border-t border-slate-100 text-xs text-slate-500">
               Showing {items.length} of {totalCount}
             </div>
-          </div>
+          </Card>
 
           {!loading && totalPages > 1 && (
             <Pagination

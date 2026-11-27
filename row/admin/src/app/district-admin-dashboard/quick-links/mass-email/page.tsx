@@ -17,6 +17,7 @@
  *     rounded-2xl white cards, navy table header w/ gold underline.
  */
 
+import { Card } from "@/components/ui/card";
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
@@ -37,12 +38,10 @@ import ErrorAlert from "@/components/ErrorAlert";
 import AlertModal from "@/components/AlertModal";
 import RotaryLoader from "@/components/RotaryLoader";
 import ProtectedRoute from "@/components/ProtectedRoute";
-import {
-  ArrowLeft, Plus, MoreHorizontal, Eye, Pencil, Trash2, Send, Mail, AlertTriangle,
-} from "@/components/icons";
+import { Plus, MoreHorizontal, Eye, Pencil, Trash2, Send, AlertTriangle } from "@/components/icons";
 
 import { appLocale } from "@/lib/appFormat";
-import { ListPageSkeleton } from "@/components/row/AppKit";
+import { PageHeader, ListPageSkeleton } from "@/components/row/AppKit";
 import Pagination from "@/components/Pagination";
 const BASE = "/district-admin-dashboard/quick-links/mass-email";
 
@@ -145,7 +144,7 @@ export default function DistrictAdminMassEmailListPage() {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "Draft": return <Badge variant="outline" className="border-slate-200 bg-slate-50 text-slate-600">Draft</Badge>;
-      case "Sending": return <Badge variant="outline" className="border-blue-200 bg-blue-50 text-blue-700">Sending</Badge>;
+      case "Sending": return <Badge variant="outline" className="border-blue-200 bg-blue-100 text-azure-50 text-blue-700">Sending</Badge>;
       case "Sent": return <Badge variant="outline" className="border-emerald-200 bg-emerald-50 text-emerald-700">Sent</Badge>;
       case "Failed": return <Badge variant="outline" className="border-red-200 bg-red-50 text-red-700">Failed</Badge>;
       default: return <Badge variant="outline" className="border-slate-200 bg-slate-50 text-slate-600">{status}</Badge>;
@@ -168,47 +167,28 @@ export default function DistrictAdminMassEmailListPage() {
 
       <div className="space-y-6">
         {/* Header */}
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-3">
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={goBack}
-              className="border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-slate-800"
-              aria-label="Back"
-            >
-              <ArrowLeft className="h-4 w-4" />
-            </Button>
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-azure/10 text-ink">
-                <Mail size={20} />
-              </div>
-              <div>
-                <h2 className="text-2xl font-bold tracking-tight text-ink">
-                  {districtNumber ? `District ${districtNumber} · Mass Email` : "Mass Email"}
-                </h2>
-                <p className="text-slate-500 text-sm mt-0.5">Send bulk emails to district members</p>
-              </div>
-            </div>
-          </div>
-          {canManage && (
+        <PageHeader
+          title={districtNumber ? `District ${districtNumber} · Mass Email` : "Mass Email"}
+          description="Send bulk emails to district members"
+          back={() => goBack()}
+          actions={canManage && (
             <Button
               onClick={() => router.push(withSearch(`${BASE}/compose`, { returnTo: selfReturn, yearId }))}
-              className="bg-azure hover:bg-mint-ink text-white"
+             
             >
               <Plus className="mr-2 h-4 w-4" />New Email
             </Button>
           )}
-        </div>
+        />
 
         {/* Filters */}
-        <div className="rounded-2xl border border-slate-200 shadow-sm bg-card p-4">
+        <Card className="p-5">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Select
               value={statusFilter || "all"}
               onValueChange={(v) => { setStatusFilter(v === "all" ? "" : v); setPage(1); }}
             >
-              <SelectTrigger className="border-slate-200 bg-card focus:border-azure focus:ring-azure/20">
+              <SelectTrigger>
                 <SelectValue placeholder="All Statuses" />
               </SelectTrigger>
               <SelectContent>
@@ -221,24 +201,24 @@ export default function DistrictAdminMassEmailListPage() {
             </Select>
             <SearchBox value={searchQuery} onChange={(v) => { setSearchQuery(v); setPage(1); }} placeholder="Search by subject..." />
           </div>
-        </div>
+        </Card>
 
         {/* Table */}
         {loading ? (
           <div className="flex items-center justify-center py-20"><ListPageSkeleton /></div>
         ) : (
-          <div className="rounded-2xl border border-slate-200 shadow-sm overflow-hidden bg-card">
+          <Card className="overflow-hidden">
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow className="hover:opacity-100 border-b-2 border-marigold" style={{ backgroundColor: "#17458f" }}>
-                    <TableHead className="text-xs font-semibold uppercase tracking-wide">Subject</TableHead>
-                    <TableHead className="text-xs font-semibold uppercase tracking-wide">Status</TableHead>
-                    <TableHead className="text-xs font-semibold uppercase tracking-wide">Recipients</TableHead>
-                    <TableHead className="text-xs font-semibold uppercase tracking-wide text-center">Sent</TableHead>
-                    <TableHead className="text-xs font-semibold uppercase tracking-wide text-center">Failed</TableHead>
-                    <TableHead className="text-xs font-semibold uppercase tracking-wide">Created</TableHead>
-                    {canManage && <TableHead className="text-xs font-semibold uppercase tracking-wide text-right">Actions</TableHead>}
+                    <TableHead>Subject</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Recipients</TableHead>
+                    <TableHead className="text-center">Sent</TableHead>
+                    <TableHead className="text-center">Failed</TableHead>
+                    <TableHead>Created</TableHead>
+                    {canManage && <TableHead className="text-right">Actions</TableHead>}
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -258,7 +238,7 @@ export default function DistrictAdminMassEmailListPage() {
                         <TableCell className="text-right">
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-500 hover:text-slate-800 hover:bg-slate-100">
+                              <Button aria-label="More actions" variant="ghost" size="icon" className="row-btn-sm">
                                 <MoreHorizontal className="h-4 w-4" />
                               </Button>
                             </DropdownMenuTrigger>
@@ -292,7 +272,7 @@ export default function DistrictAdminMassEmailListPage() {
             {totalPages > 1 && (
               <div className="px-4 py-3 border-t border-slate-100"><Pagination page={page} totalPages={totalPages} totalCount={totalCount} pageSize={pageSize} onPageChange={setPage} /></div>
             )}
-          </div>
+          </Card>
         )}
       </div>
 

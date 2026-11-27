@@ -8,6 +8,7 @@ import '../../widgets/common/custom_app_bar.dart';
 import '../../widgets/common/empty_state_widget.dart';
 import '../../widgets/common/loading_widget.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/roster_wheel.dart';
 
 /// Business directory (`api/business-directory/me`, `api/districts/{id}/business-directory`): search the approved
 /// businesses of the member's district, and add, edit or remove the member's own listing. A club or district admin
@@ -106,7 +107,7 @@ class _BusinessDirectoryScreenState extends State<BusinessDirectoryScreen> {
               : _clubs.isEmpty
                   ? const EmptyStateWidget(
                       icon: Icons.storefront_outlined, title: 'No club yet', subtitle: 'The directory lists your district.')
-                  : RefreshIndicator(
+                  : RowRefresh(
                       onRefresh: _load,
                       child: ListView(
                         padding: const EdgeInsets.all(16),

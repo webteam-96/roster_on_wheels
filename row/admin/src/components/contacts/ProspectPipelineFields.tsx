@@ -3,6 +3,8 @@
 // Stage, owner and notes of a prospect (feature contacts_growth), shared by the add and edit pages. Renders nothing
 // while the feature is off, so those pages look as before.
 
+import { Textarea } from "@/components/ui/textarea";
+import { NativeSelect } from "@/components/ui/native-select";
 import { useEffect, useState } from "react";
 import { getClubMembers } from "@/services/api";
 import { useFeatureOn } from "@/components/FeatureGate";
@@ -12,7 +14,7 @@ import { ListChecks } from "@/components/icons";
 
 export interface PipelineValue { stage: string; ownerMemberId: number | null; notes: string }
 
-const FIELD = "w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500";
+const FIELD = "row-field w-full";
 
 export default function ProspectPipelineFields({ clubId, number, value, onChange }: {
   clubId: number; number: number; value: PipelineValue; onChange: (v: PipelineValue) => void;
@@ -31,32 +33,32 @@ export default function ProspectPipelineFields({ clubId, number, value, onChange
       <div className="flex items-center gap-3 border-b border-slate-100 bg-slate-50 px-4 py-2.5">
         <div className="flex h-7 w-7 items-center justify-center rounded-full bg-azure text-xs font-bold text-white">{number}</div>
         <ListChecks className="h-4 w-4 text-slate-500" />
-        <h3 className="text-sm font-semibold text-slate-800">Pipeline</h3>
+        <h3 className="row-h3">Pipeline</h3>
       </div>
       <div className="grid grid-cols-1 gap-4 p-4 sm:grid-cols-2">
         <label className="space-y-1 text-xs font-semibold text-slate-700">
           <span className="block">Stage</span>
-          <select value={value.stage} onChange={(e) => onChange({ ...value, stage: e.target.value })} className={`${FIELD} font-normal`}>
+          <NativeSelect value={value.stage} onChange={(e) => onChange({ ...value, stage: e.target.value })} className="font-normal">
             {PROSPECT_STAGES.map((s) => <option key={s} value={s}>{label(s)}</option>)}
-          </select>
+          </NativeSelect>
         </label>
         <label className="space-y-1 text-xs font-semibold text-slate-700">
           <span className="block">Owner <span className="font-normal text-slate-400">(the member who follows up)</span></span>
           {members === null ? <Skeleton className="h-9 w-full" /> : (
-            <select value={value.ownerMemberId ?? 0} onChange={(e) => onChange({ ...value, ownerMemberId: Number(e.target.value) || null })}
-              className={`${FIELD} font-normal`}>
+            <NativeSelect value={value.ownerMemberId ?? 0} onChange={(e) => onChange({ ...value, ownerMemberId: Number(e.target.value) || null })}
+              className="font-normal">
               <option value={0}>No owner</option>
               {value.ownerMemberId && !members.some((m) => m.id === value.ownerMemberId) && (
                 <option value={value.ownerMemberId}>Current owner (no longer in the club)</option>
               )}
               {members.map((m) => <option key={m.id} value={m.id}>{m.memberName}</option>)}
-            </select>
+            </NativeSelect>
           )}
         </label>
         <label className="space-y-1 text-xs font-semibold text-slate-700 sm:col-span-2">
           <span className="block">Notes</span>
-          <textarea rows={4} maxLength={2000} value={value.notes} onChange={(e) => onChange({ ...value, notes: e.target.value })}
-            placeholder="Conversations, meetings attended, next step" className={`${FIELD} font-normal`} />
+          <Textarea rows={4} maxLength={2000} value={value.notes} onChange={(e) => onChange({ ...value, notes: e.target.value })}
+            placeholder="Conversations, meetings attended, next step" className="font-normal" />
         </label>
       </div>
     </div>

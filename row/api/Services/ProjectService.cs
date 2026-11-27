@@ -385,6 +385,12 @@ public class ProjectService : IProjectService
         ValidateAndNormalizeFundingFields(fundingClass,
             ref ggNumber, ref amtSanc, ref amtRecv, ref amtSpent, ref hostCD, ref gpCD, ref csrCo);
 
+        // A form that sends no currency (the older add pages) means the club's own, not the platform's.
+        var currency = CurrencyHelper.Normalize(!string.IsNullOrWhiteSpace(dto.Currency) ? dto.Currency
+            : await conn.ExecuteScalarAsync<string?>(
+                "SELECT d.DefaultCurrency FROM club_master c JOIN district_master d ON d.pk_district_id = c.fk_district_id WHERE c.pk_club_id = @Id",
+                new { Id = clubId }));
+
         var projectId = await conn.ExecuteScalarAsync<int>(
             $@"INSERT INTO `{info.ProjectsTable}` (
                 fk_club_id, fk_module_id, fk_year_id, project_type, parent_project_id,
@@ -421,7 +427,7 @@ public class ProjectService : IProjectService
                 Title = dto.Title, Description = dto.Description, Location = dto.Location,
                 AreaOfFocusId = dto.AreaOfFocusId, OtherAreaOfFocus = dto.OtherAreaOfFocus,
                 ProjectDate = dto.ProjectDate, ProjectCost = dto.ProjectCost,
-                Currency = CurrencyHelper.Normalize(dto.Currency), FundingId = dto.FundingId,
+                Currency = currency, FundingId = dto.FundingId,
                 DirectBeneficiaries = dto.DirectBeneficiaries, ManHours = dto.ManHours,
                 RotariansInvolved = dto.RotariansInvolved, RotaractorsInvolved = dto.RotaractorsInvolved,
                 RccInvolved = dto.RccInvolved ?? 0,

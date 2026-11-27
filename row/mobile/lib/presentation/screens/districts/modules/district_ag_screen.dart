@@ -12,6 +12,8 @@ import '../../../widgets/common/empty_state_widget.dart';
 import '../../../widgets/common/rotary_year_bar.dart';
 import 'assign_clubs_form_screen.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/motion.dart';
+import 'package:rotary_flutter_app/presentation/widgets/common/loading_widget.dart';
 
 // ---------------------------------------------------------------------------
 // Private models
@@ -273,7 +275,7 @@ class _DistrictAgScreenState extends State<DistrictAgScreen> {
   }
 
   Future<void> _confirmDelete(_AGGroup g) async {
-    final ok = await showDialog<bool>(
+    final ok = await showRowDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Remove AG?'),
@@ -377,7 +379,7 @@ class _DistrictAgScreenState extends State<DistrictAgScreen> {
         ],
       ),
       body: _loading
-          ? const Center(child: const CircularProgressIndicator(color: AppColors.primary))
+          ? const LoadingWidget()
           : _error != null
               ? ErrorStateWidget(message: _error!, onRetry: _loadInitial)
               : _buildBody(canManage),
@@ -408,7 +410,7 @@ class _DistrictAgScreenState extends State<DistrictAgScreen> {
 
   Widget _buildList(bool canManage) {
     if (_listLoading && _groups.isEmpty) {
-      return const Center(child: const CircularProgressIndicator(color: AppColors.primary));
+      return const LoadingWidget();
     }
     if (_groups.isEmpty) {
       return Padding(
@@ -441,7 +443,7 @@ class _DistrictAgScreenState extends State<DistrictAgScreen> {
 
     return Padding(
       padding: const EdgeInsets.all(16),
-      child: ListView.separated(
+      child: RowListView.separated(
         itemCount: _groups.length,
         separatorBuilder: (_, __) => const SizedBox(height: 10),
         itemBuilder: (_, i) => _AGCard(

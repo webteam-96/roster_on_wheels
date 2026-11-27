@@ -11,6 +11,7 @@ import 'club_dashboard_async.dart';
 import 'cmr_month_report_subtab.dart';
 import 'package:rotary_flutter_app/core/theme/app_fonts.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/motion.dart';
 
 /// "E-Governance" tab on the Club Overview screen. Shows the live
 /// `egovernance` analytics (Monthly-Report + Attendance summaries) plus an
@@ -191,7 +192,7 @@ class _EgovManagementGrid extends StatelessWidget {
               style: AppFonts.body(
                   fontSize: 13, color: AppColors.slate500)),
           const SizedBox(height: 12),
-          GridView.count(
+          RowGridView.count(
             crossAxisCount: 2,
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
@@ -619,7 +620,7 @@ class _AttendanceRow extends StatelessWidget {
               Expanded(
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(999),
-                  child: LinearProgressIndicator(
+                  child: RowProgressBar(
                     value: meeting.pct / 100,
                     minHeight: 6,
                     backgroundColor: AppColors.slate100,

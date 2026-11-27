@@ -1,11 +1,12 @@
 "use client";
+import { MenuItemButton } from "@/components/ui/text-buttons";
 
 // Settings > Cross-district access: a time-limited read (optionally write) grant on another district for PETS, RLI
 // or zone work. The API decides who may grant (SuperAdmin, or a zone officer for districts in their zone) and
 // enforces expiry on every request; this page lists, creates and revokes, and flags grants about to expire.
 
+import { PageHeader } from "@/components/row/AppKit";
 import { useCallback, useEffect, useState } from "react";
-import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,7 +16,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { TableSkeleton } from "@/components/dashboard/DashboardSkeleton";
 import ErrorAlert from "@/components/ErrorAlert";
-import { ArrowLeft } from "@/components/icons";
 import { useFormat } from "@/hooks/useFormat";
 import {
   createDistrictAccessGrant, getDistrictAccessDistricts, getDistrictAccessGrants, revokeDistrictAccessGrant,
@@ -98,15 +98,7 @@ export default function CrossDistrictAccessPage() {
   return (
     <ProtectedRoute>
       <div className="space-y-6">
-        <div className="flex items-center gap-3">
-          <Button variant="outline" size="icon" asChild aria-label="Back to settings"><Link href="/settings"><ArrowLeft className="h-4 w-4" /></Link></Button>
-          <div>
-            <h2 className="text-2xl font-bold tracking-tight text-primary">Cross-district access</h2>
-            <p className="text-base text-muted-foreground">
-              Let a member see another district for a set time, for PETS, RLI or zone work. Access ends by itself at the expiry. Every grant, use and revoke is in the audit log.
-            </p>
-          </div>
-        </div>
+        <PageHeader title="Cross-district access" description="Let a member see another district for a set time, for PETS, RLI or zone work. Access ends by itself at the expiry. Every grant, use and revoke is in the audit log." back="/settings" />
 
         {expiring > 0 && (
           <p role="status" className="rounded-md border border-amber-600/40 bg-amber-50 p-3 text-sm text-amber-900 dark:bg-amber-950 dark:text-amber-100">
@@ -115,7 +107,7 @@ export default function CrossDistrictAccessPage() {
         )}
 
         <section aria-labelledby="new-grant" className="space-y-4 rounded-lg border p-4">
-          <h3 id="new-grant" className="text-lg font-semibold">New grant</h3>
+          <h3 id="new-grant" className="row-h2">New grant</h3>
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="cda-member">Member</Label>
@@ -131,9 +123,9 @@ export default function CrossDistrictAccessPage() {
                     <ul className="max-h-56 divide-y overflow-auto rounded-md border text-sm">
                       {found.map((m) => (
                         <li key={m.id}>
-                          <button type="button" className="w-full p-2 text-left hover:bg-muted" onClick={() => setMember(m)}>
+                          <MenuItemButton onClick={() => setMember(m)}>
                             {m.name}{m.clubName && `, ${m.clubName}`}{m.districtNumber && ` (District ${m.districtNumber})`}
-                          </button>
+                          </MenuItemButton>
                         </li>
                       ))}
                     </ul>
@@ -185,7 +177,7 @@ export default function CrossDistrictAccessPage() {
 
         <section aria-labelledby="grant-list" className="space-y-3">
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <h3 id="grant-list" className="text-lg font-semibold">Grants</h3>
+            <h3 id="grant-list" className="row-h2">Grants</h3>
             <div className="flex flex-wrap gap-2" role="group" aria-label="Filter grants">
               {FILTERS.map(([k, label]) => (
                 <Button key={k} size="sm" variant={filter === k ? "default" : "outline"} aria-pressed={filter === k} onClick={() => setFilter(k)}>

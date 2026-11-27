@@ -16,6 +16,8 @@ import '../../widgets/common/pagination_widget.dart';
 import '../../widgets/common/search_bar_widget.dart';
 import 'package:rotary_flutter_app/core/theme/app_fonts.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/motion.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/roster_wheel.dart';
 
 // ---------------------------------------------------------------------------
 // Model
@@ -168,6 +170,7 @@ class _MembersListScreenState extends State<MembersListScreen> {
         showBack: false,
         leading: Builder(
           builder: (ctx) => IconButton(
+            tooltip: 'Menu',
             icon: const Icon(Icons.menu_rounded, color: AppColors.textPrimary, size: 28),
             onPressed: () => Scaffold.of(ctx).openDrawer(),
           ),
@@ -268,10 +271,10 @@ class _MembersListScreenState extends State<MembersListScreen> {
       );
     }
 
-    return RefreshIndicator(
+    return RowRefresh(
       color: AppColors.primaryPrime,
       onRefresh: () => _fetchMembers(reset: true),
-      child: ListView.separated(
+      child: RowListView.separated(
         padding: (const EdgeInsets.fromLTRB(AppSpacing.md, AppSpacing.sm, AppSpacing.md, 100)).add(const EdgeInsets.only(bottom: 88)),
         itemCount: _members.length + 1,
         separatorBuilder: (_, __) => const SizedBox(height: 12),

@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect, useMemo } from "react";
 import DateField from "@/components/DateField";
-import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -14,7 +13,7 @@ import ErrorAlert from "@/components/ErrorAlert";
 import SuccessAlert from "@/components/SuccessAlert";
 import RotaryLoader from "@/components/RotaryLoader";
 import ProtectedRoute from "@/components/ProtectedRoute";
-import { ArrowLeft, Pencil, Download, Send, Clock, CheckCircle2, XCircle, User, ShieldCheck, Loader2, ListTree, ChevronDown, ChevronRight, Trash2 } from "@/components/icons";
+import { Pencil, Download, Send, Clock, CheckCircle2, XCircle, User, ShieldCheck, Loader2, ListTree, ChevronDown, ChevronRight, Trash2 } from "@/components/icons";
 import {
   getDistricts, getRotaryYears,
   getClubLeadership, getClubLeadershipMembers, upsertClubLeadership,
@@ -25,7 +24,7 @@ import {
 import { exportToCSV } from "@/utils/csvExport";
 
 import { appLocale } from "@/lib/appFormat";
-import { ListPageSkeleton } from "@/components/row/AppKit";
+import { PageHeader, ListPageSkeleton } from "@/components/row/AppKit";
 type Row = {
   clubId: number; clubName: string; clubRotaryId: string;
   presidentMemberId: number | null; presidentName: string | null;
@@ -276,20 +275,18 @@ export default function ClubLeadershipPage() {
         <SuccessAlert open={!!successMessage} title="Success" description={successMessage || ""} onOk={() => setSuccessMessage(null)} />
         <ErrorAlert open={!!errorMessage} title="Error" description={errorMessage || ""} onOk={() => setErrorMessage(null)} />
 
-        <div className="flex items-center justify-between gap-3 flex-wrap">
-          <div className="flex items-center gap-3">
-            <Button variant="outline" size="icon" asChild>
-              <Link href="/settings"><ArrowLeft className="h-4 w-4" /></Link>
-            </Button>
-            <div>
-              <h2 className="text-2xl font-bold tracking-tight text-primary">Club Leadership</h2>
-              <p className="text-muted-foreground text-base">Bulk setup of club Presidents &amp; Secretaries across districts</p>
-            </div>
-          </div>
-          <Button variant="outline" onClick={openAllSchedules}>
+        <PageHeader
+          title="Club Leadership"
+          description={<>Bulk setup of club Presidents &amp; Secretaries across districts</>}
+          back="/settings"
+          actions={
+            <>
+<Button variant="outline" onClick={openAllSchedules}>
             <ListTree className="mr-2 h-4 w-4" />View All Schedules
           </Button>
-        </div>
+            </>
+          }
+        />
 
         {/* Filter row */}
         <Card>
@@ -370,7 +367,7 @@ export default function ClubLeadershipPage() {
                             </div>
                             <div className="text-xs text-muted-foreground">{r.presidentMobile || "–"} · {r.presidentEmail || "–"}</div>
                             <div className="flex gap-1 mt-1">
-                              <Button size="sm" variant="outline" className="h-7" onClick={() => openEdit(r.clubId, r.clubName, "President", r.presidentMemberId)}><Pencil className="mr-1 h-3 w-3" />Change</Button>
+                              <Button size="sm" variant="outline" className="row-btn-sm" onClick={() => openEdit(r.clubId, r.clubName, "President", r.presidentMemberId)}><Pencil className="mr-1 h-3 w-3" />Change</Button>
                               <Button size="sm" variant={r.presidentIsAdmin ? "secondary" : "default"} className={`h-7 ${r.presidentIsAdmin ? "bg-green-100 text-green-800 hover:bg-green-200 border border-green-300" : ""}`} disabled={makingAdmin === `${r.clubId}-President` || !r.presidentEmail || chainInactive} title={chainInactive ? inactiveTitle : undefined} onClick={() => makeAdmin(r.clubId, r.presidentMemberId!, "President")}>
                                 {makingAdmin === `${r.clubId}-President` ? <Loader2 className="mr-1 h-3 w-3 animate-spin" /> :
                                  r.presidentIsAdmin ? <CheckCircle2 className="mr-1 h-3 w-3" /> : <ShieldCheck className="mr-1 h-3 w-3" />}
@@ -391,7 +388,7 @@ export default function ClubLeadershipPage() {
                             </div>
                             <div className="text-xs text-muted-foreground">{r.secretaryMobile || "–"} · {r.secretaryEmail || "–"}</div>
                             <div className="flex gap-1 mt-1">
-                              <Button size="sm" variant="outline" className="h-7" onClick={() => openEdit(r.clubId, r.clubName, "Secretary", r.secretaryMemberId)}><Pencil className="mr-1 h-3 w-3" />Change</Button>
+                              <Button size="sm" variant="outline" className="row-btn-sm" onClick={() => openEdit(r.clubId, r.clubName, "Secretary", r.secretaryMemberId)}><Pencil className="mr-1 h-3 w-3" />Change</Button>
                               <Button size="sm" variant={r.secretaryIsAdmin ? "secondary" : "default"} className={`h-7 ${r.secretaryIsAdmin ? "bg-green-100 text-green-800 hover:bg-green-200 border border-green-300" : ""}`} disabled={makingAdmin === `${r.clubId}-Secretary` || !r.secretaryEmail || chainInactive} title={chainInactive ? inactiveTitle : undefined} onClick={() => makeAdmin(r.clubId, r.secretaryMemberId!, "Secretary")}>
                                 {makingAdmin === `${r.clubId}-Secretary` ? <Loader2 className="mr-1 h-3 w-3 animate-spin" /> :
                                  r.secretaryIsAdmin ? <CheckCircle2 className="mr-1 h-3 w-3" /> : <ShieldCheck className="mr-1 h-3 w-3" />}
@@ -429,7 +426,7 @@ export default function ClubLeadershipPage() {
                     <React.Fragment key={s.id}>
                       <TableRow>
                         <TableCell>
-                          <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => toggleScheduleLog(s.id)}>
+                          <Button size="sm" variant="ghost" className="row-btn-sm" onClick={() => toggleScheduleLog(s.id)}>
                             {expandedScheduleId === s.id ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
                           </Button>
                         </TableCell>
@@ -441,7 +438,7 @@ export default function ClubLeadershipPage() {
                         <TableCell>{s.processedDate ? new Date(s.processedDate).toLocaleString(appLocale()) : "–"}</TableCell>
                         <TableCell>
                           {s.status === "Pending" && (
-                            <Button size="sm" variant="ghost" className="h-7 text-red-600 hover:text-red-700 hover:bg-red-50" onClick={() => deleteSchedule(s.id)}>
+                            <Button size="sm" variant="ghost" className="text-red-600 row-btn-sm" onClick={() => deleteSchedule(s.id)}>
                               <Trash2 className="h-3.5 w-3.5" />
                             </Button>
                           )}
@@ -473,8 +470,8 @@ export default function ClubLeadershipPage() {
                                           <TableCell>{l.designation}</TableCell>
                                           <TableCell className="text-xs">{l.email}</TableCell>
                                           <TableCell>
-                                            {l.status === "Sent" && isAcceptAll ? <Badge className="bg-amber-500"><CheckCircle2 className="mr-1 h-3 w-3" />Sent (unverified)</Badge> :
-                                             l.status === "Sent" ? <Badge className="bg-green-600"><CheckCircle2 className="mr-1 h-3 w-3" />Sent</Badge> :
+                                            {l.status === "Sent" && isAcceptAll ? <Badge className="bg-amber-100 text-amber-900"><CheckCircle2 className="mr-1 h-3 w-3" />Sent (unverified)</Badge> :
+                                             l.status === "Sent" ? <Badge className="bg-green-100 text-green-800"><CheckCircle2 className="mr-1 h-3 w-3" />Sent</Badge> :
                                              l.status === "Failed" ? <Badge variant="destructive"><XCircle className="mr-1 h-3 w-3" />Failed</Badge> :
                                              <Badge variant="secondary"><Clock className="mr-1 h-3 w-3" />{l.status}</Badge>}
                                           </TableCell>
@@ -553,7 +550,7 @@ export default function ClubLeadershipPage() {
                       <React.Fragment key={s.id}>
                         <TableRow>
                           <TableCell>
-                            <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => toggleScheduleLog(s.id)}>
+                            <Button size="sm" variant="ghost" className="row-btn-sm" onClick={() => toggleScheduleLog(s.id)}>
                               {expandedScheduleId === s.id ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
                             </Button>
                           </TableCell>
@@ -567,7 +564,7 @@ export default function ClubLeadershipPage() {
                           <TableCell className="text-xs">{s.processedDate ? new Date(s.processedDate).toLocaleString(appLocale()) : "–"}</TableCell>
                           <TableCell>
                             {s.status === "Pending" && (
-                              <Button size="sm" variant="ghost" className="h-7 text-red-600 hover:text-red-700 hover:bg-red-50" onClick={() => deleteSchedule(s.id)}>
+                              <Button size="sm" variant="ghost" className="text-red-600 row-btn-sm" onClick={() => deleteSchedule(s.id)}>
                                 <Trash2 className="h-3.5 w-3.5" />
                               </Button>
                             )}
@@ -599,8 +596,8 @@ export default function ClubLeadershipPage() {
                                           <TableCell>{l.designation}</TableCell>
                                           <TableCell className="text-xs">{l.email}</TableCell>
                                           <TableCell>
-                                            {l.status === "Sent" && isAcceptAll ? <Badge className="bg-amber-500"><CheckCircle2 className="mr-1 h-3 w-3" />Sent (unverified)</Badge> :
-                                             l.status === "Sent" ? <Badge className="bg-green-600"><CheckCircle2 className="mr-1 h-3 w-3" />Sent</Badge> :
+                                            {l.status === "Sent" && isAcceptAll ? <Badge className="bg-amber-100 text-amber-900"><CheckCircle2 className="mr-1 h-3 w-3" />Sent (unverified)</Badge> :
+                                             l.status === "Sent" ? <Badge className="bg-green-100 text-green-800"><CheckCircle2 className="mr-1 h-3 w-3" />Sent</Badge> :
                                              l.status === "Failed" ? <Badge variant="destructive"><XCircle className="mr-1 h-3 w-3" />Failed</Badge> :
                                              <Badge variant="secondary"><Clock className="mr-1 h-3 w-3" />{l.status}</Badge>}
                                           </TableCell>

@@ -1,4 +1,5 @@
 "use client";
+import { MenuItemButton, ToggleButton } from "@/components/ui/text-buttons";
 
 /**
  * Board of Directors v2 — Edit Board Director.
@@ -11,6 +12,11 @@
  * v2 reads ONLY `?returnTo=` — no `returnUrl`, no `backUrl`.
  */
 
+import FieldLabel from "@/components/form/FieldLabel";
+import { NativeSelect } from "@/components/ui/native-select";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import SectionCard from "@/components/form/SectionCard";
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Image from "next/image";
@@ -36,40 +42,6 @@ import ErrorAlert from "@/components/ErrorAlert";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { useSyncClubIdFromUrl } from "@/hooks/useSyncClubIdFromUrl";
 import { ListPageSkeleton } from "@/components/row/AppKit";
-
-function FieldLabel({
-  children, hint, dot, required = false,
-}: { children: React.ReactNode; hint?: string; dot: string; required?: boolean }) {
-  return (
-    <div className="flex items-center gap-1.5 mb-1">
-      <span className={`w-1.5 h-1.5 rounded-full ${dot}`} />
-      <label className="text-xs font-semibold text-slate-700">
-        {children}
-        {required && <span className="text-rose-600 ml-0.5">*</span>}
-        {hint && <span className="text-slate-400 font-normal ml-1">{hint}</span>}
-      </label>
-    </div>
-  );
-}
-
-function SectionCard({
-  number, icon: Icon, title, dot, children, allowOverflow = false,
-}: { number: number; icon: React.ElementType; title: string; dot: string; children: React.ReactNode; allowOverflow?: boolean }) {
-  // NOTE: When `allowOverflow` is true, we drop `overflow-hidden` on the outer
-  // wrapper so an absolutely-positioned popover (e.g. member-search dropdown)
-  // can escape the card. We compensate by rounding the header's top corners
-  // explicitly so the gradient still hugs the rounded card.
-  return (
-    <div className={`rounded-xl border border-slate-200 mb-4 ${allowOverflow ? "" : "overflow-hidden"}`}>
-      <div className={`flex items-center gap-3 px-4 py-2.5 bg-slate-50 border-b border-slate-100 ${allowOverflow ? "rounded-t-xl" : ""}`}>
-        <div className={`flex items-center justify-center h-7 w-7 rounded-full text-white text-xs font-bold ${dot}`}>{number}</div>
-        <Icon className="h-4 w-4 text-slate-500" />
-        <h3 className="text-sm font-semibold text-slate-800">{title}</h3>
-      </div>
-      <div className="p-4">{children}</div>
-    </div>
-  );
-}
 
 export default function BoardOfDirectorsV2EditPage() {
   useSyncClubIdFromUrl();
@@ -259,31 +231,23 @@ export default function BoardOfDirectorsV2EditPage() {
         {/* 1. Member / Non-Member */}
         {/* allowOverflow: lets the absolute search-results popover escape
             the card's rounded clip so the dropdown is visible. */}
-        <SectionCard number={1} icon={UserCircle} title="Board Member" dot="bg-[#17458F]" allowOverflow>
+        <SectionCard number={1} icon={UserCircle} title="Board Member">
           {/* Person-type toggle — "Non-member" is only selectable for PAST rotary years. */}
-          <div className="inline-flex rounded-lg border border-slate-200 p-0.5 bg-slate-50 mb-3">
-            <button
+          <div role="group" aria-label="Person type" className="flex flex-wrap gap-2 mb-3">
+            <ToggleButton pressed={personType === "member"}
               type="button"
               onClick={() => setPersonType("member")}
-              className={`px-3 py-1.5 text-xs font-semibold rounded-md transition-colors ${personType === "member" ? "bg-card text-blue-700 shadow-sm" : "text-slate-500 hover:text-slate-700"}`}
             >
               Existing member
-            </button>
-            <button
+            </ToggleButton>
+            <ToggleButton pressed={personType === "nonmember"} className="disabled:opacity-50 disabled:cursor-not-allowed"
               type="button"
               disabled={!pastYearSelected}
               onClick={() => { if (pastYearSelected) setPersonType("nonmember"); }}
               title={!pastYearSelected ? "Select a past Rotary year below to add a non-member" : undefined}
-              className={`px-3 py-1.5 text-xs font-semibold rounded-md transition-colors ${
-                personType === "nonmember"
-                  ? "bg-card text-blue-700 shadow-sm"
-                  : pastYearSelected
-                    ? "text-slate-500 hover:text-slate-700"
-                    : "text-slate-300 cursor-not-allowed"
-              }`}
             >
               Non-member
-            </button>
+            </ToggleButton>
           </div>
           {!pastYearSelected && (
             <div className="flex items-start gap-2 mb-3 text-[11px] text-slate-500">
@@ -299,39 +263,36 @@ export default function BoardOfDirectorsV2EditPage() {
                 Enter the details of a person who is not in the system. All three fields are required.
               </div>
               <div>
-                <FieldLabel dot="bg-[#17458F]" required>Name</FieldLabel>
-                <input
+                <FieldLabel required>Name</FieldLabel>
+                <Input
                   type="text"
                   placeholder="Full name"
                   value={nonMemberName}
                   onChange={(e) => setNonMemberName(e.target.value)}
-                  className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
                 />
               </div>
               <div>
-                <FieldLabel dot="bg-[#17458F]" required>Mobile Number</FieldLabel>
-                <input
+                <FieldLabel required>Mobile Number</FieldLabel>
+                <Input
                   type="tel"
                   placeholder="Mobile number"
                   value={nonMemberMobile}
                   onChange={(e) => setNonMemberMobile(e.target.value)}
-                  className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
                 />
               </div>
               <div>
-                <FieldLabel dot="bg-[#17458F]" required>Email</FieldLabel>
-                <input
+                <FieldLabel required>Email</FieldLabel>
+                <Input
                   type="email"
                   placeholder="Email address"
                   value={nonMemberEmail}
                   onChange={(e) => setNonMemberEmail(e.target.value)}
-                  className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
                 />
               </div>
             </div>
           ) : (
           <>
-          <FieldLabel dot="bg-[#17458F]" required>Club Member</FieldLabel>
+          <FieldLabel required>Club Member</FieldLabel>
           {selectedMemberId ? (
             <div className="flex items-center gap-3 p-3 border border-slate-200 rounded-lg bg-blue-50/50">
               <div className="relative h-10 w-10 flex-shrink-0 overflow-hidden rounded-full bg-slate-100">
@@ -344,23 +305,23 @@ export default function BoardOfDirectorsV2EditPage() {
                 )}
               </div>
               <span className="font-medium text-sm flex-1 text-slate-800">{selectedMemberName}</span>
-              <button
+              <Button
                 type="button"
                 onClick={() => { setSelectedMemberId(null); setSelectedMemberName(""); setSelectedMemberPhoto(null); }}
-                className="text-xs font-medium px-2.5 py-1 rounded border border-slate-200 text-slate-700 hover:bg-slate-50"
+                variant="outline" size="sm"
               >
                 Change
-              </button>
+              </Button>
             </div>
           ) : (
             <div className="relative">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-              <input
+              <Input
                 type="text"
                 placeholder="Search club members…"
                 value={memberSearch}
                 onChange={(e) => setMemberSearch(e.target.value)}
-                className="w-full pl-9 pr-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                className="pl-9 pr-3"
                 autoFocus
               />
               {searchLoading && (
@@ -373,10 +334,10 @@ export default function BoardOfDirectorsV2EditPage() {
                   {memberResults.map((m) => {
                     const photoUrl = getPhotoUrl(m.profilePhotoPath);
                     return (
-                      <button
+                      <MenuItemButton
                         key={m.id}
                         type="button"
-                        className="flex items-center gap-3 w-full px-3 py-2 hover:bg-blue-50 text-left transition-colors"
+
                         onClick={() => handleSelectMember(m)}
                       >
                         <div className="relative h-8 w-8 flex-shrink-0 overflow-hidden rounded-full bg-slate-100">
@@ -389,7 +350,7 @@ export default function BoardOfDirectorsV2EditPage() {
                           )}
                         </div>
                         <span className="text-sm font-medium text-slate-800">{m.memberName}</span>
-                      </button>
+                      </MenuItemButton>
                     );
                   })}
                 </div>
@@ -406,40 +367,37 @@ export default function BoardOfDirectorsV2EditPage() {
         </SectionCard>
 
         {/* 2. Designation */}
-        <SectionCard number={2} icon={Award} title="Designation" dot="bg-[#17458F]">
-          <FieldLabel dot="bg-[#17458F]" required>Designation</FieldLabel>
-          <select
+        <SectionCard number={2} icon={Award} title="Designation">
+          <FieldLabel required>Designation</FieldLabel>
+          <NativeSelect
             value={selectedDesignationId}
             onChange={(e) => setSelectedDesignationId(e.target.value)}
-            className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42] bg-card"
           >
             <option value="">Select a designation</option>
             {designations.map((d) => (
               <option key={d.id} value={String(d.id)}>{d.designationName}</option>
             ))}
-          </select>
+          </NativeSelect>
           {isOtherDesignation && (
             <div className="mt-3">
-              <FieldLabel dot="bg-[#17458F]" required>Designation name</FieldLabel>
-              <input
+              <FieldLabel required>Designation name</FieldLabel>
+              <Input
                 type="text"
                 placeholder="Enter the designation name"
                 value={customDesignation}
                 maxLength={150}
                 onChange={(e) => setCustomDesignation(e.target.value)}
-                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
               />
             </div>
           )}
         </SectionCard>
 
         {/* 3. Rotary Year */}
-        <SectionCard number={3} icon={Calendar} title="Rotary Year" dot="bg-[#17458F]">
-          <FieldLabel dot="bg-[#17458F]" required>Rotary Year</FieldLabel>
-          <select
+        <SectionCard number={3} icon={Calendar} title="Rotary Year">
+          <FieldLabel required>Rotary Year</FieldLabel>
+          <NativeSelect
             value={selectedYearId}
             onChange={(e) => setSelectedYearId(e.target.value)}
-            className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42] bg-card"
           >
             <option value="">Select a year</option>
             {allYears.map((y) => (
@@ -447,7 +405,7 @@ export default function BoardOfDirectorsV2EditPage() {
                 {y.yearLabel}{y.isCurrent ? " (Current)" : ""}
               </option>
             ))}
-          </select>
+          </NativeSelect>
         </SectionCard>
 
         <SuccessAlert

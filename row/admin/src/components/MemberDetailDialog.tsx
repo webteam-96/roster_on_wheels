@@ -63,10 +63,10 @@ export default function MemberDetailDialog({ memberId, open, onClose }: MemberDe
                 <div>
                   <p className="text-xl font-bold text-primary">{member.memberName}</p>
                   <div className="flex flex-wrap gap-1 mt-1">
-                    {member.rotaryId && <Badge variant="secondary" className="text-xs"><IdCard className="h-3 w-3 mr-1" />{member.rotaryId}</Badge>}
-                    {member.gender && <Badge variant="outline" className="text-xs">{member.gender}</Badge>}
-                    {showBloodGroup && member.bloodGroup && <Badge variant="outline" className="text-xs text-red-600 border-red-200">{member.bloodGroup}</Badge>}
-                    {member.isYouth && <Badge className="text-xs bg-blue-500">Youth</Badge>}
+                    {member.rotaryId && <Badge variant="secondary"><IdCard className="h-3 w-3 mr-1" />{member.rotaryId}</Badge>}
+                    {member.gender && <Badge variant="outline">{member.gender}</Badge>}
+                    {showBloodGroup && member.bloodGroup && <Badge variant="outline" className="text-red-600 border-red-200">{member.bloodGroup}</Badge>}
+                    {member.isYouth && <Badge className="bg-blue-100 text-azure">Youth</Badge>}
                   </div>
                 </div>
               </DialogTitle>
@@ -104,7 +104,7 @@ export default function MemberDetailDialog({ memberId, open, onClose }: MemberDe
                 {member.addresses.map((addr, i) => (
                   <div key={i} className="col-span-2 rounded-lg border p-3 space-y-1 text-sm">
                     <div className="flex items-center gap-2 mb-1">
-                      <Badge variant="outline" className="text-xs">{addr.addressType}</Badge>
+                      <Badge variant="outline">{addr.addressType}</Badge>
                       {addr.businessName && <span className="font-medium text-primary">{addr.businessName}</span>}
                     </div>
                     <p className="text-muted-foreground">{[addr.address, addr.city, addr.state, addr.pinCode, addr.country].filter(Boolean).join(", ")}</p>
@@ -140,7 +140,7 @@ export default function MemberDetailDialog({ memberId, open, onClose }: MemberDe
                       )}
                     </div>
                     <div className="flex-1 min-w-0 text-sm">
-                      <p className="font-medium">{fm.name} <Badge variant="outline" className="text-xs ml-1">{fm.relation}</Badge></p>
+                      <p className="font-medium">{fm.name} <Badge variant="outline" className="ml-1">{fm.relation}</Badge></p>
                       <p className="text-muted-foreground text-xs">
                         {[fm.phoneNumber && `${fm.countryPhoneCode} ${fm.phoneNumber}`, fm.emailId, showBloodGroup && fm.bloodGroup && `Blood: ${fm.bloodGroup}`, fm.birthDate && `DOB: ${formatBirthAnniversary(fm.birthDate)}`].filter(Boolean).join(" | ")}
                       </p>
@@ -160,7 +160,7 @@ function Section({ icon, title, children }: { icon: React.ReactNode; title: stri
   return (
     <div className="space-y-2">
       <Separator />
-      <h4 className="text-sm font-semibold flex items-center gap-2 text-primary">{icon}{title}</h4>
+      <h4 className="row-h3 flex items-center gap-2">{icon}{title}</h4>
       <div className="grid grid-cols-2 gap-x-6 gap-y-1">{children}</div>
     </div>
   );

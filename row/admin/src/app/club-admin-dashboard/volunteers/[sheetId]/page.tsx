@@ -5,10 +5,13 @@
  * each slot's sign-ups and the hours recorded afterwards. Flagged module "volunteers".
  */
 
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table"
+import { NativeSelect } from "@/components/ui/native-select";
+import { PageHeader } from "@/components/row/AppKit";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import { ArrowLeft, Copy, Loader2, Plus, Save, Trash2 } from "@/components/icons";
+import { Copy, Loader2, Plus, Save, Trash2 } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -29,7 +32,7 @@ import type { SheetStatus, VolunteerSheet, VolunteerTargets } from "@/types/volu
 import type { RotaryYear } from "@/types/rotaryYear";
 import { BASE_PATH } from "@/lib/basePath";
 
-const SELECT = "h-10 w-full rounded-md border border-input bg-background px-3 text-sm";
+const SELECT = "row-field w-full";
 const message = (err: any, fallback: string) => err?.response?.data?.message || fallback;
 const emptySlot = (): SlotRow => ({ id: null, task: "", startsAt: "", endsAt: "", capacity: "1", filled: 0 });
 
@@ -175,17 +178,8 @@ export default function VolunteerSheetPage() {
   const link = sheet ? `${window.location.origin}${BASE_PATH}/public/volunteer/${sheet.publicToken}` : "";
 
   return (
-    <div className="space-y-5 p-6">
-      <Button variant="outline" size="sm" asChild className="gap-1.5">
-        <Link href="/club-admin-dashboard/volunteers"><ArrowLeft className="h-4 w-4" /> All sign-up sheets</Link>
-      </Button>
-      <div>
-        <h2 className="text-2xl font-bold tracking-tight text-primary">{isNew ? "New sign-up sheet" : sheet?.title}</h2>
-        <p className="text-base text-muted-foreground">
-          Slots with a task, a time and a number of places. Each person gets an email reminder in the 24 hours before
-          their slot; members also see it in the app.
-        </p>
-      </div>
+    <div className="space-y-5">
+      <PageHeader title={isNew ? "New sign-up sheet" : sheet?.title} description="Slots with a task, a time and a number of places. Each person gets an email reminder in the 24 hours before their slot; members also see it in the app." back="/club-admin-dashboard/volunteers" />
       {notice && <p className="text-sm text-emerald-700" role="status">{notice}</p>}
 
       <Card>
@@ -201,34 +195,34 @@ export default function VolunteerSheetPage() {
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="event">Event</Label>
-              <select id="event" className={SELECT} value={form.eventId} onChange={(e) => set({ eventId: e.target.value })}>
+              <NativeSelect id="event"  value={form.eventId} onChange={(e) => set({ eventId: e.target.value })}>
                 <option value="">No event</option>
                 {targets?.events.map((e) => <option key={e.id} value={e.id}>{e.title}{e.date ? `, ${fmt.date(e.date)}` : ""}</option>)}
-              </select>
+              </NativeSelect>
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="status">Status</Label>
-              <select id="status" className={SELECT} value={form.status} onChange={(e) => set({ status: e.target.value as SheetStatus })}>
+              <NativeSelect id="status"  value={form.status} onChange={(e) => set({ status: e.target.value as SheetStatus })}>
                 <option value="open">Open for sign-ups</option>
                 <option value="closed">Closed to new sign-ups (reminders still go out)</option>
-              </select>
+              </NativeSelect>
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="year">Service project: Rotary year</Label>
-              <select id="year" className={SELECT} value={form.yearId} onChange={(e) => set({ yearId: e.target.value, projectId: "" })}>
+              <NativeSelect id="year"  value={form.yearId} onChange={(e) => set({ yearId: e.target.value, projectId: "" })}>
                 <option value="">No project</option>
                 {years.map((y) => <option key={y.id} value={y.id}>{y.yearLabel}</option>)}
-              </select>
+              </NativeSelect>
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="project">Service project</Label>
-              <select id="project" className={SELECT} value={form.projectId} disabled={!form.yearId}
+              <NativeSelect id="project"  value={form.projectId} disabled={!form.yearId}
                 onChange={(e) => set({ projectId: e.target.value })}>
                 <option value="">{form.yearId ? "Choose a project" : "Choose the year first"}</option>
                 {form.yearId && targets?.projects.map((p) => (
                   <option key={p.id} value={p.id}>{p.title}{p.date ? `, ${fmt.date(p.date)}` : ""}</option>
                 ))}
-              </select>
+              </NativeSelect>
               <p className="text-xs text-muted-foreground">Hours recorded on this sheet are added to the project&apos;s man-hours.</p>
             </div>
           </div>
@@ -238,54 +232,54 @@ export default function VolunteerSheetPage() {
           </label>
 
           <div className="space-y-2">
-            <h3 className="text-base font-semibold">Slots</h3>
+            <h3 className="row-h2">Slots</h3>
             <div className="overflow-x-auto">
-              <table className="w-full min-w-[720px] text-sm">
-                <thead className="bg-[#EDF4FB] text-[13px] text-[#64748B]">
-                  <tr className="text-left text-muted-foreground">
-                    <th className="pb-2 pr-2 font-medium">Task</th>
-                    <th className="pb-2 pr-2 font-medium">Starts</th>
-                    <th className="pb-2 pr-2 font-medium">Ends (optional)</th>
-                    <th className="pb-2 pr-2 font-medium">Places</th>
-                    <th className="pb-2 pr-2 font-medium">Taken</th>
-                    <th className="pb-2"><span className="sr-only">Remove</span></th>
-                  </tr>
-                </thead>
-                <tbody>
+              <Table className="w-full min-w-[720px] text-sm">
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="pb-2 pr-2">Task</TableHead>
+                    <TableHead className="pb-2 pr-2">Starts</TableHead>
+                    <TableHead className="pb-2 pr-2">Ends (optional)</TableHead>
+                    <TableHead className="pb-2 pr-2">Places</TableHead>
+                    <TableHead className="pb-2 pr-2">Taken</TableHead>
+                    <TableHead className="pb-2"><span className="sr-only">Remove</span></TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
                   {form.slots.map((s, i) => (
-                    <tr key={s.id ?? `new-${i}`}>
-                      <td className="py-1 pr-2"><Input aria-label="Task" maxLength={200} value={s.task} onChange={(e) => setSlot(i, { task: e.target.value })} /></td>
-                      <td className="py-1 pr-2"><Input aria-label="Starts" type="datetime-local" value={s.startsAt} onChange={(e) => setSlot(i, { startsAt: e.target.value })} /></td>
-                      <td className="py-1 pr-2"><Input aria-label="Ends" type="datetime-local" value={s.endsAt} onChange={(e) => setSlot(i, { endsAt: e.target.value })} /></td>
-                      <td className="py-1 pr-2 w-24">
+                    <TableRow key={s.id ?? `new-${i}`}>
+                      <TableCell className="py-1 pr-2"><Input aria-label="Task" maxLength={200} value={s.task} onChange={(e) => setSlot(i, { task: e.target.value })} /></TableCell>
+                      <TableCell className="py-1 pr-2"><Input aria-label="Starts" type="datetime-local" value={s.startsAt} onChange={(e) => setSlot(i, { startsAt: e.target.value })} /></TableCell>
+                      <TableCell className="py-1 pr-2"><Input aria-label="Ends" type="datetime-local" value={s.endsAt} onChange={(e) => setSlot(i, { endsAt: e.target.value })} /></TableCell>
+                      <TableCell className="py-1 pr-2 w-24">
                         <Input aria-label="Places" type="number" min={Math.max(1, s.filled)} max={1000} value={s.capacity}
                           onChange={(e) => setSlot(i, { capacity: e.target.value })} />
-                      </td>
-                      <td className="py-1 pr-2 tabular-nums">{s.filled}</td>
-                      <td className="py-1">
+                      </TableCell>
+                      <TableCell className="py-1 pr-2 tabular-nums">{s.filled}</TableCell>
+                      <TableCell className="py-1">
                         <Button type="button" variant="ghost" size="sm" aria-label="Remove slot" disabled={s.filled > 0 || form.slots.length === 1}
                           title={s.filled > 0 ? "Remove its sign-ups first" : undefined}
                           onClick={() => set({ slots: form.slots.filter((_, j) => j !== i) })}>
                           <Trash2 className="h-4 w-4" />
                         </Button>
-                      </td>
-                    </tr>
+                      </TableCell>
+                    </TableRow>
                   ))}
-                </tbody>
-              </table>
+                </TableBody>
+              </Table>
             </div>
-            <Button type="button" variant="outline" size="sm" className="gap-1.5" disabled={form.slots.length >= 50}
+            <Button type="button" variant="outline" size="sm" disabled={form.slots.length >= 50}
               onClick={() => set({ slots: [...form.slots, emptySlot()] })}>
               <Plus className="h-3.5 w-3.5" /> Add a slot
             </Button>
           </div>
 
           <div className="flex flex-wrap gap-2">
-            <Button onClick={save} disabled={busy || !form.title.trim()} className="gap-1.5">
+            <Button onClick={save} disabled={busy || !form.title.trim()}>
               {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />} {isNew ? "Create sheet" : "Save sheet"}
             </Button>
             {!isNew && (
-              <Button variant="outline" onClick={removeSheet} disabled={busy} className="gap-1.5 text-destructive">
+              <Button variant="outline" onClick={removeSheet} disabled={busy} className="text-destructive">
                 <Trash2 className="h-4 w-4" /> Delete sheet
               </Button>
             )}
@@ -296,14 +290,14 @@ export default function VolunteerSheetPage() {
       {sheet && sheet.isPublic && sheet.status === "open" && (
         <Card>
           <CardContent className="space-y-2 p-5">
-            <h3 className="text-base font-semibold">Public sign-up link</h3>
+            <h3 className="row-h2">Public sign-up link</h3>
             <p className="text-sm text-muted-foreground">
               Share it by email or on your website. People give their name and email and agree to the club keeping them
               for this sign-up.
             </p>
             <div className="flex flex-wrap items-center gap-2">
               <Input readOnly value={link} className="max-w-xl" aria-label="Public sign-up link" onFocus={(e) => e.target.select()} />
-              <Button variant="outline" size="sm" className="gap-1.5"
+              <Button variant="outline" size="sm"
                 onClick={() => navigator.clipboard.writeText(link).then(() => setNotice("Link copied."), () => setError("Could not copy the link."))}>
                 <Copy className="h-3.5 w-3.5" /> Copy link
               </Button>
@@ -316,7 +310,7 @@ export default function VolunteerSheetPage() {
         <Card>
           <CardContent className="space-y-5 p-5">
             <div>
-              <h3 className="text-base font-semibold">Sign-ups and hours</h3>
+              <h3 className="row-h2">Sign-ups and hours</h3>
               <p className="text-sm text-muted-foreground">After the event, record each person&apos;s hours and save.</p>
             </div>
             {sheet.slots.map((slot) => (
@@ -329,35 +323,35 @@ export default function VolunteerSheetPage() {
                   <p className="text-sm text-muted-foreground">No sign-ups yet.</p>
                 ) : (
                   <div className="overflow-x-auto">
-                    <table className="w-full min-w-[640px] text-sm">
-                      <thead className="bg-[#EDF4FB] text-[13px] text-[#64748B]">
-                        <tr className="border-b text-left text-muted-foreground">
-                          <th className="p-2 font-medium">Name</th>
-                          <th className="p-2 font-medium">Signed up as</th>
-                          <th className="p-2 font-medium">Reminder</th>
-                          <th className="p-2 font-medium">Hours</th>
-                          <th className="p-2"><span className="sr-only">Remove</span></th>
-                        </tr>
-                      </thead>
-                      <tbody>
+                    <Table className="w-full min-w-[640px] text-sm">
+                      <TableHeader>
+                        <TableRow className="border-b">
+                          <TableHead className="p-2">Name</TableHead>
+                          <TableHead className="p-2">Signed up as</TableHead>
+                          <TableHead className="p-2">Reminder</TableHead>
+                          <TableHead className="p-2">Hours</TableHead>
+                          <TableHead className="p-2"><span className="sr-only">Remove</span></TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
                         {slot.signups.map((su) => (
-                          <tr key={su.id} className="border-b last:border-0">
-                            <td className="p-2">{su.name}</td>
-                            <td className="p-2">{su.memberId ? "Member" : su.email}</td>
-                            <td className="p-2">{su.reminderSentAt ? fmt.dateTime(su.reminderSentAt) : "Not yet"}</td>
-                            <td className="w-28 p-2">
+                          <TableRow key={su.id} className="border-b last:border-0">
+                            <TableCell className="p-2">{su.name}</TableCell>
+                            <TableCell className="p-2">{su.memberId ? "Member" : su.email}</TableCell>
+                            <TableCell className="p-2">{su.reminderSentAt ? fmt.dateTime(su.reminderSentAt) : "Not yet"}</TableCell>
+                            <TableCell className="w-28 p-2">
                               <Input aria-label={`Hours for ${su.name}`} type="number" min={0} max={999} step={0.25} value={hours[su.id] ?? ""}
                                 onChange={(e) => setHours({ ...hours, [su.id]: e.target.value })} />
-                            </td>
-                            <td className="p-2">
+                            </TableCell>
+                            <TableCell className="p-2">
                               <Button variant="ghost" size="sm" aria-label={`Remove ${su.name}`} disabled={busy} onClick={() => removeSignup(su.id)}>
                                 <Trash2 className="h-4 w-4" />
                               </Button>
-                            </td>
-                          </tr>
+                            </TableCell>
+                          </TableRow>
                         ))}
-                      </tbody>
-                    </table>
+                      </TableBody>
+                    </Table>
                   </div>
                 )}
               </div>
@@ -370,7 +364,7 @@ export default function VolunteerSheetPage() {
                   : "Link a service project above to add these hours to its man-hours."}
               </p>
               <Button onClick={() => run(() => saveVolunteerHours(clubId, id, hoursEntries(hours)), "Hours saved.")}
-                disabled={busy || Object.keys(hours).length === 0} className="gap-1.5">
+                disabled={busy || Object.keys(hours).length === 0}>
                 {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />} Save hours
               </Button>
             </div>

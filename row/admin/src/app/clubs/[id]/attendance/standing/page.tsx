@@ -1,8 +1,8 @@
 "use client";
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useParams } from "next/navigation";
-import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { useAuth } from "@/contexts/AuthContext";
 import { clubYearRights, canEditYear } from "@/lib/adminYears";
@@ -11,8 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import SuccessAlert from "@/components/SuccessAlert";
-import { ArrowLeft } from "@/components/icons";
-import { ErrorState, KpiTile, ListPageSkeleton, Panel, rowTable } from "@/components/row/AppKit";
+import { PageHeader, ErrorState, KpiTile, ListPageSkeleton, Panel, rowTable } from "@/components/row/AppKit";
 import {
   getAttendanceYears, getAttendanceStanding, getAttendanceMakeups, addAttendanceMakeup, reviewAttendanceMakeup,
   deleteAttendanceMakeup, getAttendanceLeaves, addAttendanceLeave, deleteAttendanceLeave, getAttendanceExemptions,
@@ -129,15 +128,7 @@ export default function AttendanceStandingPage() {
   return (
     <ProtectedRoute>
       <div className="space-y-6">
-        <div className="flex items-center gap-3">
-          <Button variant="outline" size="icon" asChild>
-            <Link href={`/clubs/${clubId}/attendance`} aria-label="Back to attendance"><ArrowLeft className="h-4 w-4" /></Link>
-          </Button>
-          <div>
-            <h2 className="text-2xl font-bold tracking-tight text-primary">Attendance standing</h2>
-            <p className="text-muted-foreground text-base">Makeups, leave of absence and exemptions, and each member&apos;s attendance.</p>
-          </div>
-        </div>
+        <PageHeader title="Attendance standing" description={<>Makeups, leave of absence and exemptions, and each member&apos;s attendance.</>} back={`/clubs/${clubId}/attendance`} />
 
         <div className="flex flex-col gap-4 sm:flex-row">
           <div className="w-full sm:w-48">
@@ -190,29 +181,29 @@ export default function AttendanceStandingPage() {
                 <Panel title="Member standing" subtitle={`${standing.from} to ${standing.to}. Meetings on leave or under an exemption are not counted.`}>
                   {members.length === 0 ? <p className="text-muted-foreground py-6">No members on the roll for this period.</p> : (
                     <div className={rowTable.wrap}>
-                      <table className={rowTable.table}>
-                        <thead className={rowTable.head}><tr>
-                          <th className={rowTable.th}>Member</th><th className={rowTable.th}>Counted</th><th className={rowTable.th}>Present</th>
-                          <th className={rowTable.th}>Made up</th><th className={rowTable.th}>Excused</th><th className={rowTable.th}>Attendance</th>
-                          <th className={rowTable.th}>Status</th>
-                        </tr></thead>
-                        <tbody className={rowTable.body}>
+                      <Table>
+                        <TableHeader><TableRow>
+                          <TableHead>Member</TableHead><TableHead>Counted</TableHead><TableHead>Present</TableHead>
+                          <TableHead>Made up</TableHead><TableHead>Excused</TableHead><TableHead>Attendance</TableHead>
+                          <TableHead>Status</TableHead>
+                        </TableRow></TableHeader>
+                        <TableBody>
                           {members.map((m) => (
-                            <tr key={m.memberId} className={rowTable.tr}>
-                              <td className={rowTable.td}>
+                            <TableRow key={m.memberId}>
+                              <TableCell>
                                 {m.memberName}
                                 {(m.memberType !== "active" || !m.inClubTotal) && (
                                   <span className="block text-[13px] text-muted-foreground">
                                     {m.memberType}{m.inClubTotal ? "" : ", not in the club total"}
                                   </span>
                                 )}
-                              </td>
-                              <td className={rowTable.tdMuted}>{m.counted}</td>
-                              <td className={rowTable.tdMuted}>{m.present}</td>
-                              <td className={rowTable.tdMuted}>{m.madeUp}</td>
-                              <td className={rowTable.tdMuted}>{m.excused}</td>
-                              <td className={rowTable.td}>{m.percent == null ? "Not counted" : `${m.percent}%`}</td>
-                              <td className={rowTable.tdMuted}>
+                              </TableCell>
+                              <TableCell className="text-muted-foreground">{m.counted}</TableCell>
+                              <TableCell className="text-muted-foreground">{m.present}</TableCell>
+                              <TableCell className="text-muted-foreground">{m.madeUp}</TableCell>
+                              <TableCell className="text-muted-foreground">{m.excused}</TableCell>
+                              <TableCell>{m.percent == null ? "Not counted" : `${m.percent}%`}</TableCell>
+                              <TableCell className="text-muted-foreground">
                                 {m.exempt ? "Exempt" : m.rule85 ? (
                                   canManage ? (
                                     <Button size="sm" variant="outline" disabled={busy}
@@ -221,11 +212,11 @@ export default function AttendanceStandingPage() {
                                     </Button>
                                   ) : "Qualifies for rule of 85"
                                 ) : ""}
-                              </td>
-                            </tr>
+                              </TableCell>
+                            </TableRow>
                           ))}
-                        </tbody>
-                      </table>
+                        </TableBody>
+                      </Table>
                     </div>
                   )}
                 </Panel>
@@ -253,25 +244,25 @@ export default function AttendanceStandingPage() {
                 <Panel title="Makeups" subtitle="Waiting ones are listed first. Only approved makeups count.">
                   {makeups.length === 0 ? <p className="text-muted-foreground py-6">No makeups this year.</p> : (
                     <div className={rowTable.wrap}>
-                      <table className={rowTable.table}>
-                        <thead className={rowTable.head}><tr>
-                          <th className={rowTable.th}>Member</th><th className={rowTable.th}>Date</th><th className={rowTable.th}>Type</th>
-                          <th className={rowTable.th}>For meeting</th><th className={rowTable.th}>Note</th><th className={rowTable.th}>Status</th>
-                          {canManage && <th className={rowTable.th}><span className="sr-only">Actions</span></th>}
-                        </tr></thead>
-                        <tbody className={rowTable.body}>
+                      <Table>
+                        <TableHeader><TableRow>
+                          <TableHead>Member</TableHead><TableHead>Date</TableHead><TableHead>Type</TableHead>
+                          <TableHead>For meeting</TableHead><TableHead>Note</TableHead><TableHead>Status</TableHead>
+                          {canManage && <TableHead><span className="sr-only">Actions</span></TableHead>}
+                        </TableRow></TableHeader>
+                        <TableBody>
                           {makeups.map((m) => (
-                            <tr key={m.id} className={rowTable.tr}>
-                              <td className={rowTable.td}>{m.memberName}</td>
-                              <td className={rowTable.tdMuted}>{m.makeupDate}</td>
-                              <td className={rowTable.tdMuted}>{typeLabel(m.makeupType)}</td>
-                              <td className={rowTable.tdMuted}>{m.missedEventName ?? "Nearest missed meeting"}</td>
-                              <td className={rowTable.tdMuted}>{m.note ?? ""}</td>
-                              <td className={rowTable.td}>
+                            <TableRow key={m.id}>
+                              <TableCell>{m.memberName}</TableCell>
+                              <TableCell className="text-muted-foreground">{m.makeupDate}</TableCell>
+                              <TableCell className="text-muted-foreground">{typeLabel(m.makeupType)}</TableCell>
+                              <TableCell className="text-muted-foreground">{m.missedEventName ?? "Nearest missed meeting"}</TableCell>
+                              <TableCell className="text-muted-foreground">{m.note ?? ""}</TableCell>
+                              <TableCell>
                                 {m.status === "pending" ? "Waiting for approval" : m.status === "approved" ? "Approved" : `Rejected${m.reviewNote ? `: ${m.reviewNote}` : ""}`}
-                              </td>
+                              </TableCell>
                               {canManage && (
-                                <td className={rowTable.td}>
+                                <TableCell>
                                   <div className="flex gap-2">
                                     {m.status === "pending" && <>
                                       <Button size="sm" disabled={busy} onClick={() => run(() => reviewAttendanceMakeup(clubId, m.id, true), "Makeup approved.")}>Approve</Button>
@@ -283,12 +274,12 @@ export default function AttendanceStandingPage() {
                                     <Button size="sm" variant="outline" disabled={busy}
                                       onClick={() => window.confirm("Delete this makeup?") && run(() => deleteAttendanceMakeup(clubId, m.id), "Makeup deleted.")}>Delete</Button>
                                   </div>
-                                </td>
+                                </TableCell>
                               )}
-                            </tr>
+                            </TableRow>
                           ))}
-                        </tbody>
-                      </table>
+                        </TableBody>
+                      </Table>
                     </div>
                   )}
                 </Panel>
@@ -313,24 +304,24 @@ export default function AttendanceStandingPage() {
                 <Panel title="Leave of absence">
                   {leaves.length === 0 ? <p className="text-muted-foreground py-6">No leave of absence this year.</p> : (
                     <div className={rowTable.wrap}>
-                      <table className={rowTable.table}>
-                        <thead className={rowTable.head}><tr>
-                          <th className={rowTable.th}>Member</th><th className={rowTable.th}>From</th><th className={rowTable.th}>To</th><th className={rowTable.th}>Reason</th>
-                          {canManage && <th className={rowTable.th}><span className="sr-only">Actions</span></th>}
-                        </tr></thead>
-                        <tbody className={rowTable.body}>
+                      <Table>
+                        <TableHeader><TableRow>
+                          <TableHead>Member</TableHead><TableHead>From</TableHead><TableHead>To</TableHead><TableHead>Reason</TableHead>
+                          {canManage && <TableHead><span className="sr-only">Actions</span></TableHead>}
+                        </TableRow></TableHeader>
+                        <TableBody>
                           {leaves.map((l) => (
-                            <tr key={l.id} className={rowTable.tr}>
-                              <td className={rowTable.td}>{l.memberName}</td><td className={rowTable.tdMuted}>{l.fromDate}</td>
-                              <td className={rowTable.tdMuted}>{l.toDate}</td><td className={rowTable.tdMuted}>{l.reason ?? ""}</td>
-                              {canManage && <td className={rowTable.td}>
+                            <TableRow key={l.id}>
+                              <TableCell>{l.memberName}</TableCell><TableCell className="text-muted-foreground">{l.fromDate}</TableCell>
+                              <TableCell className="text-muted-foreground">{l.toDate}</TableCell><TableCell className="text-muted-foreground">{l.reason ?? ""}</TableCell>
+                              {canManage && <TableCell>
                                 <Button size="sm" variant="outline" disabled={busy}
                                   onClick={() => window.confirm("Delete this leave of absence?") && run(() => deleteAttendanceLeave(clubId, l.id), "Leave deleted.")}>Delete</Button>
-                              </td>}
-                            </tr>
+                              </TableCell>}
+                            </TableRow>
                           ))}
-                        </tbody>
-                      </table>
+                        </TableBody>
+                      </Table>
                     </div>
                   )}
                 </Panel>
@@ -354,24 +345,24 @@ export default function AttendanceStandingPage() {
                 <Panel title="Exemptions">
                   {exemptions.length === 0 ? <p className="text-muted-foreground py-6">No member is exempt.</p> : (
                     <div className={rowTable.wrap}>
-                      <table className={rowTable.table}>
-                        <thead className={rowTable.head}><tr>
-                          <th className={rowTable.th}>Member</th><th className={rowTable.th}>Reason</th><th className={rowTable.th}>Ends</th>
-                          {canManage && <th className={rowTable.th}><span className="sr-only">Actions</span></th>}
-                        </tr></thead>
-                        <tbody className={rowTable.body}>
+                      <Table>
+                        <TableHeader><TableRow>
+                          <TableHead>Member</TableHead><TableHead>Reason</TableHead><TableHead>Ends</TableHead>
+                          {canManage && <TableHead><span className="sr-only">Actions</span></TableHead>}
+                        </TableRow></TableHeader>
+                        <TableBody>
                           {exemptions.map((x) => (
-                            <tr key={x.id} className={rowTable.tr}>
-                              <td className={rowTable.td}>{x.memberName}</td><td className={rowTable.tdMuted}>{x.reason}</td>
-                              <td className={rowTable.tdMuted}>{x.endDate ?? "No end"}</td>
-                              {canManage && <td className={rowTable.td}>
+                            <TableRow key={x.id}>
+                              <TableCell>{x.memberName}</TableCell><TableCell className="text-muted-foreground">{x.reason}</TableCell>
+                              <TableCell className="text-muted-foreground">{x.endDate ?? "No end"}</TableCell>
+                              {canManage && <TableCell>
                                 <Button size="sm" variant="outline" disabled={busy}
                                   onClick={() => window.confirm("Remove this exemption?") && run(() => deleteAttendanceExemption(clubId, x.id), "Exemption removed.")}>Remove</Button>
-                              </td>}
-                            </tr>
+                              </TableCell>}
+                            </TableRow>
                           ))}
-                        </tbody>
-                      </table>
+                        </TableBody>
+                      </Table>
                     </div>
                   )}
                 </Panel>
@@ -381,19 +372,19 @@ export default function AttendanceStandingPage() {
                 <Panel title="Meetings" subtitle="A closed meeting's attendance and makeups cannot change until an officer reopens it. Closing and reopening are recorded in the audit log.">
                   {meetings.length === 0 ? <p className="text-muted-foreground py-6">No meetings recorded this year.</p> : (
                     <div className={rowTable.wrap}>
-                      <table className={rowTable.table}>
-                        <thead className={rowTable.head}><tr>
-                          <th className={rowTable.th}>Meeting</th><th className={rowTable.th}>Date</th><th className={rowTable.th}>Present</th>
-                          <th className={rowTable.th}>Status</th><th className={rowTable.th}><span className="sr-only">Actions</span></th>
-                        </tr></thead>
-                        <tbody className={rowTable.body}>
+                      <Table>
+                        <TableHeader><TableRow>
+                          <TableHead>Meeting</TableHead><TableHead>Date</TableHead><TableHead>Present</TableHead>
+                          <TableHead>Status</TableHead><TableHead><span className="sr-only">Actions</span></TableHead>
+                        </TableRow></TableHeader>
+                        <TableBody>
                           {meetings.map((m) => (
-                            <tr key={m.id} className={rowTable.tr}>
-                              <td className={rowTable.td}>{m.eventName}</td>
-                              <td className={rowTable.tdMuted}>{m.meetingDate}</td>
-                              <td className={rowTable.tdMuted}>{m.presentCount}</td>
-                              <td className={rowTable.tdMuted}>{m.closed ? `Closed${m.closedByName ? ` by ${m.closedByName}` : ""}` : "Open"}</td>
-                              <td className={rowTable.td}>
+                            <TableRow key={m.id}>
+                              <TableCell>{m.eventName}</TableCell>
+                              <TableCell className="text-muted-foreground">{m.meetingDate}</TableCell>
+                              <TableCell className="text-muted-foreground">{m.presentCount}</TableCell>
+                              <TableCell className="text-muted-foreground">{m.closed ? `Closed${m.closedByName ? ` by ${m.closedByName}` : ""}` : "Open"}</TableCell>
+                              <TableCell>
                                 <div className="flex gap-2">
                                   {isOfficer && (
                                     <Button size="sm" variant="outline" disabled={busy}
@@ -409,11 +400,11 @@ export default function AttendanceStandingPage() {
                                       onClick={() => window.confirm("Close this meeting? Its attendance and makeups will be locked.") && run(() => setAttendanceMeetingClosed(clubId, m.id, true), "Meeting closed.")}>Close</Button>
                                   ))}
                                 </div>
-                              </td>
-                            </tr>
+                              </TableCell>
+                            </TableRow>
                           ))}
-                        </tbody>
-                      </table>
+                        </TableBody>
+                      </Table>
                     </div>
                   )}
                 </Panel>
@@ -430,28 +421,28 @@ export default function AttendanceStandingPage() {
                     }>
                     {rule85.length === 0 ? <p className="text-muted-foreground py-6">No member qualifies at present. Members without a birth date or join date cannot be checked.</p> : (
                       <div className={rowTable.wrap}>
-                        <table className={rowTable.table}>
-                          <thead className={rowTable.head}><tr>
-                            <th className={rowTable.th}>Member</th><th className={rowTable.th}>Age</th><th className={rowTable.th}>Years a member</th>
-                            <th className={rowTable.th}>Total</th><th className={rowTable.th}>Exempt</th>
-                          </tr></thead>
-                          <tbody className={rowTable.body}>
+                        <Table>
+                          <TableHeader><TableRow>
+                            <TableHead>Member</TableHead><TableHead>Age</TableHead><TableHead>Years a member</TableHead>
+                            <TableHead>Total</TableHead><TableHead>Exempt</TableHead>
+                          </TableRow></TableHeader>
+                          <TableBody>
                             {rule85.map((r) => (
-                              <tr key={r.memberId} className={rowTable.tr}>
-                                <td className={rowTable.td}>{r.memberName}</td><td className={rowTable.tdMuted}>{r.age}</td>
-                                <td className={rowTable.tdMuted}>{r.years}</td><td className={rowTable.td}>{r.age + r.years}</td>
-                                <td className={rowTable.tdMuted}>
+                              <TableRow key={r.memberId}>
+                                <TableCell>{r.memberName}</TableCell><TableCell className="text-muted-foreground">{r.age}</TableCell>
+                                <TableCell className="text-muted-foreground">{r.years}</TableCell><TableCell>{r.age + r.years}</TableCell>
+                                <TableCell className="text-muted-foreground">
                                   {r.exempt ? "Yes" : canManage ? (
                                     <Button size="sm" variant="outline" disabled={busy}
                                       onClick={() => run(() => saveAttendanceExemption(clubId, { memberId: r.memberId, reason: RULE85 }), `${r.memberName} is exempt under the rule of 85.`)}>
                                       Grant exemption
                                     </Button>
                                   ) : "Not yet"}
-                                </td>
-                              </tr>
+                                </TableCell>
+                              </TableRow>
                             ))}
-                          </tbody>
-                        </table>
+                          </TableBody>
+                        </Table>
                       </div>
                     )}
                   </Panel>

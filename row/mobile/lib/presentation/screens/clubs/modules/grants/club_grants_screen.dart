@@ -8,6 +8,8 @@ import '../../../../widgets/common/empty_state_widget.dart';
 import '../../../../widgets/common/loading_widget.dart';
 import 'grant_application_screen.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/motion.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/roster_wheel.dart';
 
 /// The club's district grant applications and where each one stands (feature `grants`, `api/clubs/{id}/grants`).
 /// New applications, edits and status steps open GrantApplicationScreen / GrantApplicationForm.
@@ -119,9 +121,9 @@ class _ClubGrantsScreenState extends State<ClubGrantsScreen> {
                       subtitle: _openCycles.isEmpty
                           ? 'When your district opens a grant cycle, you can apply here.'
                           : 'Your district has a grant cycle open. Tap New application to apply.')
-                  : RefreshIndicator(
+                  : RowRefresh(
                       onRefresh: _load,
-                      child: ListView.separated(
+                      child: RowListView.separated(
   padding: const EdgeInsets.only(bottom: 88),
                         itemCount: apps.length,
                         separatorBuilder: (_, __) => const Divider(height: 1),

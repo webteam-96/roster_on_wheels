@@ -1,4 +1,5 @@
 "use client";
+import { MenuItemButton } from "@/components/ui/text-buttons";
 
 /**
  * District Admin Dashboard ▸ E-Governance & Reporting (Wave 13D rebuild)
@@ -37,6 +38,10 @@
  *     the active RY by default.
  */
 
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { IconButton } from "@/components/ui/icon-button";
+import { Card } from "@/components/ui/card";
 import {
   ChevronRight,
   ChevronDown,
@@ -215,7 +220,7 @@ const MONTH_ORDER = [
 /** Tiny inline pending chip for empty data spots. */
 function PendingChip({ label = "Pending" }: { label?: string }) {
   return (
-    <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-medium text-amber-700 ring-1 ring-amber-200">
+    <span className="inline-flex items-center gap-1 rounded bg-amber-50 px-2 py-0.5 text-[10px] font-medium text-amber-700 ring-1 ring-amber-200">
       <Clock size={10} /> {label}
     </span>
   );
@@ -262,7 +267,7 @@ export default function DistrictAdminEGovernancePage() {
   return (
     <div className="space-y-6">
       {/* ─── Sub-tabs ─────────────────────────────────────────────────── */}
-      <div className="bg-card rounded-2xl border border-slate-200">
+      <Card>
         <Tabs
           value={activeTab}
           onValueChange={(v) => {
@@ -270,13 +275,12 @@ export default function DistrictAdminEGovernancePage() {
           }}
         >
           <div className="px-5 pt-3">
-            <TabsList
-              className="h-auto w-full justify-start sm:w-auto p-1.5 gap-1"
+            <TabsList className="w-full sm:w-auto"
             >
-              {on.cmr && <TabsTrigger value="cmr" className="text-sm font-semibold px-3.5 py-1.5 rounded-full">Club Monthly Report</TabsTrigger>}
-              <TabsTrigger value="citation" className="text-sm font-semibold px-3.5 py-1.5 rounded-full">District Awards</TabsTrigger>
-              <TabsTrigger value="network" className="text-sm font-semibold px-3.5 py-1.5 rounded-full">Rotary Network</TabsTrigger>
-              <TabsTrigger value="reports" className="text-sm font-semibold px-3.5 py-1.5 rounded-full">Reports</TabsTrigger>
+              {on.cmr && <TabsTrigger value="cmr">Club Monthly Report</TabsTrigger>}
+              <TabsTrigger value="citation">District Awards</TabsTrigger>
+              <TabsTrigger value="network">Rotary Network</TabsTrigger>
+              <TabsTrigger value="reports">Reports</TabsTrigger>
             </TabsList>
           </div>
 
@@ -293,7 +297,7 @@ export default function DistrictAdminEGovernancePage() {
             <ReportsTab rows={data.reports} districtId={districtId} yearId={yearId} />
           </TabsContent>
         </Tabs>
-      </div>
+      </Card>
     </div>
   );
 }
@@ -473,14 +477,14 @@ function CmrEmailSettingsButton({ districtId }: { districtId: number }) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <button
+        <IconButton
           type="button"
           title="Club Monthly Report: Submission Email settings"
           aria-label="Submission email settings"
-          className="inline-flex items-center justify-center h-7 w-7 rounded-full text-slate-500 hover:bg-slate-100 hover:text-slate-700"
+          
         >
           <Settings className="h-4 w-4" />
-        </button>
+        </IconButton>
       </DialogTrigger>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
@@ -537,13 +541,13 @@ function CmrEmailSettingsButton({ districtId }: { districtId: number }) {
                 <label className="block text-xs font-medium text-slate-700 mb-1.5">
                   Extra CC emails (comma-separated)
                 </label>
-                <input
+                <Input
                   type="text"
                   value={ccEmails}
                   disabled={!canManage}
                   onChange={(e) => setCcEmails(e.target.value)}
                   placeholder="e.g. secretary@example.org, chair@example.org"
-                  className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                  
                 />
                 <p className="text-[11px] text-slate-500 mt-1">
                   These addresses are always copied on the submission email (whether or not the District Governor is emailed).
@@ -558,15 +562,15 @@ function CmrEmailSettingsButton({ districtId }: { districtId: number }) {
                   </p>
                 )}
                 {canManage && (
-                <button
+                <Button
                   type="button"
                   onClick={save}
                   disabled={saving}
-                  className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-full bg-[#17458F] text-white hover:bg-[#17458F] disabled:opacity-60"
+                  
                 >
                   {saving && <Loader2 className="h-4 w-4 animate-spin" />}
                   Save
-                </button>
+                </Button>
                 )}
                 {savedMsg && (
                   <span className={`text-xs ${savedMsg === "Saved" ? "text-emerald-600" : "text-rose-600"}`}>
@@ -609,12 +613,12 @@ function MonthlySummary({
   };
 
   return (
-    <div className="bg-card rounded-[20px] border border-slate-200 overflow-hidden">
+    <Card className="overflow-hidden">
       <div className="px-5 py-3 border-b border-slate-100 flex items-center justify-between flex-wrap gap-2">
         <div>
           <div className="flex items-center gap-1.5">
             {cmrEmailOn && <CmrEmailSettingsButton districtId={districtId} />}
-            <h4 className="text-sm font-semibold text-slate-800">
+            <h4 className="row-h3">
               District Summary: By Month
             </h4>
           </div>
@@ -645,11 +649,10 @@ function MonthlySummary({
               tone === "emerald" ? "text-emerald-600" : tone === "amber" ? "text-amber-600" : "text-rose-600";
             return (
               <li key={m.month}>
-                <button
-                  type="button"
+                <MenuItemButton
                   onClick={() => openMonth(m.month)}
                   title={`View ${m.month} club-wise detail`}
-                  className="group w-full flex items-center gap-4 px-5 py-4 text-left cursor-pointer hover:bg-blue-50/70 border-l-2 border-transparent hover:border-blue-500 transition"
+                  className="group gap-4 rounded-none px-5 py-4"
                 >
                   <FileText size={16} className="text-blue-500 shrink-0" />
                   <span className="text-sm font-semibold text-blue-700 flex-1 min-w-0 truncate group-hover:underline">
@@ -668,16 +671,16 @@ function MonthlySummary({
                     />
                   </span>
 
-                  <span className="inline-flex items-center gap-1 text-xs font-semibold text-blue-600 px-2 py-1 rounded-full border border-blue-200 bg-blue-50 group-hover:bg-blue-100 shrink-0">
+                  <span className="inline-flex items-center gap-1 text-xs font-semibold text-blue-600 px-2 py-1 rounded border border-blue-200 bg-blue-50 group-hover:bg-blue-100 shrink-0">
                     View <ChevronRight size={14} />
                   </span>
-                </button>
+                </MenuItemButton>
               </li>
             );
           })}
         </ul>
       )}
-    </div>
+    </Card>
   );
 }
 
@@ -754,11 +757,11 @@ function PerClubGrid({
   );
 
   return (
-    <div className="bg-card rounded-[20px] border border-slate-200 overflow-hidden">
+    <Card className="overflow-hidden">
       <div className="px-5 py-3 border-b border-slate-100">
         <div className="flex items-center justify-between gap-3 flex-wrap">
           <div>
-            <h4 className="text-sm font-semibold text-slate-800">
+            <h4 className="row-h3">
               Per-Club Breakdown
             </h4>
             <p className="text-[11px] text-slate-500 mt-0.5">
@@ -775,7 +778,7 @@ function PerClubGrid({
               size={14}
               className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
             />
-            <input
+            <Input
               type="text"
               placeholder="Search club…"
               value={query}
@@ -783,7 +786,7 @@ function PerClubGrid({
                 setQuery(e.target.value);
                 setPage(1);
               }}
-              className="w-full h-9 pl-9 pr-3 rounded-md border border-slate-200 text-sm focus:outline-none focus:ring-1 focus:ring-blue-300 focus:border-blue-400"
+              className="pl-9 pr-3"
             />
           </div>
           <div className="flex items-center gap-3 text-[11px] text-slate-600">
@@ -870,14 +873,14 @@ function PerClubGrid({
       {filtered.length > PAGE_SIZE && (
         <div className="px-5 py-3 border-t border-slate-100"><Pagination page={pageSafe} totalPages={totalPages} totalCount={filtered.length} pageSize={PAGE_SIZE} onPageChange={setPage} /></div>
       )}
-    </div>
+    </Card>
   );
 }
 
 /* ============================================================== Reports */
 function ReportsTab({ rows, districtId, yearId }: { rows: ApiReportRow[] | undefined; districtId: number; yearId?: number | null }) {
   return (
-    <div className="bg-card rounded-[20px] border border-slate-200 overflow-hidden">
+    <Card className="overflow-hidden">
       <ul className="divide-y divide-slate-100">
         {(rows ?? []).map((r) => (
           <li
@@ -905,7 +908,7 @@ function ReportsTab({ rows, districtId, yearId }: { rows: ApiReportRow[] | undef
             {r.downloadUrl ? (
               <a
                 href={r.downloadUrl}
-                className="inline-flex items-center gap-1.5 rounded-full bg-blue-50 px-3 py-1.5 text-xs font-semibold text-blue-700 hover:bg-blue-100"
+                className="row-btn row-btn-secondary row-btn-sm"
               >
                 <Download size={12} /> Download
               </a>
@@ -924,6 +927,6 @@ function ReportsTab({ rows, districtId, yearId }: { rows: ApiReportRow[] | undef
       <div className="px-5 py-4">
         <DistrictReportContent districtId={districtId} showCommunicationLogs />
       </div>
-    </div>
+    </Card>
   );
 }

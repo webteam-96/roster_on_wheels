@@ -15,7 +15,7 @@ export default function ComingSoonStub({ moduleName, comingSoonDate }: ComingSoo
         <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-amber-100">
           <Sparkles size={26} className="text-amber-600" />
         </div>
-        <h2 className="text-xl font-bold text-slate-800">{moduleName}</h2>
+        <h2 className="row-h2">{moduleName}</h2>
         <p className="text-sm font-semibold text-amber-700 mt-1 uppercase tracking-wider">
           {hasDate ? `Coming Soon: Launches on ${dateLabel}` : "Coming Soon"}
         </p>

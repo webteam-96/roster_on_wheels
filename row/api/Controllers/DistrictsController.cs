@@ -161,6 +161,23 @@ public class DistrictsController : ControllerBase
         return NoContent();
     }
 
+    // Settings > Currency: every district still on the platform default gets its own country's currency.
+    [HttpPost("default-currency/from-country")]
+    public async Task<ActionResult> SetCurrenciesFromCountry()
+    {
+        if (!IsSuperAdmin())
+            return StatusCode(403, new { message = "Only SuperAdmin can update district currency." });
+
+        var changes = await _districtService.SetCurrenciesFromCountryAsync(GetCurrentMemberId());
+        await _auditLog.LogAsync(GetCurrentMemberId(), "UPDATE", "district_currency", 0, $"{changes.Count} districts from country", changes, HttpContext);
+        return Ok(new { changed = changes.Count });
+    }
+
+    // The exchange rates in use and their date, shown on the same screen.
+    [HttpGet("currency-rates")]
+    public async Task<ActionResult> CurrencyRates([FromServices] ICurrencyRateService rates) =>
+        IsSuperAdmin() ? Ok(await rates.GetInfoAsync()) : StatusCode(403, new { message = "Only SuperAdmin can read the rates." });
+
     [HttpDelete("{id}")]
     public async Task<ActionResult> Delete(int id)
     {

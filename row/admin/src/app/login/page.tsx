@@ -7,6 +7,8 @@ import Link from "next/link";
 import { Eye, EyeOff } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import { Button } from "@/components/ui/button";
+import { IconButton } from "@/components/ui/icon-button";
+import { LinkButton } from "@/components/ui/text-buttons";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
@@ -152,7 +154,7 @@ export default function LoginPage() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4 py-10">
       {/* The logo artwork has a white field, so it sits on the light card itself: no dark band, no plate. */}
-      <Card className="w-full max-w-md overflow-hidden rounded-[20px] border border-[color:var(--row-line)]">
+      <Card className="w-full max-w-md overflow-hidden border-[color:var(--row-line)]">
         <CardHeader className="gap-6 px-7 pb-2 pt-7">
           <div className="flex items-start justify-between gap-3">
             <BrandLogo className="h-14" />
@@ -190,9 +192,9 @@ export default function LoginPage() {
                 {isLoading && <RotaryLoader size="sm" />}
                 Send sign-in link
               </Button>
-              <button type="button" onClick={() => { setError(""); setMode("password"); }} className="w-full text-sm font-semibold text-primary hover:underline">
+              <LinkButton onClick={() => { setError(""); setMode("password"); }} className="w-full">
                 Sign in with password
-              </button>
+              </LinkButton>
             </form>
           ) : (
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -215,23 +217,24 @@ export default function LoginPage() {
                 <Input
                   id="password"
                   type={showPassword ? "text" : "password"}
+                  className="pr-11"
                   placeholder="Enter your password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
                 />
-                <button
-                  type="button"
-                  className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                <IconButton
+                  className="absolute right-2 top-1/2 -translate-y-1/2"
                   onClick={() => setShowPassword(!showPassword)}
                   tabIndex={-1}
+                  aria-label={showPassword ? "Hide password" : "Show password"}
                 >
                   {showPassword ? (
                     <EyeOff className="h-4 w-4" />
                   ) : (
                     <Eye className="h-4 w-4" />
                   )}
-                </button>
+                </IconButton>
               </div>
             </div>
 
@@ -263,9 +266,9 @@ export default function LoginPage() {
               Sign In
             </Button>
 
-            <button type="button" onClick={() => { setError(""); setMode("magic"); }} className="w-full text-sm font-semibold text-primary hover:underline">
+            <LinkButton onClick={() => { setError(""); setMode("magic"); }} className="w-full">
               Email me a sign-in link instead
-            </button>
+            </LinkButton>
             <p className="text-center text-sm text-muted-foreground">
               Club executive without a password?{" "}
               <Link href="/exec-signin" className="font-semibold text-primary hover:underline">Sign in with an email code</Link>

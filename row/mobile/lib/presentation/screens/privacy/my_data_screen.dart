@@ -7,6 +7,7 @@ import '../../../core/services/privacy_api.dart';
 import '../../../core/utils/snackbar_utils.dart';
 import '../../providers/auth_provider.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/motion.dart';
 
 /// "My data": download everything held about the member, or withdraw consent
 /// (which signs them out, as declining the consent dialog does). WS7 / GDPR set.
@@ -36,7 +37,7 @@ class _MyDataScreenState extends State<MyDataScreen> {
   }
 
   Future<void> _withdraw() async {
-    final ok = await showDialog<bool>(
+    final ok = await showRowDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Withdraw consent?'),

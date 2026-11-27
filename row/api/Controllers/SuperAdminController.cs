@@ -144,7 +144,7 @@ public class SuperAdminController : ControllerBase
         if (action != "PROMOTE" && action != "REMOVE")
             return BadRequest(new { message = "action must be PROMOTE or REMOVE" });
         if (string.IsNullOrWhiteSpace(_otpMobile) && string.IsNullOrWhiteSpace(_otpEmail))
-            return StatusCode(500, new { message = "OTP approver not configured in appsettings (SuperAdminApproval.OtpMobile / OtpEmail)" });
+            return StatusCode(500, new { message = "The approver's email is not set (SuperAdminApproval:OtpEmail)." });
 
         using var conn = CreateConnection();
         await conn.OpenAsync();

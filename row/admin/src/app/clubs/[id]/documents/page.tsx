@@ -1,5 +1,7 @@
 "use client";
+import { ClearButton } from "@/components/ui/text-buttons";
 
+import PublishStatusBadge from "@/components/PublishStatusBadge";
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { DocumentListItem } from "@/types/document";
@@ -30,16 +32,12 @@ import SearchBox from "@/components/SearchBox";
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
 import AlertModal from "@/components/AlertModal";
-import {
-  ArrowLeft, Search, X, Plus, Pencil, Trash2, Eye,
-  MoreHorizontal, FolderOpen, AlertTriangle, Info, Download,
-} from "@/components/icons";
+import { Search, X, Plus, Pencil, Trash2, Eye, MoreHorizontal, FolderOpen, AlertTriangle, Download } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
-import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
 
 import { appLocale } from "@/lib/appFormat";
-import { ListPageSkeleton } from "@/components/row/AppKit";
+import { PageHeader, ListPageSkeleton } from "@/components/row/AppKit";
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
 const STATUS_OPTIONS = [
@@ -49,23 +47,11 @@ const STATUS_OPTIONS = [
   { value: "Unpublished", label: "Unpublished" },
 ];
 
-function StatusBadge({ status }: { status: string }) {
-  const colors: Record<string, string> = {
-    Published: "bg-green-100 text-green-700",
-    Expired: "bg-red-100 text-red-700",
-    Unpublished: "bg-yellow-100 text-yellow-700",
-  };
-  return (
-    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${colors[status] || "bg-gray-100 text-gray-700"}`}>
-      {status}
-    </span>
-  );
-}
 
 function AccessTypeBadge({ accessType }: { accessType: string }) {
   const isViewOnly = accessType === "view_only";
   return (
-    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${isViewOnly ? "bg-[#FFC65C] text-orange-700" : "bg-green-100 text-green-700"}`}>
+    <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${isViewOnly ? "bg-[#FFC65C] text-orange-700" : "bg-green-100 text-green-700"}`}>
       {isViewOnly ? "View Only" : "Downloadable"}
     </span>
   );
@@ -182,24 +168,16 @@ export default function DocumentsPage() {
     <ProtectedRoute>
       <div className="space-y-6">
         {/* Header */}
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-3">
-            <Button variant="outline" size="icon" asChild>
-              <Link href={`/clubs/${clubId}/dashboard`}><ArrowLeft className="h-4 w-4" /></Link>
-            </Button>
-            <div>
-              <h2 className="text-2xl font-bold tracking-tight text-primary">
-                {clubName ? `${clubName} - Documents` : "Documents"}
-              </h2>
-              <p className="text-muted-foreground text-base">Manage documents</p>
-            </div>
-          </div>
-          {canManage && (
+        <PageHeader
+          title={clubName ? `${clubName} - Documents` : "Documents"}
+          description="Manage documents"
+          back={`/clubs/${clubId}/dashboard`}
+          actions={canManage && (
             <Button onClick={handleAddClick}>
               <Plus className="mr-2 h-4 w-4" />Add Document
             </Button>
           )}
-        </div>
+        />
 
         {isClubAdmin && !canManage && (
           <ViewOnlyBadge currentYearOnly={ywarCurrentYearLabel} className="mb-4" />
@@ -233,9 +211,7 @@ export default function DocumentsPage() {
                 className="pl-9"
               />
               {searchInput && (
-                <button onClick={clearSearch} className="absolute right-3 top-1/2 -translate-y-1/2">
-                  <X className="h-4 w-4 text-muted-foreground hover:text-foreground" />
-                </button>
+                <ClearButton onClick={clearSearch} aria-label="Clear search" />
               )}
             </div>
             <Button onClick={handleSearch} size="sm">Search</Button>
@@ -259,7 +235,7 @@ export default function DocumentsPage() {
         {!loading && documents.length === 0 && (
           <div className="flex flex-col items-center justify-center py-20 text-center">
             <FolderOpen className="h-12 w-12 text-muted-foreground mb-4" />
-            <h3 className="text-lg font-semibold">No documents found</h3>
+            <h3 className="row-h2">No documents found</h3>
             <p className="text-muted-foreground mt-2">
               {search ? "No documents match your search." : canManage ? `Click "Add Document" to create one.` : "No documents for this year."}
             </p>
@@ -269,7 +245,7 @@ export default function DocumentsPage() {
         {!loading && filteredDocuments.length === 0 && documents.length > 0 && searchQuery && (
           <div className="flex flex-col items-center justify-center py-12 text-center">
             <FolderOpen className="h-12 w-12 text-muted-foreground mb-4" />
-            <h3 className="text-lg font-semibold">No results found</h3>
+            <h3 className="row-h2">No results found</h3>
             <p className="text-muted-foreground mt-2">No documents match your search &quot;{searchQuery}&quot;.</p>
           </div>
         )}
@@ -279,14 +255,14 @@ export default function DocumentsPage() {
             <CardContent className="p-0">
               <Table>
                 <TableHeader>
-                  <TableRow className="bg-primary hover:bg-primary">
-                    <TableHead className="w-12 text-base font-semibold">S.No.</TableHead>
-                    <TableHead className="text-base font-semibold">Title</TableHead>
-                    <TableHead className="text-base font-semibold text-center">Access Type</TableHead>
-                    <TableHead className="text-base font-semibold">Publish Date & Time</TableHead>
-                    <TableHead className="text-base font-semibold">Expiry Date & Time</TableHead>
-                    <TableHead className="text-base font-semibold text-center">Status</TableHead>
-                    <TableHead className="w-12 text-base font-semibold text-center">Download</TableHead>
+                  <TableRow>
+                    <TableHead className="w-12">S.No.</TableHead>
+                    <TableHead>Title</TableHead>
+                    <TableHead className="text-center">Access Type</TableHead>
+                    <TableHead>Publish Date & Time</TableHead>
+                    <TableHead>Expiry Date & Time</TableHead>
+                    <TableHead className="text-center">Status</TableHead>
+                    <TableHead className="w-12 text-center">Download</TableHead>
                     {canView && (
                       <TableHead className="w-12"></TableHead>
                     )}
@@ -310,7 +286,7 @@ export default function DocumentsPage() {
                       <TableCell>{formatDateTime(doc.publishDateTime)}</TableCell>
                       <TableCell>{formatDateTime(doc.expiryDateTime)}</TableCell>
                       <TableCell className="text-center">
-                        <StatusBadge status={doc.status} />
+                        <PublishStatusBadge status={doc.status} />
                       </TableCell>
                       <TableCell className="text-center">
                         {doc.filePath && (
@@ -318,7 +294,7 @@ export default function DocumentsPage() {
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="h-8 w-8 text-primary hover:text-primary"
+                              className="row-btn-sm"
                               onClick={async () => {
                                 try {
                                   const res = await fetch(`${API_URL}${doc.filePath}`);
@@ -336,7 +312,7 @@ export default function DocumentsPage() {
                             </Button>
                           ) : (
                             <a href={`${API_URL}${doc.filePath}`} target="_blank" rel="noopener noreferrer">
-                              <Button variant="ghost" size="icon" className="h-8 w-8 text-primary hover:text-primary">
+                              <Button variant="ghost" size="icon" className="row-btn-sm">
                                 <Download className="h-4 w-4" />
                               </Button>
                             </a>
@@ -347,7 +323,7 @@ export default function DocumentsPage() {
                         <TableCell>
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="icon" className="h-8 w-8"><MoreHorizontal className="h-4 w-4" /></Button>
+                              <Button variant="ghost" size="icon" className="row-btn-sm"><MoreHorizontal className="h-4 w-4" /></Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
                               <DropdownMenuItem onClick={() => router.push(`/clubs/${clubId}/documents/${doc.id}`)}>

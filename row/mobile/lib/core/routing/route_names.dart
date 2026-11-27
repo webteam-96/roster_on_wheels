@@ -2,7 +2,6 @@ class RouteNames {
   static const String splash = '/splash';
   static const String appLock = '/app-lock';
   static const String securitySettings = '/settings/security';
-  static const String terms = '/terms';
   static const String mobileLogin = '/login';
   static const String welcome = '/welcome';
   // Legacy alias kept so old references compile
@@ -115,6 +114,8 @@ class RouteNames {
   static String clubDocuments(int id) => '/clubs/$id/documents';
   static String clubUpcomingEvents(int id) => '/clubs/$id/upcoming-events';
   static String clubAttendance(int id) => '/clubs/$id/attendance';
+  static String clubAttendanceScan(int id) => '/clubs/$id/attendance/scan';
+  static const String myAttendanceQr = '/my-attendance-qr';
   static String clubMonthlyReport(int id) => '/clubs/$id/club-monthly-report';
   static String clubProjects(int id) => '/clubs/$id/projects';
   static String clubService(int id) => '/clubs/$id/club-service';
@@ -176,6 +177,8 @@ class RouteNames {
   // Dashboards and websites
   static const String myClubWebsites = '/my-club-websites';
   static const String myDistrictWebsites = '/my-district-websites';
+  static String allClubAccess(int districtId, String number) =>
+      '/all-club-access/$districtId?number=${Uri.encodeQueryComponent(number)}';
   static const String agReports = '/ag-reports';
 
   // Goal Setting

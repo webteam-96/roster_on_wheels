@@ -12,6 +12,8 @@ import '../../../providers/auth_provider.dart';
 import '../../../widgets/common/custom_app_bar.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
 import 'package:rotary_flutter_app/presentation/widgets/row/skeleton_list.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/motion.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/roster_wheel.dart';
 
 // ── Models ────────────────────────────────────────────────────────────────────
 
@@ -249,7 +251,7 @@ class _DistrictCmrMonthDetailScreenState
     bool sendEmail = emailBalance > 0;
     bool sending = false;
 
-    await showDialog<void>(
+    await showRowDialog<void>(
       context: context,
       barrierDismissible: true,
       builder: (dialogCtx) {
@@ -419,7 +421,7 @@ class _DistrictCmrMonthDetailScreenState
     final showReminder =
         isAdmin && !isSubmittedTab && detail.notSubmitted.isNotEmpty;
 
-    return RefreshIndicator(
+    return RowRefresh(
       color: AppColors.primary,
       onRefresh: _fetchAll,
       child: ListView(

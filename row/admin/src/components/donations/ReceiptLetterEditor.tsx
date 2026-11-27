@@ -5,9 +5,9 @@
  * statement the country needs and the signatory. Preview downloads a sample PDF of the text as typed.
  */
 
+import { PageHeader } from "@/components/row/AppKit";
 import { useEffect, useState } from "react";
-import Link from "next/link";
-import { ArrowLeft, Download, Loader2, Save } from "@/components/icons";
+import { Download, Loader2, Save } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -54,17 +54,8 @@ export default function ReceiptLetterEditor({ scope, scopeId, basePath }: { scop
   };
 
   return (
-    <div className="max-w-3xl space-y-6 p-6">
-      <Link href={basePath} className="inline-flex items-center gap-1 text-sm text-primary hover:underline">
-        <ArrowLeft className="h-4 w-4" /> All campaigns
-      </Link>
-      <div>
-        <h2 className="text-2xl font-bold tracking-tight text-primary">Receipt letter</h2>
-        <p className="text-base text-muted-foreground">
-          Every donor gets this letter as a PDF with their thank-you email, and you can download it from a campaign.
-          Add the tax statement your country needs, for example your charity registration number.
-        </p>
-      </div>
+    <div className="space-y-6 max-w-4xl">
+      <PageHeader title="Receipt letter" description="Every donor gets this letter as a PDF with their thank-you email, and you can download it from a campaign. Add the tax statement your country needs, for example your charity registration number." back={basePath} />
 
       {loadError ? (
         <Card><CardContent className="p-5 text-sm text-destructive" role="alert">{loadError}</CardContent></Card>
@@ -102,10 +93,10 @@ export default function ReceiptLetterEditor({ scope, scopeId, basePath }: { scop
             </div>
             {status && <p className={`text-sm ${status.ok ? "text-primary" : "text-destructive"}`} role={status.ok ? "status" : "alert"}>{status.text}</p>}
             <div className="flex flex-wrap gap-2">
-              <Button className="gap-1.5" disabled={!!busy} onClick={() => act("save")}>
+              <Button disabled={!!busy} onClick={() => act("save")}>
                 {busy === "save" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />} Save
               </Button>
-              <Button variant="outline" className="gap-1.5" disabled={!!busy} onClick={() => act("preview")}>
+              <Button variant="outline" disabled={!!busy} onClick={() => act("preview")}>
                 {busy === "preview" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />} Sample PDF
               </Button>
             </div>

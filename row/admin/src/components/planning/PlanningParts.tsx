@@ -10,7 +10,7 @@ export function Section({ title, hint, children }: { title: string; hint?: strin
     <Card>
       <CardContent className="space-y-4 p-6">
         <div>
-          <h3 className="text-base font-semibold">{title}</h3>
+          <h3 className="row-h2">{title}</h3>
           {hint && <p className="text-sm text-muted-foreground">{hint}</p>}
         </div>
         {children}

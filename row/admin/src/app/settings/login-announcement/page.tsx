@@ -1,5 +1,8 @@
 "use client";
+import { LinkButton, RadioChips, ToggleButton } from "@/components/ui/text-buttons";
 
+import { NativeSelect } from "@/components/ui/native-select";
+import { Input } from "@/components/ui/input";
 import { useState, useEffect, useCallback, useRef, type ChangeEvent, type MouseEvent as ReactMouseEvent } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import {
@@ -13,11 +16,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogD
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
 import AlertModal from "@/components/AlertModal";
-import {
-  ArrowLeft, Plus, Pencil, Trash2, Megaphone, Eye, EyeOff, AlertTriangle, Users, Filter, MessageSquare,
-  Globe, Wallet, Landmark, Building2, Mail, Info, Check, MapPin, Map as MapIcon, Search, Camera, ArrowRight } from "@/components/icons";
+import { ArrowLeft, Plus, Pencil, Trash2, Megaphone, Eye, EyeOff, AlertTriangle, Users, Filter, MessageSquare, Globe, Wallet, Landmark, Building2, Mail, Info, Check, MapPin, Map as MapIcon, Search, Camera, ArrowRight } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
-import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import type { ZoneListItem } from "@/types/zone";
 import type { DistrictListItem } from "@/types/district";
@@ -29,7 +29,7 @@ import {
 } from "@/utils/loginAnnouncementRoles";
 
 import { appLocale } from "@/lib/appFormat";
-import { ListPageSkeleton } from "@/components/row/AppKit";
+import { PageHeader, ListPageSkeleton } from "@/components/row/AppKit";
 // Read an image file, downscale to a sane max width and re-compress, and return a
 // data: URL. Embedding inline (base64) keeps the announcement self-contained — no
 // upload endpoint, no host/media-routing juggling, no broken links for any viewer.
@@ -68,25 +68,18 @@ const FILTER_ICONS: Record<string, React.ElementType> = {
   emailCredits: Mail,
 };
 
-// Selected-state colour per filter value, so the choice reads at a glance.
-const FILTER_VALUE_STYLES: Record<LoginAnnouncementFilterValue, string> = {
-  purchased: "bg-green-600 text-white border-green-600",
-  not_purchased: "bg-amber-500 text-white border-amber-500",
-  expired: "bg-red-500 text-white border-red-500",
-};
-
 function StepSection({ number, icon: Icon, title, subtitle, action, children }: {
   number: number; icon: React.ElementType; title: string; subtitle?: string;
   action?: React.ReactNode; children: React.ReactNode;
 }) {
   return (
-    <section className="rounded-[20px] border bg-card overflow-hidden">
+    <section className="row-card row-rise overflow-hidden">
       <div className="flex flex-wrap items-center justify-between gap-2 px-4 py-3 bg-muted/40 border-b">
         <div className="flex items-center gap-3 min-w-0">
           <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs font-bold">{number}</span>
           <Icon className="h-4 w-4 shrink-0 text-primary" />
           <div className="min-w-0">
-            <h3 className="text-sm font-semibold leading-tight">{title}</h3>
+            <h3 className="row-h3">{title}</h3>
             {subtitle && <p className="text-xs text-muted-foreground leading-tight">{subtitle}</p>}
           </div>
         </div>
@@ -132,20 +125,20 @@ function CheckList({ title, icon: Icon, options, selected, onChange, loading, em
       <div className="px-3 pt-2 space-y-2">
         <div className="relative">
           <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
-          <input
+          <Input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder={`Search ${title.toLowerCase()}…`}
-            className="w-full rounded-md border bg-background pl-7 pr-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
+            className="pl-7 pr-2"
           />
         </div>
         <div className="flex items-center justify-between text-xs">
-          <button type="button" onClick={selectShown} disabled={shown.length === 0} className="font-medium text-primary hover:underline disabled:opacity-40 disabled:no-underline">
+          <LinkButton onClick={selectShown} disabled={shown.length === 0}>
             Select all{q ? " shown" : ""}
-          </button>
-          <button type="button" onClick={clearShown} disabled={selected.length === 0} className="text-muted-foreground hover:underline disabled:opacity-40 disabled:no-underline">
+          </LinkButton>
+          <LinkButton tone="muted" onClick={clearShown} disabled={selected.length === 0}>
             Clear{q ? " shown" : ""}
-          </button>
+          </LinkButton>
         </div>
       </div>
       <div className="mt-2 h-56 overflow-y-auto border-t">
@@ -489,7 +482,7 @@ export default function LoginAnnouncementPage() {
     return (
       <ProtectedRoute>
         <div className="flex flex-col items-center py-20">
-          <h3 className="text-lg font-semibold">Access Denied</h3>
+          <h3 className="row-h2">Access Denied</h3>
           <p className="text-muted-foreground mt-2">Only SuperAdmin can manage announcements.</p>
         </div>
       </ProtectedRoute>
@@ -527,25 +520,23 @@ export default function LoginAnnouncementPage() {
         <SuccessAlert open={!!successMessage} title="Success" description={successMessage || ""} onOk={() => setSuccessMessage(null)} />
         <ErrorAlert open={!!errorMessage} title="Error" description={errorMessage || ""} onOk={() => setErrorMessage(null)} />
 
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <Button variant="outline" size="icon" asChild>
-              <Link href="/settings"><ArrowLeft className="h-4 w-4" /></Link>
-            </Button>
-            <div>
-              <h2 className="text-2xl font-bold tracking-tight text-primary">Login Announcement</h2>
-              <p className="text-muted-foreground text-base">Show a popup to selected roles after login: optionally filtered by purchases and location</p>
-            </div>
-          </div>
-          <Button onClick={openAdd}><Plus className="mr-2 h-4 w-4" />Add Announcement</Button>
-        </div>
+        <PageHeader
+          title="Login Announcement"
+          description="Show a popup to selected roles after login: optionally filtered by purchases and location"
+          back="/settings"
+          actions={
+            <>
+<Button onClick={openAdd}><Plus className="mr-2 h-4 w-4" />Add Announcement</Button>
+            </>
+          }
+        />
 
         {loading ? (
           <div className="flex justify-center py-20"><ListPageSkeleton /></div>
         ) : items.length === 0 ? (
           <div className="flex flex-col items-center py-20 text-center">
             <Megaphone className="h-12 w-12 text-muted-foreground mb-4" />
-            <h3 className="text-lg font-semibold">No announcements yet</h3>
+            <h3 className="row-h2">No announcements yet</h3>
             <p className="text-muted-foreground mt-2">Click &quot;Add Announcement&quot; to create one.</p>
           </div>
         ) : (
@@ -601,17 +592,17 @@ export default function LoginAnnouncementPage() {
                         <div className="flex flex-wrap items-center gap-1.5">
                           <span className="inline-flex items-center gap-1 text-xs font-medium text-muted-foreground"><MapPin className="h-3.5 w-3.5" />Location:</span>
                           {locZones.length > 0 && (
-                            <Badge variant="outline" className="text-xs font-normal border-blue-300 bg-blue-50 text-blue-800" title={locZones.map((z) => z.name).join(", ")}>
+                            <Badge variant="outline" className="border-blue-300 bg-blue-100 text-azure-50 text-blue-800" title={locZones.map((z) => z.name).join(", ")}>
                               Zones: {shortList(locZones.map((z) => z.name))}
                             </Badge>
                           )}
                           {locDistricts.length > 0 && (
-                            <Badge variant="outline" className="text-xs font-normal border-blue-300 bg-blue-50 text-blue-800" title={locDistricts.map((d) => d.name).join(", ")}>
+                            <Badge variant="outline" className="border-blue-300 bg-blue-100 text-azure-50 text-blue-800" title={locDistricts.map((d) => d.name).join(", ")}>
                               Districts: {shortList(locDistricts.map((d) => d.name))}
                             </Badge>
                           )}
                           {locClubs.length > 0 && (
-                            <Badge variant="outline" className="text-xs font-normal border-blue-300 bg-blue-50 text-blue-800" title={locClubs.map((c) => c.name).join(", ")}>
+                            <Badge variant="outline" className="border-blue-300 bg-blue-100 text-azure-50 text-blue-800" title={locClubs.map((c) => c.name).join(", ")}>
                               Clubs: {locClubs.length === 1 ? locClubs[0].name : `${locClubs.length} selected`}
                             </Badge>
                           )}
@@ -646,16 +637,13 @@ export default function LoginAnnouncementPage() {
                 title="Who should see it"
                 subtitle={isAllRoles ? "All roles selected" : `${selectedRoleCount} of ${LOGIN_ANNOUNCEMENT_ROLES.length} roles selected`}
                 action={
-                  <button
-                    type="button"
+                  <ToggleButton
+                    pressed={isAllRoles}
                     onClick={() => setTargetRoles(isAllRoles ? [] : [ALL_ROLES_KEY])}
-                    className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
-                      isAllRoles ? "bg-primary text-primary-foreground border-primary" : "bg-background hover:bg-muted"
-                    }`}
                   >
                     {isAllRoles && <Check className="h-3.5 w-3.5" />}
                     ALL roles
-                  </button>
+                  </ToggleButton>
                 }
               >
                 <div className="space-y-4">
@@ -696,7 +684,7 @@ export default function LoginAnnouncementPage() {
                 title="Filter by purchase (optional)"
                 subtitle={activeFilterCount === 0 ? "No filter: every selected role sees it" : `${activeFilterCount} filter${activeFilterCount === 1 ? "" : "s"} applied · users must match all`}
                 action={activeFilterCount > 0 ? (
-                  <Button type="button" variant="ghost" size="sm" className="h-7 text-xs" onClick={() => setTargetFilters({})}>Clear filters</Button>
+                  <Button type="button" variant="ghost" size="sm" className="row-btn-sm" onClick={() => setTargetFilters({})}>Clear filters</Button>
                 ) : undefined}
               >
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -712,33 +700,13 @@ export default function LoginAnnouncementPage() {
                             <p className="text-xs text-muted-foreground leading-tight">{def.hint}</p>
                           </div>
                         </div>
-                        <div className="flex flex-wrap gap-1.5" role="radiogroup" aria-label={def.label}>
-                          <button
-                            type="button"
-                            role="radio"
-                            aria-checked={!value}
-                            onClick={() => setFilter(def.key, undefined)}
-                            className={`rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
-                              !value ? "bg-slate-700 text-white border-slate-700" : "bg-background hover:bg-muted"
-                            }`}
-                          >
-                            Any
-                          </button>
-                          {def.options.map((opt) => (
-                            <button
-                              key={opt.value}
-                              type="button"
-                              role="radio"
-                              aria-checked={value === opt.value}
-                              onClick={() => setFilter(def.key, opt.value)}
-                              className={`rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
-                                value === opt.value ? FILTER_VALUE_STYLES[opt.value] : "bg-background hover:bg-muted"
-                              }`}
-                            >
-                              {opt.label}
-                            </button>
-                          ))}
-                        </div>
+                        <RadioChips
+                          label={def.label}
+                          className="gap-1.5"
+                          value={value ?? ""}
+                          onChange={(v) => setFilter(def.key, v || undefined)}
+                          options={[{ value: "" as const, label: "Any" }, ...def.options.map((opt) => ({ value: opt.value, label: opt.label }))]}
+                        />
                       </div>
                     );
                   })}
@@ -752,7 +720,7 @@ export default function LoginAnnouncementPage() {
                 title="Filter by location (optional)"
                 subtitle={locationSubtitle}
                 action={locationCount > 0 ? (
-                  <Button type="button" variant="ghost" size="sm" className="h-7 text-xs" onClick={clearLocations}>Clear location</Button>
+                  <Button type="button" variant="ghost" size="sm" className="row-btn-sm" onClick={clearLocations}>Clear location</Button>
                 ) : undefined}
               >
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
@@ -824,13 +792,13 @@ export default function LoginAnnouncementPage() {
                       if (url) execCommand("createLink", url);
                     }} title="Insert Link">LINK</Button>
                     <span className="w-px bg-border mx-1" />
-                    <select className="text-xs border rounded px-1 h-8" onChange={(e) => { execCommand("fontSize", e.target.value); e.target.value = ""; }}>
+                    <NativeSelect className="row-field-sm w-auto" onChange={(e) => { execCommand("fontSize", e.target.value); e.target.value = ""; }}>
                       <option value="">Size</option>
                       <option value="1">Small</option>
                       <option value="3">Normal</option>
                       <option value="5">Large</option>
                       <option value="7">Huge</option>
-                    </select>
+                    </NativeSelect>
                     <input type="color" className="h-8 w-8 cursor-pointer border rounded" onChange={(e) => execCommand("foreColor", e.target.value)} title="Text Color" />
                   </div>
                   {/* Contextual image controls — appear when an image is clicked */}

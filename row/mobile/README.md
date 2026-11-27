@@ -15,7 +15,7 @@ flutter run --dart-define=API_BASE_URL=https://api.example.org      # the ROW AP
   `ios/Runner/GoogleService-Info.plist` (gitignored). Android builds need the JSON file (the Google Services Gradle
   plugin requires it); without the files on iOS the app runs with push off.
 - App ids: `com.kaizen.roww` for Android and iOS. Launcher icon: the ROW favicon (handshake + ROW on
-  `#1E1C20`, from `row/website`); sources `assets/images/row-app-icon.png` and `row-app-icon-foreground.png`, then
+  `#F7F9FC`, from `row/website`); sources `assets/images/row-app-icon.png` and `row-app-icon-foreground.png`, then
   `dart run flutter_launcher_icons`. Launch screens are ROW azure, like the Flutter splash.
 
 ## Checks

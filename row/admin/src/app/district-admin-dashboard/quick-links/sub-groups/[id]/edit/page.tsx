@@ -16,6 +16,7 @@
  *   - Navy #17458f / gold #F7A81B / slate palette.
  */
 
+import { Card } from "@/components/ui/card";
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { useRouter, useSearchParams, useParams } from "next/navigation";
 import Image from "next/image";
@@ -41,8 +42,8 @@ import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
 import RotaryLoader from "@/components/RotaryLoader";
 import ProtectedRoute from "@/components/ProtectedRoute";
-import { ArrowLeft, Search, X, User } from "@/components/icons";
-import { ListPageSkeleton } from "@/components/row/AppKit";
+import { Search, X, User } from "@/components/icons";
+import { PageHeader, ListPageSkeleton } from "@/components/row/AppKit";
 
 function withSearch(base: string, extra: Record<string, string | null | undefined>) {
   const p = new URLSearchParams();
@@ -196,32 +197,17 @@ export default function DistrictAdminEditSubGroupPage() {
 
       <div className="space-y-6">
         {/* ── Header ─────────────────────────────────────────────────── */}
-        <div className="flex items-center gap-3">
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={goBack}
-            className="border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-slate-800"
-            aria-label="Back"
-          >
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
-          <div>
-            <h2 className="text-2xl font-bold tracking-tight text-ink">Edit Sub Group</h2>
-            <div className="h-0.5 w-16 bg-marigold rounded mt-1.5" />
-            <p className="text-sm text-slate-500 mt-1.5">Update the group name and manage members</p>
-          </div>
-        </div>
+        <PageHeader title="Edit Sub Group" description="Update the group name and manage members" back={() => goBack()} />
 
         {loading ? (
           <div className="flex items-center justify-center py-20"><ListPageSkeleton /></div>
         ) : (
-          <div className="rounded-2xl border border-slate-200 shadow-sm bg-card p-5 space-y-4">
+          <Card className="p-5 space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label className="text-slate-700 text-sm font-medium">Group Name *</Label>
                 <Input
-                  className="border-slate-200 bg-card focus:border-azure focus:ring-azure/20"
+                 
                   placeholder="Enter group name"
                   value={groupName}
                   onChange={(e) => setGroupName(e.target.value)}
@@ -230,7 +216,7 @@ export default function DistrictAdminEditSubGroupPage() {
               <div className="space-y-2">
                 <Label className="text-slate-700 text-sm font-medium">Rotary Year *</Label>
                 <Select value={selectedYearId} onValueChange={setSelectedYearId}>
-                  <SelectTrigger className="border-slate-200 bg-card focus:border-azure focus:ring-azure/20">
+                  <SelectTrigger>
                     <SelectValue placeholder="Select year" />
                   </SelectTrigger>
                   <SelectContent>
@@ -260,10 +246,10 @@ export default function DistrictAdminEditSubGroupPage() {
                         placeholder="Search..."
                         value={memberSearchQuery}
                         onChange={(e) => setMemberSearchQuery(e.target.value)}
-                        className="pl-8 h-8 text-sm border-slate-200 bg-card focus:border-azure focus:ring-azure/20"
+                        className="row-field-sm pl-8"
                       />
                       {memberSearchQuery && (
-                        <Button variant="ghost" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 h-5 w-5" onClick={() => setMemberSearchQuery("")}>
+                        <Button variant="ghost" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 h-5 w-5 h-5 w-5 h-5 w-5 h-5 w-5" onClick={() => setMemberSearchQuery("")}>
                           <X className="h-3 w-3" />
                         </Button>
                       )}
@@ -326,7 +312,7 @@ export default function DistrictAdminEditSubGroupPage() {
                 <div className="border border-slate-200 rounded-md flex flex-col overflow-hidden">
                   <div className="px-3 py-2 border-b border-slate-200 bg-slate-50 flex items-center justify-between">
                     <span className="text-sm font-semibold text-slate-700">Selected Members</span>
-                    <Badge variant="outline" className="text-xs border-slate-200 bg-card text-slate-700">{selectedMemberIds.size} selected</Badge>
+                    <Badge variant="outline" className="border-slate-200 bg-card text-slate-700">{selectedMemberIds.size} selected</Badge>
                   </div>
                   <div className="flex-1 overflow-y-auto max-h-[366px]">
                     {selectedMembers.length === 0 ? (
@@ -346,7 +332,7 @@ export default function DistrictAdminEditSubGroupPage() {
                               )}
                             </div>
                             <span className="text-sm font-medium flex-1 truncate text-slate-800">{member.memberName}</span>
-                            <Button variant="ghost" size="icon" className="h-6 w-6 text-slate-400 hover:text-red-600" onClick={() => removeMember(member.memberId)}>
+                            <Button variant="ghost" size="icon" className="w-6 row-btn-sm" onClick={() => removeMember(member.memberId)}>
                               <X className="h-3.5 w-3.5" />
                             </Button>
                           </div>
@@ -359,18 +345,18 @@ export default function DistrictAdminEditSubGroupPage() {
             </div>
 
             <div className="flex flex-wrap items-center justify-end gap-2 pt-2">
-              <Button variant="outline" onClick={goBack} disabled={saving} className="border-slate-200 text-slate-700 hover:bg-slate-50">
+              <Button variant="outline" onClick={goBack} disabled={saving}>
                 Cancel
               </Button>
               <Button
                 onClick={handleSave}
                 disabled={!canManage || saving || !groupName.trim() || !selectedYearId || selectedMemberIds.size === 0}
-                className="bg-azure hover:bg-mint-ink text-white disabled:bg-slate-300 disabled:text-slate-500"
+                className="disabled:text-slate-500"
               >
                 {saving ? "Saving..." : "Update"}
               </Button>
             </div>
-          </div>
+          </Card>
         )}
 
         <SuccessAlert open={!!successMessage} title="Success" description={successMessage || ""} onOk={goBack} />

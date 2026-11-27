@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState, useEffect, useMemo } from "react";
-import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -16,22 +15,18 @@ import ErrorAlert from "@/components/ErrorAlert";
 import SuccessAlert from "@/components/SuccessAlert";
 import RotaryLoader from "@/components/RotaryLoader";
 import ProtectedRoute from "@/components/ProtectedRoute";
-import {
-  ArrowLeft, Plus, Pencil, Trash2, Power, PowerOff, FileText, Download,
-  CheckCircle2, Clock, AlertTriangle, XCircle, Globe,
-  RotateCw, Server, Loader2, Lock, Wrench, ChevronDown,
-} from "@/components/icons";
+import { Plus, Pencil, Trash2, Power, PowerOff, FileText, Download, CheckCircle2, Clock, AlertTriangle, XCircle, Globe, RotateCw, Server, Loader2, Lock, Wrench, ChevronDown } from "@/components/icons";
 import { exportToCSV } from "@/utils/csvExport";
 import {
   getDistrictWebsites, getDistrictWebsiteLogs, getAvailableDistrictsForWebsite,
   createDistrictWebsite, updateDistrictWebsite, deleteDistrictWebsite,
   activateDistrictWebsite, deactivateDistrictWebsite,
   retryDistrictWebsiteActivation, retryDistrictWebsiteSsl,
-  testDistrictPleskConnection, listDistrictPleskSubdomains, forceDeleteDistrictPleskSubdomain,
+  getClubWebsiteSettings, testDistrictPleskConnection, listDistrictPleskSubdomains, forceDeleteDistrictPleskSubdomain,
 } from "@/services/api";
 
 import { appLocale } from "@/lib/appFormat";
-import { ListPageSkeleton } from "@/components/row/AppKit";
+import { PageHeader, ListPageSkeleton } from "@/components/row/AppKit";
 type Row = {
   id: number;
   districtId: number;
@@ -68,12 +63,10 @@ function validateLabel(value: string, required: boolean): string | null {
 function sanitizeLabelInput(value: string): string { return (value || "").toLowerCase(); }
 function sanitizeDomainInput(value: string): string { return (value || "").toLowerCase(); }
 
-const PARENT_DOMAIN = "portal.example.org";
-
-function splitSubdomain(full: string): string {
+function splitSubdomain(full: string, parentDomain: string): string {
   // If stored value doesn't end with the current parent (legacy/imported rows like
   // "club.example.org"), fall back to just the first label so the row stays editable.
-  const suffix = `.${PARENT_DOMAIN}`;
+  const suffix = `.${parentDomain.toLowerCase()}`;
   const v = full.toLowerCase();
   if (v.endsWith(suffix)) return v.slice(0, -suffix.length);
   const dotIdx = v.indexOf(".");
@@ -83,7 +76,7 @@ function splitSubdomain(full: string): string {
 function statusBadge(status: string) {
   if (status === "ActivationFailed") return <Badge variant="destructive"><AlertTriangle className="mr-1 h-3 w-3" />Activation Failed</Badge>;
   if (status === "Inactive") return <Badge variant="secondary"><Clock className="mr-1 h-3 w-3" />Inactive</Badge>;
-  if (status === "Active") return <Badge className="bg-green-600"><CheckCircle2 className="mr-1 h-3 w-3" />Active</Badge>;
+  if (status === "Active") return <Badge className="bg-green-100 text-green-800"><CheckCircle2 className="mr-1 h-3 w-3" />Active</Badge>;
   return <Badge variant="outline">{status}</Badge>;
 }
 
@@ -113,6 +106,10 @@ export default function DistrictWebsitesPage() {
   const [logs, setLogs] = useState<any[]>([]);
   const [logsLoading, setLogsLoading] = useState(false);
 
+  const [hasPlesk, setHasPlesk] = useState(false);
+  // Same parent domain as club sites (Settings > Club Websites); districts are d<number>.<parent>.
+  const [PARENT_DOMAIN, setParentDomain] = useState("portal.example.org");
+  useEffect(() => { getClubWebsiteSettings().then((s) => { setHasPlesk(!!s?.pleskConfigured); if (s?.parentDomain) setParentDomain(s.parentDomain.toLowerCase()); }).catch(() => {}); }, []);
   const [pleskListOpen, setPleskListOpen] = useState(false);
   const [pleskList, setPleskList] = useState<any[]>([]);
   const [pleskListLoading, setPleskListLoading] = useState(false);
@@ -149,7 +146,7 @@ export default function DistrictWebsitesPage() {
     setEditingId(r.id);
     setForm({
       districtId: r.districtId,
-      subdomainLabel: sanitizeLabelInput(splitSubdomain(r.subdomain)),
+      subdomainLabel: sanitizeLabelInput(splitSubdomain(r.subdomain, PARENT_DOMAIN)),
       clientDomain: sanitizeDomainInput(r.clientDomain || ""),
       notes: r.notes || "",
     });
@@ -360,19 +357,14 @@ export default function DistrictWebsitesPage() {
         </div>
       )}
 
-      <div className="container mx-auto py-6 space-y-6">
-        <div className="flex items-center justify-between flex-wrap gap-3">
-          <div className="flex items-center gap-3">
-            <Button variant="outline" size="icon" asChild>
-              <Link href="/settings"><ArrowLeft className="h-4 w-4" /></Link>
-            </Button>
-            <div>
-              <h2 className="text-2xl font-bold tracking-tight text-primary">District Websites</h2>
-              <p className="text-muted-foreground text-base">Manage district website subdomains (no subscription/expiry)</p>
-            </div>
-          </div>
-          <div className="flex gap-2 flex-wrap">
-            <DropdownMenu>
+      <div className="space-y-6">
+        <PageHeader
+          title="District Websites"
+          description="Manage district website subdomains (no subscription/expiry)"
+          back="/settings"
+          actions={
+            <>
+{hasPlesk && <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" title="Advanced Plesk tools">
                   <Wrench className="mr-2 h-4 w-4" />Plesk Tools<ChevronDown className="ml-2 h-3 w-3" />
@@ -390,15 +382,16 @@ export default function DistrictWebsitesPage() {
                   <Trash2 className="mr-2 h-4 w-4" />Force Clean Subdomain
                 </DropdownMenuItem>
               </DropdownMenuContent>
-            </DropdownMenu>
+            </DropdownMenu>}
             <Button variant="outline" onClick={exportExcel} disabled={filtered.length === 0} title="Export all district website records to Excel">
               <Download className="mr-2 h-4 w-4" />Export Excel
             </Button>
             <Button onClick={openAdd}>
               <Plus className="mr-2 h-4 w-4" />Add Website
             </Button>
-          </div>
-        </div>
+            </>
+          }
+        />
 
         <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
           <Card><CardContent className="p-4"><p className="text-xs text-muted-foreground">Total</p><p className="text-xl font-bold">{rows.length}</p></CardContent></Card>
@@ -473,32 +466,32 @@ export default function DistrictWebsitesPage() {
                       <TableCell>{statusBadge(r.status)}</TableCell>
                       <TableCell>
                         <div className="flex gap-1 flex-wrap">
-                          <Button size="sm" variant="outline" className="h-7" onClick={() => openEdit(r)} title="Edit website details"><Pencil className="h-3 w-3" /></Button>
-                          <Button size="sm" variant="outline" className="h-7" onClick={() => doToggle(r)} disabled={busyId === `${r.id}-toggle` || chainInactive} title={chainInactive ? inactiveTitle : (r.status === "Active" ? "Deactivate website" : "Activate website (creates subdomain in Plesk)")}>
+                          <Button size="sm" variant="outline" className="row-btn-sm" onClick={() => openEdit(r)} title="Edit website details"><Pencil className="h-3 w-3" /></Button>
+                          <Button size="sm" variant="outline" className="row-btn-sm" onClick={() => doToggle(r)} disabled={busyId === `${r.id}-toggle` || chainInactive} title={chainInactive ? inactiveTitle : (r.status === "Active" ? "Deactivate website" : "Activate website (creates subdomain in Plesk)")}>
                             {busyId === `${r.id}-toggle` ? <Loader2 className="h-3 w-3 animate-spin" /> : r.status === "Active" ? <PowerOff className="h-3 w-3" /> : <Power className="h-3 w-3" />}
                           </Button>
                           {r.status === "ActivationFailed" && (
                             <>
-                              <Button size="sm" variant="default" className="h-7 bg-blue-600 hover:bg-blue-700" onClick={() => doRetry(r.id)} disabled={busyId === `${r.id}-retry` || chainInactive} title={chainInactive ? inactiveTitle : "Retry Plesk activation"}>
+                              <Button size="sm" variant="default" className="row-btn-sm" onClick={() => doRetry(r.id)} disabled={busyId === `${r.id}-retry` || chainInactive} title={chainInactive ? inactiveTitle : "Retry Plesk activation"}>
                                 {busyId === `${r.id}-retry` ? <Loader2 className="h-3 w-3 animate-spin" /> : <RotateCw className="h-3 w-3" />}
                               </Button>
-                              <Button size="sm" variant="outline" className="h-7 text-amber-700" onClick={() => doForceActivate(r.id)} disabled={busyId === `${r.id}-force` || chainInactive} title={chainInactive ? inactiveTitle : "Force Activate (skip Plesk: manual setup required)"}>
+                              <Button size="sm" variant="outline" className="text-amber-700 row-btn-sm" onClick={() => doForceActivate(r.id)} disabled={busyId === `${r.id}-force` || chainInactive} title={chainInactive ? inactiveTitle : "Force Activate (skip Plesk: manual setup required)"}>
                                 {busyId === `${r.id}-force` ? <Loader2 className="h-3 w-3 animate-spin" /> : <AlertTriangle className="h-3 w-3" />}
                               </Button>
                             </>
                           )}
                           {r.status === "Active" && (
-                            <Button size="sm" variant="outline" className="h-7 text-green-700" onClick={() => doRetrySsl(r.id)} disabled={busyId === `${r.id}-ssl` || chainInactive} title={chainInactive ? inactiveTitle : "Re-apply wildcard SSL certificate in Plesk"}>
+                            <Button size="sm" variant="outline" className="text-green-700 row-btn-sm" onClick={() => doRetrySsl(r.id)} disabled={busyId === `${r.id}-ssl` || chainInactive} title={chainInactive ? inactiveTitle : "Re-apply wildcard SSL certificate in Plesk"}>
                               {busyId === `${r.id}-ssl` ? <Loader2 className="h-3 w-3 animate-spin" /> : <Lock className="h-3 w-3" />}
                             </Button>
                           )}
-                          <Button size="sm" variant="outline" className="h-7" onClick={() => viewLogs(r.id)} title="View activity log">
+                          <Button size="sm" variant="outline" className="row-btn-sm" onClick={() => viewLogs(r.id)} title="View activity log">
                             <FileText className="h-3 w-3" />
                           </Button>
-                          <Button size="sm" variant="ghost" className="h-7 text-red-600" onClick={() => doDelete(r.id)} disabled={busyId === `${r.id}-del` || chainInactive} title={chainInactive ? inactiveTitle : "Delete website: removes from Plesk + portal"}>
+                          <Button size="sm" variant="ghost" className="text-red-600 row-btn-sm" onClick={() => doDelete(r.id)} disabled={busyId === `${r.id}-del` || chainInactive} title={chainInactive ? inactiveTitle : "Delete website: removes from Plesk + portal"}>
                             {busyId === `${r.id}-del` ? <Loader2 className="h-3 w-3 animate-spin" /> : <Trash2 className="h-3 w-3" />}
                           </Button>
-                          <Button size="sm" variant="ghost" className="h-7 text-red-400" onClick={() => doDeleteDbOnly(r.id)} disabled={busyId === `${r.id}-del` || chainInactive} title={chainInactive ? inactiveTitle : "Delete portal record only (keep Plesk subdomain intact)"}>
+                          <Button size="sm" variant="ghost" className="text-red-400 row-btn-sm" onClick={() => doDeleteDbOnly(r.id)} disabled={busyId === `${r.id}-del` || chainInactive} title={chainInactive ? inactiveTitle : "Delete portal record only (keep Plesk subdomain intact)"}>
                             <XCircle className="h-3 w-3" />
                           </Button>
                         </div>
@@ -522,7 +515,7 @@ export default function DistrictWebsitesPage() {
               {editingId === null && (
                 <div>
                   <Label>District <span className="text-red-500">*</span></Label>
-                  <Select value={form.districtId ? String(form.districtId) : ""} onValueChange={(v) => setForm({ ...form, districtId: Number(v) })}>
+                  <Select value={form.districtId ? String(form.districtId) : ""} onValueChange={(v) => { const d = availableDistricts.find((x: any) => String(x.id) === v); setForm({ ...form, districtId: Number(v), subdomainLabel: d?.districtNumber ? `d${d.districtNumber}`.toLowerCase() : form.subdomainLabel }); }}>
                     <SelectTrigger><SelectValue placeholder="Select District" /></SelectTrigger>
                     <SelectContent>
                       {availableDistricts.length === 0 ? (
@@ -553,7 +546,7 @@ export default function DistrictWebsitesPage() {
                     value={form.subdomainLabel}
                     onChange={(e) => setForm({ ...form, subdomainLabel: sanitizeLabelInput(e.target.value) })}
                     placeholder="e.g., d3131"
-                    className="rounded-r-none"
+                   
                     disabled={!!isFrozen}
                   />
                   <div className="bg-muted border border-l-0 rounded-r-md px-3 py-2 text-sm text-muted-foreground font-mono whitespace-nowrap">

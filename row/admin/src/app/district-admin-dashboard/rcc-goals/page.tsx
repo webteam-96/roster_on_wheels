@@ -5,6 +5,9 @@
 // Tab District Goals = District Awards as it is, plus the 4 Rotary.org sections in its Category dropdown.
 // The existing District Goals / District Awards screens are not changed.
 
+import { Button } from "@/components/ui/button";
+import PillTabs from "@/components/row/PillTabs";
+import { PageHeader } from "@/components/row/AppKit";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
@@ -35,14 +38,10 @@ export default function DistrictRccGoalsPage() {
   const { selectedDistrictId } = useAuth();
   const [tab, setTab] = useState<Tab>("rcc");
 
-  const tabCls = (on: boolean) => `px-4 py-2 rounded-lg text-sm font-semibold transition ${
-    on ? "bg-marigold text-navy-950" : "text-white hover:bg-white/10"}`;
   return (
     <div className="space-y-4">
-      <div className="inline-flex flex-wrap gap-1 rounded-xl bg-navy-950 p-1.5">
-        <button type="button" onClick={() => setTab("rcc")} className={tabCls(tab === "rcc")}>RCC</button>
-        <button type="button" onClick={() => setTab("district")} className={tabCls(tab === "district")}>District Goals</button>
-      </div>
+      <PageHeader title="RCC & District Goals" description="Goals come from Rotary.org; the boxes Rotary.org does not fill are typed here." />
+      <PillTabs items={[{ key: "rcc", label: "RCC" }, { key: "district", label: "District Goals" }] as const} active={tab} onChange={setTab} />
       {tab === "rcc" ? <RccTab /> : selectedDistrictId
         ? <DistrictAwardsModule districtId={selectedDistrictId} rotarySections={RCC_SECTIONS} />
         : <p className="text-sm text-slate-500">Select a district.</p>}
@@ -122,32 +121,25 @@ function RccTab() {
     } catch { /* the button comes back so it can be tried again */ }
   });
 
-  const headBtn = "inline-flex items-center gap-2 text-sm font-bold min-h-11 px-4 rounded-xl border border-navy-400 text-white hover:bg-white/10 disabled:opacity-60";
   return (
     <div>
-      <div className="rounded-[20px] bg-navy-950 text-white px-6 pt-5 pb-24 flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <h2 className="text-2xl font-extrabold text-white flex flex-wrap items-center gap-2.5">Sync Club Goals Summary from Rotary.org <span className="rounded-full bg-marigold px-2.5 py-0.5 text-xs font-bold text-navy-950">Rotary.org</span></h2>
-          <p className="text-sm text-navy-200 mt-1">Goals come from Rotary.org; the boxes Rotary.org does not fill are typed here.</p>
-          <div className="mt-3"><RotaryOrgSync districtId={districtId} onSynced={() => setSyncTick((t) => t + 1)} /></div>
-        </div>
-        <div className="flex flex-wrap items-center gap-2.5">
-          <button type="button" onClick={downloadReport} disabled={dl.busy || !districtId}
-            title="RCC & District Goals report - RCC, RCC by club, District Goals" className={headBtn}>
-            {dl.is("report") ? dl.bar("report") : <><Download size={15} /> Report</>}
-          </button>
-          <button type="button" onClick={() => setMsgOpen(true)} disabled={!districtId || !formYearId} className={`relative ${headBtn}`}>
-            <MessagesSquare size={16} /> Messages
-            {hasUnread && <span className="absolute -top-1 -right-1 h-3 w-3 rounded-full bg-red-500 ring-2 ring-navy-950" title="New message" />}
-          </button>
-          <Link href={clubGoalsHref}
-            className="inline-flex items-center gap-2 text-sm font-bold min-h-11 px-4 rounded-xl bg-marigold text-navy-950 hover:bg-gold-light">
-            <Building2 size={15} /> View Club Goals
-          </Link>
+      <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
+        <RotaryOrgSync districtId={districtId} tone="light" onSynced={() => setSyncTick((t) => t + 1)} />
+        <div className="flex flex-wrap items-center gap-2">
+          <Button type="button" variant="outline" onClick={downloadReport} disabled={dl.busy || !districtId} title="RCC & District Goals report - RCC, RCC by club, District Goals">
+            {dl.is("report") ? dl.bar("report") : <><Download /> Report</>}
+          </Button>
+          <Button type="button" variant="outline" onClick={() => setMsgOpen(true)} disabled={!districtId || !formYearId} className="relative">
+            <MessagesSquare /> Messages
+            {hasUnread && <span className="absolute -right-1 -top-1 h-3 w-3 rounded-full bg-red-500" title="New message" />}
+          </Button>
+          <Button variant="outline" asChild>
+            <Link href={clubGoalsHref}><Building2 /> View Club Goals</Link>
+          </Button>
         </div>
       </div>
 
-      <div className="-mt-16 mx-2 sm:mx-5">
+      <div>
         {!canEditThisYear && <div className="mb-3"><ViewOnlyBadge yearLabel={viewingYearLabel} editableYears={editableYears} /></div>}
         <GoalSettingPanel
           title="RCC"

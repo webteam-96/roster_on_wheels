@@ -33,7 +33,6 @@ import NonSyncRemovedCommitteeMembers from "@/components/dashboard/NonSyncRemove
 import CommitteeDocumentsCard from "@/components/membership/CommitteeDocumentsCard";
 
 import ProtectedRoute from "@/components/ProtectedRoute";
-import DistrictMembershipTabBar from "@/components/dashboard/DistrictMembershipTabBar";
 import ImageCropDialog from "@/components/ImageCropDialog";
 import { useImageCropUpload } from "@/hooks/useImageCropUpload";
 import { ListPageSkeleton } from "@/components/row/AppKit";
@@ -47,14 +46,14 @@ const PHOTO_MAX_OUTPUT = 500;
 // so the two modules stay consistent (green for member, slate for non-member).
 function MemberChip() {
   return (
-    <span className="inline-flex items-center rounded-full border border-emerald-200 bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-700">
+    <span className="inline-flex items-center rounded border border-emerald-200 bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-700">
       Member
     </span>
   );
 }
 function NonMemberChip() {
   return (
-    <span className="inline-flex items-center rounded-full border border-slate-300 bg-slate-200 px-2 py-0.5 text-xs font-medium text-slate-700">
+    <span className="inline-flex items-center rounded border border-slate-300 bg-slate-200 px-2 py-0.5 text-xs font-medium text-slate-700">
       Non-Member
     </span>
   );
@@ -252,13 +251,12 @@ export default function DistrictAdminDashboardSubGroupDetailPage() {
       )}
 
       <div className="space-y-6">
-        <DistrictMembershipTabBar />
         <div className="flex items-center gap-3">
           <Button
             variant="outline"
             size="icon"
             onClick={goBack}
-            className="border-slate-200 bg-card hover:bg-slate-50 text-slate-700"
+           
           >
             <ArrowLeft className="h-4 w-4" />
           </Button>
@@ -271,21 +269,21 @@ export default function DistrictAdminDashboardSubGroupDetailPage() {
                     onChange={(e) => setNameDraft(e.target.value)}
                     onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); saveRename(); } if (e.key === "Escape") setEditingName(false); }}
                     autoFocus
-                    className="h-9 w-72 text-lg font-bold text-ink"
+                    className="w-72 text-lg font-bold"
                     placeholder="Sub-group name"
                   />
-                  <Button size="sm" onClick={saveRename} disabled={savingName || !nameDraft.trim()} className="bg-azure hover:bg-mint-ink text-white">
+                  <Button size="sm" onClick={saveRename} disabled={savingName || !nameDraft.trim()}>
                     {savingName ? "Saving..." : "Save"}
                   </Button>
-                  <Button size="sm" variant="outline" onClick={() => setEditingName(false)} disabled={savingName} className="border-slate-200 text-slate-700 hover:bg-slate-50">Cancel</Button>
+                  <Button size="sm" variant="outline" onClick={() => setEditingName(false)} disabled={savingName}>Cancel</Button>
                 </div>
               ) : (
                 <>
-                  <h2 className="text-2xl font-bold tracking-tight text-ink">
+                  <h1 className="row-h1">
                     District Committee: {subGroupName || "Sub Group"}
-                  </h2>
+                  </h1>
                   {canManage && (
-                    <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-500 hover:text-ink hover:bg-slate-100" onClick={startRename} title="Rename sub-group">
+                    <Button variant="ghost" size="icon" className="row-btn-sm" onClick={startRename} title="Rename sub-group">
                       <Pencil className="h-4 w-4" />
                     </Button>
                   )}
@@ -300,18 +298,18 @@ export default function DistrictAdminDashboardSubGroupDetailPage() {
         {!loading && (
           <>
             <div className="flex flex-wrap items-center justify-between gap-3">
-              <h3 className="text-lg font-semibold text-ink flex items-center gap-2">
+              <h3 className="row-h2 flex items-center gap-2">
                 <Users className="h-5 w-5" />Members <span className="text-slate-400 font-normal">({members.length})</span>
               </h3>
               {canManage && (
-                <Button onClick={openAddDialog} className="bg-azure hover:bg-mint-ink text-white"><Plus className="mr-2 h-4 w-4" />Add Member</Button>
+                <Button onClick={openAddDialog}><Plus className="mr-2 h-4 w-4" />Add Member</Button>
               )}
             </div>
 
             {members.length === 0 && (
               <div className="flex flex-col items-center justify-center py-16 text-center">
                 <Users className="h-12 w-12 text-muted-foreground mb-4" />
-                <h3 className="text-lg font-semibold">No members yet</h3>
+                <h3 className="row-h2">No members yet</h3>
                 <p className="text-muted-foreground mt-2">{canManage ? "Add members to this sub group." : "No members in this sub group."}</p>
               </div>
             )}

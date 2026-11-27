@@ -14,6 +14,7 @@ import 'package:rotary_flutter_app/core/utils/money_format.dart';
 import 'package:rotary_flutter_app/core/utils/currency_symbol.dart';
 import 'package:rotary_flutter_app/core/theme/app_fonts.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/motion.dart';
 
 // Jakarta Sans direct (matches the dashboard tabs — headings elsewhere route
 // through a configurable heading font, which looked out of place here).
@@ -247,7 +248,7 @@ class _WalletTopupScreenState extends State<WalletTopupScreen> {
 
   Future<void> _showSuccessDialog(WalletTopupResult r) {
     final newBalance = r.emailRemaining;
-    return showDialog<void>(
+    return showRowDialog<void>(
       context: context,
       builder: (ctx) => AlertDialog(
         shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(20))),

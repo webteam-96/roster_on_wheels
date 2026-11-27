@@ -54,8 +54,13 @@ public class DistrictWebsitesController : ControllerBase
         if (row == null || !string.Equals((string?)row.status, "Active", StringComparison.OrdinalIgnoreCase))
             return Ok(new { configured = false, status = "not_configured", visitUrl = (string?)null });
 
+        // Same parent domain as club sites: districts live at d<number>.<parent>, served by the club-site wildcard.
+        var parentDomain = await conn.ExecuteScalarAsync<string?>(
+            "SELECT SettingValue FROM system_settings WHERE SettingKey = 'ClubWebsiteParentDomain' LIMIT 1");
+        if (string.IsNullOrWhiteSpace(parentDomain)) parentDomain = RotaryApi.Services.Brand.ClubSiteParentDomain;
+        if (string.IsNullOrWhiteSpace(parentDomain)) parentDomain = _pleskParentDomain;
         var visitUrl = await WebsiteReachability.ResolveAsync(
-            (string?)row.clientDomain, (string?)row.subdomain, _pleskParentDomain, _useHttps);
+            (string?)row.clientDomain, (string?)row.subdomain, parentDomain, _useHttps);
         return Ok(new { configured = true, status = "active", visitUrl });
     }
 

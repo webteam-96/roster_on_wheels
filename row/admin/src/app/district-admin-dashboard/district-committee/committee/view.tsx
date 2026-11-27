@@ -9,6 +9,8 @@
  * and defaults returnTo/back to the DA-dashboard landing page.
  */
 
+import { Card } from "@/components/ui/card";
+import { PageHeader } from "@/components/row/AppKit";
 import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { RotaryYear } from "@/types/rotaryYear";
@@ -33,7 +35,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
 import AlertModal from "@/components/AlertModal";
-import { ArrowLeft, Plus, Pencil, Trash2, AlertTriangle, Users, Search, X, Upload } from "@/components/icons";
+import { Plus, Pencil, Trash2, AlertTriangle, Users, Search, X, Upload } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import Pagination from "@/components/Pagination";
 import NonSyncRemovedCommitteeMembers from "@/components/dashboard/NonSyncRemovedCommitteeMembers";
@@ -55,14 +57,14 @@ const PHOTO_MAX_OUTPUT = 500;
 // (green for member, slate for non-member).
 function MemberChip() {
   return (
-    <span className="inline-flex items-center rounded-full border border-emerald-200 bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-700">
+    <span className="inline-flex items-center rounded border border-emerald-200 bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-700">
       Member
     </span>
   );
 }
 function NonMemberChip() {
   return (
-    <span className="inline-flex items-center rounded-full border border-slate-300 bg-slate-200 px-2 py-0.5 text-xs font-medium text-slate-700">
+    <span className="inline-flex items-center rounded border border-slate-300 bg-slate-200 px-2 py-0.5 text-xs font-medium text-slate-700">
       Non-Member
     </span>
   );
@@ -366,44 +368,27 @@ export function CommitteeMembersView({ embedded = false }: { embedded?: boolean 
           <ViewOnlyBadge editableYears={editableYears} className="mb-4" />
         )}
 
-        {!embedded && <DistrictMembershipTabBar />}
         {!embedded && (
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex items-center gap-3">
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={goBack}
-                className="border-slate-200 bg-card hover:bg-slate-50 text-slate-700"
-              >
-                <ArrowLeft className="h-4 w-4" />
-              </Button>
-              <div>
-                <h2 className="text-2xl font-bold tracking-tight text-ink">
-                  {districtName ? `${districtName} - District Committee` : "District Committee"}
-                </h2>
-                <p className="text-slate-600 text-sm">Manage committee members</p>
-              </div>
-            </div>
-          </div>
+          <PageHeader title={districtName ? `${districtName} - District Committee` : "District Committee"} description="Manage committee members" back={() => goBack()} />
         )}
+        {!embedded && <DistrictMembershipTabBar />}
 
         {loading && <div className="flex items-center justify-center py-20"><RotaryLoader size="lg" /></div>}
 
         {!loading && allYears.length > 0 && (
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center bg-slate-50 p-4 rounded-2xl border border-slate-200">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
             {/* Year Select removed — top-bar year (?yearId=) drives filter. */}
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
               <Input
-                className="pl-9 pr-8 border-slate-200 bg-card focus:border-azure focus:ring-azure/20"
+                className="pl-9 pr-8"
                 placeholder="Search by name, mobile, email, club..."
                 value={searchDraft}
                 onChange={(e) => setSearchDraft(e.target.value)}
                 onKeyDown={handleSearchKey}
               />
               {searchTerm && (
-                <Button variant="ghost" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 h-6 w-6 text-slate-500 hover:text-slate-800" onClick={clearSearch} type="button">
+                <Button variant="ghost" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 w-6 w-6 w-6 h-6 w-6" onClick={clearSearch} type="button">
                   <X className="h-4 w-4" />
                 </Button>
               )}
@@ -413,7 +398,7 @@ export function CommitteeMembersView({ embedded = false }: { embedded?: boolean 
                 size="sm"
                 onClick={handleSearch}
                 type="button"
-                className="bg-azure hover:bg-mint-ink text-white"
+               
               >
                 <Search className="mr-2 h-4 w-4" />Search
               </Button>
@@ -422,7 +407,7 @@ export function CommitteeMembersView({ embedded = false }: { embedded?: boolean 
                   variant="ghost"
                   size="sm"
                   onClick={clearSearch}
-                  className="text-slate-600 hover:text-slate-800"
+                 
                 >
                   <X className="mr-1 h-4 w-4" />Clear
                 </Button>
@@ -432,7 +417,7 @@ export function CommitteeMembersView({ embedded = false }: { embedded?: boolean 
                 <Button
                   size="sm"
                   onClick={openAddDialog}
-                  className="bg-azure hover:bg-mint-ink text-white"
+                 
                 >
                   <Plus className="mr-2 h-4 w-4" />Add Committee Member
                 </Button>
@@ -444,34 +429,34 @@ export function CommitteeMembersView({ embedded = false }: { embedded?: boolean 
         {loadingMembers && <div className="flex items-center justify-center py-12"><RotaryLoader size="lg" /></div>}
 
         {!loading && !loadingMembers && selectedYearId && members.length === 0 && (
-          <div className="flex flex-col items-center justify-center py-20 text-center rounded-2xl border border-slate-200 bg-card shadow-sm">
+          <Card className="flex flex-col items-center justify-center py-20 text-center">
             <Users className="h-12 w-12 text-slate-400 mb-4" />
-            <h3 className="text-lg font-semibold text-slate-800">{searchTerm ? "No matches found" : "No committee members yet"}</h3>
+            <h3 className="row-h2">{searchTerm ? "No matches found" : "No committee members yet"}</h3>
             <p className="text-slate-600 mt-2">
               {searchTerm ? `No members match "${searchTerm}". Try a different search.` : (canManage ? 'Click "Add Member" to add committee members.' : "No committee members added yet.")}
             </p>
-          </div>
+          </Card>
         )}
 
         {!loading && !loadingMembers && members.length > 0 && (
           <>
-          <div className="rounded-2xl border border-slate-200 shadow-sm overflow-hidden bg-card">
+          <Card className="overflow-hidden">
             <Table>
               <TableHeader>
                 <TableRow
                   className="hover:opacity-100 border-b-2 border-marigold"
                   style={{ backgroundColor: "#17458f" }}
                 >
-                  <TableHead className="w-12 text-xs font-semibold uppercase tracking-wide">#</TableHead>
-                  <TableHead className="text-xs font-semibold uppercase tracking-wide">Photo</TableHead>
-                  <TableHead className="text-xs font-semibold uppercase tracking-wide">Name</TableHead>
-                  <TableHead className="text-xs font-semibold uppercase tracking-wide">Mobile</TableHead>
-                  <TableHead className="text-xs font-semibold uppercase tracking-wide">Email</TableHead>
-                  <TableHead className="text-xs font-semibold uppercase tracking-wide">Designation</TableHead>
-                  <TableHead className="text-xs font-semibold uppercase tracking-wide">Club</TableHead>
-                  <TableHead className="text-xs font-semibold uppercase tracking-wide">Remark</TableHead>
-                  {canManage && <TableHead className="text-right text-xs font-semibold uppercase tracking-wide">Actions</TableHead>}
-                  {canManage && <TableHead className="text-center w-14 text-xs font-semibold uppercase tracking-wide">Sort</TableHead>}
+                  <TableHead className="w-12">#</TableHead>
+                  <TableHead>Photo</TableHead>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Mobile</TableHead>
+                  <TableHead>Email</TableHead>
+                  <TableHead>Designation</TableHead>
+                  <TableHead>Club</TableHead>
+                  <TableHead>Remark</TableHead>
+                  {canManage && <TableHead className="text-right">Actions</TableHead>}
+                  {canManage && <TableHead className="text-center w-14">Sort</TableHead>}
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -502,8 +487,8 @@ export function CommitteeMembersView({ embedded = false }: { embedded?: boolean 
                     {canManage && (
                       <TableCell className="text-right">
                         <div className="flex items-center justify-end gap-1">
-                          <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-500 hover:text-ink hover:bg-slate-100" onClick={() => openEditDialog(m)}><Pencil className="h-4 w-4" /></Button>
-                          <Button variant="ghost" size="icon" className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50" onClick={() => setDeleteTarget(m)}><Trash2 className="h-4 w-4" /></Button>
+                          <Button variant="ghost" size="icon" className="row-btn-sm" onClick={() => openEditDialog(m)}><Pencil className="h-4 w-4" /></Button>
+                          <Button variant="ghost" size="icon" className="text-red-600 row-btn-sm" onClick={() => setDeleteTarget(m)}><Trash2 className="h-4 w-4" /></Button>
                         </div>
                       </TableCell>
                     )}
@@ -516,7 +501,7 @@ export function CommitteeMembersView({ embedded = false }: { embedded?: boolean 
                 ))}
               </TableBody>
             </Table>
-          </div>
+          </Card>
           {/* Pagination removed — all members show on one page so drag-reorder spans the full list. */}
           {canManage && (
             <NonSyncRemovedCommitteeMembers districtId={districtId} level="committee" yearId={selectedYearId ? Number(selectedYearId) : undefined} onAdded={() => fetchMembers(Number(selectedYearId), page)} />
@@ -536,7 +521,7 @@ export function CommitteeMembersView({ embedded = false }: { embedded?: boolean 
               <div className="space-y-2">
                 <Label className="text-slate-500 text-xs font-semibold uppercase tracking-wide">Rotary Year *</Label>
                 <Select value={formYearId} onValueChange={setFormYearId}>
-                  <SelectTrigger className="border-slate-200 bg-card focus:border-azure focus:ring-azure/20">
+                  <SelectTrigger>
                     <SelectValue placeholder="Select year" />
                   </SelectTrigger>
                   <SelectContent>
@@ -556,7 +541,7 @@ export function CommitteeMembersView({ embedded = false }: { embedded?: boolean 
                       <div className="relative flex-1">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                         <Input
-                          className="pl-9 border-slate-200 bg-card focus:border-azure focus:ring-azure/20"
+                          className="pl-9"
                           placeholder="Search by name, mobile, email..."
                           value={memberSearch}
                           onChange={(e) => handleMemberSearch(e.target.value)}
@@ -564,7 +549,7 @@ export function CommitteeMembersView({ embedded = false }: { embedded?: boolean 
                         />
                       </div>
                       {formIsMember && formMemberId && (
-                        <Button variant="outline" size="sm" onClick={clearMember} type="button" className="border-slate-200 text-slate-700 hover:bg-slate-50">
+                        <Button variant="outline" size="sm" onClick={clearMember} type="button">
                           <X className="h-4 w-4 mr-1" />Clear
                         </Button>
                       )}
@@ -603,7 +588,7 @@ export function CommitteeMembersView({ embedded = false }: { embedded?: boolean 
                   value={formName}
                   onChange={(e) => setFormName(e.target.value)}
                   disabled={formIsMember && !!formMemberId}
-                  className="border-slate-200 bg-card focus:border-azure focus:ring-azure/20"
+                 
                 />
               </div>
 
@@ -614,7 +599,7 @@ export function CommitteeMembersView({ embedded = false }: { embedded?: boolean 
                   value={formMobile}
                   onChange={(e) => setFormMobile(e.target.value)}
                   disabled={formIsMember && !!formMemberId}
-                  className="border-slate-200 bg-card focus:border-azure focus:ring-azure/20"
+                 
                 />
               </div>
 
@@ -626,7 +611,7 @@ export function CommitteeMembersView({ embedded = false }: { embedded?: boolean 
                   value={formEmail}
                   onChange={(e) => setFormEmail(e.target.value)}
                   disabled={formIsMember && !!formMemberId}
-                  className="border-slate-200 bg-card focus:border-azure focus:ring-azure/20"
+                 
                 />
               </div>
 
@@ -636,7 +621,7 @@ export function CommitteeMembersView({ embedded = false }: { embedded?: boolean 
                 <Input
                   value={formDesignation}
                   onChange={(e) => setFormDesignation(e.target.value)}
-                  className="border-slate-200 bg-card focus:border-azure focus:ring-azure/20"
+                 
                 />
               </div>
 
@@ -648,7 +633,7 @@ export function CommitteeMembersView({ embedded = false }: { embedded?: boolean 
                     <Input
                       value={formClubName}
                       disabled
-                      className="border-slate-200 bg-card focus:border-azure focus:ring-azure/20"
+                     
                     />
                   </div>
                 ) : null
@@ -659,7 +644,7 @@ export function CommitteeMembersView({ embedded = false }: { embedded?: boolean 
                     value={formClubName}
                     onChange={(e) => setFormClubName(e.target.value)}
                     placeholder="Enter club name"
-                    className="border-slate-200 bg-card focus:border-azure focus:ring-azure/20"
+                   
                   />
                 </div>
               )}
@@ -670,7 +655,7 @@ export function CommitteeMembersView({ embedded = false }: { embedded?: boolean 
                 <Input
                   value={formRemark}
                   onChange={(e) => setFormRemark(e.target.value)}
-                  className="border-slate-200 bg-card focus:border-azure focus:ring-azure/20"
+                 
                 />
               </div>
 
@@ -688,7 +673,7 @@ export function CommitteeMembersView({ embedded = false }: { embedded?: boolean 
                       variant="outline"
                       size="sm"
                       onClick={() => fileInputRef.current?.click()}
-                      className="border-slate-200 text-slate-700 hover:bg-slate-50"
+                     
                     >
                       <Upload className="h-4 w-4 mr-1" />Upload Photo
                     </Button>
@@ -703,14 +688,14 @@ export function CommitteeMembersView({ embedded = false }: { embedded?: boolean 
                 variant="outline"
                 onClick={() => setDialogOpen(false)}
                 disabled={saving}
-                className="border-slate-200 text-slate-700 hover:bg-slate-50"
+               
               >
                 Cancel
               </Button>
               <Button
                 onClick={handleSave}
                 disabled={saving || !formName.trim() || !formYearId}
-                className="bg-azure hover:bg-mint-ink text-white"
+               
               >
                 {saving ? "Saving..." : editing ? "Update" : "Add"}
               </Button>

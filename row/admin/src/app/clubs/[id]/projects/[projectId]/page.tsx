@@ -1,5 +1,8 @@
 "use client";
 
+import DetailRow from "@/components/DetailRow";
+import SectionCard from "@/components/form/SectionCard";
+import { Card } from "@/components/ui/card";
 import { useState, useEffect } from "react";
 import { useParams, useSearchParams, useRouter } from "next/navigation";
 import { ProjectDetail } from "@/types/project";
@@ -11,13 +14,10 @@ import RotaryLoader from "@/components/RotaryLoader";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { formatMoney } from "@/lib/currency";
 import Link from "next/link";
-import {
-  ArrowLeft, Pencil, FileText, MapPin, Target,
-  IndianRupee, Camera, Star,
-} from "@/components/icons";
+import { ArrowLeft, Pencil, FileText, MapPin, Target, IndianRupee, Camera, Star } from "@/components/icons";
 
 import { appLocale } from "@/lib/appFormat";
-import { ListPageSkeleton } from "@/components/row/AppKit";
+import { PageHeader, ListPageSkeleton } from "@/components/row/AppKit";
 const MODULE_LABELS: Record<string, string> = {
   club_service: "Club Service",
   community_service: "Community Service",
@@ -28,36 +28,8 @@ const MODULE_LABELS: Record<string, string> = {
 };
 
 /* ── Section wrapper with icon + title ── */
-function Section({ icon: Icon, title, children, number }: {
-  icon: React.ElementType;
-  title: string;
-  children: React.ReactNode;
-  number: number;
-}) {
-  return (
-    <div className="relative bg-card rounded-[20px] border shadow-sm overflow-hidden">
-      <div className="flex items-center gap-3 px-5 py-3.5 bg-primary/5 border-b">
-        <div className="flex items-center justify-center h-8 w-8 rounded-full bg-primary text-primary-foreground text-sm font-bold shrink-0">
-          {number}
-        </div>
-        <Icon className="h-5 w-5 text-primary shrink-0" />
-        <h3 className="text-base font-semibold text-foreground">{title}</h3>
-      </div>
-      <div className="p-5">{children}</div>
-    </div>
-  );
-}
 
 /* ── Detail row: label + value ── */
-function DetailRow({ label, value }: { label: string; value: React.ReactNode }) {
-  if (!value || value === "-") return null;
-  return (
-    <div className="space-y-0.5">
-      <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">{label}</p>
-      <p className="text-sm font-medium">{value}</p>
-    </div>
-  );
-}
 
 function formatDate(dateStr: string): string {
   return new Date(dateStr).toLocaleDateString(appLocale(), {
@@ -137,23 +109,13 @@ export default function ViewProjectPage() {
 
   return (
     <ProtectedRoute>
-      <div className="space-y-5 max-w-4xl mx-auto pb-10">
+      <div className="space-y-5 max-w-4xl">
         {/* ── Header ── */}
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-3">
-            <Button variant="outline" size="icon" asChild>
-              <Link href={`/clubs/${clubId}/projects?module=${moduleKey}`}>
-                <ArrowLeft className="h-4 w-4" />
-              </Link>
-            </Button>
-            <div>
-              <h2 className="text-2xl font-bold tracking-tight text-primary">
-                {clubName ? `${clubName} - ${moduleLabel}` : moduleLabel}
-              </h2>
-              <p className="text-muted-foreground text-base">Project Details</p>
-            </div>
-          </div>
-          {canManage && (
+        <PageHeader
+          title={clubName ? `${clubName} - ${moduleLabel}` : moduleLabel}
+          description="Project Details"
+          back={`/clubs/${clubId}/projects?module=${moduleKey}`}
+          actions={canManage && (
             <Button
               variant="outline"
               size="sm"
@@ -162,10 +124,10 @@ export default function ViewProjectPage() {
               <Pencil className="mr-2 h-4 w-4" />Edit
             </Button>
           )}
-        </div>
+        />
 
         {/* ── 1. Project Type ── */}
-        <Section icon={FileText} title="Project Type" number={1}>
+        <SectionCard icon={FileText} title="Project Type" number={1}>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <DetailRow label="Project Type" value={projectTypeLabel} />
             {project.ongoingGroupTitle && (
@@ -185,10 +147,10 @@ export default function ViewProjectPage() {
               />
             )}
           </div>
-        </Section>
+        </SectionCard>
 
         {/* ── 2. Project Details ── */}
-        <Section icon={MapPin} title="Project Details" number={2}>
+        <SectionCard icon={MapPin} title="Project Details" number={2}>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <DetailRow label="Title" value={project.title} />
             {project.projectDate && (
@@ -203,11 +165,11 @@ export default function ViewProjectPage() {
               <DetailRow label="Location" value={project.location} />
             )}
           </div>
-        </Section>
+        </SectionCard>
 
         {/* ── 3. Classification (hidden for Club Service) ── */}
         {!isClubService && (
-          <Section icon={Target} title="Area of Focus" number={3}>
+          <SectionCard icon={Target} title="Area of Focus" number={3}>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <DetailRow
                 label="Area of Focus"
@@ -218,11 +180,11 @@ export default function ViewProjectPage() {
                 }
               />
             </div>
-          </Section>
+          </SectionCard>
         )}
 
         {/* ── Financial & Impact ── */}
-        <Section icon={IndianRupee} title="Financial & Impact" number={financialNumber}>
+        <SectionCard icon={IndianRupee} title="Financial & Impact" number={financialNumber}>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {project.projectCost != null && (
               <DetailRow label="Project Cost" value={formatMoney(project.projectCost, project.currency)} />
@@ -266,11 +228,11 @@ export default function ViewProjectPage() {
               <DetailRow label="Rotaractors Involved" value={project.rotaractorsInvolved.toLocaleString(appLocale())} />
             )}
           </div>
-        </Section>
+        </SectionCard>
 
         {/* ── Photos ── */}
         {project.photos && project.photos.length > 0 && (
-          <Section icon={Camera} title="Photos" number={photosNumber}>
+          <SectionCard icon={Camera} title="Photos" number={photosNumber}>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {project.photos.map((photo) => (
                 <div key={photo.id} className="relative rounded-xl border overflow-hidden bg-muted/30">
@@ -281,7 +243,7 @@ export default function ViewProjectPage() {
                       className="h-48 w-full object-contain"
                     />
                     {photo.isPrimary && (
-                      <div className="absolute top-2 left-2 flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-500 text-white text-xs font-medium shadow">
+                      <div className="absolute top-2 left-2 flex items-center gap-1 px-2 py-0.5 rounded bg-amber-500 text-white text-xs font-medium shadow">
                         <Star className="h-3 w-3 fill-white" />Primary
                       </div>
                     )}
@@ -294,7 +256,7 @@ export default function ViewProjectPage() {
                 </div>
               ))}
             </div>
-          </Section>
+          </SectionCard>
         )}
 
         <ErrorAlert open={!!errorMessage} title="Error" description={errorMessage || ""} onOk={() => setErrorMessage(null)} />

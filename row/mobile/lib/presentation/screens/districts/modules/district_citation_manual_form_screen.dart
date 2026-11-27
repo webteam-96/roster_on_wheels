@@ -505,6 +505,7 @@ class _DistrictCitationManualFormScreenState
                     style: const TextStyle(fontWeight: FontWeight.w600)),
               ),
               IconButton(
+                tooltip: 'Delete',
                 icon: const Icon(Icons.delete_outline,
                     size: 18, color: AppColors.error),
                 onPressed: _saving ? null : () => _removeSub(i),
@@ -696,6 +697,7 @@ class _DistrictCitationManualFormScreenState
                       ),
                     ),
                     IconButton(
+                      tooltip: 'Delete',
                       icon: const Icon(Icons.delete_outline,
                           size: 18, color: AppColors.error),
                       onPressed:

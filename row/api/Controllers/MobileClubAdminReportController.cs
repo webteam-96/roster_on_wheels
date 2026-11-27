@@ -19,8 +19,13 @@ namespace RotaryApi.Controllers;
 [Authorize]
 public class MobileClubAdminReportController : ControllerBase
 {
+    // With this request's context, so the report's own access check sees the caller.
     private ClubReportController Web()
-        => ActivatorUtilities.CreateInstance<ClubReportController>(HttpContext.RequestServices);
+    {
+        var web = ActivatorUtilities.CreateInstance<ClubReportController>(HttpContext.RequestServices);
+        web.ControllerContext = ControllerContext;
+        return web;
+    }
 
     private bool IsSuperAdminOrAdmin()
     {

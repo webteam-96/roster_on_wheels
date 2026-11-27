@@ -8,6 +8,8 @@ import '../../widgets/common/custom_app_bar.dart';
 import '../../widgets/common/empty_state_widget.dart';
 import '../../widgets/row/skeleton_list.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/motion.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/roster_wheel.dart';
 
 /// Follow-up tasks on prospects that the club assigned to the member: who to contact, by when, and a button to
 /// mark the task done with a short note on the outcome.
@@ -46,7 +48,7 @@ class _MyProspectTasksScreenState extends State<MyProspectTasksScreen> {
 
   Future<void> _complete(Map<String, dynamic> task) async {
     final noteController = TextEditingController();
-    final ok = await showDialog<bool>(
+    final ok = await showRowDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Mark as done'),
@@ -97,7 +99,7 @@ class _MyProspectTasksScreenState extends State<MyProspectTasksScreen> {
           title: _showDone ? 'No finished tasks' : 'No follow-ups for you',
           subtitle: _showDone ? null : 'When your club asks you to follow up with a prospect, it shows here.');
     } else {
-      body = RefreshIndicator(
+      body = RowRefresh(
         onRefresh: _load,
         child: ListView(padding: const EdgeInsets.all(12), children: [for (final t in tasks) _card(t)]),
       );

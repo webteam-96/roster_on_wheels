@@ -1,5 +1,8 @@
 "use client";
 
+import { IconButton } from "@/components/ui/icon-button";
+import SectionCard from "@/components/form/SectionCard";
+import FieldLabel from "@/components/form/FieldLabel";
 import { useState, useEffect, useRef } from "react";
 import DateField from "@/components/DateField";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
@@ -13,46 +16,17 @@ import {
 import { documentUploadHint, validateDocumentFile, describeUploadError, PDF_ONLY_EXTENSIONS } from "@/lib/uploadValidate";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
-import {
-  ArrowLeft, Upload, X,
-  FileText, Send, Bell, Link2, FileUp,
-} from "@/components/icons";
+import { Upload, X, FileText, Send, Bell, Link2, FileUp } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
-import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import RecipientBadge from "@/components/RecipientBadge";
 import { toLocalDateParts } from "@/lib/dateUtils";
 import { TEXT_INPUT_REGEX } from "@/lib/textInput";
-import { ListPageSkeleton } from "@/components/row/AppKit";
+import { PageHeader, ListPageSkeleton } from "@/components/row/AppKit";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
-
-function Req({ children, hint }: { children: React.ReactNode; hint?: string }) {
-  return (
-    <Label className="text-sm font-semibold text-foreground">
-      {children}<span className="text-destructive ml-0.5">*</span>
-      {hint && <span className="text-muted-foreground font-normal ml-1">{hint}</span>}
-    </Label>
-  );
-}
-
-function Section({ icon: Icon, title, number, children }: {
-  icon: React.ElementType; title: string; number: number; children: React.ReactNode;
-}) {
-  return (
-    <div className="bg-card rounded-[20px] border shadow-sm overflow-hidden">
-      <div className="flex items-center gap-3 px-5 py-3.5 bg-muted/40 border-b">
-        <div className="flex items-center justify-center h-7 w-7 rounded-full bg-primary text-primary-foreground text-xs font-bold">{number}</div>
-        <Icon className="h-4 w-4 text-primary" />
-        <h3 className="font-semibold text-base">{title}</h3>
-      </div>
-      <div className="p-5">{children}</div>
-    </div>
-  );
-}
 
 export default function NewsletterEditPage() {
   const params = useParams();
@@ -215,39 +189,31 @@ export default function NewsletterEditPage() {
 
   return (
     <ProtectedRoute>
-      <div className="space-y-6 max-w-3xl mx-auto">
+      <div className="space-y-6 max-w-4xl">
         {/* Header */}
-        <div className="flex items-center gap-3">
-          <Button variant="outline" size="icon" asChild>
-            <Link href={listUrl}><ArrowLeft className="h-4 w-4" /></Link>
-          </Button>
-          <div>
-            <h2 className="text-2xl font-bold tracking-tight text-primary">Edit Newsletter</h2>
-            <p className="text-muted-foreground text-base">{clubName}</p>
-          </div>
-        </div>
+        <PageHeader title="Edit Newsletter" description={clubName} back={listUrl} />
 
         {/* 1. Newsletter Details */}
-        <Section icon={FileText} title="Newsletter Details" number={1}>
+        <SectionCard icon={FileText} title="Newsletter Details" number={1}>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1.5 sm:col-span-2">
-              <Req hint="(max 50 chars)">Title</Req>
+              <FieldLabel required hint="(max 50 chars)">Title</FieldLabel>
               <Input value={title} onChange={handleTitleChange} placeholder="Newsletter title" maxLength={50} />
               <p className="text-xs text-muted-foreground text-right">{title.length}/50</p>
             </div>
             <div className="space-y-1.5">
-              <Req>Publish Date</Req>
+              <FieldLabel required>Publish Date</FieldLabel>
               <DateField value={publishDate} onChange={setPublishDate} />
             </div>
             <div className="space-y-1.5">
-              <Req>Publish Time</Req>
+              <FieldLabel required>Publish Time</FieldLabel>
               <Input type="time" value={publishTime} onChange={(e) => setPublishTime(e.target.value)} />
             </div>
           </div>
-        </Section>
+        </SectionCard>
 
         {/* 2. Attachment */}
-        <Section icon={Link2} title="Attachment" number={2}>
+        <SectionCard icon={Link2} title="Attachment" number={2}>
           <div className="space-y-4">
             <div className="flex gap-6">
               <label className="flex items-center gap-2 cursor-pointer">
@@ -274,7 +240,7 @@ export default function NewsletterEditPage() {
 
             {attachmentType === "link" && (
               <div className="space-y-1.5">
-                <Req>Link URL</Req>
+                <FieldLabel required>Link URL</FieldLabel>
                 <Input
                   value={linkUrl}
                   onChange={(e) => setLinkUrl(e.target.value)}
@@ -286,25 +252,24 @@ export default function NewsletterEditPage() {
 
             {attachmentType === "file" && (
               <div className="space-y-2">
-                <Req>PDF File</Req>
+                <FieldLabel required>PDF File</FieldLabel>
                 {fileName ? (
                   <div className="flex items-center gap-3 p-3 rounded-lg border bg-muted/30">
                     <FileUp className="h-5 w-5 text-primary shrink-0" />
                     <span className="text-sm font-medium flex-1 truncate">{fileName}</span>
                     {fileUploading && <RotaryLoader size="sm" />}
-                    <button onClick={removeFile} className="p-1 rounded-full hover:bg-destructive/10 text-destructive">
+                    <IconButton aria-label="Remove file" onClick={removeFile} className="hover:text-red-700">
                       <X className="h-4 w-4" />
-                    </button>
+                    </IconButton>
                   </div>
                 ) : (
                   <div>
-                    <button
+                    <Button
                       onClick={() => fileInputRef.current?.click()}
-                      className="flex items-center gap-2 px-4 py-3 border-2 border-dashed rounded-lg hover:border-primary/40 transition-colors text-muted-foreground"
-                    >
+                      className="h-auto py-3 border-dashed" variant="outline">
                       <Upload className="h-4 w-4" />
                       <span className="text-sm">Upload PDF file</span>
-                    </button>
+                    </Button>
                     <p className="text-xs text-muted-foreground mt-1.5">{documentUploadHint(PDF_ONLY_EXTENSIONS)}</p>
                   </div>
                 )}
@@ -312,10 +277,10 @@ export default function NewsletterEditPage() {
               </div>
             )}
           </div>
-        </Section>
+        </SectionCard>
 
         {/* 3. Notification Settings */}
-        <Section icon={Bell} title="Notification Settings" number={3}>
+        <SectionCard icon={Bell} title="Notification Settings" number={3}>
           <div className="space-y-4">
             <label className="flex items-center gap-3 cursor-pointer">
               <input
@@ -328,11 +293,11 @@ export default function NewsletterEditPage() {
               {isSendEmail && <RecipientBadge scope="club" clubId={clubId} />}
             </label>
           </div>
-        </Section>
+        </SectionCard>
 
         {/* Save Button */}
         <div className="flex justify-end pb-8">
-          <Button onClick={handleSave} disabled={saving} size="lg" className="shadow-md">
+          <Button onClick={handleSave} disabled={saving} size="lg">
             {saving ? <RotaryLoader size="sm" /> : <><Send className="mr-2 h-4 w-4" />Update Newsletter</>}
           </Button>
         </div>

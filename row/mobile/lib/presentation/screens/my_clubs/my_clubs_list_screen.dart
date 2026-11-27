@@ -5,6 +5,7 @@ import '../../../core/theme/app_colors.dart';
 import '../../widgets/common/custom_app_bar.dart';
 import 'package:rotary_flutter_app/core/theme/app_fonts.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/motion.dart';
 
 class MyClubsListScreen extends StatelessWidget {
   final List<({int id, String name})> clubs;
@@ -15,7 +16,7 @@ class MyClubsListScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: AppColors.lightBg,
       appBar: const CustomAppBar(title: 'My Clubs'),
-      body: ListView.separated(
+      body: RowListView.separated(
         padding: const EdgeInsets.all(16),
         itemCount: clubs.length,
         separatorBuilder: (_, __) => const SizedBox(height: 12),

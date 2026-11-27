@@ -17,14 +17,15 @@
  * v2 reads ONLY `?returnTo=` — never any other param name.
  */
 
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { NativeSelect } from "@/components/ui/native-select";
+import { Card } from "@/components/ui/card";
+import { IconButton } from "@/components/ui/icon-button";
 import { Fragment, useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter, useParams, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import {
-  Briefcase, Users, IndianRupee, Clock4, Loader2, Search, Plus, Edit3, Trash2,
-  Download, ArrowLeft, AlertTriangle, Info, ChevronDown, ChevronRight,
-  Eye, X, Puzzle,
-} from "@/components/icons";
+import { Briefcase, Users, IndianRupee, Clock4, Search, Plus, Edit3, Trash2, Download, AlertTriangle, Info, ChevronDown, ChevronRight, Eye, X, Puzzle } from "@/components/icons";
 import {
   getClub,
   getModules,
@@ -44,15 +45,17 @@ import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
 import ClubAdminShell from "@/components/v2/ClubAdminShell";
 import { fileTimestamp } from "@/lib/dateUtils";
-import { getCurrencySymbol } from "@/lib/currency";
+import { getCurrencySymbol, moneyTotals } from "@/lib/currency";
 import { useSyncClubIdFromUrl } from "@/hooks/useSyncClubIdFromUrl";
 import { useExtensionStatus } from "@/hooks/useExtensionStatus";
 import { isFlowBotEnabled, AVENUE_LABELS, buildOrgExportFromDetail, triggerAddToOrg } from "@/lib/addToOrg";
 import AddToOrgConfirmDialog from "@/components/AddToOrgConfirmDialog";
 
 import { currencySymbol } from "@/lib/appFormat";
-import { SkeletonRows } from "@/components/row/AppKit";
+import { PageHeader, SkeletonRows } from "@/components/row/AppKit";
 import AgreeText from "@/components/AgreeText";
+import { ClearButton, ToggleButton } from "@/components/ui/text-buttons"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 const SYNC_API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
 const MODULE_KEY = "public_image_initiative";
@@ -257,7 +260,7 @@ export default function PublicImageInitiativeV2Page() {
   // Aggregate KPIs from the current year's projects (parents + children — every row counts).
   const totalProjects = projects.length;
   const totalBeneficiaries = projects.reduce((s, p) => s + (p.directBeneficiaries ?? 0), 0);
-  const totalAmountSpent = projects.reduce((s, p) => s + (p.projectCost ?? 0), 0);
+  const totalAmountSpent = moneyTotals(projects.map((p) => ({ amount: p.projectCost, currency: p.currency })));
   // Man hours isn't on ProjectListItem; KPI tile preserved for visual parity but shows 0
   // unless backed by a future endpoint. (NonClubAvenueSection on the dashboard fetches
   // this from getServiceProjectsAvenue — but v2 reuses v1 list APIs only.)
@@ -312,24 +315,23 @@ export default function PublicImageInitiativeV2Page() {
     const isOngoingParent = !isChild && project.projectType === "ongoing_repeat";
     const isExpanded = expandedParents.has(project.id);
     const typeChip = isChild
-      ? <span className={`inline-flex items-center text-xs font-medium px-2 py-0.5 rounded-full border ${projectTypeChipStyle("child")}`}>Child</span>
+      ? <span className={`inline-flex items-center text-xs font-medium px-2 py-0.5 rounded border ${projectTypeChipStyle("child")}`}>Child</span>
       : project.projectType === "one_time"
-        ? <span className={`inline-flex items-center text-xs font-medium px-2 py-0.5 rounded-full border ${projectTypeChipStyle("one_time")}`}>One Time</span>
+        ? <span className={`inline-flex items-center text-xs font-medium px-2 py-0.5 rounded border ${projectTypeChipStyle("one_time")}`}>One Time</span>
         : (
-          <button
+          <Button
             type="button"
             onClick={() => childCount > 0 && toggleExpand(project.id)}
             disabled={childCount === 0}
-            className={`inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full border ${projectTypeChipStyle("ongoing_repeat")} ${childCount > 0 ? "hover:brightness-95" : "cursor-default"}`}
-          >
+            className={`${projectTypeChipStyle("ongoing_repeat")} ${childCount > 0 ? "hover:brightness-95" : "cursor-default"}`} variant="outline" size="sm">
             Ongoing
             {childCount > 0 && (
               <>
-                <span className="bg-[#17458F] text-white rounded-full px-1.5 py-0 text-[10px] ml-0.5">{childCount}</span>
+                <span className="bg-[#17458F] text-white rounded px-1.5 py-0 text-[10px] ml-0.5">{childCount}</span>
                 {isExpanded ? <ChevronDown size={11} /> : <ChevronRight size={11} />}
               </>
             )}
-          </button>
+          </Button>
         );
 
     return (
@@ -350,7 +352,7 @@ export default function PublicImageInitiativeV2Page() {
           <td className="px-3 py-2 text-right">
             <Link
               href={`/clubs/${clubId}/public-image-initiative/${project.id}?yearId=${selectedYearId}`}
-              className="inline-flex items-center justify-center w-7 h-7 rounded text-slate-500 hover:text-blue-700 hover:bg-blue-50"
+              className="row-icon-btn"
               aria-label="View project"
               title="View"
             >
@@ -362,7 +364,7 @@ export default function PublicImageInitiativeV2Page() {
           <td className="px-3 py-2 text-right">
             <Link
               href={`/clubs/${clubId}/public-image-initiative/v2/${project.id}/edit?returnTo=${returnTo}&yearId=${selectedYearId}`}
-              className="inline-flex items-center justify-center w-7 h-7 rounded text-slate-500 hover:text-blue-700 hover:bg-blue-50"
+              className="row-icon-btn"
               aria-label="Edit project"
               title="Edit"
             >
@@ -372,28 +374,27 @@ export default function PublicImageInitiativeV2Page() {
         )}
         {canManage && (
           <td className="px-3 py-2 text-right">
-            <button
+            <IconButton
               type="button"
               onClick={() => setDeleteTarget(project)}
-              className="inline-flex items-center justify-center w-7 h-7 rounded text-slate-400 hover:text-rose-700 hover:bg-rose-50"
+              className="hover:text-red-700"
               aria-label="Delete project"
             >
               <Trash2 size={13} />
-            </button>
+            </IconButton>
           </td>
         )}
         {isBotEnabled && installed === true && (
           <td className="px-3 py-2 text-right">
             {canSync && (
-              <button
+              <IconButton
                 type="button"
                 onClick={() => setSyncTarget(project)}
-                className="inline-flex items-center justify-center w-7 h-7 rounded text-slate-400 hover:text-blue-700 hover:bg-blue-50"
-                aria-label="Add to Rotary Org"
+                 aria-label="Add to Rotary Org"
                 title="Add to Rotary Org"
               >
                 <Puzzle size={13} />
-              </button>
+              </IconButton>
             )}
           </td>
         )}
@@ -412,23 +413,7 @@ export default function PublicImageInitiativeV2Page() {
       >
       <div className="space-y-5">
         {/* Header */}
-        <div className="flex items-start justify-between gap-3">
-          <div className="flex items-start gap-2">
-            <Link
-              href={`/clubs/${clubId}/dashboard`}
-              className="mt-0.5 inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50"
-              aria-label="Back"
-            >
-              <ArrowLeft size={15} />
-            </Link>
-            <div>
-              <h1 className="text-lg font-semibold text-slate-800">Public Image Initiative</h1>
-              <p className="text-xs text-slate-500 mt-0.5">
-                RY {yearLabel} &middot; {clubName || "–"}
-              </p>
-            </div>
-          </div>
-        </div>
+        <PageHeader title="Public Image Initiative" description={<>RY {yearLabel} &middot; {clubName || "–"}</>} back={`/clubs/${clubId}/dashboard`} />
 
         {/* KPI row */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -436,49 +421,47 @@ export default function PublicImageInitiativeV2Page() {
           <KpiCard title="Beneficiaries" value={fmtInt(totalBeneficiaries)}       subtitle="Lives impacted"        icon={Users}       color="green" />
           {/* Sums raw cost across rows regardless of currency — not currency-pure once
               mixed-currency projects exist on one page. Known limitation, not a bug. */}
-          <KpiCard title="Amount Spent"  value={shortInr(Number(totalAmountSpent))} subtitle="Project investment"  icon={IndianRupee} color="gold" />
+          <KpiCard title="Amount Spent"  value={totalAmountSpent} subtitle="Project investment"  icon={IndianRupee} color="gold" />
           <KpiCard title="Man Hours"     value={fmtInt(totalManHours)}            subtitle="Volunteer time"        icon={Clock4}      color="purple" />
         </div>
 
         {/* Table card */}
-        <div className="bg-card rounded-2xl border border-slate-200 overflow-hidden">
+        <Card className="overflow-hidden">
           <div className="px-5 py-3 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div>
-              <h3 className="text-sm font-semibold text-slate-800">Project Records</h3>
+              <h3 className="row-h3">Project Records</h3>
               <p className="text-xs text-slate-500 mt-0.5">Hoardings, marathons, press, social posts &amp; more &middot; {yearLabel}</p>
             </div>
             <div className="flex flex-wrap items-center gap-2">
               {/* Sub-tabs (one-time / ongoing-repeat) */}
-              <div className="inline-flex rounded-lg border border-slate-200 overflow-hidden text-xs">
-                <button
+              <div role="group" aria-label="Project type" className="flex flex-wrap gap-2">
+                <ToggleButton
                   type="button"
                   onClick={() => { setSubTab("one_time"); setPage(1); }}
-                  className={`px-3 py-1.5 ${subTab === "one_time" ? "bg-blue-600 text-white" : "text-slate-600 hover:bg-slate-50"}`}
-                >
+                  pressed={subTab === "one_time"}>
                   One-time
-                </button>
-                <button
+                </ToggleButton>
+                <ToggleButton
                   type="button"
                   onClick={() => { setSubTab("ongoing"); setPage(1); }}
-                  className={`px-3 py-1.5 border-l border-slate-200 ${subTab === "ongoing" ? "bg-[#17458F] text-white" : "text-slate-600 hover:bg-slate-50"}`}
-                >
+                  pressed={subTab === "ongoing"}>
                   Ongoing-Repeat
-                </button>
+                </ToggleButton>
               </div>
               {/* Project type filter (preserved from v1 — chip-style tab strip) */}
-              <select
+              <NativeSelect
                 value={projectTypeFilter}
                 onChange={(e) => { setProjectTypeFilter(e.target.value as "all" | "one_time" | "ongoing_repeat"); setPage(1); }}
-                className="px-2 h-10 py-0 text-sm border border-slate-200 rounded-[12px] bg-card focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                className="w-auto"
               >
                 <option value="all">All Types</option>
                 <option value="one_time">One Time</option>
                 <option value="ongoing_repeat">Ongoing / Repeat</option>
-              </select>
-              <select
+              </NativeSelect>
+              <NativeSelect
                 value={selectedYearId ?? ""}
                 onChange={(e) => { setSelectedYearId(e.target.value ? Number(e.target.value) : null); setPage(1); }}
-                className="px-2 h-10 py-0 text-sm border border-slate-200 rounded-[12px] bg-card focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                className="w-auto"
               >
                 {years.length === 0 && <option value="">No years</option>}
                 {years.map((y) => (
@@ -486,50 +469,46 @@ export default function PublicImageInitiativeV2Page() {
                     {y.yearLabel}{y.isCurrent ? " · current" : ""}
                   </option>
                 ))}
-              </select>
+              </NativeSelect>
               <div className="relative w-full sm:w-auto">
                 <Search size={14} className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-400" />
-                <input
+                <Input
                   type="text"
                   placeholder="Search…"
                   value={searchInput}
                   onChange={(e) => setSearchInput(e.target.value)}
                   onKeyDown={(e) => { if (e.key === "Enter") handleSearchSubmit(); }}
-                  className="pl-7 pr-7 h-10 py-0 text-sm border border-slate-200 rounded-[12px] w-full sm:w-48 focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                  className="pl-7 pr-7 sm:w-48"
                 />
                 {searchInput && (
-                  <button
+                  <ClearButton
                     type="button"
                     onClick={clearSearch}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700"
-                    aria-label="Clear search"
-                  >
-                    <X size={13} />
-                  </button>
+                     aria-label="Clear search" />
                 )}
               </div>
-              <button
+              <Button
                 type="button"
                 onClick={handleSearchSubmit}
-                className="inline-flex items-center text-xs font-medium px-2.5 py-1.5 rounded-full border border-slate-200 text-slate-700 hover:bg-slate-50"
+                variant="outline" size="sm"
               >
                 Search
-              </button>
-              <button
+              </Button>
+              <Button
                 type="button"
                 onClick={() => exportToCsv(visible, yearLabel, clubName || "club")}
-                className="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1.5 rounded-full border border-slate-200 text-slate-700 hover:bg-slate-50"
+                variant="outline" size="sm"
               >
                 <Download size={13} /> Export CSV
-              </button>
+              </Button>
               {canManage && (
-                <button
+                <Button
                   type="button"
                   onClick={handleAddClick}
-                  className="inline-flex items-center gap-1.5 text-xs font-semibold px-4 h-10 rounded-full bg-[#17458F] text-white hover:bg-[#17458F]"
+                  
                 >
                   <Plus size={13} /> Add Project
-                </button>
+                </Button>
               )}
             </div>
           </div>
@@ -539,23 +518,23 @@ export default function PublicImageInitiativeV2Page() {
             {loading ? (
               <SkeletonRows />
             ) : (
-              <table className="w-full min-w-[640px] md:min-w-full text-sm">
-                <thead className="bg-[#EDF4FB] text-[13px] text-[#64748B]">
-                  <tr>
-                    <th className="px-3 py-2.5 text-left w-10">Sr</th>
-                    <th className="px-3 py-2.5 text-left">Date</th>
-                    <th className="px-3 py-2.5 text-left">Title</th>
-                    <th className="px-3 py-2.5 text-left">Type</th>
-                    <th className="px-3 py-2.5 text-left">Category</th>
-                    <th className="px-3 py-2.5 text-left">Location</th>
-                    <th className="px-3 py-2.5 text-right">Cost</th>
-                    {canManage && <th className="px-3 py-2.5 text-right w-16">View</th>}
-                    {canManage && <th className="px-3 py-2.5 text-right w-16">Edit</th>}
-                    {canManage && <th className="px-3 py-2.5 text-right w-16">Delete</th>}
-                    {isBotEnabled && installed === true && <th className="px-3 py-2.5 text-right w-16">Rotary.org</th>}
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
+              <Table className="min-w-[640px] md:min-w-full">
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="text-left w-10">Sr</TableHead>
+                    <TableHead className="text-left">Date</TableHead>
+                    <TableHead className="text-left">Title</TableHead>
+                    <TableHead className="text-left">Type</TableHead>
+                    <TableHead className="text-left">Category</TableHead>
+                    <TableHead className="text-left">Location</TableHead>
+                    <TableHead className="text-right">Cost</TableHead>
+                    {canManage && <TableHead className="text-right w-16">View</TableHead>}
+                    {canManage && <TableHead className="text-right w-16">Edit</TableHead>}
+                    {canManage && <TableHead className="text-right w-16">Delete</TableHead>}
+                    {isBotEnabled && installed === true && <TableHead className="text-right w-16">Rotary.org</TableHead>}
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
                   {visible.map((parent, i) => (
                     <Fragment key={parent.id}>
                       {renderRow(parent, i, false)}
@@ -565,21 +544,21 @@ export default function PublicImageInitiativeV2Page() {
                     </Fragment>
                   ))}
                   {visible.length === 0 && (
-                    <tr>
-                      <td colSpan={colCount} className="px-4 py-10 text-center text-slate-400">
+                    <TableRow>
+                      <TableCell colSpan={colCount} className="py-10 text-center text-muted-foreground">
                         {search ? "No projects match your search." : "No projects in this section."}
-                      </td>
-                    </tr>
+                      </TableCell>
+                    </TableRow>
                   )}
-                </tbody>
-              </table>
+                </TableBody>
+              </Table>
             )}
           </div>
 
           <div className="px-5 py-2.5 border-t border-slate-100 text-xs text-slate-500">
             {visible.length} {subTab === "one_time" ? "one-time" : "ongoing"} project{visible.length === 1 ? "" : "s"} &middot; {yearLabel}
           </div>
-        </div>
+        </Card>
 
         {/* Server-side pagination (parity with v1) */}
         {!loading && totalPages > 1 && (

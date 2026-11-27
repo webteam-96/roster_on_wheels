@@ -1,4 +1,6 @@
+import 'package:rotary_flutter_app/presentation/widgets/row/motion.dart';
 import 'package:flutter/material.dart' hide Text;
+import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -38,19 +40,31 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Future<void> _load() async {
     final memberId = context.read<AuthProvider>().memberId;
-    setState(() { _loading = true; _error = null; });
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
     try {
       final res = await _api.get<Map<String, dynamic>>(
         '/api/members/$memberId',
         fromJson: (j) => j as Map<String, dynamic>,
       );
       if (res.data != null) {
-        setState(() { _member = MemberModel.fromJson(res.data!); _loading = false; });
+        setState(() {
+          _member = MemberModel.fromJson(res.data!);
+          _loading = false;
+        });
       }
     } on ApiException catch (e) {
-      setState(() { _error = e.message; _loading = false; });
+      setState(() {
+        _error = e.message;
+        _loading = false;
+      });
     } catch (e) {
-      setState(() { _error = e.toString(); _loading = false; });
+      setState(() {
+        _error = e.toString();
+        _loading = false;
+      });
     }
   }
 
@@ -59,24 +73,32 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return Scaffold(
       backgroundColor: AppColors.lightBg,
       body: _loading
-          ? const FullScreenLoader(message: 'Loading profile...')
+          ? const SafeArea(child: LoadingWidget())
           : _error != null
               ? ErrorStateWidget(message: _error!, onRetry: _load)
               : _member == null
-                  ? const EmptyStateWidget(title: 'Profile Not Found', icon: Icons.person_off_rounded)
+                  ? const EmptyStateWidget(
+                      title: 'Profile Not Found',
+                      icon: Icons.person_off_rounded)
                   : CustomScrollView(
                       physics: const BouncingScrollPhysics(),
                       slivers: [
                         _ProfileAppBar(member: _member!),
                         SliverPadding(
-                          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.xl).add(const EdgeInsets.only(bottom: 88)),
+                          padding: const EdgeInsets.symmetric(
+                                  horizontal: AppSpacing.md,
+                                  vertical: AppSpacing.xl)
+                              .add(const EdgeInsets.only(bottom: 88)),
                           sliver: SliverList(
-                            delegate: SliverChildListDelegate([
-                              if ((_member!.memberIntroduction ?? '').isNotEmpty) ...[
+                            delegate: SliverChildListDelegate(revealAll([
+                              if ((_member!.memberIntroduction ?? '')
+                                  .isNotEmpty) ...[
                                 _InfoCard(
                                   title: 'Introduction',
                                   icon: Icons.format_quote_rounded,
-                                  children: [_IntroBlock(_member!.memberIntroduction!)],
+                                  children: [
+                                    _IntroBlock(_member!.memberIntroduction!)
+                                  ],
                                 ),
                                 const SizedBox(height: AppSpacing.lg),
                               ],
@@ -87,28 +109,45 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 children: [
                                   _InfoRow('Full name', _member!.memberName),
                                   if (_member!.emailId?.isNotEmpty == true)
-                                    _InfoRow('Email address', _member!.emailId!),
-                                  if (_member!.primaryMobileNumber?.isNotEmpty == true)
-                                    _InfoRow('Primary mobile',
-                                        '${_member!.primaryCountryPhoneCode ?? ''} ${_member!.primaryMobileNumber!}'.trim()),
-                                  if (_member!.secondaryMobileNumber?.isNotEmpty == true)
-                                    _InfoRow('Secondary mobile',
-                                        '${_member!.secondaryCountryPhoneCode ?? ''} ${_member!.secondaryMobileNumber!}'.trim()),
+                                    _InfoRow(
+                                        'Email address', _member!.emailId!),
+                                  if (_member!
+                                          .primaryMobileNumber?.isNotEmpty ==
+                                      true)
+                                    _InfoRow(
+                                        'Primary mobile',
+                                        '${_member!.primaryCountryPhoneCode ?? ''} ${_member!.primaryMobileNumber!}'
+                                            .trim()),
+                                  if (_member!
+                                          .secondaryMobileNumber?.isNotEmpty ==
+                                      true)
+                                    _InfoRow(
+                                        'Secondary mobile',
+                                        '${_member!.secondaryCountryPhoneCode ?? ''} ${_member!.secondaryMobileNumber!}'
+                                            .trim()),
                                   if (_member!.birthDate?.isNotEmpty == true)
-                                    _InfoRow('Date of birth', _formatDate(_member!.birthDate!)),
-                                  if (_member!.anniversaryDate?.isNotEmpty == true)
-                                    _InfoRow('Anniversary', _formatDate(_member!.anniversaryDate!)),
+                                    _InfoRow('Date of birth',
+                                        _formatDate(_member!.birthDate!)),
+                                  if (_member!.anniversaryDate?.isNotEmpty ==
+                                      true)
+                                    _InfoRow('Anniversary',
+                                        _formatDate(_member!.anniversaryDate!)),
                                   if (_member!.bloodGroup?.isNotEmpty == true)
-                                    _InfoRow('Blood group', _member!.bloodGroup!),
+                                    _InfoRow(
+                                        'Blood group', _member!.bloodGroup!),
                                   if (_member!.rotaryId?.isNotEmpty == true)
                                     _InfoRow('Rotary ID', _member!.rotaryId!),
-                                  if (_member!.donorRecognition?.isNotEmpty == true)
-                                    _InfoRow('Donor recognition', _member!.donorRecognition!),
-                                  if (_member!.isHonoraryMember || _member!.isYouth)
+                                  if (_member!.donorRecognition?.isNotEmpty ==
+                                      true)
+                                    _InfoRow('Donor recognition',
+                                        _member!.donorRecognition!),
+                                  if (_member!.isHonoraryMember ||
+                                      _member!.isYouth)
                                     _InfoRow(
                                       'STATUS',
                                       [
-                                        if (_member!.isHonoraryMember) 'Honorary',
+                                        if (_member!.isHonoraryMember)
+                                          'Honorary',
                                         if (_member!.isYouth) 'Youth',
                                       ].join(' · '),
                                     ),
@@ -119,7 +158,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               // Club profile fields (member flexibility): answers to the clubs' own questions.
                               ClubProfileFieldsSection(
                                 memberId: context.read<AuthProvider>().memberId,
-                                clubIds: context.read<AuthProvider>().memberClubIds,
+                                clubIds:
+                                    context.read<AuthProvider>().memberClubIds,
                               ),
 
                               ..._buildBusinessCard(_member!),
@@ -139,11 +179,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                     if (_member!.facebook?.isNotEmpty == true)
                                       _InfoRow('Facebook', _member!.facebook!),
                                     if (_member!.instagram?.isNotEmpty == true)
-                                      _InfoRow('Instagram', _member!.instagram!),
+                                      _InfoRow(
+                                          'Instagram', _member!.instagram!),
                                     if (_member!.linkedIn?.isNotEmpty == true)
                                       _InfoRow('Linkedin', _member!.linkedIn!),
                                     if (_member!.twitter?.isNotEmpty == true)
-                                      _InfoRow('Twitter / X', _member!.twitter!),
+                                      _InfoRow(
+                                          'Twitter / X', _member!.twitter!),
                                     if (_member!.youtube?.isNotEmpty == true)
                                       _InfoRow('Youtube', _member!.youtube!),
                                     if (_member!.website?.isNotEmpty == true)
@@ -165,7 +207,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               ],
 
                               const SizedBox(height: 100),
-                            ]),
+                            ])),
                           ),
                         ),
                       ],
@@ -196,7 +238,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
   String _formatDate(String raw) {
     try {
       final dt = DateTime.parse(raw);
-      const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+      const months = [
+        'Jan',
+        'Feb',
+        'Mar',
+        'Apr',
+        'May',
+        'Jun',
+        'Jul',
+        'Aug',
+        'Sep',
+        'Oct',
+        'Nov',
+        'Dec'
+      ];
       return '${dt.day} ${months[dt.month - 1]}';
     } catch (_) {
       return raw;
@@ -279,8 +334,8 @@ class _IntroBlock extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.md, vertical: 16),
+      padding:
+          const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: 16),
       child: Text(
         text,
         style: AppFonts.body(
@@ -303,110 +358,126 @@ class _ProfileAppBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final initialsText = _getInitials(member.memberName);
 
+    final designation = (member.designation ?? '').trim();
     return SliverAppBar(
-      expandedHeight: 280,
+      expandedHeight: 216,
       pinned: true,
-      stretch: true,
       backgroundColor: AppColors.primaryPrime,
+      systemOverlayStyle: SystemUiOverlayStyle.light
+          .copyWith(statusBarColor: Colors.transparent),
       leading: IconButton(
+        tooltip: MaterialLocalizations.of(context).backButtonTooltip,
         icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white),
         onPressed: () => context.pop(),
       ),
+      // Identity block, left-aligned like a member card: photo with a marigold ring, name, role, Rotary ID.
       flexibleSpace: FlexibleSpaceBar(
-        stretchModes: const [StretchMode.zoomBackground, StretchMode.blurBackground],
-        background: Stack(
-          fit: StackFit.expand,
-          children: [
-            Container(
-              decoration: const BoxDecoration(
-                color: AppColors.primaryPrime,
-              ),
-            ),
-            // Decorative shapes
-            Positioned(
-              top: -50,
-              right: -50,
-              child: Container(
-                width: 200,
-                height: 200,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: Colors.white.withOpacity(0.05),
-                ),
-              ),
-            ),
-            Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const SizedBox(height: 60),
-                // Avatar
-                Builder(builder: (ctx) {
-                  final hasPhoto = member.profilePhotoPath?.isNotEmpty == true;
-                  final fullPhotoUrl = hasPhoto
-                      ? (member.profilePhotoPath!.startsWith('http')
-                          ? member.profilePhotoPath!
-                          : '${ApiConstants.mediaBaseUrl}${member.profilePhotoPath!}')
-                      : '';
-                  final heroTag = 'own_member_photo_${member.id}';
-                  final avatar = Container(
-                    width: 110,
-                    height: 110,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      border: Border.all(color: Colors.white.withOpacity(0.5), width: 4),
-
-                    ),
-                    child: ClipOval(
-                      child: hasPhoto
-                          ? CachedNetworkImage(
-                              imageUrl: fullPhotoUrl,
-                              fit: BoxFit.cover,
-                              placeholder: (_, __) => _initialsWidget(initialsText),
-                              errorWidget: (_, __, ___) => _initialsWidget(initialsText),
-                            )
-                          : _initialsWidget(initialsText),
-                    ),
-                  );
-                  if (!hasPhoto) return avatar;
-                  return GestureDetector(
-                    onTap: () => FullScreenImageView.open(
-                      ctx,
-                      imageUrl: fullPhotoUrl,
-                      heroTag: heroTag,
-                      title: member.memberName,
-                    ),
-                    child: Hero(tag: heroTag, child: avatar),
-                  );
-                }),
-                const SizedBox(height: 16),
-                Text(
-                  member.memberName,
-                  style: AppFonts.display(
-                    color: AppColors.lightBg,
-                    fontSize: 24,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                if (member.rotaryId?.isNotEmpty == true)
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: AppColors.goldPrime,
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Text(
-                      'Rotary ID: ${member.rotaryId}',
-                      style: AppFonts.body(
-                        color: AppColors.darkBg,
-                        fontSize: 13,
-                        fontWeight: FontWeight.w800,
+        collapseMode: CollapseMode.pin,
+        background: ColoredBox(
+          color: AppColors.primaryPrime,
+          child: SafeArea(
+            bottom: false,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(20, 56, 20, 24),
+              child: Row(
+                children: [
+                  Builder(builder: (ctx) {
+                    final hasPhoto =
+                        member.profilePhotoPath?.isNotEmpty == true;
+                    final fullPhotoUrl = hasPhoto
+                        ? (member.profilePhotoPath!.startsWith('http')
+                            ? member.profilePhotoPath!
+                            : '${ApiConstants.mediaBaseUrl}${member.profilePhotoPath!}')
+                        : '';
+                    final heroTag = 'own_member_photo_${member.id}';
+                    final avatar = Container(
+                      width: 92,
+                      height: 92,
+                      padding: const EdgeInsets.all(3),
+                      decoration: const BoxDecoration(
+                          shape: BoxShape.circle, color: AppColors.goldPrime),
+                      child: ClipOval(
+                        child: hasPhoto
+                            ? CachedNetworkImage(
+                                imageUrl: fullPhotoUrl,
+                                fit: BoxFit.cover,
+                                placeholder: (_, __) =>
+                                    _initialsWidget(initialsText),
+                                errorWidget: (_, __, ___) =>
+                                    _initialsWidget(initialsText),
+                              )
+                            : _initialsWidget(initialsText),
                       ),
+                    );
+                    if (!hasPhoto) return RowPop(child: avatar);
+                    return GestureDetector(
+                      onTap: () => FullScreenImageView.open(
+                        ctx,
+                        imageUrl: fullPhotoUrl,
+                        heroTag: heroTag,
+                        title: member.memberName,
+                      ),
+                      child: RowPop(child: Hero(tag: heroTag, child: avatar)),
+                    );
+                  }),
+                  const SizedBox(width: 18),
+                  Expanded(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          member.memberName,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: AppFonts.display(
+                            color: AppColors.lightBg,
+                            fontSize: 24,
+                            fontWeight: FontWeight.w700,
+                            height: 1.15,
+                          ),
+                        ),
+                        if (designation.isNotEmpty) ...[
+                          const SizedBox(height: 4),
+                          Text(
+                            designation,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: AppFonts.body(
+                              color: AppColors.lightBg.withValues(alpha: .8),
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                        if (member.rotaryId?.isNotEmpty == true) ...[
+                          const SizedBox(height: 12),
+                          Text(
+                            'ROTARY ID',
+                            style: AppFonts.body(
+                              color: AppColors.goldLight,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w800,
+                              letterSpacing: 1.2,
+                            ),
+                          ),
+                          Text(
+                            member.rotaryId!,
+                            style: AppFonts.body(
+                              color: AppColors.lightBg,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: .8,
+                            ),
+                          ),
+                        ],
+                      ],
                     ),
                   ),
-              ],
+                ],
+              ),
             ),
-          ],
+          ),
         ),
       ),
     );
@@ -421,13 +492,13 @@ class _ProfileAppBar extends StatelessWidget {
 
   Widget _initialsWidget(String text) {
     return Container(
-      color: AppColors.white.withOpacity(0.2),
+      color: AppColors.primaryDeep,
       child: Center(
         child: Text(
           text,
-          style: AppFonts.body(
+          style: AppFonts.display(
             color: Colors.white,
-            fontSize: 36,
+            fontSize: 30,
             fontWeight: FontWeight.w800,
           ),
         ),
@@ -441,7 +512,8 @@ class _InfoCard extends StatelessWidget {
   final String title;
   final IconData icon;
   final List<Widget> children;
-  const _InfoCard({required this.title, required this.icon, required this.children});
+  const _InfoCard(
+      {required this.title, required this.icon, required this.children});
 
   @override
   Widget build(BuildContext context) {
@@ -453,14 +525,15 @@ class _InfoCard extends StatelessWidget {
           padding: const EdgeInsets.only(left: 8, bottom: 12),
           child: Row(
             children: [
-              Icon(icon, size: 18, color: AppColors.primaryPrime),
+              Icon(icon, size: 16, color: AppColors.primaryPrime),
               const SizedBox(width: 8),
               Text(
-                title,
+                title.toUpperCase(),
                 style: AppFonts.body(
-                  fontSize: 13,
+                  fontSize: 12,
                   fontWeight: FontWeight.w800,
-                  color: AppColors.textMuted,
+                  color: AppColors.textSecondary,
+                  letterSpacing: 1,
                 ),
               ),
             ],
@@ -472,10 +545,20 @@ class _InfoCard extends StatelessWidget {
             color: AppColors.white,
             borderRadius: BorderRadius.circular(20),
             border: Border.all(color: AppColors.line, width: 1),
-
           ),
           child: Column(
-            children: children,
+            children: [
+              for (var i = 0; i < children.length; i++) ...[
+                if (i > 0)
+                  const Divider(
+                      height: 1,
+                      thickness: 1,
+                      indent: AppSpacing.md,
+                      endIndent: AppSpacing.md,
+                      color: AppColors.line),
+                children[i],
+              ],
+            ],
           ),
         ),
       ],
@@ -492,27 +575,28 @@ class _InfoRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity, // full width so the stacked label/value stay left
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: 16),
+      padding:
+          const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-              label,
-              style: AppFonts.body(
-                fontSize: 13,
-                fontWeight: FontWeight.w500,
-                color: AppColors.textSecondary,
-              ),
+            label,
+            style: AppFonts.body(
+              fontSize: 13,
+              fontWeight: FontWeight.w500,
+              color: AppColors.textSecondary,
             ),
+          ),
           const SizedBox(height: 4),
           Text(
-              value,
-              style: AppFonts.body(
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
-                color: AppColors.textPrimary,
-              ),
+            value,
+            style: AppFonts.body(
+              fontSize: 16,
+              fontWeight: FontWeight.w500,
+              color: AppColors.textPrimary,
             ),
+          ),
         ],
       ),
     );
@@ -527,7 +611,20 @@ class _FamilyRow extends StatelessWidget {
     if (raw == null || raw.isEmpty) return '';
     try {
       final dt = DateTime.parse(raw);
-      const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+      const months = [
+        'Jan',
+        'Feb',
+        'Mar',
+        'Apr',
+        'May',
+        'Jun',
+        'Jul',
+        'Aug',
+        'Sep',
+        'Oct',
+        'Nov',
+        'Dec'
+      ];
       return '${dt.day} ${months[dt.month - 1]}';
     } catch (_) {
       return '';
@@ -544,7 +641,8 @@ class _FamilyRow extends StatelessWidget {
       if (anniv.isNotEmpty) 'Anniv $anniv',
     ];
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: 14),
+      padding:
+          const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: 14),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -554,7 +652,8 @@ class _FamilyRow extends StatelessWidget {
               color: AppColors.primaryPrime.withOpacity(0.05),
               shape: BoxShape.circle,
             ),
-            child: const Icon(Icons.person_rounded, size: 20, color: AppColors.primaryPrime),
+            child: const Icon(Icons.person_rounded,
+                size: 20, color: AppColors.primaryPrime),
           ),
           const SizedBox(width: 14),
           Expanded(
@@ -575,7 +674,8 @@ class _FamilyRow extends StatelessWidget {
                     ),
                     if ((member.relation).isNotEmpty)
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 2),
                         decoration: BoxDecoration(
                           color: AppColors.primaryPrime.withOpacity(0.1),
                           borderRadius: BorderRadius.circular(6),
@@ -605,7 +705,8 @@ class _FamilyRow extends StatelessWidget {
                 if ((member.contact ?? '').isNotEmpty) ...[
                   const SizedBox(height: 4),
                   Row(children: [
-                    const Icon(Icons.phone, size: 12, color: AppColors.primaryPrime),
+                    const Icon(Icons.phone,
+                        size: 12, color: AppColors.primaryPrime),
                     const SizedBox(width: 4),
                     Text(
                       member.contact!,
@@ -620,7 +721,8 @@ class _FamilyRow extends StatelessWidget {
                 if ((member.email ?? '').isNotEmpty) ...[
                   const SizedBox(height: 2),
                   Row(children: [
-                    const Icon(Icons.mail_outline, size: 12, color: AppColors.textSecondary),
+                    const Icon(Icons.mail_outline,
+                        size: 12, color: AppColors.textSecondary),
                     const SizedBox(width: 4),
                     Expanded(
                       child: Text(

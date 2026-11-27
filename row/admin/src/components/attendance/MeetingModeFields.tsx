@@ -1,5 +1,6 @@
 "use client";
 
+import { Input } from "@/components/ui/input";
 import { MEETING_MODES, type MeetingMode } from "@/lib/meeting";
 
 /** Meeting mode (in person / online / hybrid) and, for online or hybrid, the join link. */
@@ -22,7 +23,7 @@ export default function MeetingModeFields({
           {MEETING_MODES.map((m) => (
             <label
               key={m.value}
-              className={`cursor-pointer rounded-full px-4 py-1.5 text-sm font-medium ${
+              className={`cursor-pointer rounded-md px-4 py-1.5 text-sm font-medium ${
                 mode === m.value ? "bg-azure text-cream" : "text-slate-600 hover:bg-slate-100"
               }`}
             >
@@ -44,7 +45,7 @@ export default function MeetingModeFields({
           <label htmlFor="meetingLink" className="mb-1.5 block text-sm font-medium text-slate-700">
             Join link
           </label>
-          <input
+          <Input
             id="meetingLink"
             type="url"
             inputMode="url"
@@ -52,7 +53,7 @@ export default function MeetingModeFields({
             onChange={(e) => onLinkChange(e.target.value)}
             placeholder="https://zoom.us/j/… or a Google Meet / Teams link"
             maxLength={1000}
-            className="w-full rounded-[12px] border border-slate-200 px-3 py-2 text-sm focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+            
           />
         </div>
       )}

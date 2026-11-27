@@ -10,6 +10,7 @@ import '../../../../../presentation/widgets/common/custom_text_field.dart';
 import '../../../../../presentation/widgets/common/loading_widget.dart';
 import '../../../../providers/auth_provider.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/roster_wheel.dart';
 
 class GreetingsScreen extends StatefulWidget {
   final int clubId;
@@ -155,7 +156,7 @@ class _GreetingsScreenState extends State<GreetingsScreen> {
             ),
       body: _loading
           ? const LoadingWidget()
-          : RefreshIndicator(
+          : RowRefresh(
               onRefresh: _loadGreetings,
               child: SingleChildScrollView(
                 physics: const AlwaysScrollableScrollPhysics(),

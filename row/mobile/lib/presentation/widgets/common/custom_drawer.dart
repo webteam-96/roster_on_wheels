@@ -14,6 +14,7 @@ import '../../../core/routing/route_names.dart';
 import '../../providers/auth_provider.dart';
 import 'package:rotary_flutter_app/core/theme/app_fonts.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/motion.dart';
 
 class _DrawerItem {
   final String title;
@@ -68,6 +69,18 @@ class CustomDrawer extends StatelessWidget {
     final features = context.watch<FeatureController>();
     final currentRoute = GoRouterState.of(context).uri.toString();
 
+    // Built only while the drawer is open. Android's back gesture asks the app first only when a PopScope says so;
+    // without it, back left the app instead of closing the drawer.
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) Scaffold.of(context).closeDrawer();
+      },
+      child: _drawer(context, auth, features, currentRoute),
+    );
+  }
+
+  Widget _drawer(BuildContext context, AuthProvider auth, FeatureController features, String currentRoute) {
     return Drawer(
       backgroundColor: AppColors.white,
       surfaceTintColor: AppColors.white,
@@ -186,7 +199,7 @@ class CustomDrawer extends StatelessWidget {
             child: ListView(
               padding: const EdgeInsets.symmetric(
                   vertical: AppSpacing.md, horizontal: AppSpacing.sm),
-              children: [
+              children: revealAll(axis: Axis.horizontal, [
                 _buildSectionLabel('Preferences'),
                 ..._settingsItems
                     .map((item) => _buildItem(context, item, currentRoute)),
@@ -201,12 +214,12 @@ class CustomDrawer extends StatelessWidget {
                 // Years of service and anniversaries of the member's clubs (gap agent).
                 if (auth.memberClubIds.isNotEmpty) ...[
                   _buildSectionLabel('Club'),
-                  _buildItem(context, const _DrawerItem('Anniversaries', Icons.cake_outlined, RouteNames.anniversaries, push: true), currentRoute),
+                  _buildItem(context, const _DrawerItem('Birthdays and anniversaries', Icons.cake_outlined, RouteNames.anniversaries, push: true), currentRoute),
                 ],
                 _buildSectionLabel('Support'),
                 ..._supportItems
                     .map((item) => _buildItem(context, item, currentRoute)),
-              ],
+              ]),
             ),
           ),
 
@@ -242,11 +255,12 @@ class CustomDrawer extends StatelessWidget {
                   children: [
                     const Icon(Icons.logout_rounded, color: AppColors.error, size: 22),
                     const SizedBox(width: 12),
-                    Text(
-                      'Logout Account', 
-                      style: AppTextStyles.bodySemiBold.copyWith(color: AppColors.error),
+                    Expanded(
+                      child: Text(
+                        'Logout Account',
+                        style: AppTextStyles.bodySemiBold.copyWith(color: AppColors.error),
+                      ),
                     ),
-                    const Spacer(),
                     Icon(Icons.chevron_right_rounded, color: AppColors.error.withOpacity(0.5), size: 20),
                   ],
                 ),
@@ -261,7 +275,7 @@ class CustomDrawer extends StatelessWidget {
   }
 
   Future<bool> _confirmLogout(BuildContext context) async {
-    final result = await showDialog<bool>(
+    final result = await showRowDialog<bool>(
       context: context,
       barrierDismissible: true,
       builder: (ctx) => AlertDialog(

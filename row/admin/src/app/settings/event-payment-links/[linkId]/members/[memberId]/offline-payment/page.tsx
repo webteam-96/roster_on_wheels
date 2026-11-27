@@ -1,5 +1,6 @@
 "use client";
 
+import { PageHeader } from "@/components/row/AppKit";
 import { useState } from "react";
 import DateField from "@/components/DateField";
 import { useParams, useRouter } from "next/navigation";
@@ -16,7 +17,7 @@ import {
 } from "@/components/ui/select";
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
-import { ArrowLeft, Save } from "@/components/icons";
+import { Save } from "@/components/icons";
 import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
 
@@ -63,7 +64,7 @@ export default function OfflinePaymentPage() {
   };
 
   if (!isSuperAdmin && !isAdmin) {
-    return (<ProtectedRoute><div className="flex flex-col items-center justify-center py-20"><h3 className="text-lg font-semibold">Access Denied</h3></div></ProtectedRoute>);
+    return (<ProtectedRoute><div className="flex flex-col items-center justify-center py-20"><h3 className="row-h2">Access Denied</h3></div></ProtectedRoute>);
   }
 
   return (
@@ -72,15 +73,7 @@ export default function OfflinePaymentPage() {
         <SuccessAlert open={!!successMessage} title="Success" description={successMessage || ""} onOk={() => setSuccessMessage(null)} />
         <ErrorAlert open={!!errorMessage} title="Error" description={errorMessage || ""} onOk={() => setErrorMessage(null)} />
 
-        <div className="flex items-center gap-3">
-          <Button variant="outline" size="icon" asChild>
-            <Link href={`/settings/event-payment-links/${linkId}/members`}><ArrowLeft className="h-4 w-4" /></Link>
-          </Button>
-          <div>
-            <h2 className="text-2xl font-bold tracking-tight text-primary">Record Offline Payment</h2>
-            <p className="text-muted-foreground text-base">Member #{memberId} - Link #{linkId}</p>
-          </div>
-        </div>
+        <PageHeader title="Record Offline Payment" description={<>Member #{memberId} - Link #{linkId}</>} back={`/settings/event-payment-links/${linkId}/members`} />
 
         <Card>
           <CardHeader><CardTitle>Payment Details</CardTitle></CardHeader>

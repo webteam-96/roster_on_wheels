@@ -62,7 +62,7 @@ export default function SimulatedCheckoutPage() {
 
   return (
     <PayPageShell title="Test payment">
-      <div className="rounded-[20px] border border-[color:var(--row-line)] bg-card p-6">
+      <div className="row-rise rounded-[20px] border border-[color:var(--row-line)] bg-card p-6">
         <p className="rounded-xl bg-[color:var(--row-cream-2)] px-4 py-3 text-sm font-medium text-foreground">
           Simulated payment. No money moves and no card is charged.
         </p>

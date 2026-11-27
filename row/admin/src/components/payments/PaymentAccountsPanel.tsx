@@ -8,6 +8,8 @@
  * characters come back.
  */
 
+import { Card } from "@/components/ui/card";
+import { PageHeader } from "@/components/row/AppKit";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Check, Copy, Loader2, Plus, ShieldCheck, ShieldAlert, PowerOff, Power, RefreshCw, Info } from "@/components/icons";
@@ -53,7 +55,7 @@ function CopyButton({ value }: { value: string }) {
       type="button"
       variant="outline"
       size="sm"
-      className="shrink-0 gap-1.5"
+      className="shrink-0"
       onClick={() =>
         navigator.clipboard?.writeText(value).then(() => {
           setCopied(true);
@@ -90,11 +92,11 @@ function AccountCard({ account, onChange }: { account: PaymentAccount; onChange:
   const status = !account.isActive ? "inactive" : account.verifiedAt ? "verified" : "unverified";
 
   return (
-    <div className="rounded-[20px] border bg-card p-5 shadow-sm">
+    <Card className="p-5">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
-            <h3 className="text-base font-semibold text-slate-900">{account.displayName}</h3>
+            <h3 className="row-h2">{account.displayName}</h3>
             <Badge variant="outline">{gatewayName}</Badge>
             <Badge variant="outline">{account.currency}</Badge>
             <Badge
@@ -120,7 +122,7 @@ function AccountCard({ account, onChange }: { account: PaymentAccount; onChange:
           <Button
             variant="outline"
             size="sm"
-            className="gap-1.5"
+           
             disabled={busy !== null || !account.isActive}
             onClick={() => run("verify", () => reverifyPaymentAccount(account.id))}
           >
@@ -130,7 +132,7 @@ function AccountCard({ account, onChange }: { account: PaymentAccount; onChange:
           <Button
             variant="outline"
             size="sm"
-            className="gap-1.5"
+           
             disabled={busy !== null}
             onClick={() => run("active", () => setPaymentAccountActive(account.id, !account.isActive))}
           >
@@ -158,7 +160,7 @@ function AccountCard({ account, onChange }: { account: PaymentAccount; onChange:
       </div>}
 
       {error && <p className="mt-3 text-sm text-red-600" role="alert">{error}</p>}
-    </div>
+    </Card>
   );
 }
 
@@ -278,7 +280,7 @@ function ConnectDialog({
                 type={f.secret ? "password" : "text"}
                 autoComplete="off"
                 spellCheck={false}
-                className="font-mono text-sm"
+                className="font-mono"
                 value={credentials[f.name] ?? ""}
                 onChange={(e) => setCredentials((c) => ({ ...c, [f.name]: e.target.value }))}
               />
@@ -292,7 +294,7 @@ function ConnectDialog({
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={submitting}>
               {t("connect.cancel")}
             </Button>
-            <Button type="submit" disabled={submitting} className="gap-1.5">
+            <Button type="submit" disabled={submitting}>
               {submitting && <Loader2 className="h-4 w-4 animate-spin" />}
               {submitting ? t("connect.submitting") : t("connect.submit")}
             </Button>
@@ -344,17 +346,19 @@ export default function PaymentAccountsPanel({ ownerType, ownerId }: { ownerType
   }
 
   return (
-    <div className="mx-auto max-w-4xl space-y-5 p-6">
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div className="min-w-0">
-          <h2 className="text-xl font-semibold text-slate-900">{t("accounts.title")}</h2>
-          <p className="mt-1 max-w-2xl text-sm text-slate-600">{t("accounts.intro")}</p>
-        </div>
-        <Button onClick={() => setDialogOpen(true)} disabled={accounts === null || gateways.length === 0} className="gap-1.5">
+    <div className="space-y-5 max-w-4xl">
+      <PageHeader
+        title={t("accounts.title")}
+        description={t("accounts.intro")}
+        actions={
+          <>
+<Button onClick={() => setDialogOpen(true)} disabled={accounts === null || gateways.length === 0}>
           <Plus className="h-4 w-4" />
           {t("accounts.connect")}
         </Button>
-      </div>
+          </>
+        }
+      />
 
       {coverage && (
         <div
@@ -381,7 +385,7 @@ export default function PaymentAccountsPanel({ ownerType, ownerId }: { ownerType
           <Loader2 className="h-4 w-4 animate-spin" /> {t("accounts.loading")}
         </div>
       ) : accounts.length === 0 ? (
-        !error && <div className="rounded-[20px] border border-dashed bg-card p-8 text-center text-sm text-slate-600">{t("accounts.empty")}</div>
+        !error && <div className="row-rise rounded-xl border border-dashed bg-card p-8 text-center text-sm text-slate-600">{t("accounts.empty")}</div>
       ) : (
         <div className="space-y-4">
           {accounts.map((a) => (

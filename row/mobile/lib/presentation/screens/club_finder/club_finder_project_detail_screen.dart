@@ -11,6 +11,7 @@ import 'package:rotary_flutter_app/core/utils/money_format.dart';
 import 'package:rotary_flutter_app/core/theme/app_fonts.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
 import 'package:rotary_flutter_app/presentation/widgets/row/skeleton_list.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/roster_wheel.dart';
 
 /// Read-only detail page for a single Club-Finder project. Reached by tapping a
 /// row in the Projects tab of [ClubFinderDetailScreen].
@@ -118,7 +119,7 @@ class _ClubFinderProjectDetailScreenState
             ? const LoadingWidget()
             : p == null
                 ? _errorState()
-                : RefreshIndicator(
+                : RowRefresh(
                     onRefresh: _fetch,
                     child: ListView(
                       padding: EdgeInsets.zero,

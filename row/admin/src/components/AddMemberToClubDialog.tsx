@@ -1,5 +1,6 @@
 "use client";
 
+import { MenuItemButton } from "@/components/ui/text-buttons"
 import { useState, useEffect } from "react";
 import DateField from "@/components/DateField";
 import { MemberListItem, PagedResult } from "@/types/member";
@@ -78,7 +79,7 @@ export default function AddMemberToClubDialog({ open, onClose, onAdd, loading }:
                   {members.map((m) => {
                     const photoUrl = getPhotoUrl(m.profilePhotoPath);
                     return (
-                      <button key={m.id} className="w-full flex items-center gap-3 p-2 rounded-md hover:bg-primary/5 text-left transition-colors" onClick={() => setSelectedMember(m)}>
+                      <MenuItemButton key={m.id} onClick={() => setSelectedMember(m)}>
                         <div className="relative h-8 w-8 overflow-hidden rounded-full bg-muted flex-shrink-0">
                           {photoUrl ? (
                             <Image src={photoUrl} alt={m.memberName} fill className="object-cover" unoptimized />
@@ -92,7 +93,7 @@ export default function AddMemberToClubDialog({ open, onClose, onAdd, loading }:
                           <p className="text-sm font-medium truncate">{m.memberName}</p>
                           <p className="text-xs text-muted-foreground truncate">{m.rotaryId} | {m.emailId}</p>
                         </div>
-                      </button>
+                      </MenuItemButton>
                     );
                   })}
                 </div>

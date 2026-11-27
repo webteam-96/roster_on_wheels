@@ -49,7 +49,7 @@ class ClubDashboardError extends StatelessWidget {
   Widget build(BuildContext context) {
     final err = error;
     final isApi = err is ApiException;
-    final message = isApi ? err.message : 'Something went wrong.';
+    final message = friendlyErrorMessage(err);
     final inactive = isApi && err.isInactiveChain;
     final forbidden = isApi && err.statusCode == 403;
 

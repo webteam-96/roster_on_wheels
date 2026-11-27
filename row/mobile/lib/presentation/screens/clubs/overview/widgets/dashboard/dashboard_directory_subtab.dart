@@ -9,11 +9,13 @@ import '../../../../../../core/theme/app_colors.dart';
 import '../../../../../../data/models/club_admin_dashboard_models.dart';
 import '../../../../../../data/models/club_overview_models.dart';
 import '../../../../../providers/auth_provider.dart';
+import '../../../../../widgets/common/admin_years_dialog.dart';
 import '../../../../../widgets/common/dashboard_refresh.dart';
 import '../club_dashboard_async.dart';
 import '../membership_summary_card.dart';
 import 'package:rotary_flutter_app/core/theme/app_fonts.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/motion.dart';
 
 /// "Directory" sub-tab of the Club Dashboard — wired to the live
 /// `dashboard-directory` endpoint.
@@ -368,31 +370,39 @@ class _MemberRowState extends State<_MemberRow> {
     final member = widget.member;
     final makeAdmin = !member.isAdmin;
     final who = member.name.isEmpty ? 'this member' : member.name;
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(makeAdmin ? 'Make Admin' : 'Remove Admin'),
-        content: Text(makeAdmin
-            ? 'Give $who club-admin access for this club?'
-            : 'Remove club-admin access from $who? '
-                'This only affects this club.'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(false),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(true),
-            child: Text(
-              makeAdmin ? 'Make Admin' : 'Remove',
-              style: TextStyle(
-                  color: makeAdmin ? AppColors.rotaryBlue : AppColors.error),
+    // Make Admin opens the year picker (its own confirmation) and sends the
+    // chosen years; Remove keeps a plain confirm and sends none.
+    AdminYearsResult? years;
+    if (makeAdmin) {
+      years = await showClubAdminYearsDialog(
+        context: context,
+        clubId: widget.clubId,
+        memberId: member.id,
+        memberName: who,
+      );
+      if (years == null || !mounted) return;
+    } else {
+      final confirmed = await showRowDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Text('Remove Admin'),
+          content: Text('Remove club-admin access from $who? '
+              'This only affects this club.'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(ctx).pop(false),
+              child: const Text('Cancel'),
             ),
-          ),
-        ],
-      ),
-    );
-    if (confirmed != true || !mounted) return;
+            TextButton(
+              onPressed: () => Navigator.of(ctx).pop(true),
+              child: const Text('Remove',
+                  style: TextStyle(color: AppColors.error)),
+            ),
+          ],
+        ),
+      );
+      if (confirmed != true || !mounted) return;
+    }
     setState(() => _busy = true);
     try {
       await _api.post(
@@ -403,6 +413,8 @@ class _MemberRowState extends State<_MemberRow> {
           'memberId': member.id,
           'roleId': 2, // club admin
           'clubId': widget.clubId,
+          // Years only on the way in. Remove strips the whole grant.
+          if (years != null) ...years.toBody(),
         },
       );
       if (!mounted) return;
@@ -427,6 +439,9 @@ class _MemberRowState extends State<_MemberRow> {
     final member = widget.member;
     final color = Color(_avatarPalette[widget.index % _avatarPalette.length]);
     final isHonorary = member.type == 'Honorary';
+    final auth = context.watch<AuthProvider>();
+    final canAppoint = auth.canAppointClubAdmin(widget.clubId);
+    final canRemove = auth.canEditClub(widget.clubId);
     return InkWell(
       onTap: () => context.push(RouteNames.directoryMemberDetail(member.id,
           fromDirectory: true, clubId: widget.clubId)),
@@ -507,7 +522,26 @@ class _MemberRowState extends State<_MemberRow> {
               ],
             ),
           ),
-          if (widget.canManage) _buildAction(member),
+          // Make Admin and Edit Years: any year held (the server clamps the
+          // grant). Remove Admin: current-year rights. YWAR-EDIT-YEARS
+          if (widget.canManage && member.isAdmin && canAppoint && !_busy)
+            IconButton(
+              tooltip: 'Edit Years',
+              visualDensity: VisualDensity.compact,
+              onPressed: () async {
+                final saved = await editClubAdminYears(
+                  context: context,
+                  clubId: widget.clubId,
+                  memberId: member.id,
+                  memberName: member.name.isEmpty ? 'this member' : member.name,
+                );
+                if (saved && mounted) widget.onRolesChanged();
+              },
+              icon: const Icon(Icons.edit_calendar_outlined,
+                  size: 19, color: AppColors.rotaryBlue),
+            ),
+          if (widget.canManage && (member.isAdmin ? canRemove : canAppoint))
+            _buildAction(member),
         ],
       ),
     );

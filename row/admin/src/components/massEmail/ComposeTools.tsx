@@ -6,6 +6,8 @@
  * uploadPendingAttachments once it has the email id.
  */
 
+import { LinkButton } from "@/components/ui/text-buttons"
+import { NativeSelect } from "@/components/ui/native-select";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   getMassEmailTemplates, createMassEmailTemplate, updateMassEmailTemplate, deleteMassEmailTemplate,
@@ -172,10 +174,10 @@ export default function ComposeTools({ scope, ownerId, emailId, subject, body, o
       <section className="space-y-2" aria-label="Templates">
         <p className="text-sm font-medium text-slate-700">Templates</p>
         {library === undefined && <Skeleton className="h-10 w-full md:w-96" />}
-        {library === null && <p className="text-sm text-red-700">Templates could not be loaded. <button type="button" className="underline" onClick={loadLibrary}>Try again</button></p>}
+        {library === null && <p className="text-sm text-red-700">Templates could not be loaded. <LinkButton type="button" onClick={loadLibrary}>Try again</LinkButton></p>}
         {library && (
           <div className="flex flex-wrap items-center gap-2">
-            <select aria-label="Template" className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm md:w-96" value={picked} onChange={(e) => setPicked(e.target.value)}>
+            <NativeSelect aria-label="Template" className="md:w-96" value={picked} onChange={(e) => setPicked(e.target.value)}>
               <option value="">Pick a template</option>
               <optgroup label="ROW starters">
                 {library.starters.map((t) => <option key={t.key} value={`s:${t.key}`}>{t.name}</option>)}
@@ -184,7 +186,7 @@ export default function ComposeTools({ scope, ownerId, emailId, subject, body, o
                 {library.saved.length === 0 ? <option disabled value="none">None saved yet</option>
                   : library.saved.map((t) => <option key={t.id} value={`t:${t.id}`}>{t.name}</option>)}
               </optgroup>
-            </select>
+            </NativeSelect>
             <Button type="button" variant="outline" disabled={!current || busy} onClick={useTemplate}><FileText className="mr-2 h-4 w-4" />Use template</Button>
             {current && !current.isStarter && (
               <>
@@ -207,10 +209,10 @@ export default function ComposeTools({ scope, ownerId, emailId, subject, body, o
             <p className="text-xs text-slate-500">Merge fields: each recipient gets their own value when the email is sent.</p>
             <div className="flex flex-wrap gap-2">
               {library.mergeFields.map((f) => (
-                <button key={f.token} type="button" onClick={() => copyToken(f.token)}
-                  className="inline-flex items-center gap-1 rounded border border-slate-300 px-2 py-1 text-xs text-slate-700 hover:bg-slate-50">
+                <Button key={f.token} type="button" onClick={() => copyToken(f.token)}
+                  variant="outline" size="sm">
                   <Copy className="h-3 w-3" />{f.label} <code className="text-slate-500">{f.token}</code>
-                </button>
+                </Button>
               ))}
             </div>
           </div>

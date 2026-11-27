@@ -3,6 +3,7 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
 import '../../../core/theme/row_tokens.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/motion.dart';
 
 enum PillVariant { primary, gold, ghost, onPanel }
 
@@ -42,7 +43,9 @@ class _PillButtonState extends State<PillButton> {
   Widget build(BuildContext context) {
     final (bg, fg, side) = _colors;
     final still = MediaQuery.maybeDisableAnimationsOf(context) ?? false;
-    return TextButton(
+    return RowPressable(
+      enabled: widget.onPressed != null,
+      child: TextButton(
       onPressed: widget.onPressed,
       onHover: (h) => setState(() => _hover = h),
       onFocusChange: (f) => setState(() => _hover = f),
@@ -78,6 +81,7 @@ class _PillButtonState extends State<PillButton> {
             ),
           ],
         ],
+      ),
       ),
     );
   }

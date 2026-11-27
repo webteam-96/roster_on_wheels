@@ -3,6 +3,9 @@
 // Rotary.org goals (owner 2026-11-09): the district's Rotary.org figures, the Excel reports and the
 // DG "Sync from Rotary.org" panel. Part of the "goal_setting_rotary" module, off until a SuperAdmin
 // switches it on in Settings > Features (the page and its menu link hide while it is off).
+import { Table } from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
+import { NativeSelect } from "@/components/ui/native-select";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Skeleton } from "@/components/dashboard/DashboardSkeleton";
@@ -16,7 +19,7 @@ import {
   type GoalRotaryYear,
 } from "@/services/api";
 
-const panel = "rounded-xl border border-slate-200 bg-card p-5";
+const panel = "row-card p-5";
 
 type Row = { item: string; byKind: Record<string, number | null> };
 
@@ -94,7 +97,7 @@ export default function GoalSettingRotaryPage() {
       <section className={panel}>
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div className="space-y-1">
-            <h2 className="text-base font-semibold text-slate-800">Rotary.org goals</h2>
+            <h2 className="row-h2">Rotary.org goals</h2>
             <p className="text-xs text-slate-500">
               Figures read from Rotary.org for this district.{" "}
               {updatedAt ? `Last updated ${new Date(updatedAt).toLocaleString()}.` : "Not synced yet."}
@@ -102,39 +105,39 @@ export default function GoalSettingRotaryPage() {
           </div>
           <div className="flex flex-wrap items-center gap-2">
             {years ? (
-              <select
+              <NativeSelect
                 aria-label="Rotary year"
                 value={yearId ?? ""}
                 onChange={(e) => setYearId(Number(e.target.value) || null)}
-                className="h-9 rounded-md border border-slate-300 bg-card px-3 text-sm"
+                className="w-auto"
               >
                 {years.map((y) => <option key={y.id} value={y.id}>{y.yearLabel}</option>)}
-              </select>
+              </NativeSelect>
             ) : (
               <Skeleton className="h-9 w-28" />
             )}
-            <button
+            <Button
               type="button"
               onClick={() => download("district")}
               disabled={busy !== null || !yearId}
-              className="h-9 rounded-md border border-slate-300 px-3 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-60"
+              variant="outline" size="sm"
             >
               {busy === "district" ? "Preparing..." : "District report (Excel)"}
-            </button>
-            <button
+            </Button>
+            <Button
               type="button"
               onClick={() => download("clubs")}
               disabled={busy !== null || !yearId}
-              className="h-9 rounded-md border border-slate-300 px-3 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-60"
+              variant="outline" size="sm"
             >
               {busy === "clubs" ? "Preparing..." : "All clubs report (Excel)"}
-            </button>
+            </Button>
           </div>
         </div>
       </section>
 
       <section className={panel}>
-        <h3 className="mb-3 text-sm font-semibold text-slate-800">Sync from Rotary.org</h3>
+        <h3 className="row-h3 mb-3">Sync from Rotary.org</h3>
         <RotaryOrgSync districtId={selectedDistrictId} tone="light" onSynced={loadValues} />
       </section>
 
@@ -148,11 +151,11 @@ export default function GoalSettingRotaryPage() {
         )}
         {table && table.rows.length > 0 && (
           <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+            <Table bare className="w-full text-sm">
               <thead>
-                <tr className="border-b border-slate-200 text-left text-xs uppercase tracking-wide text-slate-500">
-                  <th className="py-2 pr-4 font-semibold">Goal</th>
-                  {table.kinds.map((k) => <th key={k} className="py-2 pr-4 text-right font-semibold">{k}</th>)}
+                <tr className="border-b border-slate-200">
+                  <th className="pr-4">Goal</th>
+                  {table.kinds.map((k) => <th key={k} className="pr-4 text-right">{k}</th>)}
                 </tr>
               </thead>
               <tbody>
@@ -167,7 +170,7 @@ export default function GoalSettingRotaryPage() {
                   </tr>
                 ))}
               </tbody>
-            </table>
+            </Table>
           </div>
         )}
       </section>

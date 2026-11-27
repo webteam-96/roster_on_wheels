@@ -21,6 +21,13 @@
  * v2 reads ONLY `?returnTo=` — no `returnUrl`, no `backUrl`.
  */
 
+import FieldLabel from "@/components/form/FieldLabel";
+import { IconButton } from "@/components/ui/icon-button";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { NativeSelect } from "@/components/ui/native-select";
+import { Input } from "@/components/ui/input";
+import SectionCard from "@/components/form/SectionCard";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useParams, useSearchParams } from "next/navigation";
 import dynamic from "next/dynamic";
@@ -53,38 +60,8 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import { useSyncClubIdFromUrl } from "@/hooks/useSyncClubIdFromUrl";
 import { ListPageSkeleton } from "@/components/row/AppKit";
 
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 const ReactQuill = dynamic(() => import("react-quill-new"), { ssr: false });
-
-function FieldLabel({
-  children, hint, dot, required = false,
-}: { children: React.ReactNode; hint?: string; dot: string; required?: boolean }) {
-  return (
-    <div className="flex items-center gap-1.5 mb-1">
-      <span className={`w-1.5 h-1.5 rounded-full ${dot}`} />
-      <label className="text-xs font-semibold text-slate-700">
-        {children}
-        {required && <span className="text-rose-600 ml-0.5">*</span>}
-        {hint && <span className="text-slate-400 font-normal ml-1">{hint}</span>}
-      </label>
-    </div>
-  );
-}
-
-function SectionCard({
-  number, icon: Icon, title, dot, children, action,
-}: { number: number; icon: React.ElementType; title: string; dot: string; children: React.ReactNode; action?: React.ReactNode }) {
-  return (
-    <div className="rounded-xl border border-slate-200 mb-4 overflow-hidden">
-      <div className="flex items-center gap-3 px-4 py-2.5 bg-slate-50 border-b border-slate-100">
-        <div className={`flex items-center justify-center h-7 w-7 rounded-full text-white text-xs font-bold ${dot}`}>{number}</div>
-        <Icon className="h-4 w-4 text-slate-500" />
-        <h3 className="text-sm font-semibold text-slate-800 flex-1">{title}</h3>
-        {action}
-      </div>
-      <div className="p-4">{children}</div>
-    </div>
-  );
-}
 
 function getLinkTypeLabel(value: string): string {
   return LINK_TYPES.find((t) => t.value === value)?.label || value;
@@ -179,58 +156,54 @@ function SubMenuEditor({
   return (
     <div className="rounded-lg border border-blue-200 bg-blue-50/30 p-4 mb-3">
       <div className="flex items-center justify-between gap-2 mb-3">
-        <h4 className="text-sm font-semibold text-slate-800">
+        <h4 className="row-h3">
           {editingSub ? "Edit Sub-Menu" : "New Sub-Menu"}
         </h4>
-        <button
+        <IconButton
           type="button"
           onClick={onCancel}
-          className="inline-flex items-center justify-center h-6 w-6 rounded text-slate-400 hover:text-rose-700 hover:bg-rose-50"
-          aria-label="Close sub-menu editor"
-        >
+           aria-label="Close sub-menu editor">
           <X size={12} />
-        </button>
+        </IconButton>
       </div>
       <div className="space-y-3">
         <div>
-          <FieldLabel dot="bg-[#17458F]" required>Sub-Menu Name</FieldLabel>
-          <input
+          <FieldLabel required>Sub-Menu Name</FieldLabel>
+          <Input
             type="text"
             placeholder="Enter sub-menu name"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42] bg-card"
+            
             autoFocus
           />
         </div>
         <div>
-          <FieldLabel dot="bg-[#17458F]" required>Link Type</FieldLabel>
-          <select
+          <FieldLabel required>Link Type</FieldLabel>
+          <NativeSelect
             value={linkType}
             onChange={(e) => { setLinkType(e.target.value); setLinkValue(""); }}
-            className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42] bg-card"
+            
           >
             {/* Sub-menus exclude `html` (rich-text) — only top-level menus get that option in v1. */}
             {LINK_TYPES.filter((t) => t.value !== "html").map((t) => (
               <option key={t.value} value={t.value}>{t.label}</option>
             ))}
-          </select>
+          </NativeSelect>
         </div>
         {linkType === "document" ? (
           <div>
-            <FieldLabel dot="bg-[#17458F]" required>Document</FieldLabel>
+            <FieldLabel required>Document</FieldLabel>
             {linkValue ? (
               <div className="flex items-center gap-2 p-2 border border-slate-200 rounded-md bg-card">
                 <FileText className="h-4 w-4 text-slate-500 flex-shrink-0" />
                 <span className="text-sm truncate flex-1 text-slate-700">{linkValue.split("/").pop()}</span>
-                <button
+                <IconButton
                   type="button"
                   onClick={() => setLinkValue("")}
-                  className="inline-flex items-center justify-center h-6 w-6 rounded text-slate-400 hover:text-rose-700 hover:bg-rose-50"
-                  aria-label="Remove document"
-                >
+                   aria-label="Remove document">
                   <X size={12} />
-                </button>
+                </IconButton>
               </div>
             ) : (
               <label className="cursor-pointer">
@@ -255,73 +228,73 @@ function SubMenuEditor({
           </div>
         ) : linkType === "page" ? (
           <div>
-            <FieldLabel dot="bg-[#17458F]" required>Page</FieldLabel>
-            <select
+            <FieldLabel required>Page</FieldLabel>
+            <NativeSelect
               value={linkValue}
               onChange={(e) => setLinkValue(e.target.value)}
-              className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42] bg-card"
+              
             >
               <option value="">Select an existing page…</option>
               {pageOptions.map((p) => (
                 <option key={p.value} value={p.value}>{p.label}</option>
               ))}
-            </select>
+            </NativeSelect>
             <p className="text-[11px] text-slate-500 mt-1.5">Links this sub-menu to an existing website page.</p>
           </div>
         ) : (
           <div>
-            <FieldLabel dot="bg-[#17458F]" required>URL</FieldLabel>
-            <input
+            <FieldLabel required>URL</FieldLabel>
+            <Input
               type="url"
               inputMode="url"
               placeholder="https://example.com/page"
               value={linkValue}
               onChange={(e) => setLinkValue(e.target.value)}
-              className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42] bg-card"
+              
             />
             <p className="text-[11px] text-slate-500 mt-1.5">Must be a full URL starting with <code>http://</code> or <code>https://</code>.</p>
           </div>
         )}
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <FieldLabel dot="bg-[#17458F]">Sort Order</FieldLabel>
-            <input
+            <FieldLabel>Sort Order</FieldLabel>
+            <Input
               type="number"
               min={1}
               value={sortOrder}
               onChange={(e) => setSortOrder(Number(e.target.value))}
-              className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42] bg-card"
+              
             />
           </div>
           <div>
-            <FieldLabel dot="bg-[#17458F]">Status</FieldLabel>
-            <select
+            <FieldLabel>Status</FieldLabel>
+            <NativeSelect
               value={isActive}
               onChange={(e) => setIsActive(e.target.value)}
-              className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42] bg-card"
+              
             >
               <option value="1">Active</option>
               <option value="0">Inactive</option>
-            </select>
+            </NativeSelect>
           </div>
         </div>
         <div className="flex flex-wrap items-center justify-end gap-2 pt-1">
-          <button
+          <Button
             type="button"
             onClick={onCancel}
             disabled={saving}
-            className="inline-flex items-center gap-1 text-xs font-medium px-3 py-1.5 rounded-full border border-slate-200 text-slate-700 hover:bg-card disabled:opacity-50"
+            variant="outline" size="sm"
           >
             Cancel
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
             onClick={handleSave}
             disabled={saving || !name.trim()}
-            className="inline-flex items-center gap-1 text-xs font-semibold px-3 py-1.5 rounded-full bg-[#17458F] text-white hover:bg-[#17458F] disabled:opacity-50"
+            size="sm"
           >
             {saving ? "Saving…" : editingSub ? "Update Sub-Menu" : "Add Sub-Menu"}
-          </button>
+          </Button>
         </div>
       </div>
     </div>
@@ -595,13 +568,13 @@ export default function MenuListV2EditPage() {
         {/* Parent menu — a read-only summary for DEFAULT menus (their fields are system-managed),
             hidden entirely while adding/editing a sub-menu so only the sub-menu form shows. */}
         {!subEditorOpen && isDefault && (
-          <SectionCard number={1} icon={FileText} title="Menu" dot="bg-[#17458F]">
+          <SectionCard number={1} icon={FileText} title="Menu">
             <div className="flex flex-wrap items-center gap-2">
               <span className="text-sm font-semibold text-slate-800">{menu.menuName}</span>
-              <span className={`inline-flex items-center text-xs font-medium px-2 py-0.5 rounded-full border ${linkTypeChipStyle(menu.linkType)}`}>
+              <span className={`inline-flex items-center text-xs font-medium px-2 py-0.5 rounded border ${linkTypeChipStyle(menu.linkType)}`}>
                 {getLinkTypeLabel(menu.linkType)}
               </span>
-              <span className={`inline-flex items-center text-xs font-medium px-2 py-0.5 rounded-full border ${menu.isActive ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-slate-50 text-slate-500 border-slate-200"}`}>
+              <span className={`inline-flex items-center text-xs font-medium px-2 py-0.5 rounded border ${menu.isActive ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-slate-50 text-slate-500 border-slate-200"}`}>
                 {menu.isActive ? "Active" : "Inactive"}
               </span>
             </div>
@@ -613,34 +586,34 @@ export default function MenuListV2EditPage() {
         {!subEditorOpen && !isDefault && (
         <>
         {/* 1. Identity */}
-        <SectionCard number={1} icon={FileText} title="Menu Identity" dot="bg-[#17458F]">
-          <FieldLabel dot="bg-[#17458F]" required>Menu Name</FieldLabel>
-          <input
+        <SectionCard number={1} icon={FileText} title="Menu Identity">
+          <FieldLabel required>Menu Name</FieldLabel>
+          <Input
             type="text"
             value={formName}
             onChange={(e) => setFormName(e.target.value)}
             disabled={isDefault}
-            className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42] disabled:bg-slate-50 disabled:text-slate-500"
+            className="disabled:bg-slate-50 disabled:text-slate-500"
           />
         </SectionCard>
 
         {/* 2. Link target */}
-        <SectionCard number={2} icon={Link2} title="Link Target" dot="bg-[#17458F]">
-          <FieldLabel dot="bg-[#17458F]" required>Link Type</FieldLabel>
-          <select
+        <SectionCard number={2} icon={Link2} title="Link Target">
+          <FieldLabel required>Link Type</FieldLabel>
+          <NativeSelect
             value={formLinkType}
             onChange={(e) => { setFormLinkType(e.target.value); setFormLinkValue(""); setFormContentHtml(""); }}
             disabled={isDefault}
-            className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42] bg-card mb-4 disabled:bg-slate-50 disabled:text-slate-500"
+            className="mb-4 disabled:bg-slate-50 disabled:text-slate-500"
           >
             {LINK_TYPES.map((t) => (
               <option key={t.value} value={t.value}>{t.label}</option>
             ))}
-          </select>
+          </NativeSelect>
 
           {formLinkType === "html" && (
             <div>
-              <FieldLabel dot="bg-[#17458F]" required>Content</FieldLabel>
+              <FieldLabel required>Content</FieldLabel>
               {isDefault ? (
                 <div
                   className="prose prose-sm max-w-none border border-slate-200 rounded-lg p-3 bg-slate-50"
@@ -665,20 +638,18 @@ export default function MenuListV2EditPage() {
 
           {formLinkType === "document" && (
             <div>
-              <FieldLabel dot="bg-[#17458F]" required>Document</FieldLabel>
+              <FieldLabel required>Document</FieldLabel>
               {formLinkValue ? (
                 <div className="flex items-center gap-2 p-2 border border-slate-200 rounded-md bg-slate-50">
                   <FileText className="h-4 w-4 text-slate-500 flex-shrink-0" />
                   <span className="text-sm truncate flex-1 text-slate-700">{formLinkValue.split("/").pop()}</span>
                   {!isDefault && (
-                    <button
+                    <IconButton
                       type="button"
                       onClick={() => setFormLinkValue("")}
-                      className="inline-flex items-center justify-center h-6 w-6 rounded text-slate-400 hover:text-rose-700 hover:bg-rose-50"
-                      aria-label="Remove document"
-                    >
+                       aria-label="Remove document">
                       <X size={12} />
-                    </button>
+                    </IconButton>
                   )}
                 </div>
               ) : !isDefault ? (
@@ -710,33 +681,33 @@ export default function MenuListV2EditPage() {
 
           {formLinkType === "page" && (
             <div>
-              <FieldLabel dot="bg-[#17458F]" required>Page</FieldLabel>
-              <select
+              <FieldLabel required>Page</FieldLabel>
+              <NativeSelect
                 value={formLinkValue}
                 onChange={(e) => setFormLinkValue(e.target.value)}
                 disabled={isDefault}
-                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42] bg-card disabled:bg-slate-50 disabled:text-slate-500"
+                className="disabled:bg-slate-50 disabled:text-slate-500"
               >
                 <option value="">Select an existing page…</option>
                 {pageOptions.map((p) => (
                   <option key={p.value} value={p.value}>{p.label}</option>
                 ))}
-              </select>
+              </NativeSelect>
               <p className="text-[11px] text-slate-500 mt-1.5">Links this menu to one of your website&apos;s existing pages.</p>
             </div>
           )}
 
           {formLinkType === "external" && (
             <div>
-              <FieldLabel dot="bg-[#17458F]" required>URL</FieldLabel>
-              <input
+              <FieldLabel required>URL</FieldLabel>
+              <Input
                 type="url"
                 inputMode="url"
                 placeholder="https://example.com/page"
                 value={formLinkValue}
                 onChange={(e) => setFormLinkValue(e.target.value)}
                 disabled={isDefault}
-                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42] disabled:bg-slate-50 disabled:text-slate-500"
+                className="disabled:bg-slate-50 disabled:text-slate-500"
               />
               <p className="text-[11px] text-slate-500 mt-1.5">Must be a full URL starting with <code>http://</code> or <code>https://</code>.</p>
             </div>
@@ -744,30 +715,30 @@ export default function MenuListV2EditPage() {
         </SectionCard>
 
         {/* 3. Display */}
-        <SectionCard number={3} icon={Settings} title="Display" dot="bg-[#17458F]">
+        <SectionCard number={3} icon={Settings} title="Display">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <FieldLabel dot="bg-[#17458F]"><Hash className="h-3 w-3 inline-block mr-0.5 -mt-0.5" />Sort Order</FieldLabel>
-              <input
+              <FieldLabel><Hash className="h-3 w-3 inline-block mr-0.5 -mt-0.5" />Sort Order</FieldLabel>
+              <Input
                 type="number"
                 min={1}
                 value={formSortOrder}
                 onChange={(e) => setFormSortOrder(Number(e.target.value))}
                 disabled={isDefault}
-                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42] disabled:bg-slate-50 disabled:text-slate-500"
+                className="disabled:bg-slate-50 disabled:text-slate-500"
               />
             </div>
             <div>
-              <FieldLabel dot="bg-[#17458F]">Status</FieldLabel>
-              <select
+              <FieldLabel>Status</FieldLabel>
+              <NativeSelect
                 value={formIsActive}
                 onChange={(e) => setFormIsActive(e.target.value)}
                 disabled={isDefault}
-                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42] bg-card disabled:bg-slate-50 disabled:text-slate-500"
+                className="disabled:bg-slate-50 disabled:text-slate-500"
               >
                 <option value="1">Active</option>
                 <option value="0">Inactive</option>
-              </select>
+              </NativeSelect>
             </div>
           </div>
         </SectionCard>
@@ -778,7 +749,7 @@ export default function MenuListV2EditPage() {
         {/* Sub-menus — a FOCUSED editor while adding/editing (parent fields hidden above),
             otherwise the sub-menu list with a clear Add button. */}
         {subEditorOpen ? (
-          <SectionCard number={1} icon={Layers} title={editingSub ? "Edit Sub-Menu" : "Add Sub-Menu"} dot="bg-[#17458F]">
+          <SectionCard number={1} icon={Layers} title={editingSub ? "Edit Sub-Menu" : "Add Sub-Menu"}>
             <p className="text-xs text-slate-500 mb-3">
               Under <span className="font-semibold text-slate-700">{menu.menuName}</span>
             </p>
@@ -805,15 +776,14 @@ export default function MenuListV2EditPage() {
             number={isDefault ? 2 : 4}
             icon={Layers}
             title="Sub-Menus"
-            dot="bg-[#17458F]"
             action={
-              <button
+              <Button
                 type="button"
                 onClick={() => { setEditingSub(null); setSubEditorOpen(true); }}
-                className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full bg-[#17458F] text-white hover:bg-[#17458F]"
+                size="sm"
               >
                 <Plus size={12} /> Add Sub-Menu
-              </button>
+              </Button>
             }
           >
           {subMenus.length === 0 ? (
@@ -821,77 +791,76 @@ export default function MenuListV2EditPage() {
               No sub-menus under this menu yet.
             </p>
           ) : (
-            <div className="overflow-hidden rounded-lg border border-slate-200">
-              <table className="min-w-full text-sm">
-                <thead className="bg-[#EDF4FB] text-[13px] text-[#64748B]">
-                  <tr>
-                    <th className="px-3 py-2 text-left w-8">Sr</th>
-                    <th className="px-3 py-2 text-left">Sub-Menu Name</th>
-                    <th className="px-3 py-2 text-left w-32">Link Type</th>
-                    <th className="px-3 py-2 text-left w-24">Status</th>
-                    <th className="px-3 py-2 text-right w-16">Edit</th>
-                    <th className="px-3 py-2 text-right w-16">Delete</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
+            <Card className="overflow-hidden">
+              <Table className="min-w-full">
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="text-left w-8">Sr</TableHead>
+                    <TableHead className="text-left">Sub-Menu Name</TableHead>
+                    <TableHead className="text-left w-32">Link Type</TableHead>
+                    <TableHead className="text-left w-24">Status</TableHead>
+                    <TableHead className="text-right w-16">Edit</TableHead>
+                    <TableHead className="text-right w-16">Delete</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
                   {subMenus.map((sub, idx) => (
-                    <tr key={sub.id} className="hover:bg-blue-50/30">
-                      <td className="px-3 py-2 text-slate-500">{idx + 1}</td>
-                      <td className="px-3 py-2 font-medium text-slate-700">
+                    <TableRow key={sub.id}>
+                      <TableCell>{idx + 1}</TableCell>
+                      <TableCell className="font-medium">
                         {sub.subMenuName}
                         {sub.isSystemManaged && (
-                          <span className="ml-2 inline-flex items-center text-[10px] font-medium px-1.5 py-0.5 rounded-full border bg-slate-50 text-slate-700 border-slate-200">
+                          <span className="ml-2 inline-flex items-center text-[10px] font-medium px-1.5 py-0.5 rounded border bg-slate-50 text-slate-700 border-slate-200">
                             System
                           </span>
                         )}
-                      </td>
-                      <td className="px-3 py-2">
-                        <span className={`inline-flex items-center text-xs font-medium px-2 py-0.5 rounded-full border ${linkTypeChipStyle(sub.linkType)}`}>
+                      </TableCell>
+                      <TableCell>
+                        <span className={`inline-flex items-center text-xs font-medium px-2 py-0.5 rounded border ${linkTypeChipStyle(sub.linkType)}`}>
                           {getLinkTypeLabel(sub.linkType)}
                         </span>
-                      </td>
-                      <td className="px-3 py-2">
-                        <span className={`inline-flex items-center text-xs font-medium px-2 py-0.5 rounded-full border ${
+                      </TableCell>
+                      <TableCell>
+                        <span className={`inline-flex items-center text-xs font-medium px-2 py-0.5 rounded border ${
                           sub.isActive ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-slate-50 text-slate-500 border-slate-200"
                         }`}>
                           {sub.isActive ? "Active" : "Inactive"}
                         </span>
-                      </td>
-                      <td className="px-3 py-2 text-right">
+                      </TableCell>
+                      <TableCell className="text-right">
                         {!sub.isSystemManaged ? (
-                          <button
+                          <IconButton
                             type="button"
                             onClick={() => { setEditingSub(sub); setSubEditorOpen(true); }}
-                            className="inline-flex items-center justify-center w-7 h-7 rounded text-slate-500 hover:text-blue-700 hover:bg-blue-50"
-                            aria-label="Edit sub-menu"
+                             aria-label="Edit sub-menu"
                             title="Edit"
                           >
                             <Pencil size={13} />
-                          </button>
+                          </IconButton>
                         ) : (
                           <span className="text-slate-300 text-xs">–</span>
                         )}
-                      </td>
-                      <td className="px-3 py-2 text-right">
+                      </TableCell>
+                      <TableCell className="text-right">
                         {!sub.isSystemManaged ? (
-                          <button
+                          <IconButton
                             type="button"
                             onClick={() => setDeleteSubTarget(sub)}
-                            className="inline-flex items-center justify-center w-7 h-7 rounded text-slate-400 hover:text-rose-700 hover:bg-rose-50"
+                            className="hover:text-red-700"
                             aria-label="Delete sub-menu"
                             title="Delete"
                           >
                             <Trash2 size={13} />
-                          </button>
+                          </IconButton>
                         ) : (
                           <span className="text-slate-300 text-xs">–</span>
                         )}
-                      </td>
-                    </tr>
+                      </TableCell>
+                    </TableRow>
                   ))}
-                </tbody>
-              </table>
-            </div>
+                </TableBody>
+              </Table>
+            </Card>
           )}
           </SectionCard>
         )}

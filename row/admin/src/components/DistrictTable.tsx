@@ -1,5 +1,6 @@
 "use client";
 
+import { Card } from "@/components/ui/card";
 import { useState } from "react";
 import { DistrictListItem } from "@/types/district";
 import { getPhotoUrl } from "@/services/api";
@@ -42,15 +43,15 @@ export default function DistrictTable({ districts, onDelete, isSuperAdmin, zoneI
   };
 
   return (
-    <div className="rounded-md border">
+    <Card className="overflow-hidden">
       <Table>
         <TableHeader>
-          <TableRow className="bg-primary hover:bg-primary">
+          <TableRow>
             <TableHead className="w-12"></TableHead>
-            <TableHead className="text-base font-semibold">District Number</TableHead>
-            <TableHead className="text-base font-semibold">Clubs</TableHead>
-            <TableHead className="text-base font-semibold">Members</TableHead>
-            <TableHead className="text-base font-semibold">Status</TableHead>
+            <TableHead>District Number</TableHead>
+            <TableHead>Clubs</TableHead>
+            <TableHead>Members</TableHead>
+            <TableHead>Status</TableHead>
             <TableHead className="w-12"></TableHead>
           </TableRow>
         </TableHeader>
@@ -97,7 +98,7 @@ export default function DistrictTable({ districts, onDelete, isSuperAdmin, zoneI
                   {isSuperAdmin && (
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={(e) => e.stopPropagation()}>
+                        <Button variant="ghost" size="icon" className="row-btn-sm" onClick={(e) => e.stopPropagation()}>
                           <MoreHorizontal className="h-4 w-4" />
                         </Button>
                       </DropdownMenuTrigger>
@@ -138,6 +139,6 @@ export default function DistrictTable({ districts, onDelete, isSuperAdmin, zoneI
           })}
         </TableBody>
       </Table>
-    </div>
+    </Card>
   );
 }

@@ -1,3 +1,12 @@
+/// Group names the API sends (module_categories), written here so they are among the app's translated strings.
+const kModuleGroupNames = [
+  'Master Modules',
+  'Avenue of Service and Public Image Initiative',
+  'E-Governance / Reporting',
+  'Payments',
+  'District Events & District Projects',
+];
+
 class DashboardModuleModel {
   final int moduleId;
   final String moduleName;

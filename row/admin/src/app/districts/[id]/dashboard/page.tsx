@@ -13,7 +13,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { useAuth } from "@/contexts/AuthContext";
-import { ListPageSkeleton } from "@/components/row/AppKit";
+import { PageHeader, ListPageSkeleton } from "@/components/row/AppKit";
 
 export default function DistrictDashboardPage() {
   const params = useParams();
@@ -111,27 +111,15 @@ export default function DistrictDashboardPage() {
   return (
     <ProtectedRoute>
       <div className="space-y-6">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
-            {isSuperAdmin && (
-              <Button variant="outline" size="icon" asChild>
-                <Link href={dashboardBackHref}>
-                  <ArrowLeft className="h-4 w-4" />
-                </Link>
-              </Button>
-            )}
-            <div>
-              <h2 className="text-2xl font-bold tracking-tight text-primary">
-                {data ? `District ${data.districtNumber} - Dashboard` : "District Dashboard"}
-              </h2>
-              <p className="text-muted-foreground text-base">Modules and features</p>
-            </div>
-          </div>
-          {(creditBalance || websiteStatus?.status === "active") && (
+        <PageHeader
+          title={data ? `District ${data.districtNumber} - Dashboard` : "District Dashboard"}
+          description="Modules and features"
+          back={isSuperAdmin ? dashboardBackHref : undefined}
+          actions={(creditBalance || websiteStatus?.status === "active") && (
             <div className="flex flex-wrap items-center gap-3">
               {creditBalance && (
                 <>
-                  <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-sm font-medium ${creditBalance.emailRemaining > 0 ? "bg-blue-50 border-blue-200 text-blue-700" : "bg-red-50 border-red-200 text-red-600"}`}>
+                  <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md border text-sm font-medium ${creditBalance.emailRemaining > 0 ? "bg-blue-50 border-blue-200 text-blue-700" : "bg-red-50 border-red-200 text-red-600"}`}>
                     <Mail className="h-3.5 w-3.5" />
                     <span>Email: {creditBalance.emailRemaining}</span>
                   </div>
@@ -140,7 +128,7 @@ export default function DistrictDashboardPage() {
               <WebsiteStatusPill status={websiteStatus} kind="district" />
             </div>
           )}
-        </div>
+        />
 
         {loading && (
           <div className="flex items-center justify-center py-20">
@@ -151,7 +139,7 @@ export default function DistrictDashboardPage() {
         {error && (
           <div className="flex flex-col items-center justify-center py-20 text-center">
             <AlertCircle className="h-12 w-12 text-destructive mb-4" />
-            <h3 className="text-lg font-semibold">Error</h3>
+            <h3 className="row-h2">Error</h3>
             <p className="text-muted-foreground mt-2 max-w-md">{error}</p>
           </div>
         )}
@@ -159,7 +147,7 @@ export default function DistrictDashboardPage() {
         {!loading && !error && data && data.moduleGroups.length === 0 && (
           <div className="flex flex-col items-center justify-center py-20 text-center">
             <MapPin className="h-12 w-12 text-muted-foreground mb-4" />
-            <h3 className="text-lg font-semibold">No modules assigned</h3>
+            <h3 className="row-h2">No modules assigned</h3>
             <p className="text-muted-foreground mt-2">Contact Super Admin to assign modules to this district.</p>
           </div>
         )}

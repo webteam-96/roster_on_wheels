@@ -132,9 +132,9 @@ export default function ProjectDetailModal({
           <div className="space-y-4">
             {/* Meta chips */}
             <div className="flex flex-wrap gap-2">
-              {detail.yearLabel && <span className="text-[11px] font-medium px-2 py-0.5 rounded-full bg-slate-100 text-slate-700">RY {detail.yearLabel}</span>}
-              {detail.projectType && <span className="text-[11px] font-medium px-2 py-0.5 rounded-full bg-blue-50 text-blue-700">{detail.projectType === "one_time" ? "One-time" : "Ongoing / Repeat"}</span>}
-              {areaOfFocus && <span className="text-[11px] font-medium px-2 py-0.5 rounded-full bg-azure/5 text-ink border border-azure/15">{areaOfFocus}</span>}
+              {detail.yearLabel && <span className="text-[11px] font-medium px-2 py-0.5 rounded bg-slate-100 text-slate-700">RY {detail.yearLabel}</span>}
+              {detail.projectType && <span className="text-[11px] font-medium px-2 py-0.5 rounded bg-blue-50 text-blue-700">{detail.projectType === "one_time" ? "One-time" : "Ongoing / Repeat"}</span>}
+              {areaOfFocus && <span className="text-[11px] font-medium px-2 py-0.5 rounded bg-azure/5 text-ink border border-azure/15">{areaOfFocus}</span>}
             </div>
 
             {/* Key info */}
@@ -194,7 +194,7 @@ export default function ProjectDetailModal({
                       target="_blank"
                       rel="noopener noreferrer"
                       download
-                      className="inline-flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-full border border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100"
+                      className="row-btn row-btn-secondary row-btn-sm"
                     >
                       <FileText size={13} /> Agenda
                     </a>
@@ -205,7 +205,7 @@ export default function ProjectDetailModal({
                       target="_blank"
                       rel="noopener noreferrer"
                       download
-                      className="inline-flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-full border border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100"
+                      className="row-btn row-btn-secondary row-btn-sm"
                     >
                       <FileText size={13} /> Minutes of Meeting
                     </a>

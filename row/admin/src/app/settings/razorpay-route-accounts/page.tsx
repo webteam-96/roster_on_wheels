@@ -1,4 +1,6 @@
 "use client";
+import { LinkButton } from "@/components/ui/text-buttons";
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
 
 /**
  * SuperAdmin › Razorpay Route Accounts.
@@ -13,9 +15,9 @@
  * immutable once created). Selected per-club in Club Websites → Pricing & Reminders.
  */
 
+import { Card } from "@/components/ui/card";
 import { useCallback, useEffect, useRef, useState } from "react";
-import Link from "next/link";
-import { ArrowLeft, Plus, Pencil, Trash2, Loader2, RefreshCw, RotateCw } from "@/components/icons";
+import { Plus, Pencil, Trash2, Loader2, RefreshCw, RotateCw } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -38,7 +40,7 @@ import {
   type RazorpayRouteAccount,
   type RouteAccountOnboardingPayload,
 } from "@/services/api";
-import { SkeletonRows } from "@/components/row/AppKit";
+import { PageHeader, SkeletonRows } from "@/components/row/AppKit";
 
 // Razorpay v2 linked-account business types. The PAN below must match the chosen type
 // (e.g. a company PAN for private/public limited, an individual PAN for proprietorship/individual).
@@ -233,20 +235,17 @@ export default function RazorpayRouteAccountsPage() {
 
   return (
     <ProtectedRoute>
-      <div className="max-w-4xl mx-auto p-6 space-y-6">
+      <div className="space-y-6 max-w-4xl">
         <SuccessAlert open={!!successMessage} title="Done" description={successMessage || ""} onOk={() => setSuccessMessage(null)} />
         <ErrorAlert open={!!errorMessage} title="Error" description={errorMessage || ""} onOk={() => setErrorMessage(null)} />
 
-        <div className="flex items-center justify-between gap-3 flex-wrap">
-          <div>
-            <Link href="/settings" className="inline-flex items-center gap-1 text-sm text-slate-500 hover:text-slate-700 mb-1">
-              <ArrowLeft className="h-4 w-4" /> Settings
-            </Link>
-            <h1 className="text-2xl font-bold text-azure">Razorpay Route Accounts</h1>
-            <p className="text-sm text-slate-500">Linked accounts (acc_…) that club-website payments can be routed to. Adding one creates it on Razorpay.</p>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <Button variant="outline" onClick={load} disabled={loading}>
+        <PageHeader
+          title="Razorpay Route Accounts"
+          description="Linked accounts (acc_…) that club-website payments can be routed to. Adding one creates it on Razorpay."
+          back="/settings"
+          actions={
+            <>
+<Button variant="outline" onClick={load} disabled={loading}>
               {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
             </Button>
             <Button variant="outline" onClick={refreshAll} disabled={refreshingAll || rows.length === 0}>
@@ -254,44 +253,45 @@ export default function RazorpayRouteAccountsPage() {
               Refresh statuses
             </Button>
             <Button onClick={() => { setForm(emptyOnboard); setAddOpen(true); }}><Plus className="h-4 w-4 mr-1.5" /> Add account</Button>
-          </div>
-        </div>
+            </>
+          }
+        />
 
-        <div className="overflow-x-auto rounded-xl border border-slate-200 bg-card">
-          <table className="w-full text-sm">
-            <thead className="bg-[#EDF4FB] text-slate-600">
-              <tr>
-                <th className="text-left px-4 py-2.5 font-medium">Name</th>
-                <th className="text-left px-4 py-2.5 font-medium">Account ID</th>
-                <th className="text-left px-4 py-2.5 font-medium">Settlement A/C</th>
-                <th className="text-left px-4 py-2.5 font-medium">Razorpay status</th>
-                <th className="text-left px-4 py-2.5 font-medium">Enabled</th>
-                <th className="px-4 py-2.5 w-32"></th>
-              </tr>
-            </thead>
-            <tbody>
+        <Card className="overflow-x-auto">
+          <Table className="w-full text-sm">
+            <TableHeader>
+              <TableRow>
+                <TableHead className="text-left px-4">Name</TableHead>
+                <TableHead className="text-left px-4">Account ID</TableHead>
+                <TableHead className="text-left px-4">Settlement A/C</TableHead>
+                <TableHead className="text-left px-4">Razorpay status</TableHead>
+                <TableHead className="text-left px-4">Enabled</TableHead>
+                <TableHead className="px-4 w-32"></TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
               {loading ? (
-                <tr><td colSpan={6} className="px-4 py-3"><SkeletonRows /></td></tr>
+                <TableRow><TableCell colSpan={6} className="px-4 py-3"><SkeletonRows /></TableCell></TableRow>
               ) : rows.length === 0 ? (
-                <tr><td colSpan={6} className="px-4 py-10 text-center text-slate-400">No Route accounts yet. Add one to route payments.</td></tr>
+                <TableRow><TableCell colSpan={6} className="px-4 py-10 text-center text-slate-400">No Route accounts yet. Add one to route payments.</TableCell></TableRow>
               ) : rows.map((r) => (
-                <tr key={r.id} className="border-t border-slate-100 hover:bg-slate-50/60">
-                  <td className="px-4 py-2.5">
+                <TableRow key={r.id} className="border-t border-slate-100 hover:bg-slate-50/60">
+                  <TableCell className="px-4 py-2.5">
                     <div className="font-medium text-slate-800">{r.name}</div>
                     {r.notes && <div className="text-xs text-slate-400 max-w-xs truncate">{r.notes}</div>}
-                  </td>
-                  <td className="px-4 py-2.5 font-mono text-xs text-slate-600">{r.accountId}</td>
-                  <td className="px-4 py-2.5">
+                  </TableCell>
+                  <TableCell className="px-4 py-2.5 font-mono text-xs text-slate-600">{r.accountId}</TableCell>
+                  <TableCell className="px-4 py-2.5">
                     {r.bankAccountLast4
                       ? <div><span className="font-mono text-slate-700">•••• {r.bankAccountLast4}</span>{r.bankIfsc && <div className="text-xs text-slate-400 font-mono">{r.bankIfsc}</div>}</div>
                       : <span className="text-slate-300" title="Add via the edit (✎) dialog: Razorpay doesn't expose it for accounts created in their dashboard">–</span>}
-                  </td>
-                  <td className="px-4 py-2.5">{statusBadge(r.status)}</td>
-                  <td className="px-4 py-2.5">
-                    {r.isActive ? <Badge className="bg-emerald-100 text-emerald-700 hover:bg-emerald-100">Enabled</Badge>
+                  </TableCell>
+                  <TableCell className="px-4 py-2.5">{statusBadge(r.status)}</TableCell>
+                  <TableCell className="px-4 py-2.5">
+                    {r.isActive ? <Badge className="bg-emerald-100 text-emerald-700">Enabled</Badge>
                       : <Badge variant="secondary">Disabled</Badge>}
-                  </td>
-                  <td className="px-4 py-2.5 text-right whitespace-nowrap">
+                  </TableCell>
+                  <TableCell className="px-4 py-2.5 text-right whitespace-nowrap">
                     <Button variant="ghost" size="sm" title="Refresh status from Razorpay" onClick={() => refreshOne(r)} disabled={busyId === r.id}>
                       {busyId === r.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <RotateCw className="h-4 w-4" />}
                     </Button>
@@ -299,12 +299,12 @@ export default function RazorpayRouteAccountsPage() {
                     <Button variant="ghost" size="sm" onClick={() => setConfirmDelete(r)} disabled={busyId === r.id}>
                       <Trash2 className="h-4 w-4 text-red-500" />
                     </Button>
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               ))}
-            </tbody>
-          </table>
-        </div>
+            </TableBody>
+          </Table>
+        </Card>
 
         {/* Add — minimal Razorpay Route onboarding */}
         <Dialog open={addOpen} onOpenChange={(o) => { if (!creating) setAddOpen(o); }}>
@@ -389,9 +389,9 @@ export default function RazorpayRouteAccountsPage() {
                 className="text-center text-lg tracking-[0.5em] font-mono"
                 autoFocus
               />
-              <button type="button" onClick={resendOtp} disabled={sendingOtp} className="text-xs text-azure hover:underline disabled:opacity-50">
+              <LinkButton size="sm" onClick={resendOtp} disabled={sendingOtp}>
                 {sendingOtp ? "Resending…" : "Resend OTP"}
-              </button>
+              </LinkButton>
             </div>
             <DialogFooter>
               <Button variant="outline" onClick={() => setOtpOpen(false)} disabled={creating}>Cancel</Button>
@@ -410,7 +410,7 @@ export default function RazorpayRouteAccountsPage() {
               <div className="space-y-4">
                 <div className="space-y-1">
                   <Label className="text-xs text-slate-500">Razorpay account ID</Label>
-                  <Input value={edit.accountId} disabled className="font-mono bg-slate-50" />
+                  <Input value={edit.accountId} disabled className="font-mono" />
                 </div>
                 <div className="space-y-1">
                   <Label className="text-xs text-slate-500">Display name</Label>
@@ -486,10 +486,10 @@ function statusBadge(status: string | null) {
   const s = status.toLowerCase();
   const label = status.replace(/_/g, " ");
   if (s === "activated" || s === "active")
-    return <Badge className="bg-emerald-100 text-emerald-700 hover:bg-emerald-100">{label}</Badge>;
+    return <Badge className="bg-emerald-100 text-emerald-700">{label}</Badge>;
   if (s === "rejected" || s === "suspended")
-    return <Badge className="bg-red-100 text-red-700 hover:bg-red-100">{label}</Badge>;
+    return <Badge className="bg-red-100 text-red-700">{label}</Badge>;
   if (s === "needs_clarification")
-    return <Badge className="bg-amber-100 text-amber-700 hover:bg-amber-100">{label}</Badge>;
+    return <Badge className="bg-amber-100 text-amber-700">{label}</Badge>;
   return <Badge variant="secondary">{label}</Badge>;
 }

@@ -546,7 +546,7 @@ class _ConfiguredView extends StatelessWidget {
         ],
         // Public URL with copy + visit — at the very top.
         if (url.isNotEmpty) ...[
-          _ShareBar(url: url),
+          WebsiteShareBar(url: url),
           const SizedBox(height: 12),
         ],
         StatCard(
@@ -685,15 +685,15 @@ class _KillSwitchBanner extends StatelessWidget {
 
 // ── Share bar (real public URL) ──────────────────────────────────────────────
 
-class _ShareBar extends StatefulWidget {
+class WebsiteShareBar extends StatefulWidget {
   final String url;
-  const _ShareBar({required this.url});
+  const WebsiteShareBar({required this.url});
 
   @override
-  State<_ShareBar> createState() => _ShareBarState();
+  State<WebsiteShareBar> createState() => WebsiteShareBarState();
 }
 
-class _ShareBarState extends State<_ShareBar> {
+class WebsiteShareBarState extends State<WebsiteShareBar> {
   bool _copied = false;
 
   void _copy() {

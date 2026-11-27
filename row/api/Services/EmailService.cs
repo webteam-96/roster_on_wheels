@@ -223,7 +223,8 @@ public class EmailService : IEmailService
         IReadOnlyList<(string Name, byte[] Content)>? attachments = null)
     {
         var brevo = _configuration.GetSection("Brevo");
-        var apiKey = brevo["ApiKey"] ?? throw new InvalidOperationException("Brevo:ApiKey is not configured.");
+        var apiKey = brevo["ApiKey"];
+        if (string.IsNullOrWhiteSpace(apiKey)) throw new InvalidOperationException("Brevo:ApiKey is not configured.");
         var apiUrl = brevo["ApiUrl"] ?? "https://api.brevo.com/v3/smtp/email";
         // No tenant sender and no Brand:CommunicationEmail set: use the transactional sender, or Brevo refuses the
         // send with "sender email is missing" (found on the live test host 2026-11-23).
@@ -549,7 +550,7 @@ public class EmailService : IEmailService
                 </p>
             </div>
         {EMAIL_FOOTER}";
-        await SendEmailAsync(email, subject, body, emailType: type);
+        await SendEmailAsync(email, subject, body, emailType: type, throwOnFailure: true);
     }
 
     public async Task SendClubWebsiteActivationEmailAsync(string email, string memberName, string clubName, string designation, string subdomain, string? clientDomain, DateTime startDate, DateTime endDate, string? ccEmail = null)
@@ -573,7 +574,7 @@ public class EmailService : IEmailService
             <p>{L["We will send you renewal reminders before expiry."]}</p>
             <p>{L["Warm regards,"]}<br/>{L["ROW Admin Team"]}</p>
         {EMAIL_FOOTER}";
-        await SendEmailAsync(email, subject, body, ccEmail, emailType: type);
+        await SendEmailAsync(email, subject, body, ccEmail, emailType: type, throwOnFailure: true);
     }
 
     // SuperAdmin bulk buy/renew reminder with a one-click encrypted pay link. New => "buy",
@@ -612,7 +613,7 @@ public class EmailService : IEmailService
                 </p>
             </div>
         {EMAIL_FOOTER}";
-        await SendEmailAsync(email, subject, body);
+        await SendEmailAsync(email, subject, body, throwOnFailure: true);
     }
 
     // Overload that accepts a list of CC addresses — filters empties, dedupes case-insensitively,
@@ -664,7 +665,8 @@ public class EmailService : IEmailService
         string? attachmentFileName)
     {
         var brevo = _configuration.GetSection("Brevo");
-        var apiKey = brevo["ApiKey"] ?? throw new InvalidOperationException("Brevo:ApiKey is not configured.");
+        var apiKey = brevo["ApiKey"];
+        if (string.IsNullOrWhiteSpace(apiKey)) throw new InvalidOperationException("Brevo:ApiKey is not configured.");
         var apiUrl = brevo["ApiUrl"] ?? "https://api.brevo.com/v3/smtp/email";
         var senderEmail = brevo["SenderEmail"] ?? RotaryApi.Services.Brand.NoReplyEmail;
         var senderName = brevo["SenderName"] ?? "ROW";

@@ -22,6 +22,8 @@ import '../../../../widgets/common/pagination_widget.dart';
 import '../../../../widgets/detail/detail_widgets.dart';
 import '../../../../widgets/detail/detail_hero_layout.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/motion.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/roster_wheel.dart';
 
 // ---------------------------------------------------------------------------
 // Model
@@ -304,7 +306,7 @@ class _UpcomingEventsScreenState extends State<UpcomingEventsScreen> {
                 isDense: true,
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
                 suffixIcon: _searchCtrl.text.isNotEmpty
-                    ? IconButton(icon: const Icon(Icons.close, size: 18),
+                    ? IconButton(tooltip: 'Close', icon: const Icon(Icons.close, size: 18),
                         onPressed: () { _searchCtrl.clear(); _fetch(reset: true); })
                     : null,
               ),
@@ -353,10 +355,10 @@ class _UpcomingEventsScreenState extends State<UpcomingEventsScreen> {
                             actionLabel: !canManage ? null : 'Add Event',
                             onAction: !canManage ? null : () => _showForm(),
                           )
-                        : RefreshIndicator(
+                        : RowRefresh(
                             color: AppColors.primary,
                             onRefresh: () => _fetch(reset: true),
-                            child: ListView.separated(
+                            child: RowListView.separated(
                               padding: (const EdgeInsets.all(16)).add(const EdgeInsets.only(bottom: 88)),
                               itemCount: _items.length + 1,
                               separatorBuilder: (_, __) => const SizedBox(height: 10),
@@ -852,6 +854,7 @@ class _EventFormScreenState extends State<_EventFormScreen> {
       appBar: CustomAppBar(
         title: _isEditing ? 'Edit Event' : 'New Event',
         leading: IconButton(
+          tooltip: 'Close',
           icon: const Icon(Icons.close, color: Colors.white),
           onPressed: _saving ? null : () => Navigator.pop(context),
         ),
@@ -1070,6 +1073,7 @@ class _EventFormScreenState extends State<_EventFormScreen> {
                           ),
                         ),
                         IconButton(
+                          tooltip: 'Delete',
                           icon: const Icon(Icons.delete_outline, size: 18, color: AppColors.error),
                           onPressed: () => setState(() => _reminders.removeAt(idx)),
                         ),

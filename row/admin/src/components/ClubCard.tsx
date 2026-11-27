@@ -77,15 +77,15 @@ export default function ClubCard({ club, onDelete, isSuperAdmin, districtId, vie
               <div>
                 <h3 className="font-semibold text-base truncate text-white">{club.clubName}</h3>
                 <div className="flex flex-wrap gap-1 mt-1">
-                  <Badge className="text-xs bg-white/20 text-white border-white/30">{club.clubRotaryId}</Badge>
-                  <Badge className="text-xs bg-white/20 text-white border-white/30">{club.districtNumber}</Badge>
+                  <Badge className="bg-white/20 text-white border-white/30">{club.clubRotaryId}</Badge>
+                  <Badge className="bg-white/20 text-white border-white/30">{club.districtNumber}</Badge>
                 </div>
               </div>
               {isSuperAdmin && (
                 <div onClick={(e) => e.stopPropagation()}>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon" className="h-8 w-8 text-white hover:bg-white/20">
+                      <Button variant="ghost" size="icon" className="row-btn-sm">
                         <MoreVertical className="h-4 w-4" />
                       </Button>
                     </DropdownMenuTrigger>

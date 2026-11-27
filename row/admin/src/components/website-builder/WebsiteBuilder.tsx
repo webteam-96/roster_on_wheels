@@ -4,6 +4,8 @@
 // (rich text, picture, video or map, live ROW data widgets, contact form) with drag to reorder, draft and publish,
 // and the site's media library. Published custom pages show up in the menu builder's "Page" options as /p/<address>.
 
+import { IconButton } from "@/components/ui/icon-button";
+import { NativeSelect } from "@/components/ui/native-select";
 import { useCallback, useEffect, useState } from "react";
 import {
   createWebsitePage, deleteWebsiteMedia, deleteWebsitePage, getPhotoUrl, getWebsiteMedia, getWebsiteMediaLink, getWebsitePage,
@@ -34,11 +36,13 @@ interface Props {
   ownerId: number;
   /** "Rotary Club of X" or "District 3141", shown above the title. */
   ownerName?: string;
+  /** Where the list's back button goes. */
+  back?: string;
   /** Public site address (no trailing slash) for "View on site" links, when known. */
   siteUrl?: string | null;
 }
 
-export default function WebsiteBuilder({ scope, ownerId, ownerName, siteUrl }: Props) {
+export default function WebsiteBuilder({ scope, ownerId, siteUrl, back }: Props) {
   const [pages, setPages] = useState<WebsitePageSummary[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [editing, setEditing] = useState<WebsitePageDetail | "new" | "home" | null>(null);
@@ -96,12 +100,12 @@ export default function WebsiteBuilder({ scope, ownerId, ownerName, siteUrl }: P
   return (
     <div className="space-y-6">
       <PageHeader
-        eyebrow={ownerName}
         title="Pages and layout"
+        back={back}
         description="Build custom pages and arrange the home page from sections. Changes stay in draft until you publish."
         actions={<Button onClick={() => setEditing("new")}><Plus /> New page</Button>}
       />
-      {notice && <p role="status" className="rounded-[12px] bg-[#EDF4FB] px-4 py-3 text-[14px] text-[#1B2C42]">{notice}</p>}
+      {notice && <p role="status" className="rounded-md bg-muted px-4 py-3 text-[14px] text-[#1B2C42]">{notice}</p>}
       {error && <ErrorState message={error} onRetry={load} retryLabel="Try again" />}
       {!error && pages === null && <SkeletonRows rows={4} />}
       {!error && pages && (
@@ -112,14 +116,14 @@ export default function WebsiteBuilder({ scope, ownerId, ownerName, siteUrl }: P
                 onPublish={() => togglePublish(home)} onDelete={() => remove(home)} />
             ) : (
               <div className="flex flex-wrap items-center justify-between gap-3 py-2">
-                <p className="text-[14px] text-[#64748B]">The site uses its theme's home page. Build your own layout to choose what it shows.</p>
+                <p className="text-[14px] text-muted-foreground">The site uses its theme's home page. Build your own layout to choose what it shows.</p>
                 <Button variant="outline" onClick={() => setEditing("home")}>Build home layout</Button>
               </div>
             )}
           </Panel>
           <Panel title="Custom pages" subtitle="Link a published page from the Menu List: pick it under link type Page.">
             {custom.length === 0 ? (
-              <p className="py-4 text-[14px] text-[#64748B]">No custom pages yet. Use New page to write one, for example your club history or a fundraiser.</p>
+              <p className="py-4 text-[14px] text-muted-foreground">No custom pages yet. Use New page to write one, for example your club history or a fundraiser.</p>
             ) : (
               <ul className="divide-y divide-[color:var(--row-line)]">
                 {custom.map((p) => (
@@ -140,11 +144,11 @@ export default function WebsiteBuilder({ scope, ownerId, ownerName, siteUrl }: P
 
 function Status({ page }: { page: WebsitePageSummary }) {
   const text = !page.isPublished ? "Draft" : page.hasUnpublishedChanges ? "Published, with unpublished changes" : "Published";
-  const tone = !page.isPublished ? "bg-[#EDF4FB] text-[#1B2C42]" : page.hasUnpublishedChanges ? "bg-[#FFC65C] text-[#1B2C42]" : "bg-[#CFE2F6] text-[#0B3F7A]";
+  const tone = !page.isPublished ? "bg-muted text-[#1B2C42]" : page.hasUnpublishedChanges ? "bg-[#FFC65C] text-[#1B2C42]" : "bg-[#CFE2F6] text-[#0B3F7A]";
   return (
     <>
-      <span className={`rounded-full px-3 py-1 text-[12px] font-semibold ${tone}`}>{text}</span>
-      {page.membersOnly && <span className="rounded-full bg-[#17458F] px-3 py-1 text-[12px] font-semibold text-[#F7F9FC]">Members only</span>}
+      <span className={`rounded px-3 py-1 text-[12px] font-semibold ${tone}`}>{text}</span>
+      {page.membersOnly && <span className="rounded bg-[#17458F] px-3 py-1 text-[12px] font-semibold text-[#F7F9FC]">Members only</span>}
     </>
   );
 }
@@ -158,7 +162,7 @@ function PageRow({ page, busy, siteUrl, onEdit, onPublish, onDelete }: {
     <div className="flex flex-col gap-3 py-3 md:flex-row md:items-center md:justify-between">
       <div className="min-w-0">
         <p className="font-semibold text-[#1B2C42]">{page.title}</p>
-        <p className="text-[13px] text-[#64748B]">
+        <p className="text-[13px] text-muted-foreground">
           {siteUrl && page.isPublished
             ? <a className="underline" href={siteUrl + path} target="_blank" rel="noreferrer">{path}</a>
             : path}
@@ -228,16 +232,16 @@ function PageEditor({ scope, ownerId, initial, pageId, onClose }: {
   return (
     <div className="space-y-6">
       <PageHeader
-        eyebrow={isHome ? "Home page layout" : "Custom page"}
         title={title.trim() || "New page"}
+        description={isHome ? "Home page layout" : "Custom page"}
         actions={<>
           <Button variant="ghost" onClick={() => onClose(id && !pageId ? "Draft saved." : undefined)}>Back to pages</Button>
           <Button variant="outline" disabled={saving} onClick={save}>{saving ? "Saving" : "Save draft"}</Button>
           <Button disabled={saving} onClick={saveAndPublish}>Publish</Button>
         </>}
       />
-      {error && <p role="alert" className="rounded-[12px] bg-red-50 px-4 py-3 text-[14px] text-red-800">{error}</p>}
-      {saved && <p role="status" className="rounded-[12px] bg-[#EDF4FB] px-4 py-3 text-[14px] text-[#1B2C42]">{saved}</p>}
+      {error && <p role="alert" className="rounded-md bg-red-50 px-4 py-3 text-[14px] text-red-800">{error}</p>}
+      {saved && <p role="status" className="rounded-md bg-muted px-4 py-3 text-[14px] text-[#1B2C42]">{saved}</p>}
 
       <Panel title="Page details">
         <div className="grid gap-4 md:grid-cols-2">
@@ -250,33 +254,33 @@ function PageEditor({ scope, ownerId, initial, pageId, onClose }: {
             <Label htmlFor="wb-slug">Address on the site</Label>
             <Input id="wb-slug" value={slug} maxLength={60} disabled={isHome}
               onChange={(e) => { setSlugTouched(true); setSlug(e.target.value.toLowerCase()); }} />
-            <p className="mt-1 text-[12px] text-[#64748B]">{isHome ? "The home page of the site." : `The page opens at ${pagePath(slug || "address")}`}</p>
+            <p className="mt-1 text-[12px] text-muted-foreground">{isHome ? "The home page of the site." : `The page opens at ${pagePath(slug || "address")}`}</p>
           </div>
           {!isHome && (
             <div className="md:col-span-2">
               <Label htmlFor="wb-vis">Who can see it</Label>
-              <select id="wb-vis" value={membersOnly ? "members" : "public"} onChange={(e) => setMembersOnly(e.target.value === "members")}
-                className="h-11 rounded-[12px] border border-[color:var(--row-line)] bg-[#FCFDFE] px-3 text-[14px]">
+              <NativeSelect id="wb-vis" value={membersOnly ? "members" : "public"} onChange={(e) => setMembersOnly(e.target.value === "members")}
+                className="w-auto">
                 <option value="public">Everyone</option>
                 <option value="members">Members of the club only (they sign in on the website)</option>
-              </select>
-              <p className="mt-1 text-[12px] text-[#64748B]">This applies as soon as you save, also to the published page.</p>
+              </NativeSelect>
+              <p className="mt-1 text-[12px] text-muted-foreground">This applies as soon as you save, also to the published page.</p>
             </div>
           )}
         </div>
       </Panel>
 
       <Panel title="Sections" subtitle="Drag a section by its handle, or use the arrows, to change the order.">
-        {sections.length === 0 && <p className="py-3 text-[14px] text-[#64748B]">No sections yet. Add the first one below.</p>}
+        {sections.length === 0 && <p className="py-3 text-[14px] text-muted-foreground">No sections yet. Add the first one below.</p>}
         <ol className="space-y-3">
           {sections.map((s, i) => (
             <li key={s.id}
               onDragOver={(e) => e.preventDefault()}
               onDrop={() => { if (dragFrom !== null) setSections((l) => moveItem(l, dragFrom, i)); setDragFrom(null); }}
-              className={`rounded-[16px] border border-[color:var(--row-line)] bg-[#FCFDFE] ${dragFrom === i ? "opacity-60" : ""}`}>
+              className={`rounded-xl border border-[color:var(--row-line)] bg-card ${dragFrom === i ? "opacity-60" : ""}`}>
               <div className="flex items-center gap-2 border-b border-[color:var(--row-line)] px-3 py-2">
                 <span draggable onDragStart={() => setDragFrom(i)} onDragEnd={() => setDragFrom(null)}
-                  className="cursor-grab text-[#64748B]" aria-hidden="true"><GripVertical /></span>
+                  className="cursor-grab text-muted-foreground" aria-hidden="true"><GripVertical /></span>
                 <span className="text-[13px] font-semibold text-[#1B2C42]">{i + 1}. {sectionLabel(s.type)}</span>
                 <span className="ml-auto flex gap-1">
                   <Button size="sm" variant="ghost" disabled={i === 0} aria-label="Move up" onClick={() => setSections((l) => moveItem(l, i, i - 1))}><ArrowUp /></Button>
@@ -297,10 +301,10 @@ function PageEditor({ scope, ownerId, initial, pageId, onClose }: {
         <div className="mt-4 flex flex-wrap items-end gap-2">
           <div>
             <Label htmlFor="wb-add">Add a section</Label>
-            <select id="wb-add" value={addType} onChange={(e) => setAddType(e.target.value as WebsiteSectionType)}
-              className="h-11 rounded-[12px] border border-[color:var(--row-line)] bg-[#FCFDFE] px-3 text-[14px]">
+            <NativeSelect id="wb-add" value={addType} onChange={(e) => setAddType(e.target.value as WebsiteSectionType)}
+              className="w-auto">
               {SECTION_TYPES.map((t) => <option key={t.type} value={t.type}>{t.label}: {t.hint}</option>)}
-            </select>
+            </NativeSelect>
           </div>
           <Button variant="outline" onClick={() => setSections((l) => [...l, newSection(addType)])}><Plus /> Add</Button>
         </div>
@@ -333,7 +337,7 @@ function SectionFields({ section: s, onChange, onPick }: {
     return (
       <div className="space-y-3">
         <div className="flex flex-wrap items-center gap-3">
-          <span className="text-[14px] text-[#64748B]">
+          <span className="text-[14px] text-muted-foreground">
             {s.url ? (isRef ? "Members-only file chosen." : `File: ${s.url.split("/").pop()}`) : "No file chosen."}
           </span>
           <Button size="sm" variant="outline" onClick={() => onPick("file")}>{s.url ? "Change file" : "Choose file"}</Button>
@@ -355,9 +359,9 @@ function SectionFields({ section: s, onChange, onPick }: {
     return (
       <div className="space-y-3">
         <div className="flex flex-wrap items-center gap-3">
-          {s.url && !isRef && <img src={getPhotoUrl(s.url)} alt="" className="h-24 w-36 rounded-[12px] object-cover" />}
-          {isRef && <span className="text-[14px] text-[#64748B]">Members-only picture chosen. Visitors who are not signed in do not see this section.</span>}
-          {!s.url && <span className="text-[14px] text-[#64748B]">No picture chosen.</span>}
+          {s.url && !isRef && <img src={getPhotoUrl(s.url)} alt="" className="h-24 w-36 rounded-md object-cover" />}
+          {isRef && <span className="text-[14px] text-muted-foreground">Members-only picture chosen. Visitors who are not signed in do not see this section.</span>}
+          {!s.url && <span className="text-[14px] text-muted-foreground">No picture chosen.</span>}
           <Button size="sm" variant="outline" onClick={() => onPick("image")}>{s.url ? "Change picture" : "Choose picture"}</Button>
         </div>
         <div className="grid gap-3 md:grid-cols-2">
@@ -373,7 +377,7 @@ function SectionFields({ section: s, onChange, onPick }: {
     return (
       <div><Label htmlFor={`wb-e-${s.id}`}>Link to the video or map</Label>
         <Input id={`wb-e-${s.id}`} value={s.url ?? ""} placeholder="https://www.youtube.com/watch?v=..." onChange={(e) => onChange({ url: e.target.value })} />
-        <p className="mt-1 text-[12px] text-[#64748B]">YouTube or Vimeo video link, or the Google Maps link from Share, Embed a map.</p></div>
+        <p className="mt-1 text-[12px] text-muted-foreground">YouTube or Vimeo video link, or the Google Maps link from Share, Embed a map.</p></div>
     );
   }
   if (DATA_WIDGETS.includes(s.type)) {
@@ -382,11 +386,11 @@ function SectionFields({ section: s, onChange, onPick }: {
         <div><Label htmlFor={`wb-n-${s.id}`}>Items to show</Label>
           <Input id={`wb-n-${s.id}`} type="number" min={1} max={24} className="w-28" value={s.limit ?? 6}
             onChange={(e) => onChange({ limit: Math.max(1, Math.min(24, Number(e.target.value) || 1)) })} /></div>
-        <p className="pb-3 text-[13px] text-[#64748B]">Filled from ROW data when a visitor opens the page.</p>
+        <p className="pb-3 text-[13px] text-muted-foreground">Filled from ROW data when a visitor opens the page.</p>
       </div>
     );
   }
-  return <p className="text-[13px] text-[#64748B]">Visitors can send their name, email and a message. Enquiries arrive in the prospects list.</p>;
+  return <p className="text-[13px] text-muted-foreground">Visitors can send their name, email and a message. Enquiries arrive in the prospects list.</p>;
 }
 
 // ── Media library ──────────────────────────────────────────────────────────────────────────────────────────
@@ -429,13 +433,13 @@ function MediaLibrary({ scope, ownerId, embedded, onPick, pickInto }: {
   // A members-only file has no public URL, so it shows as a named tile; public pictures show as thumbnails.
   const preview = (m: WebsiteMedia) => !m.membersOnly && isImageMedia(m)
     ? <img src={getPhotoUrl(m.url)} alt={m.fileName} className="h-24 w-full object-cover" />
-    : <span className="flex h-24 w-full items-center justify-center bg-[#EDF4FB] px-2 text-center text-[12px] font-semibold text-[#1B2C42]">
+    : <span className="flex h-24 w-full items-center justify-center bg-muted px-2 text-center text-[12px] font-semibold text-[#1B2C42]">
         {(m.fileName.split(".").pop() ?? "").toUpperCase()} file</span>;
 
   const body = (
     <div className="space-y-3">
       <div className="flex flex-wrap items-center gap-3">
-        <label className="inline-flex h-11 cursor-pointer items-center gap-2 rounded-full border-2 border-[#1B2C42] px-5 text-[14px] font-semibold text-[#1B2C42]">
+        <label className="inline-flex h-11 cursor-pointer items-center gap-2 rounded border-2 border-[#1B2C42] px-5 text-[14px] font-semibold text-[#1B2C42]">
           <Upload /> {busy ? "Uploading" : "Upload file"}
           <input type="file" accept="image/jpeg,image/png,image/gif,image/webp,application/pdf,.docx,.xlsx,.pptx" className="sr-only" disabled={busy}
             onChange={(e) => { upload(e.target.files?.[0]); e.target.value = ""; }} />
@@ -447,17 +451,17 @@ function MediaLibrary({ scope, ownerId, embedded, onPick, pickInto }: {
       </div>
       {error && <p role="alert" className="text-[14px] text-red-800">{error}</p>}
       {items === null && !error && <SkeletonRows rows={2} />}
-      {items && items.length === 0 && <p className="text-[14px] text-[#64748B]">Nothing here yet. Upload pictures (JPG, PNG, GIF, WEBP) or documents (PDF, Word, Excel, PowerPoint) up to 10 MB.</p>}
+      {items && items.length === 0 && <p className="text-[14px] text-muted-foreground">Nothing here yet. Upload pictures (JPG, PNG, GIF, WEBP) or documents (PDF, Word, Excel, PowerPoint) up to 10 MB.</p>}
       {items && items.length > 0 && (
         <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
           {items.map((m) => (
-            <li key={m.id} className="overflow-hidden rounded-[12px] border border-[color:var(--row-line)]">
+            <li key={m.id} className="overflow-hidden rounded-md border border-[color:var(--row-line)]">
               {onPick ? (
-                <button type="button" className="block w-full" onClick={() => onPick(m)} aria-label={`Use ${m.fileName}`}>{preview(m)}</button>
-              ) : <button type="button" className="block w-full" onClick={() => openFile(m)} aria-label={`Open ${m.fileName}`}>{preview(m)}</button>}
+                <IconButton className="block h-auto w-full rounded-none p-0" onClick={() => onPick(m)} aria-label={`Use ${m.fileName}`}>{preview(m)}</IconButton>
+              ) : <IconButton className="block h-auto w-full rounded-none p-0" onClick={() => openFile(m)} aria-label={`Open ${m.fileName}`}>{preview(m)}</IconButton>}
               <div className="flex items-center justify-between gap-1 px-2 py-1">
                 <span className="min-w-0">
-                  <span className="block truncate text-[12px] text-[#64748B]" title={m.fileName}>{m.fileName}</span>
+                  <span className="block truncate text-[12px] text-muted-foreground" title={m.fileName}>{m.fileName}</span>
                   {m.membersOnly && <span className="text-[11px] font-semibold text-[#0B3F7A]">Members only</span>}
                 </span>
                 <Button size="sm" variant="ghost" aria-label={`Delete ${m.fileName}`} onClick={() => remove(m)}><Trash2 /></Button>

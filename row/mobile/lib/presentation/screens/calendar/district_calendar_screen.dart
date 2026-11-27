@@ -9,6 +9,8 @@ import '../../widgets/common/empty_state_widget.dart';
 import '../../widgets/common/loading_widget.dart';
 import 'calendar_widgets.dart';
 import 'package:rotary_flutter_app/core/theme/app_fonts.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/motion.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/roster_wheel.dart';
 
 class DistrictCalendarScreen extends StatefulWidget {
   /// When set, the screen is scoped to a single district (no selection page).
@@ -53,7 +55,8 @@ class _DistrictCalendarScreenState extends State<DistrictCalendarScreen> {
       a.year == b.year && a.month == b.month && a.day == b.day;
 
   bool _activeOn(DateTime? publish, DateTime? expiry) {
-    final d = DateTime(_selectedDate.year, _selectedDate.month, _selectedDate.day);
+    final d =
+        DateTime(_selectedDate.year, _selectedDate.month, _selectedDate.day);
     if (publish != null &&
         DateTime(publish.year, publish.month, publish.day).isAfter(d)) {
       return false;
@@ -78,7 +81,8 @@ class _DistrictCalendarScreenState extends State<DistrictCalendarScreen> {
       .toList();
 
   List<CalendarEvent> get _eventsToday => (_data?.upcomingEvents ?? const [])
-      .where((e) => e.eventDate != null && _sameDay(e.eventDate!, _selectedDate))
+      .where(
+          (e) => e.eventDate != null && _sameDay(e.eventDate!, _selectedDate))
       .toList();
 
   List<CalendarAnnouncement> get _announcementsToday =>
@@ -111,16 +115,16 @@ class _DistrictCalendarScreenState extends State<DistrictCalendarScreen> {
         // calendar listing (COG members use the COG Calendar chip instead).
         // Skip the hide when scoped so a direct deep-link still works.
         if (widget.onlyDistrictId == null) {
-          final cogDistrictId =
-              context.read<AuthProvider>().cogDistrictId;
+          final cogDistrictId = context.read<AuthProvider>().cogDistrictId;
           if (cogDistrictId != null) {
             items = items.where((d) => d.districtId != cogDistrictId).toList();
           }
         }
         // Scoped mode: keep only the requested district.
         if (widget.onlyDistrictId != null) {
-          final scoped =
-              items.where((d) => d.districtId == widget.onlyDistrictId).toList();
+          final scoped = items
+              .where((d) => d.districtId == widget.onlyDistrictId)
+              .toList();
           if (scoped.isNotEmpty) items = scoped;
         }
         setState(() {
@@ -242,7 +246,8 @@ class _DistrictCalendarScreenState extends State<DistrictCalendarScreen> {
     final daysInMonth = DateTime(year, month + 1, 0).day;
     for (final a in data.announcements) {
       for (var day = 1; day <= daysInMonth; day++) {
-        if (_activeOnDate(DateTime(year, month, day), a.publishDate, a.expiryDate)) {
+        if (_activeOnDate(
+            DateTime(year, month, day), a.publishDate, a.expiryDate)) {
           add(day, CalendarMarkKind.announcement);
         }
       }
@@ -256,8 +261,7 @@ class _DistrictCalendarScreenState extends State<DistrictCalendarScreen> {
       length: 4,
       child: Scaffold(
         backgroundColor: AppColors.background,
-        appBar:
-            CustomAppBar(title: widget.titleOverride ?? 'Calendar'),
+        appBar: CustomAppBar(title: widget.titleOverride ?? 'Calendar'),
         body: _buildBody(),
       ),
     );
@@ -292,13 +296,16 @@ class _DistrictCalendarScreenState extends State<DistrictCalendarScreen> {
         TabBar(
           isScrollable: true,
           tabAlignment: TabAlignment.start,
-          labelStyle:
-              AppFonts.body(fontSize: 13, fontWeight: FontWeight.w700),
+          labelStyle: AppFonts.body(fontSize: 13, fontWeight: FontWeight.w700),
           tabs: [
-            Tab(text: _tabLabel('Birthdays', _data == null ? null : _birthdaysToday.length)),
-            Tab(text: _tabLabel('Anniversaries', _data == null ? null : _anniversariesToday.length)),
-            Tab(text: _tabLabel('Events', _data == null ? null : _eventsToday.length)),
-            Tab(text: _tabLabel('Announcements', _data == null ? null : _announcementsToday.length)),
+            CalendarTabLabel(
+                'Birthdays', _data == null ? null : _birthdaysToday.length),
+            CalendarTabLabel('Anniversaries',
+                _data == null ? null : _anniversariesToday.length),
+            CalendarTabLabel(
+                'Events', _data == null ? null : _eventsToday.length),
+            CalendarTabLabel('Announcements',
+                _data == null ? null : _announcementsToday.length),
           ],
         ),
         Expanded(child: _buildTabViews()),
@@ -308,11 +315,12 @@ class _DistrictCalendarScreenState extends State<DistrictCalendarScreen> {
 
   Widget _buildTabViews() {
     if (_loadingData) return const LoadingWidget();
-    if (_error != null) return ErrorStateWidget(message: _error!, onRetry: _loadCalendar);
+    if (_error != null)
+      return ErrorStateWidget(message: _error!, onRetry: _loadCalendar);
     final d = _data;
     if (d == null) return const SizedBox.shrink();
 
-    return RefreshIndicator(
+    return RowRefresh(
       color: AppColors.primary,
       onRefresh: _loadCalendar,
       child: TabBarView(
@@ -361,14 +369,9 @@ class _DistrictCalendarScreenState extends State<DistrictCalendarScreen> {
     required Widget Function(T) builder,
   }) {
     if (items.isEmpty) {
-      return ListView(
-        children: [
-          const SizedBox(height: 60),
-          EmptyStateWidget(icon: icon, title: empty),
-        ],
-      );
+      return CalendarDayEmpty(icon: icon, text: empty);
     }
-    return ListView.separated(
+    return RowListView.separated(
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
       itemCount: items.length,
       separatorBuilder: (_, __) => const SizedBox(height: 10),
@@ -380,7 +383,7 @@ class _DistrictCalendarScreenState extends State<DistrictCalendarScreen> {
   // Lists districts by number only (no "District" prefix, no zone); tapping
   // one opens its calendar on its own page.
   Widget _picker() {
-    return ListView.separated(
+    return RowListView.separated(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
       itemCount: _districts.length,
       separatorBuilder: (_, __) => const SizedBox(height: 10),
@@ -389,7 +392,7 @@ class _DistrictCalendarScreenState extends State<DistrictCalendarScreen> {
         return CalendarChoiceTile(
           label: d.districtNumber,
           icon: Icons.date_range_rounded,
-          index: i,
+          subtitle: 'District calendar',
           onTap: () => Navigator.of(context).push(MaterialPageRoute(
             builder: (_) => DistrictCalendarScreen(
               onlyDistrictId: d.districtId,
@@ -400,7 +403,4 @@ class _DistrictCalendarScreenState extends State<DistrictCalendarScreen> {
       },
     );
   }
-
-  String _tabLabel(String base, int? count) =>
-      count == null ? base : '$base ($count)';
 }

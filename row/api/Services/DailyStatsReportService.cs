@@ -8,10 +8,8 @@ namespace RotaryApi.Services;
 // once a day at 06:00 in the brand's time zone. It emails a counts table (HTML body) + a multi-sheet Excel attachment
 // (Sync-club list, Non-sync-club list, District-wise summary, Project breakdown) to the recipients.
 //
-// Scope: the organisation is ROW (ROW). All headline club/member numbers are
-// scoped to those five zones; everything else is reported separately under "Other Zones". The 3
-// permanently-exempt districts (5656 test district, 1280 = COG's district, "IFRM India") and the
-// placeholder "Zone 0" are left out of every number. Only active districts / non-deleted rows count.
+// Scope: Brand:Scope (zones, exempt districts); none listed = every zone, as ROW runs. Only active districts and
+// non-deleted rows count.
 //
 // PROJECT COUNTS come from ProjectCountRules — the same definition the public website counts with
 // (user, 2026-09-28: the report's project total must match portal.example.org/projects). So an
@@ -100,10 +98,8 @@ public class DailyStatsReportService : IDailyStatsReportService
         // real email (never fires on the server, which connects as Server=localhost). Same guard as
         // CmrSubmissionMailer — stops the 06:00 job from mailing real recipients while testing locally.
         _suppressLocalDev = IsRemoteDb(_conn);
-        var configured = config.GetSection("DailyStatsReport:Recipients").Get<string[]>();
-        _recipients = (configured != null && configured.Length > 0)
-            ? configured
-            : RotaryApi.Services.Brand.ReportRecipients;
+        _recipients = ChooseRecipients(
+            config.GetSection("DailyStatsReport:Recipients").Get<string[]>(), RotaryApi.Services.Brand.ReportRecipients);
     }
 
     private sealed class SyncSummaryRow
@@ -280,8 +276,8 @@ public class DailyStatsReportService : IDailyStatsReportService
         // ── Metrics (headline counts) — used by both the Summary sheet and the email body ──
         var metrics = new (string Label, long Value)[]
         {
-            ("Total Sync Clubs (the zones)", syncClubs),
-            ("Total Members (the zones)", totalMembers),
+            ("Total Sync Clubs", syncClubs),
+            ("Total Members", totalMembers),
             ("Total Non-Sync Clubs (excluding exempt districts)", nonSyncClubs),
             ($"Total Newsletters ({curYearLabel})", newslettersCurYear),
             ($"Total Project Photos — {curYearLabel}", photosCurYear),
@@ -437,11 +433,27 @@ public class DailyStatsReportService : IDailyStatsReportService
         return rows;
     }
 
+    /// <summary>The report's own recipients, else the brand's. Blank entries (placeholders in appsettings) are not
+    /// recipients: counted as such, the report was addressed to "".</summary>
+    public static string[] ChooseRecipients(string[]? configured, string[] brand)
+    {
+        static string[] Real(string[]? list) =>
+            (list ?? Array.Empty<string>()).Select(e => e?.Trim() ?? "").Where(e => e.Length > 0).ToArray();
+        var own = Real(configured);
+        return own.Length > 0 ? own : Real(brand);
+    }
+
     public async Task SendDailyReportAsync(CancellationToken ct = default, bool force = false)
     {
+        // Before the report is built: it takes a while, and without a recipient it goes nowhere.
+        if (_recipients.Length == 0)
+        {
+            _logger.LogWarning("Daily report: no recipients configured.");
+            if (force)
+                throw new InvalidOperationException("no recipients are set. Add their addresses to DailyStatsReport:Recipients on the server.");
+            return;
+        }
         var r = await BuildReportAsync(ct);
-
-        if (_recipients.Length == 0) { _logger.LogWarning("Daily report: no recipients configured."); return; }
         var to = _recipients[0];
         var cc = _recipients.Skip(1).ToList();
         // Suppress on a dev/remote-DB machine ONLY for the scheduled job (force=false). A manual
@@ -760,7 +772,7 @@ public class DailyStatsReportService : IDailyStatsReportService
                 <p style='font-size:12px;color:#4A5A70;line-height:1.7;margin-top:14px;max-width:760px'>
                     <strong>How a project is counted.</strong> One-time projects count once. An ongoing project
                     counts once — its parent entry, or, when the parent belongs to an earlier year, its first
-                    entry of this year; its repeat entries are in <em>Repeat entries</em>. Zone 0 and the
+                    entry of this year; its repeat entries are in <em>Repeat entries</em>. The
                     exempt districts count nowhere. Club Service is the club's
                     meetings, so it sits outside the project total. <strong>TOTAL PROJECTS is the same figure
                     the website publishes</strong> on its public projects page.

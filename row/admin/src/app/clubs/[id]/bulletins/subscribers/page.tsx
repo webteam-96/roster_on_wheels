@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import Link from "next/link";
 import { useParams } from "next/navigation";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import AlertModal from "@/components/AlertModal";
@@ -10,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ErrorState, PageHeader, Panel, SkeletonRows } from "@/components/row/AppKit";
-import { ArrowLeft, Trash2 } from "@/components/icons";
+import { Trash2 } from "@/components/icons";
 import { getBulletinSubscribers, removeBulletinSubscriber, type BulletinSubscriber } from "@/services/api";
 import { appLocale } from "@/lib/appFormat";
 
@@ -56,20 +55,18 @@ export default function BulletinSubscribersPage() {
 
   return (
     <ProtectedRoute>
-      <div className="space-y-6 max-w-5xl mx-auto">
-        <div className="flex items-center gap-3">
-          <Button variant="outline" size="icon" asChild aria-label="Back to bulletins">
-            <Link href={`/clubs/${clubId}/bulletins`}><ArrowLeft className="h-4 w-4" /></Link>
-          </Button>
-          <PageHeader title="Bulletin subscribers"
-            description="People who are not members sign up on the club website's Bulletin page and confirm by email. Only confirmed subscribers receive bulletins." />
-        </div>
+      <div className="space-y-6">
+        <PageHeader
+          title="Bulletin subscribers"
+          description="People who are not members sign up on the club website's Bulletin page and confirm by email. Only confirmed subscribers receive bulletins."
+          back={`/clubs/${clubId}/bulletins`}
+        />
 
         {loadError ? <ErrorState message={loadError} onRetry={load} retryLabel="Try again" />
           : items === null ? <Panel title="Subscribers"><SkeletonRows rows={5} /></Panel>
           : items.length === 0 ? (
             <Panel title="No subscribers yet">
-              <p className="text-[15px] text-[#64748B]">Share the Bulletin page of the club website so people can sign up.</p>
+              <p className="text-[15px] text-muted-foreground">Share the Bulletin page of the club website so people can sign up.</p>
             </Panel>
           ) : (
             <Panel title="Subscribers" subtitle={`${confirmed} confirmed of ${items.length}`}>

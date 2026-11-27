@@ -11,6 +11,8 @@ import '../../../../widgets/common/empty_state_widget.dart';
 import '../../../../widgets/common/search_bar_widget.dart';
 import 'district_website_advertisement_form_screen.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/motion.dart';
+import 'package:rotary_flutter_app/presentation/widgets/common/loading_widget.dart';
 
 const _maxActiveAds = 10;
 
@@ -257,7 +259,7 @@ class _DistrictWebsiteAdvertisementsScreenState extends State<DistrictWebsiteAdv
   }
 
   Future<void> _confirmDelete(_Ad ad) async {
-    final ok = await showDialog<bool>(
+    final ok = await showRowDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Delete Advertisement'),
@@ -301,7 +303,7 @@ class _DistrictWebsiteAdvertisementsScreenState extends State<DistrictWebsiteAdv
         ],
       ),
       body: _loading
-          ? const Center(child: const CircularProgressIndicator(color: AppColors.primary))
+          ? const LoadingWidget()
           : _error != null
               ? ErrorStateWidget(message: _error!, onRetry: _loadInitial)
               : _buildBody(canManage),
@@ -418,7 +420,7 @@ class _DistrictWebsiteAdvertisementsScreenState extends State<DistrictWebsiteAdv
                     ),
                   Expanded(
                     child: _isFiltering
-                        ? ListView.separated(
+                        ? RowListView.separated(
                             itemCount: _visibleAds.length,
                             separatorBuilder: (_, __) =>
                                 const SizedBox(height: 12),
@@ -476,7 +478,7 @@ class _DistrictWebsiteAdvertisementsScreenState extends State<DistrictWebsiteAdv
             )
           else
             Expanded(
-              child: ListView.separated(
+              child: RowListView.separated(
                 itemCount: _visibleAds.length,
                 separatorBuilder: (_, __) => const SizedBox(height: 12),
                 itemBuilder: (ctx, i) => _AdCard(
@@ -576,11 +578,13 @@ class _AdCard extends StatelessWidget {
                     const Spacer(),
                     if (canManage) ...[
                       IconButton(
+                        tooltip: 'Edit',
                         icon: const Icon(Icons.edit_outlined, size: 18),
                         onPressed: disabled ? null : onEdit,
                         visualDensity: VisualDensity.compact,
                       ),
                       IconButton(
+                        tooltip: 'Delete',
                         icon: const Icon(Icons.delete_outline, size: 18, color: AppColors.error),
                         onPressed: disabled ? null : onDelete,
                         visualDensity: VisualDensity.compact,

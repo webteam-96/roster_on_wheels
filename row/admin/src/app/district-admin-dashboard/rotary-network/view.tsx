@@ -1,5 +1,11 @@
 "use client";
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
+import { ClearButton, MenuItemButton, LinkButton } from "@/components/ui/text-buttons";
 
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import PillTabs from "@/components/row/PillTabs";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { UserMinus, UserPlus, Search, X, RefreshCw, Eye, Download } from "@/components/icons";
@@ -320,91 +326,76 @@ export function DistrictRotaryNetworkView({ embedded = false }: { embedded?: boo
         </div>
       )}
 
-      <div className="bg-card rounded-2xl border border-slate-200 overflow-hidden">
+      <Card className="overflow-hidden">
         <div className="px-5 py-3 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
-            <h3 className="text-sm font-semibold text-slate-800">Rotary Network</h3>
+            <h3 className="row-h3">Rotary Network</h3>
             <p className="text-xs text-slate-500 mt-0.5">Terminated and prospective members across every club in the district</p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
             {view === "terminated" && (
-              <button
+              <Button
                 type="button"
                 onClick={handleRefreshFromRotaryOrg}
                 disabled={refreshing}
                 title="Warms the cache for every linked club in the district, a few at a time: safe to leave running in the background."
-                className="inline-flex items-center gap-1.5 text-xs font-semibold px-4 h-10 rounded-full border border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100 disabled:opacity-50"
+                variant="outline"
               >
                 <RefreshCw size={13} className={refreshing ? "animate-spin" : undefined} />
                 {refreshing ? "Refreshing…" : "Refresh from Rotary.org"}
-              </button>
+              </Button>
             )}
             {showClubSummary && (
-              <button
+              <Button
                 type="button"
                 onClick={handleDownloadAllExcel}
                 disabled={data.terminatedMembers.length === 0}
-                className="inline-flex items-center gap-1.5 text-xs font-semibold px-4 h-10 rounded-full border border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 disabled:opacity-50"
+                variant="outline"
               >
                 <Download size={13} /> Download All as Excel
-              </button>
+              </Button>
             )}
             {view === "terminated" && clubId && (
-              <button
+              <Button
                 type="button"
                 onClick={() => handleDownloadClubExcel(clubId, selectedClubName)}
-                className="inline-flex items-center gap-1.5 text-xs font-semibold px-4 h-10 rounded-full border border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
+                variant="outline"
               >
                 <Download size={13} /> Download as Excel
-              </button>
+              </Button>
             )}
-            <div className="inline-flex items-center gap-1 rounded-full p-1 text-sm bg-muted">
-              <button
-                onClick={() => handleViewChange("terminated")}
-                className={`inline-flex h-9 items-center px-4 font-semibold rounded-full transition-colors ${view === "terminated" ? "bg-card text-foreground ring-1 ring-[color:var(--row-line)]" : "text-muted-foreground hover:text-foreground"}`}
-              >
-                Terminated Members
-              </button>
-              <button
-                onClick={() => handleViewChange("potential")}
-                className={`inline-flex h-9 items-center px-4 font-semibold rounded-full transition-colors ${view === "potential" ? "bg-card text-foreground ring-1 ring-[color:var(--row-line)]" : "text-muted-foreground hover:text-foreground"}`}
-              >
-                Potential Members
-              </button>
-            </div>
+            <PillTabs
+              items={[{ key: "terminated", label: "Terminated Members" }, { key: "potential", label: "Potential Members" }]}
+              active={view}
+              onChange={handleViewChange}
+            />
 
             {/* Smart club search — type to filter, pick one to narrow both tabs to that club. */}
             <div className="relative" ref={clubBoxRef}>
               <Search size={14} className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-400" />
-              <input
+              <Input
                 type="text"
                 placeholder="Filter by club…"
                 value={clubId ? selectedClubName : clubQuery}
                 onFocus={() => setClubDropdownOpen(true)}
                 onChange={(e) => { setClubId(null); setClubQuery(e.target.value); setClubDropdownOpen(true); }}
-                className="pl-7 pr-7 h-10 py-0 text-sm border border-slate-200 rounded-[12px] w-full sm:w-52 focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                className="pl-7 pr-7 sm:w-52"
               />
               {clubId && (
-                <button
-                  type="button"
+                <ClearButton
                   aria-label="Clear club filter"
                   onClick={() => { setClubId(null); setClubQuery(""); }}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
-                >
-                  <X size={14} />
-                </button>
+                />
               )}
               {clubDropdownOpen && !clubId && clubOptions.length > 0 && (
                 <div className="absolute z-10 mt-1 w-full sm:w-64 max-h-56 overflow-y-auto rounded-lg border border-slate-200 bg-card shadow-lg">
                   {clubOptions.slice(0, 50).map((c) => (
-                    <button
+                    <MenuItemButton
                       key={c.clubId}
-                      type="button"
                       onClick={() => { setClubId(c.clubId); setClubQuery(""); setClubDropdownOpen(false); }}
-                      className="block w-full text-left px-3 py-1.5 text-sm text-slate-700 hover:bg-blue-50"
                     >
                       {c.clubName}
-                    </button>
+                    </MenuItemButton>
                   ))}
                 </div>
               )}
@@ -412,12 +403,12 @@ export function DistrictRotaryNetworkView({ embedded = false }: { embedded?: boo
 
             <div className="relative w-full sm:w-auto">
               <Search size={14} className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-400" />
-              <input
+              <Input
                 type="text"
                 placeholder={showClubSummary ? "Search club…" : "Search…"}
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="pl-7 pr-3 h-10 py-0 text-sm border border-slate-200 rounded-[12px] w-full sm:w-48 focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                className="pl-7 pr-3 sm:w-48"
               />
             </div>
           </div>
@@ -426,57 +417,55 @@ export function DistrictRotaryNetworkView({ embedded = false }: { embedded?: boo
         {showClubSummary ? (
           <>
             <div className="overflow-x-auto">
-              <table className="w-full min-w-[640px] md:min-w-full text-sm">
-                <thead className="bg-[#EDF4FB] text-[13px] text-[#64748B]">
-                  <tr>
-                    <th className="px-3 py-2.5 text-left w-12">Sr No</th>
-                    <th className="px-3 py-2.5 text-left">Club</th>
-                    <th className="px-3 py-2.5 text-left">Terminated Count</th>
-                    <th className="px-3 py-2.5 text-right w-40">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
+              <Table className="w-full min-w-[640px] md:min-w-full text-sm">
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="px-3 text-left w-12">Sr No</TableHead>
+                    <TableHead className="px-3 text-left">Club</TableHead>
+                    <TableHead className="px-3 text-left">Terminated Count</TableHead>
+                    <TableHead className="px-3 text-right w-40">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody className="divide-y divide-slate-100">
                   {clubSummary.map((c, index) => (
-                    <tr key={c.clubId} className="hover:bg-blue-50/40">
-                      <td className="px-3 py-2 text-xs text-slate-600">{index + 1}</td>
-                      <td className="px-3 py-2 text-slate-800 font-medium">{c.clubName}</td>
-                      <td className="px-3 py-2">
-                        <span className={`inline-flex items-center text-xs font-medium px-2 py-0.5 rounded-full border ${c.count > 0 ? "bg-red-50 text-red-700 border-red-200" : "bg-slate-100 text-slate-500 border-slate-200"}`}>
+                    <TableRow key={c.clubId} className="hover:bg-blue-50/40">
+                      <TableCell className="px-3 py-2 text-xs text-slate-600">{index + 1}</TableCell>
+                      <TableCell className="px-3 py-2 text-slate-800 font-medium">{c.clubName}</TableCell>
+                      <TableCell className="px-3 py-2">
+                        <span className={`inline-flex items-center text-xs font-medium px-2 py-0.5 rounded border ${c.count > 0 ? "bg-red-50 text-red-700 border-red-200" : "bg-slate-100 text-slate-500 border-slate-200"}`}>
                           {fmtInt(c.count)}
                         </span>
-                      </td>
-                      <td className="px-3 py-2 text-right whitespace-nowrap">
+                      </TableCell>
+                      <TableCell className="px-3 py-2 text-right whitespace-nowrap">
                         <div className="inline-flex items-center justify-end gap-1">
-                          <button
-                            type="button"
+                          <LinkButton
+                            size="sm"
                             onClick={() => setClubId(c.clubId)}
-                            className="inline-flex items-center gap-1 text-xs font-semibold px-2 py-1 rounded text-blue-700 hover:bg-blue-50"
                             title="View this club's terminated members"
                           >
                             <Eye size={13} /> View
-                          </button>
-                          <button
-                            type="button"
+                          </LinkButton>
+                          <LinkButton
+                            size="sm"
                             onClick={() => handleDownloadClubExcel(c.clubId, c.clubName)}
                             disabled={c.count === 0}
-                            className="inline-flex items-center gap-1 text-xs font-semibold px-2 py-1 rounded text-emerald-700 hover:bg-emerald-50 disabled:opacity-30"
                             title="Download this club's terminated members as Excel"
                           >
                             <Download size={13} /> Excel
-                          </button>
+                          </LinkButton>
                         </div>
-                      </td>
-                    </tr>
+                      </TableCell>
+                    </TableRow>
                   ))}
                   {clubSummary.length === 0 && (
-                    <tr>
-                      <td colSpan={4} className="px-4 py-8 text-center text-slate-400">
+                    <TableRow>
+                      <TableCell colSpan={4} className="px-4 py-8 text-center text-slate-400">
                         No clubs match your search.
-                      </td>
-                    </tr>
+                      </TableCell>
+                    </TableRow>
                   )}
-                </tbody>
-              </table>
+                </TableBody>
+              </Table>
             </div>
             <div className="px-5 py-2.5 border-t border-slate-100 text-xs text-slate-500">
               {clubSummary.length} club{clubSummary.length === 1 ? "" : "s"}
@@ -485,73 +474,73 @@ export function DistrictRotaryNetworkView({ embedded = false }: { embedded?: boo
         ) : (
         <>
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[640px] md:min-w-full text-sm">
-            <thead className="bg-[#EDF4FB] text-[13px] text-[#64748B]">
-              <tr>
-                <th className="px-3 py-2.5 text-left w-12">Sr No</th>
-                <th className="px-3 py-2.5 text-left">Club</th>
-                <th className="px-3 py-2.5 text-left">Member ID</th>
-                <th className="px-3 py-2.5 text-left">Member Type</th>
-                <th className="px-3 py-2.5 text-left">First Name</th>
-                <th className="px-3 py-2.5 text-left">Middle Name</th>
-                <th className="px-3 py-2.5 text-left">Last Name</th>
-                <th className="px-3 py-2.5 text-left whitespace-nowrap">Mobile</th>
-                <th className="px-3 py-2.5 text-left">Email</th>
-                <th className="px-3 py-2.5 text-left whitespace-nowrap">Admission Date</th>
+          <Table className="w-full min-w-[640px] md:min-w-full text-sm">
+            <TableHeader>
+              <TableRow>
+                <TableHead className="px-3 text-left w-12">Sr No</TableHead>
+                <TableHead className="px-3 text-left">Club</TableHead>
+                <TableHead className="px-3 text-left">Member ID</TableHead>
+                <TableHead className="px-3 text-left">Member Type</TableHead>
+                <TableHead className="px-3 text-left">First Name</TableHead>
+                <TableHead className="px-3 text-left">Middle Name</TableHead>
+                <TableHead className="px-3 text-left">Last Name</TableHead>
+                <TableHead className="px-3 text-left whitespace-nowrap">Mobile</TableHead>
+                <TableHead className="px-3 text-left">Email</TableHead>
+                <TableHead className="px-3 text-left whitespace-nowrap">Admission Date</TableHead>
                 {view === "terminated" && (
                   <>
-                    <th className="px-3 py-2.5 text-left whitespace-nowrap">Termination Date</th>
-                    <th className="px-3 py-2.5 text-left">Termination Reason</th>
+                    <TableHead className="px-3 text-left whitespace-nowrap">Termination Date</TableHead>
+                    <TableHead className="px-3 text-left">Termination Reason</TableHead>
                   </>
                 )}
-                {view === "potential" && <th className="px-3 py-2.5 text-left">Notes</th>}
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
+                {view === "potential" && <TableHead className="px-3 text-left">Notes</TableHead>}
+              </TableRow>
+            </TableHeader>
+            <TableBody className="divide-y divide-slate-100">
               {rows.map((r, index) => (
-                <tr key={`${view}-${r.id}`} className="hover:bg-blue-50/40">
-                  <td className="px-3 py-2 text-xs text-slate-600">{index + 1}</td>
-                  <td className="px-3 py-2 text-slate-800 font-medium whitespace-nowrap">{r.clubName || "–"}</td>
-                  <td className="px-3 py-2 text-xs text-slate-600">{r.memberId || "–"}</td>
-                  <td className="px-3 py-2">
-                    <span className="inline-flex items-center text-xs font-medium px-2 py-0.5 rounded-full border bg-slate-50 text-slate-700 border-slate-200">
+                <TableRow key={`${view}-${r.id}`} className="hover:bg-blue-50/40">
+                  <TableCell className="px-3 py-2 text-xs text-slate-600">{index + 1}</TableCell>
+                  <TableCell className="px-3 py-2 text-slate-800 font-medium whitespace-nowrap">{r.clubName || "–"}</TableCell>
+                  <TableCell className="px-3 py-2 text-xs text-slate-600">{r.memberId || "–"}</TableCell>
+                  <TableCell className="px-3 py-2">
+                    <span className="inline-flex items-center text-xs font-medium px-2 py-0.5 rounded border bg-slate-50 text-slate-700 border-slate-200">
                       {r.memberType || "–"}
                     </span>
-                  </td>
-                  <td className="px-3 py-2 text-slate-800 font-medium">{r.firstName || "–"}</td>
-                  <td className="px-3 py-2 text-slate-600">{r.middleName || "–"}</td>
-                  <td className="px-3 py-2 text-slate-800 font-medium">{r.lastName || "–"}</td>
-                  <td className="px-3 py-2 text-xs text-slate-600 whitespace-nowrap">{r.mobile || "–"}</td>
-                  <td className="px-3 py-2 text-xs text-slate-600">{r.email || "–"}</td>
-                  <td className="px-3 py-2 text-xs text-slate-600 whitespace-nowrap">{fmtDate(r.admissionDate)}</td>
+                  </TableCell>
+                  <TableCell className="px-3 py-2 text-slate-800 font-medium">{r.firstName || "–"}</TableCell>
+                  <TableCell className="px-3 py-2 text-slate-600">{r.middleName || "–"}</TableCell>
+                  <TableCell className="px-3 py-2 text-slate-800 font-medium">{r.lastName || "–"}</TableCell>
+                  <TableCell className="px-3 py-2 text-xs text-slate-600 whitespace-nowrap">{r.mobile || "–"}</TableCell>
+                  <TableCell className="px-3 py-2 text-xs text-slate-600">{r.email || "–"}</TableCell>
+                  <TableCell className="px-3 py-2 text-xs text-slate-600 whitespace-nowrap">{fmtDate(r.admissionDate)}</TableCell>
                   {view === "terminated" && (
                     <>
-                      <td className="px-3 py-2 text-xs text-slate-600 whitespace-nowrap">{fmtDate(r.terminationDate)}</td>
-                      <td className="px-3 py-2">
+                      <TableCell className="px-3 py-2 text-xs text-slate-600 whitespace-nowrap">{fmtDate(r.terminationDate)}</TableCell>
+                      <TableCell className="px-3 py-2">
                         {r.terminationReason ? (
-                          <span className={`inline-flex items-center text-xs font-medium px-2 py-0.5 rounded-full border ${reasonChip(r.terminationReason)}`}>
+                          <span className={`inline-flex items-center text-xs font-medium px-2 py-0.5 rounded border ${reasonChip(r.terminationReason)}`}>
                             {r.terminationReason}
                           </span>
                         ) : (
                           <span className="text-xs text-slate-400">–</span>
                         )}
-                      </td>
+                      </TableCell>
                     </>
                   )}
                   {view === "potential" && (
-                    <td className="px-3 py-2 text-xs text-slate-600 max-w-xs truncate" title={r.notes || undefined}>{r.notes || "–"}</td>
+                    <TableCell className="px-3 py-2 text-xs text-slate-600 max-w-xs truncate" title={r.notes || undefined}>{r.notes || "–"}</TableCell>
                   )}
-                </tr>
+                </TableRow>
               ))}
               {rows.length === 0 && (
-                <tr>
-                  <td colSpan={12} className="px-4 py-8 text-center text-slate-400">
+                <TableRow>
+                  <TableCell colSpan={12} className="px-4 py-8 text-center text-slate-400">
                     No {view === "terminated" ? "terminated" : "potential"} members{search || clubId ? " match your filters" : ""}.
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               )}
-            </tbody>
-          </table>
+            </TableBody>
+          </Table>
         </div>
 
         <div className="px-5 py-2.5 border-t border-slate-100 text-xs text-slate-500">
@@ -559,7 +548,7 @@ export function DistrictRotaryNetworkView({ embedded = false }: { embedded?: boo
         </div>
         </>
         )}
-      </div>
+      </Card>
     </div>
   );
 }

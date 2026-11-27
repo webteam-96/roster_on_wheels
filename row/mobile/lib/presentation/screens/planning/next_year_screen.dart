@@ -4,6 +4,7 @@ import '../../widgets/common/custom_app_bar.dart';
 import '../../widgets/common/empty_state_widget.dart';
 import '../../widgets/common/loading_widget.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/roster_wheel.dart';
 
 /// The next-year workspace for elect roles (N7, feature `planning_mode`, `api/planning`): the member's elect roles,
 /// and per district the launchpad, the incoming team and each club's president- and secretary-elect.
@@ -60,7 +61,7 @@ class _NextYearScreenState extends State<NextYearScreen> {
                   icon: Icons.event_repeat_outlined,
                   title: 'No elect role',
                   subtitle: 'When you are appointed for next year, your planning shows here.')
-              : RefreshIndicator(
+              : RowRefresh(
                   onRefresh: _load,
                   child: ListView(
                     padding: const EdgeInsets.all(12),

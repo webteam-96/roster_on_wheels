@@ -10,11 +10,9 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
-import { ArrowLeft } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
-import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
-import { ListPageSkeleton } from "@/components/row/AppKit";
+import { PageHeader, ListPageSkeleton } from "@/components/row/AppKit";
 
 export default function EditZonePage() {
   const router = useRouter();
@@ -71,7 +69,7 @@ export default function EditZonePage() {
     return (
       <ProtectedRoute>
         <div className="flex flex-col items-center justify-center py-20">
-          <h3 className="text-lg font-semibold">Access Denied</h3>
+          <h3 className="row-h2">Access Denied</h3>
           <p className="text-muted-foreground mt-2">Only SuperAdmin can edit zones.</p>
         </div>
       </ProtectedRoute>
@@ -91,24 +89,20 @@ export default function EditZonePage() {
   return (
     <ProtectedRoute>
       <form onSubmit={handleSubmit} className="space-y-6">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center gap-4">
-            <Button variant="ghost" size="icon" asChild>
-              <Link href="/admin"><ArrowLeft className="h-4 w-4" /></Link>
-            </Button>
-            <div>
-              <h2 className="text-2xl font-bold tracking-tight text-primary">Edit Zone</h2>
-              <p className="text-muted-foreground text-base">Update zone details</p>
-            </div>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <Button type="button" variant="outline" onClick={() => router.push("/admin")}>Cancel</Button>
+        <PageHeader
+          title="Edit Zone"
+          description="Update zone details"
+          back="/admin"
+          actions={
+            <>
+<Button type="button" variant="outline" onClick={() => router.push("/admin")}>Cancel</Button>
             <Button type="submit" disabled={loading}>
               {loading && <RotaryLoader size="sm" />}
               Update Zone
             </Button>
-          </div>
-        </div>
+            </>
+          }
+        />
 
         <Card>
           <CardHeader><CardTitle>Zone Details</CardTitle></CardHeader>

@@ -18,6 +18,8 @@ import '../../../../../presentation/widgets/common/loading_widget.dart';
 import '../../../../../presentation/widgets/common/empty_state_widget.dart';
 import '../../../../../presentation/widgets/common/confirmation_dialog.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/motion.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/roster_wheel.dart';
 
 class PastPresidentsScreen extends StatefulWidget {
   final int clubId;
@@ -161,9 +163,9 @@ class _PastPresidentsScreenState extends State<PastPresidentsScreen> {
                 Expanded(
                   child: _presidents.isEmpty
                       ? const EmptyStateWidget(title: 'No past presidents found')
-                      : RefreshIndicator(
+                      : RowRefresh(
                           onRefresh: () => _loadPresidents(),
-                          child: ListView.separated(
+                          child: RowListView.separated(
                             padding: (const EdgeInsets.all(16)).add(const EdgeInsets.only(bottom: 88)),
                             itemCount: _presidents.length,
                             separatorBuilder: (_, __) => const SizedBox(height: 10),
@@ -191,14 +193,14 @@ class _PastPresidentsScreenState extends State<PastPresidentsScreen> {
             CircleAvatar(
               radius: 28,
               backgroundColor: AppColors.primary.withValues(alpha: 0.1),
-              backgroundImage:
+              // The photo covers the initial when it loads; a missing file leaves the initial.
+              foregroundImage:
                   photoUrl != null && photoUrl.isNotEmpty ? NetworkImage(ApiConstants.mediaUrl(photoUrl)) : null,
-              child: (photoUrl == null || photoUrl.isEmpty)
-                  ? Text(
-                      name.isNotEmpty ? name[0].toUpperCase() : '?',
-                      style: AppTextStyles.h3.copyWith(color: AppColors.primary),
-                    )
-                  : null,
+              onForegroundImageError: photoUrl != null && photoUrl.isNotEmpty ? (_, __) {} : null,
+              child: Text(
+                name.trim().isNotEmpty ? name.trim()[0].toUpperCase() : '?',
+                style: AppTextStyles.h3.copyWith(color: AppColors.primary),
+              ),
             ),
             const SizedBox(width: 16),
             Expanded(
@@ -746,9 +748,7 @@ class _PresidentFormScreenState extends State<_PresidentFormScreen> {
                           if (_searching)
                             const Padding(
                               padding: EdgeInsets.all(8),
-                              child: Center(
-                                  child: CircularProgressIndicator(
-                                      strokeWidth: 2)),
+                              child: const LoadingWidget(),
                             )
                           else if (_memberSearchCtrl.text.trim().isNotEmpty)
                             _searchResultsBox(_memberSearchCtrl.text.trim()),

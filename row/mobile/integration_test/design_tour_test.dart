@@ -34,7 +34,7 @@ final _routes = <String>[
   // Modules added 2026-11-19/20 (competitor gaps).
   '/anniversaries', '/app-lock', '/business-directory', '/donations', '/friends-of-the-club', '/help', '/job-board',
   '/me/committees', '/member-map', '/my-district-access', '/my-dues', '/prospect-tasks', '/service-hours',
-  '/share-website', '/surveys', '/terms', '/volunteers/mine', '/youth',
+  '/share-website', '/surveys', '/volunteers/mine', '/youth',
   for (final m in [
     'dashboard', 'overview', 'edit', 'goal-setting', 'announcements', 'attendance', 'board-of-directors',
     'citation', 'club-monthly-report', 'club-service', 'documents', 'greetings', 'international-service',

@@ -196,7 +196,7 @@ const CmrReportDesignB = forwardRef<HTMLDivElement, CmrReportProps>(function Cmr
                           </div>
                           <div className="mt-1.5 flex flex-wrap gap-1.5">
                             {[p.areaOfFocusName].filter(Boolean).map((c) => (
-                              <span key={c} className="rounded-full bg-white px-2 py-0.5 text-[11px] text-slate-600 ring-1 ring-slate-200">{c}</span>
+                              <span key={c} className="rounded bg-white px-2 py-0.5 text-[11px] text-slate-600 ring-1 ring-slate-200">{c}</span>
                             ))}
                           </div>
                         </div>

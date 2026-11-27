@@ -10,6 +10,8 @@ import '../../../../widgets/common/custom_app_bar.dart';
 import '../../../../widgets/common/custom_button.dart';
 import '../../../../widgets/common/rotary_year_bar.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/motion.dart';
+import 'package:rotary_flutter_app/presentation/widgets/common/loading_widget.dart';
 
 bool _asBool(dynamic v) {
   if (v is bool) return v;
@@ -200,7 +202,7 @@ class _ClubWebsiteThemeScreenState extends State<ClubWebsiteThemeScreen> {
       backgroundColor: AppColors.background,
       appBar: const CustomAppBar(title: 'Theme'),
       body: _loading
-          ? const Center(child: const CircularProgressIndicator(color: AppColors.primary))
+          ? const LoadingWidget()
           : _error != null
               ? Padding(
                   padding: const EdgeInsets.all(16),
@@ -255,7 +257,7 @@ class _ClubWebsiteThemeScreenState extends State<ClubWebsiteThemeScreen> {
               ),
             )
           else
-            GridView.builder(
+            RowGridView.builder(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(

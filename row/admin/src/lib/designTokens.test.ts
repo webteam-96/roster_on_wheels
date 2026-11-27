@@ -21,7 +21,7 @@ describe("Fellowship design tokens", () => {
   it("remaps the neutral family to ink-tinted neutrals", () => {
     for (const name of ["slate", "gray", "zinc", "neutral", "stone"]) {
       expect(c(name, "800")).toBe("#1B2C42");
-      expect(c(name, "50")).toBe("#F7F9FC");
+      expect(c(name, "50")).toBe("rgb(var(--tw-slate-50) / <alpha-value>)"); // softened per surface in globals.css
     }
   });
 
@@ -37,7 +37,7 @@ describe("Fellowship design tokens", () => {
     expect(theme.colors.azure).toBe("#17458F");
     expect(theme.colors.marigold).toBe("#F7A81B");
     expect(theme.colors.ink).toBe("#1B2C42");
-    expect(theme.colors.white).toBe("#FCFDFE"); // no pure white surfaces (FRONTEND-RULES #3)
+    expect(theme.colors.white).toBe("rgb(var(--tw-white) / <alpha-value>)"); // no pure white surfaces (FRONTEND-RULES #3)
   });
 
   it("turns drop shadows and decorative gradients off", () => {

@@ -1,5 +1,6 @@
 "use client";
 
+import { PageHeader } from "@/components/row/AppKit";
 import { useState, useEffect, useCallback, useMemo } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -117,19 +118,14 @@ export default function RoleBasedHome() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-bold tracking-tight text-primary">Welcome, {ctx.memberName}</h2>
-        <p className="text-muted-foreground">
-          {ctx.roles.filter(r => r.roleName !== "Member").map(r => r.roleName).filter((v, i, a) => a.indexOf(v) === i).join(" · ") || "Member"}
-        </p>
-      </div>
+      <PageHeader title={<>Welcome, {ctx.memberName}</>} description={ctx.roles.filter(r => r.roleName !== "Member").map(r => r.roleName).filter((v, i, a) => a.indexOf(v) === i).join(" · ") || "Member"} />
 
       {/* Role-specific primary tiles */}
       {isAG && (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {isAG && (
             <Link href="/ag-reports">
-              <Card className="overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-200 border-primary/20 cursor-pointer group">
+              <Card className="overflow-hidden hover:-translate-y-1 transition-all duration-200 cursor-pointer group">
                 <CardContent className="p-0">
                   <div className="flex items-center gap-4 p-4 bg-primary text-primary-foreground rounded-t-lg group-hover:bg-primary/90 transition-colors">
                     <div className="flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-full bg-white/20 border-2 border-white/40">
@@ -150,14 +146,14 @@ export default function RoleBasedHome() {
       {/* Admin districts — show when multiple districts, or when combined with AG / club roles */}
       {adminDistricts.length > 0 && (adminDistricts.length > 1 || isAG || adminClubs.length > 0) && (
         <div>
-          <h3 className="text-lg font-semibold text-primary mb-3 flex items-center gap-2">
+          <h3 className="row-h2 mb-3 flex items-center gap-2">
             <MapPin className="h-5 w-5" />
             Your Districts ({adminDistricts.length})
           </h3>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {adminDistricts.map(d => (
               <Link key={d.id} href={`/districts/${d.id}/dashboard`}>
-                <Card className="overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-200 border-primary/20 cursor-pointer group h-full">
+                <Card className="overflow-hidden hover:-translate-y-1 transition-all duration-200 cursor-pointer group h-full">
                   <CardContent className="p-0">
                     <div className="flex items-center gap-4 p-4 bg-primary text-primary-foreground rounded-t-lg group-hover:bg-primary/90 transition-colors">
                       <div className="flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-full bg-white/20 border-2 border-white/40">
@@ -165,7 +161,7 @@ export default function RoleBasedHome() {
                       </div>
                       <div className="flex-1 min-w-0">
                         <h4 className="font-semibold text-lg text-white">District {d.number}</h4>
-                        <Badge className="text-xs mt-1 bg-white/20 text-white border-white/30">District Admin</Badge>
+                        <Badge className="mt-1 bg-white/20 text-white border-white/30">District Admin</Badge>
                       </div>
                     </div>
                     <div className="border-t px-4 py-3 space-y-2 text-sm text-muted-foreground group-hover:bg-primary/5 transition-colors">
@@ -189,14 +185,14 @@ export default function RoleBasedHome() {
       {/* Admin clubs */}
       {adminClubs.length > 0 && (
         <div>
-          <h3 className="text-lg font-semibold text-primary mb-3 flex items-center gap-2">
+          <h3 className="row-h2 mb-3 flex items-center gap-2">
             <Building2 className="h-5 w-5" />
             Your Club{adminClubs.length > 1 ? "s" : ""} ({adminClubs.length})
           </h3>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {adminClubs.map(c => (
               <Link key={c.id} href={`/clubs/${c.id}/dashboard`}>
-                <Card className="overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-200 border-primary/20 cursor-pointer group h-full">
+                <Card className="overflow-hidden hover:-translate-y-1 transition-all duration-200 cursor-pointer group h-full">
                   <CardContent className="p-0">
                     <div className="flex items-center gap-4 p-4 bg-primary text-primary-foreground rounded-t-lg group-hover:bg-primary/90 transition-colors">
                       <div className="flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-full bg-white/20 border-2 border-white/40">
@@ -204,7 +200,7 @@ export default function RoleBasedHome() {
                       </div>
                       <div className="flex-1 min-w-0">
                         <h4 className="font-semibold text-base truncate text-white">{c.name}</h4>
-                        <Badge className="text-xs mt-1 bg-white/20 text-white border-white/30">Club Admin</Badge>
+                        <Badge className="mt-1 bg-white/20 text-white border-white/30">Club Admin</Badge>
                       </div>
                     </div>
                     <div className="border-t px-4 py-3 space-y-2 text-sm text-muted-foreground group-hover:bg-primary/5 transition-colors">

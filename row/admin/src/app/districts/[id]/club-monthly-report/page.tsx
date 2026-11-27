@@ -4,15 +4,13 @@ import { useState, useEffect, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { getDistrictReportYears, getDistrictReportMonths, getDistrict } from "@/services/api";
 import { useAuth } from "@/contexts/AuthContext";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, BarChart3, CheckCircle2, XCircle, AlertCircle } from "@/components/icons";
+import { BarChart3, CheckCircle2, XCircle } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
-import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
-import { ListPageSkeleton } from "@/components/row/AppKit";
+import { PageHeader, ListPageSkeleton } from "@/components/row/AppKit";
 
 export default function DistrictClubMonthlyReportPage() {
   const params = useParams();
@@ -61,19 +59,7 @@ export default function DistrictClubMonthlyReportPage() {
   return (
     <ProtectedRoute>
       <div className="space-y-6">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-3">
-            <Button variant="outline" size="icon" asChild>
-              <Link href={`/districts/${districtId}/dashboard`}><ArrowLeft className="h-4 w-4" /></Link>
-            </Button>
-            <div>
-              <h2 className="text-2xl font-bold tracking-tight text-primary">
-                {districtName ? `${districtName} - Club Monthly Report` : "Club Monthly Report"}
-              </h2>
-              <p className="text-muted-foreground text-base">Monthly report submission status by clubs</p>
-            </div>
-          </div>
-        </div>
+        <PageHeader title={districtName ? `${districtName} - Club Monthly Report` : "Club Monthly Report"} description="Monthly report submission status by clubs" back={`/districts/${districtId}/dashboard`} />
 
         {loading && <div className="flex items-center justify-center py-20"><ListPageSkeleton /></div>}
 
@@ -95,7 +81,7 @@ export default function DistrictClubMonthlyReportPage() {
         {!loading && !loadingMonths && months.length === 0 && selectedYearId && (
           <div className="flex flex-col items-center justify-center py-20 text-center">
             <BarChart3 className="h-12 w-12 text-muted-foreground mb-4" />
-            <h3 className="text-lg font-semibold">No months available</h3>
+            <h3 className="row-h2">No months available</h3>
             <p className="text-muted-foreground mt-2">No monthly report data for this year.</p>
           </div>
         )}

@@ -1,5 +1,6 @@
 "use client";
 
+import { CalendarCell } from "@/components/ui/text-buttons";
 import { useState, useEffect } from "react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
@@ -108,7 +109,7 @@ export function DayMonthPicker({ value, onChange, disabled = false }: DayMonthPi
           type="button"
           variant="outline"
           disabled={disabled}
-          className="h-11 w-full justify-start rounded-[12px] border border-input bg-card px-3.5 text-left text-sm font-normal hover:bg-card"
+          className="w-full justify-start text-left"
         >
           <CalendarIcon className="mr-2 h-4 w-4 flex-shrink-0" />
           <span className={selectedDay ? "" : "text-muted-foreground"}>{display}</span>
@@ -137,10 +138,9 @@ export function DayMonthPicker({ value, onChange, disabled = false }: DayMonthPi
             and the month list. The YEAR is intentionally NOT rendered —
             it's not collected and not meaningful (backend stores 1900). */}
         <div className="flex items-center justify-center mb-2">
-          <button
+          <Button variant="ghost" size="sm" className="gap-1.5"
             type="button"
             onClick={() => setShowMonthList((s) => !s)}
-            className="flex items-center gap-1.5 px-3 py-1 rounded hover:bg-slate-100 text-sm font-semibold text-slate-700 transition-colors"
             aria-label="Pick a month"
           >
             {MONTH_NAMES[viewMonth - 1]}
@@ -149,7 +149,7 @@ export function DayMonthPicker({ value, onChange, disabled = false }: DayMonthPi
                 showMonthList ? "rotate-180" : ""
               }`}
             />
-          </button>
+          </Button>
         </div>
 
         {showMonthList ? (
@@ -161,24 +161,17 @@ export function DayMonthPicker({ value, onChange, disabled = false }: DayMonthPi
               const isCurrent = viewMonth === monthNum;
               const isSelectedValue = selectedMonth === monthNum;
               return (
-                <button
+                <CalendarCell
                   key={name}
-                  type="button"
                   onClick={() => {
                     setViewMonth(monthNum);
                     setShowMonthList(false);
                   }}
-                  className={
-                    "py-2 rounded text-xs font-medium transition-colors " +
-                    (isCurrent
-                      ? "bg-primary text-primary-foreground"
-                      : isSelectedValue
-                      ? "bg-primary/10 text-primary"
-                      : "hover:bg-slate-100 text-slate-700")
-                  }
+                  selected={isCurrent}
+                  className={"text-xs font-medium" + (!isCurrent && isSelectedValue ? " bg-primary/10 text-primary" : "")}
                 >
                   {name.slice(0, 3)}
-                </button>
+                </CalendarCell>
               );
             })}
           </div>
@@ -199,19 +192,14 @@ export function DayMonthPicker({ value, onChange, disabled = false }: DayMonthPi
                 if (d == null) return <div key={i} className="h-8" />;
                 const isSelected = selectedMonth === viewMonth && selectedDay === d;
                 return (
-                  <button
+                  <CalendarCell
                     key={i}
-                    type="button"
                     onClick={() => handlePickDay(d)}
-                    className={
-                      "h-8 rounded text-xs font-medium transition-colors " +
-                      (isSelected
-                        ? "bg-primary text-primary-foreground"
-                        : "hover:bg-slate-100 text-slate-700")
-                    }
+                    selected={isSelected}
+                    className="h-8 min-w-0 text-xs font-medium"
                   >
                     {d}
-                  </button>
+                  </CalendarCell>
                 );
               })}
             </div>

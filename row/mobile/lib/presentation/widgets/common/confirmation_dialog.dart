@@ -3,6 +3,7 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
 import 'custom_button.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/motion.dart';
 
 class ConfirmationDialog extends StatelessWidget {
   final String title;
@@ -30,7 +31,7 @@ class ConfirmationDialog extends StatelessWidget {
     String cancelLabel = 'Cancel',
     ButtonVariant confirmVariant = ButtonVariant.danger,
   }) async {
-    final result = await showDialog<bool>(
+    final result = await showRowDialog<bool>(
       context: context,
       builder: (ctx) => ConfirmationDialog(
         title: title,

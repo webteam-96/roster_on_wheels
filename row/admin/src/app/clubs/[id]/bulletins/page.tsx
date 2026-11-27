@@ -7,7 +7,7 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ErrorState, PageHeader, Panel, SkeletonRows } from "@/components/row/AppKit";
-import { ArrowLeft, Plus } from "@/components/icons";
+import { Plus } from "@/components/icons";
 import { getBulletins, type BulletinListItem } from "@/services/api";
 import { appLocale } from "@/lib/appFormat";
 
@@ -37,11 +37,11 @@ export default function BulletinsPage() {
     <li key={b.id}>
       <Link
         href={`/clubs/${clubId}/bulletins/${b.id}`}
-        className="flex flex-wrap items-center justify-between gap-3 rounded-[12px] px-3 py-3 hover:bg-[#EDF4FB] focus-visible:outline focus-visible:outline-2"
+        className="flex flex-wrap items-center justify-between gap-3 rounded-md px-3 py-3 hover:bg-muted focus-visible:outline focus-visible:outline-2"
       >
         <span className="min-w-0">
           <span className="block font-semibold text-[#1B2C42]">{b.title}</span>
-          <span className="text-[13px] text-[#64748B]">
+          <span className="text-[13px] text-muted-foreground">
             {b.status === "Sent" && b.sentDate
               ? `Sent ${when(b.sentDate)}${b.totalRecipients ? `, ${b.totalRecipients} members` : ""}${b.subscriberCount ? `, ${b.subscriberCount} subscribers` : ""}`
               : `Started ${when(b.createdDate)}`}
@@ -54,15 +54,12 @@ export default function BulletinsPage() {
 
   return (
     <ProtectedRoute>
-      <div className="space-y-6 max-w-4xl mx-auto">
-        <div className="flex items-center gap-3">
-          <Button variant="outline" size="icon" asChild aria-label="Back to mass emails">
-            <Link href={`/clubs/${clubId}/mass-emails`}><ArrowLeft className="h-4 w-4" /></Link>
-          </Button>
-          <PageHeader
-            title="Club bulletins"
-            description="Build the weekly bulletin from club news, upcoming events and birthdays, then send it to members by email."
-            actions={
+      <div className="space-y-6 max-w-4xl">
+        <PageHeader
+          title="Club bulletins"
+          description="Build the weekly bulletin from club news, upcoming events and birthdays, then send it to members by email."
+          back={`/clubs/${clubId}/mass-emails`}
+          actions={
               <>
                 <Button variant="outline" asChild><Link href={`/clubs/${clubId}/stories`}>Stories to review</Link></Button>
                 <Button variant="outline" asChild><Link href={`/clubs/${clubId}/bulletins/subscribers`}>Subscribers</Link></Button>
@@ -71,8 +68,7 @@ export default function BulletinsPage() {
                 </Button>
               </>
             }
-          />
-        </div>
+        />
 
         {error ? (
           <ErrorState message={error} onRetry={load} retryLabel="Try again" />
@@ -80,14 +76,14 @@ export default function BulletinsPage() {
           <Panel title="Bulletins"><SkeletonRows rows={5} /></Panel>
         ) : items.length === 0 ? (
           <Panel title="No bulletins yet">
-            <p className="text-[15px] text-[#64748B]">Start one with New bulletin. Sent bulletins stay here as the club archive.</p>
+            <p className="text-[15px] text-muted-foreground">Start one with New bulletin. Sent bulletins stay here as the club archive.</p>
           </Panel>
         ) : (
           <>
             {drafts.length > 0 && <Panel title="Drafts"><ul className="divide-y divide-[color:var(--row-line)]">{drafts.map(row)}</ul></Panel>}
             <Panel title="Archive" subtitle="Members read these in the app.">
               {sent.length === 0
-                ? <p className="text-[15px] text-[#64748B]">Nothing sent yet.</p>
+                ? <p className="text-[15px] text-muted-foreground">Nothing sent yet.</p>
                 : <ul className="divide-y divide-[color:var(--row-line)]">{sent.map(row)}</ul>}
             </Panel>
           </>

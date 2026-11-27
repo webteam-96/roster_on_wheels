@@ -56,3 +56,17 @@ const bool kNearMeEnabled = true;
 /// App Store / Play Store. (Month-wise + Excel reports are still backend-blocked;
 /// re-hide before the next store release if they haven't shipped.)
 const bool kGoalSettingEnabled = true;
+
+/// "All Club Access" card in My Connections (2026-11-27, from RIZones 264ac74): a
+/// District Admin whom a SuperAdmin gave All Club Access gets one card per such
+/// district, opening a searchable list of its clubs; a club opened from it grants
+/// club-admin buttons for the member's district years. Flip to `false` to hide
+/// the card and the inherited rights together.
+const bool kAllClubAccessEnabled = true;
+
+/// QR attendance (2026-11-27, from RIZones 5180c0e): members show a "living" QR
+/// (My Rotary: "My Attendance QR", screenshots blocked); admins scan it from
+/// Attendance: "Scan Attendance". Shown only for clubs switched on via the
+/// server's qr-status. Needs MobileAttendanceQrController on the server: keep
+/// false in a store build that ships before that deploy.
+const bool kQrAttendanceEnabled = true;

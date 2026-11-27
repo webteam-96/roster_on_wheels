@@ -1,5 +1,11 @@
 "use client";
 
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table"
+import { Button } from "@/components/ui/button";
+import { NativeSelect } from "@/components/ui/native-select";
+import { Input } from "@/components/ui/input";
+import { Card } from "@/components/ui/card";
+import { IconButton } from "@/components/ui/icon-button";
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
@@ -13,7 +19,7 @@ import type { LucideIcon } from "@/components/icons";
 import { useAuth } from "@/contexts/AuthContext";
 import { useFeature } from "@/contexts/BrandContext";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { getClubAdminDashboardDirectory, getMember, getPhotoUrl, assignRole, removeRole, setClubMemberHonorary } from "@/services/api";
+import { getClubAdminDashboardDirectory, getMember, getPhotoUrl, assignRole, removeRole, setClubMemberHonorary, saveAdminYears } from "@/services/api";
 import { clubYearRights, canEditYearless, isCurrentYearSelected } from "@/lib/adminYears";
 import { useRotaryYears } from "@/hooks/useRotaryYears";
 import ViewOnlyBadge from "@/components/ViewOnlyBadge";
@@ -55,7 +61,7 @@ function fmtDate(d: string | null | undefined): string {
 }
 
 function MemberRow({
-  row, onView, canEdit, canMakeAdmin, clubId, onMakeAdmin, onRemoveAdmin,
+  row, onView, canEdit, canMakeAdmin, clubId, onMakeAdmin, onRemoveAdmin, onEditYears,
   roleActionLoading,
 }: {
   row: ClubAdminDashboardDirectoryMemberRow;
@@ -72,6 +78,7 @@ function MemberRow({
   clubId: number | null;
   onMakeAdmin: (row: ClubAdminDashboardDirectoryMemberRow) => void;
   onRemoveAdmin: (row: ClubAdminDashboardDirectoryMemberRow) => void;
+  onEditYears: (row: ClubAdminDashboardDirectoryMemberRow) => void;
   roleActionLoading: boolean;
 }) {
   // V2 edit form — same UI as the V2 Add page, but loads existing member +
@@ -85,15 +92,15 @@ function MemberRow({
     ? `/members/edit-v2/${row.memberId}?clubId=${clubId}&returnTo=${returnTo}`
     : `/members/edit-v2/${row.memberId}?returnTo=${returnTo}`;
   return (
-    <tr className="border-t border-slate-100 hover:bg-blue-50/40">
-      <td className="px-4 py-2">
+    <TableRow className="border-t border-slate-100 hover:bg-blue-50/40">
+      <TableCell className="px-4 py-2">
         {/* Avatar falls back to initials when the photo file is missing (OMS ROW-93: the broken image's name text spilled out). */}
         <Avatar className="w-9 h-9 border border-slate-200">
           {row.photoPath && <AvatarImage src={getPhotoUrl(row.photoPath)} alt={row.name} className="object-cover" />}
           <AvatarFallback className="bg-slate-200 text-slate-600 text-xs font-semibold">{initials(row.name) || "–"}</AvatarFallback>
         </Avatar>
-      </td>
-      <td className="px-4 py-2">
+      </TableCell>
+      <TableCell className="px-4 py-2">
         <div className="flex items-center gap-1.5 flex-wrap">
           <p className="font-medium text-slate-800">{row.name}</p>
           {/* Role tags. Honorary chip removed per user spec 2026-06-26 — honorary
@@ -109,24 +116,24 @@ function MemberRow({
         {row.designation && (
           <p className="text-xs text-slate-500">{row.designation}</p>
         )}
-      </td>
-      <td className="px-4 py-2 text-xs text-slate-600 whitespace-nowrap">{row.mobile ?? "–"}</td>
-      <td className="px-4 py-2 text-xs text-slate-600">{row.email ?? "–"}</td>
-      <td className="px-4 py-2 w-24 text-right">
+      </TableCell>
+      <TableCell className="px-4 py-2 text-xs text-slate-600 whitespace-nowrap">{row.mobile ?? "–"}</TableCell>
+      <TableCell className="px-4 py-2 text-xs text-slate-600">{row.email ?? "–"}</TableCell>
+      <TableCell className="px-4 py-2 w-24 text-right">
         <div className="inline-flex items-center gap-1.5">
-          <button
+          <IconButton
             type="button"
             onClick={() => onView(row)}
             aria-label={`View details for ${row.name}`}
-            className="inline-flex items-center justify-center w-8 h-8 rounded-lg border border-slate-200 text-slate-500 hover:bg-blue-50 hover:text-blue-600 hover:border-blue-200 transition-colors"
+            
           >
             <Eye size={15} />
-          </button>
+          </IconButton>
           {canEdit && (
             <Link
               href={editHref}
               aria-label={`Edit ${row.name}`}
-              className="inline-flex items-center justify-center w-8 h-8 rounded-lg border border-slate-200 text-slate-500 hover:bg-amber-50 hover:text-amber-600 hover:border-amber-200 transition-colors"
+              className="row-icon-btn"
             >
               <Pencil size={14} />
             </Link>
@@ -135,32 +142,44 @@ function MemberRow({
               Remove only revokes admin in THIS club (sp_role_deactivate_admin
               filters by p_ClubId), never in other clubs the member may admin. */}
           {canMakeAdmin && !row.isClubAdmin && (
-            <button
+            <IconButton
               type="button"
               onClick={() => onMakeAdmin(row)}
               disabled={roleActionLoading}
               aria-label={`Make ${row.name} an admin`}
               title="Make Admin"
-              className="inline-flex items-center justify-center w-8 h-8 rounded-lg border border-slate-200 text-slate-500 hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-200 disabled:opacity-50 transition-colors"
+              
             >
               {roleActionLoading ? <RotaryLoader size="sm" /> : <ShieldCheck size={14} />}
-            </button>
+            </IconButton>
+          )}
+          {/* Edit Years: same rule as Make Admin (the years being granted). */}
+          {canMakeAdmin && row.isClubAdmin && (
+            <IconButton
+              type="button"
+              onClick={() => onEditYears(row)}
+              disabled={roleActionLoading}
+              aria-label={`Edit admin years for ${row.name}`}
+              title="Edit Years"
+            >
+              {roleActionLoading ? <RotaryLoader size="sm" /> : <CalendarDays size={14} />}
+            </IconButton>
           )}
           {canEdit && row.isClubAdmin && (
-            <button
+            <IconButton
               type="button"
               onClick={() => onRemoveAdmin(row)}
               disabled={roleActionLoading}
               aria-label={`Remove admin role from ${row.name}`}
               title="Remove Admin (this club only)"
-              className="inline-flex items-center justify-center w-8 h-8 rounded-lg border border-slate-200 text-slate-500 hover:bg-red-50 hover:text-red-700 hover:border-red-200 disabled:opacity-50 transition-colors"
+              className="hover:text-red-700"
             >
               {roleActionLoading ? <RotaryLoader size="sm" /> : <ShieldOff size={14} />}
-            </button>
+            </IconButton>
           )}
         </div>
-      </td>
-    </tr>
+      </TableCell>
+    </TableRow>
   );
 }
 
@@ -260,7 +279,7 @@ export default function DashboardDirectoryPage() {
   // Make-Admin in-flight tracker (memberId currently being promoted).
   const [makeAdminId, setMakeAdminId] = useState<number | null>(null);
   // Admin rights are per Rotary year — the promotion goes through a year picker.
-  const [adminYearTarget, setAdminYearTarget] = useState<{ id: number; name: string } | null>(null);
+  const [adminYearTarget, setAdminYearTarget] = useState<{ id: number; name: string; editing?: boolean } | null>(null);
   // Bump to force a refetch after a successful promotion.
   const [reloadTick, setReloadTick] = useState(0);
 
@@ -287,6 +306,25 @@ export default function DashboardDirectoryPage() {
       // Rethrown so the dialog stays open and shows why — typically a year the
       // granter does not hold themselves.
       throw e;
+    } finally {
+      setMakeAdminId(null);
+    }
+  };
+
+  const handleEditYears = (row: ClubAdminDashboardDirectoryMemberRow) => {
+    if (!data?.club?.clubId) return;
+    setAdminYearTarget({ id: row.memberId, name: row.name, editing: true });
+  };
+
+  // Rethrows (no catch) so the dialog stays open and shows the server's reason.
+  const handleConfirmEditYears = async (picked: { yearIds: number[]; allYears: boolean }) => {
+    const clubId = data?.club?.clubId;
+    if (!clubId || !adminYearTarget) return;
+    try {
+      setMakeAdminId(adminYearTarget.id);
+      await saveAdminYears({ kind: "club", clubId }, adminYearTarget.id, picked);
+      setAdminYearTarget(null);
+      setReloadTick((t) => t + 1);
     } finally {
       setMakeAdminId(null);
     }
@@ -421,10 +459,10 @@ export default function DashboardDirectoryPage() {
         <KpiCard title="Total Members" value={fmtInt(data.totalMembers)}    subtitle="Excludes honorary"          icon={Users}       color="blue"   />
       </div>
 
-      <div className="bg-card rounded-2xl border border-slate-200 overflow-hidden">
+      <Card className="overflow-hidden">
         <div className="px-5 py-3 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
-            <h3 className="text-sm font-semibold text-slate-800">Member Directory</h3>
+            <h3 className="row-h3">Member Directory</h3>
             <p className="text-xs text-slate-500 mt-0.5">
               All members · {data.club.clubName}
             </p>
@@ -432,25 +470,25 @@ export default function DashboardDirectoryPage() {
           <div className="flex flex-wrap items-center gap-2">
             <div className="relative w-full sm:w-auto">
               <Search size={14} className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-400" />
-              <input
+              <Input
                 type="text"
                 placeholder="Search name, email or mobile…"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="pl-7 pr-3 h-10 py-0 text-sm border border-slate-200 rounded-[12px] w-full sm:w-64 focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                className="pl-7 pr-3 sm:w-64"
               />
             </div>
             <label className="flex items-center gap-1.5 text-xs text-slate-500 whitespace-nowrap">
               <span>Rows per page</span>
-              <select
+              <NativeSelect
                 value={pageSize}
                 onChange={(e) => handlePageSizeChange(parseInt(e.target.value, 10))}
-                className="h-10 py-0 pl-2 pr-6 text-sm border border-slate-200 rounded-[12px] bg-card text-slate-700 focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                className="pl-2 pr-6 w-auto"
               >
                 {PAGE_SIZE_OPTIONS.map((n) => (
                   <option key={n} value={n}>{n}</option>
                 ))}
-              </select>
+              </NativeSelect>
             </label>
             {/*
               Per the Club Admin permission rule (members are SuperAdmin-managed
@@ -461,17 +499,17 @@ export default function DashboardDirectoryPage() {
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[640px] md:min-w-full text-sm">
-            <thead className="bg-[#EDF4FB] text-[13px] text-[#64748B]">
-              <tr>
-                <th className="px-4 py-2.5 text-left w-16">Photo</th>
-                <th className="px-4 py-2.5 text-left">Name</th>
-                <th className="px-4 py-2.5 text-left">Mobile No.</th>
-                <th className="px-4 py-2.5 text-left">Email</th>
-                <th className="px-4 py-2.5 text-right w-24">{canEdit || canMakeAdmin ? "Actions" : "View"}</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
+          <Table className="w-full min-w-[640px] md:min-w-full text-sm">
+            <TableHeader>
+              <TableRow>
+                <TableHead className="px-4 text-left w-16">Photo</TableHead>
+                <TableHead className="px-4 text-left">Name</TableHead>
+                <TableHead className="px-4 text-left">Mobile No.</TableHead>
+                <TableHead className="px-4 text-left">Email</TableHead>
+                <TableHead className="px-4 text-right w-24">{canEdit || canMakeAdmin ? "Actions" : "View"}</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody className="divide-y divide-slate-100">
               {pageRows.map((m) => (
                 <MemberRow
                   key={m.memberId}
@@ -482,22 +520,23 @@ export default function DashboardDirectoryPage() {
                   clubId={data?.club?.clubId ?? null}
                   onMakeAdmin={handleMakeAdmin}
                   onRemoveAdmin={handleRemoveAdmin}
+                  onEditYears={handleEditYears}
                   roleActionLoading={makeAdminId === m.memberId}
                 />
               ))}
               {pageRows.length === 0 && (
-                <tr>
-                  <td colSpan={5} className="px-4 py-8 text-center text-slate-400">
+                <TableRow>
+                  <TableCell colSpan={5} className="px-4 py-8 text-center text-slate-400">
                     No members match your search.
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               )}
-            </tbody>
-          </table>
+            </TableBody>
+          </Table>
         </div>
 
         <div className="px-5 py-3 border-t border-slate-100"><Pagination page={safePage} totalPages={totalPages} totalCount={filtered.length} pageSize={pageSize} onPageChange={setPage} /></div>
-      </div>
+      </Card>
 
       {viewRow && (
         <MemberDetailModal
@@ -514,8 +553,9 @@ export default function DashboardDirectoryPage() {
           memberId={adminYearTarget.id}
           memberName={adminYearTarget.name}
           scopeName={data.club.clubName}
+          confirmLabel={adminYearTarget.editing ? "Save" : undefined}
           onCancel={() => setAdminYearTarget(null)}
-          onConfirm={handleConfirmAdminYears}
+          onConfirm={adminYearTarget.editing ? handleConfirmEditYears : handleConfirmAdminYears}
         />
       )}
     </div>
@@ -608,8 +648,8 @@ function MemberDetailModal({
       aria-modal="true"
       aria-labelledby="member-detail-title"
     >
-      <div
-        className="bg-card rounded-2xl border border-slate-200 shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto"
+      <Card
+        className="w-full max-w-2xl max-h-[90vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
@@ -620,7 +660,7 @@ function MemberDetailModal({
               <AvatarFallback className="bg-slate-100 text-slate-600 text-base font-semibold">{initials(row.name) || "–"}</AvatarFallback>
             </Avatar>
             <div className="min-w-0">
-              <h2 id="member-detail-title" className="text-base font-semibold text-slate-800 truncate">
+              <h2 id="member-detail-title" className="row-h2 truncate">
                 {row.name}
               </h2>
               <div className="flex flex-wrap items-center gap-1.5 mt-1">
@@ -631,21 +671,21 @@ function MemberDetailModal({
                     as a data field in the Membership section below. SuperAdmin
                     can toggle it from there. */}
                 {row.isClubAdmin && (
-                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-[#CFE2F6] text-slate-700 border border-slate-200">
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-semibold bg-[#CFE2F6] text-slate-700 border border-slate-200">
                     <ShieldCheck size={10} /> Club Admin
                   </span>
                 )}
               </div>
             </div>
           </div>
-          <button
+          <IconButton
             type="button"
             onClick={onClose}
             aria-label="Close"
-            className="text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-full p-1.5 transition-colors flex-shrink-0"
+            
           >
             <X size={18} />
-          </button>
+          </IconButton>
         </div>
 
         {/* Body */}
@@ -728,7 +768,7 @@ function MemberDetailModal({
             <section>
               <div className="flex items-center gap-1.5 mb-2.5">
                 <span className="w-1.5 h-1.5 rounded-full bg-[#FFC65C]" />
-                <h3 className="text-xs font-semibold text-slate-700 uppercase tracking-wide">Address</h3>
+                <h3 className="row-h3">Address</h3>
               </div>
               <div className="space-y-3 pl-3">
                 {profile.addresses.map((a) => (
@@ -753,7 +793,7 @@ function MemberDetailModal({
             <section>
               <div className="flex items-center gap-1.5 mb-2.5">
                 <span className="w-1.5 h-1.5 rounded-full bg-[#A9C6EA]" />
-                <h3 className="text-xs font-semibold text-slate-700 uppercase tracking-wide">Family</h3>
+                <h3 className="row-h3">Family</h3>
               </div>
               <div className="space-y-2 pl-3">
                 {profile.familyMembers.map((f) => (
@@ -778,15 +818,15 @@ function MemberDetailModal({
 
         {/* Footer */}
         <div className="px-6 py-3 border-t border-slate-100 flex justify-end bg-slate-50/50">
-          <button
+          <Button
             type="button"
             onClick={onClose}
-            className="px-4 py-1.5 text-sm font-medium rounded-full border border-slate-200 bg-card text-slate-700 hover:bg-slate-100 transition-colors"
+            variant="outline" size="sm"
           >
             Close
-          </button>
+          </Button>
         </div>
-      </div>
+      </Card>
     </div>
   );
 }
@@ -802,7 +842,7 @@ function Section({
     <section>
       <div className="flex items-center gap-1.5 mb-2.5">
         <span className={`w-1.5 h-1.5 rounded-full ${dotColor}`} />
-        <h3 className="text-xs font-semibold text-slate-700 uppercase tracking-wide">{title}</h3>
+        <h3 className="row-h3">{title}</h3>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pl-3">
         {children}

@@ -1,4 +1,5 @@
 "use client";
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
 
 /**
  * District Events V2 — listing.
@@ -19,13 +20,15 @@
  * in sync — mirrors useSyncClubIdFromUrl's pattern.
  */
 
+import { IconButton } from "@/components/ui/icon-button";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { NativeSelect } from "@/components/ui/native-select";
+import { Card } from "@/components/ui/card";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useParams, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import {
-  Calendar, CalendarDays, Loader2, Search, Plus, Edit3, Trash2,
-  ArrowLeft, AlertTriangle,
-} from "@/components/icons";
+import { Calendar, CalendarDays, Search, Plus, Edit3, Trash2, AlertTriangle } from "@/components/icons";
 import {
   getDistrict,
   getDistrictEventsList,
@@ -44,7 +47,7 @@ import ErrorAlert from "@/components/ErrorAlert";
 import DistrictAdminShell from "@/components/v2/DistrictAdminShell";
 
 import { appLocale } from "@/lib/appFormat";
-import { SkeletonRows } from "@/components/row/AppKit";
+import { PageHeader, SkeletonRows } from "@/components/row/AppKit";
 interface EventListItem {
   id: number;
   title: string | null;
@@ -208,23 +211,7 @@ export default function DistrictEventsV2Page() {
       >
         <div className="space-y-5">
           {/* Header */}
-          <div className="flex items-start justify-between gap-3">
-            <div className="flex items-start gap-2">
-              <Link
-                href={`/districts/${districtId}/dashboard`}
-                className="mt-0.5 inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50"
-                aria-label="Back"
-              >
-                <ArrowLeft size={15} />
-              </Link>
-              <div>
-                <h1 className="text-lg font-semibold text-slate-800">District Events</h1>
-                <p className="text-xs text-slate-500 mt-0.5">
-                  Post all the events executed by your district · {districtName || "–"}
-                </p>
-              </div>
-            </div>
-          </div>
+          <PageHeader title="District Events" description={<>Post all the events executed by your district · {districtName || "–"}</>} back={`/districts/${districtId}/dashboard`} />
 
           {/* KPI row */}
           <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
@@ -234,45 +221,45 @@ export default function DistrictEventsV2Page() {
           </div>
 
           {/* Table card */}
-          <div className="bg-card rounded-2xl border border-slate-200 overflow-hidden">
+          <Card className="overflow-hidden">
             <div className="px-5 py-3 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
               <div>
-                <h3 className="text-sm font-semibold text-slate-800">Event List</h3>
+                <h3 className="row-h3">Event List</h3>
                 <p className="text-xs text-slate-500 mt-0.5">Filter by rotary year · search by event title</p>
               </div>
               <div className="flex flex-wrap items-center gap-2">
-                <select
+                <NativeSelect
                   value={yearId}
                   onChange={(e) => { setYearId(e.target.value); setPage(1); }}
-                  className="px-2 h-10 py-0 text-sm border border-slate-200 rounded-[12px] bg-card focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                  className="w-auto"
                 >
                   {years.map((y) => (
                     <option key={y.id} value={String(y.id)}>
                       {y.yearLabel}{y.isCurrent ? " (Current)" : ""}
                     </option>
                   ))}
-                </select>
+                </NativeSelect>
                 <div className="relative w-full sm:w-auto">
                   <Search size={14} className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-400" />
-                  <input
+                  <Input
                     type="text"
                     placeholder="Search by title…"
                     value={searchInput}
                     onChange={(e) => setSearchInput(e.target.value)}
                     onKeyDown={(e) => e.key === "Enter" && applySearch()}
-                    className="pl-7 pr-3 h-10 py-0 text-sm border border-slate-200 rounded-[12px] w-full sm:w-56 focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                    className="pl-7 pr-3 sm:w-56"
                   />
                 </div>
-                <button
+                <Button
                   type="button"
                   onClick={applySearch}
-                  className="inline-flex items-center gap-1.5 text-xs font-semibold px-4 h-10 rounded-full border border-slate-200 text-slate-700 hover:bg-slate-50"
+                  variant="outline"
                 >
                   <Search size={13} /> Search
-                </button>
+                </Button>
                 <Link
                   href={addUrl}
-                  className="inline-flex items-center gap-1.5 text-xs font-semibold px-4 h-10 rounded-full bg-[#17458F] text-white hover:bg-[#17458F]"
+                  className="row-btn row-btn-primary"
                 >
                   <Plus size={13} /> Add Event
                 </Link>
@@ -283,61 +270,61 @@ export default function DistrictEventsV2Page() {
               {loading ? (
                 <SkeletonRows />
               ) : (
-                <table className="w-full min-w-[640px] md:min-w-full text-sm">
-                  <thead className="bg-[#EDF4FB] text-[13px] text-[#64748B]">
-                    <tr>
-                      <th className="px-3 py-2.5 text-left w-10">Sr</th>
-                      <th className="px-3 py-2.5 text-left">Title</th>
-                      <th className="px-3 py-2.5 text-left">Date</th>
-                      <th className="px-3 py-2.5 text-right w-16">Edit</th>
-                      <th className="px-3 py-2.5 text-right w-16">Delete</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
+                <Table className="w-full min-w-[640px] md:min-w-full text-sm">
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="px-3 text-left w-10">Sr</TableHead>
+                      <TableHead className="px-3 text-left">Title</TableHead>
+                      <TableHead className="px-3 text-left">Date</TableHead>
+                      <TableHead className="px-3 text-right w-16">Edit</TableHead>
+                      <TableHead className="px-3 text-right w-16">Delete</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody className="divide-y divide-slate-100">
                     {items.map((item, i) => (
-                      <tr key={item.id} className="hover:bg-blue-50/40">
-                        <td className="px-3 py-2 text-slate-500">{(page - 1) * pageSize + i + 1}</td>
-                        <td className="px-3 py-2 font-medium text-slate-800">{item.title || "–"}</td>
-                        <td className="px-3 py-2 text-slate-600 whitespace-nowrap">{fmtDate(item.eventDate)}</td>
-                        <td className="px-3 py-2 text-right">
+                      <TableRow key={item.id} className="hover:bg-blue-50/40">
+                        <TableCell className="px-3 py-2 text-slate-500">{(page - 1) * pageSize + i + 1}</TableCell>
+                        <TableCell className="px-3 py-2 font-medium text-slate-800">{item.title || "–"}</TableCell>
+                        <TableCell className="px-3 py-2 text-slate-600 whitespace-nowrap">{fmtDate(item.eventDate)}</TableCell>
+                        <TableCell className="px-3 py-2 text-right">
                           <Link
                             href={`/districts/${districtId}/district-events/v2/${item.id}/edit?yearId=${yearId}&returnTo=${childReturnTo}`}
-                            className="inline-flex items-center justify-center w-7 h-7 rounded text-slate-500 hover:text-blue-700 hover:bg-blue-50"
+                            className="row-icon-btn"
                             aria-label="Edit event"
                           >
                             <Edit3 size={13} />
                           </Link>
-                        </td>
-                        <td className="px-3 py-2 text-right">
-                          <button
+                        </TableCell>
+                        <TableCell className="px-3 py-2 text-right">
+                          <IconButton
                             type="button"
                             onClick={() => setDeleteTarget(item)}
-                            className="inline-flex items-center justify-center w-7 h-7 rounded text-slate-400 hover:text-rose-700 hover:bg-rose-50"
+                            className="hover:text-red-700"
                             aria-label="Delete event"
                           >
                             <Trash2 size={13} />
-                          </button>
-                        </td>
-                      </tr>
+                          </IconButton>
+                        </TableCell>
+                      </TableRow>
                     ))}
                     {items.length === 0 && (
-                      <tr>
-                        <td colSpan={5} className="px-4 py-10 text-center text-slate-400">
+                      <TableRow>
+                        <TableCell colSpan={5} className="px-4 py-10 text-center text-slate-400">
                           {search
                             ? "No events match your search."
                             : "No events found. Click \"Add Event\" to create one."}
-                        </td>
-                      </tr>
+                        </TableCell>
+                      </TableRow>
                     )}
-                  </tbody>
-                </table>
+                  </TableBody>
+                </Table>
               )}
             </div>
 
             <div className="px-5 py-2.5 border-t border-slate-100 text-xs text-slate-500">
               Showing {items.length} of {totalCount}
             </div>
-          </div>
+          </Card>
 
           {!loading && totalPages > 1 && (
             <Pagination

@@ -191,7 +191,7 @@ export default function PublicDuesApprovalPage() {
       <div className="max-w-2xl mx-auto space-y-5">
         {/* Brand strip */}
         <div className="bg-azure text-white text-center py-3 rounded-lg shadow-sm">
-          <h1 className="text-base font-semibold">ROW</h1>
+          <h1 className="row-h1">ROW</h1>
           <p className="text-xs opacity-80">Club Dues: Offline Payment Approval</p>
         </div>
 
@@ -320,7 +320,7 @@ export default function PublicDuesApprovalPage() {
         </Card>
 
         {/* Actor card */}
-        <Card className="border-slate-200">
+        <Card>
           <CardContent className="p-4 flex items-start gap-3">
             <ShieldCheck className="h-5 w-5 text-azure mt-0.5 shrink-0" />
             <div className="text-sm text-slate-700">
@@ -346,7 +346,7 @@ export default function PublicDuesApprovalPage() {
               <div className="flex flex-col sm:flex-row gap-3">
                 <Button
                   size="lg"
-                  className="flex-1 bg-emerald-600 hover:bg-emerald-700"
+                  className="flex-1"
                   onClick={() => { setApproveRemark(""); setActionError(null); setApproveDialogOpen(true); }}
                 >
                   <CheckCircle2 className="h-4 w-4 mr-2" /> Approve
@@ -393,7 +393,7 @@ export default function PublicDuesApprovalPage() {
           </div>
           <DialogFooter className="gap-2">
             <Button variant="outline" onClick={() => setApproveDialogOpen(false)} disabled={submitting}>Cancel</Button>
-            <Button className="bg-emerald-600 hover:bg-emerald-700" onClick={handleApprove} disabled={submitting}>
+            <Button onClick={handleApprove} disabled={submitting}>
               {submitting ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <CheckCircle2 className="h-4 w-4 mr-2" />}
               {submitting ? "Approving…" : "Confirm Approve"}
             </Button>

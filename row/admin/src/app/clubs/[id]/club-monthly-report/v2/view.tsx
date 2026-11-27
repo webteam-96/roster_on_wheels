@@ -1,4 +1,5 @@
 "use client";
+import { DataTable } from "@/components/ui/data-table";
 
 /**
  * Club Monthly Report v2 — landing page (year + month picker table).
@@ -13,12 +14,13 @@
  * (the e-Gov tab in the typical case) instead of the legacy club dashboard.
  */
 
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { NativeSelect } from "@/components/ui/native-select";
+import { PageHeader } from "@/components/row/AppKit";
 import { useEffect, useMemo, useState } from "react";
 import { useParams, useSearchParams } from "next/navigation";
-import {
-  ArrowLeft, Calendar, ClipboardList, CheckCircle2, Clock, AlertCircle,
-  Plus, Pencil, FileText, FileSpreadsheet, Loader2, BarChart3,
-} from "@/components/icons";
+import { Calendar, ClipboardList, CheckCircle2, Clock, AlertCircle, Plus, Pencil, FileText, FileSpreadsheet, Loader2, BarChart3 } from "@/components/icons";
 import {
   getMonthlyReportYears,
   getMonthlyReportMonths,
@@ -223,43 +225,26 @@ export function ClubMonthlyReportV2View({ clubId: propClubId, embedded = false, 
       )}
 
       {/* Header */}
-      <div className={`flex items-start gap-3 flex-wrap ${embedded ? "justify-end" : "justify-between"}`}>
-        {!embedded && (
-        <div className="flex items-start gap-2">
-          <LoadingLink
-            href={backHref}
-            className="mt-0.5 inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50"
-            aria-label="Back"
-          >
-            <ArrowLeft size={15} />
-          </LoadingLink>
-          <div>
-            <h1 className="text-lg font-semibold text-slate-800">
-              Club Monthly Reports
-            </h1>
-            <p className="text-xs text-slate-500 mt-0.5">
-              {clubName || "–"}
-              {selectedYear ? ` · RY ${selectedYear.yearLabel}` : ""}
-            </p>
-          </div>
-        </div>
-        )}
-
-        {/* Year filter — data-only. Hidden when embedded: the dashboard's global year drives it. */}
-        {!embedded && !loadingYears && years.length > 0 && (
-          <select
+      {!embedded && (
+        <PageHeader
+          title="Club Monthly Reports"
+          description={<>{clubName || "–"} {selectedYear ? ` · RY ${selectedYear.yearLabel}` : ""}</>}
+          back={backHref}
+          actions={!loadingYears && years.length > 0 && (
+          <NativeSelect
             value={selectedYearId ?? ""}
             onChange={(e) => setSelectedYearId(e.target.value ? Number(e.target.value) : null)}
-            className="px-3 h-10 py-0 text-sm border border-slate-200 rounded-[12px] bg-card focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+            className="w-auto"
           >
             {years.map((y) => (
               <option key={y.id} value={y.id}>
                 {y.yearLabel}{y.isCurrent ? " · current" : ""}
               </option>
             ))}
-          </select>
+          </NativeSelect>
         )}
-      </div>
+        />
+      )}
 
       {/* KPI row — submission status overview */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -295,9 +280,9 @@ export function ClubMonthlyReportV2View({ clubId: propClubId, embedded = false, 
 
       {/* Submission progress bar */}
       {counts.total > 0 && (
-        <div className="bg-card rounded-2xl border border-slate-200 p-5">
+        <Card className="p-5">
           <div className="flex items-baseline justify-between mb-2">
-            <h3 className="text-sm font-semibold text-slate-800">Submission Progress</h3>
+            <h3 className="row-h3">Submission Progress</h3>
             <span className="text-xs text-slate-500 tabular-nums">
               {counts.submitted} of {counts.total} submitted ({Math.round(submissionRate)}%)
             </span>
@@ -310,7 +295,7 @@ export function ClubMonthlyReportV2View({ clubId: propClubId, embedded = false, 
               style={{ width: `${Math.min(100, submissionRate)}%` }}
             />
           </div>
-        </div>
+        </Card>
       )}
 
       <ErrorAlert
@@ -338,10 +323,10 @@ export function ClubMonthlyReportV2View({ clubId: propClubId, embedded = false, 
       )}
 
       {/* Month table */}
-      <div className="bg-card rounded-2xl border border-slate-200 overflow-hidden">
+      <Card className="overflow-hidden">
         <div className="px-5 py-3 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
-            <h3 className="text-sm font-semibold text-slate-800">Monthly Reports</h3>
+            <h3 className="row-h3">Monthly Reports</h3>
             <p className="text-xs text-slate-500 mt-0.5">
               {selectedYear ? `RY ${selectedYear.yearLabel}` : "Select a year"}
             </p>
@@ -372,50 +357,44 @@ export function ClubMonthlyReportV2View({ clubId: propClubId, embedded = false, 
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[640px] md:min-w-full text-sm">
-              <thead className="bg-[#EDF4FB] text-[13px] text-[#64748B]">
-                <tr>
-                  <th className="px-4 py-2.5 text-left w-12">#</th>
-                  <th className="px-4 py-2.5 text-left">Month</th>
-                  <th className="px-4 py-2.5 text-left">Last Updated</th>
-                  <th className="px-4 py-2.5 text-left">Status</th>
-                  <th className="px-4 py-2.5 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {months.map((item, index) => {
-                  const s = rowStatus(item);
-                  const detailHref = monthBase(item.month);
-                  const isDownloading = downloadingMonth === item.month;
-                  // While ANY month's PDF or Word is being made, every Edit / PDF / Word / Create button on the
-                  // list is locked - stops repeated clicks (user 2026-11-13).
-                  const busy = pdfMonth != null || downloadingMonth != null;
-                  const lockCls = busy ? " pointer-events-none opacity-50" : "";
-                  return (
-                    <tr key={item.month} className="hover:bg-blue-50/40">
-                      <td className="px-4 py-2.5 text-slate-500 tabular-nums">{index + 1}</td>
-                      <td className="px-4 py-2.5 font-medium text-slate-800 whitespace-nowrap">
+            <DataTable
+              caption="Monthly reports"
+              card={false}
+              className="[&_table]:min-w-[640px] md:[&_table]:min-w-full"
+              rows={months}
+              rowKey={(item) => item.month}
+              columns={[
+{ key: "n", header: "#", className: "w-12 tabular-nums text-muted-foreground", cell: (item, index) => index + 1 },
+{ key: "month", header: "Month", className: "font-medium whitespace-nowrap", cell: (item, index) => (<>
                         <div className="inline-flex items-center gap-2">
                           <Calendar size={13} className="text-slate-400" />
                           {item.monthName}
                         </div>
-                      </td>
-                      <td className="px-4 py-2.5 text-xs text-slate-600 whitespace-nowrap">
+</>) },
+{ key: "updated", header: "Last Updated", className: "text-xs whitespace-nowrap", cell: (item, index) => (<>
                         {fmtDate(item.modifiedDate ?? item.createdDate)}
-                      </td>
-                      <td className="px-4 py-2.5">
+</>) },
+{ key: "status", header: "Status", cell: (item, index) => {
+                  const s = rowStatus(item);
+return (<>
                         <span
-                          className={`inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full border ${statusChipClass(s)}`}
+                          className={`inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded border ${statusChipClass(s)}`}
                         >
                           {rowStatusIcon(s)} {s}
                         </span>
                         {item.isUploadedToDistrict && (
-                          <span className="ml-1.5 inline-flex items-center gap-1 text-[10px] font-medium px-1.5 py-0.5 rounded-full border border-blue-200 bg-blue-50 text-blue-700">
+                          <span className="ml-1.5 inline-flex items-center gap-1 text-[10px] font-medium px-1.5 py-0.5 rounded border border-blue-200 bg-blue-50 text-blue-700">
                             District
                           </span>
                         )}
-                      </td>
-                      <td className="px-4 py-2.5">
+</>);
+} },
+{ key: "actions", header: "Actions", align: "right", cell: (item, index) => {
+                  const detailHref = monthBase(item.month);
+                  const isDownloading = downloadingMonth === item.month;
+                  const busy = pdfMonth != null || downloadingMonth != null;
+                  const lockCls = busy ? " pointer-events-none opacity-50" : "";
+return (<>
                         <div className="flex flex-wrap items-center justify-end gap-2 flex-wrap">
                           {item.isCreated ? (
                             <>
@@ -427,7 +406,7 @@ export function ClubMonthlyReportV2View({ clubId: propClubId, embedded = false, 
                                   removed. Set SHOW_OLD_CMR true to bring it back. */}
                               {SHOW_OLD_CMR && !isSuperAdmin && canManage && <LoadingLink
                                 href={detailHref}
-                                className="inline-flex items-center gap-1 text-xs font-medium px-2.5 py-1 rounded-full border border-slate-200 text-slate-700 hover:bg-blue-50 hover:text-blue-700"
+                                className="inline-flex items-center gap-1 text-xs font-medium px-2.5 py-1 rounded border border-slate-200 text-slate-700 hover:bg-blue-50 hover:text-blue-700"
                               >
                                 {canManage
                                   ? <><Upload size={12} /> Submit CMR</>
@@ -439,7 +418,7 @@ export function ClubMonthlyReportV2View({ clubId: propClubId, embedded = false, 
                                   href={detailHref.replace("/club-monthly-report/v2/", "/club-monthly-report/v3/")}
                                   aria-disabled={busy}
                                   tabIndex={busy ? -1 : undefined}
-                                  className={`inline-flex items-center gap-1 text-xs font-medium px-2.5 py-1 rounded-lg border border-slate-200 text-slate-700 hover:bg-blue-50 hover:text-blue-700${lockCls}`}
+                                  className={`row-btn row-btn-secondary row-btn-sm ${lockCls}`}
                                   title="Club Monthly Report - view, preview and download (Design B)"
                                 >
                                   {/* Was "New CMR" (user 2026-11-13: rename to Edit). */}
@@ -454,24 +433,24 @@ export function ClubMonthlyReportV2View({ clubId: propClubId, embedded = false, 
                                   {/* PDF = Design B, downloaded right here (user 2026-11-13): the new CMR preview is
                                       drawn in a hidden frame which downloads it; the list stays. The old server PDF
                                       (handleDownload "pdf") is kept, not used. */}
-                                  <button
+                                  <Button
                                     type="button"
                                     onClick={() => { setPdfKind("pdf"); setPdfMonth(item.month); }}
                                     disabled={busy}
-                                    className="inline-flex items-center gap-1 text-xs font-medium px-2.5 py-1 rounded-full border border-slate-200 text-slate-700 hover:bg-blue-50 hover:text-blue-700 disabled:opacity-50"
+                                    variant="outline" size="sm"
                                   >
                                     {pdfMonth === item.month && pdfKind === "pdf"
                                       ? <Loader2 className="animate-spin" size={12} />
                                       : <FileText size={12} className="text-rose-500" />}
                                     PDF
-                                  </button>
-                                  <button
+                                  </Button>
+                                  <Button
                                     type="button"
                                     // New Word (Design B layout, user 2026-11-13) via the same hidden frame; the old
                                     // server Word (handleDownload "word") is kept, not used.
                                     onClick={() => { setPdfKind("word"); setPdfMonth(item.month); }}
                                     disabled={busy}
-                                    className="inline-flex items-center gap-1 text-xs font-medium px-2.5 py-1 rounded-full border border-slate-200 text-slate-700 hover:bg-blue-50 hover:text-blue-700 disabled:opacity-50"
+                                    variant="outline" size="sm"
                                   >
                                     {(pdfMonth === item.month && pdfKind === "word") || (isDownloading && downloadFormat === "word") ? (
                                       <Loader2 className="animate-spin" size={12} />
@@ -479,7 +458,7 @@ export function ClubMonthlyReportV2View({ clubId: propClubId, embedded = false, 
                                       <FileSpreadsheet size={12} className="text-blue-500" />
                                     )}
                                     Word
-                                  </button>
+                                  </Button>
                                 </>
                               )}
                             </>
@@ -489,7 +468,7 @@ export function ClubMonthlyReportV2View({ clubId: propClubId, embedded = false, 
                               href={SHOW_OLD_CMR ? detailHref : detailHref.replace("/club-monthly-report/v2/", "/club-monthly-report/v3/")}
                               aria-disabled={busy}
                               tabIndex={busy ? -1 : undefined}
-                              className={`inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full bg-[#17458F] text-white hover:bg-[#17458F]${lockCls}`}
+                              className={`inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded bg-[#17458F] text-white hover:bg-[#17458F]${lockCls}`}
                             >
                               <Plus size={12} /> Create
                             </LoadingLink>
@@ -499,15 +478,13 @@ export function ClubMonthlyReportV2View({ clubId: propClubId, embedded = false, 
                             <span className="text-xs text-slate-400">Not created</span>
                           )}
                         </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+</>);
+} },
+              ]}
+            />
           </div>
         )}
-      </div>
+      </Card>
     </div>
   );
 }

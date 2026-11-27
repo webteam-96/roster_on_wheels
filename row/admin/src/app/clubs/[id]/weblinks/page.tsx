@@ -54,26 +54,14 @@ import ErrorAlert from "@/components/ErrorAlert";
 import AlertModal from "@/components/AlertModal";
 import SearchBox from "@/components/SearchBox";
 import RotaryLoader from "@/components/RotaryLoader";
-import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
-import {
-  ArrowLeft,
-  Plus,
-  Pencil,
-  Trash2,
-  MoreHorizontal,
-  FolderOpen,
-  AlertTriangle,
-  ChevronRight,
-  FolderTree,
-  Loader2,
-  Image as ImageIcon,
-} from "@/components/icons";
+import { Plus, Pencil, Trash2, MoreHorizontal, FolderOpen, AlertTriangle, ChevronRight, FolderTree, Loader2, Image as ImageIcon } from "@/components/icons";
 
 const ReactQuill = dynamic(() => import("react-quill-new"), { ssr: false });
 import "react-quill-new/dist/quill.snow.css";
-import { ListPageSkeleton } from "@/components/row/AppKit";
+import { PageHeader, ListPageSkeleton } from "@/components/row/AppKit";
 
+import { LinkButton } from "@/components/ui/text-buttons"
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
 const quillModules = {
@@ -99,7 +87,7 @@ function LinkTypeBadge({ type }: { type: string }) {
   };
   return (
     <span
-      className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${colors[type] || "bg-gray-100 text-gray-700"}`}
+      className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${colors[type] || "bg-gray-100 text-gray-700"}`}
     >
       {type}
     </span>
@@ -370,29 +358,17 @@ export default function WeblinksPage() {
     <ProtectedRoute>
       <div className="space-y-6">
         {/* Header */}
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-3">
-            <Button variant="outline" size="icon" asChild>
-              <Link href={`/clubs/${clubId}/dashboard`}>
-                <ArrowLeft className="h-4 w-4" />
-              </Link>
-            </Button>
-            <div>
-              <h2 className="text-2xl font-bold tracking-tight text-primary">
-                {clubName ? `${clubName} - Weblinks` : "Weblinks"}
-              </h2>
-              <p className="text-muted-foreground text-base">
-                Manage weblinks and navigation
-              </p>
-            </div>
-          </div>
-          {canManage && (
+        <PageHeader
+          title={clubName ? `${clubName} - Weblinks` : "Weblinks"}
+          description="Manage weblinks and navigation"
+          back={`/clubs/${clubId}/dashboard`}
+          actions={canManage && (
             <Button onClick={openAddDialog}>
               <Plus className="mr-2 h-4 w-4" />
               Add Weblink
             </Button>
           )}
-        </div>
+        />
 
         {/* Breadcrumb */}
         {breadcrumb.length > 1 && (
@@ -402,16 +378,11 @@ export default function WeblinksPage() {
                 {index > 0 && (
                   <ChevronRight className="h-3 w-3 text-muted-foreground" />
                 )}
-                <button
+                <LinkButton
                   onClick={() => navigateTo(index)}
-                  className={`hover:underline ${
-                    index === breadcrumb.length - 1
-                      ? "font-semibold text-primary"
-                      : "text-muted-foreground hover:text-foreground"
-                  }`}
-                >
+                  tone={index === breadcrumb.length - 1 ? "primary" : "muted"}>
                   {item.title}
-                </button>
+                </LinkButton>
               </span>
             ))}
           </div>
@@ -438,7 +409,7 @@ export default function WeblinksPage() {
         {!loading && weblinks.length === 0 && (
           <div className="flex flex-col items-center justify-center py-20 text-center">
             <FolderOpen className="h-12 w-12 text-muted-foreground mb-4" />
-            <h3 className="text-lg font-semibold">No weblinks found</h3>
+            <h3 className="row-h2">No weblinks found</h3>
             <p className="text-muted-foreground mt-2">
               {canManage
                 ? 'Click "Add Weblink" to create one.'
@@ -454,7 +425,7 @@ export default function WeblinksPage() {
           weblinks.length > 0 && (
             <div className="flex flex-col items-center justify-center py-20 text-center">
               <FolderOpen className="h-12 w-12 text-muted-foreground mb-4" />
-              <h3 className="text-lg font-semibold">No results found</h3>
+              <h3 className="row-h2">No results found</h3>
               <p className="text-muted-foreground mt-2">
                 No weblinks match &quot;{searchQuery}&quot;.
               </p>
@@ -467,23 +438,23 @@ export default function WeblinksPage() {
             <CardContent className="p-0">
               <Table className="min-w-[640px]">
                 <TableHeader>
-                  <TableRow className="bg-primary hover:bg-primary">
-                    <TableHead className="w-12 text-base font-semibold">
+                  <TableRow>
+                    <TableHead className="w-12">
                       S.No.
                     </TableHead>
-                    <TableHead className="text-base font-semibold">
+                    <TableHead>
                       Logo
                     </TableHead>
-                    <TableHead className="text-base font-semibold">
+                    <TableHead>
                       Title
                     </TableHead>
-                    <TableHead className="text-base font-semibold text-center">
+                    <TableHead className="text-center">
                       Type
                     </TableHead>
-                    <TableHead className="text-base font-semibold text-center">
+                    <TableHead className="text-center">
                       Children
                     </TableHead>
-                    <TableHead className="text-base font-semibold text-center">
+                    <TableHead className="text-center">
                       Active
                     </TableHead>
                     {canManage && (
@@ -512,19 +483,17 @@ export default function WeblinksPage() {
                       </TableCell>
                       <TableCell>
                         {isRowClickable(w) ? (
-                          <button
+                          <LinkButton
                             type="button"
                             onClick={() => handleRowClick(w)}
-                            className="font-medium text-primary hover:underline text-left"
-                            title={
+                             title={
                               w.childCount > 0 ? "View children" :
                               w.linkType === "URL" ? "Open URL" :
                               w.linkType === "PDF" ? "Open PDF" :
                               w.youtubeUrl ? "Open YouTube" : ""
-                            }
-                          >
+                            }>
                             {w.title}
-                          </button>
+                          </LinkButton>
                         ) : (
                           <p className="font-medium">{w.title}</p>
                         )}
@@ -542,6 +511,7 @@ export default function WeblinksPage() {
                       <TableCell className="text-center">
                         <Switch
                           checked={w.isActive}
+                          aria-label={`Active: ${w.title}`}
                           onCheckedChange={() => handleToggleActive(w)}
                           disabled={!canManage}
                         />
@@ -553,7 +523,8 @@ export default function WeblinksPage() {
                               <Button
                                 variant="ghost"
                                 size="icon"
-                                className="h-8 w-8"
+                                className="row-btn-sm"
+                                aria-label="More actions"
                               >
                                 <MoreHorizontal className="h-4 w-4" />
                               </Button>

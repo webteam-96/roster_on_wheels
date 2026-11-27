@@ -68,7 +68,12 @@ public class OcvGovController : ControllerBase
     [HttpPost("documents")]
     public async Task<ActionResult> UploadDocument(int clubId, [FromForm] UploadOcvDocumentDto dto, IFormFile file)
     {
-        var denied = await _guard.ClubYearAsync(User, clubId, dto.YearId);
+        // Static & Additional Documents are exempt from Year-wise Admin Rights:
+        // any admin of the club may upload, whichever year(s) they hold.
+        var code = await _guard.OcvCategoryCodeAsync(dto.CategoryId, null);
+        var denied = code != null && AdminYearGuard.OcvYearFreeCategories.Contains(code)
+            ? await _guard.ClubAnyYearAsync(User, clubId)
+            : await _guard.ClubYearAsync(User, clubId, dto.YearId);
         if (denied != null) return denied;
 
         if (file == null || file.Length == 0)
@@ -93,11 +98,20 @@ public class OcvGovController : ControllerBase
         }
     }
 
+    // Edit/delete: Static & Additional Documents skip the year rule (any club admin);
+    // every other category is checked against the year stored on the document.
+    private async Task<ObjectResult?> OcvDocumentWriteGuardAsync(int clubId, int documentId)
+    {
+        var code = await _guard.OcvCategoryCodeAsync(null, documentId);
+        return code != null && AdminYearGuard.OcvYearFreeCategories.Contains(code)
+            ? await _guard.ClubAnyYearAsync(User, clubId)
+            : await _guard.ClubRecordYearAsync(User, clubId, "ocv_documents", "pk_document_id", documentId);
+    }
+
     [HttpPut("documents/{documentId}")]
     public async Task<ActionResult> UpdateDocument(int clubId, int documentId, [FromForm] UpdateOcvDocumentDto dto, IFormFile? file)
     {
-        var denied = await _guard.ClubRecordYearAsync(
-            User, clubId, "ocv_documents", "pk_document_id", documentId);
+        var denied = await OcvDocumentWriteGuardAsync(clubId, documentId);
         if (denied != null) return denied;
 
         if (file != null && file.Length > 0)
@@ -122,8 +136,7 @@ public class OcvGovController : ControllerBase
     [OwnedBy(Owns.OcvDocument, "documentId", "clubId")]
     public async Task<ActionResult> DeleteDocument(int clubId, int documentId)
     {
-        var denied = await _guard.ClubRecordYearAsync(
-            User, clubId, "ocv_documents", "pk_document_id", documentId);
+        var denied = await OcvDocumentWriteGuardAsync(clubId, documentId);
         if (denied != null) return denied;
 
         await _service.DeleteDocumentAsync(documentId, GetUserId());

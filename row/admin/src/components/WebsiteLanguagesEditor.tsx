@@ -1,7 +1,9 @@
 "use client";
 
+import { NativeSelect } from "@/components/ui/native-select";
+import { IconButton } from "@/components/ui/icon-button";
+import { PageHeader } from "@/components/row/AppKit";
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import {
   deleteWebsiteTranslation, getWebsiteLanguages, getWebsiteTranslations, saveWebsiteLanguages, saveWebsiteTranslation,
@@ -17,9 +19,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
-import { ArrowLeft, Languages, Plus, X } from "@/components/icons";
+import { Languages, Plus, X } from "@/components/icons";
 
-const SELECT = "h-10 w-full rounded-md border border-input bg-background px-3 text-sm";
+const SELECT = "row-field w-full";
 const EMPTY: WebsiteTranslationFields = { title: null, body: null, seoTitle: null, seoDescription: null };
 const langName = (code: string) => `${nativeLanguageName(code)} (${code})`;
 const keyOf = (i: WebsiteTranslationItem) => `${i.type}:${i.id}`;
@@ -188,23 +190,13 @@ export default function WebsiteLanguagesEditor({ scope, ownerId, fallbackBack }:
 
   return (
     <div className="space-y-6">
-      <div className="flex items-start gap-3">
-        <Button variant="outline" size="icon" asChild>
-          <Link href={back} aria-label="Back"><ArrowLeft className="h-4 w-4" /></Link>
-        </Button>
-        <div>
-          <h2 className="text-2xl font-bold tracking-tight text-primary">Website languages</h2>
-          <p className="text-muted-foreground text-base">
-            Visitors pick a language on the public site. Pages without a translation show the default language.
-          </p>
-        </div>
-      </div>
+      <PageHeader title="Website languages" description="Visitors pick a language on the public site. Pages without a translation show the default language." back={back} />
 
       {notice && <p role="status" className="rounded-md border bg-muted/40 px-4 py-2 text-sm">{notice}</p>}
 
       <Card>
         <CardContent className="space-y-4 p-6">
-          <h3 className="text-base font-semibold">Languages</h3>
+          <h3 className="row-h2">Languages</h3>
           {!draft ? (
             <div className="space-y-2" aria-busy="true">
               {[0, 1].map((n) => <div key={n} className="h-10 w-full animate-pulse rounded-md bg-muted" />)}
@@ -214,21 +206,21 @@ export default function WebsiteLanguagesEditor({ scope, ownerId, fallbackBack }:
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
                   <Label htmlFor="default-language">Default language</Label>
-                  <select id="default-language" className={SELECT} value={draft.defaultLanguage}
+                  <NativeSelect id="default-language"  value={draft.defaultLanguage}
                     onChange={(e) => setDraft({ ...draft, defaultLanguage: e.target.value })}>
                     {draft.languages.map((c) => <option key={c} value={c}>{langName(c)}</option>)}
-                  </select>
+                  </NativeSelect>
                   <p className="text-xs text-muted-foreground">The language your About page and pages are written in.</p>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="add-language">Add a language</Label>
                   <div className="flex flex-wrap gap-2">
-                    <select id="add-language" className={SELECT} value={adding} onChange={(e) => setAdding(e.target.value)}>
+                    <NativeSelect id="add-language"  value={adding} onChange={(e) => setAdding(e.target.value)}>
                       <option value="">Choose a language</option>
                       {SUPPORTED_LOCALES.filter((c) => !draft.languages.includes(c)).map((c) => (
                         <option key={c} value={c}>{langName(c)}</option>
                       ))}
-                    </select>
+                    </NativeSelect>
                     <Button type="button" variant="outline" disabled={!adding}
                       onClick={() => { setDraft({ ...draft, languages: [...draft.languages, adding] }); setAdding(""); }}>
                       <Plus className="mr-1 h-4 w-4" /> Add
@@ -243,10 +235,10 @@ export default function WebsiteLanguagesEditor({ scope, ownerId, fallbackBack }:
                     {c === draft.defaultLanguage ? (
                       <span className="text-xs text-muted-foreground">default</span>
                     ) : (
-                      <button type="button" className="ml-1 rounded p-0.5 hover:bg-muted" aria-label={`Remove ${langName(c)}`}
+                      <IconButton type="button" className="ml-1" aria-label={`Remove ${langName(c)}`}
                         onClick={() => setDraft({ ...draft, languages: draft.languages.filter((l) => l !== c) })}>
                         <X className="h-3.5 w-3.5" />
-                      </button>
+                      </IconButton>
                     )}
                   </li>
                 ))}
@@ -262,15 +254,15 @@ export default function WebsiteLanguagesEditor({ scope, ownerId, fallbackBack }:
       <Card>
         <CardContent className="space-y-4 p-6">
           <div className="flex flex-wrap items-end justify-between gap-4">
-            <h3 className="text-base font-semibold">Texts</h3>
+            <h3 className="row-h2">Texts</h3>
             {saved && (
               <div className="w-full space-y-2 sm:w-72">
                 <Label htmlFor="edit-language">Language to edit</Label>
-                <select id="edit-language" className={SELECT} value={language} onChange={(e) => setLanguage(e.target.value)}>
+                <NativeSelect id="edit-language"  value={language} onChange={(e) => setLanguage(e.target.value)}>
                   {saved.languages.map((c) => (
                     <option key={c} value={c}>{langName(c)}{c === saved.defaultLanguage ? ", default" : ""}</option>
                   ))}
-                </select>
+                </NativeSelect>
               </div>
             )}
           </div>

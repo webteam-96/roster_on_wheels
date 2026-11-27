@@ -16,8 +16,8 @@ export default function MembershipDuesThankYouPage() {
   const duesId = Number(params.duesId);
   const orderId = searchParams.get("orderId") || "";
   const paymentId = searchParams.get("paymentId") || "0";
-  // Dues currency sign, passed on the pay page's return URL (missing = INR).
-  const cur = getCurrencySymbol(searchParams.get("currency") || "INR");
+  // Dues currency, passed on the pay page's return URL (missing = the instance default).
+  const cur = getCurrencySymbol(searchParams.get("currency"));
 
   const [loading, setLoading] = useState(true);
   const [result, setResult] = useState<{

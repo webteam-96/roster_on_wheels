@@ -1,4 +1,5 @@
 "use client";
+import { ToggleButton } from "@/components/ui/text-buttons";
 
 /**
  * District Admin · Communication tab
@@ -26,6 +27,7 @@
  *     straight from useDistrictAdminCache().communication.greetings.
  */
 
+import { Card } from "@/components/ui/card";
 import { useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
@@ -203,10 +205,10 @@ function GreetingsSection({
   ];
 
   return (
-    <div className="bg-card rounded-2xl border border-slate-200 overflow-hidden flex flex-col">
+    <Card className="overflow-hidden flex flex-col">
       <div className="px-5 py-3 border-b border-slate-100 flex items-center gap-2">
         <PartyPopper size={16} className="text-rose-600" />
-        <h3 className="text-sm font-semibold text-slate-800">Greetings</h3>
+        <h3 className="row-h3">Greetings</h3>
         <div className="ml-auto flex items-center gap-2.5">
           <Link
             href={`/districts/${districtId}/greetings?returnTo=${encodeURIComponent("/district-admin-dashboard/communication?tab=greetings")}`}
@@ -215,26 +217,21 @@ function GreetingsSection({
           >
             <Pencil size={12} /> Edit messages
           </Link>
-          <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-rose-50 text-rose-700 border border-rose-200">
+          <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-rose-50 text-rose-700 border border-rose-200">
             {fmtInt(filtered.length)}
           </span>
         </div>
       </div>
 
-      <div className="px-3 pt-2 pb-1 border-b border-slate-100 flex gap-1">
+      <div role="group" aria-label="Message type" className="px-3 pt-2 pb-1 border-b border-slate-100 flex gap-1">
         {tabs.map((t) => (
-          <button
+          <ToggleButton
             key={t.key}
-            type="button"
+            pressed={bucket === t.key}
             onClick={() => onBucketChange(t.key)}
-            className={`px-2.5 py-1 text-[11px] font-medium rounded-md transition-colors ${
-              bucket === t.key
-                ? "bg-rose-100 text-rose-800 border border-rose-200"
-                : "text-slate-500 hover:text-slate-700 hover:bg-slate-50"
-            }`}
           >
             {t.label}
-          </button>
+          </ToggleButton>
         ))}
       </div>
 
@@ -262,7 +259,7 @@ function GreetingsSection({
                 </p>
               </div>
               <div className="text-right flex-shrink-0">
-                <span className={`inline-flex items-center text-[10px] font-semibold px-2 py-0.5 rounded-full border ${
+                <span className={`inline-flex items-center text-[10px] font-semibold px-2 py-0.5 rounded border ${
                   g.kind === "birthday"
                     ? "bg-blue-50 text-blue-700 border-blue-200"
                     : "bg-pink-50 text-pink-700 border-pink-200"
@@ -275,6 +272,6 @@ function GreetingsSection({
           ))}
         </ul>
       )}
-    </div>
+    </Card>
   );
 }

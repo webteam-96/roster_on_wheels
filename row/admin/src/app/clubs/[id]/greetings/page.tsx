@@ -1,5 +1,7 @@
 "use client";
 
+import SectionCard from "@/components/form/SectionCard";
+import { Card } from "@/components/ui/card";
 import { useState, useEffect, useMemo } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { getClub, getGreetingSettings, updateGreetingSettings } from "@/services/api";
@@ -10,8 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
-import { ArrowLeft, MessageSquare, Mail, Info } from "@/components/icons";
-import Link from "next/link";
+import { MessageSquare, Mail, Info } from "@/components/icons";
 import ClubAdminShell from "@/components/v2/ClubAdminShell";
 import { useSyncClubIdFromUrl } from "@/hooks/useSyncClubIdFromUrl";
 import { useAuth } from "@/contexts/AuthContext";
@@ -19,22 +20,8 @@ import { clubYearRights, canEditYearless, isCurrentYearSelected, heldYearLabels 
 import { useRotaryYears } from "@/hooks/useRotaryYears";
 import ViewOnlyBadge from "@/components/ViewOnlyBadge";
 import GreetingPauseNotice from "@/components/GreetingPauseNotice";
-import { ListPageSkeleton } from "@/components/row/AppKit";
+import { PageHeader, ListPageSkeleton } from "@/components/row/AppKit";
 
-function Section({ icon: Icon, title, number, children }: {
-  icon: React.ElementType; title: string; number: number; children: React.ReactNode;
-}) {
-  return (
-    <div className="bg-card rounded-[20px] border shadow-sm overflow-hidden">
-      <div className="flex items-center gap-3 px-5 py-3.5 bg-muted/40 border-b">
-        <div className="flex items-center justify-center h-7 w-7 rounded-full bg-primary text-primary-foreground text-xs font-bold">{number}</div>
-        <Icon className="h-4 w-4 text-primary" />
-        <h3 className="font-semibold text-base">{title}</h3>
-      </div>
-      <div className="p-5">{children}</div>
-    </div>
-  );
-}
 
 export default function GreetingsSettingsPage() {
   useSyncClubIdFromUrl();
@@ -177,21 +164,13 @@ export default function GreetingsSettingsPage() {
         <ViewOnlyBadge currentYearOnly={currentYearLabel} className="mb-3" />
       )}
 
-      <div className="space-y-6 max-w-3xl mx-auto">
+      <div className="space-y-6 max-w-4xl">
         {/* Header */}
-        <div className="flex items-center gap-3">
-          <Button variant="outline" size="icon" asChild>
-            <Link href={backTo}><ArrowLeft className="h-4 w-4" /></Link>
-          </Button>
-          <div>
-            <h2 className="text-2xl font-bold tracking-tight text-primary">Greetings Settings</h2>
-            <p className="text-muted-foreground text-base">{clubName}</p>
-          </div>
-        </div>
+        <PageHeader title="Greetings Settings" description={clubName} back={backTo} />
 
         <GreetingPauseNotice paused={pauseInfo.paused} reviewedYear={pauseInfo.reviewedYear} currentYear={pauseInfo.currentYear} />
 
-        <Section icon={MessageSquare} title="In-App Notifications" number={1}>
+        <SectionCard icon={MessageSquare} title="In-App Notifications" number={1}>
           <div className="space-y-5">
             {/* Enable Birthday Notification */}
             <label className="flex items-center gap-3 cursor-pointer">
@@ -256,10 +235,10 @@ export default function GreetingsSettingsPage() {
             )}
 
           </div>
-        </Section>
+        </SectionCard>
 
         {/* ── 2. Email Settings ── */}
-        <Section icon={Mail} title="Email Settings" number={2}>
+        <SectionCard icon={Mail} title="Email Settings" number={2}>
           <div className="space-y-5">
             {/* Birthday Email */}
             <div className="space-y-4 border rounded-lg p-4">
@@ -355,7 +334,7 @@ export default function GreetingsSettingsPage() {
               )}
             </div>
           </div>
-        </Section>
+        </SectionCard>
 
         {/* Save Button */}
         {canManage && (

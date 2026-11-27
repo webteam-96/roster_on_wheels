@@ -1,5 +1,8 @@
 "use client";
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
+import { ToggleButton } from "@/components/ui/text-buttons";
 
+import { Card } from "@/components/ui/card";
 import { useEffect, useMemo, useState } from "react";
 import {
   Award, Target, TrendingUp, Star, BarChart2, Trophy,
@@ -125,7 +128,7 @@ function GoalBar({
  *  isPending (data-entry not yet complete in this RY). */
 function PendingChip({ label = "Pending" }: { label?: string }) {
   return (
-    <span className="inline-flex items-center text-[10px] font-semibold uppercase tracking-wide px-2 py-0.5 rounded-full bg-slate-100 text-slate-500 border border-slate-200">
+    <span className="inline-flex items-center text-[10px] font-semibold uppercase tracking-wide px-2 py-0.5 rounded bg-slate-100 text-slate-500 border border-slate-200">
       {label}
     </span>
   );
@@ -143,7 +146,7 @@ function StatusChip({ status }: { status: string }) {
   };
   const c = map[s] || map.pending;
   return (
-    <span className={`inline-flex items-center text-[11px] font-semibold px-2 py-0.5 rounded-full border ${c.bg} ${c.text} ${c.border}`}>
+    <span className={`inline-flex items-center text-[11px] font-semibold px-2 py-0.5 rounded border ${c.bg} ${c.text} ${c.border}`}>
       {c.label}
     </span>
   );
@@ -159,10 +162,10 @@ function MonthlyChart({
   // plot one <Line> per club via dataKey.
   const flat = data.map((p) => ({ month: p.month, ...p.byClub }));
   return (
-    <div className="bg-card rounded-2xl border border-slate-200 p-5">
+    <Card className="p-5">
       <div className="flex items-center justify-between mb-3">
         <div>
-          <h3 className="text-base font-semibold text-slate-800">{title}</h3>
+          <h3 className="row-h2">{title}</h3>
           <p className="text-xs text-slate-400 mt-0.5">{subtitle}</p>
         </div>
       </div>
@@ -171,7 +174,7 @@ function MonthlyChart({
       ) : (
         <ResponsiveContainer width="100%" height={300}>
           <LineChart data={flat} margin={{ top: 4, right: 16, left: 0, bottom: 4 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#edf4fb" vertical={false} />
+            <CartesianGrid strokeDasharray="3 3" stroke="#d3dde8" vertical={false} />
             <XAxis dataKey="month" tick={{ fontSize: 11, fill: "#64748b" }} />
             <YAxis tick={{ fontSize: 11, fill: "#66768C" }} />
             <Tooltip contentStyle={{ borderRadius: 10, fontSize: 12 }} />
@@ -189,7 +192,7 @@ function MonthlyChart({
           </LineChart>
         </ResponsiveContainer>
       )}
-    </div>
+    </Card>
   );
 }
 
@@ -324,18 +327,18 @@ export default function AgExcellencePage() {
       <section>
         <div className="flex items-center gap-2 mb-4">
           <BarChart2 size={18} className="text-blue-600" />
-          <h2 className="text-base font-semibold text-slate-800">District Awards Scores</h2>
+          <h2 className="row-h2">District Awards Scores</h2>
         </div>
 
-        <div className="bg-card rounded-2xl border border-slate-200 p-5">
-          <h3 className="text-base font-semibold text-slate-800 mb-1">District Awards Scores by Club</h3>
+        <Card className="p-5">
+          <h3 className="row-h2 mb-1">District Awards Scores by Club</h3>
           <p className="text-xs text-slate-400 mb-4">Stacked bar: each colour is a scoring category</p>
           {citationBarData.length === 0 ? (
             <p className="text-xs text-slate-400">No citation data yet.</p>
           ) : (
             <ResponsiveContainer width="100%" height={320}>
               <BarChart data={citationBarData} barSize={56}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#edf4fb" />
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#d3dde8" />
                 <XAxis dataKey="name" tick={{ fontSize: 11, fill: "#64748b" }} />
                 <YAxis tick={{ fontSize: 11, fill: "#66768C" }} />
                 <Tooltip
@@ -356,59 +359,59 @@ export default function AgExcellencePage() {
               </BarChart>
             </ResponsiveContainer>
           )}
-        </div>
+        </Card>
 
-        <div className="bg-card rounded-2xl border border-slate-200 overflow-hidden mt-4">
+        <Card className="overflow-hidden mt-4">
           <div className="px-5 py-3 border-b border-slate-100">
-            <h3 className="text-sm font-semibold text-slate-800">Category Breakdown</h3>
+            <h3 className="row-h3">Category Breakdown</h3>
           </div>
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[640px] md:min-w-full text-sm">
-              <thead className="bg-[#EDF4FB] border-b border-slate-200">
-                <tr>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500">Club</th>
+            <Table className="w-full min-w-[640px] md:min-w-full text-sm">
+              <TableHeader className="border-b border-slate-200">
+                <TableRow>
+                  <TableHead className="px-4 text-left">Club</TableHead>
                   {CITATION_CATEGORIES.map((cat) => (
-                    <th key={cat.key} className="px-4 py-3 text-right text-xs font-semibold text-slate-500 whitespace-nowrap">
+                    <TableHead key={cat.key} className="px-4 text-right whitespace-nowrap">
                       {cat.label}
-                    </th>
+                    </TableHead>
                   ))}
-                  <th className="px-4 py-3 text-right text-xs font-semibold text-slate-700 bg-blue-50">Total</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
+                  <TableHead className="px-4 text-right">Total</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody className="divide-y divide-slate-100">
                 {data.citation.map((club, idx) => (
-                  <tr key={club.clubId} className="hover:bg-slate-50/60">
-                    <td className="px-4 py-2.5 font-medium text-slate-800">
+                  <TableRow key={club.clubId} className="hover:bg-slate-50/60">
+                    <TableCell className="px-4 py-2.5 font-medium text-slate-800">
                       <span className="text-slate-400 text-xs mr-2">#{idx + 1}</span>{club.clubName}
-                    </td>
+                    </TableCell>
                     {CITATION_CATEGORIES.map((cat) => (
-                      <td key={cat.key} className="px-4 py-2.5 text-right tabular-nums text-slate-600">
+                      <TableCell key={cat.key} className="px-4 py-2.5 text-right tabular-nums text-slate-600">
                         {fmtInt(club[cat.key])}
-                      </td>
+                      </TableCell>
                     ))}
-                    <td className="px-4 py-2.5 text-right tabular-nums font-bold text-blue-700 bg-blue-50">
+                    <TableCell className="px-4 py-2.5 text-right tabular-nums font-bold text-blue-700 bg-blue-50">
                       {fmtInt(club.total)}
-                    </td>
-                  </tr>
+                    </TableCell>
+                  </TableRow>
                 ))}
                 {data.citation.length === 0 && (
-                  <tr>
-                    <td colSpan={CITATION_CATEGORIES.length + 2} className="px-4 py-6 text-center text-xs text-slate-400">
+                  <TableRow>
+                    <TableCell colSpan={CITATION_CATEGORIES.length + 2} className="px-4 py-6 text-center text-xs text-slate-400">
                       No citation data yet.
-                    </td>
-                  </tr>
+                    </TableCell>
+                  </TableRow>
                 )}
-              </tbody>
-            </table>
+              </TableBody>
+            </Table>
           </div>
-        </div>
+        </Card>
       </section>
 
       {/* -- GOALS ACHIEVEMENT GRID ---------------------------------------- */}
       <section>
         <div className="flex items-center gap-2 mb-1">
           <Target size={18} className="text-blue-600" />
-          <h2 className="text-base font-semibold text-slate-800">Goals Achievement Grid</h2>
+          <h2 className="row-h2">Goals Achievement Grid</h2>
         </div>
         <p className="text-xs text-slate-400 mb-4 ml-7">
           Progress vs Rotary targets , {" "}
@@ -418,9 +421,9 @@ export default function AgExcellencePage() {
         </p>
 
         {data.goals.length === 0 ? (
-          <div className="bg-card rounded-2xl border border-slate-200 p-6 text-center text-xs text-slate-400">
+          <Card className="p-5 text-center text-xs text-slate-400">
             No goal data yet.
-          </div>
+          </Card>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5">
             {data.goals.map((club, ci) => {
@@ -435,18 +438,18 @@ export default function AgExcellencePage() {
                 (g) => !(g.key === "myRotary" && myRotaryPending),
               ).length;
               return (
-                <div
+                <Card
                   key={club.clubId}
-                  className="bg-card rounded-2xl border border-slate-200 p-5 flex flex-col gap-4"
+                  className="p-5 flex flex-col gap-4"
                 >
                   <div>
                     <div
-                      className="inline-block text-xs font-bold px-2 py-0.5 rounded-full text-white mb-2"
+                      className="inline-block text-xs font-bold px-2 py-0.5 rounded text-white mb-2"
                       style={{ background: CLUB_PALETTE[ci % CLUB_PALETTE.length] }}
                     >
                       {club.members} members
                     </div>
-                    <h4 className="text-sm font-semibold text-slate-800 leading-tight">{club.clubName}</h4>
+                    <h4 className="row-h3">{club.clubName}</h4>
                     <p className="text-xs text-slate-400 mt-0.5">
                       {achievedCount} / {goalsCountForCard} goals achieved
                     </p>
@@ -463,7 +466,7 @@ export default function AgExcellencePage() {
                       />
                     ))}
                   </div>
-                </div>
+                </Card>
               );
             })}
           </div>
@@ -474,10 +477,10 @@ export default function AgExcellencePage() {
       <section>
         <div className="flex items-center gap-2 mb-4">
           <Trophy size={18} className="text-amber-600" />
-          <h2 className="text-base font-semibold text-slate-800">Club Excellence Award Status</h2>
+          <h2 className="row-h2">Club Excellence Award Status</h2>
         </div>
 
-        <div className="bg-card rounded-2xl border border-slate-200 overflow-hidden">
+        <Card className="overflow-hidden">
           {awardStatusIsPending || awardStatusList.length === 0 ? (
             // The whole table degrades to a single explanatory placeholder
             // when `awardStatusIsPending` flag is set (or no rows arrived).
@@ -490,66 +493,64 @@ export default function AgExcellencePage() {
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full min-w-[640px] md:min-w-full text-sm">
-                <thead className="bg-[#EDF4FB] border-b border-slate-200">
-                  <tr>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500">Club</th>
-                    <th className="px-4 py-3 text-center text-xs font-semibold text-slate-500">On Track</th>
-                    <th className="px-4 py-3 text-center text-xs font-semibold text-slate-500">Achieved</th>
-                    <th className="px-4 py-3 text-center text-xs font-semibold text-slate-500 whitespace-nowrap">Presidential Citation</th>
-                    <th className="px-4 py-3 text-center text-xs font-semibold text-slate-500 whitespace-nowrap">District Awards</th>
-                    <th className="px-4 py-3 text-center text-xs font-semibold text-slate-500 whitespace-nowrap">Membership Excellence</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
+              <Table className="w-full min-w-[640px] md:min-w-full text-sm">
+                <TableHeader className="border-b border-slate-200">
+                  <TableRow>
+                    <TableHead className="px-4 text-left">Club</TableHead>
+                    <TableHead className="px-4 text-center">On Track</TableHead>
+                    <TableHead className="px-4 text-center">Achieved</TableHead>
+                    <TableHead className="px-4 text-center whitespace-nowrap">Presidential Citation</TableHead>
+                    <TableHead className="px-4 text-center whitespace-nowrap">District Awards</TableHead>
+                    <TableHead className="px-4 text-center whitespace-nowrap">Membership Excellence</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody className="divide-y divide-slate-100">
                   {awardStatusList.map((row) => (
-                    <tr key={row.clubId} className="hover:bg-slate-50/60">
-                      <td className="px-4 py-2.5 font-medium text-slate-800">{row.clubName}</td>
-                      <td className="px-4 py-2.5 text-center">
+                    <TableRow key={row.clubId} className="hover:bg-slate-50/60">
+                      <TableCell className="px-4 py-2.5 font-medium text-slate-800">{row.clubName}</TableCell>
+                      <TableCell className="px-4 py-2.5 text-center">
                         {row.isPending ? <PendingChip /> : <StatusChip status={row.onTrack ? "on-track" : "behind"} />}
-                      </td>
-                      <td className="px-4 py-2.5 text-center">
+                      </TableCell>
+                      <TableCell className="px-4 py-2.5 text-center">
                         {row.isPending ? <PendingChip /> : <StatusChip status={row.achieved ? "achieved" : "behind"} />}
-                      </td>
-                      <td className="px-4 py-2.5 text-center">
+                      </TableCell>
+                      <TableCell className="px-4 py-2.5 text-center">
                         {row.isPending ? <PendingChip /> : <StatusChip status={row.presidentialCitation} />}
-                      </td>
-                      <td className="px-4 py-2.5 text-center">
+                      </TableCell>
+                      <TableCell className="px-4 py-2.5 text-center">
                         {row.isPending ? <PendingChip /> : <StatusChip status={row.districtCitation} />}
-                      </td>
-                      <td className="px-4 py-2.5 text-center">
+                      </TableCell>
+                      <TableCell className="px-4 py-2.5 text-center">
                         {row.isPending ? <PendingChip /> : <StatusChip status={row.membershipExcellence} />}
-                      </td>
-                    </tr>
+                      </TableCell>
+                    </TableRow>
                   ))}
-                </tbody>
-              </table>
+                </TableBody>
+              </Table>
             </div>
           )}
-        </div>
+        </Card>
       </section>
 
       {/* -- MONTHLY GOAL TRACKING ----------------------------------------- */}
       <section>
         <div className="flex items-center gap-2 mb-4">
           <TrendingUp size={18} className="text-blue-600" />
-          <h2 className="text-base font-semibold text-slate-800">Monthly Goal Tracking</h2>
+          <h2 className="row-h2">Monthly Goal Tracking</h2>
         </div>
-        <div
+        <div role="group" aria-label="Goal metric"
           className="rounded-full p-1.5 inline-flex gap-1 mb-4 bg-muted"
         >
           {(["projects", "meetings", "trf"] as const).map((m) => {
             const isActive = metric === m;
             return (
-              <button
+              <ToggleButton
                 key={m}
+                pressed={isActive}
                 onClick={() => setMetric(m)}
-                className={`text-sm font-semibold px-3.5 py-1.5 rounded-md transition ${
-                  isActive ? "bg-card text-foreground ring-1 ring-[color:var(--row-line)]" : "text-muted-foreground hover:text-foreground"
-                }`}
               >
                 {m === "projects" ? "Service Projects" : m === "meetings" ? "Meetings Held" : "TRF"}
-              </button>
+              </ToggleButton>
             );
           })}
         </div>

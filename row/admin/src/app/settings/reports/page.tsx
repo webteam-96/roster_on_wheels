@@ -1,7 +1,6 @@
 ﻿"use client";
 
 import React, { useState, useEffect } from "react";
-import Link from "next/link";
 import { useFeature } from "@/contexts/BrandContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,7 +10,7 @@ import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
 import RotaryLoader from "@/components/RotaryLoader";
 import ProtectedRoute from "@/components/ProtectedRoute";
-import { ArrowLeft, Download, Loader2, Map, Building, Users, Settings as SettingsIcon, UserCheck, BarChart3 } from "@/components/icons";
+import { Download, Map, Building, Users, Settings as SettingsIcon, UserCheck, BarChart3 } from "@/components/icons";
 import { saveAs } from "file-saver";
 import { useAuth } from "@/contexts/AuthContext";
 import { RotaryYear } from "@/types/rotaryYear";
@@ -39,7 +38,7 @@ function stripYearFromBirthAnnivRows<T extends Record<string, unknown>>(rows: T[
 import { exportToCSV } from "@/utils/csvExport";
 
 import { appLocale } from "@/lib/appFormat";
-import { ListPageSkeleton } from "@/components/row/AppKit";
+import { PageHeader, ListPageSkeleton } from "@/components/row/AppKit";
 interface ReportColumn { key: string; label: string; width?: number; hyperlink?: boolean; linkText?: string }
 interface ReportItem {
   id: string;              // unique key
@@ -697,7 +696,7 @@ export default function ReportsPage() {
     return (
       <ProtectedRoute>
         <div className="flex flex-col items-center justify-center py-20">
-          <h3 className="text-lg font-semibold">Access Denied</h3>
+          <h3 className="row-h2">Access Denied</h3>
           <p className="text-muted-foreground mt-2">Only SuperAdmin can view reports.</p>
         </div>
       </ProtectedRoute>
@@ -706,19 +705,14 @@ export default function ReportsPage() {
 
   return (
     <ProtectedRoute>
-      <div className="container mx-auto py-6 space-y-6">
-        <div className="flex items-center justify-between flex-wrap gap-3">
-          <div className="flex items-center gap-3">
-            <Button variant="outline" size="icon" asChild>
-              <Link href="/settings"><ArrowLeft className="h-4 w-4" /></Link>
-            </Button>
-            <div>
-              <h2 className="text-2xl font-bold tracking-tight text-primary">Reports</h2>
-              <p className="text-muted-foreground text-base">Export Excel reports for every module and settings master</p>
-            </div>
-          </div>
-          <div className="flex items-end gap-3 flex-wrap">
-            <div>
+      <div className="space-y-6">
+        <PageHeader
+          title="Reports"
+          description="Export Excel reports for every module and settings master"
+          back="/settings"
+          actions={
+            <>
+<div>
               <Label className="text-xs text-muted-foreground">Rotary Year</Label>
               <Select value={selectedYearId} onValueChange={setSelectedYearId}>
                 <SelectTrigger className="w-48"><SelectValue /></SelectTrigger>
@@ -744,8 +738,9 @@ export default function ReportsPage() {
                 </SelectContent>
               </Select>
             </div>
-          </div>
-        </div>
+            </>
+          }
+        />
 
         {loading ? (
           <div className="flex justify-center py-12"><ListPageSkeleton /></div>

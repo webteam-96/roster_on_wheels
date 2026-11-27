@@ -6,6 +6,7 @@
  * to the sibling pages under /club-admin-dashboard/communication/mass-email/*.
  */
 
+import { Card } from "@/components/ui/card";
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { getMassEmailList, deleteMassEmail, sendMassEmail } from "@/services/api";
@@ -17,7 +18,7 @@ import { useRotaryYears } from "@/hooks/useRotaryYears";
 import ViewOnlyBadge from "@/components/ViewOnlyBadge";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import SearchBox from "@/components/SearchBox";
@@ -130,13 +131,13 @@ export default function MassEmailSection({ clubId }: { clubId: number }) {
           <Mail className="h-4 w-4" /><span className="text-sm font-semibold">Mass Email: send bulk emails to club members</span>
         </div>
         {canManage && (
-          <Button onClick={() => go(`${BASE}/compose`)} className="bg-azure hover:bg-mint-ink text-white">
+          <Button onClick={() => go(`${BASE}/compose`)}>
             <Plus className="mr-2 h-4 w-4" />New Email
           </Button>
         )}
       </div>
 
-      <div className="rounded-2xl border border-slate-200 shadow-sm bg-card p-4">
+      <Card className="p-5">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Select value={statusFilter || "all"} onValueChange={(v) => { setStatusFilter(v === "all" ? "" : v); setPage(1); }}>
             <SelectTrigger><SelectValue placeholder="All Statuses" /></SelectTrigger>
@@ -150,23 +151,23 @@ export default function MassEmailSection({ clubId }: { clubId: number }) {
           </Select>
           <SearchBox value={searchQuery} onChange={(v) => { setSearchQuery(v); setPage(1); }} placeholder="Search by subject..." />
         </div>
-      </div>
+      </Card>
 
       {loading ? (
         <div className="flex items-center justify-center py-16"><RotaryLoader size="lg" /></div>
       ) : (
-        <div className="rounded-2xl border border-slate-200 shadow-sm overflow-hidden bg-card">
+        <Card className="overflow-hidden">
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow className="hover:opacity-100 border-b-2 border-marigold" style={{ backgroundColor: "#17458f" }}>
-                  <TableHead className="text-xs font-semibold uppercase tracking-wide">Subject</TableHead>
-                  <TableHead className="text-xs font-semibold uppercase tracking-wide">Status</TableHead>
-                  <TableHead className="text-xs font-semibold uppercase tracking-wide">Recipients</TableHead>
-                  <TableHead className="text-xs font-semibold uppercase tracking-wide text-center">Sent</TableHead>
-                  <TableHead className="text-xs font-semibold uppercase tracking-wide text-center">Failed</TableHead>
-                  <TableHead className="text-xs font-semibold uppercase tracking-wide">Created</TableHead>
-                  {canManage && <TableHead className="text-xs font-semibold uppercase tracking-wide text-right">Actions</TableHead>}
+                  <TableHead>Subject</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Recipients</TableHead>
+                  <TableHead className="text-center">Sent</TableHead>
+                  <TableHead className="text-center">Failed</TableHead>
+                  <TableHead>Created</TableHead>
+                  {canManage && <TableHead className="text-right">Actions</TableHead>}
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -184,7 +185,7 @@ export default function MassEmailSection({ clubId }: { clubId: number }) {
                       <TableCell className="text-right">
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-500 hover:text-slate-800 hover:bg-slate-100"><MoreHorizontal className="h-4 w-4" /></Button>
+                            <Button variant="ghost" size="icon" className="row-btn-sm"><MoreHorizontal className="h-4 w-4" /></Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
                             <DropdownMenuItem onClick={() => go(`${BASE}/${item.id}`)}><Eye className="mr-2 h-4 w-4" /> View</DropdownMenuItem>
@@ -207,7 +208,7 @@ export default function MassEmailSection({ clubId }: { clubId: number }) {
           {totalPages > 1 && (
             <div className="px-4 py-3 border-t border-slate-100"><Pagination page={page} totalPages={totalPages} totalCount={totalCount} pageSize={pageSize} onPageChange={setPage} /></div>
           )}
-        </div>
+        </Card>
       )}
 
       <AlertModal open={!!deleteId} onOpenChange={(o) => !o && setDeleteId(null)} icon={AlertTriangle} iconClassName="text-red-500"

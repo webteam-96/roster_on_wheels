@@ -6,6 +6,7 @@
  * shape of a tab page: page title row, KPI tile grid, then 1-2 table blocks.
  */
 
+import { Card } from "@/components/ui/card";
 import { ReactNode } from "react";
 
 export function Skeleton({
@@ -17,7 +18,7 @@ export function Skeleton({
 }) {
   return (
     <div
-      className={`animate-pulse rounded-md bg-slate-200/70 ${className}`}
+      className={`row-skeleton rounded-md ${className}`}
       aria-hidden="true"
     >
       {children}
@@ -27,17 +28,17 @@ export function Skeleton({
 
 export function KpiTileSkeleton() {
   return (
-    <div className="rounded-[20px] border border-slate-200 bg-card p-4 shadow-sm">
+    <Card className="p-5">
       <Skeleton className="h-3 w-20" />
       <Skeleton className="mt-3 h-7 w-28" />
       <Skeleton className="mt-2 h-3 w-16" />
-    </div>
+    </Card>
   );
 }
 
 export function TableSkeleton({ rows = 6 }: { rows?: number }) {
   return (
-    <div className="rounded-[20px] border border-slate-200 bg-card p-4 shadow-sm">
+    <Card className="p-5">
       <Skeleton className="h-4 w-40" />
       <div className="mt-4 space-y-3">
         {Array.from({ length: rows }).map((_, i) => (
@@ -48,18 +49,18 @@ export function TableSkeleton({ rows = 6 }: { rows?: number }) {
           </div>
         ))}
       </div>
-    </div>
+    </Card>
   );
 }
 
 export function ChartSkeleton({ height = 240 }: { height?: number }) {
   return (
-    <div className="rounded-[20px] border border-slate-200 bg-card p-4 shadow-sm">
+    <Card className="p-5">
       <Skeleton className="h-4 w-44" />
       <div className="mt-4 w-full" style={{ height }}>
         <Skeleton className="h-full w-full" />
       </div>
-    </div>
+    </Card>
   );
 }
 

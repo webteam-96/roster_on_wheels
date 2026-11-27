@@ -23,8 +23,13 @@ namespace RotaryApi.Controllers;
 [Authorize]
 public class MobileDistrictAdminReportController : ControllerBase
 {
+    // With this request's context, so the report's own access check sees the caller.
     private DistrictReportController Web()
-        => ActivatorUtilities.CreateInstance<DistrictReportController>(HttpContext.RequestServices);
+    {
+        var web = ActivatorUtilities.CreateInstance<DistrictReportController>(HttpContext.RequestServices);
+        web.ControllerContext = ControllerContext;
+        return web;
+    }
 
     private bool IsSuperAdminOrAdmin()
     {

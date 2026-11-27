@@ -1,5 +1,4 @@
-import 'package:flutter/animation.dart';
-import 'package:flutter/painting.dart';
+import 'package:flutter/widgets.dart';
 
 /// Fellowship tone system (design.md §1 `data-c`): each tone is a fill plus the
 /// readable ink on it. Card grids cycle sky, lilac, marigold, mint, coral, cream2.
@@ -39,4 +38,20 @@ class RowMotion {
   static const Curve easeOut = Cubic(.22, 1, .36, 1);
   static const Curve easeInOut = Cubic(.65, 0, .35, 1);
   static const Curve spring = Cubic(.34, 1.56, .64, 1);
+
+  /// Page pushes, and the longer card-to-page morph.
+  static const Duration page = Duration(milliseconds: 340);
+  static const Duration morph = Duration(milliseconds: 420);
+
+  /// One element arriving on screen, and the step between neighbours. Only the first [staggerMax] wait their
+  /// turn: longer lists must never make people wait.
+  static const Duration arrive = Duration(milliseconds: 420);
+  static const Duration stagger = Duration(milliseconds: 45);
+  static const int staggerMax = 8;
+
+  /// Numbers counting up to their value.
+  static const Duration count = Duration(milliseconds: 900);
+
+  /// The one reduced-motion rule: when true nothing travels, scales or spins.
+  static bool still(BuildContext context) => MediaQuery.maybeDisableAnimationsOf(context) ?? false;
 }

@@ -9,6 +9,8 @@ import '../../widgets/common/custom_app_bar.dart';
 import '../../widgets/common/empty_state_widget.dart';
 import '../../widgets/common/loading_widget.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/motion.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/roster_wheel.dart';
 
 /// Volunteer sign-up sheets of the member's clubs (N4): sign up for a slot or cancel.
 class VolunteersScreen extends StatefulWidget {
@@ -73,7 +75,7 @@ class _VolunteersScreenState extends State<VolunteersScreen> {
                   icon: Icons.volunteer_activism_outlined,
                   title: 'No open sign-up sheets',
                   subtitle: 'Your clubs have no volunteer sheets open right now.')
-              : RefreshIndicator(
+              : RowRefresh(
                   onRefresh: _load,
                   child: ListView(
                     padding: const EdgeInsets.all(12),
@@ -166,9 +168,9 @@ class _MyDutiesScreenState extends State<MyDutiesScreen> {
                   icon: Icons.assignment_ind_outlined,
                   title: 'No duties coming up',
                   subtitle: 'Meeting duties your club gives you will show here.')
-              : RefreshIndicator(
+              : RowRefresh(
                   onRefresh: _load,
-                  child: ListView.separated(
+                  child: RowListView.separated(
                     padding: const EdgeInsets.all(12),
                     itemCount: duties.length,
                     separatorBuilder: (_, __) => const Divider(height: 1),

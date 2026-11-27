@@ -14,6 +14,7 @@
  * routed back there (typically the e-Gov tab) instead of v1 CMR landing.
  */
 
+import { formatMoney } from "@/lib/currency";
 import { useEffect, useState } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import {
@@ -30,6 +31,8 @@ import ErrorAlert from "@/components/ErrorAlert";
 import SuccessAlert from "@/components/SuccessAlert";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import LoadingButton from "@/components/v2/LoadingButton";
+import { Button } from "@/components/ui/button";
+import { IconButton } from "@/components/ui/icon-button";
 import ClubAdminShell from "@/components/v2/ClubAdminShell";
 import { useSyncClubIdFromUrl } from "@/hooks/useSyncClubIdFromUrl";
 
@@ -79,7 +82,7 @@ function SectionCard({
   icon: Icon, title, children,
 }: { icon: React.ElementType; title: string; children: React.ReactNode }) {
   return (
-    <div className="rounded-2xl border border-slate-200 bg-card overflow-hidden print:shadow-none print:rounded-none">
+    <div className="row-rise rounded-2xl border border-slate-200 bg-card overflow-hidden print:shadow-none print:rounded-none">
       <div className="flex items-center gap-2 px-4 py-2.5 bg-slate-50 border-b border-slate-100">
         <Icon className="h-4 w-4 text-slate-500" />
         <h3 className="text-sm font-semibold text-slate-800">{title}</h3>
@@ -181,13 +184,9 @@ function ClubMonthlyReportV2PreviewInner() {
     return (
       <div className="space-y-4">
         <ErrorAlert open={!!error} title="Error" description={error} onOk={() => setError("")} />
-        <button
-          type="button"
-          onClick={handlePrevious}
-          className="inline-flex items-center gap-1 text-sm font-medium px-3 py-1.5 rounded-full border border-slate-200 text-slate-700 hover:bg-slate-50"
-        >
+        <Button type="button" variant="outline" size="sm" onClick={handlePrevious}>
           <ArrowLeft size={14} /> Back to Edit
-        </button>
+        </Button>
       </div>
     );
   }
@@ -210,14 +209,9 @@ function ClubMonthlyReportV2PreviewInner() {
       {/* Header */}
       <div className="flex items-start justify-between gap-3 flex-wrap print:hidden">
         <div className="flex items-start gap-2">
-          <button
-            type="button"
-            onClick={handlePrevious}
-            className="mt-0.5 inline-flex h-8 w-8 items-center justify-center rounded-full border border-slate-200 text-slate-500 hover:bg-slate-50"
-            aria-label="Back to wizard"
-          >
+          <IconButton onClick={handlePrevious} className="mt-0.5" aria-label="Back to wizard">
             <ArrowLeft size={15} />
-          </button>
+          </IconButton>
           <div>
             <h1 className="text-lg font-semibold text-slate-800">
               Monthly Report · Preview
@@ -256,7 +250,7 @@ function ClubMonthlyReportV2PreviewInner() {
         {report.trfEntries.length > 0 ? (
           <div className="overflow-x-auto">
             <table className="min-w-full text-sm border border-slate-200">
-              <thead className="bg-[#EDF4FB] text-[13px] text-[#64748B]">
+              <thead className="bg-muted text-[13px] text-muted-foreground">
                 <tr>
                   <th className="px-3 py-2 text-left border border-slate-200 w-12">#</th>
                   <th className="px-3 py-2 text-left border border-slate-200">Date</th>
@@ -297,7 +291,7 @@ function ClubMonthlyReportV2PreviewInner() {
               </h4>
               <div className="overflow-x-auto">
                 <table className="min-w-full text-sm border border-slate-200">
-                  <thead className="bg-[#EDF4FB] text-[13px] text-[#64748B]">
+                  <thead className="bg-muted text-[13px] text-muted-foreground">
                     <tr>
                       <th className="px-3 py-2 text-left border border-slate-200 w-12">#</th>
                       <th className="px-3 py-2 text-left border border-slate-200">Date</th>
@@ -335,7 +329,7 @@ function ClubMonthlyReportV2PreviewInner() {
           <SectionCard key={key} icon={FolderOpen} title={label}>
             <div className="overflow-x-auto">
               <table className="min-w-full text-sm border border-slate-200">
-                <thead className="bg-[#EDF4FB] text-[13px] text-[#64748B]">
+                <thead className="bg-muted text-[13px] text-muted-foreground">
                   <tr>
                     <th className="px-3 py-2 text-left border border-slate-200 w-12">#</th>
                     <th className="px-3 py-2 text-left border border-slate-200">Date</th>
@@ -369,7 +363,7 @@ function ClubMonthlyReportV2PreviewInner() {
                             <>
                               {project.projectType && (
                                 <span
-                                  className={`inline-flex items-center text-[10px] font-medium px-1.5 py-0.5 rounded-full border ${
+                                  className={`inline-flex items-center text-[10px] font-medium px-1.5 py-0.5 rounded border ${
                                     project.projectType === "one_time"
                                       ? "bg-blue-50 text-blue-700 border-blue-200"
                                       : "bg-slate-50 text-slate-700 border-slate-200"
@@ -379,7 +373,7 @@ function ClubMonthlyReportV2PreviewInner() {
                                 </span>
                               )}
                               {project.parentProjectId && (
-                                <span className="inline-flex items-center text-[10px] font-medium px-1.5 py-0.5 rounded-full border border-amber-200 bg-amber-50 text-amber-700">
+                                <span className="inline-flex items-center text-[10px] font-medium px-1.5 py-0.5 rounded border border-amber-200 bg-amber-50 text-amber-700">
                                   Child Project
                                 </span>
                               )}
@@ -397,7 +391,7 @@ function ClubMonthlyReportV2PreviewInner() {
                         </>
                       )}
                       <td className="px-3 py-2 border border-slate-200 text-right tabular-nums">
-                        {project.projectCost != null ? project.projectCost.toLocaleString() : "-"}
+                        {project.projectCost != null ? formatMoney(project.projectCost, project.currency) : "-"}
                       </td>
                       <td className="px-3 py-2 border border-slate-200 text-right tabular-nums">{project.directBeneficiaries ?? "-"}</td>
                       <td className="px-3 py-2 border border-slate-200 text-right tabular-nums">{project.manHours ?? "-"}</td>
@@ -443,13 +437,9 @@ function ClubMonthlyReportV2PreviewInner() {
 
       {/* Sticky bottom action bar */}
       <div className="sticky bottom-0 -mx-2 sm:-mx-0 bg-card border-t border-slate-200 px-4 py-3 flex flex-wrap items-center justify-between gap-2 print:hidden">
-        <button
-          type="button"
-          onClick={handlePrevious}
-          className="inline-flex items-center gap-1 text-sm font-medium px-3 py-1.5 rounded-full border border-slate-200 text-slate-700 hover:bg-slate-50"
-        >
+        <Button type="button" variant="outline" size="sm" onClick={handlePrevious}>
           <ArrowLeft size={14} /> Previous (Edit)
-        </button>
+        </Button>
 
         <div className="flex items-center gap-2 flex-wrap">
           <LoadingButton
@@ -457,7 +447,7 @@ function ClubMonthlyReportV2PreviewInner() {
             onAction={handleUpload}
             loadingLabel="Uploading…"
             spinnerSize={14}
-            className="inline-flex items-center gap-1 text-sm font-semibold px-4 py-1.5 rounded-full bg-[#17458F] text-white hover:bg-[#17458F] disabled:opacity-50"
+            className="row-btn row-btn-primary row-btn-sm"
           >
             <Upload size={14} /> Upload to District
           </LoadingButton>

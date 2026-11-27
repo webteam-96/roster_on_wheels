@@ -1,9 +1,9 @@
 ﻿"use client";
 
+import { PageHeader } from "@/components/row/AppKit";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { ArrowLeft, Shirt, LinkIcon, BadgeDollarSign, Building2 } from "@/components/icons";
+import { Shirt, LinkIcon, BadgeDollarSign, Building2 } from "@/components/icons";
 import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
 
@@ -42,7 +42,7 @@ export default function PaymentsAndDuesPage() {
     return (
       <ProtectedRoute>
         <div className="flex flex-col items-center justify-center py-20">
-          <h3 className="text-lg font-semibold">Access Denied</h3>
+          <h3 className="row-h2">Access Denied</h3>
           <p className="text-muted-foreground mt-2">Only SuperAdmin can access settings.</p>
         </div>
       </ProtectedRoute>
@@ -52,25 +52,17 @@ export default function PaymentsAndDuesPage() {
   return (
     <ProtectedRoute>
       <div className="space-y-6">
-        <div className="flex items-center gap-3">
-          <Button variant="outline" size="icon" asChild>
-            <Link href="/settings"><ArrowLeft className="h-4 w-4" /></Link>
-          </Button>
-          <div>
-            <h2 className="text-2xl font-bold tracking-tight text-primary">Payments & Dues</h2>
-            <p className="text-muted-foreground text-base">Payment gateway, event payments and Club Dues</p>
-          </div>
-        </div>
+        <PageHeader title={<>Payments & Dues</>} description="Payment gateway, event payments and Club Dues" back="/settings" />
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {cards.map((card) => (
             <Link key={card.href} href={card.href}>
-              <Card className="hover:border-primary/50 hover:shadow-md transition-all cursor-pointer h-full">
+              <Card className="hover:border-primary/50 transition-all cursor-pointer h-full">
                 <CardContent className="p-6 flex flex-col items-center text-center gap-3">
                   <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 text-primary">
                     <card.icon className="h-7 w-7" />
                   </div>
-                  <h3 className="text-lg font-semibold text-primary">{card.title}</h3>
+                  <h3 className="row-h2">{card.title}</h3>
                   <p className="text-sm text-muted-foreground">{card.description}</p>
                 </CardContent>
               </Card>

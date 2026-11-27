@@ -9,6 +9,7 @@ import '../../widgets/common/custom_app_bar.dart';
 import '../../widgets/common/empty_state_widget.dart';
 import '../../widgets/common/loading_widget.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/motion.dart';
 
 /// District Goal Messages for the current Rotary year (`api/goal-setting/district-messages`): the district's Admin or
 /// District Governor writes about one goal category; SuperAdmins read. Same thread as the web's Goal Setting popup.
@@ -118,7 +119,7 @@ class _DistrictGoalMessagesScreenState extends State<DistrictGoalMessagesScreen>
                           : messages.isEmpty
                               ? const EmptyStateWidget(
                                   icon: Icons.forum_outlined, title: 'No messages yet', subtitle: '')
-                              : ListView.builder(
+                              : RowListView.builder(
                                   padding: const EdgeInsets.symmetric(horizontal: 12),
                                   itemCount: messages.length,
                                   itemBuilder: (_, i) {

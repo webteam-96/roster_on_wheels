@@ -14,12 +14,12 @@ import Pagination from "@/components/Pagination";
 import DeleteDialog from "@/components/DeleteDialog";
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
-import { MapPin, AlertCircle, ArrowLeft, Plus } from "@/components/icons";
+import { MapPin, AlertCircle, Plus } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import SearchBox from "@/components/SearchBox";
-import { ListPageSkeleton } from "@/components/row/AppKit";
+import { PageHeader, ListPageSkeleton } from "@/components/row/AppKit";
 
 export default function ZoneDistrictsPage() {
   const params = useParams();
@@ -106,24 +106,16 @@ export default function ZoneDistrictsPage() {
   return (
     <ProtectedRoute>
       <div className="space-y-6">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-3">
-            <Button variant="outline" size="icon" asChild>
-              <Link href={backHref}><ArrowLeft className="h-4 w-4" /></Link>
-            </Button>
-            <div>
-              <h2 className="text-2xl font-bold tracking-tight text-primary">
-                {zoneName ? `${zoneName} - Districts` : "Districts"}
-              </h2>
-              <p className="text-muted-foreground text-base">Districts in this zone</p>
-            </div>
-          </div>
-          {isSuperAdmin && (
+        <PageHeader
+          title={zoneName ? `${zoneName} - Districts` : "Districts"}
+          description="Districts in this zone"
+          back={backHref}
+          actions={isSuperAdmin && (
             <Button asChild>
               <Link href={`/districts/new?zoneId=${zoneId}`}><Plus className="mr-2 h-4 w-4" />Add District</Link>
             </Button>
           )}
-        </div>
+        />
 
         <DistrictFilters search={search} onSearchChange={setSearch} status={status} onStatusChange={setStatus} viewMode={viewMode} onViewModeChange={setViewMode} onSearch={handleSearch} />
 
@@ -145,7 +137,7 @@ export default function ZoneDistrictsPage() {
         {error && (
           <div className="flex flex-col items-center justify-center py-20 text-center">
             <AlertCircle className="h-12 w-12 text-destructive mb-4" />
-            <h3 className="text-lg font-semibold">Error</h3>
+            <h3 className="row-h2">Error</h3>
             <p className="text-muted-foreground mt-2 max-w-md">{error}</p>
             <Button variant="outline" className="mt-4" onClick={() => fetchDistricts()}>Try Again</Button>
           </div>
@@ -154,7 +146,7 @@ export default function ZoneDistrictsPage() {
         {!loading && !error && data && data.items.length === 0 && (
           <div className="flex flex-col items-center justify-center py-20 text-center">
             <MapPin className="h-12 w-12 text-muted-foreground mb-4" />
-            <h3 className="text-lg font-semibold">No districts found</h3>
+            <h3 className="row-h2">No districts found</h3>
             <p className="text-muted-foreground mt-2">No districts in this zone yet.</p>
           </div>
         )}
@@ -172,7 +164,7 @@ export default function ZoneDistrictsPage() {
               {filteredItems.length === 0 && searchQuery ? (
                 <div className="flex flex-col items-center justify-center py-20 text-center">
                   <MapPin className="h-12 w-12 text-muted-foreground mb-4" />
-                  <h3 className="text-lg font-semibold">No results found</h3>
+                  <h3 className="row-h2">No results found</h3>
                   <p className="text-muted-foreground mt-2">No districts match your filter. Try a different term.</p>
                 </div>
               ) : (

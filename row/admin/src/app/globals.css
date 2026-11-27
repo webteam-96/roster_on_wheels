@@ -26,24 +26,24 @@
   /* ROW "Fellowship" design tokens (see row/website/design.md).
      azure = Rotary Royal Blue (primary), marigold = gold accent, cream page, ink text. */
   :root {
-    --background: 210 38% 98%;      /* cream  #F7F9FC */
+    --background: 212 35% 92.7%;    /* ground #E6ECF3 (softer than cream: white was too bright for daily use, owner 2026-11-25) */
     --foreground: 214 42% 18%;      /* ink    #1B2C42 */
-    --card: 210 50% 99%;            /* #FCFDFE, no pure white (FRONTEND-RULES #3) */
+    --card: 210 37% 96.9%;          /* surface #F4F7FA, no pure white (FRONTEND-RULES #3) */
     --card-foreground: 214 42% 18%;
-    --popover: 210 50% 99%;
+    --popover: 210 37% 96.9%;
     --popover-foreground: 214 42% 18%;
     --primary: 215 72% 33%;         /* azure  #17458F */
     --primary-foreground: 0 0% 100%;
     --secondary: 38 93% 54%;        /* marigold #F7A81B */
     --secondary-foreground: 214 42% 18%;
-    --muted: 210 60% 96%;           /* cream-2 #EDF4FB */
-    --muted-foreground: 215 16% 47%;/* ink-soft #64748B */
-    --accent: 210 65% 89%;          /* sky #CFE2F6 (subtle hover) */
+    --muted: 212 37% 90%;           /* well   #DCE5EF */
+    --muted-foreground: 216 18% 39%;/* ink-soft #526177, 4.95:1 on the well */
+    --accent: 211 48% 86%;          /* subtle hover */
     --accent-foreground: 214 42% 18%;
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
-    --border: 214 30% 88%;
-    --input: 214 30% 86%;
+    --border: 213 27% 82%;
+    --input: 213 27% 79%;
     --ring: 214 42% 18%;            /* focus ring = ink, per design.md */
     --chart-1: 215 72% 33%;         /* azure */
     --chart-2: 38 93% 54%;          /* marigold */
@@ -53,17 +53,17 @@
     --radius: 0.85rem;
 
     /* Fellowship extras for custom components (hex, per design.md) */
-    --row-cream: #F7F9FC;
-    --row-cream-2: #EDF4FB;
+    --row-cream: #E6ECF3;
+    --row-cream-2: #DCE5EF;
     --row-ink: #1B2C42;
-    --row-ink-soft: #64748B;
+    --row-ink-soft: #526177;
     --row-azure: #17458F;
     --row-mint: #0067C8;
     --row-marigold: #F7A81B;
     --row-coral: #FFC65C;
     --row-sky: #CFE2F6;
     --row-lilac: #A9C6EA;
-    --row-line: rgba(27, 44, 66, .12);
+    --row-line: rgba(27, 44, 66, .14);
     --row-panel-r: 1.75rem;
     /* rings, not drop shadows (FRONTEND-RULES #18) */
     --shadow-soft: 0 0 0 1px rgba(27,44,66,.12);
@@ -71,20 +71,24 @@
     --ease-out: cubic-bezier(.22,1,.36,1);
     --ease-spring: cubic-bezier(.34,1.56,.64,1);
 
+    /* Light Tailwind steps as channels (tailwind.config.ts v()) */
+    --tw-white: 244 247 250; --tw-slate-50: 234 240 246; --tw-slate-100: 223 231 240; --tw-slate-200: 201 213 226;
+    --tw-blue-50: 230 238 248; --tw-blue-100: 216 229 244;
+
     /* Goal Overview tokens (RIZones goal module, ported 2026-11-20), mapped onto the Fellowship palette:
        go-navy = azure / mint, surfaces = card / cream (no pure white), no drop shadows (rings). */
     --go-navy-900: #17458F;
     --go-navy-700: #0067C8;
-    --go-navy-50: #EDF4FB;
+    --go-navy-50: #DCE5EF;
     --go-gold-500: #F7A81B;
     --go-gold-50: #FEF6E7;
     --go-text-primary: #1B2C42;
     --go-text-secondary: #475569;
-    --go-text-muted: #94A3B8;
-    --go-surface: #FCFDFE;
-    --go-surface-sunken: #F7F9FC;
-    --go-border: #E2E8F0;
-    --go-border-strong: #D5DEE8;
+    --go-text-muted: #526177;
+    --go-surface: #F4F7FA;
+    --go-surface-sunken: #E6ECF3;
+    --go-border: #CBD6E2;
+    --go-border-strong: #B7C5D5;
     --go-success-600: #15803D; --go-success-50: #F0FDF4;
     --go-warning-600: #B45309; --go-warning-50: #FFFBEB;
     --go-danger-600: #DC2626; --go-danger-50: #FEF2F2;
@@ -93,7 +97,9 @@
     --go-rag-orange: #F08A24;
     --go-rag-blue: #2F6FD6;
     --go-rag-purple: #7C3AED;
-    --go-radius-sm: 6px; --go-radius-md: 10px; --go-radius-lg: 14px;
+    --go-radius-sm: 4px; --go-radius-md: 6px; --go-radius-lg: 10px;
+    /* One shape family: 4px marks, 6px controls, 10px cards (tailwind.config.ts borderRadius). */
+    --r-sm: 4px; --r: 4px; --r-md: 6px; --r-lg: 6px; --r-xl: 10px; --r-2xl: 10px; --r-3xl: 10px;
   }
   .dark {
     --background: 222 47% 11%;
@@ -138,28 +144,229 @@
   }
 }
 
-@keyframes loading-bar {
-  0% {
-    width: 0%;
-    margin-left: 0%;
+/* ============================================================
+   ADMIN MOTION (row/website/design.md 8.7). Transform and opacity only; all of it is switched off by the
+   reduced-motion block. `.row-shell` is the dashboard frame, `.row-main` the plain admin page frame.
+   ============================================================ */
+:root {
+  --t-micro: 160ms;
+  --t-ui: 240ms;
+  --t-glide: 360ms;
+}
+
+@keyframes row-rise { from { opacity: 0; transform: translateY(10px); } }
+@keyframes row-fade { from { opacity: 0; } }
+@keyframes row-grow { from { transform: scaleX(0); } }
+@keyframes row-nav { from { transform: scaleX(0); } to { transform: scaleX(0.9); } }
+@keyframes row-shimmer { to { transform: translateX(100%); } }
+
+@layer tw-components {
+  /* Content that mounts (a panel, a tile, a page after its skeleton) rises into place, in order. */
+  .row-rise { animation: row-rise 420ms var(--ease-out) backwards; }
+  .row-rise:nth-child(2) { animation-delay: 45ms; }
+  .row-rise:nth-child(3) { animation-delay: 90ms; }
+  .row-rise:nth-child(4) { animation-delay: 135ms; }
+  .row-rise:nth-child(5) { animation-delay: 180ms; }
+  .row-rise:nth-child(n + 6) { animation-delay: 220ms; }
+  .row-grow { transform-origin: left center; animation: row-grow 800ms var(--ease-out) 160ms backwards; }
+
+  /* Table rows fade in under each other; past the tenth they arrive together so long lists never feel slow. */
+  .row-shell tbody > tr, .row-main tbody > tr { animation: row-fade 260ms ease-out backwards; transition: background-color var(--t-micro) ease-out; }
+  :is(.row-shell, .row-main) tbody > tr:nth-child(2) { animation-delay: 25ms; }
+  :is(.row-shell, .row-main) tbody > tr:nth-child(3) { animation-delay: 50ms; }
+  :is(.row-shell, .row-main) tbody > tr:nth-child(4) { animation-delay: 75ms; }
+  :is(.row-shell, .row-main) tbody > tr:nth-child(5) { animation-delay: 100ms; }
+  :is(.row-shell, .row-main) tbody > tr:nth-child(6) { animation-delay: 125ms; }
+  :is(.row-shell, .row-main) tbody > tr:nth-child(7) { animation-delay: 150ms; }
+  :is(.row-shell, .row-main) tbody > tr:nth-child(8) { animation-delay: 175ms; }
+  :is(.row-shell, .row-main) tbody > tr:nth-child(9) { animation-delay: 200ms; }
+  :is(.row-shell, .row-main) tbody > tr:nth-child(n + 10) { animation-delay: 225ms; }
+
+  /* ---- The fixed parts (design.md 8.3). Every page uses these; a page never styles its own. ---- */
+  .row-page { margin-inline: auto; width: 100%; max-width: 1400px; }
+  .row-auto-header { margin-bottom: 20px; }
+  .row-page-header { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 12px 24px; margin-bottom: 20px; }
+  .row-h1 { font-family: var(--font-display), system-ui, sans-serif; font-size: 24px; line-height: 32px; font-weight: 600; letter-spacing: -0.02em; color: hsl(var(--foreground)); overflow-wrap: anywhere; }
+  .row-page-description { margin-top: 2px; max-width: 72ch; font-size: 14px; line-height: 20px; color: hsl(var(--muted-foreground)); }
+  .row-h2 { font-family: var(--font-display), system-ui, sans-serif; font-size: 16px; line-height: 24px; font-weight: 600; letter-spacing: -0.01em; color: hsl(var(--foreground)); }
+  .row-h3 { font-family: var(--font-body), system-ui, sans-serif; font-size: 14px; line-height: 20px; font-weight: 600; letter-spacing: 0; color: hsl(var(--foreground)); }
+
+  .row-card { border: 1px solid var(--row-line); border-radius: var(--r-xl); background: hsl(var(--card)); color: hsl(var(--card-foreground)); }
+  .row-card-head { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 8px 12px; padding: 16px 20px 12px; }
+
+  .row-section + .row-section { margin-top: 16px; }
+  .row-label { display: block; margin-bottom: 4px; font-size: 13px; line-height: 18px; font-weight: 600; color: hsl(var(--foreground)); }
+
+  .row-btn {
+    display: inline-flex; flex-shrink: 0; align-items: center; justify-content: center; gap: 8px; height: 40px; padding: 0 16px; border: 1px solid transparent;
+    border-radius: var(--r-md); font-size: 14px; line-height: 20px; font-weight: 600; white-space: nowrap; cursor: pointer;
   }
-  30% {
-    width: 60%;
-    margin-left: 0%;
+  .row-btn svg { width: 16px; height: 16px; flex-shrink: 0; }
+  .row-btn > svg { margin: 0; }
+  .row-btn-sm { height: 32px; padding: 0 12px; gap: 6px; font-size: 13px; }
+  .row-btn-icon { width: 40px; padding: 0; }
+  .row-btn-icon.row-btn-sm { width: 32px; }
+  .row-btn:disabled, .row-btn[aria-disabled="true"] { opacity: 0.5; pointer-events: none; }
+  .row-btn-primary { background: hsl(var(--primary)); color: hsl(var(--primary-foreground)); }
+  .row-btn-primary:hover { background: #12376F; }
+  .row-btn-secondary { background: hsl(var(--card)); border-color: hsl(var(--input)); color: hsl(var(--foreground)); }
+  .row-btn-secondary:hover { background: hsl(var(--accent)); }
+  .row-btn-ghost { color: hsl(var(--foreground)); }
+  .row-btn-ghost:hover { background: hsl(var(--accent)); }
+  .row-btn-danger { background: #B91C1C; color: #FCFDFE; }
+  .row-btn-danger:hover { background: #991B1B; }
+  .row-btn-link { height: auto; padding: 0; color: hsl(var(--primary)); }
+  .row-btn-link:hover { text-decoration: underline; text-underline-offset: 4px; }
+  /* Icon-only action in a table row or a bar. */
+  .row-icon-btn { display: inline-flex; flex-shrink: 0; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: var(--r-md); color: hsl(var(--muted-foreground)); cursor: pointer; }
+  .row-icon-btn:not(:disabled):hover { background: hsl(var(--accent)); color: hsl(var(--foreground)); }
+  /* Disabled keeps pointer events so its title (why it is disabled) still shows. */
+  .row-icon-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  @media (pointer: coarse) { .row-btn, .row-icon-btn { min-height: 44px; } .row-icon-btn, .row-btn-icon { min-width: 44px; } }
+
+  .row-field {
+    display: block; height: 40px; padding: 8px 12px; border: 1px solid hsl(var(--input)); border-radius: var(--r-md); background: #F7F9FC;
+    font-size: 14px; line-height: 22px; color: hsl(var(--foreground)); transition: border-color var(--t-micro) ease-out;
   }
-  60% {
-    width: 30%;
-    margin-left: 50%;
+  .row-field.row-field-sm { height: 32px; padding: 4px 8px; font-size: 13px; }
+  textarea.row-field { height: auto; }
+  .row-field::placeholder { color: hsl(var(--muted-foreground)); }
+  .row-field:hover { border-color: #94A7BE; }
+  .row-field:focus-visible { outline: 2px solid hsl(var(--primary)); outline-offset: 0; border-color: hsl(var(--primary)); }
+  .row-field:disabled, .row-field[readonly] { background: hsl(var(--muted)); cursor: not-allowed; }
+
+  .row-badge { display: inline-flex; align-items: center; gap: 4px; padding: 1px 8px; border-radius: var(--r-sm); font-size: 12px; line-height: 18px; font-weight: 600; white-space: nowrap; }
+  .row-badge svg { width: 12px; height: 12px; flex-shrink: 0; }
+  /* A tile that opens a page. */
+  .row-tile { display: block; padding: 20px; border: 1px solid var(--row-line); border-radius: var(--r-xl); background: hsl(var(--card)); transition: border-color var(--t-micro) ease-out; }
+  .row-tile:hover { border-color: hsl(var(--primary)); }
+  .row-tile-icon { display: inline-flex; flex-shrink: 0; align-items: center; justify-content: center; width: 40px; height: 40px; margin-bottom: 12px; border-radius: var(--r-md); background: hsl(var(--muted)); color: hsl(var(--primary)); }
+
+  /* One table head everywhere in the admin. */
+  :is(.row-shell, .row-main) thead { background: hsl(var(--muted)); color: hsl(var(--muted-foreground)); }
+  :is(.row-shell, .row-main) th { padding-block: 10px; font-size: 13px; line-height: 18px; font-weight: 600; vertical-align: middle; }
+
+  /* Small buttons (ui/text-buttons). */
+  .row-link { display: inline-flex; align-items: center; gap: 4px; padding: 0; border: 0; background: none; font-size: 14px; line-height: 20px; font-weight: 600; color: hsl(var(--primary)); text-align: left; cursor: pointer; }
+  .row-link:hover { text-decoration: underline; text-underline-offset: 4px; }
+  .row-link:disabled { opacity: 0.5; pointer-events: none; }
+  .row-link-danger { color: #B91C1C; }
+  .row-link-muted { color: hsl(var(--muted-foreground)); }
+  .row-link-sm { font-size: 12px; line-height: 16px; }
+  .row-chip { display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 12px; border: 1px solid hsl(var(--input)); border-radius: var(--r-md); background: hsl(var(--card)); font-size: 13px; font-weight: 600; color: hsl(var(--muted-foreground)); white-space: nowrap; cursor: pointer; }
+  .row-chip:not(:disabled):hover { border-color: #94A7BE; color: hsl(var(--foreground)); }
+  .row-chip:disabled { opacity: 0.5; cursor: not-allowed; }
+  .row-chip[aria-pressed="true"] { border-color: hsl(var(--primary)); background: hsl(var(--primary)); color: hsl(var(--primary-foreground)); }
+  .row-clear-btn { position: absolute; top: 50%; right: 6px; translate: 0 -50%; display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: var(--r-md); color: hsl(var(--muted-foreground)); cursor: pointer; }
+  .row-clear-btn:hover { background: hsl(var(--accent)); color: hsl(var(--foreground)); }
+  .row-remove-badge { position: absolute; top: 4px; right: 4px; display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: var(--r-md); background: rgb(15 23 42 / 0.6); color: #FCFDFE; cursor: pointer; }
+  .row-remove-badge:hover { background: #B91C1C; }
+  .row-menu-item { display: flex; width: 100%; align-items: center; gap: 12px; padding: 8px 12px; border-radius: var(--r-md); font-size: 14px; line-height: 20px; text-align: left; cursor: pointer; }
+  .row-menu-item:hover, .row-menu-item[aria-current="true"] { background: hsl(var(--muted)); }
+  .row-menu-item:disabled { opacity: 0.5; pointer-events: none; }
+  .row-chip[aria-checked="true"] { border-color: hsl(var(--primary)); background: hsl(var(--primary)); color: hsl(var(--primary-foreground)); }
+  .row-menu-item-dark { color: #E2E8F0; }
+  .row-menu-item-dark:hover, .row-menu-item-dark[aria-current="true"] { background: rgb(255 255 255 / 0.1); color: #FCFDFE; }
+  .row-btn-on-dark { border: 1px solid rgb(255 255 255 / 0.6); background: transparent; color: #FCFDFE; }
+  .row-btn-on-dark:hover { background: rgb(255 255 255 / 0.12); border-color: #FCFDFE; }
+  /* File picker box (ui/text-buttons UploadZone). */
+  .row-upload { display: inline-flex; align-items: center; gap: 8px; padding: 12px 16px; border: 1px dashed hsl(var(--input)); border-radius: var(--r-md); background: hsl(var(--card)); font-size: 14px; color: hsl(var(--muted-foreground)); cursor: pointer; }
+  .row-upload:hover { border-color: hsl(var(--primary)); color: hsl(var(--foreground)); }
+  .row-upload:disabled { opacity: 0.5; cursor: not-allowed; }
+  .row-upload-box { flex-direction: column; justify-content: center; aspect-ratio: 1 / 1; min-height: 112px; padding: 12px; text-align: center; font-size: 13px; }
+  .row-tile-btn { width: 100%; text-align: left; cursor: pointer; }
+  /* Calendar cells (ui/text-buttons CalendarCell). */
+  .row-cal-cell { display: inline-flex; align-items: center; justify-content: center; min-width: 36px; height: 36px; padding: 0 6px; border-radius: var(--r-md); font-size: 13px; font-variant-numeric: tabular-nums; color: hsl(var(--foreground)); cursor: pointer; }
+  .row-cal-cell:not(:disabled):hover { background: hsl(var(--muted)); }
+  .row-cal-cell:disabled { color: hsl(var(--muted-foreground)); opacity: 0.45; cursor: not-allowed; }
+  .row-cal-today { box-shadow: inset 0 0 0 1px hsl(var(--primary)); }
+  .row-cal-outside { color: hsl(var(--muted-foreground)); }
+  .row-cal-cell[aria-pressed="true"] { background: hsl(var(--primary)); color: hsl(var(--primary-foreground)); }
+  @media (pointer: coarse) { .row-clear-btn, .row-remove-badge { width: 44px; height: 44px; } .row-chip, .row-cal-cell { min-height: 44px; } }
+  :is(.row-upload, .row-tile-btn, .row-cal-cell):focus-visible { outline: 2px solid hsl(var(--primary)); outline-offset: 2px; }
+  :is(.row-btn-on-dark, .row-menu-item-dark):focus-visible { outline: 2px solid #FCFDFE; outline-offset: 2px; }
+  :is(.row-link, .row-chip, .row-clear-btn, .row-remove-badge, .row-menu-item):focus-visible { outline: 2px solid hsl(var(--primary)); outline-offset: 2px; }
+
+  /* Tables (ui/data-table): DataTable for lists, MatrixTable for dense goal and report grids. */
+  .row-table-wrap { overflow-x: auto; }
+  .row-table { width: 100%; min-width: 100%; font-size: 14px; border-collapse: collapse; }
+  .row-table th { padding-inline: 16px; text-align: left; white-space: nowrap; }
+  .row-table td { padding: 10px 16px; vertical-align: middle; color: hsl(var(--foreground)); }
+  .row-table tbody tr { border-top: 1px solid var(--row-line); }
+  .row-table tbody tr:hover { background: hsl(var(--muted) / 0.7); }
+  .row-table-empty { padding: 32px 16px !important; text-align: center !important; color: hsl(var(--muted-foreground)) !important; }
+  .row-th-sort { display: inline-flex; align-items: center; gap: 4px; font: inherit; color: inherit; cursor: pointer; }
+  .row-th-sort:hover { color: hsl(var(--foreground)); }
+  .row-matrix { min-width: 100%; font-size: 13px; border-collapse: separate; border-spacing: 0; }
+  .row-matrix :is(th, td) { padding: 6px 10px; border-bottom: 1px solid var(--row-line); white-space: nowrap; }
+  .row-matrix td { text-align: right; font-variant-numeric: tabular-nums; }
+  .row-matrix thead th { position: sticky; top: 0; z-index: 1; }
+  .row-matrix tbody th { position: sticky; left: 0; z-index: 1; background: hsl(var(--card)); text-align: left; font-weight: 600; }
+  .row-matrix thead th:first-child { left: 0; z-index: 2; }
+
+  /* Press feedback. Utilities on a button still win. */
+  :is(.row-shell, .row-main) button {
+    transition: color var(--t-micro) ease-out, background-color var(--t-micro) ease-out, border-color var(--t-micro) ease-out,
+      opacity var(--t-micro) ease-out, scale var(--t-micro) ease-out;
   }
-  100% {
-    width: 0%;
-    margin-left: 100%;
+  :is(.row-shell, .row-main) button:not(:disabled, [role="switch"], [role="tab"], [role="checkbox"]):active { scale: 0.98; }
+
+  /* Skeletons: a light band passes over the well instead of the block blinking. */
+  .row-skeleton { position: relative; overflow: hidden; background: hsl(var(--muted)); }
+  .row-skeleton::after {
+    content: ""; position: absolute; inset: 0; transform: translateX(-100%);
+    background: linear-gradient(90deg, transparent, hsl(var(--card) / 0.75), transparent);
+    animation: row-shimmer 1.6s ease-in-out infinite;
   }
 }
 
-.animate-loading-bar {
-  animation: loading-bar 1.2s ease-in-out infinite;
+/* The page in front of you softens while the next one loads (NavigationLoader sets the attribute). */
+.row-shell main > *, .row-main:not(:has(.row-shell)) > * { transition: opacity var(--t-ui) ease-out; }
+html[data-navigating] .row-shell main > *, html[data-navigating] .row-main:not(:has(.row-shell)) > * { opacity: 0.5; }
+
+/* Outside the layers and forced: pages set their own head colours inline. The PDF copy of a page keeps its print colours. */
+:root:not(.row-paper) :is(.row-shell, .row-main) :is(thead, thead tr, thead th) { background-color: hsl(var(--muted)) !important; color: hsl(var(--muted-foreground)) !important; text-transform: none !important; letter-spacing: 0 !important; }
+:root:not(.row-paper) :is(.row-shell, .row-main) thead th :is(button, span, div, a, label) { color: inherit; text-transform: none; letter-spacing: 0; }
+
+/* Outside the layers: pages put mr-2 on the icon, the button already has its gap. */
+.row-btn > svg { margin: 0; }
+
+/* A page's own header replaces the shell's. */
+.row-shell main:has(h1:not(.row-auto-header h1)) .row-auto-header { display: none; }
+
+/* Radix surfaces: soft landing, quick exit. */
+.animate-in { animation-timing-function: var(--ease-out); }
+.animate-out { animation-duration: 120ms; }
+
+/* Navigation bar: fills toward 90% while the route loads, then completes and fades. */
+.row-nav-bar { transform-origin: left center; animation: row-nav 8s cubic-bezier(0.1, 0.7, 0.1, 1) both; }
+.row-nav-bar[data-done] { animation: none; transform: scaleX(1); opacity: 0; transition: opacity 240ms ease-out 120ms; }
+
+@media (prefers-reduced-motion: reduce) {
+  .row-rise, .row-grow, .row-skeleton::after, .animate-in, .animate-out, .animate-pulse,
+  :is(.row-shell, .row-main) tbody > tr { animation: none !important; }
+  .row-nav-bar { animation-duration: 1ms; }
+  .row-shell main > *, .row-main > *, :is(.row-shell, .row-main) button, [data-glide] { transition: none !important; }
+  :is(.row-shell, .row-main) button:active { scale: 1 !important; }
 }
+
+/* Paper is white and still: the softened surfaces are for screens only. `.row-paper` is the html2canvas copy of a page
+   (cmrPdfFromPage.ts), where a running animation would be photographed half-way. */
+@media print {
+  :root {
+    --background: 0 0% 100%; --card: 0 0% 100%; --muted: 210 60% 96%; --tw-white: 255 255 255; --tw-slate-50: 247 249 252;
+    --tw-slate-100: 237 244 251; --tw-blue-50: 243 248 253; --tw-blue-100: 237 244 251;
+  }
+  * { animation: none !important; }
+  .row-shell { position: static !important; display: block !important; height: auto !important; overflow: visible !important; }
+  .row-shell > aside, .row-shell header:not(.row-page-header) { display: none !important; }
+  .row-shell div, .row-shell main { overflow: visible !important; }
+}
+:root.row-paper {
+  --background: 0 0% 100%; --card: 0 0% 100%; --muted: 210 60% 96%; --tw-white: 255 255 255; --tw-slate-50: 247 249 252;
+  --tw-slate-100: 237 244 251; --tw-blue-50: 243 248 253; --tw-blue-100: 237 244 251;
+}
+:root.row-paper * { animation: none !important; transition: none !important; }
 
 /* Shimmer sweep for the UNFILLED remainder of a determinate progress bar — a soft band of
    light moving left-to-right to signal "still in progress, this is the direction it's
@@ -189,6 +396,10 @@
 @layer base {
   .site-shell {
     --chrome-h: 76px;
+    --r-sm: calc(var(--radius) - 4px); --r: 0.25rem; --r-md: calc(var(--radius) - 2px); --r-lg: var(--radius); --r-xl: 0.75rem; --r-2xl: 20px; --r-3xl: 1.5rem;
+    /* the public site keeps its own light steps */
+    --tw-white: 252 253 254; --tw-slate-50: 247 249 252; --tw-slate-100: 237 244 251; --tw-slate-200: 213 222 232;
+    --tw-blue-50: 243 248 253; --tw-blue-100: 237 244 251;
     /* website's text-muted (#5B6472) — overrides admin's --muted only inside the site */
     --muted: 216 11% 40%;
     zoom: 1.08;

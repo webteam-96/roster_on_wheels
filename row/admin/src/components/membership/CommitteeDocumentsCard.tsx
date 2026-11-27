@@ -80,10 +80,10 @@ export default function CommitteeDocumentsCard({ districtId, groupId, subGroupId
   };
 
   return (
-    <section className="rounded-[20px] border border-slate-200 overflow-hidden bg-card">
+    <section className="row-card row-rise overflow-hidden">
       <header className="flex items-center gap-2 px-4 py-2.5 bg-slate-50 border-b border-slate-100">
         <FileText className="h-4 w-4 text-slate-500" />
-        <h3 className="text-sm font-semibold text-slate-800">Documents</h3>
+        <h3 className="row-h3">Documents</h3>
       </header>
       <div className="p-4 space-y-4">
         {docs === null ? (

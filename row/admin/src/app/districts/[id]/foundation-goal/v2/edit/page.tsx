@@ -36,6 +36,11 @@
  * so the sidebar district indicator and any other consumers stay aligned.
  */
 
+import { Table } from "@/components/ui/table";
+import FieldLabel from "@/components/form/FieldLabel";
+import { Input } from "@/components/ui/input";
+import { NativeSelect } from "@/components/ui/native-select";
+import SectionCard from "@/components/form/SectionCard";
 import { useEffect, useMemo, useState } from "react";
 import { useParams, useSearchParams } from "next/navigation";
 import {
@@ -78,36 +83,6 @@ const AVENUE_KEYS: { key: string; label: string }[] = [
   { key: "public_image_initiative", label: "Public Image" },
   { key: "new_generation_service",  label: "New Generation Service" },
 ];
-
-function FieldLabel({
-  children, hint, dot, required = false,
-}: { children: React.ReactNode; hint?: string; dot: string; required?: boolean }) {
-  return (
-    <div className="flex items-center gap-1.5 mb-1">
-      <span className={`w-1.5 h-1.5 rounded-full ${dot}`} />
-      <label className="text-xs font-semibold text-slate-700">
-        {children}
-        {required && <span className="text-rose-600 ml-0.5">*</span>}
-        {hint && <span className="text-slate-400 font-normal ml-1">{hint}</span>}
-      </label>
-    </div>
-  );
-}
-
-function SectionCard({
-  number, icon: Icon, title, dot, children,
-}: { number: number; icon: React.ElementType; title: string; dot: string; children: React.ReactNode }) {
-  return (
-    <div className="rounded-xl border border-slate-200 mb-4 overflow-hidden">
-      <div className="flex items-center gap-3 px-4 py-2.5 bg-slate-50 border-b border-slate-100">
-        <div className={`flex items-center justify-center h-7 w-7 rounded-full text-white text-xs font-bold ${dot}`}>{number}</div>
-        <Icon className="h-4 w-4 text-slate-500" />
-        <h3 className="text-sm font-semibold text-slate-800">{title}</h3>
-      </div>
-      <div className="p-4">{children}</div>
-    </div>
-  );
-}
 
 type FundFormKey = "annual" | "polio" | "endowment" | "other";
 type FundForm = Record<FundFormKey, string>;
@@ -476,12 +451,12 @@ export default function DistrictFoundationGoalV2EditPage() {
           onSave={onSave}
         >
           {/* 1. Rotary year ── */}
-          <SectionCard number={1} icon={Calendar} title="Rotary Year" dot="bg-[#17458F]">
-            <FieldLabel dot="bg-[#17458F]" required>Rotary Year</FieldLabel>
-            <select
+          <SectionCard number={1} icon={Calendar} title="Rotary Year">
+            <FieldLabel required>Rotary Year</FieldLabel>
+            <NativeSelect
               value={selectedYearId || ""}
               onChange={(e) => setSelectedYearId(Number(e.target.value))}
-              className="w-full rounded-[12px] border border-slate-200 bg-card px-3 py-2 text-sm text-slate-700 focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+              
             >
               <option value="" disabled>Select rotary year…</option>
               {allYears.map((y) => (
@@ -489,7 +464,7 @@ export default function DistrictFoundationGoalV2EditPage() {
                   {y.yearLabel}{y.isCurrent ? " (Current)" : ""}
                 </option>
               ))}
-            </select>
+            </NativeSelect>
             <p className="mt-1 text-[11px] text-slate-500">
               Goals are stored one row per (district, year). Switching the year
               loads the saved values for that RY (if any).
@@ -497,19 +472,17 @@ export default function DistrictFoundationGoalV2EditPage() {
           </SectionCard>
 
           {/* 2. Tabbed targets ── */}
-          <SectionCard number={2} icon={Target} title="Targets" dot="bg-[#17458F]">
+          <SectionCard number={2} icon={Target} title="Targets">
             <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "goals" | "targets")}>
-              <TabsList className="bg-slate-50 border border-slate-200 rounded-lg p-1 h-auto mb-4">
+              <TabsList className="mb-4">
                 <TabsTrigger
                   value="goals"
-                  className="text-xs font-semibold data-[state=active]:bg-blue-600 data-[state=active]:text-white rounded-md px-3 py-1.5"
                 >
                   <IndianRupee size={12} className="mr-1.5" />
                   Foundation Collection Goals
                 </TabsTrigger>
                 <TabsTrigger
                   value="targets"
-                  className="text-xs font-semibold data-[state=active]:bg-blue-600 data-[state=active]:text-white rounded-md px-3 py-1.5"
                 >
                   <ClipboardList size={12} className="mr-1.5" />
                   Project Targets per Avenue
@@ -537,7 +510,7 @@ export default function DistrictFoundationGoalV2EditPage() {
                         className="border border-slate-100 rounded-lg p-3 grid grid-cols-1 sm:grid-cols-[1fr_minmax(160px,200px)_minmax(140px,180px)] sm:items-end gap-3"
                       >
                         <div>
-                          <FieldLabel dot={row.dot}>
+                          <FieldLabel>
                             <span className="inline-flex items-center gap-1.5">
                               <Icon size={12} className="text-slate-400" />
                               {row.label}
@@ -551,7 +524,7 @@ export default function DistrictFoundationGoalV2EditPage() {
                           </label>
                           <div className="relative">
                             <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm">$</span>
-                            <input
+                            <Input
                               type="number"
                               min={0}
                               step={1}
@@ -561,7 +534,7 @@ export default function DistrictFoundationGoalV2EditPage() {
                                 setFundForm((p) => ({ ...p, [row.key]: e.target.value }))
                               }
                               placeholder="0"
-                              className="w-full rounded-[12px] border border-slate-200 bg-card pl-6 pr-3 py-2 text-sm text-slate-700 focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                              className="pl-6 pr-3"
                             />
                           </div>
                         </div>
@@ -601,19 +574,19 @@ export default function DistrictFoundationGoalV2EditPage() {
                 </div>
 
                 <div className="overflow-x-auto">
-                  <table className="min-w-full text-sm border border-slate-200 rounded-lg overflow-hidden">
-                    <thead className="bg-[#EDF4FB]">
+                  <Table bare className="min-w-full text-sm border border-slate-200 rounded-lg overflow-hidden">
+                    <thead>
                       <tr>
-                        <th className="px-3 py-2 text-left text-[11px] font-semibold text-slate-500 whitespace-nowrap">
+                        <th className="px-3 text-left whitespace-nowrap">
                           Avenue
                         </th>
-                        <th className="px-3 py-2 text-right text-[11px] font-semibold text-slate-500 whitespace-nowrap w-40">
+                        <th className="px-3 text-right whitespace-nowrap w-40">
                           Target
                         </th>
-                        <th className="px-3 py-2 text-right text-[11px] font-semibold text-slate-500 whitespace-nowrap w-28">
+                        <th className="px-3 text-right whitespace-nowrap w-28">
                           Current
                         </th>
-                        <th className="px-3 py-2 text-right text-[11px] font-semibold text-slate-500 whitespace-nowrap w-20">
+                        <th className="px-3 text-right whitespace-nowrap w-20">
                           %
                         </th>
                       </tr>
@@ -638,7 +611,7 @@ export default function DistrictFoundationGoalV2EditPage() {
                               </div>
                             </td>
                             <td className="px-3 py-2">
-                              <input
+                              <Input
                                 type="number"
                                 min={0}
                                 step={1}
@@ -649,7 +622,7 @@ export default function DistrictFoundationGoalV2EditPage() {
                                   setTargetForm((p) => ({ ...p, [a.key]: e.target.value }))
                                 }
                                 placeholder="0"
-                                className="w-full rounded-[12px] border border-slate-200 bg-card px-2 py-1.5 text-sm text-slate-700 text-right tabular-nums focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42] disabled:bg-slate-50 disabled:text-slate-400"
+                                className="text-right tabular-nums disabled:bg-slate-50 disabled:text-slate-400"
                               />
                             </td>
                             <td className="px-3 py-2 text-right tabular-nums text-slate-700">
@@ -668,7 +641,7 @@ export default function DistrictFoundationGoalV2EditPage() {
                         );
                       })}
                     </tbody>
-                  </table>
+                  </Table>
                 </div>
               </TabsContent>
             </Tabs>

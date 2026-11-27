@@ -5,6 +5,7 @@
  * The price and who may buy come from the server; this page only shows them and sends the buyer to the checkout.
  */
 
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table"
 import { useCallback, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -50,12 +51,12 @@ function describe(term: SubscriptionTerm, graceDays: number): { label: string; t
     case "Expired":
       return { label: "Expired", tone: "bg-red-50 text-red-800", detail: `The term ended on ${formatDate(term.termEnd)}. Nothing was deleted. Renewing restores everything as it was.` };
     default:
-      return { label: "Not subscribed", tone: "bg-[#EDF4FB] text-[#1B2C42]", detail: "No subscription yet." };
+      return { label: "Not subscribed", tone: "bg-muted text-[#1B2C42]", detail: "No subscription yet." };
   }
 }
 
 function StatePill({ label, tone }: { label: string; tone: string }) {
-  return <span className={`inline-flex h-7 items-center rounded-full px-3 text-[13px] font-semibold ${tone}`}>{label}</span>;
+  return <span className={`inline-flex h-7 items-center rounded px-3 text-[13px] font-semibold ${tone}`}>{label}</span>;
 }
 
 export default function SubscriptionPanel({ kind, ownerId }: { kind: Kind; ownerId: number | null }) {
@@ -129,12 +130,12 @@ export default function SubscriptionPanel({ kind, ownerId }: { kind: Kind; owner
     <div className="w-full space-y-6">
       <PageHeader title={title} description={description} />
       {lockReason && (
-        <p role="status" className="rounded-[20px] border border-[color:var(--row-line)] bg-[#EDF4FB] px-6 py-4 text-[15px] text-[#1B2C42]">
+        <p role="status" className="rounded-xl border border-[color:var(--row-line)] bg-muted px-6 py-4 text-[15px] text-[#1B2C42]">
           {lockReason}
         </p>
       )}
       {notice && (
-        <p role="status" className="rounded-[20px] border border-[color:var(--row-line)] bg-[#CFE2F6] px-6 py-4 text-[15px] text-[#0B3F7A]">
+        <p role="status" className="rounded-xl border border-[color:var(--row-line)] bg-[#CFE2F6] px-6 py-4 text-[15px] text-[#0B3F7A]">
           {notice}
         </p>
       )}
@@ -142,33 +143,33 @@ export default function SubscriptionPanel({ kind, ownerId }: { kind: Kind; owner
 
       <Panel title={name} subtitle={working ? "Renewing adds one year to the end of the current term." : "One year from the day of payment."}>
         {!ownerId ? (
-          <p className="text-[15px] text-[#64748B]">Open a {kind} first, then come back to this page.</p>
+          <p className="text-[15px] text-muted-foreground">Open a {kind} first, then come back to this page.</p>
         ) : loading || !term ? <SkeletonRows rows={3} /> : (
           <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
             <div className="min-w-0 space-y-2">
               <StatePill {...describe(term, graceDays)} />
               <p className="max-w-[60ch] text-[15px] text-[#1B2C42]">{describe(term, graceDays).detail}</p>
               {kind === "club" && club && club.level === "Reporting" && (
-                <p className="max-w-[60ch] text-[14px] text-[#64748B]">
+                <p className="max-w-[60ch] text-[14px] text-muted-foreground">
                   Your district is subscribed, so club executives can use reporting: projects, monthly report, attendance, goals, club details and the member list.
                 </p>
               )}
             </div>
             <div className="flex shrink-0 flex-col items-start gap-2 md:items-end">
               <p className="font-display text-[24px] font-semibold text-[#1B2C42]">
-                {formatMoney(price)} {price && <span className="text-[14px] font-normal text-[#64748B]">per year</span>}
+                {formatMoney(price)} {price && <span className="text-[14px] font-normal text-muted-foreground">per year</span>}
               </p>
               <Button type="button" onClick={handleBuy} disabled={busy || !canBuy || !price}>
                 {busy ? "Opening checkout" : working ? "Renew for one year" : "Subscribe"}
               </Button>
               {/* Without this the greyed-out button reads as broken (ROW-65). */}
               {!price && (
-                <p className="max-w-[36ch] text-[13px] text-[#64748B] md:text-right">
+                <p className="max-w-[36ch] text-[13px] text-muted-foreground md:text-right">
                   Subscriptions open once this year&apos;s price is published.
                 </p>
               )}
               {price && !canBuy && (
-                <p className="max-w-[36ch] text-[13px] text-[#64748B] md:text-right">
+                <p className="max-w-[36ch] text-[13px] text-muted-foreground md:text-right">
                   {kind === "club"
                     ? "Only a current club executive on record with Rotary International can buy this."
                     : "Only the District Governor, Governor-Elect or District Secretary can buy this."}
@@ -182,20 +183,20 @@ export default function SubscriptionPanel({ kind, ownerId }: { kind: Kind; owner
       {kind === "district" && district?.flaggedClubs && district.flaggedClubs.length > 0 && (
         <Panel title="Clubs that need attention" subtitle="Nobody from these clubs was invited. Ask them to update My Rotary, then the nightly sync picks them up.">
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-[14px]">
-              <thead className="text-[13px] text-[#64748B]">
-                <tr><th className="py-2 pr-4 font-semibold">Club</th><th className="py-2 pr-4 font-semibold">Reason</th><th className="py-2 font-semibold">Last checked</th></tr>
-              </thead>
-              <tbody>
+            <Table className="w-full text-left text-[14px]">
+              <TableHeader>
+                <TableRow><TableHead className="pr-4">Club</TableHead><TableHead className="pr-4">Reason</TableHead><TableHead>Last checked</TableHead></TableRow>
+              </TableHeader>
+              <TableBody>
                 {district.flaggedClubs.map((c) => (
-                  <tr key={c.clubId} className="border-t border-[color:var(--row-line)]">
-                    <td className="py-2 pr-4 text-[#1B2C42]">{c.clubName}</td>
-                    <td className="py-2 pr-4 text-[#1B2C42]">{c.reason}</td>
-                    <td className="py-2 text-[#64748B]">{c.syncedAt ? formatDate(c.syncedAt) : "Never"}</td>
-                  </tr>
+                  <TableRow key={c.clubId} className="border-t border-[color:var(--row-line)]">
+                    <TableCell className="py-2 pr-4 text-[#1B2C42]">{c.clubName}</TableCell>
+                    <TableCell className="py-2 pr-4 text-[#1B2C42]">{c.reason}</TableCell>
+                    <TableCell className="py-2 text-muted-foreground">{c.syncedAt ? formatDate(c.syncedAt) : "Never"}</TableCell>
+                  </TableRow>
                 ))}
-              </tbody>
-            </table>
+              </TableBody>
+            </Table>
           </div>
         </Panel>
       )}

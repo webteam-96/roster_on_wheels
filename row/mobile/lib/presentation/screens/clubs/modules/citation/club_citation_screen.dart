@@ -10,6 +10,7 @@ import '../../../../widgets/common/loading_widget.dart';
 import 'package:rotary_flutter_app/core/theme/app_fonts.dart';
 import 'package:rotary_flutter_app/core/theme/app_colors.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/motion.dart';
 
 // Web V2 palette (mirrors rotary-frontend /clubs/[id]/citation/v2).
 const Color _kBlue = AppColors.primaryDeep; // ROTARY_BLUE — primary / auto
@@ -686,7 +687,7 @@ class _ClubCitationScreenState extends State<ClubCitationScreen>
         ],
       );
     }
-    return ListView.builder(
+    return RowListView.builder(
       padding: const EdgeInsets.fromLTRB(12, 12, 12, 24),
       itemCount: _manualCategories.length,
       itemBuilder: (_, i) => _ManualCategoryCard(
@@ -857,8 +858,7 @@ class _KpiCard extends StatelessWidget {
           FittedBox(
             fit: BoxFit.scaleDown,
             alignment: Alignment.centerLeft,
-            child: Text(
-              value,
+            child: RowCountUp(value,
               style: AppFonts.body(
                 fontSize: 18,
                 fontWeight: FontWeight.w800,

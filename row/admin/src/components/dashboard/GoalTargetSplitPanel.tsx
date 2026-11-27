@@ -19,6 +19,10 @@
 // form comes back empty and the buttons never render. Only Club/District Admin may edit — a
 // read-only caller passes readOnly and gets the same popup without inputs or a Save button.
 
+import { Table } from "@/components/ui/table";
+import { IconButton } from "@/components/ui/icon-button";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { CalendarRange, CalendarDays, Loader2, Save, Check, AlertCircle, X } from "@/components/icons";
 import type { GoalMonthlyForm, SaveGoalTargetSplitRequest } from "@/services/api";
@@ -150,18 +154,18 @@ export default function GoalTargetSplitPanel({
       {/* The two buttons, sitting under the category tabs. */}
       <div className="flex flex-wrap items-center gap-2">
         <span className="text-xs font-medium text-slate-500">Target split:</span>
-        <button
+        <Button
           onClick={() => setOpen("quarter")}
-          className="inline-flex items-center gap-1.5 h-9 rounded-full border border-blue-200 bg-blue-50 px-3 text-xs font-semibold text-blue-700 hover:bg-blue-100"
+          variant="outline" size="sm"
         >
           <CalendarRange size={13} /> Quarterly
-        </button>
-        <button
+        </Button>
+        <Button
           onClick={() => setOpen("month")}
-          className="inline-flex items-center gap-1.5 h-9 rounded-full border border-blue-200 bg-blue-50 px-3 text-xs font-semibold text-blue-700 hover:bg-blue-100"
+          variant="outline" size="sm"
         >
           <CalendarDays size={13} /> Month-wise
-        </button>
+        </Button>
       </div>
 
       {open && (
@@ -171,16 +175,16 @@ export default function GoalTargetSplitPanel({
             <div className="flex items-center gap-2 sm:gap-3 px-3 sm:px-6 py-3 sm:py-4 bg-card rounded-t-2xl border-b border-slate-200">
               {open === "quarter" ? <CalendarRange size={18} className="text-blue-600" /> : <CalendarDays size={18} className="text-blue-600" />}
               <div>
-                <h3 className="text-sm sm:text-base font-bold text-ink">
+                <h3 className="row-h3">
                   {open === "quarter" ? "Quarterly" : "Month-wise"}: {form.categoryName}
                 </h3>
                 <p className="text-xs text-slate-500">
                   {form.entityName} · RY {form.yearLabel}: the yearly target split{canEdit ? "; change any box, the row must still total the year" : " (read only)"}
                 </p>
               </div>
-              <button onClick={() => setOpen(null)} className="ml-auto text-slate-400 hover:text-slate-700" aria-label="Close">
+              <IconButton onClick={() => setOpen(null)} className="ml-auto" aria-label="Close">
                 <X size={18} />
-              </button>
+              </IconButton>
             </div>
 
             {anySuggested && canEdit && (
@@ -198,9 +202,9 @@ export default function GoalTargetSplitPanel({
                 const base = baseOf(f);
                 const st = stateOf(f.fieldId, base);
                 return (
-                  <div key={f.fieldId} className="bg-card rounded-[20px] border border-slate-200 overflow-hidden">
+                  <Card key={f.fieldId} className="overflow-hidden">
                     <div className="px-3 sm:px-5 py-2.5 sm:py-3 border-b-2 border-amber-300 flex flex-wrap items-center gap-x-3 gap-y-1.5">
-                      <h4 className="text-sm font-bold text-ink">{f.groupName || f.fieldLabel}</h4>
+                      <h4 className="row-h3">{f.groupName || f.fieldLabel}</h4>
                       <span className="text-xs text-slate-500">{f.fieldLabel}</span>
                       <span className="sm:ml-auto text-xs text-slate-500">
                         Target for the Current year
@@ -225,12 +229,12 @@ export default function GoalTargetSplitPanel({
                     </div>
 
                     <div className="overflow-x-auto -mx-px">
-                      <table className="w-full text-sm border-collapse min-w-max">
+                      <Table bare className="w-full text-sm border-collapse min-w-max">
                         <thead>
-                          <tr className="bg-slate-50 text-slate-600">
-                            <th className="text-left font-semibold px-3 sm:px-5 py-2 w-28 sm:w-64 sticky left-0 bg-slate-50 border-r border-slate-200">&nbsp;</th>
+                          <tr>
+                            <th className="text-left px-3 sm:px-5 w-28 sm:w-64 sticky left-0 border-r border-slate-200">&nbsp;</th>
                             {slots.map((s) => (
-                              <th key={s} className="text-right font-semibold px-2 sm:px-3 py-2 whitespace-nowrap">{label(s)}</th>
+                              <th key={s} className="text-right px-2 sm:px-3 whitespace-nowrap">{label(s)}</th>
                             ))}
                           </tr>
                         </thead>
@@ -289,9 +293,9 @@ export default function GoalTargetSplitPanel({
                             })}
                           </tr>
                         </tbody>
-                      </table>
+                      </Table>
                     </div>
-                  </div>
+                  </Card>
                 );
               })}
             </div>
@@ -300,21 +304,21 @@ export default function GoalTargetSplitPanel({
             <div className="px-3 sm:px-6 py-3 sm:py-4 bg-card rounded-b-2xl border-t border-slate-200 flex flex-wrap items-center gap-2 sm:gap-3">
               {canEdit && (
                 <>
-                  <button
+                  <Button
                     onClick={save}
                     disabled={saving || !allMatch}
                     title={allMatch ? undefined : "Every section must total its yearly target before this can be saved"}
-                    className="inline-flex items-center gap-1.5 h-9 rounded-full bg-azure px-4 text-xs font-semibold text-white hover:bg-mint-ink disabled:opacity-40"
+                    size="sm"
                   >
                     {saving ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />} Save
-                  </button>
-                  <button
+                  </Button>
+                  <Button
                     onClick={reset}
                     disabled={saving}
-                    className="inline-flex items-center gap-1.5 h-9 rounded-full border border-slate-200 px-3 text-xs font-medium text-slate-600 hover:bg-slate-50 disabled:opacity-40"
+                    variant="outline" size="sm"
                   >
                     Reset
-                  </button>
+                  </Button>
                   {!allMatch && (
                     <span className="w-full sm:w-auto order-last sm:order-none text-xs text-red-600">
                       {badRows.map((f) => {
@@ -327,12 +331,12 @@ export default function GoalTargetSplitPanel({
                   {error && <span className="text-xs text-red-600">{error}</span>}
                 </>
               )}
-              <button
+              <Button
                 onClick={() => setOpen(null)}
-                className="ml-auto inline-flex items-center h-9 rounded-full border border-slate-200 px-4 text-xs font-medium text-slate-600 hover:bg-slate-50"
+                variant="outline" size="sm" className="ml-auto"
               >
                 Close
-              </button>
+              </Button>
             </div>
           </div>
         </div>

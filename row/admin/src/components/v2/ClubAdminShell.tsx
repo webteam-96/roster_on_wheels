@@ -11,11 +11,8 @@
  *   never match a V2 URL. This shell takes both as explicit props so V2 pages
  *   can declare them.
  *
- *   The visual structure (sidebar, topbar, identity card, switcher, footer,
- *   coming-soon kill-switch, mobile overlay) is intentionally duplicated from
- *   src/components/dashboard/DashboardShell.tsx — that file is frozen as the
- *   reference design. Keep the two visually in sync by hand if the design
- *   changes; do NOT factor a shared base out.
+ *   The sidebar, drawer and frame are the shared Sidebar and ShellFrame, so every
+ *   dashboard and V2 page looks and moves the same.
  *
  *   DashboardGuard is re-used here (orthogonal auth infrastructure). The
  *   ClubAdminDashboardCacheProvider is deliberately NOT included — V2 pages
@@ -43,33 +40,25 @@
  *   </ClubAdminShell>
  */
 
-import { ReactNode, Suspense, useState } from "react";
-import Link from "next/link";
+import { ReactNode, Suspense, useCallback, useState } from "react";
 import { usePathname } from "next/navigation";
-import Image from "next/image";
-import { Menu, X, LogOut } from "@/components/icons";
-import HelplineBar from "@/components/v2/HelplineBar";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Separator } from "@/components/ui/separator";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useAuth, useSelectedClub, useClubAdminClubs } from "@/contexts/AuthContext";
-import { cn } from "@/lib/utils";
 import DashboardGuard from "@/components/dashboard/DashboardGuard";
-import DashboardSwitcher from "@/components/dashboard/DashboardSwitcher";
 import DashboardYearSelector from "@/components/dashboard/DashboardYearSelector";
 import DashboardYearFooterText from "@/components/dashboard/DashboardYearFooterText";
+import Sidebar from "@/components/dashboard/Sidebar";
+import ShellFrame from "@/components/dashboard/ShellFrame";
+import TopBar, { ScopeLabel } from "@/components/dashboard/TopBar";
+import ClubTopbarStatus from "@/components/dashboard/ClubTopbarStatus";
+import TopBarAccount from "@/components/dashboard/TopBarAccount";
 import ComingSoonStub from "@/components/dashboard/ComingSoonStub";
 import ScopePicker from "@/components/dashboard/ScopePicker";
+import { useBrand } from "@/contexts/BrandContext";
+import { isFeatureOn } from "@/lib/brand";
 import { useComingSoonModules } from "@/hooks/useComingSoonModules";
 import { CLUB_ADMIN_NAV } from "@/app/club-admin-dashboard/nav";
-import { withBase } from "@/lib/basePath";
-
-const SIDEBAR_BG = "#EDF4FB";
-const ACTIVE_BG = "#17458F";
-const ACTIVE_TEXT = "#FCFDFE";
 
 const BRAND = "Club Dashboard";
-const IDENTITY_LABEL = "Signed in";
 const IDENTITY_ROLE = "Club Admin";
 
 export interface ClubAdminShellProps {
@@ -128,6 +117,7 @@ function ClubAdminShellInner({
 }: ClubAdminShellProps) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
+  const closeMenu = useCallback(() => setOpen(false), []);
   const { logout, user, selectScope } = useAuth();
   const selectedClub = useSelectedClub();
   const clubAdminClubs = useClubAdminClubs();
@@ -136,7 +126,8 @@ function ClubAdminShellInner({
 
   const identityName = user?.name ?? "Club Admin";
   const initials = getInitials(identityName) || "CA";
-  const nav = CLUB_ADMIN_NAV;
+  const brandInfo = useBrand();
+  const nav = CLUB_ADMIN_NAV.filter((n) => !n.feature || isFeatureOn(brandInfo, n.feature));
 
   // SuperAdmin sees everything regardless of Coming Soon flags. Goal Setting is for
   // Rotary.org-synced clubs only — hidden for a non-sync club (non-SuperAdmin).
@@ -150,12 +141,6 @@ function ClubAdminShellInner({
         if (n.moduleKey === "goal_setting") return true;
         return !n.moduleKey || !comingSoonByKey[n.moduleKey]?.isComingSoon;
       });
-
-  // Active item: explicit prop wins; otherwise fall back to pathname rule.
-  const isItemActive = (to: string): boolean => {
-    if (activeNavHref) return to === activeNavHref;
-    return pathname === to || (pathname?.startsWith(to + "/") ?? false);
-  };
 
   // Coming-soon kill-switch for the CURRENT route. Only meaningful when the
   // user landed on a real /club-admin-dashboard/* URL; for V2 pages
@@ -174,206 +159,56 @@ function ClubAdminShellInner({
     ? comingSoonByKey[currentItem.moduleKey]?.comingSoonDate ?? null
     : null;
 
-  // See DashboardShell.tsx — must be a JSX value, NOT an inline function
-  // component, or parent re-renders unmount + remount the DashboardSwitcher
-  // (resetting its `open` state to false on every render — the actual cause
-  // of "dropdown closes immediately").
-  const sidebarContent = (
-    <div className="flex flex-col h-full">
-      {/* Logo */}
-      <div className="px-5 py-5 border-b border-[color:var(--row-line)]">
-        <Image
-          src={withBase("/brand/row-logo.png")}
-          alt="Roster On Wheels"
-          width={220}
-          height={95}
-          className="w-full max-w-[188px] h-auto object-contain"
-          priority
-        />
-        <p className="text-xs text-muted-foreground mt-2 font-medium">{BRAND}</p>
-      </div>
-
-      {/* Identity card */}
-      <div className="px-3 py-3 border-b border-[color:var(--row-line)]">
-        <div
-          className="flex items-center gap-2.5 rounded-lg px-3 py-2.5"
-          style={{ backgroundColor: "rgba(27,44,66,0.05)" }}
-        >
-          <Avatar className="h-9 w-9 rounded-md flex-shrink-0">
-            <AvatarFallback
-              className="text-xs font-bold rounded-md"
-              style={{ background: ACTIVE_BG, color: ACTIVE_TEXT }}
-            >
-              {initials}
-            </AvatarFallback>
-          </Avatar>
-          <div className="min-w-0">
-            <p className="text-foreground text-sm font-semibold truncate">{identityName}</p>
-            <p className="text-muted-foreground text-xs truncate">{IDENTITY_ROLE}</p>
-          </div>
-        </div>
-        <p className="text-[10px] text-muted-foreground mt-2 px-1 tracking-wide uppercase">
-          {IDENTITY_LABEL}
-        </p>
-      </div>
-
-      {/* Nav */}
-      <ScrollArea className="flex-1 px-2 py-4">
-        <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest px-3 pb-2">
-          Navigation
-        </p>
-        <nav className="flex flex-col gap-0.5">
-          {visibleNav.map(({ to, label }) => {
-            const isActive = isItemActive(to);
-            return (
-              <Link
-                key={to}
-                href={to}
-                onClick={() => setOpen(false)}
-                className={cn(
-                  "flex min-h-[44px] items-center gap-3 px-4 py-2.5 rounded-full text-[14px] font-medium transition-colors duration-150",
-                  isActive
-                    ? "font-semibold"
-                    : "text-[#1B2C42]/75 hover:text-[#1B2C42] hover:bg-[#CFE2F6]/60"
-                )}
-                style={
-                  isActive
-                    ? { backgroundColor: ACTIVE_BG, color: ACTIVE_TEXT }
-                    : undefined
-                }
-              >
-                {/* Variant fixed to "dot" — matches the Club Admin layout's
-                    existing call site, which is the only kind of caller for
-                    this shell. */}
-                <span
-                  className="w-1.5 h-1.5 rounded-full flex-shrink-0"
-                  style={{ background: isActive ? ACTIVE_TEXT : "#5E93D6" }}
-                />
-                <span className="truncate">{label}</span>
-              </Link>
-            );
-          })}
-        </nav>
-      </ScrollArea>
-
-      <Separator className="bg-[color:var(--row-line)] mx-3" />
-
-      {/* Footer + switcher + logout */}
-      <div className="px-3 py-3 space-y-2">
-        <DashboardSwitcher currentKind="club-admin" onNavigate={() => setOpen(false)} />
-        <button
-          onClick={() => logout()}
-          className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-xs font-medium text-foreground/70 hover:text-foreground hover:bg-muted transition-all"
-        >
-          <LogOut size={14} />
-          <span>Sign Out</span>
-        </button>
-        <p className="text-muted-foreground text-[11px] text-center tracking-widest uppercase">
-          {/* Reads ?yearId= from the URL so the footer follows whatever year the
-              topbar selector is currently showing on this V2 page. */}
-          <Suspense fallback={<>Rotary Year , </>}>
-            <DashboardYearFooterText />
-          </Suspense>
-        </p>
-      </div>
-    </div>
+  const sidebar = (
+    <Sidebar
+      brand={BRAND}
+      identityName={identityName}
+      identityRole={IDENTITY_ROLE}
+      initials={initials}
+      nav={visibleNav}
+      pathname={pathname}
+      activeHref={activeNavHref}
+      footerText={<Suspense fallback={<>Rotary Year , </>}><DashboardYearFooterText /></Suspense>}
+      switcherKind="club-admin"
+      onNavigate={closeMenu}
+      onSignOut={() => logout()}
+    />
   );
 
   return (
-    <div
-      className="fixed inset-0 z-[60] flex h-screen overflow-hidden bg-[#F7F9FC]"
-      style={{ top: 0, left: 0 }}
-    >
-      {/* Desktop sidebar */}
-      <aside
-        className="hidden lg:flex flex-col w-[264px] flex-shrink-0 border-r border-[color:var(--row-line)]"
-        style={{ background: SIDEBAR_BG }}
-      >
-        {sidebarContent}
-      </aside>
-
-      {/* Mobile overlay */}
-      {open && (
-        <div className="lg:hidden fixed inset-0 z-50 flex">
-          <div
-            className="absolute inset-0 bg-[#1B2C42]/50"
-            onClick={() => setOpen(false)}
-          />
-          <aside
-            className="relative flex flex-col w-[264px] z-10 border-r border-[color:var(--row-line)]"
-            style={{ background: SIDEBAR_BG }}
-          >
-            <button
-              className="absolute top-3 right-3 text-slate-400 hover:text-foreground"
-              onClick={() => setOpen(false)}
-            >
-              <X size={20} />
-            </button>
-            {sidebarContent}
-          </aside>
-        </div>
-      )}
-
-      {/* Main */}
-      <div className="flex-1 flex flex-col overflow-hidden">
-        {/* Support helpline strip — pinned above the header on every Club Admin page. */}
-        <HelplineBar />
-
-        <header
-          className="bg-[#F7F9FC] border-b border-[color:var(--row-line)] px-4 md:px-8 h-16 flex items-center justify-between flex-shrink-0 gap-3"
-        >
-          <div className="flex items-center gap-3 min-w-0">
-            <button
-              className="lg:hidden flex h-11 w-11 items-center justify-center rounded-full text-[#1B2C42] hover:bg-[#EDF4FB]" aria-label="Open menu"
-              onClick={() => setOpen(true)}
-            >
-              <Menu size={20} />
-            </button>
-            <div className="min-w-0">
-              <p className="font-display text-[20px] font-semibold leading-tight tracking-[-0.02em] text-[#1B2C42] truncate">
-                {pageTitle}
-              </p>
-              {pageSubtitle && (
-                <p className="text-[13px] text-[#64748B] mt-0.5 truncate">{pageSubtitle}</p>
-              )}
-            </div>
-          </div>
-          <div className="flex items-center gap-3">
-            {/* Global year selector — same component the /club-admin-dashboard
-                topbar uses, so a year change here writes ?yearId= to the URL
-                and every listing on this V2 page refetches through it. */}
-            {!hideYearSelector && (
-              <Suspense fallback={null}>
-                <DashboardYearSelector />
-              </Suspense>
-            )}
-            {/* Wave 9C: current-club indicator / quick switcher. Shown only when
-                the user actually has a club-scoped Admin assignment (clubAdminClubs).
-                SuperAdmins drilling into a club fall back to selectedClub via
-                accessibleClubs single-item branch. */}
-            {selectedClub && clubAdminClubs.length > 0 && !clubAdminClubs.some((c) => c.id === selectedClub.id) ? (
-              // Club opened from outside the user's own Club Admin clubs (e.g. SuperAdmin global
-              // search). ScopePicker would fall back to their first own club — show the real one.
-              <span className="hidden sm:flex items-center gap-1.5 text-sm text-slate-500 max-w-[320px] truncate">
-                <span className="text-[10px] uppercase tracking-wide text-slate-400">Club</span>
-                <span className="font-bold text-base text-blue-700 truncate">{selectedClub.name}</span>
-              </span>
-            ) : clubAdminClubs.length > 0 ? (
-              <ScopePicker
-                label="Club"
-                items={clubAdminClubs}
-                selectedId={selectedClub?.id ?? null}
-                onSelect={(id) => selectScope({ clubId: id })}
-              />
+    <ShellFrame
+      sidebar={sidebar}
+      open={open}
+      onClose={closeMenu}
+      title={pageTitle}
+      subtitle={pageSubtitle}
+      header={
+        <TopBar
+          onMenu={() => setOpen(true)}
+          left={
+            // A club opened from outside the user's own clubs (SuperAdmin global search) is shown read-only:
+            // the picker would fall back to their first own club.
+            clubAdminClubs.length > 0 && (!selectedClub || clubAdminClubs.some((c) => c.id === selectedClub.id)) ? (
+              <ScopePicker label="Club" items={clubAdminClubs} selectedId={selectedClub?.id ?? null} onSelect={(id) => selectScope({ clubId: id })} />
             ) : selectedClub ? (
-              <span className="hidden sm:block text-xs text-slate-500 truncate max-w-[260px]">
-                {selectedClub.name}
-              </span>
-            ) : null}
-          </div>
-        </header>
-
-        <main className="flex-1 overflow-y-auto px-4 py-6 md:px-8 md:py-8">
+              <ScopeLabel label="Club" name={selectedClub.name} />
+            ) : null
+          }
+          right={
+            <>
+              <ClubTopbarStatus clubId={selectedClub?.id ?? null} />
+              {/* Writes ?yearId= to the URL; every listing on the page refetches through it. */}
+              {!hideYearSelector && (
+                <Suspense fallback={null}>
+                  <DashboardYearSelector />
+                </Suspense>
+              )}
+              <TopBarAccount />
+            </>
+          }
+        />
+      }
+    >
           {currentIsComingSoon && currentItem ? (
             <ComingSoonStub
               moduleName={currentItem.label}
@@ -382,8 +217,6 @@ function ClubAdminShellInner({
           ) : (
             children
           )}
-        </main>
-      </div>
-    </div>
+    </ShellFrame>
   );
 }

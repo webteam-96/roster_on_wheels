@@ -10,13 +10,14 @@
  * v2 reads ONLY `?returnTo=` — never any other param name.
  */
 
+import { IconButton } from "@/components/ui/icon-button";
+import { Input } from "@/components/ui/input";
+import { NativeSelect } from "@/components/ui/native-select";
+import { Card } from "@/components/ui/card";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import {
-  Calendar, CheckCircle2, Clock, Loader2, Search, Plus,
-  Trash2, ArrowLeft, AlertTriangle, X, MoreHorizontal, Eye, Pencil,
-} from "@/components/icons";
+import { Calendar, CheckCircle2, Clock, Search, Plus, Trash2, AlertTriangle, X, MoreHorizontal, Eye, Pencil } from "@/components/icons";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
@@ -41,7 +42,9 @@ import { useSyncClubIdFromUrl } from "@/hooks/useSyncClubIdFromUrl";
 import { appLocale } from "@/lib/appFormat";
 import { useFormat } from "@/hooks/useFormat";
 import { useEventZone } from "@/hooks/useEventZone";
-import { SkeletonRows } from "@/components/row/AppKit";
+import { PageHeader, SkeletonRows } from "@/components/row/AppKit";
+import { ClearButton } from "@/components/ui/text-buttons"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 const STATUS_OPTIONS = [
   { value: "all",         label: "All" },
   { value: "Published",   label: "Published" },
@@ -217,23 +220,7 @@ export default function UpcomingEventsV2Page() {
       >
       <div className="space-y-5">
         {/* Header */}
-        <div className="flex items-start justify-between gap-3">
-          <div className="flex items-start gap-2">
-            <Link
-              href={parentReturnTo ? decodeURIComponent(parentReturnTo) : `/clubs/${clubId}/dashboard`}
-              className="mt-0.5 inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50"
-              aria-label="Back"
-            >
-              <ArrowLeft size={15} />
-            </Link>
-            <div>
-              <h1 className="text-lg font-semibold text-slate-800">Upcoming Events</h1>
-              <p className="text-xs text-slate-500 mt-0.5">
-                {clubName || "–"} · Manage upcoming events
-              </p>
-            </div>
-          </div>
-        </div>
+        <PageHeader title="Upcoming Events" description={<>{clubName || "–"} · Manage upcoming events</>} back={parentReturnTo ? decodeURIComponent(parentReturnTo) : `/clubs/${clubId}/dashboard`} />
 
         {/* KPI row */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -243,49 +230,45 @@ export default function UpcomingEventsV2Page() {
         </div>
 
         {/* Table card */}
-        <div className="bg-card rounded-2xl border border-slate-200 overflow-hidden">
+        <Card className="overflow-hidden">
           <div className="px-5 py-3 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div>
-              <h3 className="text-sm font-semibold text-slate-800">Event Records</h3>
+              <h3 className="row-h3">Event Records</h3>
               <p className="text-xs text-slate-500 mt-0.5">
                 Manage upcoming events · {totalCount} total
               </p>
             </div>
             <div className="flex flex-wrap items-center gap-2">
-              <select
+              <NativeSelect
                 value={statusFilter}
                 onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
-                className="px-2 h-10 py-0 text-sm border border-slate-200 rounded-[12px] bg-card focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                className="w-auto"
               >
                 {STATUS_OPTIONS.map((s) => (
                   <option key={s.value} value={s.value}>{s.label}</option>
                 ))}
-              </select>
+              </NativeSelect>
               <div className="relative w-full sm:w-auto">
                 <Search size={14} className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-400" />
-                <input
+                <Input
                   type="text"
                   placeholder="Search title…"
                   value={searchInput}
                   onChange={(e) => setSearchInput(e.target.value)}
                   onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); commitSearch(); } }}
-                  className="pl-7 pr-7 h-10 py-0 text-sm border border-slate-200 rounded-[12px] w-full sm:w-48 focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                  className="pl-7 pr-7 sm:w-48"
                 />
                 {searchInput && (
-                  <button
+                  <ClearButton
                     type="button"
                     onClick={clearSearch}
-                    aria-label="Clear search"
-                    className="absolute right-1.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700"
-                  >
-                    <X size={13} />
-                  </button>
+                    aria-label="Clear search" />
                 )}
               </div>
               {canManage && (
                 <Link
                   href={addUrl}
-                  className="inline-flex items-center gap-1.5 text-xs font-semibold px-4 h-10 rounded-full bg-[#17458F] text-white hover:bg-[#17458F]"
+                  className="row-btn row-btn-primary"
                 >
                   <Plus size={13} /> Add Event
                 </Link>
@@ -298,28 +281,28 @@ export default function UpcomingEventsV2Page() {
             {loading ? (
               <SkeletonRows />
             ) : (
-              <table className="w-full min-w-[640px] md:min-w-full text-sm">
-                <thead className="bg-[#EDF4FB] text-[13px] text-[#64748B]">
-                  <tr>
-                    <th className="px-3 py-2.5 text-left w-10">Sr</th>
-                    <th className="px-3 py-2.5 text-left">Title</th>
-                    <th className="px-3 py-2.5 text-left">Status</th>
-                    <th className="px-3 py-2.5 text-left">Event Date</th>
-                    <th className="px-3 py-2.5 text-left">Publish Date</th>
-                    <th className="px-3 py-2.5 text-left">Expiry Date</th>
-                    {canManage && <th className="px-3 py-2.5 text-right w-12"></th>}
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
+              <Table className="min-w-[640px] md:min-w-full">
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="text-left w-10">Sr</TableHead>
+                    <TableHead className="text-left">Title</TableHead>
+                    <TableHead className="text-left">Status</TableHead>
+                    <TableHead className="text-left">Event Date</TableHead>
+                    <TableHead className="text-left">Publish Date</TableHead>
+                    <TableHead className="text-left">Expiry Date</TableHead>
+                    {canManage && <TableHead className="text-right w-12"></TableHead>}
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
                   {events.map((e, i) => {
                     const detailHref = `/clubs/${clubId}/upcoming-events/${e.id}`;
                     const imgSrc = e.imagePath
                       ? `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}${e.imagePath}`
                       : null;
                     return (
-                      <tr key={e.id} className="hover:bg-blue-50/40">
-                        <td className="px-3 py-2 text-slate-500">{(page - 1) * pageSize + i + 1}</td>
-                        <td className="px-3 py-2 font-medium text-slate-800">
+                      <TableRow key={e.id}>
+                        <TableCell>{(page - 1) * pageSize + i + 1}</TableCell>
+                        <TableCell className="font-medium">
                           <div
                             role="link"
                             tabIndex={0}
@@ -337,27 +320,26 @@ export default function UpcomingEventsV2Page() {
                             )}
                             <span>{e.title || "–"}</span>
                           </div>
-                        </td>
-                        <td className="px-3 py-2">
-                          <span className={`inline-flex items-center text-xs font-medium px-2 py-0.5 rounded-full border ${statusChipStyle(e.status)}`}>
+                        </TableCell>
+                        <TableCell>
+                          <span className={`inline-flex items-center text-xs font-medium px-2 py-0.5 rounded border ${statusChipStyle(e.status)}`}>
                             {e.status || "–"}
                           </span>
                           <SendStatusBadges item={e} />
-                        </td>
-                        <td className="px-3 py-2 text-slate-600 whitespace-nowrap">{e.eventDate ? fmt.eventDateTime(e.eventDate, zone) : "-"}</td>
-                        <td className="px-3 py-2 text-slate-600 whitespace-nowrap">{formatDateTime(e.publishDate)}</td>
-                        <td className="px-3 py-2 text-slate-600 whitespace-nowrap">{formatDateTime(e.expiryDate)}</td>
+                        </TableCell>
+                        <TableCell className="whitespace-nowrap">{e.eventDate ? fmt.eventDateTime(e.eventDate, zone) : "-"}</TableCell>
+                        <TableCell className="whitespace-nowrap">{formatDateTime(e.publishDate)}</TableCell>
+                        <TableCell className="whitespace-nowrap">{formatDateTime(e.expiryDate)}</TableCell>
                         {canManage && (
-                          <td className="px-3 py-2 text-right">
+                          <TableCell className="text-right">
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild>
-                                <button
+                                <IconButton
                                   type="button"
-                                  className="inline-flex items-center justify-center w-7 h-7 rounded text-slate-500 hover:text-slate-800 hover:bg-slate-100"
-                                  aria-label="Open actions menu"
+                                   aria-label="Open actions menu"
                                 >
                                   <MoreHorizontal size={14} />
-                                </button>
+                                </IconButton>
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end">
                                 <DropdownMenuItem onClick={() => router.push(detailHref)}>
@@ -380,29 +362,29 @@ export default function UpcomingEventsV2Page() {
                                 </DropdownMenuItem>
                               </DropdownMenuContent>
                             </DropdownMenu>
-                          </td>
+                          </TableCell>
                         )}
-                      </tr>
+                      </TableRow>
                     );
                   })}
                   {events.length === 0 && (
-                    <tr>
-                      <td colSpan={canManage ? 8 : 7} className="px-4 py-10 text-center text-slate-400">
+                    <TableRow>
+                      <TableCell colSpan={canManage ? 8 : 7} className="py-10 text-center text-muted-foreground">
                         {search || statusFilter !== "all"
                           ? "No events match your filters."
                           : "No events yet."}
-                      </td>
-                    </tr>
+                      </TableCell>
+                    </TableRow>
                   )}
-                </tbody>
-              </table>
+                </TableBody>
+              </Table>
             )}
           </div>
 
           <div className="px-5 py-2.5 border-t border-slate-100 text-xs text-slate-500">
             {totalCount} event{totalCount === 1 ? "" : "s"}
           </div>
-        </div>
+        </Card>
 
         {!loading && totalPages > 1 && (
           <Pagination

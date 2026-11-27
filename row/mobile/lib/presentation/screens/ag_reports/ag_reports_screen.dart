@@ -12,6 +12,8 @@ import 'ag_report_configs.dart';
 import 'ag_report_xlsx.dart';
 import 'package:rotary_flutter_app/core/theme/app_fonts.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/roster_wheel.dart';
+import 'package:rotary_flutter_app/presentation/widgets/common/loading_widget.dart';
 
 class _MyClub {
   final int clubId;
@@ -262,7 +264,7 @@ class _AgReportsScreenState extends State<AgReportsScreen> {
         body: denied,
       );
     }
-    final body = RefreshIndicator(
+    final body = RowRefresh(
       color: AppColors.primary,
       onRefresh: _load,
       child: _buildBody(),
@@ -279,7 +281,7 @@ class _AgReportsScreenState extends State<AgReportsScreen> {
 
   Widget _buildBody() {
     if (_loading) {
-      return const Center(child: const CircularProgressIndicator(color: AppColors.primary));
+      return const LoadingWidget();
     }
     if (_error != null) {
       return ListView(

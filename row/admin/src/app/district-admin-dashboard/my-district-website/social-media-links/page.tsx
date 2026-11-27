@@ -1,4 +1,5 @@
 "use client";
+import { LinkButton } from "@/components/ui/text-buttons";
 
 /**
  * V2 — Social Media Links page under the District Admin dashboard shell.
@@ -27,6 +28,7 @@
  * behaviour are preserved 1:1 with V1.
  */
 
+import { Card } from "@/components/ui/card";
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { SOCIAL_PLATFORMS } from "@/types/socialLink";
@@ -62,14 +64,11 @@ import {
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
 import AlertModal from "@/components/AlertModal";
-import {
-  ArrowLeft, Plus, Pencil, Trash2, MoreHorizontal,
-  AlertTriangle, Eye, EyeOff, ExternalLink, Share2, GripVertical,
-} from "@/components/icons";
+import { Plus, Pencil, Trash2, MoreHorizontal, AlertTriangle, Eye, EyeOff, ExternalLink, Share2, GripVertical } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import SearchBox from "@/components/SearchBox";
-import { ListPageSkeleton } from "@/components/row/AppKit";
+import { PageHeader, ListPageSkeleton } from "@/components/row/AppKit";
 
 function getPlatformLabel(value: string): string {
   return SOCIAL_PLATFORMS.find((p) => p.value === value)?.label || value;
@@ -288,33 +287,19 @@ export default function DistrictAdminSocialLinksPage() {
 
       <div className="space-y-6">
         {/* Header */}
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-3">
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={goBack}
-              className="border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-slate-800"
-              aria-label="Back"
-            >
-              <ArrowLeft className="h-4 w-4" />
-            </Button>
-            <div>
-              <h2 className="text-2xl font-bold tracking-tight text-ink">
-                {districtNumber ? `District ${districtNumber} - Social Media Links` : "Social Media Links"}
-              </h2>
-              <p className="text-slate-500 text-sm mt-0.5">Manage district social media links</p>
-            </div>
-          </div>
-          {canManage && (
+        <PageHeader
+          title={districtNumber ? `District ${districtNumber} - Social Media Links` : "Social Media Links"}
+          description="Manage district social media links"
+          back={() => goBack()}
+          actions={canManage && (
             <Button
               onClick={openAddDialog}
-              className="bg-azure hover:bg-mint-ink text-white"
+             
             >
               <Plus className="mr-2 h-4 w-4" />Add Link
             </Button>
           )}
-        </div>
+        />
 
         {loading && (
           <div className="flex items-center justify-center py-20">
@@ -325,8 +310,7 @@ export default function DistrictAdminSocialLinksPage() {
         {!loading && !loadingLinks && links.length > 0 && (
           <div className="flex items-center gap-4 flex-wrap">
             <Badge
-              variant="outline"
-              className="border-slate-200 bg-slate-50 text-slate-700 font-medium"
+              variant="outline" className="border-slate-200 bg-slate-50 text-slate-700"
             >
               {links.length} Link{links.length !== 1 ? "s" : ""}
             </Badge>
@@ -340,15 +324,15 @@ export default function DistrictAdminSocialLinksPage() {
         )}
 
         {!loading && !loadingLinks && links.length === 0 && (
-          <div className="flex flex-col items-center justify-center py-20 text-center rounded-2xl border border-slate-200 bg-card shadow-sm">
+          <Card className="flex flex-col items-center justify-center py-20 text-center">
             <Share2 className="h-12 w-12 text-slate-400 mb-4" />
-            <h3 className="text-lg font-semibold text-slate-800">No social media links yet</h3>
+            <h3 className="row-h2">No social media links yet</h3>
             <p className="text-slate-500 mt-2 text-sm">
               {canManage
                 ? 'Click "Add Link" to add your first social media link.'
                 : "No social media links have been added yet."}
             </p>
-          </div>
+          </Card>
         )}
 
         {!loading && !loadingLinks && links.length > 0 && (
@@ -367,9 +351,9 @@ export default function DistrictAdminSocialLinksPage() {
                 {/* ── Mobile card list ─────────────────────────────────── */}
                 <div className="block sm:hidden space-y-3">
                   {filteredLinks.map((link, idx) => (
-                    <div
+                    <Card
                       key={link.id}
-                      className="rounded-2xl border border-slate-200 shadow-sm bg-card"
+                      
                     >
                       <div className="p-4">
                         <div className="flex items-center gap-3">
@@ -401,9 +385,10 @@ export default function DistrictAdminSocialLinksPage() {
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild>
                                 <Button
+                                  aria-label="More actions"
                                   variant="ghost"
                                   size="icon"
-                                  className="h-8 w-8 text-slate-500 hover:text-slate-800 hover:bg-slate-100"
+                                  className="row-btn-sm"
                                 >
                                   <MoreHorizontal className="h-4 w-4" />
                                 </Button>
@@ -433,12 +418,12 @@ export default function DistrictAdminSocialLinksPage() {
                           )}
                         </div>
                       </div>
-                    </div>
+                    </Card>
                   ))}
                 </div>
 
                 {/* ── Desktop table ────────────────────────────────────── */}
-                <div className="hidden sm:block rounded-2xl border border-slate-200 shadow-sm overflow-hidden bg-card">
+                <Card className="hidden sm:block overflow-hidden">
                   <Table>
                     <TableHeader>
                       <TableRow
@@ -446,12 +431,12 @@ export default function DistrictAdminSocialLinksPage() {
                         style={{ backgroundColor: "#17458f" }}
                       >
                         <TableHead className="w-12/90"></TableHead>
-                        <TableHead className="text-xs font-semibold uppercase tracking-wide">Platform</TableHead>
-                        <TableHead className="text-xs font-semibold uppercase tracking-wide">Link URL</TableHead>
-                        <TableHead className="w-24 text-xs font-semibold uppercase tracking-wide">Status</TableHead>
+                        <TableHead>Platform</TableHead>
+                        <TableHead>Link URL</TableHead>
+                        <TableHead className="w-24">Status</TableHead>
                         {canManage && <TableHead className="w-12/90"></TableHead>}
                         {canManage && (
-                          <TableHead className="w-20 text-xs font-semibold uppercase tracking-wide text-center">
+                          <TableHead className="w-20 text-center">
                             Sorting
                           </TableHead>
                         )}
@@ -468,12 +453,7 @@ export default function DistrictAdminSocialLinksPage() {
                             {getPlatformLabel(link.platform)}
                           </TableCell>
                           <TableCell>
-                            <button
-                              onClick={() => handleOpenLink(link.linkUrl)}
-                              className="text-ink hover:underline text-sm truncate block max-w-xs text-left"
-                            >
-                              {link.linkUrl}
-                            </button>
+                            <LinkButton onClick={() => handleOpenLink(link.linkUrl)} className="truncate block max-w-xs">{link.linkUrl}</LinkButton>
                           </TableCell>
                           <TableCell>
                             <Badge
@@ -492,9 +472,10 @@ export default function DistrictAdminSocialLinksPage() {
                               <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
                                   <Button
+                                    aria-label="More actions"
                                     variant="ghost"
                                     size="icon"
-                                    className="h-8 w-8 text-slate-500 hover:text-slate-800 hover:bg-slate-100"
+                                    className="row-btn-sm"
                                   >
                                     <MoreHorizontal className="h-4 w-4" />
                                   </Button>
@@ -540,7 +521,7 @@ export default function DistrictAdminSocialLinksPage() {
                       ))}
                     </TableBody>
                   </Table>
-                </div>
+                </Card>
               </>
             )}
           </>
@@ -563,7 +544,7 @@ export default function DistrictAdminSocialLinksPage() {
               <div className="space-y-2">
                 <Label className="text-slate-700 text-sm font-medium">Social Media Platform *</Label>
                 <Select value={formPlatform} onValueChange={setFormPlatform}>
-                  <SelectTrigger className="border-slate-200 bg-card focus:border-azure focus:ring-azure/20">
+                  <SelectTrigger>
                     <SelectValue placeholder="Select a platform" />
                   </SelectTrigger>
                   <SelectContent>
@@ -576,7 +557,7 @@ export default function DistrictAdminSocialLinksPage() {
               <div className="space-y-2">
                 <Label className="text-slate-700 text-sm font-medium">Link URL *</Label>
                 <Input
-                  className="border-slate-200 bg-card focus:border-azure focus:ring-azure/20"
+                 
                   placeholder="https://..."
                   value={formLinkUrl}
                   onChange={(e) => setFormLinkUrl(e.target.value)}
@@ -585,7 +566,7 @@ export default function DistrictAdminSocialLinksPage() {
               <div className="space-y-2">
                 <Label className="text-slate-700 text-sm font-medium">Status</Label>
                 <Select value={formIsActive} onValueChange={setFormIsActive}>
-                  <SelectTrigger className="border-slate-200 bg-card focus:border-azure focus:ring-azure/20">
+                  <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -600,14 +581,14 @@ export default function DistrictAdminSocialLinksPage() {
                 variant="outline"
                 onClick={() => setDialogOpen(false)}
                 disabled={saving}
-                className="border-slate-200 text-slate-700 hover:bg-slate-50"
+               
               >
                 Cancel
               </Button>
               <Button
                 onClick={handleSave}
                 disabled={saving || !formPlatform || !formLinkUrl.trim()}
-                className="bg-azure hover:bg-mint-ink text-white"
+               
               >
                 {saving ? "Saving..." : editingLink ? "Update" : "Add"}
               </Button>

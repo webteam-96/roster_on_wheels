@@ -19,7 +19,8 @@ export async function reportPdfBase64(el: HTMLElement, footerLeft: string): Prom
 
 async function buildReportPdf(el: HTMLElement, footerLeft: string): Promise<jsPDF> {
   const scale = 2;
-  const canvas = await html2canvas(el, { scale, backgroundColor: "#ffffff", useCORS: true, logging: false, windowWidth: el.scrollWidth });
+  const canvas = await html2canvas(el, { scale, backgroundColor: "#ffffff", useCORS: true, logging: false, windowWidth: el.scrollWidth,
+    onclone: (copy) => copy.documentElement.classList.add("row-paper") }); // white and still, see globals.css
 
   const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
   const pageW = 210, pageH = 297, footerMm = 10;

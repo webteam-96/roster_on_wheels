@@ -1,5 +1,6 @@
 "use client";
 
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table"
 import { useMemo, useState } from "react";
 import { Search } from "@/components/icons";
 import {
@@ -61,26 +62,26 @@ export default function ClubAdminMembershipPage() {
       {data.recentJoiners.length > 0 && (
         <Panel title="Recent Joiners" subtitle="Joined this RY">
           <div className={`-mx-6 ${t.wrap}`}>
-            <table className={t.table}>
-              <thead className={t.head}>
-                <tr>
-                  <th className={t.th}>Member</th>
-                  <th className={t.th}>Email</th>
-                  <th className={t.th}>Mobile</th>
-                  <th className={t.th}>Joined</th>
-                </tr>
-              </thead>
-              <tbody className={t.body}>
+            <Table className={t.table}>
+              <TableHeader className={t.head}>
+                <TableRow>
+                  <TableHead className={t.th}>Member</TableHead>
+                  <TableHead className={t.th}>Email</TableHead>
+                  <TableHead className={t.th}>Mobile</TableHead>
+                  <TableHead className={t.th}>Joined</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody className={t.body}>
                 {data.recentJoiners.map((m) => (
-                  <tr key={m.memberId} className={t.tr}>
-                    <td className={`${t.td} font-semibold`}>{m.name}</td>
-                    <td className={t.tdMuted}>{m.email ?? "–"}</td>
-                    <td className={t.tdMuted}>{m.mobile ?? "–"}</td>
-                    <td className={t.tdMuted}>{fmtDate(m.joinedDate)}</td>
-                  </tr>
+                  <TableRow key={m.memberId} className={t.tr}>
+                    <TableCell className={`${t.td} font-semibold`}>{m.name}</TableCell>
+                    <TableCell className={t.tdMuted}>{m.email ?? "–"}</TableCell>
+                    <TableCell className={t.tdMuted}>{m.mobile ?? "–"}</TableCell>
+                    <TableCell className={t.tdMuted}>{fmtDate(m.joinedDate)}</TableCell>
+                  </TableRow>
                 ))}
-              </tbody>
-            </table>
+              </TableBody>
+            </Table>
           </div>
         </Panel>
       )}
@@ -94,42 +95,42 @@ export default function ClubAdminMembershipPage() {
       >
         {/* Desktop and tablet: table. Phone: one card per member (design.md 8.3 ListPage). */}
         <div className={`-mx-6 hidden max-h-[600px] overflow-y-auto md:block ${t.wrap}`}>
-          <table className={t.table}>
-            <thead className={`${t.head} sticky top-0`}>
-              <tr>
-                <th className={t.th}>Name</th>
-                <th className={t.th}>Rotary ID</th>
-                <th className={t.th}>Email</th>
-                <th className={t.th}>Mobile</th>
-                <th className={t.th}>Gender</th>
-                <th className={t.th}>Joined</th>
-              </tr>
-            </thead>
-            <tbody className={t.body}>
+          <Table bare className={t.table}>
+            <TableHeader className={`${t.head} sticky top-0`}>
+              <TableRow>
+                <TableHead className={t.th}>Name</TableHead>
+                <TableHead className={t.th}>Rotary ID</TableHead>
+                <TableHead className={t.th}>Email</TableHead>
+                <TableHead className={t.th}>Mobile</TableHead>
+                <TableHead className={t.th}>Gender</TableHead>
+                <TableHead className={t.th}>Joined</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody className={t.body}>
               {filtered.map((m) => (
-                <tr key={m.memberId} className={t.tr}>
-                  <td className={`${t.td} font-semibold`}>{m.name}</td>
-                  <td className={t.tdMuted}>{m.rotaryId ?? "–"}</td>
-                  <td className={t.tdMuted}>{m.email ?? "–"}</td>
-                  <td className={t.tdMuted}>{m.mobile ?? "–"}</td>
-                  <td className={t.tdMuted}>{m.gender ?? "–"}</td>
-                  <td className={t.tdMuted}>{fmtDate(m.joinedDate)}</td>
-                </tr>
+                <TableRow key={m.memberId} className={t.tr}>
+                  <TableCell className={`${t.td} font-semibold`}>{m.name}</TableCell>
+                  <TableCell className={t.tdMuted}>{m.rotaryId ?? "–"}</TableCell>
+                  <TableCell className={t.tdMuted}>{m.email ?? "–"}</TableCell>
+                  <TableCell className={t.tdMuted}>{m.mobile ?? "–"}</TableCell>
+                  <TableCell className={t.tdMuted}>{m.gender ?? "–"}</TableCell>
+                  <TableCell className={t.tdMuted}>{fmtDate(m.joinedDate)}</TableCell>
+                </TableRow>
               ))}
-            </tbody>
-          </table>
+            </TableBody>
+          </Table>
         </div>
         <ul className="divide-y divide-[color:var(--row-line)] md:hidden">
           {filtered.map((m) => (
             <li key={m.memberId} className="py-3">
               <p className="text-[16px] font-semibold text-[#1B2C42]">{m.name}</p>
-              <p className="mt-0.5 text-[14px] text-[#64748B]">{m.email ?? "–"}</p>
-              <p className="text-[14px] text-[#64748B]">{m.mobile ?? "–"} · Joined {fmtDate(m.joinedDate)}</p>
+              <p className="mt-0.5 text-[14px] text-muted-foreground">{m.email ?? "–"}</p>
+              <p className="text-[14px] text-muted-foreground">{m.mobile ?? "–"} · Joined {fmtDate(m.joinedDate)}</p>
             </li>
           ))}
         </ul>
         {filtered.length === 0 && (
-          <p className="py-10 text-center text-[15px] text-[#64748B]">No members match your search.</p>
+          <p className="py-10 text-center text-[15px] text-muted-foreground">No members match your search.</p>
         )}
       </Panel>
     </div>

@@ -489,14 +489,9 @@ class ApiClient {
   /// Parse the server body for a top-level message string (title/message/error).
   String? _extractBodyMessage(dynamic decoded) {
     if (decoded is! Map<String, dynamic>) return null;
-    var msg = decoded['message'] as String? ??
+    return decoded['message'] as String? ??
         decoded['error'] as String? ??
         decoded['title'] as String?;
-    // Customize specific error messages to be friendlier.
-    if (msg == 'No rotarian found with this mobile/email.') {
-      msg = 'No rotarian found with this mobile number';
-    }
-    return msg;
   }
 
   /// ASP.NET Core returns validation failures as:

@@ -1,5 +1,10 @@
 "use client";
 
+import { MenuItemButton } from "@/components/ui/text-buttons"
+import { IconButton } from "@/components/ui/icon-button";
+import { NativeSelect } from "@/components/ui/native-select";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { useCallback, useEffect, useState } from "react";
 import { Check, Plus, Search, Trash2, X } from "@/components/icons";
 import { ErrorState, Panel, SkeletonRows } from "@/components/row/AppKit";
@@ -107,53 +112,53 @@ export default function OfficerProgressionPanel({ scope, scopeId, canManage }: P
       title="Officer progression"
       subtitle={`Name the ${nomineeLabel}. The following years are suggested for you to confirm.`}
       headerRight={canManage && !adding ? (
-        <button type="button" onClick={() => setAdding(true)}
-          className="inline-flex h-10 shrink-0 items-center gap-1.5 rounded-full bg-blue-700 px-4 text-xs font-semibold text-white hover:bg-blue-800">
+        <Button type="button" onClick={() => setAdding(true)}
+          >
           <Plus size={13} /> Name {nomineeLabel}
-        </button>
+        </Button>
       ) : undefined}
     >
-      {notice && <p role="status" className="mb-3 rounded-[12px] border border-emerald-200 bg-emerald-50 px-4 py-2 text-[13px] text-emerald-800">{notice}</p>}
-      {error && chains !== null && <p role="alert" className="mb-3 rounded-[12px] border border-red-200 bg-red-50 px-4 py-2 text-[13px] text-red-800">{error}</p>}
+      {notice && <p role="status" className="mb-3 rounded-md border border-emerald-200 bg-emerald-50 px-4 py-2 text-[13px] text-emerald-800">{notice}</p>}
+      {error && chains !== null && <p role="alert" className="mb-3 rounded-md border border-red-200 bg-red-50 px-4 py-2 text-[13px] text-red-800">{error}</p>}
 
       {adding && (
-        <div className="mb-4 rounded-[12px] border border-slate-200 p-4">
+        <div className="mb-4 rounded-md border border-slate-200 p-4">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
             <label className="block flex-1 text-[13px] text-slate-600">
               Member
               <span className="relative mt-1 block">
                 <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
-                <input type="search" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search by name"
-                  className="h-10 w-full rounded-[12px] border border-slate-200 pl-8 pr-3 text-sm" />
+                <Input type="search" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search by name"
+                  className="pl-8 pr-3" />
               </span>
             </label>
             <label className="block text-[13px] text-slate-600">
               Nominee in Rotary year
-              <select value={yearChoice} onChange={(e) => setNomineeYear(parseInt(e.target.value, 10))}
-                className="mt-1 block h-10 rounded-[12px] border border-slate-200 px-3 text-sm">
+              <NativeSelect value={yearChoice} onChange={(e) => setNomineeYear(parseInt(e.target.value, 10))}
+                className="mt-1 block w-auto">
                 {yearOptions.map((y) => <option key={y} value={y}>{`${y}-${String((y + 1) % 100).padStart(2, "0")}`}</option>)}
-              </select>
+              </NativeSelect>
             </label>
           </div>
-          <ul className="mt-3 max-h-48 divide-y divide-slate-100 overflow-y-auto rounded-[12px] border border-slate-100">
+          <ul className="mt-3 max-h-48 divide-y divide-slate-100 overflow-y-auto rounded-md border border-slate-100">
             {candidates.length === 0 && <li className="px-3 py-2 text-[13px] text-slate-500">No members match.</li>}
             {candidates.map((c) => (
               <li key={c.memberId}>
-                <button type="button" onClick={() => setMemberId(c.memberId)} aria-pressed={memberId === c.memberId}
-                  className={`flex w-full items-center justify-between px-3 py-2 text-left text-sm ${memberId === c.memberId ? "bg-blue-50 font-semibold text-blue-800" : "hover:bg-slate-50"}`}>
+                <MenuItemButton selected={memberId === c.memberId} className="justify-between" type="button" onClick={() => setMemberId(c.memberId)} aria-pressed={memberId === c.memberId}
+                 >
                   <span>{c.memberName}</span>
                   {scope === "district" && c.clubName && <span className="text-xs text-slate-500">{c.clubName}</span>}
-                </button>
+                </MenuItemButton>
               </li>
             ))}
           </ul>
           <div className="mt-3 flex gap-2">
-            <button type="button" disabled={!memberId || busy === "create"} onClick={handleCreate}
-              className="h-10 rounded-full bg-blue-700 px-4 text-xs font-semibold text-white disabled:opacity-50">
+            <Button type="button" disabled={!memberId || busy === "create"} onClick={handleCreate}
+              >
               {busy === "create" ? "Saving" : "Save nominee"}
-            </button>
-            <button type="button" onClick={() => { setAdding(false); setMemberId(null); }}
-              className="h-10 rounded-full border border-slate-200 px-4 text-xs font-medium text-slate-700">Cancel</button>
+            </Button>
+            <Button type="button" onClick={() => { setAdding(false); setMemberId(null); }}
+              variant="outline">Cancel</Button>
           </div>
         </div>
       )}
@@ -167,16 +172,16 @@ export default function OfficerProgressionPanel({ scope, scopeId, canManage }: P
       )}
 
       {chains?.map((c) => (
-        <div key={c.progressionId} className="mb-4 rounded-[12px] border border-slate-200 last:mb-0">
+        <div key={c.progressionId} className="mb-4 rounded-md border border-slate-200 last:mb-0">
           <div className="flex items-center justify-between gap-2 border-b border-slate-100 px-4 py-2.5">
             <p className="text-sm font-semibold text-slate-800">{c.memberName} <span className="font-normal text-slate-500">· {nomineeLabel} {c.nomineeYearLabel}</span></p>
             {canManage && (
-              <button type="button" aria-label={`Remove the chain for ${c.memberName}`} title="Remove chain"
+              <IconButton type="button" aria-label={`Remove the chain for ${c.memberName}`} title="Remove chain"
                 disabled={busy !== null}
                 onClick={() => { if (window.confirm(`Remove the chain for ${c.memberName}? Offices already confirmed stay where they are.`)) void run(`del-${c.progressionId}`, () => deleteOfficerProgression(c.progressionId)); }}
-                className="inline-flex h-7 w-7 items-center justify-center rounded text-slate-500 hover:bg-red-50 hover:text-red-700 disabled:opacity-50">
+                className="hover:text-red-700">
                 <Trash2 size={14} />
-              </button>
+              </IconButton>
             )}
           </div>
           <ol className="divide-y divide-slate-100">
@@ -192,19 +197,19 @@ export default function OfficerProgressionPanel({ scope, scopeId, canManage }: P
                     </p>
                   </div>
                   <div className="flex shrink-0 items-center gap-2">
-                    <span className={`rounded-full border px-2 py-0.5 text-xs font-medium ${STATUS_STYLE[s.status]}`}>{STATUS_TEXT[s.status]}</span>
+                    <span className={`rounded border px-2 py-0.5 text-xs font-medium ${STATUS_STYLE[s.status]}`}>{STATUS_TEXT[s.status]}</span>
                     {canManage && s.status === "pending" && (
                       <>
-                        <button type="button" disabled={busy !== null || s.yearId === null || !!clash}
+                        <Button type="button" disabled={busy !== null || s.yearId === null || !!clash}
                           onClick={() => void run(`c-${s.stepId}`, () => confirmOfficerProgressionStep(s.stepId))}
-                          className="inline-flex h-8 items-center gap-1 rounded-full bg-blue-700 px-3 text-xs font-semibold text-white disabled:opacity-40">
+                          size="sm">
                           <Check size={12} /> {busy === `c-${s.stepId}` ? "Saving" : "Confirm"}
-                        </button>
-                        <button type="button" disabled={busy !== null}
+                        </Button>
+                        <Button type="button" disabled={busy !== null}
                           onClick={() => void run(`d-${s.stepId}`, () => dismissOfficerProgressionStep(s.stepId))}
-                          className="inline-flex h-8 items-center gap-1 rounded-full border border-slate-200 px-3 text-xs font-medium text-slate-700 disabled:opacity-40">
+                          variant="outline" size="sm">
                           <X size={12} /> Dismiss
-                        </button>
+                        </Button>
                       </>
                     )}
                   </div>

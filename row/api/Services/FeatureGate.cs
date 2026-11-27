@@ -55,6 +55,11 @@ public static class FeatureGate
             // RCC & District Goals pages and their Excel report (RIZones 9-17 Nov, ported 2026-11-20) belong to it too.
             new[] { @"^/api/goal-setting-rotary(/|$)", @"^/api/rcc-goals(/|$)" },
             new[] { @"/goal-setting-rotary(/|$)", @"/rcc-goals(/|$)" }),
+        // Disha Goals (RIZones new goal flow 2026-11-17..23, ported 2026-11-27). Owner 2026-11-27: built but OFF - no Disha
+        // menu entries. While off the API answers 404 and the admin hides the pages; District Set Goals and RCC stay on.
+        new("disha_goals", "Disha Goals", Kind.Flagged,
+            new[] { @"^/api/disha-awards(/|$)", @"^/api/goal-flow/disha(/|$)" },
+            new[] { @"/disha-goals(/|$)" }),
         // AI Assistant, ported from upstream 2026-11-09: also needs Assistant:Enabled=true and its keys on the server.
         new("ai_assistant", "AI Assistant", Kind.Flagged,
             new[] { @"^/api/assistant(/|$)" },

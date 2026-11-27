@@ -7,6 +7,8 @@ import '../../widgets/common/custom_app_bar.dart';
 import '../../widgets/common/empty_state_widget.dart';
 import '../../widgets/common/loading_widget.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/motion.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/roster_wheel.dart';
 
 const _statusLabel = {
   'applied': 'Applied',
@@ -74,7 +76,7 @@ class _YouthScreenState extends State<YouthScreen> {
           ? EmptyStateWidget(icon: Icons.error_outline, title: 'Could not load', subtitle: _error!)
           : me == null
               ? const LoadingWidget()
-              : RefreshIndicator(
+              : RowRefresh(
                   onRefresh: _load,
                   child: ListView(
                     padding: const EdgeInsets.all(12),
@@ -240,7 +242,7 @@ class _YouthScopeScreenState extends State<YouthScopeScreen> {
     final name = TextEditingController();
     final email = TextEditingController();
     var program = 'ryla';
-    final ok = await showDialog<bool>(
+    final ok = await showRowDialog<bool>(
       context: context,
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, set) => AlertDialog(
@@ -287,7 +289,7 @@ class _YouthScopeScreenState extends State<YouthScopeScreen> {
       'expiryDate': _date(c['expiryDate']),
     };
     const labels = {'trainingDate': 'Training date', 'checkDate': 'Background check date', 'expiryDate': 'Expiry date'};
-    final ok = await showDialog<bool>(
+    final ok = await showRowDialog<bool>(
       context: context,
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, set) => AlertDialog(
@@ -376,9 +378,9 @@ class _YouthScopeScreenState extends State<YouthScopeScreen> {
                             icon: Icons.school_outlined,
                             title: 'No participants',
                             subtitle: _error ?? 'Nobody is recorded for this program year yet.')
-                        : RefreshIndicator(
+                        : RowRefresh(
                             onRefresh: _loadPeople,
-                            child: ListView.separated(
+                            child: RowListView.separated(
                               padding: const EdgeInsets.fromLTRB(12, 8, 12, 88),
                               itemCount: people.length,
                               separatorBuilder: (_, __) => const Divider(height: 1),
@@ -406,9 +408,9 @@ class _YouthScopeScreenState extends State<YouthScopeScreen> {
                         icon: Icons.shield_outlined,
                         title: 'No clearances',
                         subtitle: _error ?? 'No Youth Protection clearances are recorded yet.')
-                    : RefreshIndicator(
+                    : RowRefresh(
                         onRefresh: _loadClearances,
-                        child: ListView.separated(
+                        child: RowListView.separated(
                           padding: const EdgeInsets.fromLTRB(12, 8, 12, 88),
                           itemCount: clearances.length,
                           separatorBuilder: (_, __) => const Divider(height: 1),

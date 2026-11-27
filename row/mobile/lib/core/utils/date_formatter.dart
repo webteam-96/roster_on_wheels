@@ -63,7 +63,10 @@ class DateFormatter {
     final l = locale ?? _locale;
     final full = DateFormat.yMMMd(l).add_jm();
     final shown = '${full.format(at)} ${at.timeZoneName}';
-    final DateTime mine = viewer != null ? tz.TZDateTime.from(at, viewer) : at.toLocal();
+    // Not at.toLocal(): on a TZDateTime that is the timezone package's own default zone, which is UTC.
+    final DateTime mine = viewer != null
+        ? tz.TZDateTime.from(at, viewer)
+        : DateTime.fromMillisecondsSinceEpoch(at.millisecondsSinceEpoch);
     if (mine.timeZoneOffset == at.timeZoneOffset) return shown;
     final sameDay = mine.year == at.year && mine.month == at.month && mine.day == at.day;
     return '$shown (${(sameDay ? DateFormat.jm(l) : full).format(mine)} your time)';

@@ -1,5 +1,6 @@
 "use client";
 
+import { PageHeader } from "@/components/row/AppKit";
 import { useState, useEffect, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { getDistrictMassEmailList, deleteDistrictMassEmail, sendDistrictMassEmail, getDistrict } from "@/services/api";
@@ -14,9 +15,8 @@ import SearchBox from "@/components/SearchBox";
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
 import AlertModal from "@/components/AlertModal";
-import { ArrowLeft, Plus, MoreHorizontal, Eye, Pencil, Trash2, Send, MailPlus, AlertTriangle } from "@/components/icons";
+import { MoreHorizontal, Eye, Pencil, Trash2, Send, MailPlus, AlertTriangle } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
-import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
 
 import { appLocale } from "@/lib/appFormat";
@@ -79,7 +79,7 @@ export default function DistrictMassEmailsPage() {
   };
 
   const getStatusBadge = (status: string) => {
-    switch (status) { case "Draft": return <Badge variant="secondary">Draft</Badge>; case "Sending": return <Badge className="bg-blue-500 hover:bg-blue-600">Sending</Badge>; case "Sent": return <Badge className="bg-green-500 hover:bg-green-600">Sent</Badge>; case "Failed": return <Badge variant="destructive">Failed</Badge>; default: return <Badge variant="secondary">{status}</Badge>; }
+    switch (status) { case "Draft": return <Badge variant="secondary">Draft</Badge>; case "Sending": return <Badge className="bg-blue-100 text-azure">Sending</Badge>; case "Sent": return <Badge className="bg-green-100 text-green-800">Sent</Badge>; case "Failed": return <Badge variant="destructive">Failed</Badge>; default: return <Badge variant="secondary">{status}</Badge>; }
   };
 
   const getRecipientTypeLabel = (type: number) => { switch (type) { case 1: return "All Members"; case 2: return "Subgroup"; case 3: return "Selected"; default: return "Unknown"; } };
@@ -88,16 +88,12 @@ export default function DistrictMassEmailsPage() {
   return (
     <ProtectedRoute>
       <div className="space-y-6">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <Button variant="outline" size="icon" asChild><Link href={`/districts/${districtId}/dashboard`}><ArrowLeft className="h-4 w-4" /></Link></Button>
-            <div>
-              <h2 className="text-2xl font-bold tracking-tight text-primary">{districtName ? `${districtName} - Mass Emails` : "Mass Emails"}</h2>
-              <p className="text-muted-foreground text-base">Send bulk emails to district members</p>
-            </div>
-          </div>
-          {canManage && <Button onClick={() => router.push(`/districts/${districtId}/mass-emails/compose`)}><MailPlus className="h-4 w-4 mr-2" />Compose Email</Button>}
-        </div>
+        <PageHeader
+          title={districtName ? `${districtName} - Mass Emails` : "Mass Emails"}
+          description="Send bulk emails to district members"
+          back={`/districts/${districtId}/dashboard`}
+          actions={canManage && <Button onClick={() => router.push(`/districts/${districtId}/mass-emails/compose`)}><MailPlus className="h-4 w-4 mr-2" />Compose Email</Button>}
+        />
 
         <Card><CardContent className="pt-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -130,7 +126,7 @@ export default function DistrictMassEmailsPage() {
                       {canManage && (
                         <TableCell className="text-right">
                           <DropdownMenu>
-                            <DropdownMenuTrigger asChild><Button variant="ghost" size="icon"><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger>
+                            <DropdownMenuTrigger asChild><Button aria-label="More actions" variant="ghost" size="icon"><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
                               <DropdownMenuItem onClick={() => router.push(`/districts/${districtId}/mass-emails/${item.id}`)}><Eye className="mr-2 h-4 w-4" /> View</DropdownMenuItem>
                               <DropdownMenuItem onClick={() => router.push(`/districts/${districtId}/mass-emails/compose?editId=${item.id}`)}><Pencil className="mr-2 h-4 w-4" /> Edit & Resend</DropdownMenuItem>

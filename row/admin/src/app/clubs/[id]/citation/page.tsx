@@ -14,11 +14,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
-import { ArrowLeft, RefreshCw, Save, Trophy, Calculator } from "@/components/icons";
+import { RefreshCw, Save, Calculator } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
-import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
-import { ListPageSkeleton } from "@/components/row/AppKit";
+import { PageHeader, ListPageSkeleton } from "@/components/row/AppKit";
 
 export default function ClubCitationPage() {
   const params = useParams();
@@ -154,17 +153,7 @@ export default function ClubCitationPage() {
         <SuccessAlert open={!!successMessage} title="Success" description={successMessage || ""} onOk={() => setSuccessMessage(null)} />
         <ErrorAlert open={!!errorMessage} title="Error" description={errorMessage || ""} onOk={() => setErrorMessage(null)} />
 
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-3">
-            <Button variant="outline" size="icon" asChild>
-              <Link href={readOnly ? `/districts/${districtId}/citation?tab=club_points` : `/clubs/${clubId}/dashboard${districtId ? `?districtId=${districtId}` : ""}`}><ArrowLeft className="h-4 w-4" /></Link>
-            </Button>
-            <div>
-              <h2 className="text-2xl font-bold tracking-tight text-primary">{clubName ? `${clubName} - District Awards` : "District Awards"}</h2>
-              <p className="text-muted-foreground text-base">{citationData?.yearLabel || "Current Year"}</p>
-            </div>
-          </div>
-        </div>
+        <PageHeader title={clubName ? `${clubName} - District Awards` : "District Awards"} description={citationData?.yearLabel || "Current Year"} back={readOnly ? `/districts/${districtId}/citation?tab=club_points` : `/clubs/${clubId}/dashboard${districtId ? `?districtId=${districtId}` : ""}`} />
 
         {/* Summary Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -196,9 +185,9 @@ export default function ClubCitationPage() {
         )}
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="h-auto flex-wrap">
-            <TabsTrigger value="auto" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">Auto Points</TabsTrigger>
-            <TabsTrigger value="manual" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">Manual Points</TabsTrigger>
+          <TabsList>
+            <TabsTrigger value="auto">Auto Points</TabsTrigger>
+            <TabsTrigger value="manual">Manual Points</TabsTrigger>
           </TabsList>
 
           {/* Auto Points Tab */}
@@ -220,7 +209,7 @@ export default function ClubCitationPage() {
                 <Card><CardContent className="p-0 overflow-x-auto">
                   <Table>
                     <TableHeader>
-                      <TableRow className="bg-primary hover:bg-primary">
+                      <TableRow>
                         <TableHead>#</TableHead>
                         <TableHead>Category</TableHead>
                         <TableHead>Activity</TableHead>
@@ -311,7 +300,7 @@ export default function ClubCitationPage() {
 
                               {normalizedType === "number" && (
                                 <div className="flex items-center gap-3">
-                                  <Input type="number" step="1" className="w-32 h-8" value={answer.value}
+                                  <Input type="number" step="1" className="row-field-sm w-32" value={answer.value}
                                     onChange={e => updateManualAnswer(sc.id, e.target.value.replace(/[^0-9-]/g, ""), sc)}
                                     disabled={!canManage} placeholder="Enter value" />
                                   <span className="text-xs text-muted-foreground">× {Math.round(Number(sc.points) || 0)}{sc.isBonus ? ` + bonus ${Math.round(Number(sc.bonusPoints) || 0)}` : ""}</span>

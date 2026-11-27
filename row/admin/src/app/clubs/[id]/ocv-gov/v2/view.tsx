@@ -17,24 +17,11 @@
  * /club-admin-dashboard/e-governance.
  */
 
+import { Card } from "@/components/ui/card";
+import { NativeSelect } from "@/components/ui/native-select";
 import { useEffect, useMemo, useState } from "react";
 import { useParams, useSearchParams } from "next/navigation";
-import Link from "next/link";
-import {
-  ArrowLeft,
-  Calendar,
-  FileText,
-  Banknote,
-  ShieldCheck,
-  Gift,
-  FilePlus2,
-  IndianRupee,
-  Radio,
-  Newspaper,
-  BarChart3,
-  Loader2,
-  ChevronRight,
-} from "@/components/icons";
+import { Calendar, FileText, Banknote, ShieldCheck, Gift, FilePlus2, IndianRupee, Radio, Newspaper, BarChart3, ChevronRight } from "@/components/icons";
 import type { LucideIcon } from "@/components/icons";
 import { getClub, getTrfYears } from "@/services/api";
 import ClubGoalScorecard from "@/components/goal-rotary/ClubGoalScorecard";
@@ -45,8 +32,9 @@ import LoadingLink from "@/components/v2/LoadingLink";
 import ClubAdminShell from "@/components/v2/ClubAdminShell";
 import { useSyncClubIdFromUrl } from "@/hooks/useSyncClubIdFromUrl";
 import { useFeatureLoadedOn } from "@/components/FeatureGate";
-import { SkeletonRows } from "@/components/row/AppKit";
+import { PageHeader, SkeletonRows } from "@/components/row/AppKit";
 
+import { MenuItemButton } from "@/components/ui/text-buttons"
 const DEFAULT_BACK = "/club-admin-dashboard/e-governance";
 
 // ── Category cards (8) ─────────────────────────────────────────────────────
@@ -256,35 +244,20 @@ export function OcvGovV2View({ clubId: propClubId, embedded = false, yearId: glo
   const body = (
       <div className="space-y-5">
         {/* Header */}
-        <div className={`flex flex-col gap-3 sm:flex-row sm:items-start ${embedded ? "sm:justify-end" : "sm:justify-between"}`}>
-          {!embedded && (
-          <div className="flex items-start gap-2 min-w-0">
-            <Link
-              href={backHref}
-              className="mt-0.5 inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50"
-              aria-label="Back"
-            >
-              <ArrowLeft size={15} />
-            </Link>
-            <div className="min-w-0">
-              <h1 className="text-lg font-semibold text-slate-800 leading-tight">OCV / GOV</h1>
-              <p className="text-xs text-slate-500 mt-0.5">
-                {clubName ? `${clubName} · ` : ""}Official Club Visit / Governor&apos;s Official Visit
-              </p>
-            </div>
-          </div>
-          )}
-
-          {/* Year picker — hidden when embedded: the dashboard's global year drives it. */}
-          {!embedded && !loading && years.length > 0 && (
+        {!embedded && (
+          <PageHeader
+            title="OCV / GOV"
+            description={<>{clubName ? `${clubName} · ` : ""}Official Club Visit / Governor&apos;s Official Visit</>}
+            back={backHref}
+            actions={!loading && years.length > 0 && (
             <div className="flex flex-wrap items-center gap-2">
               <span className="text-xs font-medium text-slate-500 flex items-center gap-1">
                 <Calendar size={13} /> Year
               </span>
-              <select
+              <NativeSelect
                 value={selectedYearId ?? ""}
                 onChange={(e) => setSelectedYearId(e.target.value ? Number(e.target.value) : null)}
-                className="px-2 h-10 py-0 text-sm border border-slate-200 rounded-[12px] bg-card focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42] min-w-[10rem]"
+                className="min-w-[10rem] w-auto"
               >
                 {years.map((y) => (
                   <option key={y.id} value={y.id}>
@@ -292,10 +265,11 @@ export function OcvGovV2View({ clubId: propClubId, embedded = false, yearId: glo
                     {y.isCurrent ? " · current" : ""}
                   </option>
                 ))}
-              </select>
+              </NativeSelect>
             </div>
           )}
-        </div>
+          />
+        )}
 
         {/* Loading guard */}
         {loading && (
@@ -335,10 +309,10 @@ export function OcvGovV2View({ clubId: propClubId, embedded = false, yearId: glo
             {embedded && selectedYearId && <ClubGoalScorecard clubId={clubId} yearId={selectedYearId} />}
 
             {/* 8-card grid */}
-            <div className="bg-card rounded-2xl border border-slate-200 p-5">
+            <Card className="p-5">
               <div className="flex items-center justify-between mb-4">
                 <div>
-                  <h2 className="text-base font-semibold text-slate-800">Categories</h2>
+                  <h2 className="row-h2">Categories</h2>
                   <p className="text-xs text-slate-500 mt-0.5">Manage uploads for each OCV/GOV section.</p>
                 </div>
               </div>
@@ -356,14 +330,13 @@ export function OcvGovV2View({ clubId: propClubId, embedded = false, yearId: glo
 
                   if (hasNoYear) {
                     return (
-                      <button
+                      <MenuItemButton
                         key={card.key}
                         type="button"
                         onClick={() => setErrorMessage("Please select a Rotary Year first.")}
-                        className={`${cardCls} text-left cursor-pointer w-full`}
-                      >
+                        className={`${cardCls} w-full`}>
                         <CardInner card={card} Icon={Icon} />
-                      </button>
+                      </MenuItemButton>
                     );
                   }
 
@@ -378,7 +351,7 @@ export function OcvGovV2View({ clubId: propClubId, embedded = false, yearId: glo
                   );
                 })}
               </div>
-            </div>
+            </Card>
 
           </>
         )}

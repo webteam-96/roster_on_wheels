@@ -1,4 +1,5 @@
 "use client";
+import { Button } from "@/components/ui/button";
 
 /**
  * Public unsubscribe page (N5 Communication). Opened from the link at the bottom of every mass email; the signed token
@@ -53,10 +54,9 @@ export default function UnsubscribePage() {
                 : <>Mass emails from your club and district no longer go to <strong>{info.maskedEmail}</strong>.</>}
             </p>
             {done && <p role="status" className="mt-3 text-sm text-emerald-700">{done}</p>}
-            <button type="button" disabled={busy} onClick={() => change(!info.subscribed)}
-              className="mt-5 rounded-full bg-azure px-4 py-2 text-sm font-semibold text-cream hover:bg-mint-ink disabled:opacity-60">
+            <Button type="button" disabled={busy} onClick={() => change(!info.subscribed)} className="mt-5">
               {info.subscribed ? "Unsubscribe" : "Subscribe again"}
-            </button>
+            </Button>
             <p className="mt-4 text-xs text-slate-500">
               Messages you need as a member, such as password resets and receipts, still arrive.
             </p>

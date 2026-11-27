@@ -23,6 +23,11 @@
  * the dedicated /clubs/[id]/membership-dues/v2/[duesId]/members page.
  */
 
+import { LinkButton } from "@/components/ui/text-buttons"
+import { IconButton } from "@/components/ui/icon-button"
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table"
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
@@ -248,13 +253,13 @@ export default function ClubAdminMembershipDuesPage() {
               that URL param changes. Filter below keys off the cached
               membershipDues.club.yearLabel which is always in sync. */}
           {isSuperAdmin && (
-            <button
+            <Button
               type="button"
               onClick={() => router.push("/settings/membership-dues/create")}
-              className="inline-flex items-center gap-1.5 rounded-full bg-[#17458F] px-3 py-1.5 text-xs font-semibold text-white hover:bg-[#17458F]"
+              size="sm"
             >
               <Plus size={13} /> Create Dues Setup
-            </button>
+            </Button>
           )}
         </div>
       </div>
@@ -285,7 +290,7 @@ export default function ClubAdminMembershipDuesPage() {
           icon={AlertCircle}
           color="red"
         />
-        <div className="rounded-2xl border border-slate-200 bg-card p-4 shadow-sm">
+        <Card className="p-5">
           <div className="mb-2 flex items-start gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-50 text-blue-700 ring-1 ring-blue-100">
               <TrendingUp size={18} />
@@ -303,53 +308,53 @@ export default function ClubAdminMembershipDuesPage() {
               style={{ width: `${collectionPct}%`, background: "#0067C8" }}
             />
           </div>
-        </div>
+        </Card>
       </div>
 
       {/* Dues records table — new-design styling: slate-50 header, light rows */}
-      <div className="overflow-hidden rounded-2xl border border-slate-200 bg-card shadow-sm">
+      <Card className="overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[640px] md:min-w-full text-sm">
-            <thead className="bg-[#EDF4FB] text-[13px] text-[#64748B]">
-              <tr>
-                <th className="px-3 py-2.5 text-left font-semibold w-[60px]">Sr. No.</th>
-                <th className="px-3 py-2.5 text-left font-semibold">Year</th>
-                <th className="px-3 py-2.5 text-left font-semibold">Title</th>
-                <th className="px-3 py-2.5 text-center font-semibold">Paid</th>
-                <th className="px-3 py-2.5 text-center font-semibold">Unpaid</th>
-                <th className="px-3 py-2.5 text-center font-semibold">Members</th>
-                <th className="px-3 py-2.5 text-center font-semibold">Edit</th>
-                <th className="px-3 py-2.5 text-center font-semibold">View | Copy URL</th>
-                <th className="px-3 py-2.5 text-center font-semibold">Report</th>
-                <th className="px-3 py-2.5 text-center font-semibold">Report Link</th>
-                <th className="px-3 py-2.5 text-center font-semibold">GoogleSheet</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
+          <Table className="w-full min-w-[640px] md:min-w-full text-sm">
+            <TableHeader>
+              <TableRow>
+                <TableHead className="px-3 text-left w-[60px]">Sr. No.</TableHead>
+                <TableHead className="px-3 text-left">Year</TableHead>
+                <TableHead className="px-3 text-left">Title</TableHead>
+                <TableHead className="px-3 text-center">Paid</TableHead>
+                <TableHead className="px-3 text-center">Unpaid</TableHead>
+                <TableHead className="px-3 text-center">Members</TableHead>
+                <TableHead className="px-3 text-center">Edit</TableHead>
+                <TableHead className="px-3 text-center">View | Copy URL</TableHead>
+                <TableHead className="px-3 text-center">Report</TableHead>
+                <TableHead className="px-3 text-center">Report Link</TableHead>
+                <TableHead className="px-3 text-center">GoogleSheet</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody className="divide-y divide-slate-100">
               {loadingExtras && currentYearDues.length === 0 ? (
-                <tr>
-                  <td colSpan={11} className="px-4 py-10 text-center">
+                <TableRow>
+                  <TableCell colSpan={11} className="px-4 py-10 text-center">
                     <RotaryLoader size="md" />
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               ) : currentYearDues.length === 0 ? (
-                <tr>
-                  <td colSpan={11} className="px-4 py-10 text-center text-slate-500">
+                <TableRow>
+                  <TableCell colSpan={11} className="px-4 py-10 text-center text-slate-500">
                     No Club Dues configured for {selectedYearLabel ?? "the current year"} yet.
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               ) : currentYearDues.map((item, index) => (
-                <tr key={item.id} className="hover:bg-blue-50/40">
-                  <td className="px-3 py-2.5 text-center text-slate-600">{index + 1}</td>
-                  <td className="px-3 py-2.5 text-slate-700">{item.rotaryYear ?? ""}</td>
-                  <td className="px-3 py-2.5 font-medium text-slate-800">{item.purpose ?? ""}</td>
-                  <td className="px-3 py-2.5 text-center font-semibold text-emerald-700">{item.paidCount}</td>
-                  <td className="px-3 py-2.5 text-center font-semibold text-rose-700">{item.unpaidCount}</td>
-                  <td className="px-3 py-2.5 text-center">
+                <TableRow key={item.id} className="hover:bg-blue-50/40">
+                  <TableCell className="px-3 py-2.5 text-center text-slate-600">{index + 1}</TableCell>
+                  <TableCell className="px-3 py-2.5 text-slate-700">{item.rotaryYear ?? ""}</TableCell>
+                  <TableCell className="px-3 py-2.5 font-medium text-slate-800">{item.purpose ?? ""}</TableCell>
+                  <TableCell className="px-3 py-2.5 text-center font-semibold text-emerald-700">{item.paidCount}</TableCell>
+                  <TableCell className="px-3 py-2.5 text-center font-semibold text-rose-700">{item.unpaidCount}</TableCell>
+                  <TableCell className="px-3 py-2.5 text-center">
                     {!canEditSetup(item.rotaryYear) ? (
                       <span className="text-xs text-slate-300">-</span>
                     ) : (
-                    <button
+                    <IconButton aria-label="Open members list"
                       type="button"
                       title="Open members list"
                       disabled={membersNavigatingId === item.id}
@@ -365,23 +370,22 @@ export default function ClubAdminMembershipDuesPage() {
                         const returnTo = encodeURIComponent(back);
                         router.push(`/clubs/${clubId}/membership-dues/v2/${item.id}/members?returnTo=${returnTo}`);
                       }}
-                      className="inline-flex items-center justify-center disabled:opacity-60"
                     >
                       {membersNavigatingId === item.id ? (
                         <RotaryLoader size="sm" />
                       ) : (
                         <Users className="h-4 w-4 text-blue-600 hover:text-blue-800" />
                       )}
-                    </button>
+                    </IconButton>
                     )}
-                  </td>
-                  <td className="px-3 py-2.5 text-center">
+                  </TableCell>
+                  <TableCell className="px-3 py-2.5 text-center">
                     {!canEditSetup(item.rotaryYear) ? (
                       // Not this member's year. Every figure is already on the row,
                       // so there is nothing further to open.
                       <span className="text-xs text-slate-300">-</span>
                     ) : (
-                    <button
+                    <IconButton aria-label="Edit dues setup"
                       type="button"
                       title="Edit dues setup"
                       disabled={editNavigatingId === item.id}
@@ -394,94 +398,87 @@ export default function ClubAdminMembershipDuesPage() {
                         const returnTo = encodeURIComponent(back);
                         router.push(`/clubs/${clubId}/membership-dues/v2/edit/${item.id}?returnTo=${returnTo}`);
                       }}
-                      className="inline-flex items-center justify-center disabled:opacity-60"
                     >
                       {editNavigatingId === item.id ? (
                         <RotaryLoader size="sm" />
                       ) : (
                         <Pencil className="h-4 w-4 text-blue-600 hover:text-blue-800" />
                       )}
-                    </button>
+                    </IconButton>
                     )}
-                  </td>
-                  <td className="px-3 py-2.5 text-center">
+                  </TableCell>
+                  <TableCell className="px-3 py-2.5 text-center">
                     <div className="flex items-center justify-center gap-1 text-xs">
-                      <button
+                      <LinkButton
                         type="button"
                         onClick={() => window.open(withBase(duesPayPath(item)), "_blank")}
-                        className="text-blue-600 hover:underline"
                       >
                         View
-                      </button>
+                      </LinkButton>
                       <span className="text-slate-300">|</span>
-                      <button
+                      <LinkButton
                         type="button"
                         onClick={() => handleCopyUrl(item)}
-                        className="text-blue-600 hover:underline"
                       >
                         Copy URL
-                      </button>
+                      </LinkButton>
                     </div>
-                  </td>
-                  <td className="px-3 py-2.5 text-center">
-                    <button
+                  </TableCell>
+                  <TableCell className="px-3 py-2.5 text-center">
+                    <IconButton aria-label="Download CSV report"
                       type="button"
                       title="Download CSV report"
                       disabled={reportDownloadingId === item.id}
                       onClick={() => handleDownloadReport(item)}
-                      className="inline-flex items-center justify-center disabled:opacity-60"
                     >
                       {reportDownloadingId === item.id ? (
                         <RotaryLoader size="sm" />
                       ) : (
                         <FileSpreadsheet className="h-4 w-4 text-rose-600 hover:text-rose-800" />
                       )}
-                    </button>
-                  </td>
-                  <td className="px-3 py-2.5 text-center">
-                    <button
+                    </IconButton>
+                  </TableCell>
+                  <TableCell className="px-3 py-2.5 text-center">
+                    <LinkButton size="sm"
                       type="button"
                       onClick={() => {
                         const url = `${window.location.origin}${BASE_PATH}/report/dues/${item.id}`;
                         navigator.clipboard.writeText(url);
                         setSuccessMessage("Report link copied.");
                       }}
-                      className="text-xs text-blue-600 hover:underline"
                     >
                       Copy URL
-                    </button>
-                  </td>
-                  <td className="px-3 py-2.5 text-center">
+                    </LinkButton>
+                  </TableCell>
+                  <TableCell className="px-3 py-2.5 text-center">
                     {item.googleSheetId ? (
                       <div className="flex flex-col items-center gap-0.5 text-xs">
-                        <button
+                        <LinkButton
                           type="button"
                           onClick={() => window.open(`https://docs.google.com/spreadsheets/d/${item.googleSheetId}`, "_blank")}
-                          className="text-blue-600 hover:underline"
                         >
                           Open
-                        </button>
-                        <button
+                        </LinkButton>
+                        <LinkButton
                           type="button"
                           onClick={() => {
                             navigator.clipboard.writeText(`https://docs.google.com/spreadsheets/d/${item.googleSheetId}`);
                             setSuccessMessage("Google Sheet URL copied.");
                           }}
-                          className="text-blue-600 hover:underline"
                         >
                           Copy URL
-                        </button>
+                        </LinkButton>
                       </div>
                     ) : (
                       <span className="text-slate-400">–</span>
                     )}
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               ))}
-            </tbody>
-          </table>
+            </TableBody>
+          </Table>
         </div>
-      </div>
+      </Card>
     </div>
   );
 }

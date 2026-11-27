@@ -1,21 +1,25 @@
 import 'package:flutter/material.dart' hide Text;
-import 'package:shimmer/shimmer.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_theme.dart';
 import 'package:rotary_flutter_app/core/theme/app_fonts.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/roster_wheel.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/skeleton_list.dart';
 
+/// Loading, whatever the space: a whole page shows skeleton rows; a small box or a spot inside scrolling content
+/// shows the pulsing dots.
 class LoadingWidget extends StatelessWidget {
   const LoadingWidget({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return const Center(
-      child: const CircularProgressIndicator(
-        color: AppColors.primaryPrime,
-        strokeWidth: 3,
-      ),
-    );
+    return LayoutBuilder(builder: (context, box) {
+      if (box.maxWidth < 240 || box.maxHeight < 320 || !box.hasBoundedHeight) {
+        return const Center(child: RowLoader());
+      }
+      final rows = ((box.maxHeight - 32) / 76).floor().clamp(3, 10);
+      return Align(alignment: Alignment.topCenter, child: RowSkeletonList(rows: rows));
+    });
   }
 }
 
@@ -33,9 +37,7 @@ class ShimmerList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Shimmer.fromColors(
-      baseColor: AppColors.shimmerBase,
-      highlightColor: AppColors.shimmerHighlight,
+    return RowShimmer(
       child: ListView.separated(
         itemCount: itemCount,
         shrinkWrap: true,
@@ -68,9 +70,7 @@ class ShimmerCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Shimmer.fromColors(
-      baseColor: AppColors.shimmerBase,
-      highlightColor: AppColors.shimmerHighlight,
+    return RowShimmer(
       child: Container(
         height: height,
         width: width ?? double.infinity,
@@ -93,10 +93,7 @@ class FullScreenLoader extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const CircularProgressIndicator(
-            color: AppColors.primaryPrime,
-            strokeWidth: 3,
-          ),
+          const RowLoader(size: 48),
           if (message != null) ...[
             const SizedBox(height: AppSpacing.md),
             Text(

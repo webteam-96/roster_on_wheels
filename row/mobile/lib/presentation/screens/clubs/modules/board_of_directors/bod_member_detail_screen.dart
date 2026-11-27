@@ -1,6 +1,7 @@
 import 'package:rotary_flutter_app/data/models/member_model.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart' hide Text;
+import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -366,13 +367,6 @@ class _BodMemberDetailScreenState extends State<BodMemberDetailScreen> {
             onTap: () => _openUrl('tel:${_digits(phone)}'),
           ),
           _ContactAction(
-            icon: Icons.chat_bubble_outline_rounded,
-            label: 'SMS',
-            color: AppColors.primaryPrime,
-            enabled: phone.isNotEmpty,
-            onTap: () => _openUrl('sms:${_digits(phone)}'),
-          ),
-          _ContactAction(
             icon: Icons.mail_outline_rounded,
             label: 'Email',
             color: AppColors.primaryPrime,
@@ -464,7 +458,9 @@ class _BodHeroAppBar extends StatelessWidget {
       pinned: true,
       stretch: true,
       backgroundColor: AppColors.primaryPrime,
+      systemOverlayStyle: SystemUiOverlayStyle.light.copyWith(statusBarColor: Colors.transparent),
       leading: IconButton(
+        tooltip: MaterialLocalizations.of(context).backButtonTooltip,
         icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white),
         onPressed: () {
           if (context.canPop()) {

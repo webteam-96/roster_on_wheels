@@ -1,5 +1,8 @@
 "use client";
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
+import { FilterChips } from "@/components/ui/text-buttons";
 
+import { NativeSelect } from "@/components/ui/native-select";
 import { useEffect, useRef, useState, useCallback, Fragment, useMemo } from "react";
 import dynamic from "next/dynamic";
 import "react-quill-new/dist/quill.snow.css";
@@ -22,7 +25,7 @@ import { Upload, X, RefreshCw, Bell, FileText, Send } from "@/components/icons";
 import EmailTokenChips, { CLUB_DUES_RECEIPT_TOKENS, CLUB_DUES_REMINDER_TOKENS } from "@/components/club-dues/EmailTokenChips";
 
 import { appLocale, currencySymbol } from "@/lib/appFormat";
-import { ListPageSkeleton } from "@/components/row/AppKit";
+import { PageHeader, ListPageSkeleton } from "@/components/row/AppKit";
 import { withBase } from "@/lib/basePath";
 // forwardedRef-capable dynamic import so we can reach the Quill editor to insert tokens at the cursor.
 const ReactQuill = dynamic(async () => {
@@ -101,6 +104,9 @@ export default function DistrictAdminClubDuesPage() {
   const [tab, setTab] = useState<"clubs" | "content">("clubs");
   const [success, setSuccess] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  // A failed campaign load is shown in the page (with Try again), not as "no campaign" behind a dialog (OMS ROW2-2).
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [reloadKey, setReloadKey] = useState(0);
 
   // Content-edit state
   const [loadingContent, setLoadingContent] = useState(false);
@@ -152,14 +158,23 @@ export default function DistrictAdminClubDuesPage() {
   useEffect(() => {
     (async () => {
       setLoading(true);
+      setLoadError(null);
       try {
         const list: Campaign[] = await getClubDuesMyDistrict(selectedDistrictId || undefined);
         setCampaigns(list);
         setSelectedId(list.length > 0 ? list[0].id : null);
-      } catch (e: any) { setError(e?.response?.data?.message || "Failed to load district dues."); }
+      } catch (e: any) {
+        setCampaigns([]);
+        setSelectedId(null);
+        // 4xx messages are written for people; a 500 body is server detail, so show plain words instead.
+        const status = e?.response?.status ?? 0;
+        setLoadError(status >= 400 && status < 500 && e?.response?.data?.message
+          ? e.response.data.message
+          : "District dues could not be loaded. Try again; if it keeps failing, tell your ROW support contact.");
+      }
       finally { setLoading(false); }
     })();
-  }, [selectedDistrictId]);
+  }, [selectedDistrictId, reloadKey]);
 
   const loadContent = useCallback(async (id: number) => {
     setLoadingContent(true);
@@ -224,7 +239,7 @@ export default function DistrictAdminClubDuesPage() {
             /* eslint-disable-next-line @next/next/no-img-element */
             <img src={clubDuesAssetUrl(existing)} alt="" className="h-12 w-12 rounded border object-contain bg-card" />
           )}
-          <Label className="inline-flex items-center gap-2 cursor-pointer rounded-full border px-3 py-2 text-sm hover:bg-accent">
+          <Label className="inline-flex items-center gap-2 cursor-pointer rounded border px-3 py-2 text-sm hover:bg-accent">
             <Upload className="h-4 w-4" />{existing ? "Replace" : "Upload"}
             <input type="file" accept=".jpg,.jpeg,.png,.gif,.webp,.svg" className="hidden" onChange={(e) => setFile(e.target.files?.[0] || null)} />
           </Label>
@@ -245,12 +260,16 @@ export default function DistrictAdminClubDuesPage() {
         />
       )}
 
-      <div>
-        <h2 className="text-2xl font-bold tracking-tight text-primary">District Dues</h2>
-        <p className="text-muted-foreground text-base">Track which clubs have paid, approve offline payments, and edit the branding &amp; email content for your district&apos;s dues.</p>
-      </div>
+      <PageHeader title="District Dues" description={<>Track which clubs have paid, approve offline payments, and edit the branding &amp; email content for your district&apos;s dues.</>} />
 
-      {campaigns.length === 0 ? (
+      {loadError ? (
+        <Card role="alert"><CardContent className="space-y-3 p-8 text-center">
+          <p className="text-destructive">{loadError}</p>
+          <Button type="button" variant="outline" onClick={() => setReloadKey((k) => k + 1)}>
+            <RefreshCw className="h-4 w-4" /> Try again
+          </Button>
+        </CardContent></Card>
+      ) : campaigns.length === 0 ? (
         <Card><CardContent className="p-8 text-center text-muted-foreground">
           No district dues campaign exists for your district yet.
         </CardContent></Card>
@@ -272,14 +291,12 @@ export default function DistrictAdminClubDuesPage() {
             </div>
           )}
 
-          <div className="flex gap-1 border-b">
-            {(["clubs", "content"] as const).map((t) => (
-              <button key={t} onClick={() => setTab(t)}
-                className={`px-4 py-2 text-sm font-medium border-b-2 -mb-px ${tab === t ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground"}`}>
-                {t === "clubs" ? "Clubs & Approvals" : "Content"}
-              </button>
-            ))}
-          </div>
+          <FilterChips
+            label="Club dues view"
+            options={[{ value: "clubs" as const, label: "Clubs & Approvals" }, { value: "content" as const, label: "Content" }]}
+            value={tab}
+            onChange={setTab}
+          />
 
           {tab === "clubs" ? (
             selectedId != null && <ClubsSection duesId={selectedId} canManage={canManage} onSuccess={setSuccess} onError={setError} />
@@ -507,95 +524,95 @@ function ClubsSection({ duesId, canManage, onSuccess, onError }: { duesId: numbe
 
       <Card>
         <CardContent className="p-0 overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead className="bg-[#EDF4FB] text-[13px] text-[#64748B] text-left">
-              <tr>
-                <th className="p-3">Club</th>
-                <th className="p-3 text-center">Total Members</th>
-                <th className="p-3 text-right">Offline Amount</th>
+          <Table className="w-full text-sm">
+            <TableHeader className="text-left">
+              <TableRow>
+                <TableHead className="p-3">Club</TableHead>
+                <TableHead className="p-3 text-center">Total Members</TableHead>
+                <TableHead className="p-3 text-right">Offline Amount</TableHead>
                 {Array.from({ length: maxOfflineAccountCols }, (_, i) => (
                   <Fragment key={`off-${i}`}>
-                    <th className="p-3 text-right whitespace-nowrap">Off. A/C {i + 1} Amount</th>
-                    <th className="p-3 text-center whitespace-nowrap">Off. A/C {i + 1} Status</th>
+                    <TableHead className="p-3 text-right whitespace-nowrap">Off. A/C {i + 1} Amount</TableHead>
+                    <TableHead className="p-3 text-center whitespace-nowrap">Off. A/C {i + 1} Status</TableHead>
                   </Fragment>
                 ))}
-                <th className="p-3 text-right">Offline Paid</th>
-                <th className="p-3 text-right">Online Amount</th>
+                <TableHead className="p-3 text-right">Offline Paid</TableHead>
+                <TableHead className="p-3 text-right">Online Amount</TableHead>
                 {Array.from({ length: maxOnlineAccountCols }, (_, i) => (
                   <Fragment key={`on-${i}`}>
-                    <th className="p-3 text-right whitespace-nowrap">On. A/C {i + 1} Amount</th>
-                    <th className="p-3 text-center whitespace-nowrap">On. A/C {i + 1} Status</th>
+                    <TableHead className="p-3 text-right whitespace-nowrap">On. A/C {i + 1} Amount</TableHead>
+                    <TableHead className="p-3 text-center whitespace-nowrap">On. A/C {i + 1} Status</TableHead>
                   </Fragment>
                 ))}
-                <th className="p-3 text-right">Online Paid</th>
-                <th className="p-3 text-right">Total Paid</th>
-                <th className="p-3 text-center">Payment Type</th>
-                <th className="p-3">Status</th>
-                <th className="p-3">Action</th>
-              </tr>
-            </thead>
-            <tbody>
+                <TableHead className="p-3 text-right">Online Paid</TableHead>
+                <TableHead className="p-3 text-right">Total Paid</TableHead>
+                <TableHead className="p-3 text-center">Payment Type</TableHead>
+                <TableHead className="p-3">Status</TableHead>
+                <TableHead className="p-3">Action</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
               {filtered.map((r) => !r.isSyncedFromRotaryOrg ? (
                 // Non-sync club (no members synced from Rotary.org) — nothing to bill. Show one message
                 // spanning Total Members → Action instead of the empty numeric/action columns.
-                <tr key={r.clubDuesClubId} className="border-t bg-amber-50/70 text-amber-900">
-                  <td className="p-3 align-top">
+                <TableRow key={r.clubDuesClubId} className="border-t bg-amber-50/70 text-amber-900">
+                  <TableCell className="p-3 align-top">
                     {r.clubName}
                     <span className="ml-2 text-xs rounded bg-amber-100 text-amber-700 px-1.5 py-0.5" title="This club is not synced from Rotary.org">Non-sync</span>
-                  </td>
-                  <td colSpan={10 + maxOfflineAccountCols * 2 + maxOnlineAccountCols * 2} className="p-3 text-sm italic text-amber-700">
+                  </TableCell>
+                  <TableCell colSpan={10 + maxOfflineAccountCols * 2 + maxOnlineAccountCols * 2} className="p-3 text-sm italic text-amber-700">
                     This club is not synced from Rotary.org, so it has no members to bill: sync this club first to track its dues.
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               ) : (
-                <tr key={r.clubDuesClubId} className="border-t">
-                  <td className="p-3">
+                <TableRow key={r.clubDuesClubId} className="border-t">
+                  <TableCell className="p-3">
                     {r.clubName}
                     {r.hasPendingApproval && <span className="ml-2 text-xs rounded bg-blue-100 text-blue-700 px-1.5 py-0.5">offline pending</span>}
-                  </td>
-                  <td className="p-3 text-center" title={`${r.paidCount} paid + ${r.unpaidCount} pending`}>{r.paidCount}+{r.unpaidCount}</td>
-                  <td className="p-3 text-right font-medium">{r.paidOnline === true ? "-" : `${cur}${Number(r.offlineAmount).toLocaleString(appLocale(), { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}</td>
+                  </TableCell>
+                  <TableCell className="p-3 text-center" title={`${r.paidCount} paid + ${r.unpaidCount} pending`}>{r.paidCount}+{r.unpaidCount}</TableCell>
+                  <TableCell className="p-3 text-right font-medium">{r.paidOnline === true ? "-" : `${cur}${Number(r.offlineAmount).toLocaleString(appLocale(), { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}</TableCell>
                   {Array.from({ length: maxOfflineAccountCols }, (_, i) => {
                     const acc = r.paidOnline === true ? undefined : r.offlineAccountBreakdown?.[i];
                     return (
                       <Fragment key={`off-${i}`}>
-                        <td className="p-3 text-right whitespace-nowrap">
+                        <TableCell className="p-3 text-right whitespace-nowrap">
                           {acc ? `${cur}${Number(acc.amount).toLocaleString(appLocale(), { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : "-"}
-                        </td>
-                        <td className="p-3 text-center whitespace-nowrap" title={acc?.accountLabel || ""}>
+                        </TableCell>
+                        <TableCell className="p-3 text-center whitespace-nowrap" title={acc?.accountLabel || ""}>
                           {acc ? (
                             <span className={`text-xs font-medium px-2 py-0.5 rounded ${acc.isPaid ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}>
                               {acc.isPaid ? "Paid" : "Unpaid"}
                             </span>
                           ) : "-"}
-                        </td>
+                        </TableCell>
                       </Fragment>
                     );
                   })}
-                  <td className="p-3 text-right">{r.paidOnline === true ? "-" : `${cur}${Number(r.offlinePaid).toLocaleString(appLocale(), { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}</td>
-                  <td className="p-3 text-right font-medium">{r.paidOnline === false ? "-" : `${cur}${Number(r.onlineAmount).toLocaleString(appLocale(), { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}</td>
+                  <TableCell className="p-3 text-right">{r.paidOnline === true ? "-" : `${cur}${Number(r.offlinePaid).toLocaleString(appLocale(), { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}</TableCell>
+                  <TableCell className="p-3 text-right font-medium">{r.paidOnline === false ? "-" : `${cur}${Number(r.onlineAmount).toLocaleString(appLocale(), { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}</TableCell>
                   {Array.from({ length: maxOnlineAccountCols }, (_, i) => {
                     const acc = r.paidOnline === false ? undefined : r.onlineAccountBreakdown?.[i];
                     return (
                       <Fragment key={`on-${i}`}>
-                        <td className="p-3 text-right whitespace-nowrap">
+                        <TableCell className="p-3 text-right whitespace-nowrap">
                           {acc ? `${cur}${Number(acc.amount).toLocaleString(appLocale(), { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : "-"}
-                        </td>
-                        <td className="p-3 text-center whitespace-nowrap" title={acc?.accountLabel || ""}>
+                        </TableCell>
+                        <TableCell className="p-3 text-center whitespace-nowrap" title={acc?.accountLabel || ""}>
                           {acc ? (
                             <span className={`text-xs font-medium px-2 py-0.5 rounded ${acc.isPaid ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}>
                               {acc.isPaid ? "Paid" : "Unpaid"}
                             </span>
                           ) : "-"}
-                        </td>
+                        </TableCell>
                       </Fragment>
                     );
                   })}
-                  <td className="p-3 text-right">{r.paidOnline === false ? "-" : `${cur}${Number(r.onlinePaid).toLocaleString(appLocale(), { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}</td>
-                  <td className="p-3 text-right">{cur}{Number(r.totalPaid).toLocaleString(appLocale(), { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-                  <td className="p-3 text-center">{r.paidOnline == null ? "-" : r.paidOnline ? "Online" : "Offline"}</td>
-                  <td className="p-3">{r.status}</td>
-                  <td className="p-3">
+                  <TableCell className="p-3 text-right">{r.paidOnline === false ? "-" : `${cur}${Number(r.onlinePaid).toLocaleString(appLocale(), { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}</TableCell>
+                  <TableCell className="p-3 text-right">{cur}{Number(r.totalPaid).toLocaleString(appLocale(), { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</TableCell>
+                  <TableCell className="p-3 text-center">{r.paidOnline == null ? "-" : r.paidOnline ? "Online" : "Offline"}</TableCell>
+                  <TableCell className="p-3">{r.status}</TableCell>
+                  <TableCell className="p-3">
                     <div className="flex items-center gap-1">
                       {r.hasPendingApproval && canManage && <Button size="sm" onClick={() => setApproveFor(r)}>Review</Button>}
                       {canManage && <Button size="sm" variant="outline" disabled={r.status === "Fully Paid"} onClick={() => setOfflineFor(r)}>Offline</Button>}
@@ -605,12 +622,12 @@ function ClubsSection({ duesId, canManage, onSuccess, onError }: { duesId: numbe
                         </Button>
                       )}
                     </div>
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               ))}
-              {filtered.length === 0 && <tr><td colSpan={11 + maxOfflineAccountCols * 2 + maxOnlineAccountCols * 2} className="p-8 text-center text-muted-foreground">No clubs.</td></tr>}
-            </tbody>
-          </table>
+              {filtered.length === 0 && <TableRow><TableCell colSpan={11 + maxOfflineAccountCols * 2 + maxOnlineAccountCols * 2} className="p-8 text-center text-muted-foreground">No clubs.</TableCell></TableRow>}
+            </TableBody>
+          </Table>
         </CardContent>
       </Card>
 
@@ -662,14 +679,14 @@ function OfflineDialog({ cur, duesId, club, onClose, onDone, onError }: { cur: s
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" onClick={onClose}>
       <div className="bg-background rounded-lg shadow-lg w-full max-w-md p-5 space-y-4" onClick={(e) => e.stopPropagation()}>
-        <h3 className="text-lg font-semibold">Record offline payment: {club.clubName}</h3>
+        <h3 className="row-h2">Record offline payment: {club.clubName}</h3>
         {accounts.length > 0 && (
           <div className="space-y-1">
             <Label>Account</Label>
-            <select className="w-full border border-input bg-background rounded-md h-9 px-2 text-sm" value={accountId} onChange={(e) => setAccountId(e.target.value)}>
+            <NativeSelect  value={accountId} onChange={(e) => setAccountId(e.target.value)}>
               <option value="">Which bank account did this go into?</option>
               {accounts.map((a) => <option key={a.fkRouteAccountId} value={a.fkRouteAccountId}>{a.accountLabel}</option>)}
-            </select>
+            </NativeSelect>
           </div>
         )}
         {(accounts.length === 0 || accountId) && (
@@ -679,9 +696,9 @@ function OfflineDialog({ cur, duesId, club, onClose, onDone, onError }: { cur: s
         )}
         <div className="space-y-1">
           <Label>Mode</Label>
-          <select className="w-full border border-input bg-background rounded-md h-9 px-2 text-sm" value={transactionType} onChange={(e) => setType(e.target.value)}>
+          <NativeSelect  value={transactionType} onChange={(e) => setType(e.target.value)}>
             <option value="1">Cash</option><option value="2">Cheque</option><option value="3">NEFT</option><option value="4">UPI</option><option value="5">Other</option>
-          </select>
+          </NativeSelect>
         </div>
         <div className="space-y-1"><Label>Transaction / reference</Label><Input value={transactionId} onChange={(e) => setTid(e.target.value)} /></div>
         <div className="space-y-1"><Label>Remark</Label><Input value={remark} onChange={(e) => setRemark(e.target.value)} /></div>
@@ -717,7 +734,7 @@ function ApproveDialog({ cur, club, onClose, onDone, onError }: { cur: string; c
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" onClick={onClose}>
       <div className="bg-background rounded-lg shadow-lg w-full max-w-md p-5 space-y-4" onClick={(e) => e.stopPropagation()}>
-        <h3 className="text-lg font-semibold">Review offline payment: {club.clubName}</h3>
+        <h3 className="row-h2">Review offline payment: {club.clubName}</h3>
         <div className="rounded-lg border p-3 space-y-1 text-sm">
           <div className="flex justify-between"><span>Members covered</span><b>{details?.memberCountCovered ?? club.unpaidCount}</b></div>
           <div className="flex justify-between"><span>Account</span><b>{details?.accountLabel || "-"}</b></div>

@@ -6,6 +6,8 @@
  * rate the talk once it took place; propose a new speaker to the district.
  */
 
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table"
+import { PageHeader } from "@/components/row/AppKit";
 import { useCallback, useEffect, useState } from "react";
 import { Loader2, Trash2 } from "@/components/icons";
 import { Button } from "@/components/ui/button";
@@ -103,17 +105,11 @@ export default function ClubSpeakerBureauPage() {
   };
 
   return (
-    <div className="space-y-8 p-6">
-      <div>
-        <h2 className="text-2xl font-bold tracking-tight text-primary">Speaker bureau</h2>
-        <p className="text-base text-muted-foreground">
-          Speakers your district recommends. Book one for a meeting, then rate the talk so other clubs can choose well.
-        </p>
-        {notice && <p className="mt-2 text-sm text-emerald-700" role="status">{notice}</p>}
-      </div>
+    <div className="space-y-8">
+      <PageHeader title="Speaker bureau" description={<><p className="text-base text-muted-foreground"> Speakers your district recommends. Book one for a meeting, then rate the talk so other clubs can choose well. </p> {notice && <p className="mt-2 text-sm text-emerald-700" role="status">{notice}</p>}</>} />
 
       <section className="space-y-3">
-        <h3 className="text-lg font-semibold">Find a speaker</h3>
+        <h3 className="row-h2">Find a speaker</h3>
         <SearchFilters value={search} onChange={setSearch} />
         <EntryTable list={list} empty="No speakers match. Try fewer filters, or propose a speaker to your district below."
           actions={(e) => (
@@ -130,7 +126,7 @@ export default function ClubSpeakerBureauPage() {
                 <Input id="sb-book-date" type="date" required value={booking.date}
                   onChange={(e) => setBooking({ ...booking, date: e.target.value })} />
               </div>
-              <Button disabled={busy || !booking.date} onClick={book} className="gap-1.5">
+              <Button disabled={busy || !booking.date} onClick={book}>
                 {busy && <Loader2 className="h-4 w-4 animate-spin" />} Book speaker
               </Button>
               <Button variant="outline" onClick={() => setBooking(null)}>Cancel</Button>
@@ -144,7 +140,7 @@ export default function ClubSpeakerBureauPage() {
 
       <section className="space-y-3">
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <h3 className="text-lg font-semibold">Propose a speaker</h3>
+          <h3 className="row-h2">Propose a speaker</h3>
           {!proposing && <Button variant="outline" onClick={() => setProposing(true)}>Propose a speaker</Button>}
         </div>
         <p className="text-sm text-muted-foreground">
@@ -200,7 +196,7 @@ function BookingsSection({ clubId, today, bookings, onChanged, onError }: {
 
   return (
     <section className="space-y-3">
-      <h3 className="text-lg font-semibold">Your club&apos;s bookings</h3>
+      <h3 className="row-h2">Your club&apos;s bookings</h3>
       {!bookings ? (
         <div aria-busy="true"><TableSkeleton rows={3} /></div>
       ) : bookings.length === 0 ? (
@@ -208,35 +204,35 @@ function BookingsSection({ clubId, today, bookings, onChanged, onError }: {
       ) : (
         <Card>
           <CardContent className="overflow-x-auto p-0">
-            <table className="w-full min-w-[640px] text-sm">
-              <thead className="bg-muted/50 text-[13px]">
-                <tr className="border-b text-left text-muted-foreground">
-                  <th className="p-3 font-medium">Meeting</th>
-                  <th className="p-3 font-medium">Speaker</th>
-                  <th className="p-3 font-medium">Your rating</th>
-                  <th className="p-3"><span className="sr-only">Actions</span></th>
-                </tr>
-              </thead>
-              <tbody>
+            <Table className="w-full min-w-[640px] text-sm">
+              <TableHeader>
+                <TableRow className="border-b">
+                  <TableHead className="p-3">Meeting</TableHead>
+                  <TableHead className="p-3">Speaker</TableHead>
+                  <TableHead className="p-3">Your rating</TableHead>
+                  <TableHead className="p-3"><span className="sr-only">Actions</span></TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
                 {bookings.map((b) => (
-                  <tr key={b.id} className="border-b last:border-0 align-top">
-                    <td className="p-3 whitespace-nowrap">
+                  <TableRow key={b.id} className="border-b last:border-0 align-top">
+                    <TableCell className="p-3 whitespace-nowrap">
                       {fmt.date(b.talkDate.slice(0, 10))}
                       {b.talkDate.slice(0, 10) >= today && <p className="text-xs text-muted-foreground">Coming</p>}
-                    </td>
-                    <td className="p-3">
+                    </TableCell>
+                    <TableCell className="p-3">
                       <p className="font-medium">{b.name}</p>
                       <p className="text-muted-foreground">{tagList(b.topics).join(", ")}</p>
-                    </td>
-                    <td className="p-3">
+                    </TableCell>
+                    <TableCell className="p-3">
                       {b.rating != null ? (
                         <>
                           <p>{b.rating} of 5</p>
                           {b.comment && <p className="text-muted-foreground">{b.comment}</p>}
                         </>
                       ) : b.canRate ? "Not rated yet" : "After the talk"}
-                    </td>
-                    <td className="p-3 whitespace-nowrap text-right">
+                    </TableCell>
+                    <TableCell className="p-3 whitespace-nowrap text-right">
                       {b.canRate && (
                         <Button variant="outline" size="sm" onClick={() => setRating({ booking: b, score: "", comment: "" })}>Rate the talk</Button>
                       )}
@@ -245,11 +241,11 @@ function BookingsSection({ clubId, today, bookings, onChanged, onError }: {
                           <Trash2 className="h-4 w-4" />
                         </Button>
                       )}
-                    </td>
-                  </tr>
+                    </TableCell>
+                  </TableRow>
                 ))}
-              </tbody>
-            </table>
+              </TableBody>
+            </Table>
           </CardContent>
         </Card>
       )}
@@ -276,7 +272,7 @@ function BookingsSection({ clubId, today, bookings, onChanged, onError }: {
                 onChange={(e) => setRating({ ...rating, comment: e.target.value })} />
             </div>
             <div className="flex gap-2 md:col-span-2">
-              <Button disabled={busy || !rating.score} onClick={rate} className="gap-1.5">
+              <Button disabled={busy || !rating.score} onClick={rate}>
                 {busy && <Loader2 className="h-4 w-4 animate-spin" />} Save rating
               </Button>
               <Button variant="outline" onClick={() => setRating(null)}>Cancel</Button>

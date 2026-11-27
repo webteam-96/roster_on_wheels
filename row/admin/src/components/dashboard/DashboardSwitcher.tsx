@@ -1,11 +1,14 @@
 "use client";
 
+import { MenuItemButton } from "@/components/ui/text-buttons";
+import { Button } from "@/components/ui/button"
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import { ArrowLeftRight, Check, ChevronUp, Building2, Search } from "@/components/icons";
 import { resolveDashboardLanding, getDistrictAllClubsForAdmin, type DashboardEntry } from "@/services/api";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth, useSelectedClub, useSelectedDistrict } from "@/contexts/AuthContext";
+import { currentEntryOf } from "./currentEntry";
 import RotaryLoader from "@/components/RotaryLoader";
 import { withBase } from "@/lib/basePath";
 
@@ -246,20 +249,17 @@ export default function DashboardSwitcher({ currentKind, onNavigate }: Dashboard
     };
   }, [open]);
 
-  // Identify the currently-active entry: match kind + selected scope.
-  const currentEntry = useMemo<DashboardEntry | undefined>(() => {
-    const sameKind = available.filter((e) => e.kind === currentKind);
-    if (sameKind.length === 0) return undefined;
-    if (sameKind.length === 1) return sameKind[0];
-    // Multi-scope of same kind: prefer the entry whose scope matches AuthContext.
-    const matchScoped = sameKind.find(
-      (e) =>
-        (e.clubId != null && e.clubId === auth.selectedClubId) ||
-        (e.districtId != null && e.districtId === auth.selectedDistrictId) ||
-        (e.zoneId != null && e.zoneId === auth.selectedZoneId),
-    );
-    return matchScoped ?? sameKind[0];
-  }, [available, currentKind, auth.selectedClubId, auth.selectedDistrictId, auth.selectedZoneId]);
+  // The entry on screen. Uses the same selected club / district as the page header, so the two can never disagree.
+  const selectedClub = useSelectedClub();
+  const selectedDistrict = useSelectedDistrict();
+  const currentEntry = useMemo<DashboardEntry | undefined>(
+    () => currentEntryOf(available, currentKind, {
+      clubId: selectedClub?.id ?? null,
+      districtId: selectedDistrict?.id ?? null,
+      zoneId: auth.selectedZoneId,
+    }),
+    [available, currentKind, selectedClub?.id, selectedDistrict?.id, auth.selectedZoneId],
+  );
 
   // Group entries by kind so multi-scope kinds render under a single header.
   // Preserve first-seen order of kinds.
@@ -378,23 +378,20 @@ export default function DashboardSwitcher({ currentKind, onNavigate }: Dashboard
                   const display = isMultiScope ? scopeOnlyLabel(entry) : friendlyLabel(entry);
                   return (
                     <li key={key}>
-                      <button
-                        type="button"
+                      <MenuItemButton
                         onClick={(e) => {
                           e.stopPropagation();
                           handleSelect(entry);
                         }}
-                        className={`w-full flex items-center justify-between gap-2 px-3 py-2 text-xs text-left transition-colors ${
-                          isMultiScope ? "pl-6" : ""
-                        } ${
-                          isCurrent
-                            ? "text-amber-300 bg-white/5 cursor-default"
-                            : "text-slate-200 hover:text-white hover:bg-white/10"
+                        tone="dark"
+                        selected={isCurrent}
+                        className={`justify-between gap-2 rounded-none px-3 py-2 text-xs ${isMultiScope ? "pl-6" : ""} ${
+                          isCurrent ? "text-amber-300 cursor-default" : ""
                         }`}
                       >
                         <span className="truncate">{display}</span>
                         {isCurrent && <Check size={12} className="text-amber-300 flex-shrink-0" />}
-                      </button>
+                      </MenuItemButton>
                     </li>
                   );
                 })}
@@ -429,14 +426,14 @@ export default function DashboardSwitcher({ currentKind, onNavigate }: Dashboard
               <>
                 {daClubsVisible.map((c) => (
                   <li key={c.clubId}>
-                    <button
-                      type="button"
+                    <MenuItemButton
                       title={c.clubName}
                       onClick={(e) => { e.stopPropagation(); handleSelectClub(c); }}
-                      className="w-full text-left px-3 py-2 text-xs text-slate-200 hover:text-white hover:bg-white/10 truncate transition-colors"
+                      tone="dark"
+                      className="block truncate rounded-none px-3 py-2 text-xs"
                     >
                       {c.clubName}
-                    </button>
+                    </MenuItemButton>
                   </li>
                 ))}
                 {daHidden > 0 && (
@@ -460,21 +457,20 @@ export default function DashboardSwitcher({ currentKind, onNavigate }: Dashboard
           <p className="text-sm font-medium text-slate-200">Opening club dashboard…</p>
         </div>
       )}
-      <button
+      <Button variant="outline" className="w-full justify-between gap-2"
         ref={triggerRef}
         type="button"
         onClick={(e) => {
           e.stopPropagation();
           setOpen((v) => !v);
         }}
-        className="w-full flex items-center justify-between gap-2 px-3 py-2 rounded-lg text-xs font-medium text-foreground hover:bg-muted transition-colors border border-border"
       >
         <span className="flex items-center gap-2 min-w-0">
           <ArrowLeftRight size={13} className="flex-shrink-0" />
           <span className="truncate">{triggerLabel}</span>
         </span>
         <ChevronUp size={12} className={`flex-shrink-0 transition-transform ${open ? "" : "rotate-180"}`} />
-      </button>
+      </Button>
 
       {open && mounted && portalPos &&
         createPortal(

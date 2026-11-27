@@ -115,7 +115,7 @@ const CmrReportDesignD = forwardRef<HTMLDivElement, CmrReportProps>(function Cmr
         {f.groups.length === 0 ? <p data-pdf-block className="text-[12px] italic text-slate-500">No meetings this month.</p> : f.groups.map((g) => (
           <div key={g.type} className="mb-3">
             <p data-pdf-block className="mb-1 text-[12px]">
-              <span className="rounded-full px-2.5 py-0.5 text-[11px] font-bold text-white" style={{ background: T.blue.band }}>{g.label}</span>
+              <span className="rounded px-2.5 py-0.5 text-[11px] font-bold text-white" style={{ background: T.blue.band }}>{g.label}</span>
               <span className="ml-2 text-slate-600">{g.items.length} meeting(s){g.avgAttendance != null ? ` · avg attendance ${g.avgAttendance}%` : ""}</span>
             </p>
             <Table tone={T.blue} head={["Date", "Title", "Attendance", "%"]} right={[2, 3]}
@@ -157,7 +157,7 @@ const CmrReportDesignD = forwardRef<HTMLDivElement, CmrReportProps>(function Cmr
         {f.projectTypes.length === 0 ? <p data-pdf-block className="text-[12px] italic text-slate-500">No projects this month.</p> : f.projectTypes.map((k) => (
           <div key={k} className="mb-3">
             <p data-pdf-block className="mb-1 text-[12px]">
-              <span className="rounded-full px-2.5 py-0.5 text-[11px] font-bold text-white" style={{ background: T.purple.band }}>{CMR_PROJECT_LABELS[k]}</span>
+              <span className="rounded px-2.5 py-0.5 text-[11px] font-bold text-white" style={{ background: T.purple.band }}>{CMR_PROJECT_LABELS[k]}</span>
               <span className="ml-2 text-slate-600">{report.projects[k].length} project(s)</span>
             </p>
             <Table tone={T.purple} head={["Date", "Title", "Area of focus"]}

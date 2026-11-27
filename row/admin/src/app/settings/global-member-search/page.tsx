@@ -12,14 +12,13 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import ErrorAlert from "@/components/ErrorAlert";
 import SuccessAlert from "@/components/SuccessAlert";
-import { ArrowLeft, Search, User, Building, Shield, Award, Crown, Users, Briefcase, X, Pencil, Trash2, Calendar, CreditCard, ClipboardList } from "@/components/icons";
+import { Search, User, Building, Shield, Award, Crown, Users, Briefcase, Pencil, Trash2, Calendar, CreditCard } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
-import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { formatBirthAnniversary } from "@/lib/dateUtils";
 
 import { appLocale, currencySymbol } from "@/lib/appFormat";
-import { ListPageSkeleton } from "@/components/row/AppKit";
+import { PageHeader, ListPageSkeleton } from "@/components/row/AppKit";
 import Pagination from "@/components/Pagination";
 // Field keys (case-insensitive) that should display DD-MM only — project rule.
 const BIRTH_ANNIV_KEYS = new Set(["birthdate", "anniversarydate"]);
@@ -50,8 +49,8 @@ function SectionHeader({ icon: Icon, title, count }: { icon: React.ElementType; 
   return (
     <div className="flex items-center gap-2 mt-5 mb-2 border-b pb-1">
       <Icon className="h-4 w-4 text-primary" />
-      <h4 className="text-sm font-semibold text-primary">{title}</h4>
-      <Badge variant="secondary" className="text-xs">{count}</Badge>
+      <h4 className="row-h3">{title}</h4>
+      <Badge variant="secondary">{count}</Badge>
     </div>
   );
 }
@@ -179,7 +178,7 @@ export default function GlobalMemberSearchPage() {
     return (
       <ProtectedRoute>
         <div className="flex flex-col items-center py-20">
-          <h3 className="text-lg font-semibold">Access Denied</h3>
+          <h3 className="row-h2">Access Denied</h3>
           <p className="text-muted-foreground mt-2">Only SuperAdmin can access global member search.</p>
         </div>
       </ProtectedRoute>
@@ -195,15 +194,7 @@ export default function GlobalMemberSearchPage() {
         <ErrorAlert open={!!errorMessage} title="Error" description={errorMessage || ""} onOk={() => setErrorMessage(null)} />
         <SuccessAlert open={!!successMessage} title="Success" description={successMessage || ""} onOk={() => setSuccessMessage(null)} />
 
-        <div className="flex items-center gap-3">
-          <Button variant="outline" size="icon" asChild>
-            <Link href="/settings"><ArrowLeft className="h-4 w-4" /></Link>
-          </Button>
-          <div>
-            <h2 className="text-2xl font-bold tracking-tight text-primary">Global Member Search</h2>
-            <p className="text-muted-foreground text-base">Search members across all zones, districts and clubs</p>
-          </div>
-        </div>
+        <PageHeader title="Global Member Search" description="Search members across all zones, districts and clubs" back="/settings" />
 
         {/* Search Bar */}
         <Card>
@@ -229,7 +220,7 @@ export default function GlobalMemberSearchPage() {
         ) : !searched ? (
           <div className="flex flex-col items-center py-20 text-center">
             <Search className="h-12 w-12 text-muted-foreground mb-4" />
-            <h3 className="text-lg font-semibold">Search Members</h3>
+            <h3 className="row-h2">Search Members</h3>
             <p className="text-muted-foreground mt-2">Enter a name, email, mobile, rotary ID or club name to search.</p>
           </div>
         ) : results.length === 0 ? (
@@ -283,17 +274,17 @@ export default function GlobalMemberSearchPage() {
                         <TableCell className="font-medium">{mem.MemberName}</TableCell>
                         <TableCell className="text-sm">{mem.PrimaryMobileNumber || "–"}</TableCell>
                         <TableCell className="text-sm">{mem.EmailId || "–"}</TableCell>
-                        <TableCell><Badge variant="outline" className="text-xs">{mem.RotaryId || "–"}</Badge></TableCell>
+                        <TableCell><Badge variant="outline">{mem.RotaryId || "–"}</Badge></TableCell>
                         <TableCell>
                           {r.roles?.map((role: any, i: number) => (
                             <Badge key={i} variant="secondary" className="text-xs mr-1">{role.displayRole}</Badge>
                           ))}
                         </TableCell>
                         <TableCell className="text-right whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
-                          <Button variant="ghost" size="icon" className="h-8 w-8" title="Edit mobile & email" onClick={() => openEdit(mem)}>
+                          <Button variant="ghost" size="icon" className="row-btn-sm" title="Edit mobile & email" onClick={() => openEdit(mem)}>
                             <Pencil className="h-4 w-4" />
                           </Button>
-                          <Button variant="ghost" size="icon" className="h-8 w-8 text-red-600 hover:text-red-700" title="Delete member" onClick={() => setDeleting(mem)}>
+                          <Button variant="ghost" size="icon" className="text-red-600 row-btn-sm" title="Delete member" onClick={() => setDeleting(mem)}>
                             <Trash2 className="h-4 w-4" />
                           </Button>
                         </TableCell>
@@ -357,7 +348,7 @@ export default function GlobalMemberSearchPage() {
                       <div key={i} className="bg-muted/30 rounded-lg p-3 text-sm">
                         <div className="flex items-center gap-2 flex-wrap">
                           <span className="font-medium">{c.clubName}</span>
-                          {c.clubRotaryId && <Badge variant="outline" className="text-xs">{c.clubRotaryId}</Badge>}
+                          {c.clubRotaryId && <Badge variant="outline">{c.clubRotaryId}</Badge>}
                           <Badge className={c.isActive ? "bg-green-700 text-xs text-white" : "bg-gray-600 text-xs text-white"}>
                             {c.isActive ? "Active" : "Inactive"}
                           </Badge>
@@ -394,7 +385,7 @@ export default function GlobalMemberSearchPage() {
                   <div className="bg-muted/30 rounded-lg p-3 space-y-1">
                     {r.districtCommittee.map((d: any, i: number) => (
                       <div key={i} className="text-sm">
-                        <Badge variant="secondary" className="text-xs mr-2">{d.yearLabel}</Badge>
+                        <Badge variant="secondary" className="mr-2">{d.yearLabel}</Badge>
                         District {d.districtNumber}: {d.designation || "Member"}
                         {d.remark && <span className="text-xs text-muted-foreground ml-2">({d.remark})</span>}
                       </div>
@@ -408,7 +399,7 @@ export default function GlobalMemberSearchPage() {
                   <div className="bg-muted/30 rounded-lg p-3 space-y-1">
                     {r.groupCommittee.map((g: any, i: number) => (
                       <div key={i} className="text-sm">
-                        <Badge variant="secondary" className="text-xs mr-2">{g.yearLabel}</Badge>
+                        <Badge variant="secondary" className="mr-2">{g.yearLabel}</Badge>
                         {g.groupName}: {g.designation || "Member"}
                         <span className="text-xs text-muted-foreground ml-2">(District {g.districtNumber})</span>
                       </div>
@@ -422,7 +413,7 @@ export default function GlobalMemberSearchPage() {
                   <div className="bg-muted/30 rounded-lg p-3 space-y-1">
                     {r.subGroupCommittee.map((sg: any, i: number) => (
                       <div key={i} className="text-sm">
-                        <Badge variant="secondary" className="text-xs mr-2">{sg.yearLabel}</Badge>
+                        <Badge variant="secondary" className="mr-2">{sg.yearLabel}</Badge>
                         {sg.groupName} &rarr; {sg.subGroupName}: {sg.designation || "Member"}
                         <span className="text-xs text-muted-foreground ml-2">(District {sg.districtNumber})</span>
                       </div>
@@ -436,7 +427,7 @@ export default function GlobalMemberSearchPage() {
                   <div className="bg-muted/30 rounded-lg p-3 space-y-1">
                     {r.districtGovernor.map((dg: any, i: number) => (
                       <div key={i} className="text-sm">
-                        <Badge variant="secondary" className="text-xs mr-2">{dg.yearLabel}</Badge>
+                        <Badge variant="secondary" className="mr-2">{dg.yearLabel}</Badge>
                         District {dg.districtNumber}
                       </div>
                     ))}
@@ -449,7 +440,7 @@ export default function GlobalMemberSearchPage() {
                   <div className="bg-muted/30 rounded-lg p-3 space-y-1">
                     {r.pastPresident.map((pp: any, i: number) => (
                       <div key={i} className="text-sm">
-                        <Badge variant="secondary" className="text-xs mr-2">{pp.yearLabel}</Badge>
+                        <Badge variant="secondary" className="mr-2">{pp.yearLabel}</Badge>
                         {pp.clubName}
                       </div>
                     ))}
@@ -506,7 +497,7 @@ export default function GlobalMemberSearchPage() {
                   <div className="bg-muted/30 rounded-lg p-3 space-y-1">
                     {r.membershipDues.map((d: any, i: number) => (
                       <div key={i} className="text-sm flex items-center gap-2 flex-wrap">
-                        {d.rotaryYear && <Badge variant="secondary" className="text-xs">{d.rotaryYear}</Badge>}
+                        {d.rotaryYear && <Badge variant="secondary">{d.rotaryYear}</Badge>}
                         <span className="font-medium">{d.purpose}</span>
                         {d.amount != null && <span className="text-xs text-muted-foreground">{currencySymbol()}{Number(d.amount).toLocaleString(appLocale())}</span>}
                         <Badge className={d.isPaid ? "bg-green-700 text-xs text-white" : "bg-amber-700 text-xs text-white"}>{d.isPaid ? "Paid" : (d.paymentStatus || "Pending")}</Badge>

@@ -1,5 +1,7 @@
 "use client";
 
+import SectionCard from "@/components/form/SectionCard";
+import { Card } from "@/components/ui/card";
 import { useState, useEffect, useMemo } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { getDistrict, getDistrictGreetingSettings, updateDistrictGreetingSettings } from "@/services/api";
@@ -9,8 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
-import { ArrowLeft, MessageSquare, Mail, Info } from "@/components/icons";
-import Link from "next/link";
+import { MessageSquare, Mail, Info } from "@/components/icons";
 import DistrictAdminShell from "@/components/v2/DistrictAdminShell";
 import { useSyncDistrictIdFromUrl } from "@/hooks/useSyncDistrictIdFromUrl";
 import { useAuth } from "@/contexts/AuthContext";
@@ -18,22 +19,8 @@ import { districtYearRights, canEditYearless, isCurrentYearSelected, heldYearLab
 import { useRotaryYears } from "@/hooks/useRotaryYears";
 import ViewOnlyBadge from "@/components/ViewOnlyBadge";
 import GreetingPauseNotice from "@/components/GreetingPauseNotice";
-import { ListPageSkeleton } from "@/components/row/AppKit";
+import { PageHeader, ListPageSkeleton } from "@/components/row/AppKit";
 
-function Section({ icon: Icon, title, number, children }: {
-  icon: React.ElementType; title: string; number: number; children: React.ReactNode;
-}) {
-  return (
-    <div className="bg-card rounded-[20px] border shadow-sm overflow-hidden">
-      <div className="flex items-center gap-3 px-5 py-3.5 bg-muted/40 border-b">
-        <div className="flex items-center justify-center h-7 w-7 rounded-full bg-primary text-primary-foreground text-xs font-bold">{number}</div>
-        <Icon className="h-4 w-4 text-primary" />
-        <h3 className="font-semibold text-base">{title}</h3>
-      </div>
-      <div className="p-5">{children}</div>
-    </div>
-  );
-}
 
 export default function DistrictGreetingsSettingsPage() {
   useSyncDistrictIdFromUrl();
@@ -172,20 +159,12 @@ export default function DistrictGreetingsSettingsPage() {
         <ViewOnlyBadge currentYearOnly={currentYearLabel} className="mb-4" />
       )}
 
-      <div className="space-y-6 max-w-3xl mx-auto">
-        <div className="flex items-center gap-3">
-          <Button variant="outline" size="icon" asChild>
-            <Link href={backTo}><ArrowLeft className="h-4 w-4" /></Link>
-          </Button>
-          <div>
-            <h2 className="text-2xl font-bold tracking-tight text-primary">Greetings Settings</h2>
-            <p className="text-muted-foreground text-base">{districtName}</p>
-          </div>
-        </div>
+      <div className="space-y-6 max-w-4xl">
+        <PageHeader title="Greetings Settings" description={districtName} back={backTo} />
 
         <GreetingPauseNotice paused={pauseInfo.paused} reviewedYear={pauseInfo.reviewedYear} currentYear={pauseInfo.currentYear} />
 
-        <Section icon={MessageSquare} title="In-App Notifications" number={1}>
+        <SectionCard icon={MessageSquare} title="In-App Notifications" number={1}>
           <div className="space-y-5">
             <label className="flex items-center gap-3 cursor-pointer">
               <input type="checkbox" checked={isEnableBirthdayNotification} onChange={(e) => setIsEnableBirthdayNotification(e.target.checked)} disabled={!canManage} className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary" />
@@ -220,10 +199,10 @@ export default function DistrictGreetingsSettingsPage() {
               Also enables the daily &quot;celebrations today&quot; digest broadcast to every member with the app installed.
             </p>
           </div>
-        </Section>
+        </SectionCard>
 
         {/* 2. Email Settings */}
-        <Section icon={Mail} title="Email Settings" number={2}>
+        <SectionCard icon={Mail} title="Email Settings" number={2}>
           <div className="space-y-5">
             <div className="space-y-4 border rounded-lg p-4">
               <label className="flex items-center gap-3 cursor-pointer">
@@ -273,7 +252,7 @@ export default function DistrictGreetingsSettingsPage() {
               )}
             </div>
           </div>
-        </Section>
+        </SectionCard>
 
         {canManage && (
           <div className="flex justify-end pb-8">

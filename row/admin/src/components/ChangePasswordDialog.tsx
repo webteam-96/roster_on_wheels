@@ -1,5 +1,6 @@
 "use client";
 
+import { IconButton } from "@/components/ui/icon-button"
 import { useState } from "react";
 import { Eye, EyeOff, Check, X } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
@@ -137,9 +138,8 @@ export default function ChangePasswordDialog({ open, onClose, required = false }
                 onChange={(e) => setCurrentPassword(e.target.value)}
                 required
               />
-              <button
+              <IconButton aria-label={showCurrentPassword ? "Hide password" : "Show password"} className="absolute right-2 top-1/2 -translate-y-1/2"
                 type="button"
-                className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                 onClick={() => setShowCurrentPassword(!showCurrentPassword)}
                 tabIndex={-1}
               >
@@ -148,7 +148,7 @@ export default function ChangePasswordDialog({ open, onClose, required = false }
                 ) : (
                   <Eye className="h-4 w-4" />
                 )}
-              </button>
+              </IconButton>
             </div>
           </div>
 
@@ -163,9 +163,8 @@ export default function ChangePasswordDialog({ open, onClose, required = false }
                 onChange={(e) => setNewPassword(e.target.value)}
                 required
               />
-              <button
+              <IconButton aria-label={showNewPassword ? "Hide password" : "Show password"} className="absolute right-2 top-1/2 -translate-y-1/2"
                 type="button"
-                className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                 onClick={() => setShowNewPassword(!showNewPassword)}
                 tabIndex={-1}
               >
@@ -174,7 +173,7 @@ export default function ChangePasswordDialog({ open, onClose, required = false }
                 ) : (
                   <Eye className="h-4 w-4" />
                 )}
-              </button>
+              </IconButton>
             </div>
           </div>
 
@@ -210,9 +209,8 @@ export default function ChangePasswordDialog({ open, onClose, required = false }
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 required
               />
-              <button
+              <IconButton aria-label={showConfirmPassword ? "Hide password" : "Show password"} className="absolute right-2 top-1/2 -translate-y-1/2"
                 type="button"
-                className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                 tabIndex={-1}
               >
@@ -221,7 +219,7 @@ export default function ChangePasswordDialog({ open, onClose, required = false }
                 ) : (
                   <Eye className="h-4 w-4" />
                 )}
-              </button>
+              </IconButton>
             </div>
             {confirmPassword && !passwordsMatch && (
               <p className="text-xs text-destructive">Passwords do not match</p>

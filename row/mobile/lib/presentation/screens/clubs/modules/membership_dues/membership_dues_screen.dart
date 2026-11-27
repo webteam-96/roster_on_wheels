@@ -29,6 +29,8 @@ import 'package:rotary_flutter_app/core/utils/money_format.dart';
 import 'package:rotary_flutter_app/core/theme/app_fonts.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
 import 'package:rotary_flutter_app/presentation/widgets/row/skeleton_list.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/motion.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/roster_wheel.dart';
 
 class MembershipDuesScreen extends StatefulWidget {
   final int clubId;
@@ -422,7 +424,7 @@ class _MembershipDuesScreenState extends State<MembershipDuesScreen> {
                 // screen (calendar + "Rotary Year" + underline-less dropdown).
                 if (_years.isNotEmpty) _yearPickerBox(),
                 Expanded(
-                  child: RefreshIndicator(
+                  child: RowRefresh(
                     onRefresh: () => _load(),
                     child: ListView(
                       padding: const EdgeInsets.all(16),
@@ -1463,7 +1465,7 @@ class DuesRosterScreenState extends State<DuesRosterScreen> {
 
   Future<void> _sendReminder(int memberFeeId, String channel, {int? feeType}) async {
     if (channel == 'email') {
-      final confirmed = await showDialog<bool>(
+      final confirmed = await showRowDialog<bool>(
         context: context,
         builder: (ctx) => AlertDialog(
           title: const Text('Send Email Reminder'),
@@ -1509,7 +1511,7 @@ class DuesRosterScreenState extends State<DuesRosterScreen> {
 
   Future<void> _bulkReminder(String channel) async {
     if (channel == 'email') {
-      final confirmed = await showDialog<bool>(
+      final confirmed = await showRowDialog<bool>(
         context: context,
         builder: (ctx) => AlertDialog(
           title: const Text('Bulk Email Reminder'),
@@ -1559,7 +1561,7 @@ class DuesRosterScreenState extends State<DuesRosterScreen> {
     String? reason;
     if (!approve) {
       final ctrl = TextEditingController();
-      final confirmed = await showDialog<bool>(
+      final confirmed = await showRowDialog<bool>(
         context: context,
         builder: (ctx) => AlertDialog(
           title: const Text('Reject Payment'),
@@ -1614,7 +1616,7 @@ class DuesRosterScreenState extends State<DuesRosterScreen> {
   Future<void> _sendReceipt(int memberFeeId) async {
     // Confirm before sending — mirrors the web members listing's window.confirm
     // (parity with the reminder actions, which already confirm).
-    final confirmed = await showDialog<bool>(
+    final confirmed = await showRowDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Send Receipt'),
@@ -1726,7 +1728,7 @@ class DuesRosterScreenState extends State<DuesRosterScreen> {
     return Scaffold(
       backgroundColor: AppColors.lightBg,
       appBar: CustomAppBar(title: widget.duesName),
-      body: RefreshIndicator(
+      body: RowRefresh(
         onRefresh: _load,
         child: ListView(
           padding: const EdgeInsets.fromLTRB(12, 12, 12, 96),
@@ -1840,6 +1842,7 @@ class DuesRosterScreenState extends State<DuesRosterScreen> {
                         horizontal: 12, vertical: 10),
                     suffixIcon: _searchCtrl.text.isNotEmpty
                         ? IconButton(
+                            tooltip: 'Close',
                             icon: const Icon(Icons.close, size: 18),
                             onPressed: () {
                               _searchCtrl.clear();

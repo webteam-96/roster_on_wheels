@@ -12,11 +12,11 @@
  * confirm modal, hasWebsite guard, role-based read-only) is preserved.
  */
 
+import { Card } from "@/components/ui/card";
 import { useEffect, useMemo, useState } from "react";
 import { useParams, useSearchParams } from "next/navigation";
-import Link from "next/link";
 import Image from "next/image";
-import { ArrowLeft, Check, Palette, AlertCircle, Loader2, CheckCircle2, Sparkles, Eye, Lock } from "@/components/icons";
+import { Check, Palette, AlertCircle, CheckCircle2, Sparkles, Eye, Lock } from "@/components/icons";
 import { Club } from "@/types/club";
 import { Theme } from "@/types/theme";
 import {
@@ -36,7 +36,7 @@ import AlertModal from "@/components/AlertModal";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import ClubAdminShell from "@/components/v2/ClubAdminShell";
 import { useSyncClubIdFromUrl } from "@/hooks/useSyncClubIdFromUrl";
-import { SkeletonRows } from "@/components/row/AppKit";
+import { PageHeader, SkeletonRows } from "@/components/row/AppKit";
 
 // Visual swatches per theme — pure CSS, no API call needed.
 // Keys match the slug the public resolver will compute from theme_name.
@@ -161,30 +161,16 @@ export default function ChangeThemeV2Page() {
         <ErrorAlert open={!!errorMessage} title="Error" description={errorMessage || ""} onOk={() => setErrorMessage(null)} />
 
         {/* Header */}
-        <div className="flex items-start justify-between gap-3">
-          <div className="flex items-start gap-2">
-            <Link
-              href={backHref}
-              className="mt-0.5 inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50"
-              aria-label="Back"
-            >
-              <ArrowLeft size={15} />
-            </Link>
-            <div>
-              <h1 className="text-lg font-semibold text-slate-800">
-                {club ? `${club.clubName}: Theme` : "Theme"}
-              </h1>
-              <p className="text-xs text-slate-500 mt-0.5">
-                Pick the look of your public club website. The switch is instant: the public site refreshes within ~5 minutes.
-              </p>
-            </div>
-          </div>
-          {!loading && hasWebsite && activeTheme && (
-            <span className="inline-flex items-center gap-1 text-xs font-medium px-2 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+        <PageHeader
+          title={club ? `${club.clubName}: Theme` : "Theme"}
+          description="Pick the look of your public club website. The switch is instant: the public site refreshes within ~5 minutes."
+          back={backHref}
+          actions={!loading && hasWebsite && activeTheme && (
+            <span className="inline-flex items-center gap-1 text-xs font-medium px-2 py-1 rounded bg-emerald-50 text-emerald-700 border border-emerald-200">
               <CheckCircle2 size={12} /> Active: {activeTheme.themeName}
             </span>
           )}
-        </div>
+        />
 
         {/* Loading */}
         {loading && (
@@ -218,13 +204,13 @@ export default function ChangeThemeV2Page() {
 
         {/* Theme gallery */}
         {!loading && hasWebsite && (
-          <div className="bg-card rounded-2xl border border-slate-200 overflow-hidden">
+          <Card className="overflow-hidden">
             <div className="px-5 py-3 border-b border-slate-100 flex items-center gap-2 bg-blue-50">
               <div className="w-9 h-9 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center">
                 <Sparkles size={18} />
               </div>
               <div>
-                <h3 className="text-sm font-semibold text-slate-800">Choose a theme</h3>
+                <h3 className="row-h3">Choose a theme</h3>
                 <p className="text-xs text-slate-500">
                   {themes.length} theme{themes.length === 1 ? "" : "s"} available · click a card to switch
                 </p>
@@ -293,13 +279,13 @@ export default function ChangeThemeV2Page() {
                     {/* Meta */}
                     <div className="p-4">
                       <div className="flex items-center justify-between gap-3">
-                        <h3 className="text-sm font-semibold text-slate-800 truncate">{theme.themeName}</h3>
+                        <h3 className="row-h3 truncate">{theme.themeName}</h3>
                         {isActive ? (
-                          <span className="inline-flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wide px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 border border-blue-200">
+                          <span className="inline-flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wide px-2 py-0.5 rounded bg-blue-100 text-blue-700 border border-blue-200">
                             <Check size={11} /> Active
                           </span>
                         ) : clickable ? (
-                          <span className="hidden group-hover:inline-flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wide px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200">
+                          <span className="hidden group-hover:inline-flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wide px-2 py-0.5 rounded bg-slate-100 text-slate-600 border border-slate-200">
                             <Eye size={11} /> Switch
                           </span>
                         ) : null}
@@ -349,7 +335,7 @@ export default function ChangeThemeV2Page() {
               </span>
               <span className="text-slate-400">Cache refresh ~5 min</span>
             </div>
-          </div>
+          </Card>
         )}
 
         <AlertModal

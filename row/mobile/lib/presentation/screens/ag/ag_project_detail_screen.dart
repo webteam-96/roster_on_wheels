@@ -9,6 +9,7 @@ import 'widgets/ag_async.dart';
 import 'widgets/ag_format.dart';
 import 'package:rotary_flutter_app/core/theme/app_fonts.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/motion.dart';
 
 /// AG project detail — full detail + photos for one project, fetched on demand
 /// from `GET /api/mobile/ag-dashboard/projects/{projectId}`. Mirrors the web
@@ -206,7 +207,7 @@ class _Body extends StatelessWidget {
                     ),
                   )
                 else
-                  GridView.count(
+                  RowGridView.count(
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
                     crossAxisCount: 2,
@@ -230,7 +231,7 @@ class _Body extends StatelessWidget {
   }
 
   void _openLightbox(BuildContext context, int index) {
-    showDialog<void>(
+    showRowDialog<void>(
       context: context,
       barrierColor: Colors.black.withValues(alpha: 0.88),
       builder: (_) => _Lightbox(photos: detail.photos, initialIndex: index),
@@ -496,6 +497,7 @@ class _LightboxState extends State<_Lightbox> {
             right: 8,
             child: SafeArea(
               child: IconButton(
+                tooltip: 'Close',
                 onPressed: () => Navigator.of(context).pop(),
                 icon: const Icon(Icons.close_rounded, color: Colors.white),
               ),

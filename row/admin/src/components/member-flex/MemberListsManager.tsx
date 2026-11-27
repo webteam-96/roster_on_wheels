@@ -6,6 +6,10 @@
  * fields are managed on the Settings tab. Every filter is checked and run on the server.
  */
 
+import { MenuItemButton, ToggleButton } from "@/components/ui/text-buttons"
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table"
+import { NativeSelect } from "@/components/ui/native-select";
+import { IconButton } from "@/components/ui/icon-button";
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import {
@@ -31,7 +35,7 @@ import MemberProfileDialog from "./MemberProfileDialog";
 import TagsAndFieldsSettings from "./TagsAndFieldsSettings";
 
 const PAGE_SIZE = 25;
-const SELECT = "h-9 rounded-md border border-input bg-background px-3 text-sm";
+const SELECT = "row-field";
 const OPS: Record<string, { value: string; label: string }[]> = {
   text: [{ value: "eq", label: "is" }, { value: "contains", label: "contains" }],
   number: [{ value: "eq", label: "=" }, { value: "gt", label: "more than" }, { value: "lt", label: "less than" }],
@@ -129,10 +133,10 @@ export default function MemberListsManager({ clubId }: { clubId: number }) {
   const dirty = JSON.stringify(draft) !== JSON.stringify(applied);
 
   const tabButton = (key: "lists" | "settings", text: string) => (
-    <button type="button" onClick={() => setTab(key)} aria-pressed={tab === key}
-      className={`h-9 rounded-full px-4 text-sm font-medium ${tab === key ? "bg-azure text-white" : "border border-slate-200 text-slate-700 hover:bg-slate-50"}`}>
+    <ToggleButton pressed={tab === key} type="button" onClick={() => setTab(key)}
+     >
       {text}
-    </button>
+    </ToggleButton>
   );
 
   return (
@@ -154,13 +158,13 @@ export default function MemberListsManager({ clubId }: { clubId: number }) {
                 <ul className="space-y-1">
                   {lists.map((l) => (
                     <li key={l.id} className="flex items-center gap-1">
-                      <button type="button" onClick={() => openList(l)}
-                        className={`flex-1 truncate rounded px-2 py-1.5 text-left text-sm ${current?.id === l.id ? "bg-[#EDF4FB] font-semibold text-azure" : "text-slate-700 hover:bg-slate-50"}`}>
+                      <MenuItemButton selected={current?.id === l.id} className="flex-1 truncate" type="button" onClick={() => openList(l)}
+                       >
                         {l.name}
-                      </button>
-                      <button type="button" aria-label={`Delete ${l.name}`} className="p-1 text-slate-400 hover:text-rose-700" onClick={() => setListToDelete(l)}>
+                      </MenuItemButton>
+                      <IconButton type="button" aria-label={`Delete ${l.name}`} className="hover:text-red-700" onClick={() => setListToDelete(l)}>
                         <Trash2 className="h-3.5 w-3.5" />
-                      </button>
+                      </IconButton>
                     </li>
                   ))}
                 </ul>
@@ -174,33 +178,33 @@ export default function MemberListsManager({ clubId }: { clubId: number }) {
               <div className="space-y-4">
                 <div className="flex flex-wrap items-end gap-3">
                   <div className="space-y-1"><Label htmlFor="f-search">Name or email</Label>
-                    <Input id="f-search" className="h-9 w-56" value={draft.search ?? ""} maxLength={100} onChange={(e) => setD({ search: e.target.value || undefined })} /></div>
+                    <Input id="f-search" className="w-56" value={draft.search ?? ""} maxLength={100} onChange={(e) => setD({ search: e.target.value || undefined })} /></div>
                   <div className="space-y-1"><Label htmlFor="f-type">Member type</Label>
-                    <select id="f-type" className={SELECT} value={draft.memberType ?? ""} onChange={(e) => setD({ memberType: (e.target.value || undefined) as SmartListFilter["memberType"] })}>
+                    <NativeSelect id="f-type" className="w-auto" value={draft.memberType ?? ""} onChange={(e) => setD({ memberType: (e.target.value || undefined) as SmartListFilter["memberType"] })}>
                       <option value="">All</option><option value="active">Active</option><option value="honorary">Honorary</option>
-                    </select></div>
+                    </NativeSelect></div>
                   <div className="space-y-1"><Label htmlFor="f-from">Joined from</Label>
-                    <Input id="f-from" type="date" className="h-9" value={draft.joinedFrom ?? ""} onChange={(e) => setD({ joinedFrom: e.target.value || undefined })} /></div>
+                    <Input id="f-from" type="date" value={draft.joinedFrom ?? ""} onChange={(e) => setD({ joinedFrom: e.target.value || undefined })} /></div>
                   <div className="space-y-1"><Label htmlFor="f-to">Joined to</Label>
-                    <Input id="f-to" type="date" className="h-9" value={draft.joinedTo ?? ""} onChange={(e) => setD({ joinedTo: e.target.value || undefined })} /></div>
+                    <Input id="f-to" type="date" value={draft.joinedTo ?? ""} onChange={(e) => setD({ joinedTo: e.target.value || undefined })} /></div>
                 </div>
 
                 {!!tags?.length && (
                   <div className="space-y-1">
                     <div className="flex items-center gap-3">
                       <p className="text-sm font-medium text-slate-700">Tags</p>
-                      <select aria-label="Tag match" className="h-7 rounded border border-input bg-background px-2 text-xs" value={draft.tagMode ?? "any"}
+                      <NativeSelect aria-label="Tag match" className="row-field-sm w-auto" value={draft.tagMode ?? "any"}
                         onChange={(e) => setD({ tagMode: e.target.value as "any" | "all" })}>
                         <option value="any">any of these</option><option value="all">all of these</option>
-                      </select>
+                      </NativeSelect>
                     </div>
                     <div className="flex flex-wrap gap-2">
                       {tags.map((tg) => (
-                        <button key={tg.id} type="button" aria-pressed={draft.tagIds?.includes(tg.id) ?? false}
+                        <ToggleButton key={tg.id} pressed={draft.tagIds?.includes(tg.id) ?? false}
                           onClick={() => setD({ tagIds: toggle(draft.tagIds, tg.id) })}
-                          className={`rounded-sm p-0.5 ${draft.tagIds?.includes(tg.id) ? "ring-2 ring-azure" : "opacity-70 hover:opacity-100"}`}>
+                          className={`h-auto rounded-sm border-0 bg-transparent p-0.5 ${draft.tagIds?.includes(tg.id) ? "ring-2 ring-azure" : "opacity-70 hover:opacity-100"}`}>
                           <TagChip tag={tg} />
-                        </button>
+                        </ToggleButton>
                       ))}
                     </div>
                   </div>
@@ -211,11 +215,11 @@ export default function MemberListsManager({ clubId }: { clubId: number }) {
                     <p className="text-sm font-medium text-slate-700">Committees (any of)</p>
                     <div className="flex flex-wrap gap-2">
                       {committees.map((c) => (
-                        <button key={c.id} type="button" aria-pressed={draft.subGroupIds?.includes(c.id) ?? false}
+                        <ToggleButton pressed={draft.subGroupIds?.includes(c.id) ?? false} key={c.id} type="button"
                           onClick={() => setD({ subGroupIds: toggle(draft.subGroupIds, c.id) })}
-                          className={`rounded-full border px-3 py-1 text-xs ${draft.subGroupIds?.includes(c.id) ? "border-azure bg-[#EDF4FB] text-azure" : "border-slate-200 text-slate-600"}`}>
+                         >
                           {c.name}
-                        </button>
+                        </ToggleButton>
                       ))}
                     </div>
                   </div>
@@ -230,25 +234,25 @@ export default function MemberListsManager({ clubId }: { clubId: number }) {
                       const needsValue = c.op !== "set" && c.op !== "notset";
                       return (
                         <div key={i} className="flex flex-wrap items-center gap-2">
-                          <select aria-label="Field" className={SELECT} value={c.fieldId}
+                          <NativeSelect aria-label="Field" className="w-auto" value={c.fieldId}
                             onChange={(e) => setCond(i, { fieldId: Number(e.target.value), op: "eq", value: "" })}>
                             {!f && <option value={c.fieldId}>Deleted field</option>}
                             {fields.map((x) => <option key={x.id} value={x.id}>{x.label}</option>)}
-                          </select>
-                          <select aria-label="Condition" className={SELECT} value={c.op} onChange={(e) => setCond(i, { op: e.target.value })}>
+                          </NativeSelect>
+                          <NativeSelect aria-label="Condition" className="w-auto" value={c.op} onChange={(e) => setCond(i, { op: e.target.value })}>
                             {ops.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
-                          </select>
+                          </NativeSelect>
                           {needsValue && f && (f.fieldType === "choice" || f.fieldType === "yesno" ? (
-                            <select aria-label="Value" className={SELECT} value={c.value ?? ""} onChange={(e) => setCond(i, { value: e.target.value })}>
+                            <NativeSelect aria-label="Value" className="w-auto" value={c.value ?? ""} onChange={(e) => setCond(i, { value: e.target.value })}>
                               <option value="">Pick</option>
                               {(f.fieldType === "yesno" ? ["yes", "no"] : f.options).map((o) => <option key={o} value={o}>{f.fieldType === "yesno" ? (o === "yes" ? "Yes" : "No") : o}</option>)}
-                            </select>
+                            </NativeSelect>
                           ) : (
-                            <Input aria-label="Value" className="h-9 w-48" value={c.value ?? ""} onChange={(e) => setCond(i, { value: e.target.value })}
+                            <Input aria-label="Value" className="w-48" value={c.value ?? ""} onChange={(e) => setCond(i, { value: e.target.value })}
                               type={f.fieldType === "number" ? "number" : f.fieldType === "date" ? "date" : "text"} />
                           ))}
-                          <button type="button" aria-label="Remove condition" className="p-1 text-slate-400 hover:text-rose-700"
-                            onClick={() => setD({ fields: (draft.fields ?? []).filter((_, j) => j !== i) })}><X className="h-4 w-4" /></button>
+                          <IconButton type="button" aria-label="Remove condition" className="hover:text-red-700"
+                            onClick={() => setD({ fields: (draft.fields ?? []).filter((_, j) => j !== i) })}><X className="h-4 w-4" /></IconButton>
                         </div>
                       );
                     })}
@@ -259,7 +263,7 @@ export default function MemberListsManager({ clubId }: { clubId: number }) {
                 )}
 
                 <div className="flex flex-wrap gap-2 border-t border-slate-100 pt-3">
-                  <Button size="sm" className="bg-azure text-white hover:bg-mint-ink" onClick={() => apply(draft)} disabled={!dirty}>
+                  <Button size="sm" onClick={() => apply(draft)} disabled={!dirty}>
                     <Filter className="mr-1.5 h-4 w-4" />Apply filter
                   </Button>
                   {current && <Button size="sm" variant="outline" disabled={busy} onClick={saveCurrent}><Save className="mr-1.5 h-4 w-4" />Update list</Button>}
@@ -275,37 +279,37 @@ export default function MemberListsManager({ clubId }: { clubId: number }) {
                 : data === null ? <SkeletonRows rows={6} /> : (
                 <>
                   <div className={`-mx-6 ${t.wrap}`}>
-                    <table className={t.table}>
-                      <thead className={t.head}>
-                        <tr>
-                          <th className={t.th}>Name</th>
-                          <th className={t.th}>Email</th>
-                          <th className={t.th}>Joined</th>
-                          <th className={t.th}>Tags</th>
-                          <th className={t.th}><span className="sr-only">Actions</span></th>
-                        </tr>
-                      </thead>
-                      <tbody className={t.body}>
+                    <Table className={t.table}>
+                      <TableHeader className={t.head}>
+                        <TableRow>
+                          <TableHead className={t.th}>Name</TableHead>
+                          <TableHead className={t.th}>Email</TableHead>
+                          <TableHead className={t.th}>Joined</TableHead>
+                          <TableHead className={t.th}>Tags</TableHead>
+                          <TableHead className={t.th}><span className="sr-only">Actions</span></TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody className={t.body}>
                         {data.items.map((m) => (
-                          <tr key={m.memberId} className={t.tr}>
-                            <td className={`${t.td} font-semibold`}>{m.name}{m.isHonorary && <span className="ml-2 text-xs font-normal text-slate-500">Honorary</span>}</td>
-                            <td className={t.tdMuted}>{m.email ?? "-"}</td>
-                            <td className={t.tdMuted}>{m.joinedDate ? fmtDate(m.joinedDate) : "-"}</td>
-                            <td className={t.td}>
+                          <TableRow key={m.memberId} className={t.tr}>
+                            <TableCell className={`${t.td} font-semibold`}>{m.name}{m.isHonorary && <span className="ml-2 text-xs font-normal text-slate-500">Honorary</span>}</TableCell>
+                            <TableCell className={t.tdMuted}>{m.email ?? "-"}</TableCell>
+                            <TableCell className={t.tdMuted}>{m.joinedDate ? fmtDate(m.joinedDate) : "-"}</TableCell>
+                            <TableCell className={t.td}>
                               <div className="flex flex-wrap gap-1">
                                 {m.tagIds.map(tagById).filter((x): x is ClubTag => !!x).map((x) => <TagChip key={x.id} tag={x} />)}
                               </div>
-                            </td>
-                            <td className={`${t.td} text-right`}>
-                              <button type="button" aria-label={`Edit tags and fields of ${m.name}`} className="inline-flex h-7 w-7 items-center justify-center rounded text-slate-500 hover:bg-slate-100"
-                                onClick={() => setEditing(m)}><Pencil className="h-3.5 w-3.5" /></button>
-                            </td>
-                          </tr>
+                            </TableCell>
+                            <TableCell className={`${t.td} text-right`}>
+                              <IconButton type="button" aria-label={`Edit tags and fields of ${m.name}`} 
+                                onClick={() => setEditing(m)}><Pencil className="h-3.5 w-3.5" /></IconButton>
+                            </TableCell>
+                          </TableRow>
                         ))}
-                      </tbody>
-                    </table>
+                      </TableBody>
+                    </Table>
                   </div>
-                  {data.items.length === 0 && <p className="py-10 text-center text-[15px] text-[#64748B]">No members match this filter.</p>}
+                  {data.items.length === 0 && <p className="py-10 text-center text-[15px] text-muted-foreground">No members match this filter.</p>}
                   {totalPages > 1 && <div className="pt-3"><Pagination page={page} totalPages={totalPages} totalCount={data.totalCount} pageSize={PAGE_SIZE} onPageChange={setPage} /></div>}
                 </>
               )}
@@ -324,7 +328,7 @@ export default function MemberListsManager({ clubId }: { clubId: number }) {
             <Input id="list-name" value={nameDialog ?? ""} maxLength={100} onChange={(e) => setNameDialog(e.target.value)} /></div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setNameDialog(null)}>Cancel</Button>
-            <Button className="bg-azure text-white hover:bg-mint-ink" disabled={busy || !nameDialog?.trim()} onClick={() => saveAsNew(nameDialog!.trim())}>
+            <Button disabled={busy || !nameDialog?.trim()} onClick={() => saveAsNew(nameDialog!.trim())}>
               {busy && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}Save
             </Button>
           </DialogFooter>
@@ -337,7 +341,7 @@ export default function MemberListsManager({ clubId }: { clubId: number }) {
           {emailDialog?.draftId ? (
             <div className="space-y-3 text-sm text-slate-700">
               <p>A mass email draft addressed to the list&apos;s current members is ready. Write the message and send it from Mass Email.</p>
-              <Link href="/club-admin-dashboard/communication?tab=massemail" className="inline-flex h-9 items-center rounded-full bg-azure px-4 font-medium text-white hover:bg-mint-ink">
+              <Link href="/club-admin-dashboard/communication?tab=massemail" className="row-btn row-btn-primary row-btn-sm">
                 Open Mass Email
               </Link>
             </div>
@@ -352,7 +356,7 @@ export default function MemberListsManager({ clubId }: { clubId: number }) {
             {emailDialog?.draftId ? <Button variant="outline" onClick={() => setEmailDialog(null)}>Close</Button> : (
               <>
                 <Button variant="outline" onClick={() => setEmailDialog(null)}>Cancel</Button>
-                <Button className="bg-azure text-white hover:bg-mint-ink" disabled={busy} onClick={createDraft}>
+                <Button disabled={busy} onClick={createDraft}>
                   {busy && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}Create draft
                 </Button>
               </>

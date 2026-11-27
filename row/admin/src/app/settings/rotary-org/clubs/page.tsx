@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -16,13 +15,13 @@ import AlertModal from "@/components/AlertModal";
 import RotaryLoader from "@/components/RotaryLoader";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { useAuth } from "@/contexts/AuthContext";
-import { ArrowLeft, AlertTriangle, Plus, Trash2, Eye, ArrowRightCircle, RefreshCw, Loader2, CheckCircle2 } from "@/components/icons";
+import { AlertTriangle, Trash2, Eye, ArrowRightCircle, RefreshCw, Loader2, CheckCircle2 } from "@/components/icons";
 import {
   getDistricts, compareClubs, addClubFromOrg, updateClubManual,
   deleteClubManualSync, getClubOrgDetail, refreshClubsCache, markClubSynced,
   getClubOrgMemberCount, getClubMemberDiff, reconcileDistrictMembers, softDeleteClubMemberLinks,
 } from "@/services/api";
-import { ListPageSkeleton } from "@/components/row/AppKit";
+import { PageHeader, ListPageSkeleton } from "@/components/row/AppKit";
 
 interface DistrictOption { id: number; districtNumber: string }
 
@@ -257,7 +256,7 @@ export default function RotaryOrgClubsPage() {
     return (
       <ProtectedRoute>
         <div className="flex flex-col items-center justify-center py-20">
-          <h3 className="text-lg font-semibold">Access Denied</h3>
+          <h3 className="row-h2">Access Denied</h3>
         </div>
       </ProtectedRoute>
     );
@@ -458,7 +457,7 @@ export default function RotaryOrgClubsPage() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="w-1/2 border-r bg-muted/40">ROW</TableHead>
+              <TableHead className="w-1/2 border-r">ROW</TableHead>
               <TableHead className="w-1/2">Rotary.org</TableHead>
             </TableRow>
           </TableHeader>
@@ -474,18 +473,13 @@ export default function RotaryOrgClubsPage() {
   return (
     <ProtectedRoute>
       <div className="space-y-6">
-        <div className="flex items-center justify-between flex-wrap gap-3">
-          <div className="flex items-center gap-3">
-            <Button variant="outline" size="icon" asChild>
-              <Link href="/settings/rotary-org"><ArrowLeft className="h-4 w-4" /></Link>
-            </Button>
-            <div>
-              <h2 className="text-2xl font-bold tracking-tight text-primary">Club Sync</h2>
-              <p className="text-muted-foreground text-base">Compare clubs in a district side-by-side and sync manually</p>
-            </div>
-          </div>
-          <div className="flex flex-wrap items-end gap-3">
-            <div>
+        <PageHeader
+          title="Club Sync"
+          description="Compare clubs in a district side-by-side and sync manually"
+          back="/settings/rotary-org"
+          actions={
+            <>
+<div>
               <Label className="text-xs text-muted-foreground">District</Label>
               <Select value={districtId} onValueChange={setDistrictId}>
                 <SelectTrigger className="w-48"><SelectValue placeholder="Select district" /></SelectTrigger>
@@ -498,8 +492,9 @@ export default function RotaryOrgClubsPage() {
               <RefreshCw className={`h-4 w-4 mr-2 ${refreshing ? "animate-spin" : ""}`} />
               {refreshing ? "Refreshing..." : "Refresh from Rotary.org"}
             </Button>
-          </div>
-        </div>
+            </>
+          }
+        />
 
         {loading && <div className="flex justify-center py-12"><ListPageSkeleton /></div>}
 
@@ -634,7 +629,7 @@ export default function RotaryOrgClubsPage() {
         {showOrgOnly && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" onClick={() => setShowOrgOnly(false)}>
             <div className="bg-background rounded-lg shadow-lg w-full max-w-lg max-h-[85vh] overflow-y-auto p-5 space-y-3" onClick={(e) => e.stopPropagation()}>
-              <h3 className="text-lg font-semibold">Synced on Rotary.org, not yet in ROW</h3>
+              <h3 className="row-h2">Synced on Rotary.org, not yet in ROW</h3>
               <p className="text-sm text-muted-foreground">In Rotary.org <code>/clubs</code> but missing from ROW. Click Sync to add + sync each.</p>
               {(() => {
                 const list = groups.nonSyncRows.filter((r) => !r.india);
@@ -721,7 +716,7 @@ function MemberDiffDialog({ club, onClose, onSoftDeleted, onError }: {
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" onClick={onClose}>
       <div className="bg-background rounded-lg shadow-lg w-full max-w-lg max-h-[85vh] overflow-y-auto p-5 space-y-4" onClick={(e) => e.stopPropagation()}>
         <div>
-          <h3 className="text-lg font-semibold">{club.clubName}</h3>
+          <h3 className="row-h2">{club.clubName}</h3>
           {data && !data.error && (
             <p className="text-sm text-muted-foreground">ROW <b>{data.localCount}</b> vs Rotary.org <b>{data.orgCount}</b>: here&apos;s exactly who differs.</p>
           )}
@@ -738,7 +733,7 @@ function MemberDiffDialog({ club, onClose, onSoftDeleted, onError }: {
                 <ul className="mt-1 divide-y rounded-md border">
                   {data.toAdd.map((m) => (
                     <li key={m.rotaryId} className="flex items-center justify-between px-3 py-1.5">
-                      <span>{m.name || "(no name)"} {m.isHonorary && <Badge variant="secondary" className="ml-1 text-[10px]">Honorary</Badge>}</span>
+                      <span>{m.name || "(no name)"} {m.isHonorary && <Badge variant="secondary" className="ml-1">Honorary</Badge>}</span>
                       <span className="text-xs text-muted-foreground">RID {m.rotaryId}</span>
                     </li>
                   ))}
@@ -766,8 +761,8 @@ function MemberDiffDialog({ club, onClose, onSoftDeleted, onError }: {
                     <li key={m.memberId} className="flex items-center justify-between px-3 py-1.5">
                       <span>{m.name || "(no name)"}</span>
                       {m.willSoftDelete
-                        ? <Badge variant="destructive" className="text-[10px]">will soft-delete</Badge>
-                        : <Badge variant="secondary" className="text-[10px]">kept: {m.keepReason}</Badge>}
+                        ? <Badge variant="destructive">will soft-delete</Badge>
+                        : <Badge variant="secondary">kept: {m.keepReason}</Badge>}
                     </li>
                   ))}
                 </ul>

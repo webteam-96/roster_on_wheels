@@ -5,6 +5,7 @@
  * (submit, send information, resubmit, final report, cancel) and the history. Flagged module "grants".
  */
 
+import { NativeSelect } from "@/components/ui/native-select";
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
@@ -96,7 +97,7 @@ export default function ClubGrantApplicationPage() {
 
   return (
     <div className="space-y-5 p-6">
-      <Button variant="outline" size="sm" asChild className="gap-1.5">
+      <Button variant="outline" size="sm" asChild>
         <Link href="/club-admin-dashboard/grants"><ArrowLeft className="h-4 w-4" /> All grant applications</Link>
       </Button>
       <GrantHeader app={app} />
@@ -123,15 +124,15 @@ export default function ClubGrantApplicationPage() {
             {app.attachmentKinds.length > 1 && (
               <div className="max-w-xs space-y-1.5">
                 <Label htmlFor="grant-file-kind">Kind of file</Label>
-                <select id="grant-file-kind" className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
+                <NativeSelect id="grant-file-kind" 
                   value={kind} onChange={(e) => setFileKind(e.target.value)}>
                   {app.attachmentKinds.map((k) => <option key={k} value={k}>{ATTACHMENT_KIND_LABEL[k] ?? k}</option>)}
-                </select>
+                </NativeSelect>
               </div>
             )}
             <input ref={fileInput} type="file" accept={ACCEPT} className="hidden"
               onChange={(e) => { const f = e.target.files?.[0]; e.target.value = ""; if (f) upload(f); }} />
-            <Button variant="outline" size="sm" className="gap-1.5" disabled={busy} onClick={() => fileInput.current?.click()}>
+            <Button variant="outline" size="sm" disabled={busy} onClick={() => fileInput.current?.click()}>
               <Upload className="h-3.5 w-3.5" /> Add {(ATTACHMENT_KIND_LABEL[kind] ?? "").toLowerCase()} file
             </Button>
             <p className="text-xs text-muted-foreground">PDF, Word, Excel, PowerPoint, JPG or PNG, up to 20 MB. At most 20 files.</p>

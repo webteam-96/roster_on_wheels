@@ -17,6 +17,8 @@
  *   - Design palette: navy #17458f, gold #F7A81B, slate borders/text.
  */
 
+import { NativeSelect } from "@/components/ui/native-select";
+import { Card } from "@/components/ui/card";
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
@@ -46,7 +48,7 @@ import ContactGroupPicker from "@/components/contacts/ContactGroupPicker";
 import { CONTACTS_FEATURE } from "@/lib/contacts";
 
 import { appLocale } from "@/lib/appFormat";
-import { ListPageSkeleton } from "@/components/row/AppKit";
+import { PageHeader, ListPageSkeleton } from "@/components/row/AppKit";
 const BASE = "/district-admin-dashboard/quick-links/mass-email";
 
 function withSearch(base: string, extra: Record<string, string | null | undefined>) {
@@ -306,31 +308,17 @@ export default function DistrictAdminMassEmailComposePage() {
 
   return (
     <ProtectedRoute>
-      <div className="space-y-6 max-w-4xl mx-auto">
+      <div className="space-y-6 max-w-4xl">
         <SuccessAlert open={!!successMessage} title="Success" description={successMessage || ""} onOk={() => setSuccessMessage(null)} />
         <ErrorAlert open={!!errorMessage} title="Error" description={errorMessage || ""} onOk={() => setErrorMessage(null)} />
 
         {/* Header */}
-        <div className="flex items-center gap-3">
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={goBack}
-            className="border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-slate-800"
-            aria-label="Back"
-          >
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
-          <div>
-            <h2 className="text-2xl font-bold tracking-tight text-ink">{editId ? "Edit Mass Email" : "Compose Mass Email"}</h2>
-            <p className="text-slate-500 text-sm mt-0.5">{districtName}</p>
-          </div>
-        </div>
+        <PageHeader title={editId ? "Edit Mass Email" : "Compose Mass Email"} description={districtName} back={() => goBack()} />
 
         {/* Recipients */}
-        <div className="rounded-2xl border border-slate-200 shadow-sm bg-card overflow-hidden">
+        <Card className="overflow-hidden">
           <div className="px-5 py-3 border-b border-slate-100 bg-azure/5">
-            <h3 className="text-sm font-semibold text-slate-800">Select Recipients</h3>
+            <h3 className="row-h3">Select Recipients</h3>
           </div>
           <div className="p-5 space-y-4">
             <div className="flex flex-col gap-2">
@@ -369,13 +357,13 @@ export default function DistrictAdminMassEmailComposePage() {
 
             {recipientType === "3" && (
               <div className="space-y-3">
-                <select
+                <NativeSelect
                   value={selectedYearId}
                   onChange={(e) => { setSelectedYearId(e.target.value); setSelectedSubgroupIds(new Set()); }}
-                  className="h-10 rounded-lg border border-slate-200 bg-card px-3 py-2 text-sm w-full md:w-64 focus:outline-none focus:border-azure focus:ring-2 focus:ring-azure/20"
+                  className="md:w-64"
                 >
                   {rotaryYears.map((y) => <option key={y.id} value={String(y.id)}>{y.yearLabel}</option>)}
-                </select>
+                </NativeSelect>
                 <div className="max-h-60 overflow-y-auto border border-slate-200 rounded-lg divide-y divide-slate-100">
                   {subgroups.length === 0 ? (
                     <div className="text-center py-4 text-slate-500 text-sm">No subgroups found for this year</div>
@@ -425,37 +413,37 @@ export default function DistrictAdminMassEmailComposePage() {
               </div>
             )}
           </div>
-        </div>
+        </Card>
 
         {/* Email Details */}
-        <div className="rounded-2xl border border-slate-200 shadow-sm bg-card overflow-hidden">
+        <Card className="overflow-hidden">
           <div className="px-5 py-3 border-b border-slate-100 bg-azure/5">
-            <h3 className="text-sm font-semibold text-slate-800">Email Details</h3>
+            <h3 className="row-h3">Email Details</h3>
           </div>
           <div className="p-5 space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label className="text-slate-700 text-sm font-medium">From Name *</Label>
-                <Input className="border-slate-200 bg-card focus:border-azure focus:ring-azure/20" value={fromName} onChange={(e) => setFromName(e.target.value)} placeholder="e.g. Rotary District..." />
+                <Input value={fromName} onChange={(e) => setFromName(e.target.value)} placeholder="e.g. Rotary District..." />
               </div>
               <div className="space-y-2">
                 <Label className="text-slate-700 text-sm font-medium">Sender Email</Label>
-                <Input value={senderEmail} disabled className="bg-slate-50 border-slate-200" />
+                <Input value={senderEmail} disabled />
               </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label className="text-slate-700 text-sm font-medium">Reply Name</Label>
-                <Input className="border-slate-200 bg-card focus:border-azure focus:ring-azure/20" value={replyName} onChange={(e) => setReplyName(e.target.value)} placeholder="Optional" />
+                <Input value={replyName} onChange={(e) => setReplyName(e.target.value)} placeholder="Optional" />
               </div>
               <div className="space-y-2">
                 <Label className="text-slate-700 text-sm font-medium">Reply Email</Label>
-                <Input className="border-slate-200 bg-card focus:border-azure focus:ring-azure/20" value={replyEmail} onChange={(e) => setReplyEmail(e.target.value)} placeholder="Optional" type="email" />
+                <Input value={replyEmail} onChange={(e) => setReplyEmail(e.target.value)} placeholder="Optional" type="email" />
               </div>
             </div>
             <div className="space-y-2">
               <Label className="text-slate-700 text-sm font-medium">Subject *</Label>
-              <Input className="border-slate-200 bg-card focus:border-azure focus:ring-azure/20" value={subject} onChange={(e) => setSubject(e.target.value)} placeholder="Email subject" />
+              <Input value={subject} onChange={(e) => setSubject(e.target.value)} placeholder="Email subject" />
             </div>
             <div className="space-y-2">
               <Label className="text-slate-700 text-sm font-medium">Email Body *</Label>
@@ -465,20 +453,20 @@ export default function DistrictAdminMassEmailComposePage() {
               onApply={(s, b) => { setSubject(s); setEmailBody(b); }} pendingFiles={pendingFiles} onPendingFiles={setPendingFiles} />
             {commsOn && <ComposeComms scope="districts" ownerId={districtId} templateKey={templateKey} onTemplateKey={setTemplateKey} needed={recipientCount.membersWithEmail} />}
           </div>
-        </div>
+        </Card>
 
         {/* Actions */}
         <div className="flex items-center justify-between pb-8">
-          <Button variant="ghost" onClick={goBack} className="text-slate-600 hover:text-slate-800 hover:bg-slate-50">
+          <Button variant="ghost" onClick={goBack}>
             <ArrowLeft className="h-4 w-4 mr-2" />Cancel
           </Button>
           <div className="flex flex-wrap gap-2">
-            <Button variant="outline" className="border-slate-200 text-slate-700 hover:bg-slate-50" onClick={() => handleSave(true)} disabled={saving}>
+            <Button variant="outline" onClick={() => handleSave(true)} disabled={saving}>
               {saving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />}
               Save Draft
             </Button>
             <Button
-              className="bg-azure hover:bg-mint-ink text-white"
+             
               onClick={() => handleSave(false)}
               disabled={saving || insufficientCredits || recipientCount.membersWithEmail === 0}
               title={

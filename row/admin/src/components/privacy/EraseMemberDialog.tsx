@@ -6,6 +6,8 @@
  * name typed out. The server checks the name again and decides who may erase.
  */
 
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table"
+import { Card } from "@/components/ui/card";
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Loader2 } from "@/components/icons";
@@ -109,26 +111,26 @@ export default function EraseMemberDialog({
                 {preview.changes.length === 0 ? (
                   <p className="text-sm text-slate-600">{t("noChanges")}</p>
                 ) : (
-                  <div className="max-h-56 overflow-y-auto rounded-md border">
-                    <table className="w-full text-sm">
-                      <thead className="bg-slate-50 text-left text-xs text-slate-600">
-                        <tr>
-                          <th className="px-3 py-1.5 font-medium">{t("columns.table")}</th>
-                          <th className="px-3 py-1.5 font-medium">{t("columns.action")}</th>
-                          <th className="px-3 py-1.5 text-right font-medium">{t("columns.rows")}</th>
-                        </tr>
-                      </thead>
-                      <tbody>
+                  <Card className="max-h-56 overflow-y-auto">
+                    <Table className="w-full text-sm">
+                      <TableHeader className="text-left">
+                        <TableRow>
+                          <TableHead className="px-3">{t("columns.table")}</TableHead>
+                          <TableHead className="px-3">{t("columns.action")}</TableHead>
+                          <TableHead className="px-3 text-right">{t("columns.rows")}</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
                         {preview.changes.map((c) => (
-                          <tr key={`${c.table}-${c.action}`} className="border-t">
-                            <td className="px-3 py-1.5 font-mono text-xs text-slate-700">{c.table}</td>
-                            <td className={`px-3 py-1.5 ${c.action === "keep" ? "text-slate-500" : "text-slate-900"}`}>{t(`action.${c.action}`)}</td>
-                            <td className="px-3 py-1.5 text-right tabular-nums">{c.rows}</td>
-                          </tr>
+                          <TableRow key={`${c.table}-${c.action}`} className="border-t">
+                            <TableCell className="px-3 py-1.5 font-mono text-xs text-slate-700">{c.table}</TableCell>
+                            <TableCell className={`px-3 py-1.5 ${c.action === "keep" ? "text-slate-500" : "text-slate-900"}`}>{t(`action.${c.action}`)}</TableCell>
+                            <TableCell className="px-3 py-1.5 text-right tabular-nums">{c.rows}</TableCell>
+                          </TableRow>
                         ))}
-                      </tbody>
-                    </table>
-                  </div>
+                      </TableBody>
+                    </Table>
+                  </Card>
                 )}
                 <p className="text-sm text-slate-700">{preview.files > 0 ? t("files", { count: preview.files }) : t("noFiles")}</p>
               </section>
@@ -150,7 +152,7 @@ export default function EraseMemberDialog({
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={submitting}>
               {t("cancel")}
             </Button>
-            <Button type="submit" variant="destructive" disabled={!canSubmit} className="gap-1.5">
+            <Button type="submit" variant="destructive" disabled={!canSubmit}>
               {submitting && <Loader2 className="h-4 w-4 animate-spin" />}
               {submitting ? t("submitting") : t("submit")}
             </Button>

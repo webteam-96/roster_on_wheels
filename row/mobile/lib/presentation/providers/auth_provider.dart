@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../../core/constants/api_constants.dart';
 import '../../core/constants/app_constants.dart';
+import '../../core/constants/feature_flags.dart';
 import '../../core/network/api_client.dart';
 import '../../core/network/api_exceptions.dart';
 import '../../core/notifications/deep_link_service.dart';
@@ -52,6 +53,13 @@ class AuthProvider extends ChangeNotifier {
   List<int> _assignedDistrictIds = [];
   List<int> _assignedClubIds = [];
   List<int> _accessibleZoneIds = [];
+
+  // All Club Access: a District Admin whom a SuperAdmin gave All Club Access acts
+  // as club admin in every club of that district, for the years held on the
+  // district. my-context carries only the districts (`districtClubAccess`), so a
+  // club counts once it is opened from the All Club Access list.
+  List<({int id, String number})> _allClubsDistricts = [];
+  final Map<int, int> _borrowedClubDistrict = {};
 
   // For welcome screen
   String _welcomeClubName = '';
@@ -140,8 +148,29 @@ class AuthProvider extends ChangeNotifier {
 
   // ── Per-scope admin checks ───────────────────────────────────────────────
 
-  bool isClubAdminOf(int clubId) => _roleAssignments
-      .any((a) => a.isClubAdmin && a.clubId == clubId);
+  bool isClubAdminOf(int clubId) =>
+      _roleAssignments.any((a) => a.isClubAdmin && a.clubId == clubId) ||
+      _inheritedDistrictFor(clubId) != null;
+
+  /// Districts where this member has All Club Access (empty when the flag is off).
+  List<({int id, String number})> get allClubsDistricts =>
+      kAllClubAccessEnabled ? List.unmodifiable(_allClubsDistricts) : const [];
+
+  /// Call before opening [clubId] from the All Club Access list.
+  void borrowClubFromDistrict(int clubId, int districtId) {
+    if (kAllClubAccessEnabled) _borrowedClubDistrict[clubId] = districtId;
+  }
+
+  /// The district whose rights [clubId] inherits through All Club Access, or
+  /// null. A real club-admin grant always wins.
+  int? _inheritedDistrictFor(int clubId) {
+    if (!kAllClubAccessEnabled) return null;
+    final d = _borrowedClubDistrict[clubId];
+    if (d == null) return null;
+    if (_roleAssignments.any((a) => a.isClubAdmin && a.clubId == clubId)) return null;
+    if (!_allClubsDistricts.any((x) => x.id == d)) return null;
+    return isDistrictAdminOf(d) ? d : null;
+  }
 
   bool isDistrictAdminOf(int districtId) => _roleAssignments
       .any((a) => a.isDistrictAdmin && a.districtId == districtId);
@@ -160,8 +189,24 @@ class AuthProvider extends ChangeNotifier {
   }
 
   /// Club admin who may change this club's records for [yearId] (default: the current year).
-  bool canEditClub(int clubId, {int? yearId}) => _roleAssignments.any(
-      (a) => a.isClubAdmin && a.clubId == clubId && _holdsYear(a, yearId));
+  bool canEditClub(int clubId, {int? yearId}) {
+    final d = _inheritedDistrictFor(clubId);
+    if (d != null) return canEditDistrict(d, yearId: yearId);
+    return _roleAssignments.any(
+        (a) => a.isClubAdmin && a.clubId == clubId && _holdsYear(a, yearId));
+  }
+
+  /// Make Admin (club): holding the role in ANY year is enough; the server clamps
+  /// the grant to the years the caller holds. Remove Admin stays on
+  /// [canEditClub] (current year), as on web (YWAR-MAKE-ADMIN-ANY-YEAR).
+  bool canAppointClubAdmin(int clubId) {
+    if (!isClubAdminOf(clubId)) return false;
+    bool holdsAny(_RoleAssignment a) => a.allYears != false || a.yearIds.isNotEmpty;
+    final d = _inheritedDistrictFor(clubId);
+    return d != null
+        ? _roleAssignments.any((a) => a.isDistrictAdmin && a.districtId == d && holdsAny(a))
+        : _roleAssignments.any((a) => a.isClubAdmin && a.clubId == clubId && holdsAny(a));
+  }
 
   /// District admin who may change this district's records for [yearId] (default: the current year).
   bool canEditDistrict(int districtId, {int? yearId}) => _roleAssignments.any(
@@ -663,6 +708,11 @@ class AuthProvider extends ChangeNotifier {
         _accessibleZoneIds = (j['accessibleZones'] as List<dynamic>? ?? [])
             .map((z) => (z as Map<String, dynamic>)['id'] as int? ?? 0)
             .where((id) => id > 0)
+            .toList();
+        _allClubsDistricts = (j['districtClubAccess'] as List<dynamic>? ?? [])
+            .whereType<Map<String, dynamic>>()
+            .map((d) => (id: d['id'] as int? ?? 0, number: d['number']?.toString() ?? ''))
+            .where((d) => d.id > 0)
             .toList();
 
         // Restore welcome info from storage (set during sign-in)
@@ -1244,6 +1294,8 @@ class AuthProvider extends ChangeNotifier {
     _assignedDistrictIds = [];
     _assignedClubIds = [];
     _accessibleZoneIds = [];
+    _allClubsDistricts = [];
+    _borrowedClubDistrict.clear();
     _welcomeClubName = '';
     _welcomeClubNumber = '';
     _welcomeClubs = [];

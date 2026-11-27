@@ -16,11 +16,10 @@ import {
 } from "@/components/ui/select";
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
-import { ArrowLeft, AlertCircle, Save } from "@/components/icons";
+import { AlertCircle, Save } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
-import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
-import { ListPageSkeleton } from "@/components/row/AppKit";
+import { PageHeader, ListPageSkeleton } from "@/components/row/AppKit";
 
 interface CategoryGroup {
   categoryId: number;
@@ -166,7 +165,7 @@ export default function DistrictModulesPage() {
     return (
       <ProtectedRoute>
         <div className="flex flex-col items-center justify-center py-20">
-          <h3 className="text-lg font-semibold">Access Denied</h3>
+          <h3 className="row-h2">Access Denied</h3>
           <p className="text-muted-foreground mt-2">Only SuperAdmin can manage district modules.</p>
         </div>
       </ProtectedRoute>
@@ -176,23 +175,17 @@ export default function DistrictModulesPage() {
   return (
     <ProtectedRoute>
       <div className="space-y-6">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-3">
-            <Button variant="outline" size="icon" asChild>
-              <Link href="/settings/module-master"><ArrowLeft className="h-4 w-4" /></Link>
-            </Button>
-            <div>
-              <h2 className="text-2xl font-bold tracking-tight text-primary">District Module Assignment</h2>
-              <p className="text-muted-foreground text-base">Assign modules to districts</p>
-            </div>
-          </div>
-          {selectedDistrictId && modules.length > 0 && (
+        <PageHeader
+          title="District Module Assignment"
+          description="Assign modules to districts"
+          back="/settings/module-master"
+          actions={selectedDistrictId && modules.length > 0 && (
             <Button onClick={handleSave} disabled={saving || !hasChanges}>
               {saving ? <RotaryLoader size="sm" /> : <Save className="mr-2 h-4 w-4" />}
               Save Changes
             </Button>
           )}
-        </div>
+        />
 
         <Card>
           <CardHeader><CardTitle>Search District</CardTitle></CardHeader>
@@ -231,7 +224,7 @@ export default function DistrictModulesPage() {
         {error && (
           <div className="flex flex-col items-center justify-center py-12 text-center">
             <AlertCircle className="h-12 w-12 text-destructive mb-4" />
-            <h3 className="text-lg font-semibold">Error</h3>
+            <h3 className="row-h2">Error</h3>
             <p className="text-muted-foreground mt-2 max-w-md">{error}</p>
           </div>
         )}

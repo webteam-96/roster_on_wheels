@@ -385,7 +385,7 @@ const SECTION_CATEGORY: Record<SectionKey, string> = {
 };
 /** The category whose Locked / Unlocked (and Lock button) a tab shows - only the tab's own one
  *  (user 2026-10-30); the other categories' questions in the tab still follow their own lock. */
-const SECTION_CATEGORY_ID: Record<SectionKey, number> = { engage: 211, impact: 210, reach: 1, adapt: 4 };
+export const SECTION_CATEGORY_ID: Record<SectionKey, number> = { engage: 211, impact: 210, reach: 1, adapt: 4 };
 export const sectionLockForms = (s: SectionView) => s.owners.filter((f) => f.categoryId === SECTION_CATEGORY_ID[s.key]);
 
 // ── Helpers for the copied Goal Setting panel (same design as the existing screen) ──
@@ -597,3 +597,10 @@ function labelSources(form: GoalCategoryFormDto): GoalCategoryFormDto {
     fields: form.fields.map((f) => ({ ...f, fieldLabel: `${SOURCE_SYMBOL[sourceOfField(form.categoryId, f)]} ${f.fieldLabel}` })),
   };
 }
+
+// Goal flow (RIZones 2026-11-17..20): "Target" reads "Goal" on the RCC / Disha screens; "Updated from X on" -> "as on".
+export const goalWording = (l: string) => l.replace(/\bTargets\b/g, "Goals").replace(/\btargets\b/g, "goals")
+  .replace(/\bTarget\b/g, "Goal").replace(/\btarget\b/g, "goal");
+export const overviewLabel = (l: string) => goalWording(plainLabel(l));
+export const asOnWording = (note: string | null | undefined): string | null =>
+  note ? note.replace(/^Updated from (Rotary\.org|RISAO) on /, "Updated from $1 as on ") : note ?? null;

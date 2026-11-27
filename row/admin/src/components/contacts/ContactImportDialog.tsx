@@ -3,6 +3,9 @@
 // Contact import from a CSV or Excel file. The browser reads the sheet; the API classifies every row (new,
 // duplicate by email and then by name and phone, or not valid) for the preview, and checks again on import.
 
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table"
+import { NativeSelect } from "@/components/ui/native-select";
+import { Card } from "@/components/ui/card";
 import { useState } from "react";
 import {
   previewContactImport, importContacts,
@@ -99,36 +102,36 @@ export default function ContactImportDialog({ open, onClose, scope, ownerId, gro
               <p className="text-sm text-slate-700">
                 {count("new")} new, {count("duplicate")} duplicate, {count("invalid")} not valid
               </p>
-              <div className="max-h-72 overflow-auto rounded-lg border border-slate-200">
-                <table className="min-w-full text-xs">
-                  <thead className="sticky top-0 bg-slate-50 text-left uppercase text-slate-500">
-                    <tr><th className="px-2 py-2">Row</th><th className="px-2 py-2">Name</th><th className="px-2 py-2">Email</th>
-                      <th className="px-2 py-2">Phone</th><th className="px-2 py-2">Status</th></tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
+              <Card className="max-h-72 overflow-auto">
+                <Table bare className="min-w-full text-xs">
+                  <TableHeader className="sticky top-0 text-left">
+                    <TableRow><TableHead className="px-2">Row</TableHead><TableHead className="px-2">Name</TableHead><TableHead className="px-2">Email</TableHead>
+                      <TableHead className="px-2">Phone</TableHead><TableHead className="px-2">Status</TableHead></TableRow>
+                  </TableHeader>
+                  <TableBody className="divide-y divide-slate-100">
                     {preview.map((r) => (
-                      <tr key={r.row}>
-                        <td className="px-2 py-1.5 text-slate-500">{r.row}</td>
-                        <td className="px-2 py-1.5 text-slate-800">{r.name || "-"}</td>
-                        <td className="px-2 py-1.5 text-slate-600">{r.email || "-"}</td>
-                        <td className="px-2 py-1.5 text-slate-600">{r.mobile || "-"}</td>
-                        <td className="px-2 py-1.5">
+                      <TableRow key={r.row}>
+                        <TableCell className="px-2 py-1.5 text-slate-500">{r.row}</TableCell>
+                        <TableCell className="px-2 py-1.5 text-slate-800">{r.name || "-"}</TableCell>
+                        <TableCell className="px-2 py-1.5 text-slate-600">{r.email || "-"}</TableCell>
+                        <TableCell className="px-2 py-1.5 text-slate-600">{r.mobile || "-"}</TableCell>
+                        <TableCell className="px-2 py-1.5">
                           <span className={`rounded px-1.5 py-0.5 font-medium ${STATUS_STYLE[r.status]}`}>{label(r.status)}</span>
                           {r.reason && <span className="ml-2 text-slate-500">{r.reason}</span>}
-                        </td>
-                      </tr>
+                        </TableCell>
+                      </TableRow>
                     ))}
-                  </tbody>
-                </table>
-              </div>
+                  </TableBody>
+                </Table>
+              </Card>
               <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm">
                 <label className="flex flex-wrap items-center gap-2">
                   Add to group
-                  <select value={groupId} onChange={(e) => setGroupId(Number(e.target.value))}
-                    className="h-8 rounded-md border border-input bg-background px-2 text-sm">
+                  <NativeSelect value={groupId} onChange={(e) => setGroupId(Number(e.target.value))}
+                    className="row-field-sm w-auto">
                     <option value={0}>No group</option>
                     {groups.map((g) => <option key={g.id} value={g.id}>{g.name}</option>)}
-                  </select>
+                  </NativeSelect>
                 </label>
                 <label className="flex flex-wrap items-center gap-2">
                   <Checkbox checked={updateExisting} onCheckedChange={(v) => setUpdateExisting(v === true)} />
@@ -140,7 +143,7 @@ export default function ContactImportDialog({ open, onClose, scope, ownerId, gro
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={close}>Cancel</Button>
-          <Button className="bg-azure text-white hover:bg-mint-ink" disabled={!preview || busy || count("new") + count("duplicate") === 0} onClick={run}>
+          <Button disabled={!preview || busy || count("new") + count("duplicate") === 0} onClick={run}>
             {busy && preview && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}Import
           </Button>
         </DialogFooter>

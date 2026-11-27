@@ -18,11 +18,10 @@ import {
 } from "@/components/ui/select";
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
-import { ArrowLeft, Upload, X } from "@/components/icons";
+import { Upload, X } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
-import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
-import { ListPageSkeleton } from "@/components/row/AppKit";
+import { PageHeader, ListPageSkeleton } from "@/components/row/AppKit";
 
 export default function NewModulePage() {
   const router = useRouter();
@@ -143,7 +142,7 @@ export default function NewModulePage() {
     return (
       <ProtectedRoute>
         <div className="flex flex-col items-center justify-center py-20">
-          <h3 className="text-lg font-semibold">Access Denied</h3>
+          <h3 className="row-h2">Access Denied</h3>
           <p className="text-muted-foreground mt-2">Only SuperAdmin can create modules.</p>
         </div>
       </ProtectedRoute>
@@ -163,24 +162,20 @@ export default function NewModulePage() {
   return (
     <ProtectedRoute>
       <form onSubmit={handleSubmit} className="space-y-6">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center gap-4">
-            <Button variant="ghost" size="icon" asChild>
-              <Link href="/admin/modules"><ArrowLeft className="h-4 w-4" /></Link>
-            </Button>
-            <div>
-              <h2 className="text-2xl font-bold tracking-tight text-primary">New Module</h2>
-              <p className="text-muted-foreground text-base">Create a new system module</p>
-            </div>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <Button type="button" variant="outline" onClick={() => router.push("/admin/modules")}>Cancel</Button>
+        <PageHeader
+          title="New Module"
+          description="Create a new system module"
+          back="/admin/modules"
+          actions={
+            <>
+<Button type="button" variant="outline" onClick={() => router.push("/admin/modules")}>Cancel</Button>
             <Button type="submit" disabled={loading}>
               {loading && <RotaryLoader size="sm" />}
               Create Module
             </Button>
-          </div>
-        </div>
+            </>
+          }
+        />
 
         <Card>
           <CardHeader><CardTitle>Module Details</CardTitle></CardHeader>
@@ -277,7 +272,7 @@ export default function NewModulePage() {
                     <div>
                       <Label
                         htmlFor="iconUpload"
-                        className="inline-flex items-center gap-2 cursor-pointer rounded-full border px-3 py-2 text-sm hover:bg-accent"
+                        className="inline-flex items-center gap-2 cursor-pointer rounded border px-3 py-2 text-sm hover:bg-accent"
                       >
                         <Upload className="h-4 w-4" />
                         {uploadingIcon ? "Uploading..." : "Upload Icon Image"}
@@ -365,7 +360,7 @@ export default function NewModulePage() {
                     onChange={(e) => setIsDefaultForMember(e.target.checked)}
                     className="h-4 w-4"
                   />
-                  <Label htmlFor="isDefaultForMember">Default for Member Mobile Login</Label>
+                  <Label htmlFor="isDefaultForMember">Default for members in the app</Label>
                 </div>
 
                 <div className="space-y-2">

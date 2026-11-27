@@ -42,7 +42,20 @@ const ROTARY_TARGET: Record<string, string> = {
   club_polioplus_ytd_target: "PolioPlus Fund contributions",
 };
 
+/** Our boxes whose goal comes from Rotary.org (with the rotary_* boxes = the 26 Rotary.org goals). */
+export const RCC_ROTARY_TARGET_KEYS = new Set(Object.keys(ROTARY_TARGET));
+/** A Goal Setting card that is one of the 26 Rotary.org goals (RCC view of Goal Overview, user 2026-11-17). */
+export const isRccRotaryCard = (c: { fields: { fieldKey: string }[] }) =>
+  c.fields.length > 0 && (c.fields.every((f) => f.fieldKey.startsWith("rotary_")) || c.fields.some((f) => RCC_ROTARY_TARGET_KEYS.has(f.fieldKey)));
+
 const GOAL_LABEL = "Goal for the Current year";
+
+// Foundation "Highest" boxes (district) - from RISAO, not typed on the RCC tab.
+const HIGHEST = new Set(["annual_fund_highest", "polio_plus_highest", "endowment_highest", "csr_highest", "total_contributions_highest"]);
+
+// Card names on the RCC tab (user 2026-11-17: Membership "Clubs" -> "Club").
+const CARD_TITLES: Record<string, string> = { Clubs: "Club" };
+export const rccCardTitle = (name: string) => CARD_TITLES[name] ?? name;
 
 // Rotaract / Interact %: Rotary.org's goal is the TOTAL clubs, so % = Achieved / Goal (user 2026-11-16),
 // not the old "new clubs" formula. Only in the RCC tab.
@@ -76,6 +89,11 @@ export async function rccTransformForm(form: GoalCategoryFormDto): Promise<GoalC
       // Computed = read-only and never sent on Save (the typed figure in goal_entries is kept).
       return { ...f, fieldLabel: label, fieldRole: "Computed" as const, numericValue: v, minValue: null, rccMissing: v == null };
     }
+    // Foundation "Highest" (district) comes from RISAO - read-only here and never sent on Save (user 2026-11-17).
+    if (HIGHEST.has(f.fieldKey)) {
+      const lbl = relabel(f.fieldLabel).replace(SOURCE_SYMBOL.Edit, SOURCE_SYMBOL.Import).replace(SOURCE_SYMBOL.Sync, SOURCE_SYMBOL.Import);
+      return { ...f, fieldLabel: lbl, fieldRole: "Computed" as const, minValue: null };
+    }
     const out = { ...f, fieldLabel: relabel(f.fieldLabel) };
     // Rotary.org-only goals (Major gifts, Strategic plan ...): their target box comes from Rotary.org too.
     if (/^rotary_.+_target$/.test(f.fieldKey) && f.numericValue == null && f.boolValue == null) return { ...out, rccMissing: true };
@@ -90,4 +108,25 @@ export async function rccTransformForm(form: GoalCategoryFormDto): Promise<GoalC
     return { ...f, numericValue: pct, rccFixedPct: true };
   });
   return { ...form, fields: withPct };
+}
+
+/** RCC Goals pages (user 2026-11-18): the District Goals / Club Goals screen with ONLY the 26 Rotary.org goals -
+ *  the RCC changes above, then only the cards that are a Rotary.org goal. Read-only on those pages. */
+export async function rccOnlyTransform(form: GoalCategoryFormDto): Promise<GoalCategoryFormDto> {
+  const t = await rccTransformForm(form);
+  const groups = new Map<string, GoalFieldWithValueDto[]>();
+  for (const f of t.fields) { const k = f.groupName || f.fieldKey; groups.set(k, [...(groups.get(k) ?? []), f]); }
+  const keep = new Set<string>();
+  groups.forEach((fields, k) => { if (isRccRotaryCard({ fields })) keep.add(k); });
+  // No source icons on the RCC Goals pages - everything there comes from Rotary.org (user 2026-11-18).
+  const icons = Object.values(SOURCE_SYMBOL);
+  const plain = (l: string) => { let x = l; for (const i of icons) x = x.split(i).join(""); return x.replace(/\s{2,}/g, " ").trim(); };
+  return { ...t, fields: t.fields.filter((f) => keep.has(f.groupName || f.fieldKey)).map((f) => ({ ...f, fieldLabel: plain(f.fieldLabel) })) };
+}
+
+/** RCC Goals pages: the Quarterly / Month-wise box keeps only the Rotary.org-goal rows (Membership "Total Members",
+ *  Annual Fund, PolioPlus) - the same box as District / Club Goals, nothing else of ours (user 2026-11-18). */
+const RCC_MONTH_GROUPS = new Set(["Total Members", "Annual Fund", "Polio Plus Fund", "Annual Fund YTD", "PolioPlus Fund YTD"]);
+export function rccOnlyMonthly<T extends { fields: { groupName: string }[] }>(form: T): T {
+  return { ...form, fields: form.fields.filter((f) => RCC_MONTH_GROUPS.has(f.groupName)) };
 }

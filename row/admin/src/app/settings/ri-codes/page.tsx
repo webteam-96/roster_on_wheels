@@ -1,7 +1,7 @@
 "use client";
 
+import { PageHeader } from "@/components/row/AppKit";
 import { useCallback, useEffect, useState } from "react";
-import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { Button } from "@/components/ui/button";
@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import ErrorAlert from "@/components/ErrorAlert";
 import { TableSkeleton } from "@/components/dashboard/DashboardSkeleton";
-import { ArrowLeft, Plus, Trash2 } from "@/components/icons";
+import { Plus, Trash2 } from "@/components/icons";
 import { deleteRiCode, getRiCodes, saveRiCode, type RiCode, type RiCodeKind } from "@/services/api";
 
 // RI fields for the outbound sync (build spec 3.12): the lists a membership's codes come from. Enter RI's own codes.
@@ -69,7 +69,7 @@ export default function RiCodesPage() {
     return (
       <ProtectedRoute>
         <div className="py-20 text-center">
-          <h3 className="text-lg font-semibold">Access Denied</h3>
+          <h3 className="row-h2">Access Denied</h3>
           <p className="mt-2 text-muted-foreground">Only Super Admin can manage the RI lists.</p>
         </div>
       </ProtectedRoute>
@@ -79,17 +79,7 @@ export default function RiCodesPage() {
   return (
     <ProtectedRoute>
       <div className="space-y-6">
-        <div className="flex items-center gap-3">
-          <Button variant="outline" size="icon" asChild aria-label="Back to settings">
-            <Link href="/settings"><ArrowLeft className="h-4 w-4" /></Link>
-          </Button>
-          <div>
-            <h2 className="text-2xl font-bold tracking-tight text-primary">RI codes</h2>
-            <p className="text-base text-muted-foreground">
-              Member types and join / termination reasons for the Rotary.org sync. RI officer titles are set on each designation.
-            </p>
-          </div>
-        </div>
+        <PageHeader title="RI codes" description="Member types and join / termination reasons for the Rotary.org sync. RI officer titles are set on each designation." back="/settings" />
 
         {codes === null ? <TableSkeleton rows={6} /> : LISTS.map(({ kind, title, help }) => {
           const rows = codes.filter((c) => c.kind === kind);

@@ -14,6 +14,8 @@
  * All three link purposes share this layout; only the copy and the accent icon change.
  */
 
+import { Button } from "@/components/ui/button";
+import { LinkButton, MenuItemButton, TileButton } from "@/components/ui/text-buttons";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import {
@@ -298,7 +300,7 @@ export default function PublicWalletPayPage() {
     );
   } else if (result) {
     body = (
-      <div className="mx-auto max-w-lg rounded-2xl border border-slate-200/80 bg-card p-8 text-center shadow-sm">
+      <div className="row-rise mx-auto max-w-lg rounded-2xl border border-slate-200/80 bg-card p-8 text-center shadow-sm">
         <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-emerald-50 ring-1 ring-emerald-200">
           <Check className="h-7 w-7 text-emerald-600" strokeWidth={2.5} />
         </div>
@@ -360,15 +362,15 @@ export default function PublicWalletPayPage() {
                 <ul className="mt-3 max-h-72 divide-y divide-slate-100 overflow-y-auto rounded-xl border border-slate-200">
                   {results.map((r) => (
                     <li key={r.id}>
-                      <button
-                        type="button" disabled={picking} onClick={() => pickEntity(r.id)}
-                        className="w-full px-4 py-3 text-left transition hover:bg-blue-50/60 disabled:opacity-50"
+                      <MenuItemButton
+                        disabled={picking} onClick={() => pickEntity(r.id)}
+                        className="flex-col items-stretch gap-0 rounded-none px-4 py-3"
                       >
                         <div className="text-sm font-medium text-slate-800">{r.name}</div>
                         {r.districtNumber && link?.scope === "club" && (
                           <div className="text-xs text-slate-400">District {r.districtNumber}</div>
                         )}
-                      </button>
+                      </MenuItemButton>
                     </li>
                   ))}
                 </ul>
@@ -390,10 +392,9 @@ export default function PublicWalletPayPage() {
                   </div>
                   <div className="flex shrink-0 items-center gap-2">
                     <CheckCircle2 className="h-5 w-5 text-emerald-600" />
-                    <button type="button" onClick={clearEntity}
-                      className="text-[13px] font-semibold text-azure hover:underline">
+                    <LinkButton onClick={clearEntity}>
                       Change
-                    </button>
+                    </LinkButton>
                   </div>
                 </div>
               )}
@@ -442,10 +443,9 @@ export default function PublicWalletPayPage() {
                           ? "Renew this club's website."
                           : "Set up a new website for this club."}
                       </p>
-                      <button onClick={handleWebsite} disabled={busy}
-                        className="mt-4 w-full rounded-full bg-azure py-3.5 text-sm font-bold text-white shadow-sm transition hover:brightness-110 disabled:opacity-60">
+                      <Button type="button" onClick={handleWebsite} disabled={busy} className="mt-4 w-full">
                         {busy ? "Loading…" : "Continue to website purchase →"}
-                      </button>
+                      </Button>
                     </>
                   )}
                 </Card>
@@ -458,14 +458,10 @@ export default function PublicWalletPayPage() {
                     {PRESETS.map((amt) => {
                       const selected = Number(amount) === amt;
                       return (
-                        <button
-                          key={amt} type="button" onClick={() => setAmount(String(amt))}
+                        <TileButton
+                          key={amt} onClick={() => setAmount(String(amt))}
                           aria-pressed={selected}
-                          className={`relative rounded-xl border px-2 pb-3 pt-3.5 text-center transition ${
-                            selected
-                              ? "border-azure bg-blue-50/70 ring-1 ring-azure"
-                              : "border-slate-200 bg-card hover:border-slate-300"
-                          }`}
+                          className={`relative px-2 pb-3 pt-3.5 text-center ${selected ? "border-azure bg-blue-50/70 ring-1 ring-azure" : ""}`}
                         >
                           {amt === POPULAR && (
                             <span className="absolute -top-2 left-1/2 -translate-x-1/2 rounded-full bg-azure px-2 py-0.5 text-[9px] font-bold uppercase tracking-wide text-white">
@@ -483,7 +479,7 @@ export default function PublicWalletPayPage() {
                           }`}>
                             {selected && <Check className="h-3 w-3 text-white" strokeWidth={3.5} />}
                           </span>
-                        </button>
+                        </TileButton>
                       );
                     })}
                   </div>
@@ -528,13 +524,13 @@ export default function PublicWalletPayPage() {
                     )}
                   </div>
 
-                  <button
-                    onClick={handleCreditPay} disabled={busy || !quote || !!quote?.error}
-                    className="mt-4 flex w-full items-center justify-center gap-2 rounded-full bg-azure py-4 text-sm font-bold text-white shadow-sm transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60"
+                  <Button
+                    type="button" onClick={handleCreditPay} disabled={busy || !quote || !!quote?.error}
+                    className="mt-4 w-full"
                   >
                     <Lock className="h-4 w-4" />
                     {busy ? "Processing…" : `Pay ${quote && !quote.error ? inr(quote.totalAmount) : ""}`}
-                  </button>
+                  </Button>
 
                   <p className="mt-3 text-center text-[11px] leading-relaxed text-slate-400">
                     <ShieldCheck className="mr-1 inline-block h-3.5 w-3.5 align-[-3px]" />

@@ -6,6 +6,7 @@
  */
 // shortcut: a plain form, move it to the shared form builder once decision C8 settles which builder that is.
 
+import { NativeSelect } from "@/components/ui/native-select";
 import { useEffect, useState } from "react";
 import { Loader2, Plus, Save, Trash2 } from "@/components/icons";
 import { Button } from "@/components/ui/button";
@@ -20,7 +21,7 @@ import { budgetTotals, dayInput, orNull } from "@/lib/grants";
 import type { ClubMemberSimple } from "@/types/attendance";
 import type { GrantApplication, GrantLine, SaveGrantApplication } from "@/types/grants";
 
-const SELECT = "h-10 w-full rounded-md border border-input bg-background px-3 text-sm";
+const SELECT = "row-field w-full";
 
 export function toSaveBody(app: GrantApplication): SaveGrantApplication {
   return {
@@ -69,7 +70,7 @@ export default function GrantForm({ app, clubId, busy, onChange, onSave }: {
           <p className="text-sm font-medium">{title}</p>
           <p className="text-xs text-muted-foreground">{hint}</p>
         </div>
-        <Button type="button" size="sm" variant="outline" className="gap-1.5" onClick={() => addLine(kind)}>
+        <Button type="button" size="sm" variant="outline" onClick={() => addLine(kind)}>
           <Plus className="h-3.5 w-3.5" /> Add
         </Button>
       </div>
@@ -169,10 +170,10 @@ export default function GrantForm({ app, clubId, busy, onChange, onSave }: {
           <div className="h-10 w-full max-w-md animate-pulse rounded-md bg-muted" aria-busy="true" />
         ) : (
           <div className="flex max-w-md gap-2">
-            <select aria-label="Club member" className={SELECT} value={pick} onChange={(e) => setPick(e.target.value)}>
+            <NativeSelect aria-label="Club member"  value={pick} onChange={(e) => setPick(e.target.value)}>
               <option value="">Choose a club member</option>
               {available.map((m) => <option key={m.id} value={m.id}>{m.memberName}</option>)}
-            </select>
+            </NativeSelect>
             <Button type="button" variant="outline" disabled={!pick} onClick={() => {
               const m = roster.find((r) => r.id === Number(pick));
               if (m) set("members", [...form.members, { memberId: m.id, memberName: m.memberName, note: null }]);
@@ -190,7 +191,7 @@ export default function GrantForm({ app, clubId, busy, onChange, onSave }: {
         </label>
       </Section>
 
-      <Button type="submit" disabled={busy} className="gap-1.5">
+      <Button type="submit" disabled={busy}>
         {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
         Save application
       </Button>

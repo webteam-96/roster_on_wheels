@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState, useEffect, useCallback, useRef } from "react";
-import Link from "next/link";
 import dynamic from "next/dynamic";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -14,7 +13,7 @@ import RotaryLoader from "@/components/RotaryLoader";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import ImageCropDialog from "@/components/ImageCropDialog";
 import { useImageCropUpload } from "@/hooks/useImageCropUpload";
-import { ArrowLeft, Camera, Save, UserCircle2 } from "@/components/icons";
+import { Camera, Save, UserCircle2 } from "@/components/icons";
 import { RotaryYear } from "@/types/rotaryYear";
 import {
   getRotaryYears,
@@ -24,7 +23,7 @@ import {
   getPhotoUrl,
 } from "@/services/api";
 import "react-quill-new/dist/quill.snow.css";
-import { ListPageSkeleton } from "@/components/row/AppKit";
+import { PageHeader, ListPageSkeleton } from "@/components/row/AppKit";
 
 const ReactQuill = dynamic(() => import("react-quill-new"), { ssr: false });
 
@@ -211,18 +210,8 @@ export default function InternationalPresidentPage() {
 
   return (
     <ProtectedRoute>
-      <div className="container mx-auto py-6 space-y-6">
-        <div className="flex items-center justify-between flex-wrap gap-3">
-          <div className="flex items-center gap-3">
-            <Button variant="outline" size="icon" asChild>
-              <Link href="/settings"><ArrowLeft className="h-4 w-4" /></Link>
-            </Button>
-            <div>
-              <h2 className="text-2xl font-bold tracking-tight text-primary">International President&apos;s Information</h2>
-              <p className="text-muted-foreground text-base">Manage RI President profile per rotary year (shown on club & district websites)</p>
-            </div>
-          </div>
-        </div>
+      <div className="space-y-6">
+        <PageHeader title={<>International President&apos;s Information</>} description={<>Manage RI President profile per rotary year (shown on club & district websites)</>} back="/settings" />
 
         {loading ? (
           <div className="flex justify-center py-12"><ListPageSkeleton /></div>

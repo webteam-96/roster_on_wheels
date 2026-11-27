@@ -45,7 +45,7 @@ export default function MemberCard({ member, onDelete, isSuperAdmin, isAdmin: is
   const showBloodGroup = useFeature("member.bloodGroup");
 
   return (
-    <Card className="overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-200 border-primary/20 cursor-pointer group">
+    <Card className="overflow-hidden hover:-translate-y-1 transition-all duration-200 cursor-pointer group">
       <CardContent className="p-0">
         <div className="flex items-center gap-4 p-4 bg-primary text-primary-foreground rounded-t-lg group-hover:bg-primary/90 transition-colors">
           <div className="relative h-16 w-16 flex-shrink-0 overflow-hidden rounded-full bg-white/20 border-2 border-white/40">
@@ -71,7 +71,7 @@ export default function MemberCard({ member, onDelete, isSuperAdmin, isAdmin: is
                 </h3>
                 <div className="flex flex-wrap gap-1 mt-1">
                   {member.rotaryId && (
-                    <Badge className="text-xs bg-white/20 text-white border-white/30 hover:bg-white/30">
+                    <Badge className="bg-white/20 text-white border-white/30">
                       ID: {member.rotaryId}
                     </Badge>
                   )}
@@ -83,13 +83,13 @@ export default function MemberCard({ member, onDelete, isSuperAdmin, isAdmin: is
                     }`}>{role}</Badge>
                   ))}
                   {!roles.includes("Member") && (
-                    <Badge className="text-xs bg-white/20 text-white border-white/30">Member</Badge>
+                    <Badge className="bg-white/20 text-white border-white/30">Member</Badge>
                   )}
                 </div>
               </div>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className="h-8 w-8 text-white hover:bg-white/20">
+                  <Button variant="ghost" size="icon" className="row-btn-sm">
                     <MoreVertical className="h-4 w-4" />
                   </Button>
                 </DropdownMenuTrigger>
@@ -162,12 +162,12 @@ export default function MemberCard({ member, onDelete, isSuperAdmin, isAdmin: is
             )}
             <div className="flex gap-2 pt-1">
               {showBloodGroup && member.bloodGroup && (
-                <Badge variant="outline" className="text-xs">
+                <Badge variant="outline">
                   {member.bloodGroup}
                 </Badge>
               )}
               {member.gender && (
-                <Badge variant="outline" className="text-xs">
+                <Badge variant="outline">
                   {member.gender}
                 </Badge>
               )}

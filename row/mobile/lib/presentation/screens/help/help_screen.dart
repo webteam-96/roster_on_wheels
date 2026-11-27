@@ -12,6 +12,7 @@ import '../../widgets/common/custom_app_bar.dart';
 import '../../widgets/common/empty_state_widget.dart';
 import '../../widgets/common/loading_widget.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/roster_wheel.dart';
 
 /// Help centre (api/public/help): published articles by category, search, and the article with
 /// "Was this helpful?" and related articles. Article text comes translated into the app language by the API.
@@ -111,7 +112,7 @@ class _HelpScreenState extends State<HelpScreen> {
                             subtitle: searching ? 'Try other words.' : null,
                             icon: Icons.menu_book_outlined,
                           )
-                        : RefreshIndicator(
+                        : RowRefresh(
                             onRefresh: _load,
                             child: ListView(
                               padding: const EdgeInsets.only(bottom: 24),

@@ -5,6 +5,7 @@ import '../../widgets/common/custom_app_bar.dart';
 import '../../widgets/common/empty_state_widget.dart';
 import '../../widgets/common/loading_widget.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/roster_wheel.dart';
 
 /// Year-end rollover preview for a club or district (`api/rollover/{club|district}/{id}`): what carries into the
 /// next Rotary year, who is already in place, and earlier runs. Read-only here; admins apply and undo on the web.
@@ -56,7 +57,7 @@ class _RolloverScreenState extends State<RolloverScreen> {
           ? EmptyStateWidget(icon: Icons.event_repeat_outlined, title: 'Not available', subtitle: _error!)
           : d == null
               ? const LoadingWidget()
-              : RefreshIndicator(
+              : RowRefresh(
                   onRefresh: _load,
                   child: ListView(
                     padding: const EdgeInsets.all(12),

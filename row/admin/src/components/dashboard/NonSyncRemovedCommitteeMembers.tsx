@@ -13,6 +13,7 @@
  * Renders nothing when there are no removed members.
  */
 
+import { Button } from "@/components/ui/button";
 import { useState, useEffect, useCallback } from "react";
 import {
   getNonSyncRemovedCommitteeMembers, addCommitteeMemberAsNonMember,
@@ -84,7 +85,7 @@ export default function NonSyncRemovedCommitteeMembers({
   return (
     <div className="mt-6 rounded-lg border border-amber-200 bg-amber-50/60 p-4">
       <div className="mb-3">
-        <h3 className="text-sm font-semibold text-amber-800">Removed: club no longer syncing</h3>
+        <h3 className="row-h3 text-amber-800">Removed: club no longer syncing</h3>
         <p className="text-xs text-amber-700">
           These members were removed because their club is no longer synced with Rotary.org.
           You can re-add them to this committee as a non-member.
@@ -113,13 +114,13 @@ export default function NonSyncRemovedCommitteeMembers({
                 {[m.districtDesignation, m.clubName].filter(Boolean).join(" • ")}
               </div>
             </div>
-            <button
+            <Button
               type="button"
               onClick={() => setAddTarget(m)}
-              className="inline-flex shrink-0 items-center gap-1 rounded-full bg-azure px-3 py-1.5 text-xs font-medium text-white hover:bg-mint-ink"
+              size="sm"
             >
               <UserPlus className="h-3.5 w-3.5" /> Add as non-member
-            </button>
+            </Button>
           </li>
         ))}
       </ul>

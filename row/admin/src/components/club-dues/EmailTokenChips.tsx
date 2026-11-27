@@ -39,16 +39,17 @@ export default function EmailTokenChips({ tokens, onInsert }: { tokens: EmailTok
     <div className="flex flex-wrap items-center gap-1.5">
       <span className="text-xs text-muted-foreground mr-0.5">Insert:</span>
       {tokens.map((t) => (
-        <button
+        <Button
           key={t.token}
           type="button"
           title={`Insert ${t.token}`}
           onClick={() => onInsert(t.token)}
-          className="text-xs rounded-full border border-primary/30 bg-primary/5 text-primary px-2 py-0.5 hover:bg-primary/10 transition-colors"
+          variant="outline" size="sm"
         >
           {t.label}
-        </button>
+        </Button>
       ))}
     </div>
   );
-}
+}import { Button } from "@/components/ui/button";
+

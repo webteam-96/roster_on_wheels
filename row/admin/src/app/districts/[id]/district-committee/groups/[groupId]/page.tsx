@@ -23,9 +23,8 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
 import AlertModal from "@/components/AlertModal";
-import { ArrowLeft, Plus, Pencil, Trash2, AlertTriangle, Users, Layers, Search, X, Upload, MoreHorizontal, Lock } from "@/components/icons";
+import { Plus, Pencil, Trash2, AlertTriangle, Users, Layers, Search, X, Upload, MoreHorizontal, Lock } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
-import Link from "next/link";
 import Pagination from "@/components/Pagination";
 import NonSyncRemovedCommitteeMembers from "@/components/dashboard/NonSyncRemovedCommitteeMembers";
 import CommitteeDocumentsCard from "@/components/membership/CommitteeDocumentsCard";
@@ -33,7 +32,7 @@ import ImageCropDialog from "@/components/ImageCropDialog";
 import { useImageCropUpload } from "@/hooks/useImageCropUpload";
 
 import ProtectedRoute from "@/components/ProtectedRoute";
-import { ListPageSkeleton } from "@/components/row/AppKit";
+import { PageHeader, ListPageSkeleton } from "@/components/row/AppKit";
 
 const PAGE_SIZE = 20;
 
@@ -46,14 +45,14 @@ const PHOTO_MAX_OUTPUT = 500;
 // so the two modules stay consistent (green for member, slate for non-member).
 function MemberChip() {
   return (
-    <span className="inline-flex items-center rounded-full border border-emerald-200 bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-700">
+    <span className="inline-flex items-center rounded border border-emerald-200 bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-700">
       Member
     </span>
   );
 }
 function NonMemberChip() {
   return (
-    <span className="inline-flex items-center rounded-full border border-slate-300 bg-slate-200 px-2 py-0.5 text-xs font-medium text-slate-700">
+    <span className="inline-flex items-center rounded border border-slate-300 bg-slate-200 px-2 py-0.5 text-xs font-medium text-slate-700">
       Non-Member
     </span>
   );
@@ -298,25 +297,17 @@ export default function GroupDetailPage() {
   return (
     <ProtectedRoute>
       <div className="space-y-6">
-        <div className="flex items-center gap-3">
-          <Button variant="outline" size="icon" asChild>
-            <Link href={`/districts/${districtId}/district-committee/groups`}><ArrowLeft className="h-4 w-4" /></Link>
-          </Button>
-          <div>
-            <div className="flex flex-wrap items-center gap-2">
-              <h2 className="text-2xl font-bold tracking-tight text-primary">{groupName || "Group"}</h2>
-              {isAutoManaged && (
+        <PageHeader
+          title={groupName || "Group"}
+          description={<>{districtName} - Group Committee
+              {isAutoManaged && <span className="ml-2 text-amber-600">(Members managed via BOD)</span>}</>}
+          back={`/districts/${districtId}/district-committee/groups`}
+          actions={isAutoManaged && (
                 <Badge variant="secondary" className="flex items-center gap-1" title="Auto-managed by BOD: members are added/removed via Board of Directors">
                   <Lock className="h-3 w-3" />Auto
                 </Badge>
               )}
-            </div>
-            <p className="text-muted-foreground text-base">
-              {districtName} - Group Committee
-              {isAutoManaged && <span className="ml-2 text-amber-600">(Members managed via BOD)</span>}
-            </p>
-          </div>
-        </div>
+        />
 
         {loading && <div className="flex items-center justify-center py-20"><ListPageSkeleton /></div>}
 
@@ -340,7 +331,7 @@ export default function GroupDetailPage() {
                     onKeyDown={handleMemberSearchKey}
                   />
                   {memberSearchTerm && (
-                    <Button variant="ghost" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 h-6 w-6" onClick={clearMemberSearch} type="button">
+                    <Button variant="ghost" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 w-6 w-6 w-6 h-6 w-6" onClick={clearMemberSearch} type="button">
                       <X className="h-4 w-4" />
                     </Button>
                   )}
@@ -355,7 +346,7 @@ export default function GroupDetailPage() {
               {members.length === 0 && (
                 <div className="flex flex-col items-center justify-center py-16 text-center">
                   <Users className="h-12 w-12 text-muted-foreground mb-4" />
-                  <h3 className="text-lg font-semibold">{memberSearchTerm ? "No matches found" : "No members yet"}</h3>
+                  <h3 className="row-h2">{memberSearchTerm ? "No matches found" : "No members yet"}</h3>
                   <p className="text-muted-foreground mt-2">
                     {memberSearchTerm
                       ? `No members match "${memberSearchTerm}". Try a different search.`
@@ -443,7 +434,7 @@ export default function GroupDetailPage() {
               {subGroups.length === 0 && (
                 <div className="flex flex-col items-center justify-center py-16 text-center">
                   <Layers className="h-12 w-12 text-muted-foreground mb-4" />
-                  <h3 className="text-lg font-semibold">No sub-groups yet</h3>
+                  <h3 className="row-h2">No sub-groups yet</h3>
                   <p className="text-muted-foreground mt-2">{canManage ? "Add sub-groups to this group." : "No sub-groups in this group."}</p>
                 </div>
               )}
@@ -468,7 +459,7 @@ export default function GroupDetailPage() {
                           {canManage && (
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                                <Button variant="ghost" size="icon" className="h-8 w-8"><MoreHorizontal className="h-4 w-4" /></Button>
+                                <Button aria-label="More actions" variant="ghost" size="icon" className="row-btn-sm"><MoreHorizontal className="h-4 w-4" /></Button>
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end">
                                 <DropdownMenuItem onClick={(e) => { e.stopPropagation(); openEditSubGroupDialog(sg); }}>

@@ -28,6 +28,8 @@ import 'package:rotary_flutter_app/core/utils/currency_symbol.dart';
 import 'package:rotary_flutter_app/core/theme/app_fonts.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
 import 'package:rotary_flutter_app/core/i18n/live_translator.dart' show TranslationScope;
+import 'package:rotary_flutter_app/presentation/widgets/row/motion.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/roster_wheel.dart';
 
 // Flutter uses string module keys; backend requires numeric moduleId.
 // IDs are looked up dynamically from `/api/modules` (see _resolveModuleId)
@@ -949,7 +951,7 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
     final message = '${TranslationScope.of(context, body)}\n\n'
         '${TranslationScope.of(context, _kAgreeNote).replaceAll('{app}', Brand.current.productName)}';
     final maxH = MediaQuery.of(context).size.height * 0.8;
-    return showDialog<bool>(
+    return showRowDialog<bool>(
       context: context,
       barrierDismissible: true,
       builder: (ctx) => Dialog(
@@ -1128,6 +1130,7 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
                 prefixIcon: const Icon(Icons.search_rounded, size: 18),
                 suffixIcon: _searchCtrl.text.isNotEmpty
                     ? IconButton(
+                        tooltip: 'Clear',
                         icon: const Icon(Icons.clear, size: 18),
                         onPressed: () {
                           _searchCtrl.clear();
@@ -1219,10 +1222,10 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
                       actionLabel: canManage ? _addActionLabel : null,
                       onAction: canManage ? () => _showForm() : null,
                     )
-                  : RefreshIndicator(
+                  : RowRefresh(
                       color: AppColors.primary,
                       onRefresh: () => _fetch(reset: true),
-                      child: ListView.separated(
+                      child: RowListView.separated(
                         padding: (const EdgeInsets.all(16)).add(const EdgeInsets.only(bottom: 88)),
                         itemCount: _projects.length + 1,
                         separatorBuilder: (_, __) => const SizedBox(height: 12),
@@ -3232,6 +3235,7 @@ class _ProjectFormScreenState extends State<_ProjectFormScreen> {
                                   ),
                                   if (_selectedParent != null)
                                     IconButton(
+                                      tooltip: 'Close',
                                       icon: const Icon(Icons.close, size: 16),
                                       onPressed: () => setState(() => _selectedParent = null),
                                       padding: EdgeInsets.zero,
@@ -4713,7 +4717,7 @@ class _ParentProjectPickerState extends State<_ParentProjectPicker> {
                             ),
                           ),
                         )
-                      : ListView.separated(
+                      : RowListView.separated(
   padding: const EdgeInsets.only(bottom: 88),
                           itemCount: _results.length,
                           separatorBuilder: (_, __) => const Divider(height: 1),

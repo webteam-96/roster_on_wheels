@@ -130,7 +130,7 @@ public class CitationAutoPointsBackgroundService : BackgroundService
             // Get all auto questions for this district+year
             var questions = (await conn.QueryAsync<dynamic>(@"
                 SELECT q.pk_id AS id, q.fk_activity_id AS activityId, a.activity_name AS activityName, a.sub_type AS subType,
-                       q.points, q.is_bonus AS isBonus, q.bonus_points AS bonusPoints, q.min_bonus AS minBonus, q.max_bonus AS maxBonus
+                       q.points, q.is_bonus AS isBonus, q.bonus_points AS bonusPoints, q.min_bonus AS minBonus, q.max_bonus AS maxBonus, COALESCE(q.per_unit, 1) AS perUnit
                 FROM district_citation_auto_question q
                 INNER JOIN district_citation_activity_master a ON a.pk_id = q.fk_activity_id
                 WHERE q.fk_district_id = @DistrictId AND q.fk_year_id = @YearId AND q.isdeleted = 0",
@@ -167,7 +167,7 @@ public class CitationAutoPointsBackgroundService : BackgroundService
                     if (qSubs.Count == 0 || (decimal)q.points > 0)
                     {
                         int count = await GetAutoCount(conn, actName, clubId, yearId, startDate, endDate, moduleIdMap, projTbl, null);
-                        (decimal earned, decimal bonus) = CalculatePoints(count, (decimal)q.points, (bool)Convert.ToBoolean(q.isBonus), (decimal)q.bonusPoints, (int)q.minBonus, (int)q.maxBonus);
+                        (decimal earned, decimal bonus) = CalculatePoints(count, (decimal)q.points, (bool)Convert.ToBoolean(q.isBonus), (decimal)q.bonusPoints, (int)q.minBonus, (int)q.maxBonus, Convert.ToInt32((object)q.perUnit));
                         await SaveAutoEntry(conn, districtId, yearId, clubId, (int)q.id, null, count.ToString(), earned, bonus);
                         entryCount++;
                     }
@@ -261,7 +261,7 @@ public class CitationAutoPointsBackgroundService : BackgroundService
 
         var questions = (await conn.QueryAsync<dynamic>(@"
             SELECT q.pk_id AS id, q.fk_activity_id AS activityId, a.activity_name AS activityName, a.sub_type AS subType,
-                   q.points, q.is_bonus AS isBonus, q.bonus_points AS bonusPoints, q.min_bonus AS minBonus, q.max_bonus AS maxBonus
+                   q.points, q.is_bonus AS isBonus, q.bonus_points AS bonusPoints, q.min_bonus AS minBonus, q.max_bonus AS maxBonus, COALESCE(q.per_unit, 1) AS perUnit
             FROM district_citation_auto_question q
             INNER JOIN district_citation_activity_master a ON a.pk_id = q.fk_activity_id
             WHERE q.fk_district_id = @DistrictId AND q.fk_year_id = @YearId AND q.isdeleted = 0",
@@ -297,7 +297,7 @@ public class CitationAutoPointsBackgroundService : BackgroundService
             if (qSubs.Count == 0 || (decimal)q.points > 0)
             {
                 int count = await GetAutoCount(conn, actName, clubId, yearId, startDate, endDate, moduleIdMap, projTblLive, null);
-                (decimal earned, decimal bonus) = CalculatePoints(count, (decimal)q.points, (bool)Convert.ToBoolean(q.isBonus), (decimal)q.bonusPoints, (int)q.minBonus, (int)q.maxBonus);
+                (decimal earned, decimal bonus) = CalculatePoints(count, (decimal)q.points, (bool)Convert.ToBoolean(q.isBonus), (decimal)q.bonusPoints, (int)q.minBonus, (int)q.maxBonus, Convert.ToInt32((object)q.perUnit));
                 await SaveAutoEntry(conn, districtId, yearId, clubId, (int)q.id, null, count.ToString(), earned, bonus);
             }
             else await RetireMainEntry(conn, districtId, yearId, clubId, (int)q.id);
@@ -311,10 +311,51 @@ public class CitationAutoPointsBackgroundService : BackgroundService
         }
     }
 
+    // Disha Goals (user 2026-11-17): an auto question's figure for a whole district = the same count the
+    // District Awards auto question gives each club, added up over the district's live clubs. Read only -
+    // nothing is saved here. Null when the year has no projects table (same bail-out as the club run).
+    public async Task<int?> CountForDistrictAsync(int districtId, int yearId, string activityName,
+        string? subItemType, int? subItemId, string? subItemName)
+    {
+        using var conn = CreateConnection();
+        await conn.OpenAsync();
+        var year = await conn.QueryFirstOrDefaultAsync<dynamic>(
+            "SELECT pk_year_id AS id, StartDate, EndDate FROM rotary_year_master WHERE pk_year_id = @Y", new { Y = yearId });
+        if (year == null) return null;
+        using var scope = _scopeFactory.CreateScope();
+        var proj = await scope.ServiceProvider.GetRequiredService<IYearTableResolver>().ResolveByYearIdAsync(conn, yearId);
+        if (proj == null) return null;
+
+        var moduleKeys = new[] { "club_service", "community_service", "vocational_service", "international_service", "new_generation_service", "public_image_initiative" };
+        var moduleIdMap = new Dictionary<string, int>();
+        foreach (var k in moduleKeys)
+        {
+            var mid = await conn.ExecuteScalarAsync<int?>("SELECT pk_module_id FROM module_master WHERE ModuleKey = @Key AND isdeleted = 0", new { Key = k });
+            if (mid.HasValue) moduleIdMap[k] = mid.Value;
+        }
+        dynamic? sub = null;
+        if (!string.IsNullOrEmpty(subItemType))
+        {
+            var o = new System.Dynamic.ExpandoObject() as IDictionary<string, object?>;
+            o["subItemType"] = subItemType; o["subItemId"] = subItemId; o["subItemName"] = subItemName;
+            sub = o;
+        }
+        var clubIds = await conn.QueryAsync<int>(
+            $"SELECT c.pk_club_id FROM club_master c WHERE c.fk_district_id = @D AND {HierarchyScopeSql.ClubLive("c")}", new { D = districtId });
+        int total = 0;
+        foreach (var clubId in clubIds)
+            total += await GetAutoCount(conn, activityName, clubId, yearId, (DateTime)year.StartDate, (DateTime)year.EndDate, moduleIdMap, proj.ProjectsTable, sub);
+        return total;
+    }
+
     private async Task<int> GetAutoCount(MySqlConnection conn, string activityName, int clubId, int yearId,
         DateTime startDate, DateTime endDate, Dictionary<string, int> moduleIdMap, string projTbl, dynamic? subItem)
     {
         var act = activityName.ToLower();
+
+        // RISAO figures in the Auto list (goal flow, RIZones 2026-11-17): the club's RISAO import figure, rounded.
+        if (RisaoFigures.IsRisaoActivity(activityName))
+            return await RisaoFigures.ClubCountAsync(conn, activityName, clubId, yearId);
 
         if (act.Contains("club website"))
             return 0; // Future
@@ -327,7 +368,13 @@ public class CitationAutoPointsBackgroundService : BackgroundService
         // `?? "rotary_projects"` fallback removed: if the year-wise table
         // doesn't exist, the caller has already bailed out of the entire run.
 
-        if (act.Contains("member addition") && act.Contains("lady"))
+        // Rotary.org first (user 2026-11-20): a club whose figures came from Rotary.org (sync) answers Member addition /
+        // Women Members with the Rotary.org figure, as RCC shows; no Rotary.org figures = counted below as before.
+        if (await RotaryOrgClubFigures.AddedAsync(conn, activityName, clubId, yearId) is int fromRotaryOrg)
+            return fromRotaryOrg;
+
+        // "Member Addition(Lady)" renamed "Women Members" (user 2026-11-18) - both names work.
+        if ((act.Contains("member addition") && act.Contains("lady")) || act.Contains("women member"))
         {
             return await conn.ExecuteScalarAsync<int>(@"
                 SELECT COUNT(*) FROM member_master_profile m
@@ -432,37 +479,25 @@ public class CitationAutoPointsBackgroundService : BackgroundService
         return 0;
     }
 
-    private (decimal earned, decimal bonus) CalculatePoints(int count, decimal pointsPerUnit, bool isBonus, decimal bonusPoints, int minBonus, int maxBonus)
+    // "For every" (user 2026-11-18, option B): points are given per block of PerUnit (default 1 = the usual
+    // District Awards count x points). 15 clubs, 50 points for every 5 -> 3 x 50 = 150; US$16,603, 10 for every
+    // US$1,000 -> 16 x 10 = 160. Bonus min / max still compare the real figure.
+    private (decimal earned, decimal bonus) CalculatePoints(int count, decimal pointsPerUnit, bool isBonus, decimal bonusPoints, int minBonus, int maxBonus, int perUnit = 1)
     {
         if (count == 0) return (0, 0);
-
-        decimal earned;
+        if (perUnit < 1) perUnit = 1;
         decimal bonus = 0;
-
+        int counted = count;
         if (isBonus)
         {
-            if (minBonus == 0 && maxBonus == 0)
-            {
-                // No min/max: count * points + bonus
-                earned = count * pointsPerUnit;
-                bonus = bonusPoints;
-            }
+            if (minBonus == 0 && maxBonus == 0) bonus = bonusPoints;
             else
             {
-                // Cap count at max for base calculation
-                int cappedCount = maxBonus > 0 && count > maxBonus ? maxBonus : count;
-                earned = cappedCount * pointsPerUnit;
-                // Add bonus if count >= min
-                if (count >= minBonus && minBonus > 0)
-                    bonus = bonusPoints;
+                if (maxBonus > 0 && count > maxBonus) counted = maxBonus;   // cap at max for the base points
+                if (count >= minBonus && minBonus > 0) bonus = bonusPoints;
             }
         }
-        else
-        {
-            earned = count * pointsPerUnit;
-        }
-
-        return (earned, bonus);
+        return ((counted / perUnit) * pointsPerUnit, bonus);
     }
 
     // The question-level row is only written while the question has no sub-items or its own points.

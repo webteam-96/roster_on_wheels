@@ -3,15 +3,24 @@ import UIKit
 import LocalAuthentication
 
 @main
-@objc class AppDelegate: FlutterAppDelegate {
+@objc class AppDelegate: FlutterAppDelegate, FlutterImplicitEngineDelegate {
   override func application(
     _ application: UIApplication,
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
   ) -> Bool {
-    let controller = window?.rootViewController as! FlutterViewController
+    return super.application(application, didFinishLaunchingWithOptions: launchOptions)
+  }
+
+  // UIScene lifecycle (required from iOS 27): plugins and channels are set up
+  // here, once Flutter's engine exists; there is no window at launch any more.
+  func didInitializeImplicitFlutterEngine(_ engineBridge: FlutterImplicitEngineBridge) {
+    GeneratedPluginRegistrant.register(with: engineBridge.pluginRegistry)
+
+    guard let registrar = engineBridge.pluginRegistry.registrar(forPlugin: "RowNativeChannels") else { return }
+    let messenger = registrar.messenger()
     let passcodeChannel = FlutterMethodChannel(
       name: "rotary_india/passcode_auth",
-      binaryMessenger: controller.binaryMessenger
+      binaryMessenger: messenger
     )
     passcodeChannel.setMethodCallHandler { (call, result) in
       switch call.method {
@@ -25,13 +34,10 @@ import LocalAuthentication
     }
 
     // The device's IANA time zone ("Europe/Paris"), sent with API requests (X-Time-Zone).
-    let zoneChannel = FlutterMethodChannel(name: "row/time_zone", binaryMessenger: controller.binaryMessenger)
+    let zoneChannel = FlutterMethodChannel(name: "row/time_zone", binaryMessenger: messenger)
     zoneChannel.setMethodCallHandler { (call, result) in
       if call.method == "localZone" { result(TimeZone.current.identifier) } else { result(FlutterMethodNotImplemented) }
     }
-
-    GeneratedPluginRegistrant.register(with: self)
-    return super.application(application, didFinishLaunchingWithOptions: launchOptions)
   }
 
   /// Forces a passcode-only prompt by evaluating an access-control object

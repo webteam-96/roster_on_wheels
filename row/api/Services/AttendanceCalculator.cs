@@ -31,9 +31,10 @@ public static class AttendanceCalculator
     }
 
     /// <summary>Rule of 85 (RI club constitution): age plus years of membership in one or more clubs is 85 or more.
-    /// The board still grants the exemption on the member's written request; this only says who qualifies.</summary>
+    /// The board still grants the exemption on the member's written request; this only says who qualifies.
+    /// A 1900 birth date holds only the day and month, so the age is unknown.</summary>
     public static bool Rule85(DateOnly? birth, DateOnly? firstJoined, DateOnly asOf)
-        => birth is { } b && firstJoined is { } j && j <= asOf && FullYears(b, asOf) + FullYears(j, asOf) >= 85;
+        => birth is { Year: > 1900 } b && firstJoined is { } j && j <= asOf && FullYears(b, asOf) + FullYears(j, asOf) >= 85;
 
     public static int FullYears(DateOnly from, DateOnly to)
         => to.Year - from.Year - (to.Month < from.Month || (to.Month == from.Month && to.Day < from.Day) ? 1 : 0);

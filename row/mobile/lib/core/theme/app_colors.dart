@@ -80,6 +80,7 @@ class AppColors {
 
   // Shimmer
   static const Color shimmerBase = Color(0xFFEDF4FB);
+  static const Color skeleton = Color(0xFFE1EAF4);
   static const Color shimmerHighlight = Color(0xFFF7F9FC);
 
   // Chart series: azure, marigold, mint, coral, lilac

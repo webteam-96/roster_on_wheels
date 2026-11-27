@@ -65,26 +65,26 @@ export const fellowshipTheme = defineTheme({
   },
   tokens: {
     "--color-accent": t("#17458F"), // azure
-    "--color-accent-muted": t("#EDF4FB"), // cream-2
+    "--color-accent-muted": t("#DCE5EF"), // well
     "--color-text-accent": t("#17458F"),
     "--color-icon-accent": t("#17458F"),
     "--color-on-accent": t("#FCFDFE"),
-    "--color-background-body": t("#F7F9FC"), // cream, no pure white (rule 3)
-    "--color-background-surface": t("#FCFDFE"),
-    "--color-background-card": t("#FCFDFE"),
-    "--color-background-popover": t("#FCFDFE"),
-    "--color-background-muted": t("#EDF4FB"),
+    "--color-background-body": t("#E6ECF3"), // ground, no pure white (rule 3)
+    "--color-background-surface": t("#F7F9FC"),
+    "--color-background-card": t("#F4F7FA"),
+    "--color-background-popover": t("#F4F7FA"),
+    "--color-background-muted": t("#DCE5EF"),
     "--color-text-primary": t("#1B2C42"), // ink
-    "--color-text-secondary": t("#64748B"), // ink-soft
+    "--color-text-secondary": t("#526177"), // ink-soft
     "--color-icon-primary": t("#1B2C42"),
-    "--color-icon-secondary": t("#64748B"),
-    "--color-border": t("#DCE3EC"),
+    "--color-icon-secondary": t("#526177"),
+    "--color-border": t("#C9D5E2"),
     "--color-border-emphasized": t("#A9C6EA"),
     "--color-warning": t("#F7A81B"), // marigold
     "--color-on-warning": t("#1B2C42"),
     // One deliberate radius family, tighter than the stock theme (rule 23).
-    "--radius-inner": "0.375rem",
-    "--radius-element": "0.5rem",
-    "--radius-container": "0.85rem",
+    "--radius-inner": "0.25rem",
+    "--radius-element": "0.375rem",
+    "--radius-container": "0.625rem",
   },
 });

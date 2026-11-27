@@ -4,6 +4,13 @@
 // one (the prospect edit page). Without: every task of the club (the follow-ups page). Renders nothing while the
 // feature is off. The assigned member sees and completes the task in the app and gets a reminder before it is due.
 
+import { LinkButton } from "@/components/ui/text-buttons"
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table"
+import { Input } from "@/components/ui/input";
+import { IconButton } from "@/components/ui/icon-button";
+import { Button } from "@/components/ui/button";
+import { NativeSelect } from "@/components/ui/native-select";
+import { Card } from "@/components/ui/card";
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import {
@@ -15,7 +22,7 @@ import { CONTACTS_FEATURE, errorText } from "@/lib/contacts";
 import { Skeleton } from "@/components/dashboard/DashboardSkeleton";
 import { ClipboardList, Plus, Trash2, RotateCcw, CheckCircle2 } from "@/components/icons";
 
-const FIELD = "w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500";
+const FIELD = "row-field w-full";
 const REMIND = [
   { value: "", label: "No reminder" },
   { value: "0", label: "On the due date" },
@@ -101,16 +108,16 @@ export default function ProspectTasksPanel({ clubId, prospectId, canManage }: {
   const canAdd = form.title.trim() !== "" && form.assignee > 0 && form.due !== "";
 
   return (
-    <div className="mb-4 overflow-hidden rounded-xl border border-slate-200 bg-white">
+    <Card className="mb-4 overflow-hidden">
       <div className="flex flex-wrap items-center gap-3 border-b border-slate-100 bg-slate-50 px-4 py-2.5">
         <ClipboardList className="h-4 w-4 text-slate-500" />
-        <h3 className="text-sm font-semibold text-slate-800">Follow-up tasks</h3>
-        <select aria-label="Task status" value={status} onChange={(e) => setStatus(e.target.value as "" | "open" | "done")}
-          className="ml-auto rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-xs text-slate-700">
+        <h3 className="row-h3">Follow-up tasks</h3>
+        <NativeSelect aria-label="Task status" value={status} onChange={(e) => setStatus(e.target.value as "" | "open" | "done")}
+          className="ml-auto w-auto">
           <option value="">All tasks</option>
           <option value="open">Open</option>
           <option value="done">Done</option>
-        </select>
+        </NativeSelect>
       </div>
 
       {message && (
@@ -120,7 +127,7 @@ export default function ProspectTasksPanel({ clubId, prospectId, canManage }: {
       {loadError ? (
         <div className="px-4 py-6 text-sm text-rose-700">
           {loadError}{" "}
-          <button type="button" onClick={load} className="font-medium underline">Try again</button>
+          <LinkButton type="button" onClick={load}>Try again</LinkButton>
         </div>
       ) : tasks === null ? (
         <div className="space-y-3 p-4" aria-label="Loading tasks">
@@ -132,57 +139,57 @@ export default function ProspectTasksPanel({ clubId, prospectId, canManage }: {
         </p>
       ) : (
         <div className="overflow-x-auto">
-          <table className="min-w-full text-sm">
-            <thead className="bg-[#EDF4FB] text-[13px] text-[#64748B]">
-              <tr>
-                <th className="px-3 py-2 text-left">Task</th>
-                {!prospectId && <th className="px-3 py-2 text-left">Prospect</th>}
-                <th className="px-3 py-2 text-left">Assigned to</th>
-                <th className="px-3 py-2 text-left">Due</th>
-                <th className="px-3 py-2 text-left">Status</th>
-                {canManage && <th className="px-3 py-2 text-right">Actions</th>}
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
+          <Table className="min-w-full text-sm">
+            <TableHeader>
+              <TableRow>
+                <TableHead className="px-3 text-left">Task</TableHead>
+                {!prospectId && <TableHead className="px-3 text-left">Prospect</TableHead>}
+                <TableHead className="px-3 text-left">Assigned to</TableHead>
+                <TableHead className="px-3 text-left">Due</TableHead>
+                <TableHead className="px-3 text-left">Status</TableHead>
+                {canManage && <TableHead className="px-3 text-right">Actions</TableHead>}
+              </TableRow>
+            </TableHeader>
+            <TableBody className="divide-y divide-slate-100">
               {tasks.map((t) => {
                 const overdue = t.status === "open" && t.dueDate < today;
                 return (
-                  <tr key={t.id}>
-                    <td className="px-3 py-2">
+                  <TableRow key={t.id}>
+                    <TableCell className="px-3 py-2">
                       <div className="font-medium text-slate-800">{t.title}</div>
                       {t.notes && <div className="text-xs text-slate-500">{t.notes}</div>}
                       {t.completionNote && <div className="text-xs text-emerald-700">Outcome: {t.completionNote}</div>}
-                    </td>
+                    </TableCell>
                     {!prospectId && (
-                      <td className="px-3 py-2">
+                      <TableCell className="px-3 py-2">
                         <Link href={`/clubs/${clubId}/rotary-network/potential-members/v2/${t.prospectId}/edit`}
                           className="text-[#17458F] underline-offset-2 hover:underline">{t.prospectName}</Link>
-                      </td>
+                      </TableCell>
                     )}
-                    <td className="px-3 py-2 text-slate-600">{t.assigneeName || "-"}</td>
-                    <td className={`whitespace-nowrap px-3 py-2 ${overdue ? "font-medium text-rose-700" : "text-slate-600"}`}>
+                    <TableCell className="px-3 py-2 text-slate-600">{t.assigneeName || "-"}</TableCell>
+                    <TableCell className={`whitespace-nowrap px-3 py-2 ${overdue ? "font-medium text-rose-700" : "text-slate-600"}`}>
                       {fmtDay(t.dueDate)}{overdue ? " (overdue)" : ""}
-                    </td>
-                    <td className="px-3 py-2 text-slate-600">{t.status === "done" ? "Done" : "Open"}</td>
+                    </TableCell>
+                    <TableCell className="px-3 py-2 text-slate-600">{t.status === "done" ? "Done" : "Open"}</TableCell>
                     {canManage && (
-                      <td className="whitespace-nowrap px-3 py-2 text-right">
-                        <button type="button" disabled={busy}
+                      <TableCell className="whitespace-nowrap px-3 py-2 text-right">
+                        <Button type="button" disabled={busy}
                           onClick={() => act(() => updateProspectTask(clubId, t.id, toSave(t, t.status === "done" ? "open" : "done")), "Could not save the task.")}
-                          className="mr-1 inline-flex items-center gap-1 rounded border border-slate-200 px-2 py-1 text-xs font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50">
+                          variant="outline" size="sm" className="mr-1">
                           {t.status === "done" ? <><RotateCcw size={13} /> Reopen</> : <><CheckCircle2 size={13} /> Mark done</>}
-                        </button>
-                        <button type="button" disabled={busy} aria-label={`Delete task ${t.title}`}
+                        </Button>
+                        <IconButton type="button" disabled={busy} aria-label={`Delete task ${t.title}`}
                           onClick={() => act(() => deleteProspectTask(clubId, t.id), "Could not delete the task.")}
-                          className="inline-flex h-7 w-7 items-center justify-center rounded text-slate-400 hover:bg-rose-50 hover:text-rose-700 disabled:opacity-50">
+                          className="hover:text-red-700">
                           <Trash2 size={13} />
-                        </button>
-                      </td>
+                        </IconButton>
+                      </TableCell>
                     )}
-                  </tr>
+                  </TableRow>
                 );
               })}
-            </tbody>
-          </table>
+            </TableBody>
+          </Table>
         </div>
       )}
 
@@ -190,40 +197,40 @@ export default function ProspectTasksPanel({ clubId, prospectId, canManage }: {
         <div className="grid grid-cols-1 gap-3 border-t border-slate-100 p-4 sm:grid-cols-2">
           <label className="space-y-1 text-xs font-semibold text-slate-700 sm:col-span-2">
             <span className="block">New task</span>
-            <input value={form.title} maxLength={200} onChange={(e) => setForm({ ...form, title: e.target.value })}
-              placeholder="For example: invite to the next meeting" className={`${FIELD} font-normal`} />
+            <Input value={form.title} maxLength={200} onChange={(e) => setForm({ ...form, title: e.target.value })}
+              placeholder="For example: invite to the next meeting" className="font-normal" />
           </label>
           <label className="space-y-1 text-xs font-semibold text-slate-700">
             <span className="block">Assign to</span>
             {members === null ? <Skeleton className="h-9 w-full" /> : (
-              <select value={form.assignee} onChange={(e) => setForm({ ...form, assignee: Number(e.target.value) })} className={`${FIELD} font-normal`}>
+              <NativeSelect value={form.assignee} onChange={(e) => setForm({ ...form, assignee: Number(e.target.value) })} className="font-normal">
                 <option value={0}>Choose a member</option>
                 {members.map((m) => <option key={m.id} value={m.id}>{m.memberName}</option>)}
-              </select>
+              </NativeSelect>
             )}
           </label>
           <label className="space-y-1 text-xs font-semibold text-slate-700">
             <span className="block">Due date</span>
-            <input type="date" value={form.due} onChange={(e) => setForm({ ...form, due: e.target.value })} className={`${FIELD} font-normal`} />
+            <Input type="date" value={form.due} onChange={(e) => setForm({ ...form, due: e.target.value })} className="font-normal" />
           </label>
           <label className="space-y-1 text-xs font-semibold text-slate-700">
             <span className="block">Reminder</span>
-            <select value={form.remind} onChange={(e) => setForm({ ...form, remind: e.target.value })} className={`${FIELD} font-normal`}>
+            <NativeSelect value={form.remind} onChange={(e) => setForm({ ...form, remind: e.target.value })} className="font-normal">
               {REMIND.map((r) => <option key={r.value} value={r.value}>{r.label}</option>)}
-            </select>
+            </NativeSelect>
           </label>
           <label className="space-y-1 text-xs font-semibold text-slate-700">
             <span className="block">Notes <span className="font-normal text-slate-400">(optional)</span></span>
-            <input value={form.notes} maxLength={1000} onChange={(e) => setForm({ ...form, notes: e.target.value })} className={`${FIELD} font-normal`} />
+            <Input value={form.notes} maxLength={1000} onChange={(e) => setForm({ ...form, notes: e.target.value })} className="font-normal" />
           </label>
           <div className="sm:col-span-2">
-            <button type="button" disabled={!canAdd || busy} onClick={add}
-              className="inline-flex h-10 items-center gap-1.5 rounded-full bg-[#17458F] px-4 text-xs font-semibold text-white disabled:opacity-50">
+            <Button type="button" disabled={!canAdd || busy} onClick={add}
+              >
               <Plus size={13} /> Add task
-            </button>
+            </Button>
           </div>
         </div>
       )}
-    </div>
+    </Card>
   );
 }

@@ -1,4 +1,5 @@
 "use client";
+import { LinkButton } from "@/components/ui/text-buttons";
 
 import { useEffect, useState } from "react";
 import RotaryLoader from "@/components/RotaryLoader";
@@ -28,14 +29,14 @@ export function QrImage({ svg }: { svg: string }) {
       alt="QR code for your authenticator app"
       width={184}
       height={184}
-      className="rounded-[8px] border border-[color:var(--row-line)] bg-[#FCFDFE] p-2"
+      className="rounded-md border border-[color:var(--row-line)] bg-card p-2"
     />
   );
 }
 
 export function RecoveryCodeList({ codes }: { codes: string[] }) {
   return (
-    <ol className="grid grid-cols-2 gap-x-6 gap-y-1 rounded-[8px] border border-[color:var(--row-line)] bg-[#EDF4FB] px-4 py-3 font-mono text-sm text-[#1B2C42]">
+    <ol className="grid grid-cols-2 gap-x-6 gap-y-1 rounded-md border border-[color:var(--row-line)] bg-muted px-4 py-3 font-mono text-sm text-[#1B2C42]">
       {codes.map((c) => <li key={c}>{c}</li>)}
     </ol>
   );
@@ -94,7 +95,7 @@ export default function MfaSignInStep({ mfaToken, setupRequired, onSignedIn, onC
             Your account needs multi-factor sign-in. Scan this code with an authenticator app, then enter the 6-digit code it shows.
           </p>
           {setupError && <p className="text-sm text-destructive">{setupError}</p>}
-          {!setup && !setupError && <div className="h-[184px] w-[184px] animate-pulse rounded-[8px] bg-[#EDF4FB]" aria-label="Loading" />}
+          {!setup && !setupError && <div className="h-[184px] w-[184px] animate-pulse rounded-md bg-muted" aria-label="Loading" />}
           {setup && (
             <div className="flex flex-col items-start gap-2">
               <QrImage svg={setup.qrSvg} />
@@ -124,9 +125,9 @@ export default function MfaSignInStep({ mfaToken, setupRequired, onSignedIn, onC
         {busy && <RotaryLoader size="sm" />}
         Verify
       </Button>
-      <button type="button" onClick={onCancel} className="w-full text-sm font-semibold text-primary hover:underline">
+      <LinkButton className="w-full" onClick={onCancel}>
         Back to sign in
-      </button>
+      </LinkButton>
     </form>
   );
 }

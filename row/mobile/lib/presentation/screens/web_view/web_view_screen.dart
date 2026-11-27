@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/roster_wheel.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:go_router/go_router.dart';
@@ -68,9 +69,7 @@ class _WebViewScreenState extends State<WebViewScreen> {
             },
           ),
           if (_isLoading)
-            const Center(
-              child: const CircularProgressIndicator(color: AppColors.primary),
-            ),
+            const Center(child: RowLoader(size: 56)),
         ],
       ),
     );

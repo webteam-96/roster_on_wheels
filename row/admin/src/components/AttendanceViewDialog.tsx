@@ -115,7 +115,7 @@ export default function AttendanceViewDialog({
                   {list.map((name, i) => (
                     <span
                       key={`${label}-${i}`}
-                      className="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs text-slate-700"
+                      className="rounded bg-slate-100 px-2.5 py-0.5 text-xs text-slate-700"
                     >
                       {name}
                     </span>

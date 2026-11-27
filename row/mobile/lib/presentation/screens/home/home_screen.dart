@@ -1,5 +1,6 @@
 import 'package:rotary_flutter_app/presentation/widgets/row/tone_card.dart';
 import 'package:rotary_flutter_app/core/theme/row_tokens.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/bento.dart';
 import 'package:flutter/material.dart' hide Text;
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -7,6 +8,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../../core/constants/api_constants.dart';
 import '../../../core/constants/feature_flags.dart';
 import '../../../core/network/api_client.dart';
+import '../../../core/services/attendance_qr_status.dart';
 import '../../../core/notifications/deep_link_service.dart';
 import '../../../core/notifications/notification_badge_service.dart';
 import '../../../core/preferences/home_layout_controller.dart';
@@ -33,8 +35,11 @@ import '../../../core/network/api_exceptions.dart';
 import '../../../core/brand/brand.dart';
 import '../../widgets/consent_gate.dart';
 import 'package:rotary_flutter_app/core/theme/app_fonts.dart';
+import 'package:rotary_flutter_app/core/i18n/live_translator.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
 import 'package:rotary_flutter_app/presentation/widgets/row/skeleton_list.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/motion.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/roster_wheel.dart';
 
 class _ConnectionItem {
   final int id;
@@ -92,6 +97,8 @@ class _HomeScreenState extends State<HomeScreen> {
     });
     // Refresh the bell's unread badge on every home mount.
     NotificationBadgeService.instance.refresh();
+    // Which of my clubs have QR attendance switched on.
+    AttendanceQrStatus.instance.refresh();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       _loadConnections();
       final auth = Provider.of<AuthProvider>(context, listen: false);
@@ -163,7 +170,7 @@ class _HomeScreenState extends State<HomeScreen> {
           '$totalPending $payments waiting for your approval across '
           '${records.length} $recordsWord.$openPart';
 
-      await showDialog<void>(
+      await showRowDialog<void>(
         context: context,
         barrierDismissible: false, // only Cancel / OK can dismiss, not a scrim tap
         builder: (ctx) => PopScope(
@@ -221,9 +228,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void _onScroll() {
     if (_scrollController.hasClients) {
-      if (_scrollController.offset > 140 && !_showLogoInAppBar) {
+      if (_scrollController.offset > 64 && !_showLogoInAppBar) {
         setState(() => _showLogoInAppBar = true);
-      } else if (_scrollController.offset <= 140 && _showLogoInAppBar) {
+      } else if (_scrollController.offset <= 64 && _showLogoInAppBar) {
         setState(() => _showLogoInAppBar = false);
       }
     }
@@ -231,6 +238,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _loadConnections() async {
     if (!mounted) return;
+    AttendanceQrStatus.instance.refresh();
     final auth = Provider.of<AuthProvider>(context, listen: false);
     setState(() {
       _loadingConnections = true;
@@ -410,7 +418,7 @@ class _HomeScreenState extends State<HomeScreen> {
       key: _scaffoldKey,
       backgroundColor: AppColors.lightBg,
       drawer: const CustomDrawer(),
-      body: RefreshIndicator(
+      body: RowRefresh(
         key: const Key('home_screen_root'),
         color: AppColors.primaryPrime,
         onRefresh: _loadConnections,
@@ -419,7 +427,7 @@ class _HomeScreenState extends State<HomeScreen> {
           physics: const AlwaysScrollableScrollPhysics(),
           slivers: [
             SliverAppBar(
-              expandedHeight: 260,
+              expandedHeight: 120,
               pinned: true,
               stretch: true,
               backgroundColor: AppColors.lightBg,
@@ -447,6 +455,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     )
                   : null,
               leading: IconButton(
+                tooltip: 'Menu',
                 onPressed: () => _scaffoldKey.currentState?.openDrawer(),
                 icon: const Icon(Icons.menu_rounded,
                     color: AppColors.textPrimary, size: 26),
@@ -476,9 +485,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       child: AnimatedOpacity(
                         opacity: _showLogoInAppBar ? 0.0 : 1.0,
                         duration: const Duration(milliseconds: 200),
-                        child: _HeaderContent(
-                            memberName: auth.memberName,
-                            profilePhotoPath: auth.profilePhotoPath),
+                        child: const _HeaderLogo(),
                       ),
                     ),
                   ],
@@ -488,10 +495,13 @@ class _HomeScreenState extends State<HomeScreen> {
             SliverToBoxAdapter(
               child: Transform.translate(
                 offset: Offset.zero, // the light header has no band to overlap any more
-                child: const Padding(
+                child: Padding(
                   padding:
-                      EdgeInsets.symmetric(horizontal: AppSpacing.md),
-                  child: _ImportantLinksCard(),
+                      const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+                  child: _TopBento(
+                    memberName: auth.memberName,
+                    profilePhotoPath: auth.profilePhotoPath,
+                  ),
                 ),
               ),
             ),
@@ -505,7 +515,7 @@ class _HomeScreenState extends State<HomeScreen> {
               sliver: SliverList(
                 delegate: SliverChildListDelegate([
                   const SizedBox(height: AppSpacing.lg),
-                  const _SectionHeader(title: 'My Connections', centered: true),
+                  const RowReveal(index: 2, child: _SectionHeader(title: 'My Connections', centered: true)),
                   const SizedBox(height: AppSpacing.md),
                   // A member whose context carries a SuperAdmin role (web-only
                   // portal) gets a hand-off card that opens the web console
@@ -533,9 +543,12 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ],
                   const SizedBox(height: AppSpacing.md),
-                  const _SectionHeader(title: 'My Rotary', centered: true, fontSize: 15),
+                  const RowReveal(index: 4, child: _SectionHeader(title: 'My Rotary', centered: true, fontSize: 15)),
                   const SizedBox(height: AppSpacing.md),
-                  _MyRotaryGrid(auth: auth),
+                  ValueListenableBuilder<Set<int>>(
+                    valueListenable: AttendanceQrStatus.instance.enabledClubIds,
+                    builder: (_, __, ___) => _MyRotaryGrid(auth: auth),
+                  ),
                   const SizedBox(height: AppSpacing.md),
                   const SizedBox(height: AppSpacing.lg),
                 ]),
@@ -563,6 +576,7 @@ class _NotificationBell extends StatelessWidget {
           clipBehavior: Clip.none,
           children: [
             IconButton(
+              tooltip: 'Notifications',
               onPressed: onPressed,
               icon: const Icon(Icons.notifications_none_rounded,
                   color: AppColors.textPrimary, size: 26),
@@ -571,7 +585,8 @@ class _NotificationBell extends StatelessWidget {
               Positioned(
                 right: 6,
                 top: 8,
-                child: Container(
+                // Pops each time the count changes.
+                child: RowPop(key: ValueKey(count), from: .2, child: Container(
                   padding: EdgeInsets.symmetric(
                       horizontal: count > 9 ? 4 : 0, vertical: 0),
                   constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
@@ -590,7 +605,7 @@ class _NotificationBell extends StatelessWidget {
                       height: 1.1,
                     ),
                   ),
-                ),
+                )),
               ),
           ],
         );
@@ -599,10 +614,39 @@ class _NotificationBell extends StatelessWidget {
   }
 }
 
-class _HeaderContent extends StatelessWidget {
+class _HeaderLogo extends StatelessWidget {
+  const _HeaderLogo();
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      bottom: false,
+      child: Center(
+        child: Hero(tag: 'row-logo', child: Image.asset(
+            'assets/images/row-logo.png',
+            height: 56,
+            errorBuilder: (_, __, ___) => Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.rotate_right, color: AppColors.goldPrime, size: 28),
+                const SizedBox(width: 8),
+                Text(Brand.current.productName,
+                    style: AppFonts.body(color: AppColors.textPrimary,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w900)),
+              ],
+            ),
+          )),
+      ),
+    );
+  }
+}
+
+/// The member's own tile: opens the profile.
+class _ProfileTile extends StatelessWidget {
   final String memberName;
   final String? profilePhotoPath;
-  const _HeaderContent({required this.memberName, this.profilePhotoPath});
+  const _ProfileTile({required this.memberName, this.profilePhotoPath});
 
   String _initials(String name) {
     final parts = name.trim().split(' ').where((p) => p.isNotEmpty).toList();
@@ -625,42 +669,22 @@ class _HeaderContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 64, 20, 0),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          // ROW lockup, full colour on the light header (design.md 5: the white
-          // version is only for dark surfaces, which this header no longer is)
-          Image.asset(
-            'assets/images/row-logo.png',
-            height: 56,
-            errorBuilder: (_, __, ___) => Row(
-              mainAxisSize: MainAxisSize.min,
+    return Semantics(
+      button: true,
+      child: RowPressable(
+        morph: true,
+        child: GestureDetector(
+          onTap: () => context.push(RouteNames.profile),
+          child: ToneCard(
+            tone: RowTone.sky,
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Icon(Icons.rotate_right, color: AppColors.goldPrime, size: 28),
-                const SizedBox(width: 8),
-                Text(Brand.current.productName,
-                    style: AppFonts.body(color: AppColors.textPrimary,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w900)),
-              ],
-            ),
-          ),
-          const SizedBox(height: 20),
-          // Profile card
-          GestureDetector(
-            onTap: () => context.push(RouteNames.profile),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-              decoration: BoxDecoration(
-                color: RowTone.sky.fill,
-                borderRadius: BorderRadius.circular(RowRadii.tile),
-              ),
-              child: Row(
-                children: [
-                  // Profile avatar (photo or initials) with gold ring
-                  Container(
+                Row(
+                  children: [
+                    Container(
                     width: 46,
                     height: 46,
                     decoration: BoxDecoration(
@@ -690,68 +714,58 @@ class _HeaderContent extends StatelessWidget {
                       ),
                     ),
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('Welcome,',
-                            style: AppFonts.body(color: AppColors.textSecondary,
-                                fontSize: 13,
-                                fontWeight: FontWeight.w500)),
-                        Text(
-                          memberName.isNotEmpty ? memberName : 'Rotarian',
-                          style: AppFonts.display(color: AppColors.textPrimary,
-                              fontSize: 18,
-                              fontWeight: FontWeight.w600),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        const SizedBox(height: 3),
-                        // Explicit affordance: spells out that tapping the card
-                        // opens the profile (a bare chevron wasn't understood).
-                        Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text('View profile',
-                                style: AppFonts.body(color: AppColors.primaryPrime,
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.w700)),
-                            const SizedBox(width: 2),
-                            const Icon(Icons.chevron_right_rounded,
-                                color: AppColors.primaryPrime, size: 16),
-                          ],
-                        ),
-                      ],
+                    const Spacer(),
+                    const Icon(Icons.arrow_outward_rounded, color: AppColors.primaryPrime, size: 18),
+                  ],
+                ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Welcome,',
+                        style: AppFonts.body(color: AppColors.textSecondary, fontSize: 13, fontWeight: FontWeight.w500)),
+                    Text(
+                      memberName.isNotEmpty ? memberName : 'Rotarian',
+                      style: AppFonts.display(color: AppColors.textPrimary, fontSize: 22, fontWeight: FontWeight.w600, height: 1.15),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                  ),
-                  GestureDetector(
-                    behavior: HitTestBehavior.opaque,
-                    onTap: () {
-                      showModalBottomSheet(
-                        context: context,
-                        backgroundColor: Colors.transparent,
-                        isScrollControlled: true,
-                        builder: (_) => const ShareContactSheet(),
-                      );
-                    },
-                    child: Container(
-                      width: 44,
-                      height: 44,
-                      alignment: Alignment.center,
-                      decoration: BoxDecoration(
-                        color: AppColors.primaryPrime,
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(Icons.qr_code_rounded,
-                          color: AppColors.lightBg, size: 24),
-                    ),
-                  ),
-                ],
-              ),
+                  ],
+                ),
+              ],
             ),
           ),
-        ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Shows the member's contact as a QR code.
+class _QrTile extends StatelessWidget {
+  const _QrTile();
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      button: true,
+      label: 'Share contact',
+      child: RowPressable(
+        child: Material(
+          color: AppColors.primaryPrime,
+          borderRadius: BorderRadius.circular(RowRadii.tile),
+          clipBehavior: Clip.antiAlias,
+          child: InkWell(
+            onTap: () {
+              showModalBottomSheet(
+                context: context,
+                backgroundColor: Colors.transparent,
+                isScrollControlled: true,
+                builder: (_) => const ShareContactSheet(),
+              );
+            },
+            child: const Center(child: Icon(Icons.qr_code_rounded, color: AppColors.lightBg, size: 36)),
+          ),
+        ),
       ),
     );
   }
@@ -788,17 +802,18 @@ class _SectionHeader extends StatelessWidget {
   }
 }
 
-// Background of the Quick Access card.
-const Color _kImportantLinksBg = AppColors.primaryDeep;
+/// The member tile, the QR tile and the quick links, as one bento.
+class _TopBento extends StatefulWidget {
+  const _TopBento({required this.memberName, this.profilePhotoPath});
 
-class _ImportantLinksCard extends StatefulWidget {
-  const _ImportantLinksCard();
+  final String memberName;
+  final String? profilePhotoPath;
 
   @override
-  State<_ImportantLinksCard> createState() => _ImportantLinksCardState();
+  State<_TopBento> createState() => _TopBentoState();
 }
 
-class _ImportantLinksCardState extends State<_ImportantLinksCard> {
+class _TopBentoState extends State<_TopBento> {
   // "Pay Club Dues" is an OFFICER surface (current-year Club President /
   // Secretary / Treasurer of a club with an active dues campaign). There is NO
   // officer-role signal in my-context / AuthProvider — only generic club-admin,
@@ -833,58 +848,38 @@ class _ImportantLinksCardState extends State<_ImportantLinksCard> {
     // District websites.
     final links = <_LinkData>[
       _LinkData('Club\nDues', Icons.receipt_long_rounded,
-          AppColors.accentBlue, AppColors.chart5,
           onTap: () => _openMembershipDues(context)),
       if (_isOfficer)
         _LinkData('Pay District\nDues', Icons.account_balance_wallet_rounded,
-            AppColors.accentBlue, AppColors.chart5,
             onTap: () => Navigator.of(context).push(MaterialPageRoute(
                   builder: (_) => const ClubDuesMyClubsScreen(),
                 ))),
       _LinkData('Calendar', Icons.calendar_month_rounded,
-          AppColors.accentBlue, AppColors.chart5,
           onTap: () => Navigator.of(context).push(MaterialPageRoute(
                 builder: (_) => const MyCalendarsScreen(),
               ))),
-      _LinkData('My Club\nWebsite', Icons.web_rounded, AppColors.accentBlue,
-          AppColors.accentBlue,
+      _LinkData('My Club\nWebsite', Icons.web_rounded,
           onTap: () => _openClubWebsites(context)),
       _LinkData('District\nWebsite', Icons.public_rounded,
-          AppColors.chart5, AppColors.chart5,
           onTap: () => _openDistrictWebsites(context)),
     ];
 
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: _kImportantLinksBg,
-        borderRadius: BorderRadius.circular(24),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Row(
-            children: [
-              Text('Quick access',
-                  style: AppFonts.display(color: AppColors.lightBg,
-                      fontWeight: FontWeight.w600,
-                      fontSize: 18)),
-            ],
+    final spans = RowBento.spans(links.length);
+    return RowBento(items: [
+      BentoItem(3, 3, _ProfileTile(memberName: widget.memberName, profilePhotoPath: widget.profilePhotoPath)),
+      const BentoItem(1, 3, _QrTile()),
+      for (final (i, link) in links.indexed)
+        BentoItem(
+          spans[i].$1,
+          spans[i].$2,
+          RowBentoTile(
+            label: link.label,
+            icon: Icon(link.icon),
+            tone: i == 0 ? RowTone.azure : RowTone.cream2,
+            onTap: link.onTap,
           ),
-          const SizedBox(height: 14),
-          // All four links fit without scrolling — lay them out evenly across
-          // the card width.
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              for (final link in links)
-                Expanded(child: _LinkChip(link: link)),
-            ],
-          ),
-        ],
-      ),
-    );
+        ),
+    ]);
   }
 }
 
@@ -902,10 +897,10 @@ Future<void> _openMembershipDues(BuildContext context) async {
   _membershipDuesResolving = true;
 
   final auth = context.read<AuthProvider>();
-  showDialog<void>(
+  showRowDialog<void>(
     context: context,
     barrierDismissible: false,
-    builder: (_) => const Center(child: const CircularProgressIndicator(color: AppColors.primary)),
+    builder: (_) => const RowBusy(),
   );
 
   // Freshen role assignments (a role change after login can otherwise leave the
@@ -1126,12 +1121,10 @@ Future<void> _openClubWebsites(BuildContext context) async {
   // the "My Clubs" card. Captured before the await.
   final cogId = context.read<AuthProvider>().cogClubId;
   _clubWebsitesResolving = true;
-  showDialog<void>(
+  showRowDialog<void>(
     context: context,
     barrierDismissible: false,
-    builder: (_) => const Center(
-      child: const CircularProgressIndicator(color: AppColors.primary),
-    ),
+    builder: (_) => const RowBusy(),
   );
 
   Map<String, dynamic>? data;
@@ -1245,12 +1238,10 @@ bool _districtWebsitesResolving = false;
 Future<void> _openDistrictWebsites(BuildContext context) async {
   if (_districtWebsitesResolving) return;
   _districtWebsitesResolving = true;
-  showDialog<void>(
+  showRowDialog<void>(
     context: context,
     barrierDismissible: false,
-    builder: (_) => const Center(
-      child: const CircularProgressIndicator(color: AppColors.primary),
-    ),
+    builder: (_) => const RowBusy(),
   );
 
   Map<String, dynamic>? data;
@@ -1369,58 +1360,8 @@ String? _composeDistrictWebsiteUrl(dynamic dw) {
 class _LinkData {
   final String label;
   final IconData icon;
-  final Color colorFrom;
-  final Color colorTo;
   final VoidCallback? onTap;
-  const _LinkData(this.label, this.icon, this.colorFrom, this.colorTo,
-      {this.onTap});
-}
-
-class _LinkChip extends StatelessWidget {
-  final _LinkData link;
-  const _LinkChip({required this.link});
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: link.onTap,
-      child: Column(
-        children: [
-          Container(
-            width: 48,
-            height: 48,
-            decoration: BoxDecoration(
-              color: link.colorFrom,
-              borderRadius: BorderRadius.circular(14),
-            ),
-            child: Icon(link.icon, color: Colors.white, size: 22),
-          ),
-          const SizedBox(height: 8),
-          // Reserve a fixed two-line height and center the label so a one-line
-          // entry ("Calendar") lines up with the two-line ones, not floating
-          // above them.
-          SizedBox(
-            height: 36,
-            child: Center(
-              child: Text(
-                link.label,
-                textAlign: TextAlign.center,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                // Same line height in every script: the Japanese and Korean fallback fonts are taller and were cut off.
-                strutStyle: const StrutStyle(fontSize: 13, height: 1.3, forceStrutHeight: true),
-                style: AppFonts.body(color: Colors.white.withOpacity(0.9),
-                  fontWeight: FontWeight.w600,
-                  fontSize: 13,
-                  height: 1.3,
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+  const _LinkData(this.label, this.icon, {this.onTap});
 }
 
 class _MyClubsCard extends StatelessWidget {
@@ -1562,7 +1503,7 @@ class _ConnectionCards extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 8),
-          GridView.builder(
+          RowGridView.builder(
             shrinkWrap: true,
             padding: EdgeInsets.zero,
             physics: const NeverScrollableScrollPhysics(),
@@ -1584,7 +1525,7 @@ class _ConnectionCards extends StatelessWidget {
     }
 
     // Even count (2, 4, 6, …): clean 2-col grid.
-    return GridView.builder(
+    return RowGridView.builder(
       shrinkWrap: true,
       padding: EdgeInsets.zero,
       physics: const NeverScrollableScrollPhysics(),
@@ -1680,96 +1621,40 @@ class _MyRotaryGrid extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final items = [
-      _RotaryItem('Club Finder', Icons.search_rounded, AppColors.accentBlue,
+      _RotaryItem('Club Finder', Icons.search_rounded,
           () => context.push(RouteNames.clubFinder)),
-      _RotaryItem('Find a Rotarian', Icons.person_search_rounded,
-          AppColors.accentBlue, () => context.push(RouteNames.findRotarian)),
-      // Pages of the instance's public web site (shown only when the brand has a web origin).
-      for (final (label, icon, color, path) in const [
-        ('Important Websites', Icons.language_rounded, AppColors.accentBlue, '/websites'),
-        ('Our Leaders', Icons.account_balance_rounded, AppColors.primaryDeep, '/our-leaders'),
-        ('District Governors', Icons.location_on_rounded, AppColors.primaryDeep, '/district-governors'),
-        ('Regional Leaders', Icons.groups_rounded, AppColors.accentBlue, '/regional-leaders'),
-      ])
-        if (Brand.current.webUrl(path).isNotEmpty)
-          _RotaryItem(label, icon, color,
-              () => context.push(RouteNames.webView(label, Brand.current.webUrl(path)))),
-      _RotaryItem(
-          'Rotary News',
-          Icons.description_rounded,
-          AppColors.warningDark,
+      _RotaryItem('Find a Rotarian', Icons.person_search_rounded, () => context.push(RouteNames.findRotarian)),
+      // Shown only when at least one of my clubs has QR attendance switched on.
+      if (kQrAttendanceEnabled && AttendanceQrStatus.instance.anyClub)
+        _RotaryItem('My Attendance QR', Icons.qr_code_2_rounded,
+            () => context.push(RouteNames.myAttendanceQr)),
+      _RotaryItem('Rotary News', Icons.description_rounded,
           () => context.push(RouteNames.webView(
               'Rotary News', 'https://www.rotary.org/en/news-features'))),
     ];
 
-    return GridView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      padding: EdgeInsets.zero,
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        // Pin each tile to a fixed height so it does NOT scale with screen
-        // width. (childAspectRatio derives height from width, which made tiles
-        // — and the centered whitespace around the icon — grow on larger
-        // phones; on NARROW phones it made tiles too short, clipping the 2nd
-        // line of the label.) mainAxisExtent overrides childAspectRatio and
-        // gives a constant height across devices, sized to always fit the
-        // icon (48) + gap (8) + two text lines + padding, with headroom for
-        // larger system font scales.
-        mainAxisExtent: 112,
-        crossAxisSpacing: 12,
-        mainAxisSpacing: 12,
-      ),
-      itemCount: items.length,
-      itemBuilder: (ctx, i) => _RotaryTile(item: items[i], tone: _kTileTones[i % _kTileTones.length]),
-    );
+    final spans = RowBento.spans(items.length);
+    return RowBento(items: [
+      for (final (i, item) in items.indexed)
+        BentoItem(
+          spans[i].$1,
+          spans[i].$2,
+          RowBentoTile(
+            label: item.label,
+            icon: Icon(item.icon),
+            tone: RowBentoTile.toneFor(i, spans[i]),
+            onTap: item.onTap,
+          ),
+        ),
+    ]);
   }
 }
 
 class _RotaryItem {
   final String label;
   final IconData icon;
-  final Color color;
   final VoidCallback? onTap;
-  const _RotaryItem(this.label, this.icon, this.color, [this.onTap]);
-}
-
-// Tone cycle for module tiles (design.md section 1: gold is never a fill).
-const _kTileTones = [RowTone.sky, RowTone.lilac, RowTone.cream2, RowTone.coral];
-
-class _RotaryTile extends StatelessWidget {
-  final _RotaryItem item;
-  final RowTone tone;
-  const _RotaryTile({required this.item, required this.tone});
-
-  @override
-  Widget build(BuildContext context) {
-    return Semantics(
-      button: true,
-      label: item.label,
-      child: InkWell(
-        onTap: item.onTap,
-        borderRadius: BorderRadius.circular(RowRadii.tile),
-        child: ToneCard(
-          tone: tone,
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Icon(item.icon, size: 26),
-              Text(
-                item.label,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: AppFonts.body(fontSize: 15, fontWeight: FontWeight.w600, height: 1.25),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
+  const _RotaryItem(this.label, this.icon, [this.onTap]);
 }
 
 class _RoleBasedConnections extends StatefulWidget {
@@ -1789,6 +1674,10 @@ class _RoleScopeRow {
   const _RoleScopeRow(
       {required this.roleName, this.scope, this.districtId, this.clubId});
 }
+
+/// "27 Members", with the word in the member's language.
+String _count(BuildContext context, int? n, String one, String many) =>
+    '${n ?? 0} ${TranslationScope.of(context, (n ?? 0) == 1 ? one : many)}';
 
 class _DistrictScope {
   final int id;
@@ -2002,6 +1891,20 @@ class _RoleBasedConnectionsState extends State<_RoleBasedConnections> {
       ));
     }
 
+    // All Club Access: one card per district where a SuperAdmin gave this
+    // District Admin all-clubs access; its clubs are listed on the card's screen.
+    for (final d in auth.allClubsDistricts) {
+      final total = _districts
+          .where((x) => x.id == d.id)
+          .fold<int>(0, (a, x) => a + (x.totalClubs ?? 0));
+      secondary.add((
+        title: 'All Club Access',
+        badge: d.number.isEmpty ? 'District Admin' : d.number,
+        stats: total > 0 ? _count(context, total, 'Club', 'Clubs') : 'All clubs',
+        onTap: () => context.push(RouteNames.allClubAccess(d.id, d.number)),
+      ));
+    }
+
     // In unified mode every club is reachable from the "My Rotary" hero
     // (via its club-tab switcher), so per-club tiles are redundant and
     // skipped. In non-unified mode every accessible club renders as its
@@ -2017,7 +1920,7 @@ class _RoleBasedConnectionsState extends State<_RoleBasedConnections> {
           title: c.name,
           badge: isAdmin ? 'Club Admin' : 'Club Member',
           stats:
-              '${c.totalMembers ?? 0} Member${(c.totalMembers ?? 0) != 1 ? "s" : ""}',
+              _count(context, c.totalMembers, 'Member', 'Members'),
           onTap: () => context.push('/clubs/${c.id}/dashboard'),
         ));
       }
@@ -2125,7 +2028,7 @@ class _RoleBasedConnectionsState extends State<_RoleBasedConnections> {
           title: d.number,
           badge: isAdmin ? 'District Admin' : 'District Member',
           stats:
-              '${d.totalClubs ?? 0} Club${(d.totalClubs ?? 0) != 1 ? "s" : ""} · ${d.totalMembers ?? 0} Member${(d.totalMembers ?? 0) != 1 ? "s" : ""}',
+              '${_count(context, d.totalClubs, 'Club', 'Clubs')} · ${_count(context, d.totalMembers, 'Member', 'Members')}',
           onTap: () => context.push('/districts/${d.id}/dashboard'),
         ));
       }
@@ -2144,7 +2047,7 @@ class _RoleBasedConnectionsState extends State<_RoleBasedConnections> {
           title: c.name,
           badge: 'Club Member',
           stats:
-              '${c.totalMembers ?? 0} Member${(c.totalMembers ?? 0) != 1 ? "s" : ""}',
+              _count(context, c.totalMembers, 'Member', 'Members'),
           onTap: () => context.push('/clubs/${c.id}/dashboard'),
         ));
       }
@@ -2154,7 +2057,7 @@ class _RoleBasedConnectionsState extends State<_RoleBasedConnections> {
           title: d.number,
           badge: 'District Member',
           stats:
-              '${d.totalClubs ?? 0} Club${(d.totalClubs ?? 0) != 1 ? "s" : ""} · ${d.totalMembers ?? 0} Member${(d.totalMembers ?? 0) != 1 ? "s" : ""}',
+              '${_count(context, d.totalClubs, 'Club', 'Clubs')} · ${_count(context, d.totalMembers, 'Member', 'Members')}',
           onTap: () => context.push('/districts/${d.id}/dashboard'),
         ));
       }
@@ -2162,88 +2065,32 @@ class _RoleBasedConnectionsState extends State<_RoleBasedConnections> {
       //  members reach their clubs via the "Club Member" dashboard tiles above.)
     }
 
-    return _SecondaryTilesGrid(tiles: allTiles, baseIndex: 0);
+    return _ConnectionsBento(tiles: allTiles);
   }
 }
 
-/// Secondary tiles layout for _RoleBasedConnections.
-/// Follows the same odd/even rule as _ConnectionCards so a lone tile
-/// renders full-width instead of half-width next to empty space.
-class _SecondaryTilesGrid extends StatelessWidget {
-  final List<({String title, String badge, String stats, VoidCallback onTap})>
-      tiles;
-  final int baseIndex;
-  const _SecondaryTilesGrid({required this.tiles, required this.baseIndex});
+/// The member's places as a bento: fours in an offset pair of columns, a leftover across the full width.
+class _ConnectionsBento extends StatelessWidget {
+  final List<({String title, String badge, String stats, VoidCallback onTap})> tiles;
+  const _ConnectionsBento({required this.tiles});
+
+  static List<(int, int)> _spans(int n) => [
+        if (n.isOdd) (4, 3),
+        for (var left = n - n % 2; left > 0; left -= 4)
+          ...(left >= 4 ? const [(2, 4), (2, 3), (2, 4), (2, 3)] : const [(2, 3), (2, 3)]),
+      ];
 
   @override
   Widget build(BuildContext context) {
-    if (tiles.isEmpty) return const SizedBox.shrink();
-
-    // Single tile → full-width hero card.
-    if (tiles.length == 1) {
-      final t = tiles.first;
-      return SizedBox(
-        height: 116,
-        child: _RoleScopeCard(
-          title: t.title,
-          badge: t.badge,
-          statsLine: t.stats,
-          index: baseIndex,
-          onTap: t.onTap,
+    final spans = _spans(tiles.length);
+    return RowBento(items: [
+      for (final (i, t) in tiles.indexed)
+        BentoItem(
+          spans[i].$1,
+          spans[i].$2,
+          _RoleScopeCard(title: t.title, badge: t.badge, statsLine: t.stats, onTap: t.onTap),
         ),
-      );
-    }
-
-    // Odd count (3, 5, …) → first tile full-width, rest in 2-col grid.
-    if (tiles.length.isOdd) {
-      final first = tiles.first;
-      final rest = tiles.sublist(1);
-      return Column(
-        children: [
-          SizedBox(
-            height: 116,
-            child: _RoleScopeCard(
-              title: first.title,
-              badge: first.badge,
-              statsLine: first.stats,
-              index: baseIndex,
-              onTap: first.onTap,
-            ),
-          ),
-          const SizedBox(height: 8),
-          _buildGrid(rest, baseIndex + 1),
-        ],
-      );
-    }
-
-    // Even count (2, 4, …) → clean 2-col grid.
-    return _buildGrid(tiles, baseIndex);
-  }
-
-  Widget _buildGrid(
-    List<({String title, String badge, String stats, VoidCallback onTap})>
-        items,
-    int startIndex,
-  ) {
-    return GridView.builder(
-      shrinkWrap: true,
-      padding: EdgeInsets.zero,
-      physics: const NeverScrollableScrollPhysics(),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        crossAxisSpacing: 8,
-        mainAxisSpacing: 8,
-        mainAxisExtent: 152,
-      ),
-      itemCount: items.length,
-      itemBuilder: (ctx, i) => _RoleScopeCard(
-        title: items[i].title,
-        badge: items[i].badge,
-        statsLine: items[i].stats,
-        index: startIndex + i,
-        onTap: items[i].onTap,
-      ),
-    );
+    ]);
   }
 }
 
@@ -2251,101 +2098,94 @@ class _RoleScopeCard extends StatelessWidget {
   final String title;
   final String badge;
   final String statsLine;
-  final int index;
   final VoidCallback onTap;
 
   const _RoleScopeCard({
     required this.title,
     required this.badge,
     required this.statsLine,
-    required this.index,
     required this.onTap,
   });
 
-  static const _gradients = [
-    [AppColors.accentBlue, AppColors.accentBlue],
-    [AppColors.accentBlue, AppColors.chart5],
-    [AppColors.accentBlue, AppColors.accentBlue],
-    [AppColors.primaryDeep, AppColors.primaryDeep],
-    [AppColors.successDark, AppColors.success],
-    [AppColors.warningInk, AppColors.warningDark],
-  ];
+  // What kind of place this is reads from its tone: clubs the member runs are sky, clubs they belong to are
+  // cream, everything wider (district, AG, unified) is azure with the wheel.
+  RowTone get _tone => switch (badge) {
+        'Club Admin' => RowTone.sky,
+        'Club Member' => RowTone.cream2,
+        _ => RowTone.azure,
+      };
 
   @override
   Widget build(BuildContext context) {
-    final grad = _gradients[index % _gradients.length];
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          color: AppColors.primaryPrime,
-          borderRadius: BorderRadius.circular(18),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Flexible(
-                  child: Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.2),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
+    final tone = _tone;
+    final ink = tone.onFill;
+    final wide = tone == RowTone.azure;
+    final card = ToneCard(
+      tone: tone,
+      padding: const EdgeInsets.all(14),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Flexible(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: ink.withValues(alpha: wide ? .16 : .08),
+                    borderRadius: BorderRadius.circular(RowRadii.pill),
+                  ),
+                  // One line: a second one took the room of the title below.
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
                     child: Text(
                       badge,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: AppFonts.body(color: Colors.white,
-                        fontSize: 13,
-                        fontWeight: FontWeight.w700,
-                        height: 1.2,
-                      ),
+                      maxLines: 1,
+                      style: AppFonts.body(color: ink, fontSize: 13, fontWeight: FontWeight.w600, height: 1.2),
                     ),
                   ),
                 ),
-                const SizedBox(width: 6),
-                Icon(Icons.arrow_outward_rounded,
-                    color: Colors.white.withOpacity(0.7), size: 16),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Flexible(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Flexible(
-                    child: Text(
-                      title,
-                      style: AppFonts.body(fontSize: 14,
-                        fontWeight: FontWeight.w800,
-                        height: 1.2,
-                        color: Colors.white,
-                      ),
-                      maxLines: 3,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                   const SizedBox(height: 1),
-                  Text(
-                    statsLine,
-                    style: AppFonts.body(fontSize: 13,
-                      fontWeight: FontWeight.w500,
-                      color: Colors.white.withOpacity(0.85),
-                    ),
-                    maxLines: 1,
+              ),
+              const SizedBox(width: 6),
+              Icon(Icons.arrow_outward_rounded, color: ink.withValues(alpha: .7), size: 16),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Flexible(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Flexible(
+                  child: Text(
+                    title,
+                    style: AppFonts.display(fontSize: wide ? 26 : 17, fontWeight: FontWeight.w600, height: 1.15, color: ink),
+                    maxLines: 3,
                     overflow: TextOverflow.ellipsis,
                   ),
-                ],
-              ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  statsLine,
+                  style: AppFonts.body(fontSize: 13, fontWeight: FontWeight.w500, color: ink.withValues(alpha: .85)),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
             ),
-          ],
+          ),
+        ],
+      ),
+    );
+    return Semantics(
+      button: true,
+      child: RowPressable(
+        morph: true,
+        child: GestureDetector(
+          onTap: onTap,
+          child: card,
         ),
       ),
     );

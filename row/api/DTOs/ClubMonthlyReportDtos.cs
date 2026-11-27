@@ -96,6 +96,8 @@ public class ReportProjectDto
     public string? ProjectDate { get; set; }
     public string? AreaOfFocusName { get; set; }
     public decimal? ProjectCost { get; set; }
+    /// <summary>The project's own currency; ProjectCost is written in it.</summary>
+    public string? Currency { get; set; }
     public int? DirectBeneficiaries { get; set; }
     public int? ManHours { get; set; }
     public int? RotariansInvolved { get; set; }
@@ -221,6 +223,8 @@ public class CmrWordProjectDto
     public string? AreaOfFocusName { get; set; }
     public string? OtherAreaOfFocus { get; set; }
     public decimal? ProjectCost { get; set; }
+    /// <summary>The project's own currency; ProjectCost is written in it.</summary>
+    public string? Currency { get; set; }
     public string? FundingName { get; set; }
     public int? DirectBeneficiaries { get; set; }
     public int? ManHours { get; set; }

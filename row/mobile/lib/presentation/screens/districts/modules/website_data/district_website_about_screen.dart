@@ -14,6 +14,8 @@ import '../../../../widgets/common/custom_app_bar.dart';
 import '../../../../widgets/common/custom_button.dart';
 import '../../../../widgets/common/empty_state_widget.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/motion.dart';
+import 'package:rotary_flutter_app/presentation/widgets/common/loading_widget.dart';
 
 class _About {
   final int id;
@@ -94,7 +96,7 @@ class _DistrictWebsiteAboutScreenState extends State<DistrictWebsiteAboutScreen>
   }
 
   Future<void> _confirmDelete(_About a) async {
-    final ok = await showDialog<bool>(
+    final ok = await showRowDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Delete About'),
@@ -138,7 +140,7 @@ class _DistrictWebsiteAboutScreenState extends State<DistrictWebsiteAboutScreen>
       backgroundColor: AppColors.background,
       appBar: const CustomAppBar(title: 'About'),
       body: _loading
-          ? const Center(child: const CircularProgressIndicator(color: AppColors.primary))
+          ? const LoadingWidget()
           : _error != null
               ? ErrorStateWidget(message: _error!, onRetry: _fetch)
               : _buildBody(canManage),
@@ -321,6 +323,7 @@ class _AboutEditorPageState extends State<_AboutEditorPage> {
       appBar: CustomAppBar(
         title: isEdit ? 'Edit About' : 'Add About',
         leading: IconButton(
+          tooltip: 'Close',
           icon: const Icon(Icons.close, color: Colors.white),
           onPressed: _saving ? null : () => Navigator.of(context).pop(false),
         ),

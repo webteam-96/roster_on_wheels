@@ -22,6 +22,8 @@ import '../../../../widgets/common/rotary_year_bar.dart';
 import '../../../../widgets/detail/detail_widgets.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
 import 'package:rotary_flutter_app/presentation/widgets/row/form_action_bar.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/motion.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/roster_wheel.dart';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -388,7 +390,7 @@ class _NewslettersScreenState extends State<NewslettersScreen> {
                 isDense: true,
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
                 suffixIcon: _searchCtrl.text.isNotEmpty
-                    ? IconButton(icon: const Icon(Icons.close, size: 18),
+                    ? IconButton(tooltip: 'Close', icon: const Icon(Icons.close, size: 18),
                         onPressed: () { _searchCtrl.clear(); _fetch(reset: true); })
                     : null,
               ),
@@ -456,10 +458,10 @@ class _NewslettersScreenState extends State<NewslettersScreen> {
                       actionLabel: canManage ? 'Add Newsletter' : null,
                       onAction: canManage ? () => _showForm() : null,
                     )
-                  : RefreshIndicator(
+                  : RowRefresh(
                       color: AppColors.primary,
                       onRefresh: () => _fetch(reset: true),
-                      child: ListView.separated(
+                      child: RowListView.separated(
                         padding: (const EdgeInsets.all(16)).add(const EdgeInsets.only(bottom: 88)),
                         itemCount: _items.length + 1,
                         separatorBuilder: (_, __) => const SizedBox(height: 10),

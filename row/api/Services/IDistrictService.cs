@@ -9,6 +9,7 @@ public interface IDistrictService
     Task<int> CreateAsync(CreateDistrictDto dto, int createdBy);
     Task UpdateAsync(int id, UpdateDistrictDto dto, int modifiedBy);
     Task UpdateDefaultCurrencyAsync(int id, string? defaultCurrency, int modifiedBy);
+    Task<IReadOnlyList<DistrictCurrencyChange>> SetCurrenciesFromCountryAsync(int modifiedBy);
     Task DeleteAsync(int id, int deletedBy);
     Task<IEnumerable<ClubListDto>> GetClubsAsync(int districtId, bool? hasMembers = null, bool excludeRotaract = false);
     Task<PagedResult<DistrictMemberDto>> GetMembersAsync(int districtId, int page, int pageSize, string? search);

@@ -1,5 +1,6 @@
 "use client";
 
+import { Card } from "@/components/ui/card";
 import { useState, useCallback } from "react";
 import DateField from "@/components/DateField";
 import { useAuth } from "@/contexts/AuthContext";
@@ -27,10 +28,10 @@ import {
 import RotaryLoader from "@/components/RotaryLoader";
 import Pagination from "@/components/Pagination";
 import ProtectedRoute from "@/components/ProtectedRoute";
-import { Search, ArrowLeft, CheckCircle, XCircle, Monitor, FileSearch } from "@/components/icons";
+import { Search, CheckCircle, XCircle, Monitor, FileSearch } from "@/components/icons";
 
 import { appLocale } from "@/lib/appFormat";
-import { ListPageSkeleton } from "@/components/row/AppKit";
+import { PageHeader, ListPageSkeleton } from "@/components/row/AppKit";
 export default function LoginLogsPage() {
   const { isSuperAdmin } = useAuth();
   const router = useRouter();
@@ -79,20 +80,12 @@ export default function LoginLogsPage() {
 
   return (
     <ProtectedRoute>
-      <div className="space-y-6 max-w-7xl mx-auto">
+      <div className="space-y-6">
         {/* Header */}
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={() => router.back()}>
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
-          <div>
-            <h2 className="text-2xl font-bold tracking-tight text-primary">Login Audit Logs</h2>
-            <p className="text-muted-foreground">Track all login attempts</p>
-          </div>
-        </div>
+        <PageHeader title="Login Audit Logs" description="Track all login attempts" back={() => router.back()} />
 
         {/* Filters */}
-        <div className="bg-card rounded-[20px] border shadow-sm p-4 space-y-3">
+        <Card className="p-5 space-y-3">
           <p className="text-xs text-muted-foreground">
             Apply at least one filter and click Search. Records are not loaded automatically.
           </p>
@@ -156,10 +149,10 @@ export default function LoginLogsPage() {
               Search
             </Button>
           </div>
-        </div>
+        </Card>
 
         {/* Table */}
-        <div className="bg-card rounded-xl border shadow-sm">
+        <Card>
           {loading ? (
             <div className="flex items-center justify-center py-16">
               <ListPageSkeleton />
@@ -180,7 +173,7 @@ export default function LoginLogsPage() {
               <div className="overflow-x-auto">
                 <Table>
                   <TableHeader>
-                    <TableRow className="bg-primary hover:bg-primary">
+                    <TableRow>
                       <TableHead>Status</TableHead>
                       <TableHead>Name</TableHead>
                       <TableHead>Email / Mobile</TableHead>
@@ -195,12 +188,12 @@ export default function LoginLogsPage() {
                       <TableRow key={log.id}>
                         <TableCell>
                           {log.loginStatus === "success" ? (
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
                               <CheckCircle className="h-3 w-3" />
                               Success
                             </span>
                           ) : (
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">
                               <XCircle className="h-3 w-3" />
                               Failed
                             </span>
@@ -251,7 +244,7 @@ export default function LoginLogsPage() {
               )}
             </>
           )}
-        </div>
+        </Card>
       </div>
     </ProtectedRoute>
   );

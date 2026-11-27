@@ -13,10 +13,9 @@ import { Member, MemberListItem } from "@/types/member";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
-import { ArrowLeft, Search, User, Plus, Mail, Phone, IdCard, UserPlus } from "@/components/icons";
+import { Search, User, Plus, Mail, Phone, IdCard, UserPlus } from "@/components/icons";
 import Image from "next/image";
-import Link from "next/link";
-import { ListPageSkeleton } from "@/components/row/AppKit";
+import { PageHeader, ListPageSkeleton } from "@/components/row/AppKit";
 
 function NewMemberForm() {
   const router = useRouter();
@@ -136,20 +135,10 @@ function NewMemberForm() {
     <>
       <div className="space-y-6">
         {/* Header */}
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <Button variant="outline" size="icon" asChild>
-              <Link href={backUrl}><ArrowLeft className="h-4 w-4" /></Link>
-            </Button>
-            <div>
-              <h2 className="text-2xl font-bold tracking-tight text-primary">Add Member</h2>
-              <p className="text-muted-foreground text-base">Search existing member or create new</p>
-            </div>
-          </div>
-        </div>
+        <PageHeader title="Add Member" description="Search existing member or create new" back={backUrl} />
 
         {/* Search box */}
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center bg-primary/5 p-4 rounded-lg border border-primary/20">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-primary" />
             <Input
@@ -157,7 +146,7 @@ function NewMemberForm() {
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               onKeyDown={handleKeyDown}
-              className="pl-9 border-primary/30 focus:border-primary text-base"
+              className="pl-9"
             />
           </div>
           <Button onClick={handleSearch} size="sm" disabled={searching || !searchTerm.trim()}>
@@ -179,7 +168,7 @@ function NewMemberForm() {
                   {searchResults.map((member) => {
                     const photoUrl = getPhotoUrl(member.profilePhotoPath);
                     return (
-                      <Card key={member.id} className="overflow-hidden border-primary/20 hover:shadow-lg transition-shadow">
+                      <Card key={member.id} className="overflow-hidden transition-shadow">
                         <CardContent className="p-0">
                           <div className="flex items-center gap-4 p-4 bg-primary text-primary-foreground rounded-t-lg">
                             <div className="relative h-14 w-14 flex-shrink-0 overflow-hidden rounded-full bg-white/20 border-2 border-white/40">
@@ -229,7 +218,7 @@ function NewMemberForm() {
             ) : (
               <div className="flex flex-col items-center justify-center py-10 text-center">
                 <User className="h-12 w-12 text-muted-foreground mb-4" />
-                <h3 className="text-lg font-semibold">No existing member found</h3>
+                <h3 className="row-h2">No existing member found</h3>
                 <p className="text-muted-foreground mt-2">No member matches your search. You can create a new member.</p>
               </div>
             )}
@@ -247,7 +236,7 @@ function NewMemberForm() {
         {!searching && searchResults === null && (
           <div className="flex flex-col items-center justify-center py-16 text-center">
             <Search className="h-12 w-12 text-muted-foreground mb-4" />
-            <h3 className="text-lg font-semibold">Search for Existing Member</h3>
+            <h3 className="row-h2">Search for Existing Member</h3>
             <p className="text-muted-foreground mt-2">Enter mobile number, email, or Rotary ID to check if member already exists.</p>
             <p className="text-muted-foreground mt-1 text-sm">If found, you can add them directly to this club.</p>
           </div>

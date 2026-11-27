@@ -12,13 +12,15 @@
  * v2 reads ONLY `?returnTo=` — never any other param name.
  */
 
+import { IconButton } from "@/components/ui/icon-button";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { NativeSelect } from "@/components/ui/native-select";
+import { Card } from "@/components/ui/card";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter, useParams, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import {
-  Briefcase, Users, IndianRupee, Loader2, Search, Plus, Edit3, Trash2,
-  Download, ArrowLeft, AlertTriangle, Info, Puzzle,
-} from "@/components/icons";
+import { Briefcase, Users, IndianRupee, Search, Plus, Edit3, Trash2, Download, AlertTriangle, Info, Puzzle } from "@/components/icons";
 import {
   getClub,
   getModules,
@@ -31,7 +33,7 @@ import { ProjectListItem } from "@/types/project";
 import { useAuth } from "@/contexts/AuthContext";
 import KpiCard from "@/components/dashboard/KpiCard";
 import { fmtInt, fmtDate, fmtInrShort } from "@/components/dashboard/formatters";
-import { getCurrencySymbol } from "@/lib/currency";
+import { getCurrencySymbol, moneyTotals } from "@/lib/currency";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import AlertModal from "@/components/AlertModal";
 import SuccessAlert from "@/components/SuccessAlert";
@@ -45,8 +47,10 @@ import { isFlowBotEnabled, AVENUE_LABELS, buildOrgExportFromDetail, triggerAddTo
 import AddToOrgConfirmDialog from "@/components/AddToOrgConfirmDialog";
 
 import { appLocale } from "@/lib/appFormat";
-import { SkeletonRows } from "@/components/row/AppKit";
+import { PageHeader, SkeletonRows } from "@/components/row/AppKit";
 import AgreeText from "@/components/AgreeText";
+import { ToggleButton } from "@/components/ui/text-buttons"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 const SYNC_API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
 const AGREE_MESSAGE = `The data I will enter is for a International Service project conducted by my club that has benefitted my community. E.g., Rotary Youth Exchange, Rotary Friendship Exchange, etc.
@@ -191,7 +195,7 @@ export default function InternationalServiceV2Page() {
   // Dashboard surfaces aggregate man hours via a separate endpoint).
   const totalProjects = totalCount;
   const totalBeneficiaries = projects.reduce((s, p) => s + (p.directBeneficiaries ?? 0), 0);
-  const totalCost = projects.reduce((s, p) => s + (p.projectCost ?? 0), 0);
+  const totalCost = moneyTotals(projects.map((p) => ({ amount: p.projectCost, currency: p.currency })));
   const totalPages = Math.ceil(totalCount / pageSize);
 
   // Sub-tab filter applies client-side to the current paginated page of projects.
@@ -250,23 +254,7 @@ export default function InternationalServiceV2Page() {
       >
       <div className="space-y-5">
         {/* Header */}
-        <div className="flex items-start justify-between gap-3">
-          <div className="flex items-start gap-2">
-            <Link
-              href={`/clubs/${clubId}/dashboard`}
-              className="mt-0.5 inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50"
-              aria-label="Back"
-            >
-              <ArrowLeft size={15} />
-            </Link>
-            <div>
-              <h1 className="text-lg font-semibold text-slate-800">International Service</h1>
-              <p className="text-xs text-slate-500 mt-0.5">
-                RY {yearLabel} · {clubName || "–"}
-              </p>
-            </div>
-          </div>
-        </div>
+        <PageHeader title="International Service" description={<>RY {yearLabel} · {clubName || "–"}</>} back={`/clubs/${clubId}/dashboard`} />
 
         {/* KPI row */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -274,35 +262,33 @@ export default function InternationalServiceV2Page() {
           <KpiCard title="Beneficiaries" value={fmtInt(totalBeneficiaries)}   subtitle="Lives impacted"        icon={Users}       color="green" />
           {/* Sums raw cost across rows regardless of currency — not currency-pure once
               mixed-currency projects exist on one page. Known limitation, not a bug. */}
-          <KpiCard title="Amount Spent"  value={fmtInrShort(totalCost)}       subtitle="Project investment"    icon={IndianRupee} color="gold" />
+          <KpiCard title="Amount Spent"  value={totalCost}       subtitle="Project investment"    icon={IndianRupee} color="gold" />
         </div>
 
         {/* Table card */}
-        <div className="bg-card rounded-2xl border border-slate-200 overflow-hidden">
+        <Card className="overflow-hidden">
           <div className="px-5 py-3 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div>
-              <h3 className="text-sm font-semibold text-slate-800">International Service Projects</h3>
+              <h3 className="row-h3">International Service Projects</h3>
               <p className="text-xs text-slate-500 mt-0.5">Project records · {yearLabel}</p>
             </div>
             <div className="flex flex-wrap items-center gap-2">
-              <div className="inline-flex rounded-lg border border-slate-200 overflow-hidden text-xs">
-                <button
+              <div role="group" aria-label="Project type" className="flex flex-wrap gap-2">
+                <ToggleButton
                   onClick={() => setSubTab("one_time")}
-                  className={`px-3 py-1.5 ${subTab === "one_time" ? "bg-blue-600 text-white" : "text-slate-600 hover:bg-slate-50"}`}
-                >
+                  pressed={subTab === "one_time"}>
                   One time Project
-                </button>
-                <button
+                </ToggleButton>
+                <ToggleButton
                   onClick={() => setSubTab("ongoing")}
-                  className={`px-3 py-1.5 border-l border-slate-200 ${subTab === "ongoing" ? "bg-[#17458F] text-white" : "text-slate-600 hover:bg-slate-50"}`}
-                >
+                  pressed={subTab === "ongoing"}>
                   Ongoing/Repeat Projects
-                </button>
+                </ToggleButton>
               </div>
-              <select
+              <NativeSelect
                 value={selectedYearId ?? ""}
                 onChange={(e) => { setSelectedYearId(e.target.value ? Number(e.target.value) : null); setPage(1); }}
-                className="px-2 h-10 py-0 text-sm border border-slate-200 rounded-[12px] bg-card focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                className="w-auto"
               >
                 {years.length === 0 && <option value="">No years</option>}
                 {years.map((y) => (
@@ -310,49 +296,49 @@ export default function InternationalServiceV2Page() {
                     {y.yearLabel}{y.isCurrent ? " · current" : ""}
                   </option>
                 ))}
-              </select>
+              </NativeSelect>
               <div className="relative w-full sm:w-auto">
                 <Search size={14} className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-400" />
-                <input
+                <Input
                   type="text"
                   placeholder="Search…"
                   value={searchInput}
                   onChange={(e) => setSearchInput(e.target.value)}
                   onKeyDown={(e) => { if (e.key === "Enter") handleSearch(); }}
-                  className="pl-7 pr-3 h-10 py-0 text-sm border border-slate-200 rounded-[12px] w-full sm:w-48 focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                  className="pl-7 pr-3 sm:w-48"
                 />
               </div>
-              <button
+              <Button
                 type="button"
                 onClick={handleSearch}
-                className="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1.5 rounded-full border border-slate-200 text-slate-700 hover:bg-slate-50"
+                variant="outline" size="sm"
               >
                 Search
-              </button>
+              </Button>
               {search && (
-                <button
+                <Button
                   type="button"
                   onClick={clearSearch}
-                  className="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1.5 rounded-full border border-slate-200 text-slate-700 hover:bg-slate-50"
+                  variant="outline" size="sm"
                 >
                   Clear
-                </button>
+                </Button>
               )}
-              <button
+              <Button
                 type="button"
                 onClick={() => exportToCsv(filtered, yearLabel, clubName || "club")}
-                className="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1.5 rounded-full border border-slate-200 text-slate-700 hover:bg-slate-50"
+                variant="outline" size="sm"
               >
                 <Download size={13} /> Export CSV
-              </button>
+              </Button>
               {canManage && (
-                <button
+                <Button
                   type="button"
                   onClick={handleAddClick}
-                  className="inline-flex items-center gap-1.5 text-xs font-semibold px-4 h-10 rounded-full bg-[#17458F] text-white hover:bg-[#17458F]"
+                  
                 >
                   <Plus size={13} /> Add Project
-                </button>
+                </Button>
               )}
             </div>
           </div>
@@ -362,103 +348,101 @@ export default function InternationalServiceV2Page() {
             {loading ? (
               <SkeletonRows />
             ) : (
-              <table className="w-full min-w-[640px] md:min-w-full text-sm">
-                <thead className="bg-[#EDF4FB] text-[13px] text-[#64748B]">
-                  <tr>
-                    <th className="px-3 py-2.5 text-left w-10">Sr</th>
-                    <th className="px-3 py-2.5 text-left whitespace-nowrap">Date</th>
-                    <th className="px-3 py-2.5 text-left">Title</th>
-                    <th className="px-3 py-2.5 text-left">Type</th>
-                    <th className="px-3 py-2.5 text-left">Category</th>
-                    <th className="px-3 py-2.5 text-right">Cost</th>
-                    <th className="px-3 py-2.5 text-right">Direct Benf</th>
-                    {canManage && <th className="px-3 py-2.5 text-right w-16">Edit</th>}
-                    {canManage && <th className="px-3 py-2.5 text-right w-16">Delete</th>}
-                    {isBotEnabled && installed === true && <th className="px-3 py-2.5 text-right w-16">Rotary.org</th>}
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
+              <Table className="min-w-[640px] md:min-w-full">
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="text-left w-10">Sr</TableHead>
+                    <TableHead className="text-left whitespace-nowrap">Date</TableHead>
+                    <TableHead className="text-left">Title</TableHead>
+                    <TableHead className="text-left">Type</TableHead>
+                    <TableHead className="text-left">Category</TableHead>
+                    <TableHead className="text-right">Cost</TableHead>
+                    <TableHead className="text-right">Direct Benf</TableHead>
+                    {canManage && <TableHead className="text-right w-16">Edit</TableHead>}
+                    {canManage && <TableHead className="text-right w-16">Delete</TableHead>}
+                    {isBotEnabled && installed === true && <TableHead className="text-right w-16">Rotary.org</TableHead>}
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
                   {filtered.map((r, i) => {
                     const typeLabel = projectTypeLabel(r.projectType || "");
                     return (
-                      <tr key={r.id} className="hover:bg-blue-50/40">
-                        <td className="px-3 py-2 text-slate-500">{i + 1}</td>
-                        <td className="px-3 py-2 text-slate-700 whitespace-nowrap">{fmtDate(r.projectDate)}</td>
-                        <td className="px-3 py-2 font-medium text-slate-800">{r.title || "–"}</td>
-                        <td className="px-3 py-2">
-                          <span className={`inline-flex items-center text-xs font-medium px-2 py-0.5 rounded-full border ${projectTypeChipStyle(r.projectType || "")}`}>
+                      <TableRow key={r.id}>
+                        <TableCell>{i + 1}</TableCell>
+                        <TableCell className="whitespace-nowrap">{fmtDate(r.projectDate)}</TableCell>
+                        <TableCell className="font-medium">{r.title || "–"}</TableCell>
+                        <TableCell>
+                          <span className={`inline-flex items-center text-xs font-medium px-2 py-0.5 rounded border ${projectTypeChipStyle(r.projectType || "")}`}>
                             {typeLabel}
                           </span>
-                        </td>
-                        <td className="px-3 py-2 text-slate-600">
+                        </TableCell>
+                        <TableCell>
                           {r.areaOfFocusName || r.otherAreaOfFocus || "–"}
-                        </td>
-                        <td className="px-3 py-2 text-right text-slate-600 whitespace-nowrap">
+                        </TableCell>
+                        <TableCell className="text-right whitespace-nowrap">
                           {r.projectCost && r.projectCost > 0 ? `${getCurrencySymbol(r.currency)}${r.projectCost.toLocaleString(appLocale())}` : "–"}
-                        </td>
-                        <td className="px-3 py-2 text-right text-slate-600">
+                        </TableCell>
+                        <TableCell className="text-right">
                           {r.directBeneficiaries && r.directBeneficiaries > 0 ? fmtInt(r.directBeneficiaries) : "–"}
-                        </td>
+                        </TableCell>
                         {canManage && (
-                          <td className="px-3 py-2 text-right">
+                          <TableCell className="text-right">
                             <Link
                               href={`/clubs/${clubId}/international-service/v2/${r.id}/edit?returnTo=${returnTo}&yearId=${selectedYearId}`}
-                              className="inline-flex items-center justify-center w-7 h-7 rounded text-slate-500 hover:text-blue-700 hover:bg-blue-50"
+                              className="row-icon-btn"
                               aria-label="Edit project"
                             >
                               <Edit3 size={13} />
                             </Link>
-                          </td>
+                          </TableCell>
                         )}
                         {canManage && (
-                          <td className="px-3 py-2 text-right">
-                            <button
+                          <TableCell className="text-right">
+                            <IconButton
                               type="button"
                               onClick={() => setDeleteTarget(r)}
-                              className="inline-flex items-center justify-center w-7 h-7 rounded text-slate-400 hover:text-rose-700 hover:bg-rose-50"
+                              className="hover:text-red-700"
                               aria-label="Delete project"
                             >
                               <Trash2 size={13} />
-                            </button>
-                          </td>
+                            </IconButton>
+                          </TableCell>
                         )}
                         {isBotEnabled && installed === true && (
-                          <td className="px-3 py-2 text-right">
+                          <TableCell className="text-right">
                             {canSync && (
-                              <button
+                              <IconButton
                                 type="button"
                                 onClick={() => setSyncTarget(r)}
-                                className="inline-flex items-center justify-center w-7 h-7 rounded text-slate-400 hover:text-blue-700 hover:bg-blue-50"
-                                aria-label="Add to Rotary Org"
+                                 aria-label="Add to Rotary Org"
                                 title="Add to Rotary Org"
                               >
                                 <Puzzle size={13} />
-                              </button>
+                              </IconButton>
                             )}
-                          </td>
+                          </TableCell>
                         )}
-                      </tr>
+                      </TableRow>
                     );
                   })}
                   {filtered.length === 0 && (
-                    <tr>
-                      <td
-                        colSpan={5 + 1 + (canManage ? 2 : 0) + 1 + (isBotEnabled && installed === true ? 1 : 0)}
-                        className="px-4 py-10 text-center text-slate-400"
+                    <TableRow>
+                      <TableCell
+                        colSpan={5 + 1 + (canManage ? 2 : 0) + 1 + (isBotEnabled && installed === true ? 1 : 0)} className="py-10 text-center text-muted-foreground"
                       >
                         {search ? "No projects match your search." : "No projects in this section."}
-                      </td>
-                    </tr>
+                      </TableCell>
+                    </TableRow>
                   )}
-                </tbody>
-              </table>
+                </TableBody>
+              </Table>
             )}
           </div>
 
           <div className="px-5 py-2.5 border-t border-slate-100 text-xs text-slate-500">
             {filtered.length} of {totalCount} project{totalCount === 1 ? "" : "s"} on this page · {yearLabel} · {subTab === "one_time" ? "One time" : "Ongoing/Repeat"}
           </div>
-        </div>
+        </Card>
 
         {!loading && totalPages > 1 && (
           <Pagination

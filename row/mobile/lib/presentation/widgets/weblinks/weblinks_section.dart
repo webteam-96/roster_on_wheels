@@ -2,11 +2,15 @@ import 'package:flutter/material.dart' hide Text;
 import 'package:url_launcher/url_launcher.dart';
 import '../../../core/constants/api_constants.dart';
 import '../../../core/network/api_client.dart';
+import '../../../core/network/api_exceptions.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../data/models/weblink.dart';
 import '../common/custom_app_bar.dart';
+import '../common/empty_state_widget.dart';
 import 'package:rotary_flutter_app/core/theme/app_fonts.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/motion.dart';
+import 'package:rotary_flutter_app/presentation/widgets/common/loading_widget.dart';
 
 const Color _kWebAccent = AppColors.chart5;
 
@@ -59,8 +63,9 @@ Future<void> openWeblink(
           ? w.youtubeUrl
           : w.linkUrl;
   }
-  if (url == null || url.isEmpty) return;
-  final uri = Uri.tryParse(url);
+  url ??= '';
+  if (url.isNotEmpty && !url.contains('://')) url = 'https://$url'; // "www.example.org" typed without a scheme
+  final uri = url.isEmpty ? null : Uri.tryParse(url); // a PDF link whose file was never uploaded
   if (uri != null && await canLaunchUrl(uri)) {
     await launchUrl(uri, mode: LaunchMode.externalApplication);
   } else if (context.mounted) {
@@ -120,7 +125,7 @@ class _WebLinksSectionState extends State<WebLinksSection> {
             style: AppFonts.body(
               fontSize: 12,
               fontWeight: FontWeight.w800,
-              color: _kWebAccent,
+              color: AppColors.textSecondary,
               letterSpacing: 1.5,
             ),
           ),
@@ -187,7 +192,13 @@ class _WebLinksViewerScreenState extends State<WebLinksViewerScreen> {
         future: _future,
         builder: (context, snap) {
           if (snap.connectionState != ConnectionState.done) {
-            return const Center(child: CircularProgressIndicator());
+            return const LoadingWidget();
+          }
+          if (snap.hasError) {
+            return ErrorStateWidget(
+              message: friendlyErrorMessage(snap.error),
+              onRetry: () => setState(() => _future = fetchWeblinks(_api, widget.baseEndpoint, parentId: widget.parentId)),
+            );
           }
           final links = snap.data ?? const [];
           if (links.isEmpty) {
@@ -198,7 +209,7 @@ class _WebLinksViewerScreenState extends State<WebLinksViewerScreen> {
               ),
             );
           }
-          return ListView.separated(
+          return RowListView.separated(
             padding: const EdgeInsets.all(12),
             itemCount: links.length,
             separatorBuilder: (_, __) => const SizedBox(height: 8),
@@ -220,6 +231,18 @@ class _WebLinksViewerScreenState extends State<WebLinksViewerScreen> {
     );
   }
 }
+
+/// The text of rich-editor HTML, on one line.
+String plainText(String? html) => (html ?? '')
+    .replaceAll(RegExp(r'<[^>]*>'), ' ')
+    .replaceAll('&nbsp;', ' ')
+    .replaceAll('&lt;', '<')
+    .replaceAll('&gt;', '>')
+    .replaceAll('&quot;', '"')
+    .replaceAll('&#39;', "'")
+    .replaceAll('&amp;', '&')
+    .replaceAll(RegExp(r'\s+'), ' ')
+    .trim();
 
 /// A single weblink row — logo/icon avatar + title + writeup + trailing
 /// chevron (container) or open-in-new (leaf).
@@ -245,7 +268,7 @@ class WeblinkRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final hasLogo = link.logoPath != null && link.logoPath!.isNotEmpty;
-    final writeup = link.writeup?.trim() ?? '';
+    final writeup = plainText(link.writeup);
     return InkWell(
       onTap: onTap,
       child: Padding(

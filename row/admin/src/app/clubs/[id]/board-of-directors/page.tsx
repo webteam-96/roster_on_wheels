@@ -1,4 +1,5 @@
 "use client";
+import { MenuItemButton } from "@/components/ui/text-buttons";
 
 import { useState, useEffect, useCallback } from "react";
 import { useParams } from "next/navigation";
@@ -40,12 +41,11 @@ import SearchBox from "@/components/SearchBox";
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
 import AlertModal from "@/components/AlertModal";
-import { ArrowLeft, Plus, Pencil, Trash2, MoreHorizontal, Users, User, Search, AlertTriangle, GripVertical } from "@/components/icons";
+import { Plus, Pencil, Trash2, MoreHorizontal, Users, User, Search, AlertTriangle, GripVertical } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
-import Link from "next/link";
 import Image from "next/image";
 import ProtectedRoute from "@/components/ProtectedRoute";
-import { ListPageSkeleton } from "@/components/row/AppKit";
+import { PageHeader, ListPageSkeleton } from "@/components/row/AppKit";
 
 export default function BoardOfDirectorsPage() {
   const params = useParams();
@@ -291,24 +291,16 @@ export default function BoardOfDirectorsPage() {
     <ProtectedRoute>
       <div className="space-y-6">
         {/* Header */}
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-3">
-            <Button variant="outline" size="icon" asChild>
-              <Link href={`/clubs/${clubId}/dashboard`}><ArrowLeft className="h-4 w-4" /></Link>
-            </Button>
-            <div>
-              <h2 className="text-2xl font-bold tracking-tight text-primary">
-                {clubName ? `${clubName} - Board of Directors` : "Board of Directors"}
-              </h2>
-              <p className="text-muted-foreground text-base">Club board members by designation and year</p>
-            </div>
-          </div>
-          {canManage && (
+        <PageHeader
+          title={clubName ? `${clubName} - Board of Directors` : "Board of Directors"}
+          description="Club board members by designation and year"
+          back={`/clubs/${clubId}/dashboard`}
+          actions={canManage && (
             <Button onClick={openAddDialog}>
               <Plus className="mr-2 h-4 w-4" />Add Board Director
             </Button>
           )}
-        </div>
+        />
 
         {loading && (
           <div className="flex items-center justify-center py-20">
@@ -343,7 +335,7 @@ export default function BoardOfDirectorsPage() {
         {!loading && !loadingRecords && filterYears.length === 0 && (
           <div className="flex flex-col items-center justify-center py-20 text-center">
             <Users className="h-12 w-12 text-muted-foreground mb-4" />
-            <h3 className="text-lg font-semibold">No board of directors recorded</h3>
+            <h3 className="row-h2">No board of directors recorded</h3>
             <p className="text-muted-foreground mt-2">
               {canManage ? 'Click "Add Board Director" to add a record.' : "No records have been added yet."}
             </p>
@@ -361,7 +353,7 @@ export default function BoardOfDirectorsPage() {
         {!loading && !loadingRecords && filteredRecords.length === 0 && records.length > 0 && searchQuery && (
           <div className="flex flex-col items-center justify-center py-12 text-center">
             <Users className="h-12 w-12 text-muted-foreground mb-4" />
-            <h3 className="text-lg font-semibold">No results found</h3>
+            <h3 className="row-h2">No results found</h3>
             <p className="text-muted-foreground mt-2">No board directors match your search &quot;{searchQuery}&quot;.</p>
           </div>
         )}
@@ -379,7 +371,7 @@ export default function BoardOfDirectorsPage() {
               {filteredRecords.map((rec) => {
                 const photoUrl = getPhotoUrl(rec.profilePhotoPath);
                 return (
-                  <Card key={rec.id} className="border-primary/20">
+                  <Card key={rec.id}>
                     <CardContent className="p-4">
                       <div className="flex items-center gap-3">
                         <div className="relative h-12 w-12 flex-shrink-0 overflow-hidden rounded-full bg-muted">
@@ -398,7 +390,7 @@ export default function BoardOfDirectorsPage() {
                         {canManage && (
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="icon" className="h-8 w-8">
+                              <Button variant="ghost" size="icon" className="row-btn-sm">
                                 <MoreHorizontal className="h-4 w-4" />
                               </Button>
                             </DropdownMenuTrigger>
@@ -420,15 +412,15 @@ export default function BoardOfDirectorsPage() {
             </div>
 
             {/* Desktop table view */}
-            <div className="hidden sm:block rounded-md border">
+            <Card className="hidden sm:block overflow-hidden">
               <Table>
                 <TableHeader>
-                  <TableRow className="bg-primary hover:bg-primary">
+                  <TableRow>
                     <TableHead className="w-12"></TableHead>
-                    <TableHead className="text-base font-semibold">Member Name</TableHead>
-                    <TableHead className="text-base font-semibold">Designation</TableHead>
+                    <TableHead>Member Name</TableHead>
+                    <TableHead>Designation</TableHead>
                     {canManage && <TableHead className="w-12"></TableHead>}
-                    {canManage && <TableHead className="w-16 text-center text-base font-semibold">Sort</TableHead>}
+                    {canManage && <TableHead className="w-16 text-center">Sort</TableHead>}
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -456,7 +448,7 @@ export default function BoardOfDirectorsPage() {
                           <TableCell>
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="icon" className="h-8 w-8">
+                                <Button variant="ghost" size="icon" className="row-btn-sm">
                                   <MoreHorizontal className="h-4 w-4" />
                                 </Button>
                               </DropdownMenuTrigger>
@@ -485,7 +477,7 @@ export default function BoardOfDirectorsPage() {
                   })}
                 </TableBody>
               </Table>
-            </div>
+            </Card>
           </>
         )}
 
@@ -538,10 +530,10 @@ export default function BoardOfDirectorsPage() {
                         {memberResults.map((m) => {
                           const photoUrl = getPhotoUrl(m.profilePhotoPath);
                           return (
-                            <button
+                            <MenuItemButton
                               key={m.id}
                               type="button"
-                              className="flex items-center gap-3 w-full px-3 py-2 hover:bg-accent text-left transition-colors"
+
                               onClick={() => handleSelectMember(m)}
                             >
                               <div className="relative h-8 w-8 flex-shrink-0 overflow-hidden rounded-full bg-muted">
@@ -554,7 +546,7 @@ export default function BoardOfDirectorsPage() {
                                 )}
                               </div>
                               <span className="text-sm font-medium">{m.memberName}</span>
-                            </button>
+                            </MenuItemButton>
                           );
                         })}
                       </div>

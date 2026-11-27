@@ -14,14 +14,11 @@ import ErrorAlert from "@/components/ErrorAlert";
 import RotaryLoader from "@/components/RotaryLoader";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import Link from "next/link";
-import {
-  ArrowLeft, Pencil, CalendarDays, Users, UserCheck, UserPlus,
-  Globe, Award, ChevronDown, ChevronUp,
-} from "@/components/icons";
+import { ArrowLeft, Pencil, CalendarDays, Users, UserCheck, UserPlus, Globe, Award, ChevronDown, ChevronUp } from "@/components/icons";
 
 import { useFormat } from "@/hooks/useFormat";
 import { useEventZone } from "@/hooks/useEventZone";
-import { ListPageSkeleton } from "@/components/row/AppKit";
+import { PageHeader, ListPageSkeleton } from "@/components/row/AppKit";
 
 function CollapsibleCard({
   icon: Icon,
@@ -48,7 +45,7 @@ function CollapsibleCard({
           <div className="flex flex-wrap items-center gap-2">
             <Icon className="h-5 w-5 text-primary" />
             <CardTitle className="text-sm font-semibold">{title}</CardTitle>
-            <span className="inline-flex items-center justify-center min-w-[24px] px-1.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700">
+            <span className="inline-flex items-center justify-center min-w-[24px] px-1.5 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-700">
               {count}
             </span>
           </div>
@@ -133,25 +130,13 @@ export default function AttendanceViewPage() {
 
   return (
     <ProtectedRoute>
-      <div className="space-y-5 max-w-4xl mx-auto pb-10">
+      <div className="space-y-5 max-w-4xl">
         {/* Header */}
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-3">
-            <Button variant="outline" size="icon" asChild>
-              <Link href={`/clubs/${clubId}/attendance`}>
-                <ArrowLeft className="h-4 w-4" />
-              </Link>
-            </Button>
-            <div>
-              <h2 className="text-2xl font-bold tracking-tight text-primary">
-                Attendance Details
-              </h2>
-              {clubName && (
-                <p className="text-muted-foreground text-base">{clubName}</p>
-              )}
-            </div>
-          </div>
-          {canManage && (
+        <PageHeader
+          title="Attendance Details"
+          description={clubName && ( <p className="text-muted-foreground text-base">{clubName}</p> )}
+          back={`/clubs/${clubId}/attendance`}
+          actions={canManage && (
             <Button
               variant="outline"
               size="sm"
@@ -160,7 +145,7 @@ export default function AttendanceViewPage() {
               <Pencil className="mr-2 h-4 w-4" />Edit
             </Button>
           )}
-        </div>
+        />
 
         {/* Event Info Card */}
         <Card>
@@ -250,8 +235,8 @@ export default function AttendanceViewPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="text-xs">Visitor Name</TableHead>
-                  <TableHead className="text-xs">Invited By</TableHead>
+                  <TableHead>Visitor Name</TableHead>
+                  <TableHead>Invited By</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -275,8 +260,8 @@ export default function AttendanceViewPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="text-xs">Rotarian Name</TableHead>
-                  <TableHead className="text-xs">Club Name</TableHead>
+                  <TableHead>Rotarian Name</TableHead>
+                  <TableHead>Club Name</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -300,9 +285,9 @@ export default function AttendanceViewPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="text-xs">Rotarian Name</TableHead>
-                  <TableHead className="text-xs">District Designation</TableHead>
-                  <TableHead className="text-xs">Club Name</TableHead>
+                  <TableHead>Rotarian Name</TableHead>
+                  <TableHead>District Designation</TableHead>
+                  <TableHead>Club Name</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>

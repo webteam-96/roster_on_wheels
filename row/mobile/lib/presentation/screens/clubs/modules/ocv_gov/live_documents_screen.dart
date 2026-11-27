@@ -13,6 +13,7 @@ import '../../../ag_reports/ag_report_configs.dart';
 import '../../../ag_reports/ag_report_xlsx.dart';
 import 'package:rotary_flutter_app/core/theme/app_fonts.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/roster_wheel.dart';
 
 class LiveDocumentsScreen extends StatefulWidget {
   final int clubId;
@@ -226,7 +227,7 @@ class _LiveDocumentsScreenState extends State<LiveDocumentsScreen> {
   }
 
   Widget _buildBody() {
-    return RefreshIndicator(
+    return RowRefresh(
       color: AppColors.primary,
       onRefresh: _bootstrap,
       child: ListView(

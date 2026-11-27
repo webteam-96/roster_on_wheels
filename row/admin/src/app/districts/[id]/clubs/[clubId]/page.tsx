@@ -15,19 +15,15 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import {
-  ArrowLeft, Users, Newspaper, CalendarDays, FolderKanban, Building2, MapPin, Clock,
-  Calendar, Globe, Phone, Mail, Briefcase, Award, ChevronDown, ChevronUp, FileText, ExternalLink,
-} from "@/components/icons";
+import { Users, Newspaper, CalendarDays, FolderKanban, Building2, MapPin, Clock, Calendar, Globe, Phone, Mail, Briefcase, Award, ChevronDown, ChevronUp, FileText, ExternalLink } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import SendStatusBadges from "@/components/SendStatusBadges";
-import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import ProjectDetailModal from "@/components/ProjectDetailModal";
 import { formatMoney } from "@/lib/currency";
 
 import { appLocale } from "@/lib/appFormat";
-import { ListPageSkeleton } from "@/components/row/AppKit";
+import { PageHeader, ListPageSkeleton } from "@/components/row/AppKit";
 function formatTime(t: string | null) {
   if (!t) return "";
   return t.substring(0, 5);
@@ -195,18 +191,18 @@ export default function ClubDetailViewPage() {
     <ProtectedRoute>
       <div className="space-y-6">
         {/* Header */}
-        <div className="flex items-center gap-3">
-          <Button variant="outline" size="icon" asChild>
-            <Link href={`/districts/${districtId}/clubs?view=module`}><ArrowLeft className="h-4 w-4" /></Link>
-          </Button>
-          <div className="flex-1">
-            <h2 className="text-2xl font-bold tracking-tight text-primary">{club.clubName}</h2>
-            <p className="text-muted-foreground text-sm">District {club.districtNumber}{club.zoneName ? ` | ${club.zoneName}` : ""}</p>
-          </div>
-        </div>
+        <PageHeader
+          title={club.clubName}
+          back={`/districts/${districtId}/clubs?view=module`}
+          actions={
+            <>
+<p className="text-muted-foreground text-sm">District {club.districtNumber}{club.zoneName ? ` | ${club.zoneName}` : ""}</p>
+            </>
+          }
+        />
 
         {/* Club Info Card */}
-        <Card className="border-primary/20">
+        <Card>
           <CardContent className="p-5">
             <div className="flex flex-col md:flex-row gap-5">
               {/* Logo */}
@@ -273,10 +269,10 @@ export default function ClubDetailViewPage() {
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="w-full h-auto bg-muted/50 border p-1.5 rounded-lg gap-2 grid grid-cols-3">
-            <TabsTrigger value="members" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md px-4 py-2.5"><Users className="h-4 w-4 mr-2" />Rotarians & BOD</TabsTrigger>
-            <TabsTrigger value="communication" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md px-4 py-2.5"><Newspaper className="h-4 w-4 mr-2" />Communication</TabsTrigger>
-            <TabsTrigger value="projects" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md px-4 py-2.5"><FolderKanban className="h-4 w-4 mr-2" />Projects</TabsTrigger>
+          <TabsList className="w-full grid grid-cols-3">
+            <TabsTrigger value="members"><Users className="h-4 w-4 mr-2" />Rotarians & BOD</TabsTrigger>
+            <TabsTrigger value="communication"><Newspaper className="h-4 w-4 mr-2" />Communication</TabsTrigger>
+            <TabsTrigger value="projects"><FolderKanban className="h-4 w-4 mr-2" />Projects</TabsTrigger>
           </TabsList>
 
           {/* ── Members Tab ── */}
@@ -387,7 +383,7 @@ export default function ClubDetailViewPage() {
                   <div className="text-center py-12 text-muted-foreground">No board of directors found for this year.</div>
                 )}
                 {bodMembers.map((b: any) => (
-                  <Card key={b.id} className="hover:shadow-md transition-all">
+                  <Card key={b.id} className="transition-all">
                     <CardContent className="p-3 flex items-center gap-3">
                       {b.profilePhotoPath ? (
                         <img src={getPhotoUrl(b.profilePhotoPath)} alt={b.memberName} className="w-10 h-10 rounded-full object-cover" />
@@ -396,7 +392,7 @@ export default function ClubDetailViewPage() {
                       )}
                       <div className="flex-1 min-w-0">
                         <p className="font-medium text-sm">{b.memberName}</p>
-                        <Badge variant="secondary" className="text-xs mt-0.5">{b.designationName}</Badge>
+                        <Badge variant="secondary" className="mt-0.5">{b.designationName}</Badge>
                       </div>
                     </CardContent>
                   </Card>
@@ -413,7 +409,7 @@ export default function ClubDetailViewPage() {
               <>
                 {/* Events Section */}
                 <div>
-                  <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
+                  <h3 className="row-h2 mb-3 flex items-center gap-2">
                     <CalendarDays className="h-5 w-5 text-primary" />Upcoming Events
                   </h3>
                   {events.length === 0 ? (
@@ -421,7 +417,7 @@ export default function ClubDetailViewPage() {
                   ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                       {events.map((ev: any) => (
-                        <Card key={ev.id} className="hover:shadow-md transition-all">
+                        <Card key={ev.id} className="transition-all">
                           <CardContent className="p-0">
                             <div className="flex gap-3">
                               {ev.imagePath && (
@@ -450,7 +446,7 @@ export default function ClubDetailViewPage() {
 
                 {/* Newsletters Section */}
                 <div>
-                  <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
+                  <h3 className="row-h2 mb-3 flex items-center gap-2">
                     <Newspaper className="h-5 w-5 text-primary" />Newsletters
                   </h3>
                   {newsletters.length === 0 ? (
@@ -458,7 +454,7 @@ export default function ClubDetailViewPage() {
                   ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                       {newsletters.map((nl: any) => (
-                        <Card key={nl.id} className="hover:shadow-md transition-all">
+                        <Card key={nl.id} className="transition-all">
                           <CardContent className="p-4">
                             <div className="flex items-start gap-3">
                               <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
@@ -524,16 +520,16 @@ export default function ClubDetailViewPage() {
             {!loadingProjects && projects.length > 0 && (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                 {projects.map((p: any) => (
-                  <Card key={p.id} onClick={() => setDetailProjectId(p.id)} className="hover:shadow-md hover:border-slate-300 transition-all overflow-hidden cursor-pointer">
+                  <Card key={p.id} onClick={() => setDetailProjectId(p.id)} className="hover:border-slate-300 transition-all overflow-hidden cursor-pointer">
                     <CardContent className="p-0">
                       {p.primaryPhoto && (
                         <img src={getPhotoUrl(p.primaryPhoto)} alt={p.title} className="w-full h-36 object-cover" />
                       )}
                       <div className="p-4 space-y-2">
                         <p className="font-semibold text-sm">{p.title}</p>
-                        {p.moduleName && <Badge variant="outline" className="text-xs">{p.moduleName}</Badge>}
+                        {p.moduleName && <Badge variant="outline">{p.moduleName}</Badge>}
                         {(p.areaOfFocusName || p.otherAreaOfFocus) && (
-                          <Badge variant="secondary" className="text-xs ml-1">{p.areaOfFocusName || p.otherAreaOfFocus}</Badge>
+                          <Badge variant="secondary" className="ml-1">{p.areaOfFocusName || p.otherAreaOfFocus}</Badge>
                         )}
                         {p.projectDate && (
                           <div className="flex items-center gap-1.5 text-xs text-muted-foreground">

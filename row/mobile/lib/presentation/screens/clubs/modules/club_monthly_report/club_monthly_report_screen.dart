@@ -20,6 +20,8 @@ import '../../../../../presentation/widgets/common/loading_widget.dart';
 import '../../../../../presentation/widgets/common/empty_state_widget.dart';
 import '../projects/projects_screen.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/motion.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/roster_wheel.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Club Monthly Report — List + 4-tab Editor (web parity)
@@ -303,7 +305,7 @@ class _ClubMonthlyReportScreenState extends State<ClubMonthlyReportScreen> {
                         title: 'No rotary years configured')
                     : _loadingMonths
                         ? const LoadingWidget()
-                        : RefreshIndicator(
+                        : RowRefresh(
                             onRefresh: () async {
                               if (_selectedYearId != null) {
                                 await _loadMonths(_selectedYearId!);
@@ -352,7 +354,7 @@ class _ClubMonthlyReportScreenState extends State<ClubMonthlyReportScreen> {
     if (items.isEmpty) {
       return const EmptyStateWidget(title: 'No months found for this year');
     }
-    return ListView.builder(
+    return RowListView.builder(
       padding: const EdgeInsets.all(12),
       physics: const AlwaysScrollableScrollPhysics(),
       // +1 for the header row.
@@ -437,14 +439,10 @@ class _ClubMonthlyReportScreenState extends State<ClubMonthlyReportScreen> {
             flex: 4,
             child: Row(
               children: [
-                Icon(Icons.calendar_today,
-                    size: 14, color: Colors.grey.shade600),
-                const SizedBox(width: 4),
                 Flexible(
                   child: Text(monthName,
                       style: AppTextStyles.body.copyWith(
-                          fontWeight: FontWeight.w600, fontSize: 13),
-                      overflow: TextOverflow.ellipsis),
+                          fontWeight: FontWeight.w600, fontSize: 13)),
                 ),
               ],
             ),
@@ -924,7 +922,7 @@ class _MonthlyReportTabsPageState extends State<_MonthlyReportTabsPage> {
   }
 
   Future<void> _deleteMeeting(int meetingId) async {
-    final ok = await showDialog<bool>(
+    final ok = await showRowDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Delete meeting?'),
@@ -1008,7 +1006,7 @@ class _MonthlyReportTabsPageState extends State<_MonthlyReportTabsPage> {
   }
 
   Future<void> _deleteProject(int projectId) async {
-    final ok = await showDialog<bool>(
+    final ok = await showRowDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Delete project?'),
@@ -1184,7 +1182,7 @@ class _MonthlyReportTabsPageState extends State<_MonthlyReportTabsPage> {
       return;
     }
 
-    final ok = await showDialog<bool>(
+    final ok = await showRowDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Delete TRF entry?'),
@@ -1586,9 +1584,9 @@ class _MonthlyReportTabsPageState extends State<_MonthlyReportTabsPage> {
               : _meetings.isEmpty
                   ? const EmptyStateWidget(
                       title: 'No meetings recorded for this month')
-                  : RefreshIndicator(
+                  : RowRefresh(
                       onRefresh: () => _loadMeetings(force: true),
-                      child: ListView.builder(
+                      child: RowListView.builder(
                         padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
                         physics: const AlwaysScrollableScrollPhysics(),
                         itemCount: _meetings.length,
@@ -1678,6 +1676,7 @@ class _MonthlyReportTabsPageState extends State<_MonthlyReportTabsPage> {
                         .copyWith(fontWeight: FontWeight.w600)),
                 if (!widget.viewOnly)
                   IconButton(
+                    tooltip: 'Delete',
                     icon: const Icon(Icons.delete_outline, color: Colors.red),
                     onPressed: () => _deleteTrfRow(index),
                   ),
@@ -1914,7 +1913,7 @@ class _MonthlyReportTabsPageState extends State<_MonthlyReportTabsPage> {
                         ),
                       ),
                     )
-                  : RefreshIndicator(
+                  : RowRefresh(
                       onRefresh: () => _loadProjects(force: true),
                       child: ListView(
                         padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
@@ -1981,12 +1980,14 @@ class _MonthlyReportTabsPageState extends State<_MonthlyReportTabsPage> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 IconButton(
+                  tooltip: 'Edit',
                   icon: const Icon(Icons.edit_outlined, size: 20),
                   onPressed: id > 0
                       ? () => _openEditProject(serviceType, id)
                       : null,
                 ),
                 IconButton(
+                  tooltip: 'Delete',
                   icon: const Icon(Icons.delete_outline,
                       size: 20, color: Colors.red),
                   onPressed: id > 0 ? () => _deleteProject(id) : null,
@@ -2792,6 +2793,7 @@ class _AddEditMeetingPageState extends State<_AddEditMeetingPage> {
           else ...[
             if (onClear != null)
               IconButton(
+                tooltip: 'Close',
                 icon: const Icon(Icons.close, size: 20),
                 onPressed: onClear,
               ),

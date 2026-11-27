@@ -1,4 +1,6 @@
 "use client";
+import { LinkButton } from "@/components/ui/text-buttons";
+import { IconButton } from "@/components/ui/icon-button";
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useParams } from "next/navigation";
@@ -40,16 +42,11 @@ import {
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
 import AlertModal from "@/components/AlertModal";
-import {
-  ArrowLeft, Plus, Pencil, Trash2, MoreHorizontal,
-  AlertTriangle, ExternalLink, Eye, EyeOff, ChevronDown, ChevronRight,
-  GripVertical, List, Upload, X, FileText, PlusCircle,
-} from "@/components/icons";
+import { Plus, Pencil, Trash2, MoreHorizontal, AlertTriangle, ExternalLink, Eye, EyeOff, ChevronDown, ChevronRight, GripVertical, List, Upload, X, FileText, PlusCircle } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
-import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import SearchBox from "@/components/SearchBox";
-import { ListPageSkeleton } from "@/components/row/AppKit";
+import { PageHeader, ListPageSkeleton } from "@/components/row/AppKit";
 
 function getLinkTypeLabel(value: string): string {
   return LINK_TYPES.find((t) => t.value === value)?.label || value;
@@ -465,7 +462,7 @@ export default function DistrictMenuListPage() {
             <div className="flex items-center gap-2 p-2 border rounded-md bg-muted/50">
               <FileText className="h-4 w-4 text-muted-foreground flex-shrink-0" />
               <span className="text-sm truncate flex-1">{formLinkValue.split("/").pop()}</span>
-              <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => setFormLinkValue("")}>
+              <Button variant="ghost" size="icon" className="w-6 row-btn-sm" onClick={() => setFormLinkValue("")}>
                 <X className="h-3 w-3" />
               </Button>
             </div>
@@ -533,7 +530,7 @@ export default function DistrictMenuListPage() {
         <TableCell>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-8 w-8">
+              <Button aria-label="More actions" variant="ghost" size="icon" className="row-btn-sm">
                 <MoreHorizontal className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
@@ -581,7 +578,7 @@ export default function DistrictMenuListPage() {
           {canManage && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-8 w-8">
+                <Button aria-label="More actions" variant="ghost" size="icon" className="row-btn-sm">
                   <MoreHorizontal className="h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
@@ -611,24 +608,16 @@ export default function DistrictMenuListPage() {
     <ProtectedRoute>
       <div className="space-y-6">
         {/* Header */}
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-3">
-            <Button variant="outline" size="icon" asChild>
-              <Link href={`/districts/${districtId}/website-data`}><ArrowLeft className="h-4 w-4" /></Link>
-            </Button>
-            <div>
-              <h2 className="text-2xl font-bold tracking-tight text-primary">
-                {districtNumber ? `District ${districtNumber} - Menu List` : "Menu List"}
-              </h2>
-              <p className="text-muted-foreground text-base">Manage website navigation menus</p>
-            </div>
-          </div>
-          {canManage && (
+        <PageHeader
+          title={districtNumber ? `District ${districtNumber} - Menu List` : "Menu List"}
+          description="Manage website navigation menus"
+          back={`/districts/${districtId}/website-data`}
+          actions={canManage && (
             <Button onClick={openAddMenuDialog} disabled={menus.length >= 9}>
               <Plus className="mr-2 h-4 w-4" />Add Menu
             </Button>
           )}
-        </div>
+        />
 
         {loading && (
           <div className="flex items-center justify-center py-20">
@@ -649,7 +638,7 @@ export default function DistrictMenuListPage() {
         {!loading && menus.length === 0 && (
           <div className="flex flex-col items-center justify-center py-20 text-center">
             <List className="h-12 w-12 text-muted-foreground mb-4" />
-            <h3 className="text-lg font-semibold">No menus yet</h3>
+            <h3 className="row-h2">No menus yet</h3>
             <p className="text-muted-foreground mt-2">
               {canManage ? 'Click "Add Menu" to create your first navigation menu.' : "No menus have been added yet."}
             </p>
@@ -678,12 +667,12 @@ export default function DistrictMenuListPage() {
                 const dragHandlers = canManage && !isSearching ? menuDragProps(realIndex) : {};
                 return (
                   <div key={menu.id}>
-                    <Card className="border-primary/20" {...dragHandlers}>
+                    <Card {...dragHandlers}>
                       <CardContent className="p-4">
                         <div className="flex items-center gap-3">
-                          <button onClick={() => toggleExpand(menu.id)} className="flex-shrink-0">
+                          <IconButton type="button" onClick={() => toggleExpand(menu.id)} aria-label={isExpanded ? "Collapse" : "Expand"} aria-expanded={isExpanded} className="flex-shrink-0">
                             {isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-                          </button>
+                          </IconButton>
                           <div className="flex-1 min-w-0">
                             <p className="font-medium text-sm">{menu.menuName}</p>
                             <div className="flex gap-1 mt-1 flex-wrap">
@@ -692,7 +681,7 @@ export default function DistrictMenuListPage() {
                                 {menu.isActive ? "Active" : "Inactive"}
                               </Badge>
                               {menu.subMenuCount > 0 && (
-                                <Badge variant="outline" className="text-xs">
+                                <Badge variant="outline">
                                   {menu.subMenuCount} sub
                                 </Badge>
                               )}
@@ -704,7 +693,7 @@ export default function DistrictMenuListPage() {
                           {canManage && (
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="icon" className="h-8 w-8">
+                                <Button aria-label="More actions" variant="ghost" size="icon" className="row-btn-sm">
                                   <MoreHorizontal className="h-4 w-4" />
                                 </Button>
                               </DropdownMenuTrigger>
@@ -757,15 +746,15 @@ export default function DistrictMenuListPage() {
             </div>
 
             {/* Desktop table view */}
-            <div className="hidden sm:block rounded-md border">
+            <Card className="hidden sm:block overflow-hidden">
               <Table>
                 <TableHeader>
-                  <TableRow className="bg-primary hover:bg-primary">
-                    <TableHead className="text-base font-semibold">Menu Name</TableHead>
-                    <TableHead className="w-32 text-base font-semibold">Link Type</TableHead>
-                    <TableHead className="w-24 text-base font-semibold">Status</TableHead>
-                    <TableHead className="w-24 text-base font-semibold">Sub-Menus</TableHead>
-                    {canManage && <TableHead className="w-16 text-center text-base font-semibold">Sort</TableHead>}
+                  <TableRow>
+                    <TableHead>Menu Name</TableHead>
+                    <TableHead className="w-32">Link Type</TableHead>
+                    <TableHead className="w-24">Status</TableHead>
+                    <TableHead className="w-24">Sub-Menus</TableHead>
+                    {canManage && <TableHead className="w-16 text-center">Sort</TableHead>}
                     {canManage && <TableHead className="w-12"></TableHead>}
                   </TableRow>
                 </TableHeader>
@@ -780,10 +769,10 @@ export default function DistrictMenuListPage() {
                       <>
                         <TableRow key={menu.id} className="hover:bg-primary/5 transition-colors" {...dragHandlers}>
                           <TableCell>
-                            <button onClick={() => toggleExpand(menu.id)} className="flex items-center gap-2 font-medium">
+                            <LinkButton onClick={() => toggleExpand(menu.id)} aria-expanded={isExpanded}>
                               {isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
                               {menu.menuName}
-                            </button>
+                            </LinkButton>
                           </TableCell>
                           <TableCell>
                             <LinkTypeBadgeWithView linkType={menu.linkType} linkValue={menu.linkValue} />
@@ -809,7 +798,7 @@ export default function DistrictMenuListPage() {
                             <TableCell>
                               <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
-                                  <Button variant="ghost" size="icon" className="h-8 w-8">
+                                  <Button aria-label="More actions" variant="ghost" size="icon" className="row-btn-sm">
                                     <MoreHorizontal className="h-4 w-4" />
                                   </Button>
                                 </DropdownMenuTrigger>
@@ -864,7 +853,7 @@ export default function DistrictMenuListPage() {
                   })}
                 </TableBody>
               </Table>
-            </div>
+            </Card>
             </>
             )}
           </>

@@ -5,6 +5,8 @@
 // = the New Goal Setting Club Goals page with the RCC changes of lib/rccGoals.ts, same design.
 // The existing Club Goals screen is not changed.
 
+import { Button } from "@/components/ui/button";
+import { PageHeader } from "@/components/row/AppKit";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { Download } from "@/components/icons";
@@ -83,21 +85,19 @@ function ClubRcc() {
 
   return (
     <div>
-      <div className="rounded-[20px] bg-navy-950 text-white px-6 pt-5 pb-24 flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <h2 className="text-2xl font-extrabold text-white flex flex-wrap items-center gap-2.5">RCC <span className="rounded-full bg-marigold px-2.5 py-0.5 text-xs font-bold text-navy-950">Rotary.org</span></h2>
-          <p className="text-sm text-navy-200 mt-1">Goals come from Rotary.org; the boxes Rotary.org does not fill are typed here.</p>
-          {selectedClubId && viewingYearId === currentYearId && (
-            <div className="mt-3"><RotaryOrgSync clubId={selectedClubId} onSynced={onSynced} /></div>
-          )}
-        </div>
-        <button type="button" onClick={downloadReport} disabled={dl.busy || forms.length === 0}
-          title="RCC & District Goals report - RCC and District Goals"
-          className="inline-flex items-center gap-2 text-sm font-bold min-h-11 px-4 rounded-xl border border-navy-400 text-white hover:bg-white/10 disabled:opacity-60">
-          {dl.is("report") ? dl.bar("report") : <><Download size={15} /> Report</>}
-        </button>
-      </div>
-      <div className="-mt-16 mx-2 sm:mx-5">
+      <PageHeader
+        title="RCC & District Goals"
+        description="Goals come from Rotary.org; the boxes Rotary.org does not fill are typed here."
+        actions={
+          <Button type="button" variant="outline" onClick={downloadReport} disabled={dl.busy || forms.length === 0} title="RCC & District Goals report - RCC and District Goals">
+            {dl.is("report") ? dl.bar("report") : <><Download /> Report</>}
+          </Button>
+        }
+      />
+      {selectedClubId && viewingYearId === currentYearId && (
+        <div className="mb-4"><RotaryOrgSync clubId={selectedClubId} tone="light" onSynced={onSynced} /></div>
+      )}
+      <div>
         {!canEditThisYear && <div className="mb-3"><ViewOnlyBadge yearLabel={viewingYearLabel} editableYears={editableYears} /></div>}
         <GoalSettingPanel
           title="RCC"

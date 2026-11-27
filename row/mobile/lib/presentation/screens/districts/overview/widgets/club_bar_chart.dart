@@ -1,3 +1,4 @@
+import 'package:rotary_flutter_app/presentation/widgets/row/motion.dart';
 import 'package:flutter/material.dart' hide Text;
 import '../../../../../core/theme/app_colors.dart';
 import '../../../../../data/models/district_admin_dashboard_models.dart';
@@ -142,7 +143,7 @@ class _BarRow extends StatelessWidget {
               const SizedBox(height: 4),
               ClipRRect(
                 borderRadius: BorderRadius.circular(999),
-                child: LinearProgressIndicator(
+                child: RowProgressBar(
                   value: f,
                   minHeight: 8,
                   backgroundColor: AppColors.slate100,

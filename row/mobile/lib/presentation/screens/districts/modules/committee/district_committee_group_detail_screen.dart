@@ -15,6 +15,9 @@ import 'committee_member_form_screen.dart';
 import 'district_committee_member_detail_screen.dart';
 import 'district_committee_sub_group_form_screen.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/motion.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/roster_wheel.dart';
+import 'package:rotary_flutter_app/presentation/widgets/common/loading_widget.dart';
 
 // ---------------------------------------------------------------------------
 // Group detail: ONE scrolling list with a Members section then a Sub Groups
@@ -317,7 +320,7 @@ class _DistrictCommitteeGroupDetailScreenState
 
   // ── Shared ──────────────────────────────────────────────────────────────────
   Future<bool> _confirm(String title, String message) async {
-    final ok = await showDialog<bool>(
+    final ok = await showRowDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
         title: Text(title),
@@ -365,13 +368,13 @@ class _DistrictCommitteeGroupDetailScreenState
         _membersError == null &&
         _subError == null;
     if (firstLoad) {
-      return const Center(child: const CircularProgressIndicator(color: AppColors.primary));
+      return const LoadingWidget();
     }
     return Column(
       children: [
         _searchField(),
         Expanded(
-          child: RefreshIndicator(
+          child: RowRefresh(
             color: AppColors.primary,
             onRefresh: () async {
               await Future.wait([_fetchMembers(), _fetchSubGroups()]);
@@ -396,6 +399,7 @@ class _DistrictCommitteeGroupDetailScreenState
           suffixIcon: _query.isEmpty
               ? null
               : IconButton(
+                  tooltip: 'Close',
                   icon: const Icon(Icons.close_rounded, size: 18),
                   onPressed: () {
                     _searchCtrl.clear();
@@ -471,8 +475,7 @@ class _DistrictCommitteeGroupDetailScreenState
       // A section can still be fetching (the two loads finish independently) —
       // don't flash an empty state until BOTH have settled.
       if (_loadingMembers || _loadingSub) {
-        return const Center(
-            child: const CircularProgressIndicator(color: AppColors.primary));
+        return const LoadingWidget();
       }
       return ListView(
   padding: const EdgeInsets.only(bottom: 88),

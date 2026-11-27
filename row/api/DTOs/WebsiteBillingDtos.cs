@@ -14,6 +14,11 @@ public class WebsiteQuoteResponseDto
     public decimal GstAmount { get; set; }
     public int GstPercent { get; set; }
     public decimal TotalAmount { get; set; }
+    public string Currency { get; set; } = RotaryApi.Services.Brand.DefaultCurrency;   // what is charged
+    // The total in the district's currency at today's rate, for information only; null when it is the same currency.
+    public string? LocalCurrency { get; set; }
+    public decimal? LocalTotal { get; set; }
+    public DateTime? RateDate { get; set; }
     public string SubdomainPrefix { get; set; } = "rc";
     public string ParentDomain { get; set; } = "";   // e.g. example.org
     public string GatewayType { get; set; } = "normal"; // "normal" | "route" (resolved per-club/year)

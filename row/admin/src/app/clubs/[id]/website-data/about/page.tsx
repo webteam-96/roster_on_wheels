@@ -18,12 +18,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
 import AlertModal from "@/components/AlertModal";
-import { ArrowLeft, Plus, Pencil, Trash2, AlertTriangle, Eye, EyeOff, Info } from "@/components/icons";
+import { Plus, Pencil, Trash2, AlertTriangle, Eye, EyeOff, Info } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
-import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import "react-quill-new/dist/quill.snow.css";
-import { ListPageSkeleton } from "@/components/row/AppKit";
+import { PageHeader, ListPageSkeleton } from "@/components/row/AppKit";
 
 const ReactQuill = dynamic(() => import("react-quill-new"), { ssr: false });
 
@@ -176,31 +175,27 @@ export default function AboutPage() {
   return (
     <ProtectedRoute>
       <div className="space-y-6">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-3">
-            <Button variant="outline" size="icon" asChild><Link href={`/clubs/${clubId}/website-data`}><ArrowLeft className="h-4 w-4" /></Link></Button>
-            <div>
-              <h2 className="text-2xl font-bold tracking-tight text-primary">{clubName ? `${clubName} - About Us` : "About Us"}</h2>
-              <p className="text-muted-foreground text-base">Manage club about content</p>
-            </div>
-          </div>
-          {canManage && !about && !loading && (
+        <PageHeader
+          title={clubName ? `${clubName} - About Us` : "About Us"}
+          description="Manage club about content"
+          back={`/clubs/${clubId}/website-data`}
+          actions={canManage && !about && !loading && (
             <Button onClick={openAddDialog}><Plus className="mr-2 h-4 w-4" />Add About</Button>
           )}
-        </div>
+        />
 
         {loading && <div className="flex items-center justify-center py-20"><ListPageSkeleton /></div>}
 
         {!loading && !about && (
           <div className="flex flex-col items-center justify-center py-20 text-center">
             <Info className="h-12 w-12 text-muted-foreground mb-4" />
-            <h3 className="text-lg font-semibold">No about content yet</h3>
+            <h3 className="row-h2">No about content yet</h3>
             <p className="text-muted-foreground mt-2">{canManage ? 'Click "Add About" to add content.' : "No about content has been added yet."}</p>
           </div>
         )}
 
         {!loading && about && (
-          <Card className="border-primary/20 overflow-hidden">
+          <Card className="overflow-hidden">
             <CardContent className="p-6 space-y-4 overflow-hidden">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <Badge variant={about.isActive ? "default" : "secondary"}>{about.isActive ? "Active" : "Inactive"}</Badge>
@@ -210,7 +205,7 @@ export default function AboutPage() {
                       {about.isActive ? <><EyeOff className="mr-1 h-4 w-4" />Deactivate</> : <><Eye className="mr-1 h-4 w-4" />Activate</>}
                     </Button>
                     <Button variant="outline" size="sm" onClick={openEditDialog}><Pencil className="mr-1 h-4 w-4" />Edit</Button>
-                    <Button variant="outline" size="sm" className="text-destructive hover:text-destructive" onClick={() => setShowDeleteConfirm(true)}><Trash2 className="mr-1 h-4 w-4" />Delete</Button>
+                    <Button variant="outline" size="sm" className="text-destructive" onClick={() => setShowDeleteConfirm(true)}><Trash2 className="mr-1 h-4 w-4" />Delete</Button>
                   </div>
                 )}
               </div>

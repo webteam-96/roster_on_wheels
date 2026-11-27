@@ -1,5 +1,6 @@
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart' hide Text;
+import 'package:rotary_flutter_app/presentation/widgets/weblinks/weblinks_section.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import '../../../../../core/network/api_client.dart';
@@ -17,6 +18,8 @@ import '../../../../../presentation/widgets/common/empty_state_widget.dart';
 import '../../../../../presentation/widgets/common/confirmation_dialog.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
 import 'package:rotary_flutter_app/presentation/widgets/row/form_action_bar.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/motion.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/roster_wheel.dart';
 
 class WeblinksScreen extends StatefulWidget {
   final int clubId;
@@ -175,6 +178,10 @@ class _WeblinksScreenState extends State<WeblinksScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Members get the readable list, whose links open; the rows below are the admin's editor.
+    if (!widget.embedded && !canManage) {
+      return WebLinksViewerScreen(baseEndpoint: '/api/mobile/clubs/${widget.clubId}/weblinks', title: 'Web Links');
+    }
     return Scaffold(
       appBar: widget.embedded ? null : const CustomAppBar(title: 'Weblinks'),
       floatingActionButton: !canManage
@@ -237,9 +244,9 @@ class _WeblinksScreenState extends State<WeblinksScreen> {
                 ? const LoadingWidget()
                 : _weblinks.isEmpty
                     ? const EmptyStateWidget(title: 'No weblinks added')
-                    : RefreshIndicator(
+                    : RowRefresh(
                         onRefresh: _loadWeblinks,
-                        child: ListView.separated(
+                        child: RowListView.separated(
                           padding: (const EdgeInsets.all(16)).add(const EdgeInsets.only(bottom: 88)),
                           itemCount: _weblinks.length,
                           separatorBuilder: (_, __) => const SizedBox(height: 8),

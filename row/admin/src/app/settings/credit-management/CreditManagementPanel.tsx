@@ -1,5 +1,6 @@
 "use client";
 
+import { PageHeader } from "@/components/row/AppKit";
 import { useState, useEffect, useCallback } from "react";
 import DateField from "@/components/DateField";
 import { useAuth } from "@/contexts/AuthContext";
@@ -23,10 +24,9 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
-import { ArrowLeft, Plus, Loader2, Download } from "@/components/icons";
+import { Plus, Loader2, Download } from "@/components/icons";
 import { exportToCSV } from "@/utils/csvExport";
 import RotaryLoader from "@/components/RotaryLoader";
-import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
 
 import { appLocale } from "@/lib/appFormat";
@@ -290,7 +290,7 @@ export default function CreditManagementPanel({ embedded = false, onChanged }: {
     return (
       <ProtectedRoute>
         <div className="flex flex-col items-center justify-center py-20">
-          <h3 className="text-lg font-semibold">Access Denied</h3>
+          <h3 className="row-h2">Access Denied</h3>
           <p className="text-muted-foreground mt-2">Only SuperAdmin can access this page.</p>
         </div>
       </ProtectedRoute>
@@ -303,15 +303,7 @@ export default function CreditManagementPanel({ embedded = false, onChanged }: {
     <ProtectedRoute>
       <div className="space-y-6">
         {!embedded && (
-        <div className="flex items-center gap-3">
-          <Button variant="outline" size="icon" asChild>
-            <Link href="/settings/email-credits"><ArrowLeft className="h-4 w-4" /></Link>
-          </Button>
-          <div>
-            <h2 className="text-2xl font-bold tracking-tight text-primary">Credit Management</h2>
-            <p className="text-muted-foreground text-base">Manage email credits for clubs</p>
-          </div>
-        </div>
+        <PageHeader title="Credit Management" description="Manage email credits for clubs" back="/settings/email-credits" />
         )}
 
         {/* Add Credit Form */}
@@ -496,7 +488,7 @@ export default function CreditManagementPanel({ embedded = false, onChanged }: {
                               {item.isExpired ? (
                                 <Badge variant="destructive">Expired</Badge>
                               ) : item.isActive ? (
-                                <Badge className="bg-green-500 hover:bg-green-600">Active</Badge>
+                                <Badge className="bg-green-100 text-green-800">Active</Badge>
                               ) : (
                                 <Badge variant="secondary">Inactive</Badge>
                               )}
@@ -508,7 +500,7 @@ export default function CreditManagementPanel({ embedded = false, onChanged }: {
                                     <History className="h-3.5 w-3.5" />
                                   </Button>
                                   {item.remaining > 0 ? (
-                                    <Button variant="outline" size="sm" className="text-amber-700 hover:bg-amber-50" onClick={() => setDeductItem(item)} title="Deduct credits used outside ROW">
+                                    <Button variant="outline" size="sm" className="text-amber-700" onClick={() => setDeductItem(item)} title="Deduct credits used outside ROW">
                                       <MinusCircle className="h-3.5 w-3.5" />
                                     </Button>
                                   ) : <ActionSlot />}
@@ -516,7 +508,7 @@ export default function CreditManagementPanel({ embedded = false, onChanged }: {
                                     <Pencil className="h-3.5 w-3.5" />
                                   </Button>
                                   {item.usedCount === 0 ? (
-                                    <Button variant="outline" size="sm" className="text-red-600 hover:bg-red-50" onClick={() => setDeleteItem(item)} title="Delete">
+                                    <Button variant="outline" size="sm" className="text-red-600" onClick={() => setDeleteItem(item)} title="Delete">
                                       <Trash2 className="h-3.5 w-3.5" />
                                     </Button>
                                   ) : <ActionSlot />}

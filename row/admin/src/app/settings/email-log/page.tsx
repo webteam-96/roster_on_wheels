@@ -1,11 +1,13 @@
 "use client";
 
+import { PageHeader } from "@/components/row/AppKit";
 import { useState, useEffect, useCallback } from "react";
 import DateField from "@/components/DateField";
 import { getEmailLog, getEmailLogDetail, getEmailLogSummary, exportEmailLog, type EmailLogFilter, type EmailLogItem, type EmailLogDetail } from "@/services/api";
 import { fileTimestamp } from "@/lib/dateUtils";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
+import { IconButton } from "@/components/ui/icon-button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -14,9 +16,8 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import ErrorAlert from "@/components/ErrorAlert";
-import { ArrowLeft, Mail, Search, Filter, RotateCcw, Eye, Download } from "@/components/icons";
+import { Search, Filter, RotateCcw, Eye, Download } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
-import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
 
 import { appLocale } from "@/lib/appFormat";
@@ -60,7 +61,7 @@ function typeBadge(type: string | null) {
   };
   const cls = palette[type] ?? "bg-slate-100 text-slate-600 border-slate-200";
   return (
-    <span className={`inline-flex items-center px-2 py-0.5 rounded-full border text-[10px] font-medium whitespace-nowrap ${cls}`}>
+    <span className={`inline-flex items-center px-2 py-0.5 rounded border text-[10px] font-medium whitespace-nowrap ${cls}`}>
       {type}
     </span>
   );
@@ -172,14 +173,12 @@ export default function EmailLogPage() {
 
   return (
     <ProtectedRoute requireSuperAdmin>
-      <div className="p-6 max-w-7xl mx-auto space-y-4">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <h1 className="text-2xl font-bold flex items-center gap-2"><Mail className="h-6 w-6" /> Email Log</h1>
-            <p className="text-sm text-slate-500">Every email sent via Brevo. Click a row to view the full HTML body.</p>
-          </div>
-          <Link href="/settings"><Button variant="outline"><ArrowLeft className="h-4 w-4 mr-1" /> Back to Settings</Button></Link>
-        </div>
+      <div className="space-y-4">
+        <PageHeader
+          title="Email Log"
+          description="Every email sent via Brevo. Click a row to view the full HTML body."
+          back="/settings"
+        />
 
         {summary && (
           <div className="grid grid-cols-2 md:grid-cols-6 gap-3">
@@ -252,7 +251,7 @@ export default function EmailLogPage() {
                         <TableCell className="text-xs break-all">{it.recipientEmail}</TableCell>
                         <TableCell className="text-sm">{it.subject ?? "–"}</TableCell>
                         <TableCell>{typeBadge(it.emailType)}</TableCell>
-                        <TableCell className="text-right"><Button size="sm" variant="ghost"><Eye className="h-4 w-4" /></Button></TableCell>
+                        <TableCell className="text-right"><IconButton aria-label="View email"><Eye className="h-4 w-4" /></IconButton></TableCell>
                       </TableRow>
                     ))}
                   </TableBody>

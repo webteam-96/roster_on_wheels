@@ -1,3 +1,4 @@
+import 'package:rotary_flutter_app/presentation/widgets/row/motion.dart';
 import 'package:flutter/material.dart' hide Text;
 import '../../../core/network/api_client.dart';
 import '../../../core/network/api_exceptions.dart';
@@ -6,6 +7,7 @@ import '../../widgets/common/empty_state_widget.dart';
 import '../../widgets/common/loading_widget.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
 import 'target_proposals_section.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/roster_wheel.dart';
 
 /// Live target dashboard for a club or district (feature `target_dashboard`, `api/{clubs|districts}/{id}/targets`).
 /// Read-only, for the club's or district's managers; the API narrows what each one sees.
@@ -69,7 +71,7 @@ class _TargetsScreenState extends State<TargetsScreen> {
           ? EmptyStateWidget(icon: Icons.flag_outlined, title: 'Not available', subtitle: _error!)
           : d == null
               ? const LoadingWidget()
-              : RefreshIndicator(
+              : RowRefresh(
                   onRefresh: _load,
                   child: ListView(
                     padding: const EdgeInsets.all(12),
@@ -104,7 +106,7 @@ class _TargetsScreenState extends State<TargetsScreen> {
               title: Text(_metricLabels[key]!),
               subtitle: m['target'] == null
                   ? null
-                  : LinearProgressIndicator(
+                  : RowProgressBar(
                       value: ((m['percent'] as num? ?? 0) / 100).clamp(0, 1).toDouble(),
                       color: _statusColor(m['status'] as String?),
                     ),

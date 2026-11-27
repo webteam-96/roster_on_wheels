@@ -1,4 +1,5 @@
 "use client";
+import { RemoveBadgeButton, UploadZone } from "@/components/ui/text-buttons";
 
 /**
  * District Events V2 — Edit Event.
@@ -20,6 +21,10 @@
  * in sync — mirrors useSyncClubIdFromUrl's pattern.
  */
 
+import FieldLabel from "@/components/form/FieldLabel";
+import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
+import SectionCard from "@/components/form/SectionCard";
 import { useEffect, useRef, useState } from "react";
 import DateField from "@/components/DateField";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
@@ -35,7 +40,6 @@ import {
 } from "@/services/api";
 import V2FormShell, { useV2ReturnTo } from "@/components/v2/V2FormShell";
 import DistrictAdminShell from "@/components/v2/DistrictAdminShell";
-import DistrictFoundationTabBar from "@/components/dashboard/DistrictFoundationTabBar";
 import RotaryLoader from "@/components/RotaryLoader";
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
@@ -56,38 +60,6 @@ const PHOTO_MAX_WIDTH = 1200;
 
 const TOP_MESSAGE =
   "Please post all the Events executed by your District. The content posted here will be displayed on the District website.";
-
-function FieldLabel({
-  children, hint, dot, required = true,
-}: {
-  children: React.ReactNode; hint?: string; dot: string; required?: boolean;
-}) {
-  return (
-    <div className="flex items-center gap-1.5 mb-1">
-      <span className={`w-1.5 h-1.5 rounded-full ${dot}`} />
-      <label className="text-xs font-semibold text-slate-700">
-        {children}
-        {required && <span className="text-rose-600 ml-0.5">*</span>}
-        {hint && <span className="text-slate-400 font-normal ml-1">{hint}</span>}
-      </label>
-    </div>
-  );
-}
-
-function SectionCard({
-  number, icon: Icon, title, dot, children,
-}: { number: number; icon: React.ElementType; title: string; dot: string; children: React.ReactNode }) {
-  return (
-    <div className="rounded-xl border border-slate-200 overflow-hidden mb-4">
-      <div className="flex items-center gap-3 px-4 py-2.5 bg-slate-50 border-b border-slate-100">
-        <div className={`flex items-center justify-center h-7 w-7 rounded-full text-white text-xs font-bold ${dot}`}>{number}</div>
-        <Icon className="h-4 w-4 text-slate-500" />
-        <h3 className="text-sm font-semibold text-slate-800">{title}</h3>
-      </div>
-      <div className="p-4">{children}</div>
-    </div>
-  );
-}
 
 type PhotoItem = { path: string; preview: string; description: string };
 
@@ -275,9 +247,6 @@ export default function DistrictEventsV2EditPage() {
         pageTitle="Edit District Event"
         activeNavHref="/district-admin-dashboard/foundation"
       >
-        <div className="mb-4">
-          <DistrictFoundationTabBar />
-        </div>
         <V2FormShell
           title="Edit District Event"
           subtitle={districtName}
@@ -294,41 +263,41 @@ export default function DistrictEventsV2EditPage() {
           }
         >
           {/* 1. Event Details */}
-          <SectionCard number={1} icon={FileText} title="Event Details" dot="bg-[#17458F]">
+          <SectionCard number={1} icon={FileText} title="Event Details">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="sm:col-span-2">
-                <FieldLabel hint="(max 50 chars)" dot="bg-[#17458F]">Title</FieldLabel>
-                <input
+                <FieldLabel required hint="(max 50 chars)">Title</FieldLabel>
+                <Input
                   type="text"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                   placeholder="Event title"
                   maxLength={50}
-                  className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                  
                 />
                 <p className="text-xs text-slate-400 text-right mt-0.5">{title.length}/50</p>
               </div>
               <div className="sm:col-span-2">
-                <FieldLabel hint="(max 1000 chars)" dot="bg-[#17458F]" required={false}>Description</FieldLabel>
-                <textarea
+                <FieldLabel hint="(max 1000 chars)" required={false}>Description</FieldLabel>
+                <Textarea
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   placeholder="Event description"
                   rows={4}
                   maxLength={1000}
-                  className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42] resize-y"
+                  className="resize-y"
                 />
                 <p className="text-xs text-slate-400 text-right mt-0.5">{description.length}/1000</p>
               </div>
               <div>
-                <FieldLabel dot="bg-[#17458F]">Date</FieldLabel>
-                <DateField value={eventDate} onChange={setEventDate} className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]" />
+                <FieldLabel required>Date</FieldLabel>
+                <DateField value={eventDate} onChange={setEventDate} className="row-field w-full" />
               </div>
             </div>
           </SectionCard>
 
           {/* 2. Photos */}
-          <SectionCard number={2} icon={ImageIcon} title={`Photos (max ${MAX_PHOTOS}, at least 1 mandatory)`} dot="bg-[#17458F]">
+          <SectionCard number={2} icon={ImageIcon} title={`Photos (max ${MAX_PHOTOS}, at least 1 mandatory)`}>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {photos.map((photo, idx) => (
                 <div key={idx} className="border border-slate-200 rounded-lg overflow-hidden">
@@ -339,17 +308,10 @@ export default function DistrictEventsV2EditPage() {
                       alt=""
                       className="w-full h-full object-contain"
                     />
-                    <button
-                      type="button"
-                      onClick={() => removePhoto(idx)}
-                      className="absolute top-1 right-1 bg-rose-600 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
-                      aria-label="Remove photo"
-                    >
-                      <X className="h-3 w-3" />
-                    </button>
+                    <RemoveBadgeButton onClick={() => removePhoto(idx)} aria-label="Remove photo" />
                   </div>
                   <div className="p-3 space-y-1">
-                    <textarea
+                    <Textarea
                       value={photo.description}
                       onChange={(e) => {
                         if (e.target.value.length <= 500) updatePhotoDescription(idx, e.target.value);
@@ -357,17 +319,16 @@ export default function DistrictEventsV2EditPage() {
                       placeholder="Photo description (max 500 chars)"
                       rows={3}
                       maxLength={500}
-                      className="w-full px-2 h-10 py-0 text-xs border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42] resize-none"
+                      className="resize-none"
                     />
                     <p className="text-xs text-slate-400 text-right">{photo.description.length}/500</p>
                   </div>
                 </div>
               ))}
               {photos.length < MAX_PHOTOS && (
-                <button
-                  type="button"
+                <UploadZone shape="box"
                   onClick={() => photoInputRef.current?.click()}
-                  className="border-2 border-dashed border-slate-200 rounded-lg flex flex-col items-center justify-center cursor-pointer hover:border-blue-300 hover:bg-slate-50 transition-colors h-40 text-slate-500"
+                  className="w-full h-40"
                   disabled={uploading}
                 >
                   {uploading ? (
@@ -378,7 +339,7 @@ export default function DistrictEventsV2EditPage() {
                       <span className="text-xs mt-1">Upload</span>
                     </>
                   )}
-                </button>
+                </UploadZone>
               )}
               <input
                 ref={photoInputRef}

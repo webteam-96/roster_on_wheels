@@ -23,6 +23,8 @@
  *   `IsCurrent=1` row in rotary_year_master).
  */
 
+import { MenuItemButton } from "@/components/ui/text-buttons"
+import { Button } from "@/components/ui/button";
 import { useEffect, useState, useRef } from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { ChevronDown, Calendar } from "@/components/icons";
@@ -127,30 +129,27 @@ export default function DashboardYearSelector() {
 
   return (
     <div ref={popRef} className="relative">
-      <button
+      <Button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className="inline-flex shrink-0 whitespace-nowrap items-center gap-2 h-9 px-3 rounded-full border border-slate-200 bg-card hover:bg-slate-50 text-sm font-medium text-slate-700 transition-colors"
+        variant="outline" size="sm"
         title="Rotary Year"
       >
         <Calendar className="hidden sm:block h-4 w-4 text-slate-500" />
         <span>{labelText}</span>
         <ChevronDown className={`h-4 w-4 text-slate-400 transition-transform ${open ? "rotate-180" : ""}`} />
-      </button>
+      </Button>
       {open && options.length > 0 && (
         <div className="absolute right-0 top-full mt-1 z-50 min-w-[160px] bg-card border border-slate-200 rounded-md py-1 max-h-72 overflow-y-auto">
           {options.map((o) => (
-            <button
+            <MenuItemButton selected={o.id === selectedYearId} className="justify-between gap-3"
               key={o.id}
               type="button"
               onClick={() => pick(o.id)}
-              className={`w-full text-left px-3 py-1.5 text-sm hover:bg-slate-50 flex items-center justify-between gap-3 ${
-                o.id === selectedYearId ? "bg-amber-50 text-amber-900 font-medium" : "text-slate-700"
-              }`}
             >
               <span>{o.yearLabel}</span>
               {o.isCurrent && <span className="text-[10px] text-emerald-600 font-semibold uppercase">Current</span>}
-            </button>
+            </MenuItemButton>
           ))}
         </div>
       )}

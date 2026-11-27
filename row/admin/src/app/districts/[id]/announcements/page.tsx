@@ -1,5 +1,7 @@
 "use client";
+import { ClearButton } from "@/components/ui/text-buttons";
 
+import PublishStatusBadge from "@/components/PublishStatusBadge";
 import { useState, useEffect, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { AnnouncementListItem } from "@/types/announcement";
@@ -15,15 +17,14 @@ import Pagination from "@/components/Pagination";
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
 import AlertModal from "@/components/AlertModal";
-import { ArrowLeft, Search, X, Plus, Pencil, Trash2, MoreHorizontal, FolderOpen, AlertTriangle } from "@/components/icons";
+import { Search, X, Plus, Pencil, Trash2, MoreHorizontal, FolderOpen, AlertTriangle } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
-import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import SearchBox from "@/components/SearchBox";
 import SendStatusBadges from "@/components/SendStatusBadges";
 
 import { appLocale } from "@/lib/appFormat";
-import { ListPageSkeleton } from "@/components/row/AppKit";
+import { PageHeader, ListPageSkeleton } from "@/components/row/AppKit";
 const STATUS_OPTIONS = [
   { value: "Published", label: "Published" },
   { value: "Unpublished", label: "Unpublished" },
@@ -31,13 +32,9 @@ const STATUS_OPTIONS = [
   { value: "all", label: "All" },
 ];
 
-function StatusBadge({ status }: { status: string }) {
-  const colors: Record<string, string> = { Published: "bg-green-100 text-green-700", Expired: "bg-red-100 text-red-700", Unpublished: "bg-yellow-100 text-yellow-700" };
-  return <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${colors[status] || "bg-gray-100 text-gray-700"}`}>{status}</span>;
-}
 
 function BannerBadge({ value }: { value: boolean }) {
-  return <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${value ? "bg-blue-100 text-blue-700" : "bg-gray-100 text-gray-500"}`}>{value ? "Yes" : "No"}</span>;
+  return <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${value ? "bg-blue-100 text-blue-700" : "bg-gray-100 text-gray-500"}`}>{value ? "Yes" : "No"}</span>;
 }
 
 export default function DistrictAnnouncementsPage() {
@@ -102,20 +99,16 @@ export default function DistrictAnnouncementsPage() {
   return (
     <ProtectedRoute>
       <div className="space-y-6">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-3">
-            <Button variant="outline" size="icon" asChild><Link href={`/districts/${districtId}/dashboard`}><ArrowLeft className="h-4 w-4" /></Link></Button>
-            <div>
-              <h2 className="text-2xl font-bold tracking-tight text-primary">{districtName ? `${districtName} - Announcements` : "Announcements"}</h2>
-              <p className="text-muted-foreground text-base">Manage district announcements</p>
-            </div>
-          </div>
-          {canManage && (
+        <PageHeader
+          title={districtName ? `${districtName} - Announcements` : "Announcements"}
+          description="Manage district announcements"
+          back={`/districts/${districtId}/dashboard`}
+          actions={canManage && (
             <Button onClick={() => router.push(`/districts/${districtId}/announcements/add`)}>
               <Plus className="mr-2 h-4 w-4" />Add Announcement
             </Button>
           )}
-        </div>
+        />
 
         <div className="flex flex-col sm:flex-row gap-4">
           <div className="w-full sm:w-44">
@@ -128,7 +121,7 @@ export default function DistrictAnnouncementsPage() {
             <div className="relative flex-1 max-w-sm">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input placeholder="Search by title..." value={searchInput} onChange={(e) => setSearchInput(e.target.value)} onKeyDown={(e) => e.key === "Enter" && handleSearch()} className="pl-9" />
-              {searchInput && <button onClick={clearSearch} className="absolute right-3 top-1/2 -translate-y-1/2"><X className="h-4 w-4 text-muted-foreground hover:text-foreground" /></button>}
+              {searchInput && <ClearButton onClick={clearSearch} aria-label="Clear search" />}
             </div>
             <Button onClick={handleSearch} size="sm">Search</Button>
           </div>
@@ -137,20 +130,20 @@ export default function DistrictAnnouncementsPage() {
         {!loading && announcements.length > 0 && <SearchBox value={searchQuery} onChange={setSearchQuery} placeholder="Quick filter by title, status..." className="max-w-md" />}
         {loading && <div className="flex items-center justify-center py-20"><ListPageSkeleton /></div>}
         {!loading && announcements.length === 0 && (
-          <div className="flex flex-col items-center justify-center py-20 text-center"><FolderOpen className="h-12 w-12 text-muted-foreground mb-4" /><h3 className="text-lg font-semibold">No announcements found</h3></div>
+          <div className="flex flex-col items-center justify-center py-20 text-center"><FolderOpen className="h-12 w-12 text-muted-foreground mb-4" /><h3 className="row-h2">No announcements found</h3></div>
         )}
 
         {!loading && filteredAnnouncements.length > 0 && (
           <Card><CardContent className="p-0">
             <Table>
               <TableHeader>
-                <TableRow className="bg-primary hover:bg-primary">
-                  <TableHead className="w-12 text-base font-semibold">S.No.</TableHead>
-                  <TableHead className="text-base font-semibold">Title</TableHead>
-                  <TableHead className="text-base font-semibold">Publish Date & Time</TableHead>
-                  <TableHead className="text-base font-semibold">Expiry Date & Time</TableHead>
-                  <TableHead className="text-base font-semibold text-center">Banner</TableHead>
-                  <TableHead className="text-base font-semibold text-center">Status</TableHead>
+                <TableRow>
+                  <TableHead className="w-12">S.No.</TableHead>
+                  <TableHead>Title</TableHead>
+                  <TableHead>Publish Date & Time</TableHead>
+                  <TableHead>Expiry Date & Time</TableHead>
+                  <TableHead className="text-center">Banner</TableHead>
+                  <TableHead className="text-center">Status</TableHead>
                   {canManage && <TableHead className="w-12"></TableHead>}
                 </TableRow>
               </TableHeader>
@@ -162,11 +155,11 @@ export default function DistrictAnnouncementsPage() {
                     <TableCell>{formatDateTime(ann.publishDateTime)}</TableCell>
                     <TableCell>{formatDateTime(ann.expiryDateTime)}</TableCell>
                     <TableCell className="text-center"><BannerBadge value={ann.isDisplayOnBanner} /></TableCell>
-                    <TableCell className="text-center"><StatusBadge status={ann.status} /><SendStatusBadges item={ann} /></TableCell>
+                    <TableCell className="text-center"><PublishStatusBadge status={ann.status} /><SendStatusBadges item={ann} /></TableCell>
                     {canManage && (
                       <TableCell>
                         <DropdownMenu>
-                          <DropdownMenuTrigger asChild><Button variant="ghost" size="icon" className="h-8 w-8"><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger>
+                          <DropdownMenuTrigger asChild><Button aria-label="More actions" variant="ghost" size="icon" className="row-btn-sm"><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
                             {ann.status !== "Expired" && (
                               <DropdownMenuItem onClick={() => router.push(`/districts/${districtId}/announcements/${ann.id}/edit`)}><Pencil className="mr-2 h-4 w-4" />Edit</DropdownMenuItem>

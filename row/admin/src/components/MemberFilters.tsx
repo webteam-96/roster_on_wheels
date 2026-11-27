@@ -38,20 +38,20 @@ export default function MemberFilters({
   const hasFilters = search || bloodGroup || gender;
 
   return (
-    <div className="flex flex-col gap-4 sm:flex-row sm:items-center bg-primary/5 p-4 rounded-lg border border-primary/20">
+    <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
       <div className="relative flex-1">
         <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-primary" />
         <Input
           placeholder="Search members..."
           value={search}
           onChange={(e) => onSearchChange(e.target.value)}
-          className="pl-9 border-primary/30 focus:border-primary text-base"
+          className="pl-9"
         />
       </div>
       <div className="flex flex-wrap items-center gap-2">
         {showBloodGroup && (
           <Select value={bloodGroup} onValueChange={onBloodGroupChange}>
-            <SelectTrigger className="w-[140px]">
+            <SelectTrigger className="w-[140px]" aria-label="Blood Group">
               <SelectValue placeholder="Blood Group" />
             </SelectTrigger>
             <SelectContent>
@@ -65,7 +65,7 @@ export default function MemberFilters({
         )}
 
         <Select value={gender} onValueChange={onGenderChange}>
-          <SelectTrigger className="w-[120px]">
+          <SelectTrigger className="w-[120px]" aria-label="Gender">
             <SelectValue placeholder="Gender" />
           </SelectTrigger>
           <SelectContent>
@@ -94,17 +94,17 @@ export default function MemberFilters({
 
         <div className="flex items-center rounded-md border ml-auto">
           <Button
-            variant={viewMode === "grid" ? "default" : "ghost"}
+            variant={viewMode === "grid" ? "default" : "ghost"} aria-pressed={viewMode === "grid"} aria-label="Grid view"
             size="icon"
-            className="h-9 w-9 rounded-r-none"
+            className="rounded-r-none"
             onClick={() => onViewModeChange("grid")}
           >
             <LayoutGrid className="h-4 w-4" />
           </Button>
           <Button
-            variant={viewMode === "table" ? "default" : "ghost"}
+            variant={viewMode === "table" ? "default" : "ghost"} aria-pressed={viewMode === "table"} aria-label="Table view"
             size="icon"
-            className="h-9 w-9 rounded-l-none"
+            className="rounded-l-none"
             onClick={() => onViewModeChange("table")}
           >
             <List className="h-4 w-4" />

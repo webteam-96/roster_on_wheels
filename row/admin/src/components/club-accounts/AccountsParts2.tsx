@@ -2,6 +2,8 @@
 
 /** Club Admin Dashboard › Accounts, second package (gap agent 2026-11-20): payees, bank reconciliation, dues owed by age. */
 
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table"
+import { NativeSelect } from "@/components/ui/native-select";
 import { useEffect, useRef, useState } from "react";
 import { FileUp, Loader2, Plus, Save, Undo2 } from "@/components/icons";
 import { Button } from "@/components/ui/button";
@@ -18,9 +20,9 @@ import {
 } from "@/services/api";
 import { ExportButtons, errorText } from "./AccountsParts";
 
-const SELECT = "h-10 w-full rounded-md border border-input bg-background px-3 text-sm";
+const SELECT = "row-field w-full";
 const TH = "p-3 font-medium";
-const HEAD = "bg-[#EDF4FB] text-[13px] text-[#64748B]";
+const HEAD = "bg-muted text-[13px] text-muted-foreground";
 const day = (iso: string) => iso.slice(0, 10);
 
 type Callbacks = { onError: (m: string) => void };
@@ -68,7 +70,7 @@ export function VendorsTab({ clubId, vendors, onChanged, onError }: { clubId: nu
     <div className="space-y-4">
       <div className="flex justify-between gap-3">
         <p className="text-sm text-muted-foreground">People and businesses the club pays. Choose a payee when you record money out, and print a voucher for it.</p>
-        {editing === null && <Button className="gap-1.5" onClick={() => open(null)}><Plus className="h-4 w-4" /> Add payee</Button>}
+        {editing === null && <Button onClick={() => open(null)}><Plus className="h-4 w-4" /> Add payee</Button>}
       </div>
       {editing !== null && (
         <Card><CardContent className="p-5">
@@ -82,7 +84,7 @@ export function VendorsTab({ clubId, vendors, onChanged, onError }: { clubId: nu
               <input type="checkbox" checked={form.isActive} onChange={(e) => setForm({ ...form, isActive: e.target.checked })} /> In use
             </label>
             <div className="flex gap-2 md:col-span-6">
-              <Button type="submit" disabled={busy || !form.name.trim()} className="gap-1.5">{busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />} Save</Button>
+              <Button type="submit" disabled={busy || !form.name.trim()}>{busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />} Save</Button>
               <Button type="button" variant="outline" onClick={() => setEditing(null)}>Cancel</Button>
             </div>
           </form>
@@ -92,21 +94,21 @@ export function VendorsTab({ clubId, vendors, onChanged, onError }: { clubId: nu
         <Card><CardContent className="p-5 text-sm text-muted-foreground">No payees yet.</CardContent></Card>
       ) : (
         <Card><CardContent className="overflow-x-auto p-0">
-          <table className="w-full min-w-[640px] text-sm">
-            <thead className={HEAD}>
-              <tr className="border-b text-left"><th className={TH}>Payee</th><th className={TH}>Contact</th><th className={`${TH} text-right`}>Paid this Rotary year</th><th className={TH}><span className="sr-only">Actions</span></th></tr>
-            </thead>
-            <tbody>
+          <Table className="w-full min-w-[640px] text-sm">
+            <TableHeader className={HEAD}>
+              <TableRow className="border-b"><TableHead className={TH}>Payee</TableHead><TableHead className={TH}>Contact</TableHead><TableHead className={`${TH} text-right`}>Paid this Rotary year</TableHead><TableHead className={TH}><span className="sr-only">Actions</span></TableHead></TableRow>
+            </TableHeader>
+            <TableBody>
               {vendors.map((v) => (
-                <tr key={v.id} className={`border-b last:border-0 ${v.isActive ? "" : "text-muted-foreground"}`}>
-                  <td className="p-3">{v.name}{!v.isActive && <span className="text-xs"> (not in use)</span>}</td>
-                  <td className="p-3">{[v.email, v.phone].filter(Boolean).join(", ")}</td>
-                  <td className="p-3 text-right tabular-nums">{fmt.money(v.paidThisYear)}</td>
-                  <td className="p-3 text-right"><Button size="sm" variant="outline" onClick={() => open(v)}>Edit</Button></td>
-                </tr>
+                <TableRow key={v.id} className={`border-b last:border-0 ${v.isActive ? "" : "text-muted-foreground"}`}>
+                  <TableCell className="p-3">{v.name}{!v.isActive && <span className="text-xs"> (not in use)</span>}</TableCell>
+                  <TableCell className="p-3">{[v.email, v.phone].filter(Boolean).join(", ")}</TableCell>
+                  <TableCell className="p-3 text-right tabular-nums">{fmt.money(v.paidThisYear)}</TableCell>
+                  <TableCell className="p-3 text-right"><Button size="sm" variant="outline" onClick={() => open(v)}>Edit</Button></TableCell>
+                </TableRow>
               ))}
-            </tbody>
-          </table>
+            </TableBody>
+          </Table>
         </CardContent></Card>
       )}
     </div>
@@ -175,13 +177,13 @@ export function ReconcileTab({ clubId, accounts, onError }: { clubId: number; ac
       <div className="flex flex-wrap items-end gap-3">
         <div className="min-w-[14rem] space-y-1.5">
           <Label htmlFor="r-acct">Bank account</Label>
-          <select id="r-acct" className={SELECT} value={accountId ?? ""} onChange={(e) => setAccountId(Number(e.target.value))}>
+          <NativeSelect id="r-acct"  value={accountId ?? ""} onChange={(e) => setAccountId(Number(e.target.value))}>
             {banks.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
-          </select>
+          </NativeSelect>
         </div>
         <div className="ml-auto flex flex-wrap gap-2">
           <input ref={fileRef} type="file" accept=".csv,text/csv" className="sr-only" id="r-file" onChange={(e) => upload(e.target.files?.[0])} />
-          <Button variant="outline" className="gap-1.5" disabled={!!busy} onClick={() => fileRef.current?.click()}>
+          <Button variant="outline" disabled={!!busy} onClick={() => fileRef.current?.click()}>
             {busy === "import" ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileUp className="h-4 w-4" />} Import statement CSV
           </Button>
           <Button disabled={!!busy || !data} onClick={() => accountId && run("auto", async () => `${(await autoMatchStatement(clubId, accountId)).matched} lines matched.`)}>
@@ -215,7 +217,7 @@ export function ReconcileTab({ clubId, accounts, onError }: { clubId: number; ac
           </section>
 
           <Card><CardContent className="space-y-3 p-5">
-            <h3 className="text-lg font-semibold">Add a statement line</h3>
+            <h3 className="row-h2">Add a statement line</h3>
             <form className="grid gap-3 md:grid-cols-6" onSubmit={(e) => {
               e.preventDefault();
               if (signed === null || !accountId) return;
@@ -228,44 +230,44 @@ export function ReconcileTab({ clubId, accounts, onError }: { clubId: number; ac
               <div className="space-y-1.5"><Label htmlFor="s-date">Date</Label><Input id="s-date" type="date" required value={line.date} onChange={(e) => setLine({ ...line, date: e.target.value })} /></div>
               <div className="space-y-1.5 md:col-span-3"><Label htmlFor="s-desc">Description</Label><Input id="s-desc" required maxLength={255} value={line.description} onChange={(e) => setLine({ ...line, description: e.target.value })} /></div>
               <div className="space-y-1.5"><Label htmlFor="s-amt">Amount (minus for money out)</Label><Input id="s-amt" inputMode="decimal" required value={line.amount} aria-invalid={line.amount !== "" && signed === null} onChange={(e) => setLine({ ...line, amount: e.target.value })} /></div>
-              <div className="flex items-end"><Button type="submit" className="w-full gap-1.5" disabled={!!busy || signed === null || !line.description.trim()}><Plus className="h-4 w-4" /> Add</Button></div>
+              <div className="flex items-end"><Button type="submit" className="w-full" disabled={!!busy || signed === null || !line.description.trim()}><Plus className="h-4 w-4" /> Add</Button></div>
             </form>
           </CardContent></Card>
 
           <section className="space-y-2">
-            <h3 className="text-lg font-semibold">Statement</h3>
+            <h3 className="row-h2">Statement</h3>
             {data.statement.length === 0 ? (
               <Card><CardContent className="p-5 text-sm text-muted-foreground">No statement lines yet. Import the bank's CSV or add lines by hand.</CardContent></Card>
             ) : (
               <Card><CardContent className="overflow-x-auto p-0">
-                <table className="w-full min-w-[820px] text-sm">
-                  <thead className={HEAD}>
-                    <tr className="border-b text-left"><th className={TH}>Date</th><th className={TH}>Description</th><th className={`${TH} text-right`}>Amount</th><th className={TH}>Matched to</th><th className={TH}><span className="sr-only">Actions</span></th></tr>
-                  </thead>
-                  <tbody>
+                <Table className="w-full min-w-[820px] text-sm">
+                  <TableHeader className={HEAD}>
+                    <TableRow className="border-b"><TableHead className={TH}>Date</TableHead><TableHead className={TH}>Description</TableHead><TableHead className={`${TH} text-right`}>Amount</TableHead><TableHead className={TH}>Matched to</TableHead><TableHead className={TH}><span className="sr-only">Actions</span></TableHead></TableRow>
+                  </TableHeader>
+                  <TableBody>
                     {data.statement.map((s) => {
                       const candidates = data.unmatchedBook.filter((b) => b.amount === s.amount);
                       return (
-                        <tr key={s.id} className="border-b align-top last:border-0">
-                          <td className="whitespace-nowrap p-3">{fmt.date(day(s.lineDate))}</td>
-                          <td className="p-3">{s.description}</td>
-                          <td className="p-3 text-right tabular-nums">{fmt.money(s.amount)}</td>
-                          <td className="p-3">
+                        <TableRow key={s.id} className="border-b align-top last:border-0">
+                          <TableCell className="whitespace-nowrap p-3">{fmt.date(day(s.lineDate))}</TableCell>
+                          <TableCell className="p-3">{s.description}</TableCell>
+                          <TableCell className="p-3 text-right tabular-nums">{fmt.money(s.amount)}</TableCell>
+                          <TableCell className="p-3">
                             {s.journalLineId ? (
                               <span>Entry {s.journalEntryId}: {s.journalMemo}</span>
                             ) : candidates.length === 0 ? (
                               <span className="text-muted-foreground">No book entry with this amount yet</span>
                             ) : (
-                              <select aria-label={`Book entry for ${s.description}`} className={SELECT} value={picking[s.id] ?? ""}
+                              <NativeSelect aria-label={`Book entry for ${s.description}`}  value={picking[s.id] ?? ""}
                                 onChange={(e) => setPicking({ ...picking, [s.id]: Number(e.target.value) || "" })}>
                                 <option value="">Choose a book entry</option>
                                 {candidates.map((b) => <option key={b.journalLineId} value={b.journalLineId}>{day(b.entryDate)} entry {b.entryId}: {b.memo}</option>)}
-                              </select>
+                              </NativeSelect>
                             )}
-                          </td>
-                          <td className="space-x-1.5 whitespace-nowrap p-3 text-right">
+                          </TableCell>
+                          <TableCell className="space-x-1.5 whitespace-nowrap p-3 text-right">
                             {s.journalLineId ? (
-                              <Button size="sm" variant="outline" className="gap-1.5" disabled={!!busy} onClick={() => run(`u${s.id}`, async () => { await unmatchStatementLine(clubId, s.id); })}>
+                              <Button size="sm" variant="outline" disabled={!!busy} onClick={() => run(`u${s.id}`, async () => { await unmatchStatementLine(clubId, s.id); })}>
                                 <Undo2 className="h-4 w-4" /> Undo
                               </Button>
                             ) : (
@@ -274,34 +276,34 @@ export function ReconcileTab({ clubId, accounts, onError }: { clubId: number; ac
                                 <Button size="sm" variant="outline" disabled={!!busy} onClick={() => run(`d${s.id}`, async () => { await deleteStatementLine(clubId, s.id); })}>Remove</Button>
                               </>
                             )}
-                          </td>
-                        </tr>
+                          </TableCell>
+                        </TableRow>
                       );
                     })}
-                  </tbody>
-                </table>
+                  </TableBody>
+                </Table>
               </CardContent></Card>
             )}
           </section>
 
           <section className="space-y-2">
-            <h3 className="text-lg font-semibold">In the books, not yet on a statement</h3>
+            <h3 className="row-h2">In the books, not yet on a statement</h3>
             {data.unmatchedBook.length === 0 ? (
               <Card><CardContent className="p-5 text-sm text-muted-foreground">Every book entry on this account is reconciled.</CardContent></Card>
             ) : (
               <Card><CardContent className="overflow-x-auto p-0">
-                <table className="w-full min-w-[560px] text-sm">
-                  <thead className={HEAD}><tr className="border-b text-left"><th className={TH}>Date</th><th className={TH}>Entry</th><th className={`${TH} text-right`}>Amount</th></tr></thead>
-                  <tbody>
+                <Table className="w-full min-w-[560px] text-sm">
+                  <TableHeader className={HEAD}><TableRow className="border-b"><TableHead className={TH}>Date</TableHead><TableHead className={TH}>Entry</TableHead><TableHead className={`${TH} text-right`}>Amount</TableHead></TableRow></TableHeader>
+                  <TableBody>
                     {data.unmatchedBook.map((b) => (
-                      <tr key={b.journalLineId} className="border-b last:border-0">
-                        <td className="p-3">{fmt.date(day(b.entryDate))}</td>
-                        <td className="p-3">Entry {b.entryId}: {b.memo}{b.reference ? `, ref. ${b.reference}` : ""}</td>
-                        <td className="p-3 text-right tabular-nums">{fmt.money(b.amount)}</td>
-                      </tr>
+                      <TableRow key={b.journalLineId} className="border-b last:border-0">
+                        <TableCell className="p-3">{fmt.date(day(b.entryDate))}</TableCell>
+                        <TableCell className="p-3">Entry {b.entryId}: {b.memo}{b.reference ? `, ref. ${b.reference}` : ""}</TableCell>
+                        <TableCell className="p-3 text-right tabular-nums">{fmt.money(b.amount)}</TableCell>
+                      </TableRow>
                     ))}
-                  </tbody>
-                </table>
+                  </TableBody>
+                </Table>
               </CardContent></Card>
             )}
           </section>
@@ -334,21 +336,21 @@ export function AgedBalances({ clubId, today, onError }: { clubId: number; today
         <Card><CardContent className="p-5 text-sm text-muted-foreground">No member owes dues on this date.</CardContent></Card>
       ) : (
         <Card><CardContent className="overflow-x-auto p-0">
-          <table className="w-full min-w-[760px] text-sm">
-            <thead className={HEAD}>
-              <tr className="border-b text-left"><th className={TH}>Member</th>{cols.map(([, label]) => <th key={label} className={`${TH} text-right`}>{label}</th>)}</tr>
-            </thead>
-            <tbody>
+          <Table className="w-full min-w-[760px] text-sm">
+            <TableHeader className={HEAD}>
+              <TableRow className="border-b"><TableHead className={TH}>Member</TableHead>{cols.map(([, label]) => <TableHead key={label} className={`${TH} text-right`}>{label}</TableHead>)}</TableRow>
+            </TableHeader>
+            <TableBody>
               {[...data.rows, data.totals].map((r) => (
-                <tr key={r.memberId} className={`border-b last:border-0 ${r.memberId === 0 ? "font-semibold" : ""}`}>
-                  <td className="p-3" title={r.items.map((i) => `${i.item}: ${fmt.money(i.amount)}`).join("\n")}>{r.memberName}</td>
+                <TableRow key={r.memberId} className={`border-b last:border-0 ${r.memberId === 0 ? "font-semibold" : ""}`}>
+                  <TableCell className="p-3" title={r.items.map((i) => `${i.item}: ${fmt.money(i.amount)}`).join("\n")}>{r.memberName}</TableCell>
                   {cols.map(([key]) => (
-                    <td key={key} className={`p-3 text-right tabular-nums ${key === "over90" && r.over90 > 0 ? "text-destructive" : ""}`}>{r[key] ? fmt.money(r[key]) : ""}</td>
+                    <TableCell key={key} className={`p-3 text-right tabular-nums ${key === "over90" && r.over90 > 0 ? "text-destructive" : ""}`}>{r[key] ? fmt.money(r[key]) : ""}</TableCell>
                   ))}
-                </tr>
+                </TableRow>
               ))}
-            </tbody>
-          </table>
+            </TableBody>
+          </Table>
         </CardContent></Card>
       )}
     </div>

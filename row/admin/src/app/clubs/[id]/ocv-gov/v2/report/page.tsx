@@ -11,13 +11,13 @@
  * `?returnTo=` honored on the back arrow; defaults to /clubs/[id]/ocv-gov/v2.
  */
 
+import { IconButton } from "@/components/ui/icon-button";
+import { Button } from "@/components/ui/button";
+import { NativeSelect } from "@/components/ui/native-select";
+import { Card } from "@/components/ui/card";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useParams, useSearchParams } from "next/navigation";
-import Link from "next/link";
-import {
-  ArrowLeft, Calendar, Download, Eye, FileSpreadsheet, FileText, Loader2,
-  CheckCircle2, AlertCircle, BarChart3,
-} from "@/components/icons";
+import { Calendar, Download, Eye, FileSpreadsheet, FileText, CheckCircle2, AlertCircle, BarChart3 } from "@/components/icons";
 import {
   getClub, getTrfYears, getOcvReport, downloadOcvDocumentBlob,
   downloadOcvReportWord, downloadOcvReportExcel,
@@ -32,8 +32,9 @@ import ErrorAlert from "@/components/ErrorAlert";
 import ClubAdminShell from "@/components/v2/ClubAdminShell";
 import { useSyncClubIdFromUrl } from "@/hooks/useSyncClubIdFromUrl";
 import { useFeatureLoadedOn } from "@/components/FeatureGate";
-import { SkeletonRows } from "@/components/row/AppKit";
+import { PageHeader, SkeletonRows } from "@/components/row/AppKit";
 
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
 export default function OcvReportV2Page() {
@@ -281,23 +282,7 @@ export default function OcvReportV2Page() {
       >
       <div className="space-y-5">
         {/* Header */}
-        <div className="flex items-start justify-between gap-3 flex-wrap">
-          <div className="flex items-start gap-2 min-w-0">
-            <Link
-              href={backHref}
-              className="mt-0.5 inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50"
-              aria-label="Back"
-            >
-              <ArrowLeft size={15} />
-            </Link>
-            <div className="min-w-0">
-              <h1 className="text-lg font-semibold text-slate-800 leading-tight">OCV Report</h1>
-              <p className="text-xs text-slate-500 mt-0.5">
-                {clubName || "–"} · Document compliance overview
-              </p>
-            </div>
-          </div>
-        </div>
+        <PageHeader title="OCV Report" description={<>{clubName || "–"} · Document compliance overview</>} back={backHref} />
 
         {/* KPI tiles */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -332,85 +317,85 @@ export default function OcvReportV2Page() {
         </div>
 
         {/* Filters strip */}
-        <div className="bg-card rounded-2xl border border-slate-200 p-4">
+        <Card className="p-5">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
             {/* Year */}
             <div className="space-y-1">
               <label className="text-xs font-medium text-slate-600">Rotary Year</label>
               <div className="relative">
                 <Calendar size={13} className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
-                <select
+                <NativeSelect
                   value={selectedYearId ?? ""}
                   onChange={(e) => setSelectedYearId(e.target.value ? Number(e.target.value) : null)}
-                  className="w-full pl-7 pr-3 h-10 py-0 text-sm border border-slate-200 rounded-[12px] bg-card focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                  className="pl-7 pr-3"
                 >
                   {years.length === 0 && <option value="">No years</option>}
                   {years.map((y) => (
                     <option key={y.id} value={y.id}>{y.yearLabel}{y.isCurrent ? " · current" : ""}</option>
                   ))}
-                </select>
+                </NativeSelect>
               </div>
             </div>
 
             {/* Module */}
             <div className="space-y-1">
               <label className="text-xs font-medium text-slate-600">Particulars</label>
-              <select
+              <NativeSelect
                 value={categoryFilter}
                 onChange={(e) => setCategoryFilter(e.target.value)}
-                className="w-full px-2 h-10 py-0 text-sm border border-slate-200 rounded-[12px] bg-card focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                
               >
                 <option value="all">All Particulars</option>
                 {categories.map((c) => (
                   <option key={c} value={c}>{c}</option>
                 ))}
-              </select>
+              </NativeSelect>
             </div>
 
             {/* Status */}
             <div className="space-y-1">
               <label className="text-xs font-medium text-slate-600">Status</label>
-              <select
+              <NativeSelect
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
-                className="w-full px-2 h-10 py-0 text-sm border border-slate-200 rounded-[12px] bg-card focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                
               >
                 <option value="all">All</option>
                 <option value="yes">Uploaded</option>
                 <option value="no">Not Uploaded</option>
-              </select>
+              </NativeSelect>
             </div>
 
             {/* Download all */}
             <div className="space-y-1">
               <label className="text-xs font-medium text-transparent select-none">.</label>
               <div className="flex flex-col gap-1.5">
-                <button
+                <Button
                   type="button"
                   onClick={handleExcelDownload}
                   disabled={!selectedYearId || anyDownload}
                   title="Full OCV checklist with document download links (matches the official OCV Excel)"
-                  className="w-full inline-flex items-center justify-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full border border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 disabled:opacity-50"
+                  variant="outline" size="sm" className="w-full"
                 >
                   {downloadingExcel || progress?.kind === "excel" ? btnProgress("excel") : (
                     <>
                       <FileSpreadsheet size={13} /> Download All as Excel
                     </>
                   )}
-                </button>
-                <button
+                </Button>
+                <Button
                   type="button"
                   onClick={handleWordDownload}
                   disabled={!selectedYearId || anyDownload}
                   title="Documents, photos and live module data in one Word file"
-                  className="w-full inline-flex items-center justify-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full border border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100 disabled:opacity-50"
+                  variant="outline" size="sm" className="w-full"
                 >
                   {downloadingWord || progress?.kind === "word" ? btnProgress("word") : (
                     <>
                       <FileText size={13} /> Download in Word Document
                     </>
                   )}
-                </button>
+                </Button>
               </div>
             </div>
           </div>
@@ -434,7 +419,7 @@ export default function OcvReportV2Page() {
               </div>
             </div>
           )}
-        </div>
+        </Card>
 
         {/* Loading */}
         {isLoading && (
@@ -443,11 +428,11 @@ export default function OcvReportV2Page() {
 
         {/* Empty */}
         {!isLoading && filteredItems.length === 0 && (
-          <div className="bg-card rounded-2xl border border-slate-200 p-10 text-center">
+          <Card className="p-10 text-center">
             <Calendar size={28} className="mx-auto text-slate-300 mb-2" />
             <p className="text-sm font-semibold text-slate-700">No report data</p>
             <p className="text-xs text-slate-400 mt-1">No documents found for the selected filters.</p>
-          </div>
+          </Card>
         )}
 
         {/* Grouped tables */}
@@ -456,16 +441,16 @@ export default function OcvReportV2Page() {
           return grouped.map((group) => {
             const groupUploaded = group.items.filter((i) => i.isUploaded).length;
             return (
-              <div key={group.categoryName} className="bg-card rounded-2xl border border-slate-200 overflow-hidden">
+              <Card key={group.categoryName} className="overflow-hidden">
                 <div className="px-5 py-3 border-b border-slate-100 flex items-center justify-between">
-                  <h3 className="text-sm font-semibold text-slate-800">{group.categoryName}</h3>
-                  <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200 tabular-nums">
+                  <h3 className="row-h3">{group.categoryName}</h3>
+                  <span className="text-xs font-medium px-2 py-0.5 rounded bg-slate-100 text-slate-600 border border-slate-200 tabular-nums">
                     {groupUploaded}/{group.items.length} uploaded
                   </span>
                 </div>
                 <div className="overflow-x-auto">
                   {/* Fixed column widths - Status / File Name / Actions line up in every category table. */}
-                  <table className="w-full min-w-[720px] table-fixed text-sm">
+                  <Table className="min-w-[720px] table-fixed">
                     <colgroup>
                       <col className="w-14" />
                       <col />
@@ -473,67 +458,67 @@ export default function OcvReportV2Page() {
                       <col className="w-[30%]" />
                       <col className="w-32" />
                     </colgroup>
-                    <thead className="bg-[#EDF4FB] text-[13px] text-[#64748B]">
-                      <tr>
-                        <th className="px-3 py-2.5 text-left">Sr</th>
-                        <th className="px-3 py-2.5 text-left">Document Type</th>
-                        <th className="px-3 py-2.5 text-center">Status</th>
-                        <th className="px-3 py-2.5 text-left">File Name</th>
-                        <th className="px-3 py-2.5 text-right">Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100">
-                      {group.items.map((it) => {
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="text-left">Sr</TableHead>
+                        <TableHead className="text-left">Document Type</TableHead>
+                        <TableHead className="text-center">Status</TableHead>
+                        <TableHead className="text-left">File Name</TableHead>
+                        <TableHead className="text-right">Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {group.items.map((it, idx) => {
                         serial += 1;
                         return (
-                          <tr key={`${it.categoryId}-${it.typeId}`} className="hover:bg-blue-50/40">
-                            <td className="px-3 py-2 text-slate-500">{serial}</td>
-                            <td className="px-3 py-2 font-medium text-slate-800">{it.typeName}</td>
-                            <td className="px-3 py-2 text-center">
+                          <TableRow key={`${it.categoryId}-${it.typeId}-${it.documentId ?? idx}`}>
+                            <TableCell>{serial}</TableCell>
+                            <TableCell className="font-medium">{it.typeName}</TableCell>
+                            <TableCell className="text-center">
                               {it.isUploaded ? (
-                                <span className="inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full border bg-emerald-50 text-emerald-700 border-emerald-200">
+                                <span className="inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded border bg-emerald-50 text-emerald-700 border-emerald-200">
                                   <CheckCircle2 size={11} /> Uploaded
                                 </span>
                               ) : (
-                                <span className="inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full border bg-rose-50 text-rose-700 border-rose-200">
+                                <span className="inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded border bg-rose-50 text-rose-700 border-rose-200">
                                   <AlertCircle size={11} /> Pending
                                 </span>
                               )}
-                            </td>
-                            <td className="px-3 py-2 text-sm text-slate-600 truncate" title={it.originalFileName || ""}>
+                            </TableCell>
+                            <TableCell className="truncate" title={it.originalFileName || ""}>
                               {it.originalFileName || "–"}
-                            </td>
-                            <td className="px-3 py-2 text-right">
+                            </TableCell>
+                            <TableCell className="text-right">
                               {it.isUploaded && it.filePath ? (
                                 <div className="flex items-center justify-end gap-1">
-                                  <button
+                                  <IconButton
                                     type="button"
                                     onClick={() => handleView(it.filePath!)}
                                     title="View"
-                                    className="inline-flex items-center justify-center w-7 h-7 rounded text-slate-500 hover:text-blue-700 hover:bg-blue-50"
+                                    
                                   >
                                     <Eye size={13} />
-                                  </button>
-                                  <button
+                                  </IconButton>
+                                  <IconButton
                                     type="button"
                                     onClick={() => handleDownload(it)}
                                     title="Download"
-                                    className="inline-flex items-center justify-center w-7 h-7 rounded text-slate-500 hover:text-slate-700 hover:bg-slate-50"
+                                    
                                   >
                                     <Download size={13} />
-                                  </button>
+                                  </IconButton>
                                 </div>
                               ) : (
                                 <span className="text-slate-300 text-xs">–</span>
                               )}
-                            </td>
-                          </tr>
+                            </TableCell>
+                          </TableRow>
                         );
                       })}
-                    </tbody>
-                  </table>
+                    </TableBody>
+                  </Table>
                 </div>
-              </div>
+              </Card>
             );
           });
         })()}

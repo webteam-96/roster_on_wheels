@@ -28,22 +28,21 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
-import { ArrowLeft, Plus, Pencil, Trash2, Users, Search, X, Upload } from "@/components/icons";
+import { Plus, Pencil, Trash2, Users, Search, X, Upload } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import ProtectedRoute from "@/components/ProtectedRoute";
-import DistrictMembershipTabBar from "@/components/dashboard/DistrictMembershipTabBar";
 import ImageCropDialog from "@/components/ImageCropDialog";
 import { useImageCropUpload } from "@/hooks/useImageCropUpload";
-import { ListPageSkeleton } from "@/components/row/AppKit";
+import { PageHeader, ListPageSkeleton } from "@/components/row/AppKit";
 
 const PHOTO_ASPECT = 1;
 const PHOTO_MAX_OUTPUT = 500;
 
 function MemberChip() {
-  return <span className="inline-flex items-center rounded-full border border-emerald-200 bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-700">Member</span>;
+  return <span className="inline-flex items-center rounded border border-emerald-200 bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-700">Member</span>;
 }
 function NonMemberChip() {
-  return <span className="inline-flex items-center rounded-full border border-slate-300 bg-slate-200 px-2 py-0.5 text-xs font-medium text-slate-700">Non-Member</span>;
+  return <span className="inline-flex items-center rounded border border-slate-300 bg-slate-200 px-2 py-0.5 text-xs font-medium text-slate-700">Non-Member</span>;
 }
 
 type StagedMember = {
@@ -236,16 +235,7 @@ export default function DistrictAdminDashboardSubGroupAddPage() {
       )}
 
       <div className="space-y-6">
-        <DistrictMembershipTabBar />
-        <div className="flex items-center gap-3">
-          <Button variant="outline" size="icon" onClick={goBack} className="border-slate-200 bg-card hover:bg-slate-50 text-slate-700">
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
-          <div>
-            <h2 className="text-2xl font-bold tracking-tight text-ink">Add Sub Group</h2>
-            <p className="text-slate-600 text-sm">{groupName ? `Under ${groupName}: ` : ""}Create a sub-group and add at least one member</p>
-          </div>
-        </div>
+        <PageHeader title="Add Sub Group" description={<>{groupName ? `Under ${groupName}: ` : ""}Create a sub-group and add at least one member</>} back={() => goBack()} />
 
         {loading && <div className="flex items-center justify-center py-20"><ListPageSkeleton /></div>}
 
@@ -256,23 +246,23 @@ export default function DistrictAdminDashboardSubGroupAddPage() {
                 <div className="space-y-2 max-w-md">
                   <Label className="text-slate-500 text-xs font-semibold uppercase tracking-wide">Sub-Group Name *</Label>
                   <Input value={subGroupName} onChange={(e) => setSubGroupName(e.target.value)} placeholder="Enter sub-group name"
-                    className="border-slate-200 bg-card focus:border-azure focus:ring-azure/20" />
+                    />
                 </div>
               </CardContent>
             </Card>
 
             <div className="space-y-3">
               <div className="flex flex-wrap items-center justify-between gap-3">
-                <h3 className="text-lg font-semibold text-ink flex items-center gap-2">
+                <h3 className="row-h2 flex items-center gap-2">
                   <Users className="h-5 w-5" />Members <span className="text-slate-400 font-normal">({staged.length})</span>
                 </h3>
-                <Button onClick={openAddMemberDialog} className="bg-azure hover:bg-mint-ink text-white">
+                <Button onClick={openAddMemberDialog}>
                   <Plus className="mr-2 h-4 w-4" />Add Member
                 </Button>
               </div>
 
               {staged.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-14 text-center rounded-2xl border border-dashed border-slate-300 bg-card">
+                <div className="row-rise flex flex-col items-center justify-center py-14 text-center rounded-2xl border border-dashed border-slate-300 bg-card">
                   <Users className="h-10 w-10 text-slate-400 mb-3" />
                   <p className="text-slate-700 font-medium">At least one member is required</p>
                   <p className="text-slate-500 text-sm mt-1">Click &quot;Add Member&quot; to add the first member of this sub-group.</p>
@@ -330,9 +320,9 @@ export default function DistrictAdminDashboardSubGroupAddPage() {
             </div>
 
             <div className="flex flex-wrap items-center justify-end gap-2 pt-2">
-              <Button variant="outline" onClick={goBack} disabled={saving} className="border-slate-200 text-slate-700 hover:bg-slate-50">Cancel</Button>
+              <Button variant="outline" onClick={goBack} disabled={saving}>Cancel</Button>
               <Button onClick={handleSave} disabled={saving || !subGroupName.trim() || staged.length === 0}
-                className="bg-azure hover:bg-mint-ink text-white">
+               >
                 {saving ? "Saving..." : "Save Sub Group"}
               </Button>
             </div>

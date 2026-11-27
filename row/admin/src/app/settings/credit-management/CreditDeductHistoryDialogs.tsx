@@ -1,4 +1,5 @@
 "use client";
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
 
 // Settings > Wallet > Offline (user 2026-11-16):
 //   • Deduct  - Super Admin takes credits off one pack for usage outside ROW (e.g. emails the support
@@ -7,6 +8,7 @@
 //               support-team entry and online purchase on its own line, the ROW sends between them added up
 //               into one line, running balance; .xlsx download (Tally + Details).
 
+import { Textarea } from "@/components/ui/textarea";
 import { useEffect, useState } from "react";
 import XLSX from "xlsx-js-style";
 import { saveAs } from "file-saver";
@@ -72,9 +74,9 @@ export function DeductCreditDialog({ item, onClose, onDone, onError }: {
           </div>
           <div className="space-y-1.5">
             <Label>Reason <span className="text-destructive">*</span></Label>
-            <textarea value={reason} onChange={(e) => setReason(e.target.value)} rows={3} maxLength={450}
+            <Textarea value={reason} onChange={(e) => setReason(e.target.value)} rows={3} maxLength={450}
               placeholder="e.g. 901 emails sent by the support team through a third-party app"
-              className="w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring" />
+               />
           </div>
         </div>
         <DialogFooter>
@@ -152,34 +154,34 @@ export function CreditHistoryDialog({ creditId, onClose }: { creditId: number | 
             {box(data.balance === data.activeCredited - data.activeUsed ? "Balance (matches Current ✓)" : `Balance (Current shows ${n(data.activeCredited - data.activeUsed)})`, n(data.balance))}
           </div>
         )}
-        <div className="flex-1 min-h-0 overflow-auto">
+        <div className="flex-1 min-h-0 overflow-hidden [&>div]:h-full">
           {error ? <p className="text-sm text-destructive py-6 text-center">{error}</p>
             : !data ? <p className="text-sm text-muted-foreground py-6 text-center"><Loader2 className="inline h-4 w-4 animate-spin mr-1" /> Loading…</p>
             : data.tally.length === 0 ? <p className="text-sm text-muted-foreground py-6 text-center">No history yet.</p>
             : (
-              <table className="w-full text-sm">
-                <thead className="sticky top-0 bg-background">
-                  <tr className="text-left text-xs text-muted-foreground border-b">
-                    <th className="py-2 pr-3">Date</th><th className="pr-3">Who</th><th className="pr-3">What</th>
-                    <th className="pr-3 text-right">Count</th><th className="pr-3 text-right">Balance after</th><th>Details</th>
-                  </tr>
-                </thead>
-                <tbody>
+              <Table className="w-full text-sm">
+                <TableHeader className="sticky top-0">
+                  <TableRow className="border-b">
+                    <TableHead className="pr-3">Date</TableHead><TableHead className="pr-3">Who</TableHead><TableHead className="pr-3">What</TableHead>
+                    <TableHead className="pr-3 text-right">Count</TableHead><TableHead className="pr-3 text-right">Balance after</TableHead><TableHead>Details</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
                   {data.tally.map((e, i) => (
-                    <tr key={i} className={`border-b align-top ${e.group === "ROW" ? "" : "bg-muted/40"}`}>
-                      <td className="py-2 pr-3 whitespace-nowrap">{period(e)}</td>
-                      <td className="pr-3 whitespace-nowrap">
+                    <TableRow key={i} className={`border-b align-top ${e.group === "ROW" ? "" : "bg-muted/40"}`}>
+                      <TableCell className="py-2 pr-3 whitespace-nowrap">{period(e)}</TableCell>
+                      <TableCell className="pr-3 whitespace-nowrap">
                         <Badge className={e.group === "ROW" ? "bg-slate-600 hover:bg-slate-600" : e.group === "Expired" ? "bg-amber-600 hover:bg-amber-600"
                           : e.count >= 0 ? "bg-emerald-600 hover:bg-emerald-600" : "bg-rose-600 hover:bg-rose-600"}>{who2(e)}</Badge>
-                      </td>
-                      <td className="pr-3">{e.source}{e.lines > 1 && <span className="text-xs text-muted-foreground"> ({n(e.lines)} entries)</span>}</td>
-                      <td className={`pr-3 text-right tabular-nums font-semibold ${e.count >= 0 ? "text-emerald-700" : "text-rose-700"}`}>{signed(e.count)}</td>
-                      <td className="pr-3 text-right tabular-nums font-semibold">{e.balanceAfter != null ? n(e.balanceAfter) : ""}</td>
-                      <td className="text-xs text-muted-foreground break-words">{e.detail}</td>
-                    </tr>
+                      </TableCell>
+                      <TableCell className="pr-3">{e.source}{e.lines > 1 && <span className="text-xs text-muted-foreground"> ({n(e.lines)} entries)</span>}</TableCell>
+                      <TableCell className={`pr-3 text-right tabular-nums font-semibold ${e.count >= 0 ? "text-emerald-700" : "text-rose-700"}`}>{signed(e.count)}</TableCell>
+                      <TableCell className="pr-3 text-right tabular-nums font-semibold">{e.balanceAfter != null ? n(e.balanceAfter) : ""}</TableCell>
+                      <TableCell className="text-xs text-muted-foreground break-words">{e.detail}</TableCell>
+                    </TableRow>
                   ))}
-                </tbody>
-              </table>
+                </TableBody>
+              </Table>
             )}
         </div>
         <DialogFooter>

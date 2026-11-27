@@ -1,5 +1,7 @@
 "use client";
 
+import { IconButton } from "@/components/ui/icon-button";
+import { NativeSelect } from "@/components/ui/native-select";
 import { useEffect, useMemo, useState } from "react";
 import { useFeature } from "@/contexts/BrandContext";
 import DateField from "@/components/DateField";
@@ -86,28 +88,28 @@ function ClubList({ rows, setRows, title, onShift, shiftDir }: {
         {rows.map((c, i) => (
           <div key={c.fkClubId} className={`flex items-center gap-2 rounded border px-2 py-1 text-xs ${c.removed ? "opacity-40 line-through" : "bg-card"}`}>
             {onShift && shiftDir === "left" && (
-              <button type="button" title="Move to Member A" className="text-slate-400 hover:text-blue-600 shrink-0" onClick={() => onShift(i)}>
+              <IconButton type="button" title="Move to Member A" aria-label="Move to Member A" className="h-6 w-6" onClick={() => onShift(i)}>
                 <ArrowLeft className="h-3.5 w-3.5" />
-              </button>
+              </IconButton>
             )}
             <span className="flex-1 truncate">{c.clubName}{c.districtNumber ? ` · ${c.districtNumber}` : ""}</span>
             <label className="flex items-center gap-1 shrink-0" title="Joining date (edit to correct)">
               <span className="text-muted-foreground">Joined</span>
-              <DateField value={dateVal(c.joinedDate)} disabled={c.removed} onChange={(v: string) => setRows((r) => r.map((x, j) => j === i ? { ...x, joinedDate: v || null } : x))} className="h-6 rounded border px-1 text-[11px]" />
+              <DateField value={dateVal(c.joinedDate)} disabled={c.removed} onChange={(v: string) => setRows((r) => r.map((x, j) => j === i ? { ...x, joinedDate: v || null } : x))} className="row-field row-field-sm" />
             </label>
             <label className="flex items-center gap-1 shrink-0" title="Honorary member">
               <input type="checkbox" checked={c.isHonorary} disabled={c.removed}
                 onChange={(e) => setRows((r) => r.map((x, j) => j === i ? { ...x, isHonorary: e.target.checked } : x))} />
               Hon.
             </label>
-            <button type="button" className="text-rose-500 hover:text-rose-700 shrink-0"
+            <IconButton type="button" className="h-6 w-6" aria-label={c.removed ? "Keep" : "Remove"}
               onClick={() => setRows((r) => r.map((x, j) => j === i ? { ...x, removed: !x.removed } : x))}>
               {c.removed ? <Plus className="h-3.5 w-3.5" /> : <X className="h-3.5 w-3.5" />}
-            </button>
+            </IconButton>
             {onShift && shiftDir === "right" && (
-              <button type="button" title="Move to Member B" className="text-slate-400 hover:text-blue-600 shrink-0" onClick={() => onShift(i)}>
+              <IconButton type="button" title="Move to Member B" aria-label="Move to Member B" className="h-6 w-6" onClick={() => onShift(i)}>
                 <ArrowRight className="h-3.5 w-3.5" />
-              </button>
+              </IconButton>
             )}
           </div>
         ))}
@@ -125,12 +127,12 @@ function RoleChips({ roles, onShift, shiftDir }: {
       {roles.map((r, i) => (
         <Badge key={i} variant="outline" className={`gap-1 ${ROLE_COLORS[r.source] || "border-slate-200"}`}>
           {onShift && shiftDir === "left" && (
-            <button type="button" title="Move to Member A" className="hover:text-blue-600" onClick={() => onShift(i)}><ArrowLeft className="h-3 w-3" /></button>
+            <IconButton type="button" title="Move to Member A" aria-label="Move to Member A" className="h-4 w-4 text-current hover:bg-transparent" onClick={() => onShift(i)}><ArrowLeft className="h-3 w-3" /></IconButton>
           )}
           <span className="font-semibold">{r.source}</span>
           <span className="opacity-80">{r.label || "–"}{r.context ? ` · ${r.context}` : ""}{r.year ? ` · ${r.year}` : ""}</span>
           {onShift && shiftDir === "right" && (
-            <button type="button" title="Move to Member B" className="hover:text-blue-600" onClick={() => onShift(i)}><ArrowRight className="h-3 w-3" /></button>
+            <IconButton type="button" title="Move to Member B" aria-label="Move to Member B" className="h-4 w-4 text-current hover:bg-transparent" onClick={() => onShift(i)}><ArrowRight className="h-3 w-3" /></IconButton>
           )}
         </Badge>
       ))}
@@ -149,7 +151,7 @@ function FamilyList({ family, onShift, shiftDir }: {
       {family.map((f, i) => (
         <div key={i} className="flex items-center gap-2 rounded border bg-card px-2 py-1 text-xs">
           {onShift && shiftDir === "left" && (
-            <button type="button" title="Move to Member A" className="text-slate-400 hover:text-blue-600 shrink-0" onClick={() => onShift(i)}><ArrowLeft className="h-3.5 w-3.5" /></button>
+            <IconButton type="button" title="Move to Member A" aria-label="Move to Member A" className="h-6 w-6" onClick={() => onShift(i)}><ArrowLeft className="h-3.5 w-3.5" /></IconButton>
           )}
           <div className="flex-1 min-w-0">
             <div className="truncate font-medium">{f.name || "–"}{f.relation ? <span className="text-muted-foreground font-normal"> · {f.relation}</span> : null}</div>
@@ -158,7 +160,7 @@ function FamilyList({ family, onShift, shiftDir }: {
             </div>
           </div>
           {onShift && shiftDir === "right" && (
-            <button type="button" title="Move to Member B" className="text-slate-400 hover:text-blue-600 shrink-0" onClick={() => onShift(i)}><ArrowRight className="h-3.5 w-3.5" /></button>
+            <IconButton type="button" title="Move to Member B" aria-label="Move to Member B" className="h-6 w-6" onClick={() => onShift(i)}><ArrowRight className="h-3.5 w-3.5" /></IconButton>
           )}
         </div>
       ))}
@@ -374,16 +376,16 @@ export default function MergeDialog({ pair, onClose, onResolved }: { pair: DupPa
       <div className="rounded-lg border p-3 space-y-2">
         <div className="text-sm font-semibold text-slate-700">Add a club to the surviving member</div>
         <div className="flex flex-wrap items-center gap-2">
-          <select className="h-9 rounded-md border px-2 text-sm" value={pickDistrict}
+          <NativeSelect className="w-auto" value={pickDistrict}
             onChange={(e) => onPickDistrict(e.target.value ? Number(e.target.value) : "")}>
             <option value="">Select district…</option>
             {districts.map((d) => <option key={d.id} value={d.id}>{d.districtNumber}</option>)}
-          </select>
-          <select className="h-9 rounded-md border px-2 text-sm min-w-[220px]" value={pickClub} disabled={!pickDistrict}
+          </NativeSelect>
+          <NativeSelect className="min-w-[220px] w-auto" value={pickClub} disabled={!pickDistrict}
             onChange={(e) => setPickClub(e.target.value ? Number(e.target.value) : "")}>
             <option value="">Select club…</option>
             {pickClubs.map((c) => <option key={c.id} value={c.id}>{c.clubName}</option>)}
-          </select>
+          </NativeSelect>
           <Button type="button" size="sm" variant="outline" onClick={addClub} disabled={!pickClub}>
             <Plus className="h-4 w-4 mr-1" /> Add
           </Button>
@@ -441,10 +443,10 @@ export default function MergeDialog({ pair, onClose, onResolved }: { pair: DupPa
                           className={`h-8 text-sm ${f.readOnly ? "bg-slate-50" : ""} ${!same ? "border-amber-300" : ""}`} />
                       </div>
                       <div className="flex flex-col gap-1 pt-3">
-                        <button type="button" title="Copy A → B" onClick={() => shift("A", k)}
-                          className="rounded p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-700"><ArrowRight className="h-3.5 w-3.5" /></button>
-                        <button type="button" title="Copy B → A" onClick={() => shift("B", k)}
-                          className="rounded p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-700"><ArrowLeft className="h-3.5 w-3.5" /></button>
+                        <IconButton type="button" title="Copy A → B" onClick={() => shift("A", k)}
+                          ><ArrowRight className="h-3.5 w-3.5" /></IconButton>
+                        <IconButton type="button" title="Copy B → A" onClick={() => shift("B", k)}
+                          ><ArrowLeft className="h-3.5 w-3.5" /></IconButton>
                       </div>
                       <div>
                         <div className="text-[10px] uppercase tracking-wide text-muted-foreground">{f.label}</div>
@@ -496,10 +498,10 @@ export default function MergeDialog({ pair, onClose, onResolved }: { pair: DupPa
             {/* Actions */}
             <div className="flex flex-wrap items-center justify-end gap-2 border-t pt-4">
               <Button variant="outline" onClick={onClose} disabled={saving}>Cancel</Button>
-              <Button variant="outline" onClick={doDismiss} disabled={saving} className="border-slate-300">
+              <Button variant="outline" onClick={doDismiss} disabled={saving}>
                 <Users className="h-4 w-4 mr-1" /> Save &amp; Keep Both
               </Button>
-              <Button onClick={doResolve} disabled={saving} className="bg-green-600 hover:bg-green-700">
+              <Button onClick={doResolve} disabled={saving}>
                 {saving ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <ShieldCheck className="h-4 w-4 mr-1" />}
                 Save
               </Button>

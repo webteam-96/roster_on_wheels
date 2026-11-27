@@ -16,14 +16,13 @@
  * v2 reads ONLY `?returnTo=` — never any other param name.
  */
 
+import { IconButton } from "@/components/ui/icon-button";
+import { Input } from "@/components/ui/input";
+import { Card } from "@/components/ui/card";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useParams, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import {
-  ArrowLeft, AlertTriangle, ChevronDown, ChevronRight, Edit3, ExternalLink, Eye, EyeOff,
-  GripVertical, Layers, List, Loader2, Pencil, Plus, PlusCircle, Search,
-  Shield, Star, Trash2, TrendingUp,
-} from "@/components/icons";
+import { AlertTriangle, ChevronDown, ChevronRight, Edit3, ExternalLink, Eye, EyeOff, GripVertical, Layers, List, Pencil, Plus, PlusCircle, Search, Shield, Star, Trash2, TrendingUp } from "@/components/icons";
 import {
   deleteClubMenu, deleteClubSubMenu, getClub, getClubMenus, getClubSubMenus,
   reorderMenusBulk, reorderSubMenusBulk, setClubMenuActive, updateClubMenu, updateClubSubMenu,
@@ -42,8 +41,10 @@ import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
 import ClubAdminShell from "@/components/v2/ClubAdminShell";
 import { useSyncClubIdFromUrl } from "@/hooks/useSyncClubIdFromUrl";
-import { SkeletonRows } from "@/components/row/AppKit";
+import { PageHeader, SkeletonRows } from "@/components/row/AppKit";
 
+import { LinkButton } from "@/components/ui/text-buttons"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 function getLinkTypeLabel(value: string): string {
   return LINK_TYPES.find((t) => t.value === value)?.label || value;
 }
@@ -341,23 +342,7 @@ export default function MenuListV2Page() {
       >
       <div className="space-y-5">
         {/* Header */}
-        <div className="flex items-start justify-between gap-3">
-          <div className="flex items-start gap-2">
-            <Link
-              href={backHref}
-              className="mt-0.5 inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50"
-              aria-label="Back"
-            >
-              <ArrowLeft size={15} />
-            </Link>
-            <div>
-              <h1 className="text-lg font-semibold text-slate-800">Menu List</h1>
-              <p className="text-xs text-slate-500 mt-0.5">
-                Website navigation · {clubName || "–"}
-              </p>
-            </div>
-          </div>
-        </div>
+        <PageHeader title="Menu List" description={<>Website navigation · {clubName || "–"}</>} back={backHref} />
 
         {/* KPI row */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -368,10 +353,10 @@ export default function MenuListV2Page() {
         </div>
 
         {/* Table card */}
-        <div className="bg-card rounded-2xl border border-slate-200 overflow-hidden">
+        <Card className="overflow-hidden">
           <div className="px-5 py-3 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div>
-              <h3 className="text-sm font-semibold text-slate-800">Navigation Menus</h3>
+              <h3 className="row-h3">Navigation Menus</h3>
               <p className="text-xs text-slate-500 mt-0.5">
                 {defaultMenus} default menu{defaultMenus === 1 ? "" : "s"} auto-seeded ·{" "}
                 {customMenuCount >= 1
@@ -382,12 +367,12 @@ export default function MenuListV2Page() {
             <div className="flex flex-wrap items-center gap-2">
               <div className="relative w-full sm:w-auto">
                 <Search size={14} className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-400" />
-                <input
+                <Input
                   type="text"
                   placeholder="Search menus…"
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  className="pl-7 pr-3 h-10 py-0 text-sm border border-slate-200 rounded-[12px] w-full sm:w-48 focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-ink"
+                  className="pl-7 pr-3 sm:w-48"
                 />
               </div>
               {canManage && (
@@ -415,21 +400,21 @@ export default function MenuListV2Page() {
             {loading || loadingRecords ? (
               <SkeletonRows />
             ) : (
-              <table className="w-full min-w-[640px] md:min-w-full text-sm">
-                <thead className="bg-cream-2 text-[13px] text-ink-soft">
-                  <tr>
-                    <th className="px-3 py-2.5 text-left w-10">Sr</th>
-                    <th className="px-3 py-2.5 text-left">Menu Name</th>
-                    <th className="px-3 py-2.5 text-left w-32">Link Type</th>
-                    <th className="px-3 py-2.5 text-left w-24">Status</th>
-                    <th className="px-3 py-2.5 text-left w-24">Sub-Menus</th>
-                    {canManage && <th className="px-3 py-2.5 text-right w-16">Visibility</th>}
-                    {canManage && <th className="px-3 py-2.5 text-right w-16">Edit</th>}
-                    {canManage && <th className="px-3 py-2.5 text-right w-16">Delete</th>}
-                    {canManage && <th className="px-3 py-2.5 text-center w-16">Sort</th>}
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
+              <Table className="min-w-[640px] md:min-w-full">
+                <TableHeader className="text-ink-soft">
+                  <TableRow>
+                    <TableHead className="text-left w-10">Sr</TableHead>
+                    <TableHead className="text-left">Menu Name</TableHead>
+                    <TableHead className="text-left w-32">Link Type</TableHead>
+                    <TableHead className="text-left w-24">Status</TableHead>
+                    <TableHead className="text-left w-24">Sub-Menus</TableHead>
+                    {canManage && <TableHead className="text-right w-16">Visibility</TableHead>}
+                    {canManage && <TableHead className="text-right w-16">Edit</TableHead>}
+                    {canManage && <TableHead className="text-right w-16">Delete</TableHead>}
+                    {canManage && <TableHead className="text-center w-16">Sort</TableHead>}
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
                   {filteredMenus.map((menu, i) => {
                     const isExpanded = expandedMenuIds.has(menu.id);
                     const subs = subMenusMap[menu.id] || [];
@@ -462,21 +447,21 @@ export default function MenuListV2Page() {
                     );
                   })}
                   {filteredMenus.length === 0 && (
-                    <tr>
-                      <td colSpan={canManage ? 9 : 5} className="px-4 py-10 text-center text-slate-400">
+                    <TableRow>
+                      <TableCell colSpan={canManage ? 9 : 5} className="py-10 text-center text-muted-foreground">
                         {isSearching ? "No menus match your search." : "No menus configured."}
-                      </td>
-                    </tr>
+                      </TableCell>
+                    </TableRow>
                   )}
-                </tbody>
-              </table>
+                </TableBody>
+              </Table>
             )}
           </div>
 
           <div className="px-5 py-2.5 border-t border-slate-100 text-xs text-slate-500">
             {filteredMenus.length} menu{filteredMenus.length === 1 ? "" : "s"} · {customMenuCount}/1 custom · {defaultMenus} default
           </div>
-        </div>
+        </Card>
 
         {/* Delete confirm */}
         <AlertModal
@@ -554,23 +539,21 @@ function Row(props: RowProps) {
       <tr className="hover:bg-blue-50/40" {...dragProps}>
         <td className="px-3 py-2 text-slate-500">{i + 1}</td>
         <td className="px-3 py-2">
-          <button
+          <LinkButton
             type="button"
-            onClick={onToggleExpand}
-            className="inline-flex items-center gap-2 font-medium text-slate-800 hover:text-blue-700"
-          >
+            onClick={onToggleExpand}>
             {isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
             <span>{menu.menuName}</span>
             {menu.isDefault && (
-              <span className="inline-flex items-center text-[10px] font-medium px-1.5 py-0.5 rounded-full border bg-slate-50 text-slate-600 border-slate-200">
+              <span className="inline-flex items-center text-[10px] font-medium px-1.5 py-0.5 rounded border bg-slate-50 text-slate-600 border-slate-200">
                 Default
               </span>
             )}
-          </button>
+          </LinkButton>
         </td>
         <td className="px-3 py-2">
           <div className="inline-flex items-center gap-1.5">
-            <span className={`inline-flex items-center text-xs font-medium px-2 py-0.5 rounded-full border ${linkTypeChipStyle(menu.linkType)}`}>
+            <span className={`inline-flex items-center text-xs font-medium px-2 py-0.5 rounded border ${linkTypeChipStyle(menu.linkType)}`}>
               {getLinkTypeLabel(menu.linkType)}
             </span>
             {/* View-uploaded-content button — only when the linkValue can be
@@ -593,7 +576,7 @@ function Row(props: RowProps) {
           </div>
         </td>
         <td className="px-3 py-2">
-          <span className={`inline-flex items-center text-xs font-medium px-2 py-0.5 rounded-full border ${
+          <span className={`inline-flex items-center text-xs font-medium px-2 py-0.5 rounded border ${
             menu.isActive ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-slate-50 text-slate-500 border-slate-200"
           }`}>
             {menu.isActive ? "Active" : "Inactive"}
@@ -601,15 +584,14 @@ function Row(props: RowProps) {
         </td>
         <td className="px-3 py-2 text-slate-600">
           {menu.subMenuCount > 0 ? (
-            <button
+            <LinkButton
               type="button"
               onClick={onToggleExpand}
               title="View / manage sub-menus"
-              className="inline-flex items-center gap-1 text-xs font-medium text-slate-600 hover:text-blue-700"
-            >
+              tone="muted" size="sm">
               <Layers className="h-3.5 w-3.5 text-slate-400" />{menu.subMenuCount}
               {isExpanded ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
-            </button>
+            </LinkButton>
           ) : canManage ? (
             <Link
               href={addSubHref}
@@ -627,15 +609,13 @@ function Row(props: RowProps) {
             {isHomeMenu(menu) ? (
               <span className="text-slate-300 text-xs" title="Home menu is always active">–</span>
             ) : (
-            <button
+            <IconButton
               type="button"
               onClick={onToggleActive}
-              className="inline-flex items-center justify-center w-7 h-7 rounded text-slate-500 hover:text-blue-700 hover:bg-blue-50"
-              aria-label={menu.isActive ? "Deactivate menu" : "Activate menu"}
-              title={menu.isActive ? "Deactivate" : "Activate"}
-            >
+               aria-label={menu.isActive ? "Deactivate menu" : "Activate menu"}
+              title={menu.isActive ? "Deactivate" : "Activate"}>
               {menu.isActive ? <EyeOff size={13} /> : <Eye size={13} />}
-            </button>
+            </IconButton>
             )}
           </td>
         )}
@@ -646,7 +626,7 @@ function Row(props: RowProps) {
             ) : (
             <Link
               href={editHref}
-              className="inline-flex items-center justify-center w-7 h-7 rounded text-slate-500 hover:text-blue-700 hover:bg-blue-50"
+              className="row-icon-btn"
               aria-label="Edit menu"
               title="Edit"
             >
@@ -658,15 +638,15 @@ function Row(props: RowProps) {
         {canManage && (
           <td className="px-3 py-2 text-right">
             {!menu.isDefault ? (
-              <button
+              <IconButton
                 type="button"
                 onClick={onDeleteMenu}
-                className="inline-flex items-center justify-center w-7 h-7 rounded text-slate-400 hover:text-rose-700 hover:bg-rose-50"
+                className="hover:text-red-700"
                 aria-label="Delete menu"
                 title="Delete"
               >
                 <Trash2 size={13} />
-              </button>
+              </IconButton>
             ) : (
               <span className="text-slate-300 text-xs" title="Default menus cannot be deleted">–</span>
             )}
@@ -696,7 +676,7 @@ function Row(props: RowProps) {
               {canManage && (
                 <Link
                   href={addSubHref}
-                  className="inline-flex items-center gap-1 text-xs font-medium px-2 py-1 rounded border border-slate-200 text-slate-700 hover:bg-card"
+                  className="row-btn row-btn-secondary row-btn-sm"
                 >
                   <PlusCircle size={12} /> Add Sub-Menu
                 </Link>
@@ -713,29 +693,29 @@ function Row(props: RowProps) {
               {canManage && (
                 <Link
                   href={addSubHref}
-                  className="inline-flex items-center gap-1 text-xs font-medium px-2 py-1 rounded border border-slate-200 text-slate-700 hover:bg-card"
+                  className="row-btn row-btn-secondary row-btn-sm"
                 >
                   <PlusCircle size={12} /> Add Sub-Menu
                 </Link>
               )}
             </div>
-            <div className="overflow-hidden rounded-lg border border-slate-200 bg-card">
-              <table className="min-w-full text-xs">
-                <tbody className="divide-y divide-slate-100">
+            <Card className="overflow-hidden">
+              <Table className="min-w-full text-xs">
+                <TableBody>
                   {subs.filter(s => (s.subMenuName ?? "").trim() !== "").map((sub, si) => (
-                    <tr key={sub.id} className="hover:bg-blue-50/30" {...(canManage ? subDragProps(sub.menuId, si) : {})}>
-                      <td className="px-3 py-2 w-6 text-slate-400">{si + 1}</td>
-                      <td className="px-3 py-2 font-medium text-slate-700">
+                    <TableRow key={sub.id} {...(canManage ? subDragProps(sub.menuId, si) : {})}>
+                      <TableCell className="w-6">{si + 1}</TableCell>
+                      <TableCell className="font-medium">
                         <span className="text-slate-300 mr-1">└</span>{sub.subMenuName}
                         {sub.isSystemManaged && (
-                          <span className="ml-2 inline-flex items-center text-[10px] font-medium px-1.5 py-0.5 rounded-full border bg-slate-50 text-slate-700 border-slate-200">
+                          <span className="ml-2 inline-flex items-center text-[10px] font-medium px-1.5 py-0.5 rounded border bg-slate-50 text-slate-700 border-slate-200">
                             System
                           </span>
                         )}
-                      </td>
-                      <td className="px-3 py-2 w-32">
+                      </TableCell>
+                      <TableCell className="w-32">
                         <div className="inline-flex items-center gap-1.5">
-                          <span className={`inline-flex items-center text-xs font-medium px-2 py-0.5 rounded-full border ${linkTypeChipStyle(sub.linkType)}`}>
+                          <span className={`inline-flex items-center text-xs font-medium px-2 py-0.5 rounded border ${linkTypeChipStyle(sub.linkType)}`}>
                             {getLinkTypeLabel(sub.linkType)}
                           </span>
                           {/* Same view-uploaded-content button as the parent menu row */}
@@ -754,29 +734,27 @@ function Row(props: RowProps) {
                             ) : null;
                           })()}
                         </div>
-                      </td>
-                      <td className="px-3 py-2 w-24">
-                        <span className={`inline-flex items-center text-xs font-medium px-2 py-0.5 rounded-full border ${
+                      </TableCell>
+                      <TableCell className="w-24">
+                        <span className={`inline-flex items-center text-xs font-medium px-2 py-0.5 rounded border ${
                           sub.isActive ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-slate-50 text-slate-500 border-slate-200"
                         }`}>
                           {sub.isActive ? "Active" : "Inactive"}
                         </span>
-                      </td>
+                      </TableCell>
                       {canManage && (
-                        <td className="px-3 py-2 w-16 text-right">
-                          <button
+                        <TableCell className="w-16 text-right">
+                          <IconButton
                             type="button"
                             onClick={() => onToggleSubActive(sub)}
-                            className="inline-flex items-center justify-center w-7 h-7 rounded text-slate-500 hover:text-blue-700 hover:bg-blue-50"
-                            aria-label={sub.isActive ? "Deactivate sub-menu" : "Activate sub-menu"}
-                            title={sub.isActive ? "Deactivate" : "Activate"}
-                          >
+                             aria-label={sub.isActive ? "Deactivate sub-menu" : "Activate sub-menu"}
+                            title={sub.isActive ? "Deactivate" : "Activate"}>
                             {sub.isActive ? <EyeOff size={13} /> : <Eye size={13} />}
-                          </button>
-                        </td>
+                          </IconButton>
+                        </TableCell>
                       )}
                       {canManage && (
-                        <td className="px-3 py-2 w-16 text-right">
+                        <TableCell className="w-16 text-right">
                           <Link
                             href={`?editSub=${sub.id}&parentMenu=${sub.menuId}`}
                             scroll={false}
@@ -785,37 +763,37 @@ function Row(props: RowProps) {
                               e.preventDefault();
                               window.location.href = `${window.location.pathname.replace(/\/v2$/, "/v2")}/${sub.menuId}/edit?returnTo=${returnTo}&editSub=${sub.id}`;
                             }}
-                            className="inline-flex items-center justify-center w-7 h-7 rounded text-slate-500 hover:text-blue-700 hover:bg-blue-50"
+                            className="row-icon-btn"
                             aria-label="Edit sub-menu"
                             title="Edit"
                           >
                             <Pencil size={13} />
                           </Link>
-                        </td>
+                        </TableCell>
                       )}
                       {canManage && (
-                        <td className="px-3 py-2 w-16 text-right">
-                          <button
+                        <TableCell className="w-16 text-right">
+                          <IconButton
                             type="button"
                             onClick={() => onDeleteSub(sub)}
-                            className="inline-flex items-center justify-center w-7 h-7 rounded text-slate-400 hover:text-rose-700 hover:bg-rose-50"
+                            className="hover:text-red-700"
                             aria-label="Delete sub-menu"
                             title="Delete"
                           >
                             <Trash2 size={13} />
-                          </button>
-                        </td>
+                          </IconButton>
+                        </TableCell>
                       )}
                       {canManage && (
-                        <td className="px-3 py-2 w-12 text-center">
+                        <TableCell className="w-12 text-center">
                           <GripVertical className="h-4 w-4 inline-block text-slate-400 cursor-grab" />
-                        </td>
+                        </TableCell>
                       )}
-                    </tr>
+                    </TableRow>
                   ))}
-                </tbody>
-              </table>
-            </div>
+                </TableBody>
+              </Table>
+            </Card>
           </td>
         </tr>
       )}

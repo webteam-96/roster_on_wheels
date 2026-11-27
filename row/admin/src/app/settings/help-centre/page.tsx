@@ -3,6 +3,8 @@
 // Settings > Help centre (competitor gap 2026-11-19): Super Admin writes the public help articles shown on the ROW
 // website (/help), in the app's Help screen and behind the admin's contextual Help link.
 
+import { NativeSelect } from "@/components/ui/native-select";
+import { PageHeader } from "@/components/row/AppKit";
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
@@ -12,7 +14,7 @@ import { Input } from "@/components/ui/input";
 import { TableSkeleton } from "@/components/dashboard/DashboardSkeleton";
 import ErrorAlert from "@/components/ErrorAlert";
 import AlertModal from "@/components/AlertModal";
-import { AlertTriangle, ArrowLeft, Plus, Pencil, Trash2 } from "@/components/icons";
+import { AlertTriangle, Plus, Pencil, Trash2 } from "@/components/icons";
 import { useFormat } from "@/hooks/useFormat";
 import {
   deleteHelpArticle, deleteHelpCategory, getHelpArticles, getHelpCategories, saveHelpCategory,
@@ -65,28 +67,20 @@ export default function HelpCentreSettingsPage() {
   return (
     <ProtectedRoute>
       <div className="space-y-8">
-        <div className="flex items-center gap-3">
-          <Button variant="outline" size="icon" asChild aria-label="Back to settings"><Link href="/settings"><ArrowLeft className="h-4 w-4" /></Link></Button>
-          <div>
-            <h2 className="text-2xl font-bold tracking-tight text-primary">Help centre</h2>
-            <p className="text-base text-muted-foreground">
-              Articles for the public help pages, the app&apos;s Help screen and the Help link on admin pages. Only published articles are shown.
-            </p>
-          </div>
-        </div>
+        <PageHeader title="Help centre" description={<>Articles for the public help pages, the app&apos;s Help screen and the Help link on admin pages. Only published articles are shown.</>} back="/settings" />
 
         <section className="space-y-3" aria-labelledby="help-articles">
           <div className="flex flex-wrap items-end justify-between gap-3">
-            <h3 id="help-articles" className="text-lg font-semibold">Articles</h3>
+            <h3 id="help-articles" className="row-h2">Articles</h3>
             <Button asChild><Link href="/settings/help-centre/new"><Plus className="mr-2 h-4 w-4" />New article</Link></Button>
           </div>
           <div className="flex flex-col gap-2 sm:flex-row">
             <Input aria-label="Search articles" placeholder="Search by title, address or keyword" value={q} maxLength={200} onChange={(e) => setQ(e.target.value)} />
-            <select aria-label="Status" className="h-9 rounded-md border border-input bg-background px-2 text-sm" value={status} onChange={(e) => setStatus(e.target.value)}>
+            <NativeSelect aria-label="Status" className="w-auto" value={status} onChange={(e) => setStatus(e.target.value)}>
               <option value="">All</option>
               <option value="published">Published</option>
               <option value="draft">Drafts</option>
-            </select>
+            </NativeSelect>
           </div>
           {articles === null ? <TableSkeleton rows={6} /> : articles.length === 0 ? (
             <p className="rounded-lg border p-6 text-muted-foreground">{q || status ? "No articles match." : "No articles yet. Write the first one."}</p>
@@ -123,7 +117,7 @@ export default function HelpCentreSettingsPage() {
 
         <section className="space-y-3" aria-labelledby="help-categories">
           <div className="flex flex-wrap items-end justify-between gap-3">
-            <h3 id="help-categories" className="text-lg font-semibold">Categories</h3>
+            <h3 id="help-categories" className="row-h2">Categories</h3>
             <Button variant="outline" onClick={() => setDraft(EMPTY_CATEGORY)}><Plus className="mr-2 h-4 w-4" />New category</Button>
           </div>
           {draft && (

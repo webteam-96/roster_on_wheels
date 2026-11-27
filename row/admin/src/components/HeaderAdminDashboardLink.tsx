@@ -7,6 +7,7 @@
 // the floating bottom-left "Back to Admin Dashboard" button — is the way back. A pure SuperAdmin has
 // no operational dashboard, so nothing renders.
 
+import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
 import { useAuth, decodeJwt } from "@/contexts/AuthContext";
 import { resolveDashboardLanding, type DashboardEntry } from "@/services/api";
@@ -69,15 +70,15 @@ export default function HeaderAdminDashboardLink() {
   };
 
   return (
-    <button
+    <Button
       type="button"
       onClick={goBack}
       title={`Back to ${label}${scopeName}`}
-      className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-semibold bg-white/20 text-primary-foreground hover:bg-white/30 transition"
+      variant="outline" size="sm"
     >
       <LayoutDashboard className="h-4 w-4" />
       <span className="hidden sm:inline">Back to {label}{scopeName}</span>
       <span className="sm:hidden">Dashboard</span>
-    </button>
+    </Button>
   );
 }

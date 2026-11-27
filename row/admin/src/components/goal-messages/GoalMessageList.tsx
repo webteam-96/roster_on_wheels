@@ -24,7 +24,7 @@ function roleStyle(role: string): string {
 export function RoleChip({ role }: { role?: string | null }) {
   if (!role) return null;
   return (
-    <span title={role} className={`text-[10px] font-medium px-1.5 py-0.5 rounded-full border whitespace-nowrap ${roleStyle(role)}`}>
+    <span title={role} className={`text-[10px] font-medium px-1.5 py-0.5 rounded border whitespace-nowrap ${roleStyle(role)}`}>
       {shortRole(role)}
     </span>
   );
@@ -34,7 +34,7 @@ export function Chip({ children, tone = "slate" }: { children: React.ReactNode; 
   const cls = tone === "blue" ? "bg-blue-50 text-blue-700 border-blue-200"
     : tone === "green" ? "bg-emerald-50 text-emerald-700 border-emerald-200"
     : "bg-slate-100 text-slate-600 border-slate-200";
-  return <span className={`text-[10px] px-1.5 py-0.5 rounded-full border whitespace-nowrap ${cls}`}>{children}</span>;
+  return <span className={`text-[10px] px-1.5 py-0.5 rounded border whitespace-nowrap ${cls}`}>{children}</span>;
 }
 
 function parse(d: string | null): Date | null {

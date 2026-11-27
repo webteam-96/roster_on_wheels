@@ -8,6 +8,7 @@ import '../../../core/theme/app_colors.dart';
 import '../../providers/auth_provider.dart';
 import 'package:rotary_flutter_app/core/theme/app_fonts.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/motion.dart';
 
 // Module-level guard so only one dialog shows at a time.
 bool _dialogVisible = false;
@@ -61,7 +62,7 @@ Future<void> maybeShowRoleChangedDialog(BuildContext context) async {
   if (_dialogVisible) return;
   _dialogVisible = true;
 
-  await showDialog<void>(
+  await showRowDialog<void>(
     context: context,
     barrierDismissible: false,
     builder: (ctx) => PopScope(

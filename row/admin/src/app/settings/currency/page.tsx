@@ -1,4 +1,5 @@
 "use client";
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
 
 /**
  * SuperAdmin › Settings › Currency.
@@ -6,30 +7,68 @@
  * Sets each district's default currency (one the instance offers), pre-selected on the
  * currency dropdown when a club in that district adds a project, and overridable
  * per-project either way. A district without one uses the instance's default currency.
+ * Dashboards show a district's totals in this currency, converted at the day's rate;
+ * stored amounts are never changed.
  */
 
-import { useCallback, useEffect, useState } from "react";
-import { ArrowLeft, BadgeDollarSign, Check, Loader2, Search } from "@/components/icons";
-import Link from "next/link";
+import { NativeSelect } from "@/components/ui/native-select";
+import { Card } from "@/components/ui/card";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { Check, Globe, Loader2, Search } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import ErrorAlert from "@/components/ErrorAlert";
-import RotaryLoader from "@/components/RotaryLoader";
+import SuccessAlert from "@/components/SuccessAlert";
+import { PageHeader, SkeletonRows } from "@/components/row/AppKit";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter,
+  AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import Pagination from "@/components/Pagination";
 import { useAuth } from "@/contexts/AuthContext";
-import { getDistricts, updateDistrictDefaultCurrency } from "@/services/api";
+import { getCurrencyRates, getDistricts, setDistrictCurrenciesFromCountry, updateDistrictDefaultCurrency, type CurrencyRateInfo } from "@/services/api";
 import { currencyOptions } from "@/lib/currency";
 import { DistrictListItem } from "@/types/district";
 
-import { defaultCurrency } from "@/lib/appFormat";
+import { appFormat, defaultCurrency } from "@/lib/appFormat";
+const PAGE_SIZE = 25;
+
 export default function CurrencySettingsPage() {
   const { isSuperAdmin } = useAuth();
   const [rows, setRows] = useState<DistrictListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
   const [savingId, setSavingId] = useState<number | null>(null);
   const [savedId, setSavedId] = useState<number | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [rates, setRates] = useState<CurrencyRateInfo | null>(null);
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+  const [isApplying, setIsApplying] = useState(false);
+
+  useEffect(() => { getCurrencyRates().then(setRates).catch(() => setRates(null)); }, []);
+
+  const base = defaultCurrency();
+  const options = useMemo(() => currencyOptions(), []);
+  const currencyOf = (d: DistrictListItem) => (d.defaultCurrency || base).toUpperCase();
+  // Still on the platform default although the country has its own currency.
+  const toFix = rows.filter((d) => d.countryCurrency && currencyOf(d) === base && d.countryCurrency !== base);
+
+  const applyFromCountry = async () => {
+    setIsApplying(true);
+    try {
+      const { changed } = await setDistrictCurrenciesFromCountry();
+      setSuccessMessage(`${changed} districts now use their country's currency.`);
+      await load();
+    } catch (err: any) {
+      setErrorMessage(err?.response?.data?.message || "Could not set the currencies. Please try again.");
+    } finally {
+      setIsApplying(false);
+      setIsConfirmOpen(false);
+    }
+  };
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -65,7 +104,7 @@ export default function CurrencySettingsPage() {
     return (
       <ProtectedRoute>
         <div className="flex flex-col items-center justify-center py-20">
-          <h3 className="text-lg font-semibold">Access Denied</h3>
+          <h3 className="row-h2">Access Denied</h3>
           <p className="text-muted-foreground mt-2">Only SuperAdmin can access settings.</p>
         </div>
       </ProtectedRoute>
@@ -75,72 +114,104 @@ export default function CurrencySettingsPage() {
   return (
     <ProtectedRoute>
       <div className="space-y-6">
-        <div className="flex items-center gap-3">
-          <Button variant="outline" size="icon" asChild>
-            <Link href="/settings"><ArrowLeft className="h-4 w-4" /></Link>
-          </Button>
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary">
-              <BadgeDollarSign className="h-5 w-5" />
-            </div>
-            <div>
-              <h2 className="text-2xl font-bold tracking-tight text-primary">Currency</h2>
-              <p className="text-muted-foreground text-base">Set each district&apos;s default currency for project-add forms</p>
-            </div>
-          </div>
-        </div>
+        <PageHeader title="Currency" description={<>Set each district&apos;s default currency for project-add forms</>} back="/settings" />
 
-        <div className="relative max-w-sm">
-          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search district number…" className="pl-8" />
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="relative w-full max-w-sm">
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input value={search} onChange={(e) => { setSearch(e.target.value); setPage(1); }} placeholder="Search district number…" className="pl-8" />
+          </div>
+          {!search && toFix.length > 0 && (
+            <Button onClick={() => setIsConfirmOpen(true)} disabled={isApplying}>
+              <Globe className="mr-2 h-4 w-4" />Use country currency ({toFix.length})
+            </Button>
+          )}
+          {rates && (
+            <p className="ml-auto text-[13px] text-muted-foreground">
+              Exchange rates of {appFormat().date(rates.asOf)}{rates.isLive ? "" : " (live rates are not reachable)"}
+            </p>
+          )}
         </div>
 
         {loading ? (
-          <RotaryLoader />
+          <SkeletonRows rows={8} />
         ) : (
-          <div className="overflow-x-auto border rounded-lg bg-card">
-            <table className="w-full min-w-[640px] md:min-w-full text-sm">
-              <thead className="bg-[#EDF4FB] text-[13px] text-[#64748B]">
-                <tr>
-                  <th className="px-4 py-2.5 text-left">District</th>
-                  <th className="px-4 py-2.5 text-left">Zone</th>
-                  <th className="px-4 py-2.5 text-left">Country</th>
-                  <th className="px-4 py-2.5 text-left w-56">Default Currency</th>
-                  <th className="px-4 py-2.5 w-10"></th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {rows.map((d) => (
-                  <tr key={d.id} className="hover:bg-blue-50/40">
-                    <td className="px-4 py-2 font-medium text-slate-800 whitespace-nowrap">District {d.districtNumber}</td>
-                    <td className="px-4 py-2 text-slate-600 whitespace-nowrap">{d.zoneName || "–"}</td>
-                    <td className="px-4 py-2 text-slate-600 whitespace-nowrap">{d.country || "–"}</td>
-                    <td className="px-4 py-2">
-                      <select
-                        value={d.defaultCurrency || defaultCurrency()}
+          <Card className="overflow-x-auto">
+            <Table className="w-full min-w-[640px] md:min-w-full text-sm">
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="px-4 text-left">District</TableHead>
+                  <TableHead className="px-4 text-left">Zone</TableHead>
+                  <TableHead className="px-4 text-left">Country</TableHead>
+                  <TableHead className="px-4 text-left w-72">Default Currency</TableHead>
+                  <TableHead className="px-4 text-right whitespace-nowrap">1 {base} is</TableHead>
+                  <TableHead className="px-4 w-10"></TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody className="divide-y divide-slate-100">
+                {rows.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE).map((d) => (
+                  <TableRow key={d.id} className="hover:bg-blue-50/40">
+                    <TableCell className="px-4 py-2 font-medium text-slate-800 whitespace-nowrap">District {d.districtNumber}</TableCell>
+                    <TableCell className="px-4 py-2 text-slate-600 whitespace-nowrap">{d.zoneName || "–"}</TableCell>
+                    <TableCell className="px-4 py-2 text-slate-600 whitespace-nowrap">{d.country || "–"}</TableCell>
+                    <TableCell className="px-4 py-2">
+                      <NativeSelect
+                        aria-label={`Currency of district ${d.districtNumber}`}
+                        value={currencyOf(d)}
                         onChange={(e) => handleChange(d, e.target.value)}
                         disabled={savingId === d.id}
-                        className="w-full px-2.5 py-1.5 text-sm border border-slate-200 rounded-lg bg-card focus:outline-none focus:ring-2 focus:ring-primary/50 disabled:opacity-60"
+                        className="disabled:opacity-60"
                       >
-                        {currencyOptions().map((c) => (
+                        {/* A stored currency the list does not offer is still shown as what it is. */}
+                        {!options.some((c) => c.code === currencyOf(d)) && <option value={currencyOf(d)}>{currencyOf(d)}</option>}
+                        {options.map((c) => (
                           <option key={c.code} value={c.code}>{c.label}</option>
                         ))}
-                      </select>
-                    </td>
-                    <td className="px-4 py-2 text-right">
+                      </NativeSelect>
+                      {d.countryCurrency && d.countryCurrency !== currencyOf(d) && (
+                        <p className="mt-1 text-xs text-muted-foreground">{d.country} uses {d.countryCurrency}</p>
+                      )}
+                    </TableCell>
+                    <TableCell className="px-4 py-2 text-right tabular-nums text-slate-600 whitespace-nowrap">
+                      {rates?.rates[currencyOf(d)] ? `${(1 / rates.rates[currencyOf(d)]).toLocaleString(appFormat().locale, { maximumSignificantDigits: 6 })} ${currencyOf(d)}` : "–"}
+                    </TableCell>
+                    <TableCell className="px-4 py-2 text-right">
                       {savingId === d.id && <Loader2 className="h-4 w-4 animate-spin text-slate-400" />}
                       {savedId === d.id && <Check className="h-4 w-4 text-emerald-600" />}
-                    </td>
-                  </tr>
+                    </TableCell>
+                  </TableRow>
                 ))}
                 {rows.length === 0 && (
-                  <tr><td colSpan={5} className="px-4 py-10 text-center text-muted-foreground">No districts found.</td></tr>
+                  <TableRow><TableCell colSpan={6} className="px-4 py-10 text-center text-muted-foreground">No districts found.</TableCell></TableRow>
                 )}
-              </tbody>
-            </table>
-          </div>
+              </TableBody>
+            </Table>
+            {rows.length > PAGE_SIZE && (
+              <div className="border-t p-3">
+                <Pagination page={page} totalPages={Math.ceil(rows.length / PAGE_SIZE)} totalCount={rows.length} pageSize={PAGE_SIZE} onPageChange={setPage} />
+              </div>
+            )}
+          </Card>
         )}
 
+        <AlertDialog open={isConfirmOpen} onOpenChange={setIsConfirmOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Set {toFix.length} districts to their country&apos;s currency?</AlertDialogTitle>
+              <AlertDialogDescription>
+                Only districts still on {base} change; a currency someone chose stays. Stored amounts stay as they are.
+                Totals of these districts are then shown in their own currency, converted at the day&apos;s rate.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel disabled={isApplying}>Cancel</AlertDialogCancel>
+              <AlertDialogAction disabled={isApplying} onClick={(e) => { e.preventDefault(); applyFromCountry(); }}>
+                {isApplying ? "Saving…" : "Set currencies"}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+        <SuccessAlert open={!!successMessage} title="Saved" description={successMessage || ""} onOk={() => setSuccessMessage(null)} />
         <ErrorAlert open={!!errorMessage} title="Error" description={errorMessage || ""} onOk={() => setErrorMessage(null)} />
       </div>
     </ProtectedRoute>

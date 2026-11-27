@@ -11,6 +11,10 @@
  * v2 reads ONLY `?returnTo=` — never any other param name.
  */
 
+import FieldLabel from "@/components/form/FieldLabel";
+import { NativeSelect } from "@/components/ui/native-select";
+import { Input } from "@/components/ui/input";
+import SectionCard from "@/components/form/SectionCard";
 import { useEffect, useState } from "react";
 import { useParams, useSearchParams } from "next/navigation";
 import { Info, FileText, DollarSign, Calendar } from "@/components/icons";
@@ -33,33 +37,6 @@ import { useSyncClubIdFromUrl } from "@/hooks/useSyncClubIdFromUrl";
 import { ListPageSkeleton } from "@/components/row/AppKit";
 
 const TOP_MESSAGE = "Record a donor's contribution to The Rotary Foundation. Amounts are tracked in USD and roll up into the club's monthly report and the district / zone foundation totals.";
-
-function FieldLabel({ children, hint, dot, required = true }: { children: React.ReactNode; hint?: string; dot: string; required?: boolean }) {
-  return (
-    <div className="flex items-center gap-1.5 mb-1">
-      <span className={`w-1.5 h-1.5 rounded-full ${dot}`} />
-      <label className="text-xs font-semibold text-slate-700">
-        {children}{required && <span className="text-rose-600 ml-0.5">*</span>}
-        {hint && <span className="text-slate-400 font-normal ml-1">{hint}</span>}
-      </label>
-    </div>
-  );
-}
-
-function SectionCard({
-  number, icon: Icon, title, dot, children,
-}: { number: number; icon: React.ElementType; title: string; dot: string; children: React.ReactNode }) {
-  return (
-    <div className="rounded-xl border border-slate-200 overflow-hidden mb-4">
-      <div className="flex items-center gap-3 px-4 py-2.5 bg-slate-50 border-b border-slate-100">
-        <div className={`flex items-center justify-center h-7 w-7 rounded-full text-white text-xs font-bold ${dot}`}>{number}</div>
-        <Icon className="h-4 w-4 text-slate-500" />
-        <h3 className="text-sm font-semibold text-slate-800">{title}</h3>
-      </div>
-      <div className="p-4">{children}</div>
-    </div>
-  );
-}
 
 export default function TrfV2AddPage() {
   useSyncClubIdFromUrl();
@@ -238,29 +215,29 @@ export default function TrfV2AddPage() {
         }
       >
         {/* 1. Donor */}
-        <SectionCard number={1} icon={FileText} title="Donor Details" dot="bg-[#17458F]">
+        <SectionCard number={1} icon={FileText} title="Donor Details">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="sm:col-span-2">
-              <FieldLabel hint="(max 200 chars)" dot="bg-[#17458F]">Donor / Member Name</FieldLabel>
-              <input
+              <FieldLabel required hint="(max 200 chars)">Donor / Member Name</FieldLabel>
+              <Input
                 type="text"
                 value={donorName}
                 onChange={(e) => setDonorName(e.target.value)}
                 placeholder="Enter donor name"
                 maxLength={200}
-                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                
               />
               <p className="text-xs text-slate-400 text-right mt-0.5">{donorName.length}/200</p>
             </div>
             <div>
-              <FieldLabel dot="bg-[#17458F]">Date &amp; Time</FieldLabel>
-              <input
+              <FieldLabel required>Date &amp; Time</FieldLabel>
+              <Input
                 type="datetime-local"
                 value={trfDate}
                 min={lockedMinIso}
                 max={lockedMaxIso}
                 onChange={(e) => setTrfDate(e.target.value)}
-                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                
               />
               {isFromCmrMonth && lockedCalendarYear && lockedMonth && (
                 <p className="text-xs text-slate-500 mt-1">
@@ -275,11 +252,11 @@ export default function TrfV2AddPage() {
         </SectionCard>
 
         {/* 2. Fund */}
-        <SectionCard number={2} icon={Calendar} title="Fund Allocation" dot="bg-[#17458F]">
+        <SectionCard number={2} icon={Calendar} title="Fund Allocation">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <FieldLabel dot="bg-[#17458F]">Fund Type</FieldLabel>
-              <select
+              <FieldLabel required>Fund Type</FieldLabel>
+              <NativeSelect
                 value={fundId || ""}
                 onChange={(e) => {
                   const next = Number(e.target.value);
@@ -287,23 +264,23 @@ export default function TrfV2AddPage() {
                   const f = funds.find((x) => x.id === next);
                   if (f?.fundName !== "Others") setOtherFundName("");
                 }}
-                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] bg-card focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                
               >
                 <option value="">Select fund type</option>
                 {funds.map((f) => (
                   <option key={f.id} value={f.id}>{f.fundName}</option>
                 ))}
-              </select>
+              </NativeSelect>
             </div>
             {selectedFund?.fundName === "Others" && (
               <div>
-                <FieldLabel dot="bg-[#17458F]">Specify Fund Name</FieldLabel>
-                <input
+                <FieldLabel required>Specify Fund Name</FieldLabel>
+                <Input
                   type="text"
                   value={otherFundName}
                   onChange={(e) => setOtherFundName(e.target.value)}
                   placeholder="Enter fund name"
-                  className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                  
                 />
               </div>
             )}
@@ -311,20 +288,20 @@ export default function TrfV2AddPage() {
         </SectionCard>
 
         {/* 3. Amount */}
-        <SectionCard number={3} icon={DollarSign} title="Amount" dot="bg-[#17458F]">
+        <SectionCard number={3} icon={DollarSign} title="Amount">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <FieldLabel hint="(USD)" dot="bg-[#17458F]">Amount USD</FieldLabel>
+              <FieldLabel required hint="(USD)">Amount USD</FieldLabel>
               <div className="relative">
                 <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-sm">$</span>
-                <input
+                <Input
                   type="number"
                   value={amountUSD}
                   onChange={(e) => setAmountUSD(e.target.value)}
                   placeholder="0.00"
                   min={0}
                   step="0.01"
-                  className="w-full pl-7 pr-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                  className="pl-7 pr-3"
                 />
               </div>
             </div>

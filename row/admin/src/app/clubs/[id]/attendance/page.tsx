@@ -29,20 +29,18 @@ import SearchBox from "@/components/SearchBox";
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
 import AlertModal from "@/components/AlertModal";
-import {
-  ArrowLeft, Search, X, Plus, Pencil, Trash2, Eye,
-  MoreHorizontal, FolderOpen, AlertTriangle,
-} from "@/components/icons";
+import { Search, X, Plus, Pencil, Trash2, Eye, MoreHorizontal, FolderOpen, AlertTriangle } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
 
 import { useFormat } from "@/hooks/useFormat";
 import { useEventZone } from "@/hooks/useEventZone";
-import { ListPageSkeleton } from "@/components/row/AppKit";
+import { PageHeader, ListPageSkeleton } from "@/components/row/AppKit";
+import { ClearButton } from "@/components/ui/text-buttons";
 function CountBadge({ count }: { count: number }) {
   return (
-    <span className="inline-flex items-center justify-center min-w-[24px] px-1.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700">
+    <span className="inline-flex items-center justify-center min-w-[24px] px-1.5 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-700">
       {count}
     </span>
   );
@@ -162,20 +160,13 @@ export default function AttendancePage() {
     <ProtectedRoute>
       <div className="space-y-6">
         {/* Header */}
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-3">
-            <Button variant="outline" size="icon" asChild>
-              <Link href={`/clubs/${clubId}/dashboard`}><ArrowLeft className="h-4 w-4" /></Link>
-            </Button>
-            <div>
-              <h2 className="text-2xl font-bold tracking-tight text-primary">
-                {clubName ? `${clubName} - Attendance` : "Attendance"}
-              </h2>
-              <p className="text-muted-foreground text-base">Manage attendance</p>
-            </div>
-          </div>
-          <div className="flex flex-wrap gap-2">
-          <Button variant="outline" asChild>
+        <PageHeader
+          title={clubName ? `${clubName} - Attendance` : "Attendance"}
+          description="Manage attendance"
+          back={`/clubs/${clubId}/dashboard`}
+          actions={
+            <>
+<Button variant="outline" asChild>
             <Link href={`/clubs/${clubId}/attendance/standing`}>Makeups and standing</Link>
           </Button>
           {canManage && (
@@ -183,8 +174,9 @@ export default function AttendancePage() {
               <Plus className="mr-2 h-4 w-4" />Add Attendance
             </Button>
           )}
-          </div>
-        </div>
+            </>
+          }
+        />
 
         {isClubAdmin && !canManage && selectedYearId && (
           <ViewOnlyBadge yearLabel={viewingYearLabel} editableYears={editableYears} className="mb-4" />
@@ -220,9 +212,7 @@ export default function AttendancePage() {
                 className="pl-9"
               />
               {searchInput && (
-                <button onClick={clearSearch} className="absolute right-3 top-1/2 -translate-y-1/2">
-                  <X className="h-4 w-4 text-muted-foreground hover:text-foreground" />
-                </button>
+                <ClearButton onClick={clearSearch} aria-label="Clear search" />
               )}
             </div>
             <Button onClick={handleSearch} size="sm">Search</Button>
@@ -246,7 +236,7 @@ export default function AttendancePage() {
         {!loading && attendanceList.length === 0 && (
           <div className="flex flex-col items-center justify-center py-20 text-center">
             <FolderOpen className="h-12 w-12 text-muted-foreground mb-4" />
-            <h3 className="text-lg font-semibold">No attendance records found</h3>
+            <h3 className="row-h2">No attendance records found</h3>
             <p className="text-muted-foreground mt-2">
               {search ? "No attendance records match your search." : canManage ? `Click "Add Attendance" to create one.` : "No attendance records for this year."}
             </p>
@@ -256,7 +246,7 @@ export default function AttendancePage() {
         {!loading && filteredAttendance.length === 0 && attendanceList.length > 0 && searchQuery && (
           <div className="flex flex-col items-center justify-center py-12 text-center">
             <FolderOpen className="h-12 w-12 text-muted-foreground mb-4" />
-            <h3 className="text-lg font-semibold">No results found</h3>
+            <h3 className="row-h2">No results found</h3>
             <p className="text-muted-foreground mt-2">No attendance records match your search &quot;{searchQuery}&quot;.</p>
           </div>
         )}
@@ -266,16 +256,16 @@ export default function AttendancePage() {
             <CardContent className="p-0">
               <Table>
                 <TableHeader>
-                  <TableRow className="bg-primary hover:bg-primary">
-                    <TableHead className="w-12 text-base font-semibold">S.No.</TableHead>
-                    <TableHead className="text-base font-semibold">Event Name</TableHead>
-                    <TableHead className="text-base font-semibold">Event Date</TableHead>
-                    <TableHead className="text-base font-semibold text-center">Members</TableHead>
-                    <TableHead className="text-base font-semibold text-center">Anns</TableHead>
-                    <TableHead className="text-base font-semibold text-center">Annets</TableHead>
-                    <TableHead className="text-base font-semibold text-center">Visitors</TableHead>
-                    <TableHead className="text-base font-semibold text-center">Rotarians</TableHead>
-                    <TableHead className="text-base font-semibold text-center">Delegates</TableHead>
+                  <TableRow>
+                    <TableHead className="w-12">S.No.</TableHead>
+                    <TableHead>Event Name</TableHead>
+                    <TableHead>Event Date</TableHead>
+                    <TableHead className="text-center">Members</TableHead>
+                    <TableHead className="text-center">Anns</TableHead>
+                    <TableHead className="text-center">Annets</TableHead>
+                    <TableHead className="text-center">Visitors</TableHead>
+                    <TableHead className="text-center">Rotarians</TableHead>
+                    <TableHead className="text-center">Delegates</TableHead>
                     {canView && (
                       <TableHead className="w-12"></TableHead>
                     )}
@@ -304,7 +294,7 @@ export default function AttendancePage() {
                         <TableCell>
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="icon" className="h-8 w-8"><MoreHorizontal className="h-4 w-4" /></Button>
+                              <Button variant="ghost" size="icon" className="row-btn-sm"><MoreHorizontal className="h-4 w-4" /></Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
                               <DropdownMenuItem onClick={() => router.push(`/clubs/${clubId}/attendance/${item.id}`)}>

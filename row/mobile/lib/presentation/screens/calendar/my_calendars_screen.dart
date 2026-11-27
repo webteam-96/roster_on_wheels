@@ -10,6 +10,7 @@ import '../../widgets/common/loading_widget.dart';
 import 'calendar_widgets.dart';
 import 'club_calendar_screen.dart';
 import 'district_calendar_screen.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/motion.dart';
 
 /// Single entry point for all of the user's calendars. Lists, in one screen,
 /// COG first, then the user's other clubs, then their districts. Tapping an
@@ -24,10 +25,14 @@ class MyCalendarsScreen extends StatefulWidget {
 
 class _CalendarChoice {
   final String label;
+  final String subtitle;
   final IconData icon;
   final Widget Function() open;
   const _CalendarChoice(
-      {required this.label, required this.icon, required this.open});
+      {required this.label,
+      required this.subtitle,
+      required this.icon,
+      required this.open});
 }
 
 class _MyCalendarsScreenState extends State<MyCalendarsScreen> {
@@ -89,12 +94,14 @@ class _MyCalendarsScreenState extends State<MyCalendarsScreen> {
       _CalendarChoice clubChoice(CalendarClub c, IconData icon) =>
           _CalendarChoice(
             label: c.clubName,
+            subtitle: 'Club calendar',
             icon: icon,
             open: () => ClubCalendarScreen(
                 onlyClubId: c.clubId, titleOverride: c.clubName),
           );
       _CalendarChoice districtChoice(CalendarDistrict d) => _CalendarChoice(
             label: d.districtNumber,
+            subtitle: 'District calendar',
             icon: Icons.date_range_rounded,
             open: () => DistrictCalendarScreen(
                 onlyDistrictId: d.districtId, titleOverride: d.districtNumber),
@@ -154,7 +161,7 @@ class _MyCalendarsScreenState extends State<MyCalendarsScreen> {
         subtitle: "You don't have any club or district calendars yet.",
       );
     }
-    return ListView.separated(
+    return RowListView.separated(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
       itemCount: _choices.length,
       separatorBuilder: (_, __) => const SizedBox(height: 10),
@@ -162,8 +169,8 @@ class _MyCalendarsScreenState extends State<MyCalendarsScreen> {
         final c = _choices[i];
         return CalendarChoiceTile(
           label: c.label,
+          subtitle: c.subtitle,
           icon: c.icon,
-          index: i,
           onTap: () => Navigator.of(context)
               .push(MaterialPageRoute(builder: (_) => c.open())),
         );

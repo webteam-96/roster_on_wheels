@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useParams, useSearchParams } from "next/navigation";
 import { ClubMemberItem } from "@/types/club";
 import { PagedResult } from "@/types/member";
-import { downloadClubMembersExport, downloadClubMembersPrint, type PrintKind, type PrintPaper, getClub, getClubMembers, getClubMemberYears, removeClubMember, getPhotoUrl, assignRole, removeRole, getMemberRemovalPreview, getDistricts, getRotaryYears, updateCogDesignation, getRiCodes } from "@/services/api";
+import { downloadClubMembersExport, downloadClubMembersPrint, type PrintKind, type PrintPaper, getClub, getClubMembers, getClubMemberYears, removeClubMember, getPhotoUrl, assignRole, removeRole, getMemberRemovalPreview, getDistricts, getRotaryYears, updateCogDesignation, getRiCodes, saveAdminYears, adminYearsSavedMessage } from "@/services/api";
 import { MemberRemovalPreview } from "@/types/memberRemoval";
 import AdminYearsDialog from "@/components/AdminYearsDialog";
 import { formatDMY } from "@/lib/dateUtils";
@@ -25,7 +25,7 @@ import Pagination from "@/components/Pagination";
 import MemberRemovalDialog from "@/components/MemberRemovalDialog";
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
-import { ArrowLeft, Search, User, Users, Plus, MoreVertical, MoreHorizontal, Pencil, Trash2, ShieldCheck, ShieldOff, Mail, Phone, IdCard, Calendar, LayoutGrid, List, X, MapPin, FileSpreadsheet, Printer } from "@/components/icons";
+import { Search, User, Users, Plus, MoreVertical, MoreHorizontal, Pencil, Trash2, ShieldCheck, ShieldOff, Mail, Phone, IdCard, Calendar, LayoutGrid, List, X, MapPin, FileSpreadsheet, Printer, CalendarDays } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import Link from "next/link";
 import Image from "next/image";
@@ -33,7 +33,7 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import SearchBox from "@/components/SearchBox";
 import MemberDetailDialog from "@/components/MemberDetailDialog";
 import SearchableCombo from "@/components/SearchableCombo";
-import { ListPageSkeleton } from "@/components/row/AppKit";
+import { PageHeader, ListPageSkeleton } from "@/components/row/AppKit";
 
 // Avery stock the API lays out for: A4 = L7160 labels / L7418 badges, Letter = 5160 labels / 5395 badges.
 const PRINT_OPTIONS: { kind: PrintKind; paper: PrintPaper; label: string }[] = [
@@ -85,7 +85,7 @@ export default function ClubMembersPage() {
   const [roleLoading, setRoleLoading] = useState<number | null>(null);
   // Admin rights are per Rotary year, so the promotion goes through a year
   // picker rather than straight to assignRole.
-  const [adminYearTarget, setAdminYearTarget] = useState<{ id: number; name: string } | null>(null);
+  const [adminYearTarget, setAdminYearTarget] = useState<{ id: number; name: string; editing?: boolean } | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [detailMemberId, setDetailMemberId] = useState<number | null>(null);
 
@@ -324,6 +324,24 @@ export default function ClubMembersPage() {
     }
   };
 
+  // "Edit Years": same picker, pre-ticked with what they hold; saves in place.
+  const handleConfirmEditYears = async (picked: { yearIds: number[]; allYears: boolean }) => {
+    if (!adminYearTarget) return;
+    const { id: memberId, name: memberName } = adminYearTarget;
+    setRoleLoading(memberId);
+    try {
+      const res = await saveAdminYears({ kind: "club", clubId }, memberId, picked);
+      setAdminYearTarget(null);
+      setSuccessMessage(adminYearsSavedMessage(memberName, res));
+      fetchMembers();
+    } catch (err: any) {
+      setErrorMessage(err?.response?.data?.message || err?.response?.data || "Failed to update admin years.");
+      throw err;
+    } finally {
+      setRoleLoading(null);
+    }
+  };
+
   // COG only. Opens the dialog pre-filled with whatever the member's current
   // designation parses to (blank when the label isn't year-structured).
   const openCogEdit = (member: ClubMemberItem) => {
@@ -386,25 +404,14 @@ export default function ClubMembersPage() {
           </p>
         )}
         {/* Header */}
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-3">
-            <Button variant="outline" size="icon" asChild>
-              <Link href={`/clubs/${clubId}/dashboard${dashboardBackQs}`}><ArrowLeft className="h-4 w-4" /></Link>
-            </Button>
-            <div>
-              <h2 className="text-2xl font-bold tracking-tight text-primary">{clubName} - Members</h2>
-              <p className="text-muted-foreground text-base">
-                {isCog ? "Search by name or mobile number. Use Advanced Filters below for everything else" : "Search by member name, email, or Rotary ID"}
-              </p>
-              {data && (data.memberCount != null || data.honoraryCount != null) && (
+        <PageHeader title={<>{clubName} - Members</>} description={<>{isCog ? "Search by name or mobile number. Use Advanced Filters below for everything else" : "Search by member name, email, or Rotary ID"} {data && (data.memberCount != null || data.honoraryCount != null) && (
                 <div className="mt-1 flex items-center gap-3 text-sm">
                   <span className="font-medium text-slate-700">Members: {data.memberCount ?? 0}</span>
                   <span className="text-amber-600">Honorary: {data.honoraryCount ?? 0}</span>
                 </div>
-              )}
-            </div>
-          </div>
-          <div className="flex flex-wrap items-center gap-2">
+              )}</>} back={`/clubs/${clubId}/dashboard${dashboardBackQs}`}
+          actions={
+            <>
             <Button variant="outline" size="sm" asChild>
               <Link href={`/clubs/${clubId}/password-resets`}>Password resets</Link>
             </Button>
@@ -431,14 +438,15 @@ export default function ClubMembersPage() {
                 <Link href={`/members/new?clubId=${clubId}`}><Plus className="mr-2 h-4 w-4" />Add Member</Link>
               </Button>
             )}
-          </div>
-        </div>
+            </>
+          }
+        />
 
         {/* Search bar + View toggle */}
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center bg-primary/5 p-4 rounded-lg border border-primary/20">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-primary" />
-            <Input placeholder={isCog ? "Search by member name or mobile number..." : "Search by member name, email, or Rotary ID..."} value={search} onChange={(e) => setSearch(e.target.value)} onKeyDown={handleKeyDown} className="pl-9 border-primary/30 focus:border-primary text-base" />
+            <Input placeholder={isCog ? "Search by member name or mobile number..." : "Search by member name, email, or Rotary ID..."} value={search} onChange={(e) => setSearch(e.target.value)} onKeyDown={handleKeyDown} className="pl-9" />
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <Button onClick={handleSearch} size="sm">
@@ -453,10 +461,10 @@ export default function ClubMembersPage() {
             )}
 
             <div className="flex items-center rounded-md border ml-auto">
-              <Button variant={viewMode === "grid" ? "default" : "ghost"} size="icon" className="h-9 w-9 rounded-r-none" onClick={() => setViewMode("grid")}>
+              <Button variant={viewMode === "grid" ? "default" : "ghost"} aria-label="Grid view" aria-pressed={viewMode === "grid"} size="icon" className="rounded-r-none" onClick={() => setViewMode("grid")}>
                 <LayoutGrid className="h-4 w-4" />
               </Button>
-              <Button variant={viewMode === "table" ? "default" : "ghost"} size="icon" className="h-9 w-9 rounded-l-none" onClick={() => setViewMode("table")}>
+              <Button variant={viewMode === "table" ? "default" : "ghost"} aria-label="Table view" aria-pressed={viewMode === "table"} size="icon" className="rounded-l-none" onClick={() => setViewMode("table")}>
                 <List className="h-4 w-4" />
               </Button>
             </div>
@@ -561,7 +569,7 @@ export default function ClubMembersPage() {
         {!loading && data && data.items.length === 0 && (
           <div className="flex flex-col items-center justify-center py-20 text-center">
             <Users className="h-12 w-12 text-muted-foreground mb-4" />
-            <h3 className="text-lg font-semibold">No members found</h3>
+            <h3 className="row-h2">No members found</h3>
             <p className="text-muted-foreground mt-2">Try a different search term.</p>
           </div>
         )}
@@ -569,7 +577,7 @@ export default function ClubMembersPage() {
         {!loading && data && filteredMembers.length === 0 && searchQuery && data.items.length > 0 && (
           <div className="flex flex-col items-center justify-center py-20 text-center">
             <Search className="h-12 w-12 text-muted-foreground mb-4" />
-            <h3 className="text-lg font-semibold">No results found</h3>
+            <h3 className="row-h2">No results found</h3>
             <p className="text-muted-foreground mt-2">No members match your filter &quot;{searchQuery}&quot;. Try a different term.</p>
           </div>
         )}
@@ -612,7 +620,7 @@ export default function ClubMembersPage() {
                                     return displayRoles && displayRoles.length > 0 ? displayRoles.map((role) => (
                                       <Badge key={role} className="text-xs bg-white/20 text-white border-white/30">{role}</Badge>
                                     )) : (
-                                      <Badge className="text-xs bg-white/20 text-white border-white/30">Member</Badge>
+                                      <Badge className="bg-white/20 text-white border-white/30">Member</Badge>
                                     );
                                   })()}
                                 </div>
@@ -621,7 +629,7 @@ export default function ClubMembersPage() {
                                 <div onClick={(e) => e.stopPropagation()} className="flex-shrink-0 self-start">
                                   <DropdownMenu>
                                     <DropdownMenuTrigger asChild>
-                                      <Button variant="ghost" size="icon" className="h-8 w-8 text-white hover:bg-white/20">
+                                      <Button variant="ghost" size="icon" className="row-btn-sm" aria-label="More actions">
                                         <MoreVertical className="h-4 w-4" />
                                       </Button>
                                     </DropdownMenuTrigger>
@@ -638,9 +646,14 @@ export default function ClubMembersPage() {
                                       )}
                                       {!member.roles?.includes("SuperAdmin") && (
                                         member.hasAdminRole ? (
+                                          <>
+                                          <DropdownMenuItem onClick={() => setAdminYearTarget({ id: member.id, name: member.memberName, editing: true })}>
+                                            <CalendarDays className="mr-2 h-4 w-4" />Edit Years
+                                          </DropdownMenuItem>
                                           <DropdownMenuItem onClick={() => handleRemoveAdmin(member.id, member.memberName)}>
                                             <ShieldOff className="mr-2 h-4 w-4" />Remove Admin
                                           </DropdownMenuItem>
+                                          </>
                                         ) : (
                                           <DropdownMenuItem onClick={() => handleMakeAdmin(member.id, member.memberName)}>
                                             <ShieldCheck className="mr-2 h-4 w-4" />Make Admin
@@ -715,19 +728,19 @@ export default function ClubMembersPage() {
               </div>
             ) : (
               /* Table view */
-              <div className="rounded-md border">
+              <Card className="overflow-hidden">
                 <Table>
                   <TableHeader>
-                    <TableRow className="bg-primary hover:bg-primary">
+                    <TableRow>
                       <TableHead className="w-12"></TableHead>
-                      <TableHead className="text-base font-semibold">Member Name</TableHead>
-                      <TableHead className="hidden md:table-cell text-base font-semibold">Rotary ID</TableHead>
-                      <TableHead className="hidden md:table-cell text-base font-semibold">Email</TableHead>
-                      <TableHead className="hidden lg:table-cell text-base font-semibold">Phone</TableHead>
-                      {isCog && <TableHead className="text-base font-semibold">District</TableHead>}
-                      {isCog && <TableHead className="text-base font-semibold">Year</TableHead>}
-                      <TableHead className="text-base font-semibold">Roles</TableHead>
-                      <TableHead className="text-base font-semibold">Status</TableHead>
+                      <TableHead>Member Name</TableHead>
+                      <TableHead className="hidden md:table-cell">Rotary ID</TableHead>
+                      <TableHead className="hidden md:table-cell">Email</TableHead>
+                      <TableHead className="hidden lg:table-cell">Phone</TableHead>
+                      {isCog && <TableHead>District</TableHead>}
+                      {isCog && <TableHead>Year</TableHead>}
+                      <TableHead>Roles</TableHead>
+                      <TableHead>Status</TableHead>
                       <TableHead className="w-12"></TableHead>
                     </TableRow>
                   </TableHeader>
@@ -760,7 +773,7 @@ export default function ClubMembersPage() {
                                 return displayRoles && displayRoles.length > 0 ? displayRoles.map((role) => (
                                   <Badge key={role} variant="secondary" className="text-xs">{role}</Badge>
                                 )) : (
-                                  <Badge variant="secondary" className="text-xs">Member</Badge>
+                                  <Badge variant="secondary">Member</Badge>
                                 );
                               })()}
                             </div>
@@ -774,7 +787,7 @@ export default function ClubMembersPage() {
                             {isSuperAdmin && (
                               <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
-                                  <Button variant="ghost" size="icon" className="h-8 w-8">
+                                  <Button variant="ghost" size="icon" className="row-btn-sm" aria-label="More actions">
                                     <MoreHorizontal className="h-4 w-4" />
                                   </Button>
                                 </DropdownMenuTrigger>
@@ -790,9 +803,14 @@ export default function ClubMembersPage() {
                                     </DropdownMenuItem>
                                   )}
                                   {member.hasAdminRole ? (
+                                    <>
+                                    <DropdownMenuItem onClick={() => setAdminYearTarget({ id: member.id, name: member.memberName, editing: true })}>
+                                      <CalendarDays className="mr-2 h-4 w-4" />Edit Years
+                                    </DropdownMenuItem>
                                     <DropdownMenuItem onClick={() => handleRemoveAdmin(member.id, member.memberName)}>
                                       <ShieldOff className="mr-2 h-4 w-4" />Remove Admin
                                     </DropdownMenuItem>
+                                    </>
                                   ) : (
                                     <DropdownMenuItem onClick={() => handleMakeAdmin(member.id, member.memberName)}>
                                       <ShieldCheck className="mr-2 h-4 w-4" />Make Admin
@@ -810,7 +828,7 @@ export default function ClubMembersPage() {
                     })}
                   </TableBody>
                 </Table>
-              </div>
+              </Card>
             )}
             <Pagination page={data.page} totalPages={data.totalPages} totalCount={data.totalCount} pageSize={data.pageSize} onPageChange={handlePageChange} />
           </>
@@ -878,8 +896,9 @@ export default function ClubMembersPage() {
             memberId={adminYearTarget.id}
             memberName={adminYearTarget.name}
             scopeName={clubName}
+            confirmLabel={adminYearTarget.editing ? "Save" : undefined}
             onCancel={() => setAdminYearTarget(null)}
-            onConfirm={handleConfirmAdminYears}
+            onConfirm={adminYearTarget.editing ? handleConfirmEditYears : handleConfirmAdminYears}
           />
         )}
       </div>

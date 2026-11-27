@@ -5,6 +5,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../../../core/constants/api_constants.dart';
+import '../../../core/brand/brand.dart';
 import '../../../core/constants/form_constants.dart';
 import '../../../core/network/api_client.dart';
 import '../../../core/network/api_exceptions.dart';
@@ -19,6 +20,7 @@ import 'package:rotary_flutter_app/core/theme/app_fonts.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
 import 'package:rotary_flutter_app/presentation/widgets/row/form_action_bar.dart';
 import 'package:rotary_flutter_app/presentation/widgets/common/custom_button.dart';
+import 'package:rotary_flutter_app/presentation/widgets/common/loading_widget.dart';
 
 /// Admin "Add / Edit Member" form with full field parity to the web `MemberForm`
 /// (`rotary-frontend/src/components/MemberForm.tsx`). Five tabs:
@@ -60,7 +62,10 @@ class _MemberFormScreenState extends State<MemberFormScreen>
     with SingleTickerProviderStateMixin {
   final _api = ApiClient();
   final _formKey = GlobalKey<FormState>();
-  late final TabController _tab = TabController(length: 5, vsync: this);
+  // Member data this instance does not collect (Brand features) stays out of the form.
+  final _showFamily = Brand.current.feature('member.familyDetails');
+  final _showBloodGroup = Brand.current.feature('member.bloodGroup');
+  late final TabController _tab = TabController(length: _showFamily ? 5 : 4, vsync: this);
 
   final _joinedDf = DateFormat('yyyy-MM-dd');
   final _joinedDisplayDf = DateFormat('d MMM yyyy');
@@ -240,10 +245,6 @@ class _MemberFormScreenState extends State<MemberFormScreen>
           _familyMembers = List<FamilyMemberModel>.from(m.familyMembers);
         }
       }
-      // Pre-select India anywhere a country is still unset (new member, or a
-      // stored null). Runs for both add and edit; never overwrites an existing
-      // country the member already had.
-      _applyCountryDefaults();
       setState(() => _loading = false);
     } catch (e) {
       if (!mounted) return;
@@ -453,51 +454,9 @@ class _MemberFormScreenState extends State<MemberFormScreen>
     }
   }
 
-  /// Resolve India's country id from the loaded list (match by name); fall back
-  /// to 1 (India's id in this backend) if the list hasn't surfaced it.
-  int _indiaCountryId() {
-    for (final c in _countries) {
-      if (c.name.toLowerCase().contains('india')) return c.id;
-    }
-    return 1;
-  }
-
-  /// India is the default country for ~98% of members, so pre-select it
-  /// wherever no country has been chosen yet (a new record, or a stored null).
-  /// The user can still change any of these in the dropdown. This also keeps the
-  /// member-level fk*CountryId from ever being sent null — the API is
-  /// `[ApiController]` and rejects a null for the non-nullable int with a
-  /// "validation" 400.
-  void _applyCountryDefaults() {
-    final india = _indiaCountryId();
-    final indiaName = _countryById(india)?.name;
-    _primaryCountryId ??= india;
-    _secondaryCountryId ??= india;
-    if (_residential.fkCountryId == null) {
-      _residential =
-          _residential.copyWith(fkCountryId: india, country: indiaName);
-    }
-    if (_business.fkCountryId == null) {
-      _business = _business.copyWith(fkCountryId: india, country: indiaName);
-    }
-    // Backfill India on any family member missing a country (new rows already
-    // default to India; this catches existing rows stored with a null country,
-    // which the non-nullable FamilyMemberDto.FkCountryId would otherwise reject).
-    final indiaPhone = _countryById(india)?.phoneCode;
-    _familyMembers = _familyMembers
-        .map((f) => f.fkCountryId == null
-            ? f.copyWith(
-                fkCountryId: india,
-                country: indiaName,
-                countryPhoneCode: indiaPhone)
-            : f)
-        .toList();
-  }
-
   bool _hasAddressContent(MemberAddressModel a) {
     bool nz(String? s) => s != null && s.trim().isNotEmpty;
-    // Country alone is NOT content: India is pre-selected by default, so an
-    // address the user never filled would otherwise be saved as an empty row.
+    // Country alone is not an address.
     return nz(a.state) ||
         nz(a.city) ||
         nz(a.pinCode) ||
@@ -528,11 +487,9 @@ class _MemberFormScreenState extends State<MemberFormScreen>
     }
     setState(() => _saving = true);
 
-    // The API rejects a null fk*CountryId (non-nullable int → validation 400),
-    // so fall back to India if either is somehow still unset.
-    final india = _indiaCountryId();
-    final primaryCountryId = _primaryCountryId ?? india;
-    final secondaryCountryId = _secondaryCountryId ?? india;
+    // 0 is "no country": the API field cannot be null.
+    final primaryCountryId = _primaryCountryId ?? 0;
+    final secondaryCountryId = _secondaryCountryId ?? 0;
     final primaryCountry = _countryById(primaryCountryId);
     final secondaryCountry = _countryById(secondaryCountryId);
     final residentialCountry = _countryById(_residential.fkCountryId);
@@ -634,19 +591,19 @@ class _MemberFormScreenState extends State<MemberFormScreen>
                 fontWeight: FontWeight.w700,
                 fontSize: 13,
               ),
-              tabs: const [
-                Tab(text: 'Personal'),
-                Tab(text: 'Social'),
-                Tab(text: 'Residential'),
-                Tab(text: 'Business'),
-                Tab(text: 'Family'),
+              tabs: [
+                const Tab(text: 'Personal'),
+                const Tab(text: 'Social'),
+                const Tab(text: 'Residential'),
+                const Tab(text: 'Business'),
+                if (_showFamily) const Tab(text: 'Family'),
               ],
             ),
           ),
         ),
       ),
       body: _loading
-          ? const Center(child: const CircularProgressIndicator(color: AppColors.primary))
+          ? const LoadingWidget()
           : _error != null
               ? Center(
                   child: Padding(
@@ -680,7 +637,7 @@ class _MemberFormScreenState extends State<MemberFormScreen>
                         update: (v) => setState(() => _residential = v),
                       ),
                       _businessTab(),
-                      _familyTab(),
+                      if (_showFamily) _familyTab(),
                     ],
                   ),
                 ),
@@ -724,7 +681,7 @@ class _MemberFormScreenState extends State<MemberFormScreen>
         value: _anniversaryDate,
         onPicked: (d) => setState(() => _anniversaryDate = d),
       ),
-      _staticDropdown(
+      if (_showBloodGroup) _staticDropdown(
         label: 'Blood Group',
         value: _bloodGroup,
         items: FormConstants.bloodGroups,
@@ -843,10 +800,8 @@ class _MemberFormScreenState extends State<MemberFormScreen>
         onChanged: (v) => update(addr.copyWith(city: v)),
       ),
       _initInput(
-        label: 'PIN Code',
+        label: 'Postal Code',
         initial: addr.pinCode ?? '',
-        keyboard: TextInputType.number,
-        formatters: [FilteringTextInputFormatter.digitsOnly],
         onChanged: (v) => update(addr.copyWith(pinCode: v)),
       ),
     ]);
@@ -911,10 +866,8 @@ class _MemberFormScreenState extends State<MemberFormScreen>
         onChanged: (v) => update(addr.copyWith(city: v)),
       ),
       _initInput(
-        label: 'PIN Code',
+        label: 'Postal Code',
         initial: addr.pinCode ?? '',
-        keyboard: TextInputType.number,
-        formatters: [FilteringTextInputFormatter.digitsOnly],
         onChanged: (v) => update(addr.copyWith(pinCode: v)),
       ),
     ]);
@@ -948,16 +901,7 @@ class _MemberFormScreenState extends State<MemberFormScreen>
           TextButton.icon(
             onPressed: () {
               setState(() {
-                // New family member defaults to India (matches the rest of the
-                // form); the user can change it in the row's country dropdown.
-                final india = _indiaCountryId();
-                _familyMembers.add(FamilyMemberModel(
-                  name: '',
-                  relation: '',
-                  fkCountryId: india,
-                  country: _countryById(india)?.name,
-                  countryPhoneCode: _countryById(india)?.phoneCode,
-                ));
+                _familyMembers.add(const FamilyMemberModel(name: '', relation: ''));
               });
             },
             icon: const Icon(Icons.add, color: AppColors.primary, size: 18),
@@ -1008,6 +952,7 @@ class _MemberFormScreenState extends State<MemberFormScreen>
                 ),
               ),
               IconButton(
+                tooltip: 'Delete',
                 icon: const Icon(Icons.delete_outline, color: AppColors.error),
                 onPressed: () => setState(() => _familyMembers.removeAt(index)),
               ),
@@ -1032,7 +977,7 @@ class _MemberFormScreenState extends State<MemberFormScreen>
             items: FormConstants.relations,
             onChanged: (v) => update(f.copyWith(relation: v ?? '')),
           ),
-          _staticDropdown(
+          if (_showBloodGroup) _staticDropdown(
             label: 'Blood Group',
             value: FormConstants.bloodGroups.contains(f.bloodGroup)
                 ? f.bloodGroup
@@ -1155,8 +1100,9 @@ class _MemberFormScreenState extends State<MemberFormScreen>
       maxLines: maxLines ?? 1,
       inputFormatters: formatters,
       decoration: _decoration(label,
-          required: required, hint: hint, icon: prefixIcon, locked: locked),
-      validator: required
+          required: required && !locked, hint: hint, icon: prefixIcon, locked: locked),
+      // A locked field cannot be filled in here, so it never blocks the save.
+      validator: required && !locked
           ? (v) => (v == null || v.trim().isEmpty) ? '$label is required' : null
           : null,
     );
@@ -1300,6 +1246,7 @@ class _MemberFormScreenState extends State<MemberFormScreen>
               ),
               if (value != null)
                 IconButton(
+                  tooltip: 'Clear',
                   icon: const Icon(Icons.clear, size: 18),
                   onPressed: () => onPicked(null),
                 ),
@@ -1419,9 +1366,7 @@ class _MemberFormScreenState extends State<MemberFormScreen>
                     ),
                     clipBehavior: Clip.antiAlias,
                     child: uploading
-                        ? const Center(
-                            child: const CircularProgressIndicator(
-                                color: AppColors.primary, strokeWidth: 2.5))
+                        ? const LoadingWidget()
                         : url.isEmpty
                             ? const Icon(Icons.add_a_photo_outlined,
                                 color: AppColors.primary, size: 32)

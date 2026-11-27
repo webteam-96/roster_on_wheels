@@ -11,6 +11,7 @@ import '../../widgets/common/loading_widget.dart';
 import 'package:rotary_flutter_app/core/utils/money_format.dart';
 import 'package:rotary_flutter_app/core/theme/app_fonts.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/roster_wheel.dart';
 
 /// The member's own invoices and balance (gap #7), from `GET /api/my/invoices`.
 /// Each invoice and a 12-month statement open as the club's PDF through the OS share sheet.
@@ -143,7 +144,7 @@ class _MyInvoicesScreenState extends State<MyInvoicesScreen> {
                       title: 'No invoices',
                       subtitle: 'Invoices your club sends you will appear here.',
                     )
-                  : RefreshIndicator(onRefresh: _load, child: _list()),
+                  : RowRefresh(onRefresh: _load, child: _list()),
     );
   }
 

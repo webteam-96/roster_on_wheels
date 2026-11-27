@@ -1,3 +1,4 @@
+import 'package:rotary_flutter_app/presentation/widgets/row/motion.dart';
 import 'package:flutter/material.dart' hide Text;
 import 'package:go_router/go_router.dart';
 import '../../../core/services/ag_dashboard_api.dart';
@@ -41,6 +42,7 @@ class _AgClubDetailScreenState extends State<AgClubDetailScreen> {
         foregroundColor: AppColors.textPrimary,
         elevation: 0,
         leading: IconButton(
+          tooltip: MaterialLocalizations.of(context).backButtonTooltip,
           icon: const Icon(Icons.arrow_back_ios_new_rounded,
               color: AppColors.textPrimary),
           onPressed: () => context.pop(),
@@ -226,7 +228,7 @@ class _Kpi extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(value,
+                RowCountUp(value,
                     style: AppFonts.body(
                         fontSize: 15,
                         fontWeight: FontWeight.w800,

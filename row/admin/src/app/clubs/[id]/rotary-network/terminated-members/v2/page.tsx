@@ -24,12 +24,13 @@
  * removed rather than left silently broken.
  */
 
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card } from "@/components/ui/card";
 import { useCallback, useEffect, useState } from "react";
 import { useParams, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import {
-  ArrowLeft, Loader2, Search, Plus, Download,
-} from "@/components/icons";
+import { Search, Plus, Download } from "@/components/icons";
 import { getClub, getTerminatedMembers } from "@/services/api";
 import { TerminatedMember } from "@/types/club";
 import { useAuth } from "@/contexts/AuthContext";
@@ -40,8 +41,9 @@ import ErrorAlert from "@/components/ErrorAlert";
 import ClubAdminShell from "@/components/v2/ClubAdminShell";
 import { fileTimestamp } from "@/lib/dateUtils";
 import { useSyncClubIdFromUrl } from "@/hooks/useSyncClubIdFromUrl";
-import { SkeletonRows } from "@/components/row/AppKit";
+import { PageHeader, SkeletonRows } from "@/components/row/AppKit";
 
+import { DataTable } from "@/components/ui/data-table"
 // Chip styling mirrors the Club Admin Dashboard's reasonChip helper.
 function reasonChip(reason: string | null | undefined): string {
   const r = (reason ?? "").toLowerCase();
@@ -178,29 +180,13 @@ export default function TerminatedMembersV2Page() {
       >
       <div className="space-y-5">
         {/* Header */}
-        <div className="flex items-start justify-between gap-3">
-          <div className="flex items-start gap-2">
-            <Link
-              href={`/clubs/${clubId}/rotary-network`}
-              className="mt-0.5 inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50"
-              aria-label="Back"
-            >
-              <ArrowLeft size={15} />
-            </Link>
-            <div>
-              <h1 className="text-lg font-semibold text-slate-800">Terminated Members</h1>
-              <p className="text-xs text-slate-500 mt-0.5">
-                Members terminated or resigned from the club · {clubName || "–"}
-              </p>
-            </div>
-          </div>
-        </div>
+        <PageHeader title="Terminated Members" description={<>Members terminated or resigned from the club · {clubName || "–"}</>} back={`/clubs/${clubId}/rotary-network`} />
 
         {/* Table card */}
-        <div className="bg-card rounded-2xl border border-slate-200 overflow-hidden">
+        <Card className="overflow-hidden">
           <div className="px-5 py-3 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div>
-              <h3 className="text-sm font-semibold text-slate-800">Terminated Member Records</h3>
+              <h3 className="row-h3">Terminated Member Records</h3>
               <p className="text-xs text-slate-500 mt-0.5">
                 {clubName || "–"} · ordered by termination date
               </p>
@@ -208,34 +194,34 @@ export default function TerminatedMembersV2Page() {
             <div className="flex flex-wrap items-center gap-2">
               <div className="relative w-full sm:w-auto">
                 <Search size={14} className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-400" />
-                <input
+                <Input
                   type="text"
                   placeholder="Search name, ID, reason…"
                   value={searchInput}
                   onChange={(e) => setSearchInput(e.target.value)}
                   onKeyDown={(e) => { if (e.key === "Enter") handleSearch(); }}
-                  className="pl-7 pr-3 h-10 py-0 text-sm border border-slate-200 rounded-[12px] w-full sm:w-56 focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                  className="pl-7 pr-3 sm:w-56"
                 />
               </div>
-              <button
+              <Button
                 type="button"
                 onClick={handleSearch}
-                className="inline-flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-full bg-slate-800 text-white hover:bg-slate-900"
+                size="sm"
               >
                 Search
-              </button>
-              <button
+              </Button>
+              <Button
                 type="button"
                 onClick={handleExport}
                 disabled={exporting || totalCount === 0}
-                className="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1.5 rounded-full border border-slate-200 text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+                variant="outline" size="sm"
               >
                 <Download size={13} /> {exporting ? "Exporting…" : "Export"}
-              </button>
+              </Button>
               {canManage && (
                 <Link
                   href={addUrl}
-                  className="inline-flex items-center gap-1.5 text-xs font-semibold px-4 h-10 rounded-full bg-amber-600 text-white hover:bg-amber-700"
+                  className="row-btn row-btn-secondary"
                 >
                   <Plus size={13} /> Add (Terminate Member)
                 </Link>
@@ -247,54 +233,35 @@ export default function TerminatedMembersV2Page() {
             {loading ? (
               <SkeletonRows />
             ) : (
-              <table className="w-full min-w-[640px] md:min-w-full text-sm">
-                <thead className="bg-[#EDF4FB] text-[13px] text-[#64748B]">
-                  <tr>
-                    <th className="px-3 py-2.5 text-left w-10">Sr</th>
-                    <th className="px-3 py-2.5 text-left">Member ID</th>
-                    <th className="px-3 py-2.5 text-left">First Name</th>
-                    <th className="px-3 py-2.5 text-left">Middle Name</th>
-                    <th className="px-3 py-2.5 text-left">Last Name</th>
-                    <th className="px-3 py-2.5 text-left whitespace-nowrap">Admission Date</th>
-                    <th className="px-3 py-2.5 text-left whitespace-nowrap">Termination Date</th>
-                    <th className="px-3 py-2.5 text-left">Termination Reason</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {records.map((r, i) => {
-                    const n = splitName(r.memberName);
-                    return (
-                      <tr key={r.id} className="hover:bg-blue-50/40">
-                        <td className="px-3 py-2 text-slate-500">{(page - 1) * PAGE_SIZE + i + 1}</td>
-                        <td className="px-3 py-2 text-xs text-slate-600 whitespace-nowrap">{r.rotaryId || "–"}</td>
-                        <td className="px-3 py-2 text-slate-800 font-medium">{n.first || "–"}</td>
-                        <td className="px-3 py-2 text-slate-600">{n.middle || "–"}</td>
-                        <td className="px-3 py-2 text-slate-800 font-medium">{n.last || "–"}</td>
-                        <td className="px-3 py-2 text-xs text-slate-600 whitespace-nowrap">{fmtDate(r.joinedDate)}</td>
-                        <td className="px-3 py-2 text-xs text-slate-600 whitespace-nowrap">{fmtDate(r.terminationDate)}</td>
-                        <td className="px-3 py-2">
-                          {r.terminationReason ? (
-                            <span className={`inline-flex items-center text-xs font-medium px-2 py-0.5 rounded-full border ${reasonChip(r.terminationReason)}`}>
-                              {r.terminationReason}
-                            </span>
-                          ) : (
-                            <span className="text-xs text-slate-400">–</span>
-                          )}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                  {records.length === 0 && (
-                    <tr>
-                      <td colSpan={8} className="px-4 py-10 text-center text-slate-400">
-                        {search
-                          ? "No terminated members match your search."
-                          : "No terminated members recorded yet."}
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
+              <DataTable
+                card={false}
+                className="min-w-[640px] md:min-w-full"
+                caption="Terminated members"
+                rows={records}
+                rowKey={(r) => r.id}
+                empty={search ? "No terminated members match your search." : "No terminated members recorded yet."}
+                columns={[
+                  { key: "sr", header: "Sr", className: "w-10", cell: (_r, i) => (page - 1) * PAGE_SIZE + i + 1 },
+                  { key: "rotaryId", header: "Member ID", className: "text-xs whitespace-nowrap", cell: (r) => r.rotaryId || "–" },
+                  { key: "first", header: "First Name", className: "font-medium", cell: (r) => splitName(r.memberName).first || "–" },
+                  { key: "middle", header: "Middle Name", cell: (r) => splitName(r.memberName).middle || "–" },
+                  { key: "last", header: "Last Name", className: "font-medium", cell: (r) => splitName(r.memberName).last || "–" },
+                  { key: "joined", header: "Admission Date", className: "text-xs whitespace-nowrap", cell: (r) => fmtDate(r.joinedDate) },
+                  { key: "terminated", header: "Termination Date", className: "text-xs whitespace-nowrap", cell: (r) => fmtDate(r.terminationDate) },
+                  {
+                    key: "reason",
+                    header: "Termination Reason",
+                    cell: (r) =>
+                      r.terminationReason ? (
+                        <span className={`inline-flex items-center text-xs font-medium px-2 py-0.5 rounded border ${reasonChip(r.terminationReason)}`}>
+                          {r.terminationReason}
+                        </span>
+                      ) : (
+                        <span className="text-xs text-slate-400">–</span>
+                      ),
+                  },
+                ]}
+              />
             )}
           </div>
 
@@ -302,7 +269,7 @@ export default function TerminatedMembersV2Page() {
             {totalCount} record{totalCount === 1 ? "" : "s"}
             {search ? ` · matching "${search}"` : ""}
           </div>
-        </div>
+        </Card>
 
         {!loading && totalPages > 1 && (
           <Pagination

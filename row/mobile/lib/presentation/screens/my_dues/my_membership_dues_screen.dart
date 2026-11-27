@@ -14,6 +14,7 @@ import '../../widgets/common/loading_widget.dart';
 import 'package:rotary_flutter_app/core/utils/money_format.dart';
 import 'package:rotary_flutter_app/core/theme/app_fonts.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/roster_wheel.dart';
 
 class MyMembershipDuesScreen extends StatefulWidget {
   /// When embedded (e.g. inside the unified module-detail host that supplies
@@ -165,7 +166,7 @@ class _MyMembershipDuesScreenState extends State<MyMembershipDuesScreen> {
       children: [
         _filterBar(years, visible.length),
         Expanded(
-          child: RefreshIndicator(
+          child: RowRefresh(
             color: AppColors.primary,
             onRefresh: _load,
             child: ListView(

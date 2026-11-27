@@ -12,17 +12,16 @@ import {
   getPhotoUrl,
 } from "@/services/api";
 import { useAuth } from "@/contexts/AuthContext";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
 import AlertModal from "@/components/AlertModal";
-import { ArrowLeft, Check, Palette, AlertCircle } from "@/components/icons";
+import { Check, Palette, AlertCircle } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import Image from "next/image";
 import ProtectedRoute from "@/components/ProtectedRoute";
-import { ListPageSkeleton } from "@/components/row/AppKit";
+import { PageHeader, ListPageSkeleton } from "@/components/row/AppKit";
 
 // Visual swatches per theme — pure CSS, no API call needed.
 // Keys match the slug the public resolver will compute from theme_name.
@@ -116,19 +115,7 @@ export default function ChangeThemePage() {
         <SuccessAlert open={!!successMessage} title="Success" description={successMessage || ""} onOk={() => setSuccessMessage(null)} />
         <ErrorAlert open={!!errorMessage} title="Error" description={errorMessage || ""} onOk={() => setErrorMessage(null)} />
 
-        <div className="flex items-center gap-3">
-          <Button variant="outline" size="icon" onClick={() => router.push(`/clubs/${clubId}/website-data`)}>
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
-          <div>
-            <h2 className="text-2xl font-bold tracking-tight text-primary">
-              {club ? `${club.clubName} - Theme` : "Theme"}
-            </h2>
-            <p className="text-muted-foreground text-base">
-              Pick the look of your public club website. The switch is instant: the public site refreshes within 5 minutes.
-            </p>
-          </div>
-        </div>
+        <PageHeader title={club ? `${club.clubName} - Theme` : "Theme"} description="Pick the look of your public club website. The switch is instant: the public site refreshes within 5 minutes." back={() => router.push(`/clubs/${clubId}/website-data`)} />
 
         {loading && (
           <div className="flex items-center justify-center py-20">
@@ -200,7 +187,7 @@ export default function ChangeThemePage() {
 
                     <div className="p-4">
                       <div className="flex items-center justify-between gap-3">
-                        <h3 className="font-semibold text-primary">{theme.themeName}</h3>
+                        <h3 className="row-h3">{theme.themeName}</h3>
                         {isActive && (
                           <Badge variant="default" className="flex items-center gap-1">
                             <Check className="h-3 w-3" />Active

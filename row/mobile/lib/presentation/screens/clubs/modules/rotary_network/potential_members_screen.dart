@@ -15,6 +15,8 @@ import '../../../../../presentation/widgets/common/loading_widget.dart';
 import '../../../../../presentation/widgets/common/confirmation_dialog.dart';
 import '../../../../providers/auth_provider.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/motion.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/roster_wheel.dart';
 
 /// Prospect pipeline stages (N3), the same list as the admin's `PROSPECT_STAGES`.
 const prospectStages = ['inquiry', 'contacted', 'invited', 'attended', 'proposed', 'approved', 'inducted'];
@@ -125,7 +127,7 @@ class _PotentialMembersScreenState extends State<PotentialMembersScreen> {
                 hintText: 'Search potential members...',
                 prefixIcon: const Icon(Icons.search),
                 suffixIcon: _searchCtrl.text.isNotEmpty
-                    ? IconButton(icon: const Icon(Icons.clear), onPressed: () { _searchCtrl.clear(); _fetch(); })
+                    ? IconButton(tooltip: 'Clear', icon: const Icon(Icons.clear), onPressed: () { _searchCtrl.clear(); _fetch(); })
                     : null,
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
                 contentPadding: const EdgeInsets.symmetric(vertical: 10),
@@ -138,10 +140,10 @@ class _PotentialMembersScreenState extends State<PotentialMembersScreen> {
                 ? const LoadingWidget()
                 : _items.isEmpty
                     ? const EmptyStateWidget(icon: Icons.person_add_alt_1_outlined, title: 'No Potential Members', subtitle: 'Add your first potential member.')
-                    : RefreshIndicator(
+                    : RowRefresh(
                         color: AppColors.primary,
                         onRefresh: () => _fetch(page: 1),
-                        child: ListView.separated(
+                        child: RowListView.separated(
                           padding: (const EdgeInsets.fromLTRB(12, 0, 12, 80)).add(const EdgeInsets.only(bottom: 88)),
                           itemCount: _items.length,
                           separatorBuilder: (_, __) => const SizedBox(height: 8),
@@ -164,11 +166,13 @@ class _PotentialMembersScreenState extends State<PotentialMembersScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   IconButton(
+                    tooltip: 'Previous',
                     icon: const Icon(Icons.chevron_left),
                     onPressed: _page > 1 ? () => _fetch(page: _page - 1) : null,
                   ),
                   Text('$_page / $_totalPages', style: AppTextStyles.body),
                   IconButton(
+                    tooltip: 'Next',
                     icon: const Icon(Icons.chevron_right),
                     onPressed: _page < _totalPages ? () => _fetch(page: _page + 1) : null,
                   ),
@@ -227,8 +231,8 @@ class _MemberCard extends StatelessWidget {
             ),
           ),
           if (canManage) ...[
-            IconButton(icon: const Icon(Icons.edit_outlined, size: 20), color: AppColors.primary, onPressed: onEdit),
-            IconButton(icon: const Icon(Icons.delete_outline, size: 20), color: AppColors.error, onPressed: onDelete),
+            IconButton(tooltip: 'Edit', icon: const Icon(Icons.edit_outlined, size: 20), color: AppColors.primary, onPressed: onEdit),
+            IconButton(tooltip: 'Delete', icon: const Icon(Icons.delete_outline, size: 20), color: AppColors.error, onPressed: onDelete),
           ],
         ],
       ),

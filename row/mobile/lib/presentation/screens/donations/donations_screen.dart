@@ -1,3 +1,4 @@
+import 'package:rotary_flutter_app/presentation/widgets/row/motion.dart';
 import 'package:flutter/material.dart' hide Text;
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -8,6 +9,7 @@ import '../../widgets/common/custom_app_bar.dart';
 import '../../widgets/common/empty_state_widget.dart';
 import '../../widgets/common/loading_widget.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/roster_wheel.dart';
 
 /// Open donation campaigns of the member's clubs and districts (gap #13): goal, progress and a Give button that opens
 /// the campaign's giving page in the browser, where the payment provider takes the card.
@@ -74,7 +76,7 @@ class _DonationsScreenState extends State<DonationsScreen> {
                   subtitle: _failed
                       ? 'Come back later to try again.'
                       : 'Your club and district have no fundraising campaigns open right now.')
-              : RefreshIndicator(
+              : RowRefresh(
                   onRefresh: _load,
                   child: ListView(
                     padding: const EdgeInsets.all(12),
@@ -112,7 +114,7 @@ class _DonationsScreenState extends State<DonationsScreen> {
                 style: const TextStyle(fontWeight: FontWeight.w600)),
             if (goal > 0) ...[
               const SizedBox(height: 6),
-              LinearProgressIndicator(value: (percent / 100).clamp(0.0, 1.0), minHeight: 6),
+              RowProgressBar(value: (percent / 100).clamp(0.0, 1.0), minHeight: 6),
             ],
             const SizedBox(height: 6),
             Text([

@@ -1,4 +1,5 @@
 import 'package:fl_chart/fl_chart.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/motion.dart';
 import 'package:flutter/material.dart' hide Text;
 import '../../../core/theme/app_colors.dart';
 import '../../../data/models/club_overview_models.dart';
@@ -55,7 +56,7 @@ class MemberGrowthChart extends StatelessWidget {
       children: [
         SizedBox(
           height: 150,
-          child: LineChart(LineChartData(
+          child: RowDrawIn(child: LineChart(LineChartData(
             minY: 0,
             maxY: maxVal <= 0 ? 1 : maxVal * 1.2,
             gridData: const FlGridData(show: false),
@@ -93,7 +94,7 @@ class MemberGrowthChart extends StatelessWidget {
               bar((p) => p.female, AppColors.error),
               bar((p) => p.honorary, AppColors.donutFillAmber),
             ],
-          )),
+          ))),
         ),
         const SizedBox(height: 8),
         Wrap(

@@ -24,10 +24,13 @@ public class WebsiteBillingService : IWebsiteBillingService
     private readonly ILogger<WebsiteBillingService> _logger;
 
     private readonly PaymentCheckoutService _checkout;
+    private readonly ICurrencyRateService _fx;
 
     public WebsiteBillingService(IConfiguration config, IHttpClientFactory httpFactory,
-        IClubWebsiteActivationService activation, IEmailService email, PaymentCheckoutService checkout, ILogger<WebsiteBillingService> logger)
+        IClubWebsiteActivationService activation, IEmailService email, PaymentCheckoutService checkout, ICurrencyRateService fx,
+        ILogger<WebsiteBillingService> logger)
     {
+        _fx = fx;
         _checkout = checkout;
         _config = config;
         _conn = config.GetConnectionString("DefaultConnection")!;
@@ -202,6 +205,19 @@ public class WebsiteBillingService : IWebsiteBillingService
         {
             dto.OrderType = "New";
             dto.NewEndDate = DateTime.SpecifyKind(DateTime.UtcNow.Date.AddMonths(months), DateTimeKind.Unspecified);
+        }
+
+        var district = await conn.QueryFirstOrDefaultAsync<(string? Currency, string? Country)>(@"
+            SELECT d.DefaultCurrency, d.Country FROM club_master c JOIN district_master d ON d.pk_district_id = c.fk_district_id
+            WHERE c.pk_club_id = @C", new { C = clubId });
+        var local = CurrencyHelper.ResolveDefaultCurrency(district.Currency, district.Country);
+        if (local != dto.Currency)
+        {
+            var info = await _fx.GetInfoAsync();
+            dto.LocalCurrency = local;
+            dto.LocalTotal = Math.Round(CurrencyHelper.Convert(p.Total, dto.Currency, local, info.Rates),
+                CountryCurrency.HasDecimals(local) ? 2 : 0, MidpointRounding.AwayFromZero);
+            dto.RateDate = info.AsOf;
         }
 
         // An active paid site with > renewal window days left can't be purchased/renewed yet.

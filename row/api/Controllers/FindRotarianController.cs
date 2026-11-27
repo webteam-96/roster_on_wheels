@@ -115,7 +115,8 @@ public class FindRotarianController : ControllerBase
         }
 
         var totalCount = await conn.ExecuteScalarAsync<int>(
-            "SELECT COUNT(DISTINCT m.pk_member_master_profile_id) " + whereSql, p);
+            // one row per member and club, as listed below (the app pages until it holds this many)
+            "SELECT COUNT(DISTINCT m.pk_member_master_profile_id, c.pk_club_id) " + whereSql, p);
 
         p.Add("Offset", (page - 1) * pageSize);
         p.Add("PageSize", pageSize);

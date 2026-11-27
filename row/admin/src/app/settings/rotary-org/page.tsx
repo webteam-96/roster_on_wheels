@@ -1,16 +1,18 @@
 "use client";
+import { Table, TableHeader, TableBody, TableFooter, TableRow, TableHead, TableCell } from "@/components/ui/table";
 
+import { NativeSelect } from "@/components/ui/native-select";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { useAuth } from "@/contexts/AuthContext";
-import { ArrowLeft, Building2, Users, Download, Loader2, Copy } from "@/components/icons";
+import { Building2, Users, Download, Loader2, Copy } from "@/components/icons";
 import { getRotaryOrgSyncSummary, downloadClubSyncReport, getDuplicateCount, getClubSyncDistricts } from "@/services/api";
 
 import { appLocale } from "@/lib/appFormat";
-import { SkeletonRows } from "@/components/row/AppKit";
+import { PageHeader, SkeletonRows } from "@/components/row/AppKit";
 export default function RotaryOrgPage() {
   const { isSuperAdmin } = useAuth();
   const [summary, setSummary] = useState<{
@@ -60,7 +62,7 @@ export default function RotaryOrgPage() {
     return (
       <ProtectedRoute>
         <div className="flex flex-col items-center justify-center py-20">
-          <h3 className="text-lg font-semibold">Access Denied</h3>
+          <h3 className="row-h2">Access Denied</h3>
           <p className="text-muted-foreground mt-2">Only SuperAdmin can access this page.</p>
         </div>
       </ProtectedRoute>
@@ -72,25 +74,17 @@ export default function RotaryOrgPage() {
   return (
     <ProtectedRoute>
       <div className="space-y-6">
-        <div className="flex items-center gap-3">
-          <Button variant="outline" size="icon" asChild>
-            <Link href="/settings"><ArrowLeft className="h-4 w-4" /></Link>
-          </Button>
-          <div>
-            <h2 className="text-2xl font-bold tracking-tight text-primary">Rotary.org Manual Sync</h2>
-            <p className="text-muted-foreground text-base">Side-by-side comparison and manual sync: auto sync runs daily, this is for one-off corrections</p>
-          </div>
-        </div>
+        <PageHeader title="Rotary.org Manual Sync" description="Side-by-side comparison and manual sync: auto sync runs daily, this is for one-off corrections" back="/settings" />
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-5xl">
           {/* Club Sync */}
-          <Card className="h-full transition-all hover:border-primary/50 hover:shadow-md">
+          <Card className="h-full transition-all hover:border-primary/50">
             <CardContent className="p-6 flex flex-col items-center text-center gap-3">
               <Link href="/settings/rotary-org/clubs" className="flex flex-col items-center gap-3 cursor-pointer">
                 <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 text-primary">
                   <Building2 className="h-7 w-7" />
                 </div>
-                <h3 className="text-lg font-semibold text-primary">Club Sync</h3>
+                <h3 className="row-h2">Club Sync</h3>
                 <p className="text-sm text-muted-foreground">Compare and manually sync clubs between ROW and Rotary.org by district</p>
               </Link>
 
@@ -111,10 +105,10 @@ export default function RotaryOrgPage() {
               </div>
 
               {/* District scope for the download — "All Districts" or a single one. */}
-              <select
+              <NativeSelect
                 value={selectedSyncDistrict}
                 onChange={(e) => setSelectedSyncDistrict(e.target.value)}
-                className="w-full mt-1 h-9 rounded-md border border-slate-200 bg-card px-2 text-sm"
+                className="mt-1"
                 aria-label="District for the club sync report"
               >
                 <option value="all">All Districts</option>
@@ -123,7 +117,7 @@ export default function RotaryOrgPage() {
                     {d.districtNumber}
                   </option>
                 ))}
-              </select>
+              </NativeSelect>
               <Button variant="outline" size="sm" onClick={handleDownload} disabled={downloading} className="mt-1">
                 {downloading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Download className="h-4 w-4 mr-2" />}
                 {downloading ? "Preparing…" : "Download Excel Report"}
@@ -133,13 +127,13 @@ export default function RotaryOrgPage() {
           </Card>
 
           {/* Member Sync */}
-          <Card className="h-full transition-all hover:border-primary/50 hover:shadow-md">
+          <Card className="h-full transition-all hover:border-primary/50">
             <CardContent className="p-6 flex flex-col items-center text-center gap-3">
               <Link href="/settings/rotary-org/members" className="flex flex-col items-center gap-3 cursor-pointer">
                 <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 text-primary">
                   <Users className="h-7 w-7" />
                 </div>
-                <h3 className="text-lg font-semibold text-primary">Member Sync</h3>
+                <h3 className="row-h2">Member Sync</h3>
                 <p className="text-sm text-muted-foreground">Compare and manually sync members between ROW and Rotary.org by club</p>
               </Link>
 
@@ -157,19 +151,19 @@ export default function RotaryOrgPage() {
           {/* Duplicate Mobile / Email — grouped with Member Sync since it resolves member mobile/email
               collisions. Merge true duplicates or "keep both" for shared contacts. */}
           <Link href="/settings/rotary-org/duplicates" className="block h-full">
-            <Card className="h-full transition-all hover:border-primary/50 hover:shadow-md cursor-pointer">
+            <Card className="h-full transition-all hover:border-primary/50 cursor-pointer">
               <CardContent className="p-6 flex flex-col items-center text-center gap-3">
                 <div className="flex h-14 w-14 items-center justify-center rounded-full bg-rose-100 text-rose-600">
                   <Copy className="h-7 w-7" />
                 </div>
-                <h3 className="text-lg font-semibold text-primary">Duplicate Mobile / Email</h3>
+                <h3 className="row-h2">Duplicate Mobile / Email</h3>
                 <p className="text-sm text-muted-foreground">Members sharing a mobile or email (one holds it as primary, the other as secondary): compare side-by-side, then merge or keep both.</p>
                 {dupCount && (
                   <div className="flex flex-wrap items-center justify-center gap-2 mt-1">
-                    <span className="rounded-full bg-rose-50 border border-rose-200 text-rose-700 text-xs font-semibold px-2.5 py-0.5">{dupCount.total.toLocaleString(appLocale())} to review</span>
-                    <span className="rounded-full bg-slate-50 border border-slate-200 text-slate-600 text-xs px-2.5 py-0.5">Mobile {dupCount.mobile}</span>
-                    <span className="rounded-full bg-slate-50 border border-slate-200 text-slate-600 text-xs px-2.5 py-0.5">Email {dupCount.email}</span>
-                    <span className="rounded-full bg-slate-50 border border-slate-200 text-slate-600 text-xs px-2.5 py-0.5">Both {dupCount.both}</span>
+                    <span className="rounded bg-rose-50 border border-rose-200 text-rose-700 text-xs font-semibold px-2.5 py-0.5">{dupCount.total.toLocaleString(appLocale())} to review</span>
+                    <span className="rounded bg-slate-50 border border-slate-200 text-slate-600 text-xs px-2.5 py-0.5">Mobile {dupCount.mobile}</span>
+                    <span className="rounded bg-slate-50 border border-slate-200 text-slate-600 text-xs px-2.5 py-0.5">Email {dupCount.email}</span>
+                    <span className="rounded bg-slate-50 border border-slate-200 text-slate-600 text-xs px-2.5 py-0.5">Both {dupCount.both}</span>
                   </div>
                 )}
               </CardContent>
@@ -181,38 +175,38 @@ export default function RotaryOrgPage() {
             districts + Zone 0, same as the totals above). */}
         <Card className="max-w-3xl">
           <CardContent className="p-6">
-            <h3 className="text-base font-semibold text-primary mb-1">Club Sync by Region</h3>
+            <h3 className="row-h2 mb-1">Club Sync by Region</h3>
             <p className="text-xs text-muted-foreground mb-4">Synced vs non-synced clubs per region (excludes the 3 manually-managed districts and Zone 0).</p>
             <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead className="bg-[#EDF4FB] text-[13px] text-[#64748B]">
-                  <tr className="border-b text-left text-muted-foreground">
-                    <th className="py-2 pr-4 font-medium">Region</th>
-                    <th className="py-2 px-4 font-medium text-right">Synced Clubs</th>
-                    <th className="py-2 pl-4 font-medium text-right">Non-Sync Clubs</th>
-                  </tr>
-                </thead>
-                <tbody>
+              <Table className="w-full text-sm">
+                <TableHeader>
+                  <TableRow className="border-b">
+                    <TableHead className="pr-4">Region</TableHead>
+                    <TableHead className="px-4 text-right">Synced Clubs</TableHead>
+                    <TableHead className="pl-4 text-right">Non-Sync Clubs</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
                   {loadingSummary ? (
-                    <tr><td colSpan={3} className="px-4 py-3"><SkeletonRows /></td></tr>
+                    <TableRow><TableCell colSpan={3} className="px-4 py-3"><SkeletonRows /></TableCell></TableRow>
                   ) : (summary?.countryBreakdown ?? []).map((row) => (
-                    <tr key={row.country} className="border-b">
-                      <td className="py-2 pr-4 font-medium">{row.country}</td>
-                      <td className="py-2 px-4 text-right font-semibold text-green-700">{fmt(row.syncClubs)}</td>
-                      <td className="py-2 pl-4 text-right font-semibold text-amber-700">{fmt(row.nonSyncClubs)}</td>
-                    </tr>
+                    <TableRow key={row.country} className="border-b">
+                      <TableCell className="py-2 pr-4 font-medium">{row.country}</TableCell>
+                      <TableCell className="py-2 px-4 text-right font-semibold text-green-700">{fmt(row.syncClubs)}</TableCell>
+                      <TableCell className="py-2 pl-4 text-right font-semibold text-amber-700">{fmt(row.nonSyncClubs)}</TableCell>
+                    </TableRow>
                   ))}
-                </tbody>
+                </TableBody>
                 {!loadingSummary && (
-                  <tfoot>
-                    <tr className="border-t-2 border-slate-300 bg-slate-50">
-                      <td className="py-2 pr-4 font-bold">Total</td>
-                      <td className="py-2 px-4 text-right font-bold text-green-800">{fmt(summary?.syncClubs)}</td>
-                      <td className="py-2 pl-4 text-right font-bold text-amber-800">{fmt(summary?.nonSyncClubs)}</td>
-                    </tr>
-                  </tfoot>
+                  <TableFooter>
+                    <TableRow className="border-t-2 border-slate-300 bg-slate-50">
+                      <TableCell className="py-2 pr-4 font-bold">Total</TableCell>
+                      <TableCell className="py-2 px-4 text-right font-bold text-green-800">{fmt(summary?.syncClubs)}</TableCell>
+                      <TableCell className="py-2 pl-4 text-right font-bold text-amber-800">{fmt(summary?.nonSyncClubs)}</TableCell>
+                    </TableRow>
+                  </TableFooter>
                 )}
-              </table>
+              </Table>
             </div>
           </CardContent>
         </Card>

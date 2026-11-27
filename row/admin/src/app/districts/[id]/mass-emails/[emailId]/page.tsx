@@ -1,5 +1,6 @@
 "use client";
 
+import { PageHeader } from "@/components/row/AppKit";
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { getDistrictMassEmailDetail, sendDistrictMassEmail, getDistrict } from "@/services/api";
@@ -11,9 +12,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
 import AlertModal from "@/components/AlertModal";
-import { ArrowLeft, Send, RefreshCw, CheckCircle2, XCircle, Clock, Loader2 } from "@/components/icons";
+import { RefreshCw, CheckCircle2, XCircle, Clock, Loader2 } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
-import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import CampaignTrackingCard from "@/components/comms/CampaignTrackingCard";
 
@@ -63,7 +63,7 @@ export default function DistrictMassEmailViewPage() {
   };
 
   const getStatusIcon = (status: string) => { switch (status) { case "Sent": return <CheckCircle2 className="h-4 w-4 text-green-500" />; case "Failed": return <XCircle className="h-4 w-4 text-red-500" />; default: return <Clock className="h-4 w-4 text-yellow-500" />; } };
-  const getStatusBadge = (status: string) => { switch (status) { case "Draft": return <Badge variant="secondary">Draft</Badge>; case "Sending": return <Badge className="bg-blue-500 hover:bg-blue-600">Sending</Badge>; case "Sent": return <Badge className="bg-green-500 hover:bg-green-600">Sent</Badge>; case "Failed": return <Badge variant="destructive">Failed</Badge>; default: return <Badge variant="secondary">{status}</Badge>; } };
+  const getStatusBadge = (status: string) => { switch (status) { case "Draft": return <Badge variant="secondary">Draft</Badge>; case "Sending": return <Badge className="bg-blue-100 text-azure">Sending</Badge>; case "Sent": return <Badge className="bg-green-100 text-green-800">Sent</Badge>; case "Failed": return <Badge variant="destructive">Failed</Badge>; default: return <Badge variant="secondary">{status}</Badge>; } };
   const getRecipientTypeLabel = (type: number) => { switch (type) { case 1: return "All Members"; case 2: return "Subgroup"; case 3: return "Selected Members"; default: return "Unknown"; } };
 
   if (loading) return <RotaryLoader />;
@@ -71,16 +71,15 @@ export default function DistrictMassEmailViewPage() {
 
   return (
     <ProtectedRoute>
-      <div className="space-y-6 max-w-5xl mx-auto">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <Button variant="outline" size="icon" asChild><Link href={`/districts/${districtId}/mass-emails`}><ArrowLeft className="h-4 w-4" /></Link></Button>
-            <div><h2 className="text-2xl font-bold tracking-tight text-primary">Mass Email Detail</h2><p className="text-muted-foreground text-base">{districtName}</p></div>
-          </div>
-          {canManage && detail.status === "Failed" && (
+      <div className="space-y-6">
+        <PageHeader
+          title="Mass Email Detail"
+          description={districtName}
+          back={`/districts/${districtId}/mass-emails`}
+          actions={canManage && detail.status === "Failed" && (
             <Button onClick={() => setConfirmRetry(true)} disabled={retrying}>{retrying ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <RefreshCw className="h-4 w-4 mr-2" />}Retry Failed</Button>
           )}
-        </div>
+        />
 
         <Card>
           <CardHeader><div className="flex flex-wrap items-center justify-between gap-3"><CardTitle>{detail.subject}</CardTitle>{getStatusBadge(detail.status)}</div></CardHeader>

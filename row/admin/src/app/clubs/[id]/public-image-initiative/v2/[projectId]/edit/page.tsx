@@ -15,6 +15,13 @@
  * a normal query param (?yearId=) since the API requires it.
  */
 
+import RadioPill from "@/components/form/RadioPill";
+import FieldLabel from "@/components/form/FieldLabel";
+import { IconButton } from "@/components/ui/icon-button";
+import { NativeSelect } from "@/components/ui/native-select";
+import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
+import { Card } from "@/components/ui/card";
 import { useEffect, useRef, useState } from "react";
 import DateField from "@/components/DateField";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
@@ -51,6 +58,8 @@ import { useImageCropQueue } from "@/hooks/useImageCropQueue";
 
 import { defaultCurrency } from "@/lib/appFormat";
 import { ListPageSkeleton } from "@/components/row/AppKit";
+import { MenuItemButton } from "@/components/ui/text-buttons"
+import { Button } from "@/components/ui/button"
 // Project photos are shown 16:9 on the public site (components/pages/projects/shared.tsx),
 // so the crop is locked to that shape. 1600×900 keeps the widest card retina-sharp.
 const PROJECT_PHOTO_ASPECT = 16 / 9;
@@ -82,56 +91,23 @@ type PhotoItem = {
   previewUrl?: string;
 };
 
-function FieldLabel({ children, hint, dot, required = true }: {
-  children: React.ReactNode; hint?: string; dot: string; required?: boolean;
-}) {
-  return (
-    <div className="flex items-center gap-1.5 mb-1">
-      {/* The coloured bullet means "you must fill this" - an optional field gets none
-          (user 2026-10-05). */}
-      {required && <span className={`w-1.5 h-1.5 rounded-full ${dot}`} />}
-      <label className="text-xs font-semibold text-slate-700">
-        {children}{required && <span className="text-rose-600 ml-0.5">*</span>}
-        {hint && <span className="text-slate-400 font-normal ml-1">{hint}</span>}
-      </label>
-    </div>
-  );
-}
 
 function SectionCard({
-  number, icon: Icon, title, dot, children, locked,
-}: { number: number; icon: React.ElementType; title: string; dot: string; children: React.ReactNode; locked?: boolean }) {
+  number, icon: Icon, title, children, locked,
+}: { number: number; icon: React.ElementType; title: string; children: React.ReactNode; locked?: boolean }) {
   return (
-    <div className="rounded-xl border border-slate-200 overflow-hidden mb-4">
-      <div className="flex items-center gap-3 px-4 py-2.5 bg-slate-50 border-b border-slate-100">
-        <div className={`flex items-center justify-center h-7 w-7 rounded-full text-white text-xs font-bold ${dot}`}>{number}</div>
+    <Card className="overflow-hidden mb-4">
+      <div className="flex items-center gap-3 px-5 py-3 border-b border-[color:var(--row-line)]">
+        <div className={`flex items-center justify-center h-7 w-7 rounded bg-azure text-white text-xs font-semibold`}>{number}</div>
         <Icon className="h-4 w-4 text-slate-500" />
-        <h3 className="text-sm font-semibold text-slate-800">{title}</h3>
+        <h3 className="row-h2">{title}</h3>
         {locked && <span className="ml-auto text-[10px] uppercase tracking-wide text-slate-400">read-only</span>}
       </div>
       <div className={`p-4 ${locked ? "opacity-60 pointer-events-none" : ""}`}>{children}</div>
-    </div>
+    </Card>
   );
 }
 
-function RadioPill({ checked, onChange, label, disabled }: { checked: boolean; onChange: () => void; label: string; disabled?: boolean }) {
-  return (
-    <label
-      className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg border-2 transition-all text-sm font-medium
-        ${disabled ? "cursor-not-allowed opacity-60" : "cursor-pointer"}
-        ${checked
-          ? "border-blue-500 bg-blue-50 text-blue-700"
-          : "border-slate-200 text-slate-600 hover:border-blue-300 hover:text-slate-800"
-        }`}
-    >
-      <input type="radio" checked={checked} onChange={onChange} disabled={disabled} className="sr-only" />
-      <div className={`h-4 w-4 rounded-full border-2 flex items-center justify-center ${checked ? "border-blue-500" : "border-slate-400"}`}>
-        {checked && <div className="h-2 w-2 rounded-full bg-blue-500" />}
-      </div>
-      {label}
-    </label>
-  );
-}
 
 // Dollar currencies get a dollar sign, every other currency a neutral coin.
 function moneyIcon(code?: string | null) {
@@ -533,8 +509,8 @@ export default function PublicImageInitiativeV2EditPage() {
         }
       >
         {/* 1. Project Type (locked on edit, matching v1) */}
-        <SectionCard number={1} icon={FileText} title="Project Type" dot="bg-[#17458F]" locked>
-          <FieldLabel dot="bg-[#17458F]">Select Project Type</FieldLabel>
+        <SectionCard number={1} icon={FileText} title="Project Type" locked>
+          <FieldLabel required>Select Project Type</FieldLabel>
           <div className="flex flex-wrap gap-2 mt-1">
             <RadioPill disabled checked={projectType === "one_time"} onChange={() => {}} label="One Time Project" />
             <RadioPill disabled checked={projectType === "ongoing_repeat"} onChange={() => {}} label="Ongoing / Repeat Project" />
@@ -543,7 +519,7 @@ export default function PublicImageInitiativeV2EditPage() {
           {projectType === "ongoing_repeat" && (
             <div className="space-y-4 mt-4 pl-5 border-l-2 border-blue-200 ml-2">
               <div>
-                <FieldLabel dot="bg-[#17458F]">Ongoing/Repeat Type</FieldLabel>
+                <FieldLabel required>Ongoing/Repeat Type</FieldLabel>
                 <div className="flex flex-wrap gap-2 mt-1">
                   <RadioPill disabled checked={ongoingSubType === "new"} onChange={() => {}} label="Create New" />
                   <RadioPill disabled checked={ongoingSubType === "existing"} onChange={() => {}} label="Select Existing" />
@@ -552,39 +528,38 @@ export default function PublicImageInitiativeV2EditPage() {
 
               {ongoingSubType === "new" && (
                 <div>
-                  <FieldLabel dot="bg-[#17458F]">Title of Ongoing/Repeat Project</FieldLabel>
-                  <input
+                  <FieldLabel required>Title of Ongoing/Repeat Project</FieldLabel>
+                  <Input
                     type="text"
                     value={ongoingGroupTitle}
                     onChange={(e) => setOngoingGroupTitle(e.target.value)}
-                    className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg"
+                    
                   />
                 </div>
               )}
 
               {ongoingSubType === "existing" && (
                 <div>
-                  <FieldLabel dot="bg-[#17458F]">Search Existing Project</FieldLabel>
+                  <FieldLabel required>Search Existing Project</FieldLabel>
                   <div className="relative">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                    <input
+                    <Input
                       type="text"
                       value={ongoingSearch}
                       onChange={(e) => { setOngoingSearch(e.target.value); setSelectedParentId(null); }}
-                      className="w-full pl-9 pr-3 py-2 text-sm border border-slate-200 rounded-lg"
+                      className="pl-9 pr-3"
                     />
                   </div>
                   {ongoingSearch && ongoingProjects.length > 0 && !selectedParentId && (
                     <div className="border border-slate-200 rounded-lg max-h-48 overflow-y-auto shadow-sm mt-1">
                       {ongoingProjects.map((p) => (
-                        <button
+                        <MenuItemButton
                           key={p.id}
                           type="button"
                           onClick={() => { setSelectedParentId(p.id); setOngoingSearch(p.title); }}
-                          className="w-full text-left px-3 py-2 text-sm hover:bg-blue-50 border-b last:border-b-0 border-slate-100"
-                        >
+                          className="border-b last:border-b-0">
                           {p.title}
-                        </button>
+                        </MenuItemButton>
                       ))}
                     </div>
                   )}
@@ -601,7 +576,7 @@ export default function PublicImageInitiativeV2EditPage() {
 
           {(projectType === "one_time" || (projectType === "ongoing_repeat" && ongoingSubType)) && (
             <div className="mt-4 pt-4 border-t border-dashed border-slate-200">
-              <FieldLabel dot="bg-[#17458F]">Is this a joint project with any other Rotary Club / Organisation?</FieldLabel>
+              <FieldLabel required>Is this a joint project with any other Rotary Club / Organisation?</FieldLabel>
               <div className="flex flex-wrap gap-2 mt-1">
                 <RadioPill disabled checked={isJointProject === true} onChange={() => {}} label="Yes" />
                 <RadioPill disabled checked={isJointProject === false} onChange={() => {}} label="No" />
@@ -610,12 +585,12 @@ export default function PublicImageInitiativeV2EditPage() {
               {isJointProject === true && (
                 <div className="mt-4 pl-5 border-l-2 border-blue-200 ml-2 space-y-3">
                   <div>
-                    <FieldLabel dot="bg-[#17458F]">Name of Co-host Rotary Club / Partner Organisation</FieldLabel>
-                    <input type="text" value={coHostName} onChange={(e) => setCoHostName(e.target.value)}
-                      className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg" />
+                    <FieldLabel required>Name of Co-host Rotary Club / Partner Organisation</FieldLabel>
+                    <Input type="text" value={coHostName} onChange={(e) => setCoHostName(e.target.value)}
+                       />
                   </div>
                   <div>
-                    <FieldLabel dot="bg-[#17458F]">Your Club Role</FieldLabel>
+                    <FieldLabel required>Your Club Role</FieldLabel>
                     <div className="flex flex-wrap gap-2 mt-1">
                       <RadioPill disabled checked={clubRole === "lead"} onChange={() => {}} label="Lead Club" />
                       <RadioPill disabled checked={clubRole === "co_host"} onChange={() => {}} label="Co-Host Club" />
@@ -628,50 +603,50 @@ export default function PublicImageInitiativeV2EditPage() {
         </SectionCard>
 
         {/* 2. Project Details */}
-        <SectionCard number={2} icon={MapPin} title="Project Details" dot="bg-[#17458F]">
+        <SectionCard number={2} icon={MapPin} title="Project Details">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="sm:col-span-2">
-              <FieldLabel hint="(max 50 chars)" dot="bg-[#17458F]">Title</FieldLabel>
-              <input
+              <FieldLabel required hint="(max 50 chars)">Title</FieldLabel>
+              <Input
                 type="text"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="Project title"
                 maxLength={50}
-                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                
               />
               <p className="text-xs text-slate-400 text-right mt-0.5">{title.length}/50</p>
             </div>
             <div className="sm:col-span-2">
-              <FieldLabel hint="(max 1000 chars)" dot="bg-[#17458F]">Description</FieldLabel>
-              <textarea
+              <FieldLabel required hint="(max 1000 chars)">Description</FieldLabel>
+              <Textarea
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="Describe the project, its objectives, and impact…"
                 rows={4}
                 maxLength={1000}
-                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                
               />
               <p className="text-xs text-slate-400 text-right mt-0.5">{description.length}/1000</p>
             </div>
             <div>
-              <FieldLabel dot="bg-[#17458F]">Location of Project</FieldLabel>
-              <input
+              <FieldLabel required>Location of Project</FieldLabel>
+              <Input
                 type="text"
                 value={location}
                 onChange={(e) => setLocation(e.target.value)}
-                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                
               />
             </div>
             <div>
-              <FieldLabel dot="bg-[#17458F]">Date of Project</FieldLabel>
-              <DateField value={projectDate} onChange={setProjectDate} max={frozenMonth ? frozenDateMax : todayStr} min={frozenMonth ? frozenDateMin : undefined} className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]" />
+              <FieldLabel required>Date of Project</FieldLabel>
+              <DateField value={projectDate} onChange={setProjectDate} max={frozenMonth ? frozenDateMax : todayStr} min={frozenMonth ? frozenDateMin : undefined} className="row-field w-full" />
             </div>
           </div>
         </SectionCard>
 
         {/* 3. Classification */}
-        <SectionCard number={3} icon={Target} title="Category" dot="bg-[#17458F]">
+        <SectionCard number={3} icon={Target} title="Category">
           <ClassificationAssist
             clubId={clubId}
             moduleId={moduleId}
@@ -684,11 +659,11 @@ export default function PublicImageInitiativeV2EditPage() {
           />
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <FieldLabel dot="bg-[#17458F]">Category</FieldLabel>
-              <select
+              <FieldLabel required>Category</FieldLabel>
+              <NativeSelect
                 value={selectedAofId}
                 onChange={(e) => setSelectedAofId(e.target.value)}
-                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] bg-card focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                
               >
                 <option value="">Select</option>
                 {areasOfFocus.map((a) => (
@@ -697,14 +672,14 @@ export default function PublicImageInitiativeV2EditPage() {
                 {!areasOfFocus.some((a) => (a.name || "").trim().toLowerCase() === "others") && (
                   <option value="others">Others</option>
                 )}
-              </select>
+              </NativeSelect>
               {isOthersAof && (
-                <input
+                <Input
                   type="text"
                   value={otherAreaOfFocus}
                   onChange={(e) => setOtherAreaOfFocus(e.target.value)}
                   placeholder="Specify category"
-                  className="w-full mt-2 px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                  className="mt-2"
                 />
               )}
             </div>
@@ -712,84 +687,84 @@ export default function PublicImageInitiativeV2EditPage() {
         </SectionCard>
 
         {/* 4. Financial & Impact */}
-        <SectionCard number={4} icon={moneyIcon(currency)} title="Financial & Impact" dot="bg-[#17458F]">
+        <SectionCard number={4} icon={moneyIcon(currency)} title="Financial & Impact">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             <div>
-              <FieldLabel dot="bg-[#17458F]" required={false}>Currency</FieldLabel>
-              <select
+              <FieldLabel required={false}>Currency</FieldLabel>
+              <NativeSelect
                 value={currency}
                 onChange={(e) => setCurrency(e.target.value)}
-                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] bg-card focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                
               >
                 {currencyOptions().map((c) => (
                   <option key={c.code} value={c.code}>{c.label}</option>
                 ))}
-              </select>
+              </NativeSelect>
             </div>
             <div>
-              <FieldLabel dot="bg-[#17458F]" required={false}>Project Cost ({getCurrencySymbol(currency)})</FieldLabel>
-              <input
+              <FieldLabel required={false}>Project Cost ({getCurrencySymbol(currency)})</FieldLabel>
+              <Input
                 type="number"
                 value={projectCost}
                 onChange={(e) => setProjectCost(e.target.value)}
                 placeholder="0"
                 min={0}
-                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                
               />
             </div>
             <div>
-              <FieldLabel dot="bg-[#17458F]" required={false}>Funding</FieldLabel>
-              <select
+              <FieldLabel required={false}>Funding</FieldLabel>
+              <NativeSelect
                 value={selectedFundingId}
                 onChange={(e) => handleFundingChange(e.target.value)}
-                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] bg-card focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                
               >
                 <option value="">Select</option>
                 {fundingList.map((f) => (
                   <option key={f.id} value={String(f.id)}>{f.name}</option>
                 ))}
-              </select>
+              </NativeSelect>
             </div>
 
             {showGlobalGrantBlock && (
               <div className="sm:col-span-2 lg:col-span-3 space-y-3 border border-emerald-200 bg-emerald-50/40 rounded-md p-4">
-                <h4 className="text-sm font-semibold text-emerald-700">Global Grant Details</h4>
+                <h4 className="row-h3 text-emerald-700">Global Grant Details</h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   <div>
-                    <FieldLabel dot="bg-[#17458F]" required={false}>Global Grant Number</FieldLabel>
-                    <input inputMode="numeric" pattern="[0-9]*" value={globalGrantNumber}
+                    <FieldLabel required={false}>Global Grant Number</FieldLabel>
+                    <Input inputMode="numeric" pattern="[0-9]*" value={globalGrantNumber}
                       onChange={(e) => setGlobalGrantNumber(onlyDigits(e.target.value))} placeholder="e.g., 2434521"
-                      className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]" />
+                       />
                   </div>
                   <div>
-                    <FieldLabel dot="bg-[#17458F]" required={false}>Amount Sanctioned ({getCurrencySymbol(currency)})</FieldLabel>
-                    <input inputMode="numeric" pattern="[0-9]*" value={amountSanctioned}
+                    <FieldLabel required={false}>Amount Sanctioned ({getCurrencySymbol(currency)})</FieldLabel>
+                    <Input inputMode="numeric" pattern="[0-9]*" value={amountSanctioned}
                       onChange={(e) => setAmountSanctioned(onlyDigits(e.target.value))} placeholder="0"
-                      className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]" />
+                       />
                   </div>
                   <div>
-                    <FieldLabel dot="bg-[#17458F]" required={false}>Amount Received ({getCurrencySymbol(currency)})</FieldLabel>
-                    <input inputMode="numeric" pattern="[0-9]*" value={amountReceived}
+                    <FieldLabel required={false}>Amount Received ({getCurrencySymbol(currency)})</FieldLabel>
+                    <Input inputMode="numeric" pattern="[0-9]*" value={amountReceived}
                       onChange={(e) => setAmountReceived(onlyDigits(e.target.value))} placeholder="0"
-                      className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]" />
+                       />
                   </div>
                   <div>
-                    <FieldLabel dot="bg-[#17458F]" required={false}>Amount spent till date ({getCurrencySymbol(currency)})</FieldLabel>
-                    <input inputMode="numeric" pattern="[0-9]*" value={amountSpent}
+                    <FieldLabel required={false}>Amount spent till date ({getCurrencySymbol(currency)})</FieldLabel>
+                    <Input inputMode="numeric" pattern="[0-9]*" value={amountSpent}
                       onChange={(e) => setAmountSpent(onlyDigits(e.target.value))} placeholder="0"
-                      className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]" />
+                       />
                   </div>
                   <div className="md:col-span-2">
-                    <FieldLabel dot="bg-[#17458F]" required={false}>Host Clubs/Districts</FieldLabel>
-                    <input type="text" value={hostClubsDistricts}
+                    <FieldLabel required={false}>Host Clubs/Districts</FieldLabel>
+                    <Input type="text" value={hostClubsDistricts}
                       onChange={(e) => setHostClubsDistricts(e.target.value)}
-                      className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]" />
+                       />
                   </div>
                   <div className="md:col-span-2">
-                    <FieldLabel dot="bg-[#17458F]" required={false}>Global Partner Clubs/Districts</FieldLabel>
-                    <input type="text" value={globalPartnerClubsDistricts}
+                    <FieldLabel required={false}>Global Partner Clubs/Districts</FieldLabel>
+                    <Input type="text" value={globalPartnerClubsDistricts}
                       onChange={(e) => setGlobalPartnerClubsDistricts(e.target.value)}
-                      className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]" />
+                       />
                   </div>
                 </div>
               </div>
@@ -797,58 +772,58 @@ export default function PublicImageInitiativeV2EditPage() {
 
             {showCsrBlock && (
               <div className="sm:col-span-2 lg:col-span-3 space-y-3 border border-emerald-200 bg-emerald-50/40 rounded-md p-4">
-                <h4 className="text-sm font-semibold text-emerald-700">CSR Details</h4>
+                <h4 className="row-h3 text-emerald-700">CSR Details</h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   <div className="md:col-span-2">
-                    <FieldLabel dot="bg-[#17458F]" required={false}>Name of the CSR Company</FieldLabel>
-                    <input type="text" value={csrCompanyName}
+                    <FieldLabel required={false}>Name of the CSR Company</FieldLabel>
+                    <Input type="text" value={csrCompanyName}
                       onChange={(e) => setCsrCompanyName(e.target.value)}
-                      className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]" />
+                       />
                   </div>
                   <div>
-                    <FieldLabel dot="bg-[#17458F]" required={false}>Amount Sanctioned ({getCurrencySymbol(currency)})</FieldLabel>
-                    <input inputMode="numeric" pattern="[0-9]*" value={amountSanctioned}
+                    <FieldLabel required={false}>Amount Sanctioned ({getCurrencySymbol(currency)})</FieldLabel>
+                    <Input inputMode="numeric" pattern="[0-9]*" value={amountSanctioned}
                       onChange={(e) => setAmountSanctioned(onlyDigits(e.target.value))} placeholder="0"
-                      className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]" />
+                       />
                   </div>
                   <div>
-                    <FieldLabel dot="bg-[#17458F]" required={false}>Amount Received ({getCurrencySymbol(currency)})</FieldLabel>
-                    <input inputMode="numeric" pattern="[0-9]*" value={amountReceived}
+                    <FieldLabel required={false}>Amount Received ({getCurrencySymbol(currency)})</FieldLabel>
+                    <Input inputMode="numeric" pattern="[0-9]*" value={amountReceived}
                       onChange={(e) => setAmountReceived(onlyDigits(e.target.value))} placeholder="0"
-                      className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]" />
+                       />
                   </div>
                 </div>
               </div>
             )}
 
             <div>
-              <FieldLabel hint="(Rotarians x Hours)" dot="bg-[#17458F]" required={false}>Man Hours</FieldLabel>
-              <input type="number" value={manHours} onChange={(e) => setManHours(e.target.value)} placeholder="0" min={0}
-                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]" />
+              <FieldLabel hint="(Rotarians x Hours)" required={false}>Man Hours</FieldLabel>
+              <Input type="number" value={manHours} onChange={(e) => setManHours(e.target.value)} placeholder="0" min={0}
+                 />
             </div>
             <div>
-              <FieldLabel dot="bg-[#17458F]" required={false}>Rotarians Involved</FieldLabel>
-              <input type="number" value={rotariansInvolved} onChange={(e) => setRotariansInvolved(e.target.value)} placeholder="0" min={0}
-                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]" />
+              <FieldLabel required={false}>Rotarians Involved</FieldLabel>
+              <Input type="number" value={rotariansInvolved} onChange={(e) => setRotariansInvolved(e.target.value)} placeholder="0" min={0}
+                 />
             </div>
             <div>
-              <FieldLabel dot="bg-[#17458F]" required={false}>Rotaractors Involved</FieldLabel>
-              <input type="number" value={rotaractorsInvolved} onChange={(e) => setRotaractorsInvolved(e.target.value)} placeholder="0" min={0}
-                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]" />
+              <FieldLabel required={false}>Rotaractors Involved</FieldLabel>
+              <Input type="number" value={rotaractorsInvolved} onChange={(e) => setRotaractorsInvolved(e.target.value)} placeholder="0" min={0}
+                 />
             </div>
             <div>
-              <FieldLabel dot="bg-[#17458F]" required={false}>RCC Involved</FieldLabel>
-              <input type="number" value={rccInvolved} onChange={(e) => setRccInvolved(e.target.value)} placeholder="0" min={0}
-                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]" />
+              <FieldLabel required={false}>RCC Involved</FieldLabel>
+              <Input type="number" value={rccInvolved} onChange={(e) => setRccInvolved(e.target.value)} placeholder="0" min={0}
+                 />
             </div>
           </div>
         </SectionCard>
 
         {/* 5. Photos */}
-        <SectionCard number={5} icon={Camera} title="Photos" dot="bg-[#17458F]">
+        <SectionCard number={5} icon={Camera} title="Photos">
           <div className="space-y-3">
             <div className="flex flex-wrap items-center justify-between gap-3">
-              <FieldLabel dot="bg-[#17458F]">Upload Photos (1 mandatory, max 5)</FieldLabel>
+              <FieldLabel required>Upload Photos (1 mandatory, max 5)</FieldLabel>
               <span className="text-xs text-slate-500">{photos.length}/5</span>
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
@@ -865,37 +840,36 @@ export default function PublicImageInitiativeV2EditPage() {
                       </div>
                     )}
                     <div className="absolute top-1 right-1 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button type="button" onClick={() => setPrimaryPhoto(photo.id)}
-                        className={`p-1 rounded-full ${photo.isPrimary ? "bg-amber-400 text-amber-900" : "bg-black/50 text-white hover:bg-amber-400 hover:text-amber-900"}`}>
+                      <IconButton type="button" onClick={() => setPrimaryPhoto(photo.id)}
+                        className={photo.isPrimary ? "bg-amber-400 text-amber-900" : "bg-black/50 text-white"} aria-label="Set as primary photo" aria-pressed={photo.isPrimary}>
                         <Star className="h-3 w-3" />
-                      </button>
-                      <button type="button" onClick={() => removePhoto(photo.id)} className="p-1 rounded-full bg-black/50 text-white hover:bg-rose-500">
+                      </IconButton>
+                      <IconButton aria-label="Remove photo" type="button" onClick={() => removePhoto(photo.id)} >
                         <X className="h-3 w-3" />
-                      </button>
+                      </IconButton>
                     </div>
                     {photo.isPrimary && (
                       <div className="absolute bottom-0 left-0 right-0 bg-amber-400/90 text-amber-900 text-[10px] font-bold text-center py-0.5">PRIMARY</div>
                     )}
                   </div>
-                  <textarea
+                  <Textarea
                     value={photo.description}
                     onChange={(e) => { if (e.target.value.length <= 500) updatePhotoDescription(photo.id, e.target.value); }}
                     placeholder="Photo description (max 500 chars)"
                     rows={2}
                     maxLength={500}
-                    className="w-full px-2 py-1.5 text-xs border-t border-slate-200 resize-none focus:outline-none"
+                    className="resize-none"
                   />
                 </div>
               ))}
               {photos.length < 5 && (
-                <button
+                <Button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
-                  className="border-2 border-dashed border-slate-200 rounded-lg aspect-square flex flex-col items-center justify-center gap-1 text-slate-500 hover:border-rose-300 hover:text-rose-700"
-                >
+                  className="h-auto border-dashed aspect-square flex-col gap-1" variant="outline">
                   <Upload className="h-5 w-5" />
                   <span className="text-xs">Add Photo</span>
-                </button>
+                </Button>
               )}
             </div>
             <input ref={fileInputRef} type="file" className="hidden" accept=".jpg,.jpeg,.png,.gif,.webp" multiple onChange={handlePhotoSelect} />

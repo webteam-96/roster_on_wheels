@@ -5,6 +5,12 @@
 // district as Target · Achieved · %. A Total row sums the columns, and a District filter narrows the
 // grid to one district. Clicking a district row opens that district's month-wise collection.
 
+import { Table } from "@/components/ui/table";
+import { IconButton } from "@/components/ui/icon-button";
+import { ToggleButton } from "@/components/ui/text-buttons";
+import { NativeSelect } from "@/components/ui/native-select";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { Fragment, useCallback, useEffect, useMemo, useState } from "react";
 import { Loader2, Download, MessagesSquare, Calendar, Building2 } from "@/components/icons";
 import { saveAs } from "file-saver";
@@ -173,52 +179,52 @@ export default function GoalOversightMatrix({
 
   return (
     <div className="space-y-4">
-      <div className="rounded-[20px] border border-slate-200 bg-card p-4">
+      <Card className="p-5">
         <div className="text-sm font-semibold text-slate-800">{title}: districts (read-only)</div>
         <p className="text-xs text-slate-500 mt-0.5 mb-3">Pick a zone to see every district&apos;s Membership / Foundation / Youth Service / Public Image progress. Click a district row to see its month-wise collection.</p>
         <div className="flex flex-wrap gap-3">
           <label className="flex flex-col gap-1 text-xs text-slate-500">
             Zone
-            <select className={selCls} value={zoneId ?? ""} onChange={(e) => setZoneId(e.target.value ? Number(e.target.value) : null)}>
+            <NativeSelect className="w-auto" value={zoneId ?? ""} onChange={(e) => setZoneId(e.target.value ? Number(e.target.value) : null)}>
               <option value="">Select zone</option>
               {zones.map((z) => <option key={z.id} value={z.id}>{z.zoneName}</option>)}
-            </select>
+            </NativeSelect>
           </label>
           {canFilterDistrict && (
             <label className="flex flex-col gap-1 text-xs text-slate-500">
               District
-              <select className={selCls} value={districtFilter ?? ""} disabled={!matrix || matrix.districts.length === 0}
+              <NativeSelect className="w-auto" value={districtFilter ?? ""} disabled={!matrix || matrix.districts.length === 0}
                 onChange={(e) => setDistrictFilter(e.target.value ? Number(e.target.value) : null)}>
                 <option value="">All districts</option>
                 {(matrix?.districts || []).map((d) => <option key={d.districtId} value={d.districtId}>{d.districtNumber}</option>)}
-              </select>
+              </NativeSelect>
             </label>
           )}
           {(zoneId || (matrix && matrix.districts.length > 0)) && (
             <div className="flex flex-col justify-end">
-              <button
+              <Button
                 type="button"
                 onClick={() => districtFilter ? downloadDistrictSetting(districtFilter) : downloadReport(null)}
                 disabled={dl !== null}
-                className="inline-flex items-center gap-1.5 h-9 rounded-full border border-blue-200 bg-blue-50 px-3 text-xs font-medium text-blue-700 hover:bg-blue-100 disabled:opacity-40"
+                variant="outline" size="sm"
                 title="Download report for the current selection"
               >
                 {(dl === "scope" || (districtFilter != null && dl === districtFilter)) ? <Loader2 size={13} className="animate-spin" /> : <Download size={13} />}
                 {districtFilter ? "Download this district" : zoneId ? "Download report (zone)" : "Download report (all)"}
-              </button>
+              </Button>
             </div>
           )}
           {showMessages && zoneId && (
             <div className="flex flex-col justify-end">
-              <button
+              <Button
                 type="button"
                 onClick={openMessages}
-                className="relative inline-flex items-center gap-1.5 h-9 rounded-full border border-blue-200 bg-blue-50 px-3 text-xs font-medium text-blue-700 hover:bg-blue-100"
+                variant="outline" size="sm" className="relative"
                 title="Read messages from District Admins and Governors"
               >
                 <MessagesSquare size={14} /> Messages
                 {hasUnread && <span className="absolute -top-1 -right-1 h-2.5 w-2.5 rounded-full bg-red-500 ring-2 ring-white" title="New message" />}
-              </button>
+              </Button>
             </div>
           )}
         </div>
@@ -226,18 +232,13 @@ export default function GoalOversightMatrix({
         {cats.length > 0 && (
           <div className="mt-3 flex flex-wrap items-center gap-2">
             {cats.map((c) => (
-              <button
+              <ToggleButton pressed={catFilter === c.categoryId}
                 key={c.categoryId}
                 type="button"
                 onClick={() => setCatFilter(c.categoryId)}
-                className={`inline-flex items-center h-9 rounded-md border px-3 text-xs font-medium ${
-                  catFilter === c.categoryId
-                    ? "border-blue-600 bg-blue-600 text-white"
-                    : "border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100"
-                }`}
-              >
+>
                 {c.name}
-              </button>
+              </ToggleButton>
             ))}
             <span className="text-[11px] text-slate-400">The grid below shows the selected category only.</span>
           </div>
@@ -250,7 +251,7 @@ export default function GoalOversightMatrix({
             <span className="inline-flex items-center gap-1"><span className="h-2.5 w-2.5 rounded-sm bg-emerald-500" /> Green 41+</span>
           </p>
         )}
-      </div>
+      </Card>
 
       {loading && <div className="flex items-center gap-2 text-sm text-slate-400 px-1"><Loader2 size={14} className="animate-spin" /> Loading…</div>}
       {!loading && error && <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">{error}</div>}
@@ -260,16 +261,16 @@ export default function GoalOversightMatrix({
       )}
 
       {!loading && !error && matrix && matrix.districts.length > 0 && cats.length > 0 && (
-        <div className="bg-card rounded-2xl border border-slate-200 overflow-hidden">
+        <Card className="overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="text-sm border-collapse w-full">
+            <Table bare className="text-sm border-collapse w-full">
               <thead>
                 {/* Tier 1 — category (spans all its metric×4 columns). */}
                 <tr className="border-b border-marigold" style={{ backgroundColor: "#17458f" }}>
-                  <th rowSpan={3} className="sticky left-0 z-20 bg-azure text-left px-4 py-2 text-white text-xs font-semibold uppercase tracking-wide border-r border-white/20">District</th>
-                  <th rowSpan={3} className="bg-azure text-center px-3 py-2 text-white text-[11px] font-semibold uppercase tracking-wide border-r border-white/20 whitespace-normal break-words min-w-[92px] max-w-[110px]">Club Goal Setting</th>
+                  <th rowSpan={3} className="sticky left-0 z-20 text-left px-4 border-r border-white/20">District</th>
+                  <th rowSpan={3} className="text-center px-3 border-r border-white/20 whitespace-normal break-words min-w-[92px] max-w-[110px]">Club Goal Setting</th>
                   {shownCats.map((c) => (
-                    <th key={c.categoryId} colSpan={Math.max(1, catColSpan(c))} className="px-3 py-2 text-white text-xs font-semibold uppercase tracking-wide text-center border-l border-white/20">
+                    <th key={c.categoryId} colSpan={Math.max(1, catColSpan(c))} className="px-3 text-center border-l border-white/20">
                       {c.name}
                     </th>
                   ))}
@@ -279,7 +280,7 @@ export default function GoalOversightMatrix({
                   {shownCats.map((c) => (
                     <Fragment key={c.categoryId}>
                       {groupSegments(c).map((seg, si) => (
-                        <th key={si} colSpan={seg.span} className="px-2 py-1.5 text-white text-[11px] font-semibold text-center border-l border-white/20 whitespace-normal break-words">{seg.label}</th>
+                        <th key={si} colSpan={seg.span} className="px-2 text-center border-l border-white/20 whitespace-normal break-words">{seg.label}</th>
                       ))}
                     </Fragment>
                   ))}
@@ -289,15 +290,15 @@ export default function GoalOversightMatrix({
                   {shownCats.map((c) => (
                     <Fragment key={c.categoryId}>
                       {c.metrics.map((mt, mi) => isSingle(mt) ? (
-                        <th key={mi} className="px-2 py-1.5 text-white text-[11px] font-semibold text-center border-l border-white/10 align-bottom whitespace-normal break-words min-w-[80px]">{mt.baselineLabel}</th>
+                        <th key={mi} className="px-2 text-center border-l border-white/10 align-bottom whitespace-normal break-words min-w-[80px]">{mt.baselineLabel}</th>
                       ) : (
                         <Fragment key={mi}>
                           {mt.hasBaseline !== false && (
-                            <th className="px-2 py-1.5 text-white text-[11px] font-medium text-right border-l border-white/10 align-bottom whitespace-normal break-words min-w-[80px] max-w-[130px]">{mt.baselineLabel}</th>
+                            <th className="px-2 text-right border-l border-white/10 align-bottom whitespace-normal break-words min-w-[80px] max-w-[130px]">{mt.baselineLabel}</th>
                           )}
                           <th className={`px-2 py-1.5 text-white text-[11px] font-medium text-right align-bottom whitespace-normal break-words min-w-[76px] max-w-[110px] ${mt.hasBaseline === false ? "border-l border-white/10" : ""}`}>{"Target"}</th>
-                          <th className="px-2 py-1.5 text-white text-[11px] font-medium text-right align-bottom whitespace-normal break-words min-w-[60px]">Achieved</th>
-                          <th className="px-2 py-1.5 text-white text-[11px] font-medium text-right align-bottom whitespace-normal break-words min-w-[80px] max-w-[100px]">Percentage Achieved</th>
+                          <th className="px-2 text-right align-bottom whitespace-normal break-words min-w-[60px]">Achieved</th>
+                          <th className="px-2 text-right align-bottom whitespace-normal break-words min-w-[80px] max-w-[100px]">Percentage Achieved</th>
                         </Fragment>
                       ))}
                     </Fragment>
@@ -315,27 +316,26 @@ export default function GoalOversightMatrix({
                         District column when the grid is dragged sideways (2026-09-16 fix). */}
                     <td className="sticky left-0 z-10 bg-card group-hover:bg-blue-50 px-4 py-2 font-medium text-blue-700 whitespace-nowrap border-r border-slate-100">
                       <span className="inline-flex items-center gap-2">
-                        <button
+                        <IconButton aria-label={`Download report for D ${d.districtNumber}`}
                           type="button"
                           onClick={(e) => { e.stopPropagation(); downloadDistrictSetting(d.districtId); }}
                           disabled={dl !== null}
                           title={`Download report for D ${d.districtNumber}`}
-                          className="text-slate-400 hover:text-blue-600 disabled:opacity-40"
-                        >
+>
                           {dl === d.districtId ? <Loader2 size={13} className="animate-spin" /> : <Download size={13} />}
-                        </button>
+                        </IconButton>
                         {d.districtNumber}
                       </span>
                     </td>
                     <td className="px-3 py-2 text-center whitespace-nowrap border-r border-slate-100">
-                      <button
+                      <Button
                         type="button"
                         onClick={(e) => { e.stopPropagation(); setClubDistrict({ id: d.districtId, number: d.districtNumber }); }}
-                        className="inline-flex items-center gap-1 rounded-full border border-blue-200 bg-blue-50 px-2 py-1 text-[11px] font-medium text-blue-700 hover:bg-blue-100"
+                        variant="outline" size="sm"
                         title={`View all clubs' goal setting for D ${d.districtNumber}`}
                       >
                         <Building2 size={12} /> View clubs
-                      </button>
+                      </Button>
                     </td>
                     {shownCats.map((c) => {
                       const cells = d.cells[c.categoryId] || [];
@@ -394,9 +394,9 @@ export default function GoalOversightMatrix({
                   </tr>
                 )}
               </tbody>
-            </table>
+            </Table>
           </div>
-        </div>
+        </Card>
       )}
 
       {/* Row click → that district's month-wise collection (read-only), category tabs inside the panel. */}
@@ -408,15 +408,15 @@ export default function GoalOversightMatrix({
                 <Calendar size={18} className="text-blue-600" /> Month-wise Collection: District {monthDistrict?.number}
               </DialogTitle>
               {monthDistrict && (
-                <button
+                <Button
                   type="button"
                   onClick={() => downloadDistrictSetting(monthDistrict.id)}
                   disabled={dl !== null}
-                  className="inline-flex items-center gap-1.5 h-8 rounded-full border border-blue-200 bg-blue-50 px-3 text-xs font-medium text-blue-700 hover:bg-blue-100 disabled:opacity-40 shrink-0"
+                  variant="outline" size="sm"
                   title="Download this district's District Goal Setting report (YTD + Month-wise)"
                 >
                   {dl === monthDistrict.id ? <Loader2 size={13} className="animate-spin" /> : <Download size={13} />} Download report
-                </button>
+                </Button>
               )}
             </div>
           </DialogHeader>
@@ -457,27 +457,27 @@ export default function GoalOversightMatrix({
           <div className="shrink-0 flex flex-wrap items-end gap-2 border-b border-slate-100 pb-3 pr-8">
             <label className="flex flex-col gap-1 text-[11px] text-slate-500">
               Category
-              <select value={rptCat} onChange={(e) => setRptCat(Number(e.target.value))} className="h-8 rounded-[12px] border border-slate-300 bg-card px-2 text-xs text-slate-700 focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]">
+              <NativeSelect value={rptCat} onChange={(e) => setRptCat(Number(e.target.value))} className="row-field-sm w-auto">
                 <option value={0}>All categories</option>
                 {cats.map((c) => <option key={c.categoryId} value={c.categoryId}>{c.name}</option>)}
-              </select>
+              </NativeSelect>
             </label>
             <label className="flex flex-col gap-1 text-[11px] text-slate-500">
               District
-              <select value={rptDistrict} onChange={(e) => setRptDistrict(Number(e.target.value))} className="h-8 rounded-[12px] border border-slate-300 bg-card px-2 text-xs text-slate-700 focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]">
+              <NativeSelect value={rptDistrict} onChange={(e) => setRptDistrict(Number(e.target.value))} className="row-field-sm w-auto">
                 <option value={0}>All districts</option>
                 {(matrix?.districts || []).map((d) => <option key={d.districtId} value={d.districtId}>{d.districtNumber}</option>)}
-              </select>
+              </NativeSelect>
             </label>
-            <button
+            <Button
               type="button"
               onClick={downloadMessagesReport}
               disabled={rptBusy}
-              className="inline-flex items-center gap-1.5 h-8 rounded-full border border-blue-200 bg-blue-50 px-3 text-xs font-medium text-blue-700 hover:bg-blue-100 disabled:opacity-40"
+              variant="outline" size="sm"
               title="Download the goal messages report for the selected filters"
             >
               {rptBusy ? <Loader2 size={13} className="animate-spin" /> : <Download size={13} />} Download report
-            </button>
+            </Button>
           </div>
           {/* District Admins / Governors writing up the chain (user 2026-10-09). Honours the Category +
               District filter above. */}

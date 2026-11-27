@@ -59,8 +59,9 @@ export default function Pagination({
           <Button
             variant="outline"
             size="icon"
-            className="h-8 w-8"
+            className="row-btn-sm"
             onClick={() => onPageChange(page - 1)}
+            aria-label="Previous page"
             disabled={page <= 1}
           >
             <ChevronLeft className="h-4 w-4" />
@@ -75,7 +76,7 @@ export default function Pagination({
                 key={p}
                 variant={p === page ? "default" : "outline"}
                 size="icon"
-                className="h-8 w-8"
+                className="row-btn-sm"
                 onClick={() => onPageChange(p)}
               >
                 {p}
@@ -85,8 +86,9 @@ export default function Pagination({
           <Button
             variant="outline"
             size="icon"
-            className="h-8 w-8"
+            className="row-btn-sm"
             onClick={() => onPageChange(page + 1)}
+            aria-label="Next page"
             disabled={page >= totalPages}
           >
             <ChevronRight className="h-4 w-4" />

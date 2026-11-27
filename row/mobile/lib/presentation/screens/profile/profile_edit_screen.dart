@@ -1,9 +1,11 @@
+import 'dart:convert';
 import 'package:flutter/material.dart' hide Text;
 import 'package:flutter/services.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import '../../../core/constants/api_constants.dart';
+import '../../../core/brand/brand.dart';
 import '../../../core/constants/form_constants.dart';
 import '../../../core/network/api_client.dart';
 import '../../../core/network/api_exceptions.dart';
@@ -18,7 +20,9 @@ import '../share_contact/share_contact_sheet.dart';
 import 'package:rotary_flutter_app/core/theme/app_fonts.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
 import 'package:rotary_flutter_app/presentation/widgets/row/form_action_bar.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/motion.dart';
 import 'package:rotary_flutter_app/presentation/widgets/common/custom_button.dart';
+import 'package:rotary_flutter_app/presentation/widgets/common/loading_widget.dart';
 
 /// Member-edit screen with full parity to the web `MemberForm`. Five tabs:
 /// Personal · Social · Residential · Business · Family.
@@ -46,7 +50,10 @@ class _ProfileEditScreenState extends State<ProfileEditScreen>
     with SingleTickerProviderStateMixin {
   final _api = ApiClient();
   final _formKey = GlobalKey<FormState>();
-  late final TabController _tab = TabController(length: 5, vsync: this);
+  // Member data this instance does not collect (Brand features) stays out of the form.
+  final _showFamily = Brand.current.feature('member.familyDetails');
+  final _showBloodGroup = Brand.current.feature('member.bloodGroup');
+  late final TabController _tab = TabController(length: _showFamily ? 5 : 4, vsync: this);
 
   // ── Personal ────────────────────────────────────────────────────────────
   final _name = TextEditingController();
@@ -220,9 +227,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen>
         );
         _familyMembers = List<FamilyMemberModel>.from(m.familyMembers);
       }
-      // Pre-select India anywhere a country is still unset; never overwrites a
-      // country the member already had.
-      _applyCountryDefaults();
+      _savedBody = jsonEncode(_body());
       setState(() => _loading = false);
     } catch (e) {
       if (!mounted) return;
@@ -372,51 +377,12 @@ class _ProfileEditScreenState extends State<ProfileEditScreen>
     }
   }
 
-  /// Resolve India's country id from the loaded list (match by name); fall back
-  /// to 1 (India's id in this backend) if the list hasn't surfaced it.
-  int _indiaCountryId() {
-    for (final c in _countries) {
-      if (c.name.toLowerCase().contains('india')) return c.id;
-    }
-    return 1;
-  }
-
-  /// India is the default country for ~98% of members, so pre-select it
-  /// wherever no country has been chosen yet. The user can still change any of
-  /// these in the dropdown. Also keeps fk*CountryId from ever being sent null.
-  void _applyCountryDefaults() {
-    final india = _indiaCountryId();
-    final indiaName = _countryById(india)?.name;
-    _primaryCountryId ??= india;
-    _secondaryCountryId ??= india;
-    if (_residential.fkCountryId == null) {
-      _residential =
-          _residential.copyWith(fkCountryId: india, country: indiaName);
-    }
-    if (_business.fkCountryId == null) {
-      _business = _business.copyWith(fkCountryId: india, country: indiaName);
-    }
-    // Backfill India on any family member missing a country (new rows already
-    // default to India; this catches existing rows stored with a null country,
-    // which the non-nullable FamilyMemberDto.FkCountryId would otherwise reject).
-    final indiaPhone = _countryById(india)?.phoneCode;
-    _familyMembers = _familyMembers
-        .map((f) => f.fkCountryId == null
-            ? f.copyWith(
-                fkCountryId: india,
-                country: indiaName,
-                countryPhoneCode: indiaPhone)
-            : f)
-        .toList();
-  }
-
   // True when the user has filled in any meaningful field on the address.
   // Empty addresses are skipped at save time so the backend doesn't get a
   // payload with `fkCountryId: null`, which fails its non-nullable int parse.
   bool _hasAddressContent(MemberAddressModel a) {
     bool nz(String? s) => s != null && s.trim().isNotEmpty;
-    // Country alone is NOT content: India is pre-selected by default, so an
-    // address the user never filled would otherwise be saved as an empty row.
+    // Country alone is not an address.
     return nz(a.state) ||
         nz(a.city) ||
         nz(a.pinCode) ||
@@ -439,16 +405,10 @@ class _ProfileEditScreenState extends State<ProfileEditScreen>
     return json;
   }
 
-  Future<void> _save() async {
-    if (!_formKey.currentState!.validate()) return;
-    final memberId = context.read<AuthProvider>().memberId;
-    setState(() => _saving = true);
-
-    // The API rejects a null fk*CountryId (non-nullable int → validation 400),
-    // so fall back to India if either is somehow still unset.
-    final india = _indiaCountryId();
-    final primaryCountryId = _primaryCountryId ?? india;
-    final secondaryCountryId = _secondaryCountryId ?? india;
+  Map<String, dynamic> _body() {
+    // 0 is "no country": the API field cannot be null.
+    final primaryCountryId = _primaryCountryId ?? 0;
+    final secondaryCountryId = _secondaryCountryId ?? 0;
     final primaryCountry = _countryById(primaryCountryId);
     final secondaryCountry = _countryById(secondaryCountryId);
     final residentialCountry = _countryById(_residential.fkCountryId);
@@ -462,7 +422,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen>
       addresses.add(_addressJson(_business, businessCountry?.name));
     }
 
-    final body = <String, dynamic>{
+    return <String, dynamic>{
       if (_original != null) ..._original!.toJson(),
       'memberName': _name.text.trim(),
       'emailId': _email.text.trim(),
@@ -504,6 +464,14 @@ class _ProfileEditScreenState extends State<ProfileEditScreen>
       'addresses': addresses,
       'familyMembers': _familyMembers.map((f) => f.toJson()).toList(),
     };
+  }
+
+  Future<void> _save() async {
+    if (!_formKey.currentState!.validate()) return;
+    final memberId = context.read<AuthProvider>().memberId;
+    setState(() => _saving = true);
+
+    final body = _body();
 
     try {
       await _api.put('/api/members/$memberId', body: body);
@@ -522,10 +490,39 @@ class _ProfileEditScreenState extends State<ProfileEditScreen>
     }
   }
 
+  /// The form as loaded, to tell whether there are edits to lose.
+  String? _savedBody;
+
+  Future<void> _leave() async {
+    if (_savedBody != null && jsonEncode(_body()) != _savedBody) {
+      final discard = await showRowDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Text('Discard changes?'),
+          content: const Text('Your changes are not saved yet.'),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Keep editing')),
+            FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Discard')),
+          ],
+        ),
+      );
+      if (discard != true) return;
+    }
+    if (mounted) Navigator.of(context).pop();
+  }
+
   // ── Build ──────────────────────────────────────────────────────────────
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) => PopScope(
+        canPop: false,
+        onPopInvokedWithResult: (didPop, _) {
+          if (!didPop) _leave();
+        },
+        child: _page(context),
+      );
+
+  Widget _page(BuildContext context) {
     return Scaffold(
       bottomNavigationBar: _loading || _error != null
           ? null
@@ -535,6 +532,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen>
       backgroundColor: AppColors.background,
       appBar: CustomAppBar(
         title: 'Edit Profile',
+        onBack: _leave,
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(48),
           child: Material(
@@ -547,19 +545,19 @@ class _ProfileEditScreenState extends State<ProfileEditScreen>
                 fontWeight: FontWeight.w700,
                 fontSize: 13,
               ),
-              tabs: const [
-                Tab(text: 'Personal'),
-                Tab(text: 'Social'),
-                Tab(text: 'Residential'),
-                Tab(text: 'Business'),
-                Tab(text: 'Family'),
+              tabs: [
+                const Tab(text: 'Personal'),
+                const Tab(text: 'Social'),
+                const Tab(text: 'Residential'),
+                const Tab(text: 'Business'),
+                if (_showFamily) const Tab(text: 'Family'),
               ],
             ),
           ),
         ),
       ),
       body: _loading
-          ? const Center(child: const CircularProgressIndicator(color: AppColors.primary))
+          ? const LoadingWidget()
           : _error != null
               ? Center(
                   child: Padding(
@@ -593,7 +591,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen>
                         update: (v) => setState(() => _residential = v),
                       ),
                       _businessTab(),
-                      _familyTab(),
+                      if (_showFamily) _familyTab(),
                     ],
                   ),
                 ),
@@ -634,7 +632,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen>
         value: _anniversaryDate,
         onPicked: (d) => setState(() => _anniversaryDate = d),
       ),
-      _staticDropdown(
+      if (_showBloodGroup) _staticDropdown(
         label: 'Blood Group',
         value: _bloodGroup,
         items: FormConstants.bloodGroups,
@@ -733,10 +731,8 @@ class _ProfileEditScreenState extends State<ProfileEditScreen>
         onChanged: (v) => update(addr.copyWith(city: v)),
       ),
       _initInput(
-        label: 'PIN Code',
+        label: 'Postal Code',
         initial: addr.pinCode ?? '',
-        keyboard: TextInputType.number,
-        formatters: [FilteringTextInputFormatter.digitsOnly],
         onChanged: (v) => update(addr.copyWith(pinCode: v)),
       ),
     ]);
@@ -802,10 +798,8 @@ class _ProfileEditScreenState extends State<ProfileEditScreen>
         onChanged: (v) => update(addr.copyWith(city: v)),
       ),
       _initInput(
-        label: 'PIN Code',
+        label: 'Postal Code',
         initial: addr.pinCode ?? '',
-        keyboard: TextInputType.number,
-        formatters: [FilteringTextInputFormatter.digitsOnly],
         onChanged: (v) => update(addr.copyWith(pinCode: v)),
       ),
     ]);
@@ -838,18 +832,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen>
           TextButton.icon(
             onPressed: () {
               setState(() {
-                // New family member defaults to India (matches the rest of the
-                // form); the user can change it in the row's country dropdown.
-                final india = _indiaCountryId();
-                _familyMembers.add(
-                  FamilyMemberModel(
-                    name: '',
-                    relation: '',
-                    fkCountryId: india,
-                    country: _countryById(india)?.name,
-                    countryPhoneCode: _countryById(india)?.phoneCode,
-                  ),
-                );
+                _familyMembers.add(const FamilyMemberModel(name: '', relation: ''));
               });
             },
             icon: const Icon(Icons.add, color: AppColors.primary, size: 18),
@@ -916,6 +899,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen>
                 ),
               ),
               IconButton(
+                tooltip: 'Delete',
                 icon: const Icon(Icons.delete_outline, color: AppColors.error),
                 onPressed: () => setState(() {
                   _familyMembers.removeAt(index);
@@ -936,7 +920,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen>
             items: FormConstants.relations,
             onChanged: (v) => update(f.copyWith(relation: v ?? '')),
           ),
-          _staticDropdown(
+          if (_showBloodGroup) _staticDropdown(
             label: 'Blood Group',
             value: FormConstants.bloodGroups.contains(f.bloodGroup) ? f.bloodGroup : null,
             items: FormConstants.bloodGroups,
@@ -1003,9 +987,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen>
         ),
         clipBehavior: Clip.antiAlias,
         child: uploading
-            ? const Center(
-                child: const CircularProgressIndicator(
-                    color: AppColors.primary, strokeWidth: 2.2))
+            ? const LoadingWidget()
             : url.isEmpty
                 ? const Icon(Icons.add_a_photo_outlined,
                     color: AppColors.primary, size: 22)
@@ -1119,8 +1101,9 @@ class _ProfileEditScreenState extends State<ProfileEditScreen>
       maxLines: maxLines ?? 1,
       inputFormatters: formatters,
       decoration:
-          _decoration(label, required: required, hint: hint, icon: prefixIcon, locked: locked),
-      validator: required
+          _decoration(label, required: required && !locked, hint: hint, icon: prefixIcon, locked: locked),
+      // A locked field cannot be filled in here, so it never blocks the save.
+      validator: required && !locked
           ? (v) => (v == null || v.trim().isEmpty) ? '$label is required' : null
           : null,
     );
@@ -1165,6 +1148,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen>
           ? const Icon(Icons.lock_outline, size: 18, color: AppColors.textMuted)
           : null,
       helperText: locked ? 'Contact your club admin to change this' : null,
+      helperMaxLines: 2,
       filled: locked,
       fillColor: locked ? AppColors.border.withValues(alpha: 0.18) : null,
       isDense: true,
@@ -1284,6 +1268,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen>
               ),
               if (value != null)
                 IconButton(
+                  tooltip: 'Clear',
                   icon: const Icon(Icons.clear, size: 18),
                   onPressed: () => onPicked(null),
                 ),
@@ -1376,9 +1361,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen>
                     ),
                     clipBehavior: Clip.antiAlias,
                     child: uploading
-                        ? const Center(
-                            child: const CircularProgressIndicator(
-                                color: AppColors.primary, strokeWidth: 2.5))
+                        ? const LoadingWidget()
                         : url.isEmpty
                             ? const Icon(Icons.add_a_photo_outlined,
                                 color: AppColors.primary, size: 32)

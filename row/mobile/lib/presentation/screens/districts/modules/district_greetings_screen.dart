@@ -9,6 +9,7 @@ import '../../../widgets/common/custom_app_bar.dart';
 import '../../../widgets/common/custom_button.dart';
 import '../../../widgets/common/custom_text_field.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
+import 'package:rotary_flutter_app/presentation/widgets/common/loading_widget.dart';
 
 // ---------------------------------------------------------------------------
 // District Greetings Settings Screen
@@ -234,7 +235,7 @@ class _DistrictGreetingsScreenState extends State<DistrictGreetingsScreen> {
       appBar:
           widget.embedded ? null : const CustomAppBar(title: 'Greetings Settings'),
       body: _loading
-          ? const Center(child: const CircularProgressIndicator(color: AppColors.primary))
+          ? const LoadingWidget()
           : SingleChildScrollView(
               physics: const AlwaysScrollableScrollPhysics(),
               padding: const EdgeInsets.all(16),

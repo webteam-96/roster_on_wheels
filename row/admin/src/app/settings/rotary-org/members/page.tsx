@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -16,13 +15,13 @@ import AlertModal from "@/components/AlertModal";
 import RotaryLoader from "@/components/RotaryLoader";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { useAuth } from "@/contexts/AuthContext";
-import { ArrowLeft, AlertTriangle, Plus, Trash2, Eye, ArrowRightCircle, RefreshCw, Loader2 } from "@/components/icons";
+import { AlertTriangle, Plus, Trash2, Eye, ArrowRightCircle, RefreshCw, Loader2 } from "@/components/icons";
 import {
   getDistricts, getDistrictClubs, compareMembers, addMemberFromOrg,
   updateMemberManual, deleteMemberFromClubManual, getMemberOrgDetail,
   refreshMembersCache,
 } from "@/services/api";
-import { ListPageSkeleton } from "@/components/row/AppKit";
+import { PageHeader, ListPageSkeleton } from "@/components/row/AppKit";
 
 interface DistrictOption { id: number; districtNumber: string }
 interface ClubOption { id: number; clubName: string }
@@ -67,7 +66,7 @@ function PopupSection({
 }) {
   return (
     <div className="border rounded p-3 space-y-2">
-      <h4 className="font-semibold text-sm text-primary border-b pb-1">{title}</h4>
+      <h4 className="row-h3 border-b pb-1">{title}</h4>
       {fields.map((row) => (
         <FieldRowComponent
           key={row.key}
@@ -248,7 +247,7 @@ export default function RotaryOrgMembersPage() {
   if (!isSuperAdmin) {
     return (
       <ProtectedRoute>
-        <div className="flex flex-col items-center justify-center py-20"><h3 className="text-lg font-semibold">Access Denied</h3></div>
+        <div className="flex flex-col items-center justify-center py-20"><h3 className="row-h2">Access Denied</h3></div>
       </ProtectedRoute>
     );
   }
@@ -305,18 +304,13 @@ export default function RotaryOrgMembersPage() {
   return (
     <ProtectedRoute>
       <div className="space-y-6">
-        <div className="flex items-center justify-between flex-wrap gap-3">
-          <div className="flex items-center gap-3">
-            <Button variant="outline" size="icon" asChild>
-              <Link href="/settings/rotary-org"><ArrowLeft className="h-4 w-4" /></Link>
-            </Button>
-            <div>
-              <h2 className="text-2xl font-bold tracking-tight text-primary">Member Sync</h2>
-              <p className="text-muted-foreground text-base">Compare members in a club side-by-side and sync manually</p>
-            </div>
-          </div>
-          <div className="flex flex-wrap items-end gap-3">
-            <div>
+        <PageHeader
+          title="Member Sync"
+          description="Compare members in a club side-by-side and sync manually"
+          back="/settings/rotary-org"
+          actions={
+            <>
+<div>
               <Label className="text-xs text-muted-foreground">District</Label>
               <Select value={districtId} onValueChange={setDistrictId}>
                 <SelectTrigger className="w-40"><SelectValue placeholder="Select district" /></SelectTrigger>
@@ -338,8 +332,9 @@ export default function RotaryOrgMembersPage() {
               <RefreshCw className={`h-4 w-4 mr-2 ${refreshing ? "animate-spin" : ""}`} />
               {refreshing ? "Refreshing..." : "Refresh from Rotary.org"}
             </Button>
-          </div>
-        </div>
+            </>
+          }
+        />
 
         {loading && <div className="flex justify-center py-12"><ListPageSkeleton /></div>}
 
@@ -350,7 +345,7 @@ export default function RotaryOrgMembersPage() {
               <Badge variant="secondary">Rotary.org: {data.counts.rotaryOrg}</Badge>
               <Badge className="bg-green-100 text-green-800 border-green-300">Matched: {data.counts.matched}</Badge>
               <Badge className="bg-yellow-100 text-yellow-800 border-yellow-300">Only ROW: {data.counts.onlyIndia}</Badge>
-              <Badge className="bg-blue-100 text-blue-800 border-blue-300">Only Rotary.org: {data.counts.onlyOrg}</Badge>
+              <Badge className="bg-blue-100 text-azure-100 text-blue-800 border-blue-300">Only Rotary.org: {data.counts.onlyOrg}</Badge>
               {data.lastFetchedUtc && (
                 <span className="text-xs text-muted-foreground ml-auto">
                   Cache last refreshed: {new Date(data.lastFetchedUtc).toLocaleString()}
@@ -368,7 +363,7 @@ export default function RotaryOrgMembersPage() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead className="w-1/2 border-r bg-muted/40">ROW</TableHead>
+                      <TableHead className="w-1/2 border-r">ROW</TableHead>
                       <TableHead className="w-1/2">Rotary.org</TableHead>
                     </TableRow>
                   </TableHeader>

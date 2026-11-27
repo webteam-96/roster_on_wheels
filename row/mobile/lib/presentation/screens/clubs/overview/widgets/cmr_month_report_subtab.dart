@@ -1,3 +1,4 @@
+import 'package:rotary_flutter_app/presentation/widgets/row/motion.dart';
 import 'package:flutter/material.dart' hide Text;
 import '../../../../../core/network/api_client.dart';
 import '../../../../../core/network/api_exceptions.dart';
@@ -677,7 +678,7 @@ class _CmrMonthReportSubtabState extends State<CmrMonthReportSubtab> {
           const SizedBox(height: 6),
           ClipRRect(
             borderRadius: BorderRadius.circular(999),
-            child: LinearProgressIndicator(
+            child: RowProgressBar(
               value: total > 0 ? submitted / total : 0,
               minHeight: 8,
               backgroundColor: Colors.white,
@@ -712,8 +713,7 @@ class _KpiTile extends StatelessWidget {
       ),
       child: Column(
         children: [
-          Text(
-            value,
+          RowCountUp(value,
             style: AppFonts.body(
               fontSize: 18,
               fontWeight: FontWeight.w800,
@@ -923,6 +923,7 @@ class _CmrDetailSheetState extends State<_CmrDetailSheet> {
                       ),
                     ),
                     IconButton(
+                      tooltip: 'Close',
                       icon: const Icon(Icons.close_rounded),
                       onPressed: () => Navigator.of(context).pop(),
                     ),

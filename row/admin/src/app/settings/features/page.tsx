@@ -1,14 +1,12 @@
 "use client";
 
+import { PageHeader } from "@/components/row/AppKit";
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import { getFeatures, setFeature, type PlatformFeature } from "@/services/api";
 import { useAuth } from "@/contexts/AuthContext";
-import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent } from "@/components/ui/card";
 import ErrorAlert from "@/components/ErrorAlert";
-import { ArrowLeft } from "@/components/icons";
 import ProtectedRoute from "@/components/ProtectedRoute";
 
 // Super Admin > Features: platform-wide module switches (api/Services/FeatureGate.cs). Flagged modules are built
@@ -41,7 +39,7 @@ export default function FeaturesPage() {
     return (
       <ProtectedRoute>
         <div className="flex flex-col items-center justify-center py-20">
-          <h3 className="text-lg font-semibold">Access Denied</h3>
+          <h3 className="row-h2">Access Denied</h3>
           <p className="text-muted-foreground mt-2">Only SuperAdmin can access settings.</p>
         </div>
       </ProtectedRoute>
@@ -53,15 +51,7 @@ export default function FeaturesPage() {
   return (
     <ProtectedRoute>
       <div className="space-y-6">
-        <div className="flex items-center gap-3">
-          <Button variant="outline" size="icon" asChild>
-            <Link href="/settings" aria-label="Back to settings"><ArrowLeft className="h-4 w-4" /></Link>
-          </Button>
-          <div>
-            <h2 className="text-2xl font-bold tracking-tight text-primary">Features</h2>
-            <p className="text-muted-foreground text-base">Turn a module on for everyone. Club and district module settings still apply.</p>
-          </div>
-        </div>
+        <PageHeader title="Features" description="Turn a module on for everyone. Club and district module settings still apply." back="/settings" />
 
         {features == null ? (
           <div className="space-y-2" aria-busy="true">
@@ -70,7 +60,7 @@ export default function FeaturesPage() {
         ) : (
           <>
             <section className="space-y-2">
-              <h3 className="text-lg font-semibold">Off until switched on</h3>
+              <h3 className="row-h2">Off until switched on</h3>
               <Card>
                 <CardContent className="divide-y p-0">
                   {flagged.map((f) => (

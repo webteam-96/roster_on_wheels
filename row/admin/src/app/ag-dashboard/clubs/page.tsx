@@ -1,5 +1,7 @@
 "use client";
+import { ClearButton } from "@/components/ui/text-buttons";
 
+import { Input } from "@/components/ui/input";
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import {
@@ -27,7 +29,7 @@ function Pill({ label, tone }: { label: string; tone: "green" | "slate" | "red" 
     red:   "bg-red-50 text-red-700 border-red-200",
   };
   return (
-    <span className={`inline-flex items-center text-[9px] font-semibold uppercase tracking-wide border rounded-full px-1.5 py-0.5 whitespace-nowrap ${tones[tone]}`}>
+    <span className={`inline-flex items-center text-[9px] font-semibold uppercase tracking-wide border rounded px-1.5 py-0.5 whitespace-nowrap ${tones[tone]}`}>
       {label}
     </span>
   );
@@ -74,7 +76,7 @@ function ClubCard({
       <div className={`rounded-lg border bg-card p-3 shadow-sm transition-all h-full ${
         navigating ? "border-azure/40" : "border-slate-200 hover:border-azure/40 hover:shadow-md"
       }`}>
-        <h3 className="text-sm font-bold text-slate-800 leading-tight group-hover:text-azure transition-colors">
+        <h3 className="row-h3 group-hover:text-azure transition-colors">
           {club.clubName}
         </h3>
         <div className="flex flex-wrap items-center gap-1 mt-1.5">
@@ -211,21 +213,15 @@ export default function AgClubsPage() {
       {/* Search — left aligned */}
       <div className="relative w-full max-w-xs">
         <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
-        <input
+        <Input
           type="text"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Search clubs..."
-          className="w-full pl-9 pr-8 py-2 text-sm border border-slate-300 rounded-lg bg-card shadow-sm focus:outline-none focus:ring-2 focus:ring-azure focus:border-azure"
+          className="pl-9 pr-8"
         />
         {search && (
-          <button
-            onClick={() => setSearch("")}
-            aria-label="Clear search"
-            className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-base leading-none font-bold"
-          >
-            ×
-          </button>
+          <ClearButton onClick={() => setSearch("")} aria-label="Clear search" />
         )}
       </div>
 

@@ -7,6 +7,7 @@
  * (the Communication → Mass Email tab).
  */
 
+import { NativeSelect } from "@/components/ui/native-select";
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
@@ -25,7 +26,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import RichTextEditor from "@/components/RichTextEditor";
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
-import { ArrowLeft, Save, Send, Loader2, X, Search, Mail } from "@/components/icons";
+import { Save, Send, Loader2, X, Search } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { useFeatureOn } from "@/components/FeatureGate";
@@ -33,7 +34,7 @@ import ContactGroupPicker from "@/components/contacts/ContactGroupPicker";
 import { CONTACTS_FEATURE } from "@/lib/contacts";
 import { useFeatureLoadedOn } from "@/components/FeatureGate";
 import ComposeComms from "@/components/comms/ComposeComms";
-import { SkeletonRows } from "@/components/row/AppKit";
+import { PageHeader, SkeletonRows } from "@/components/row/AppKit";
 import ComposeTools, { uploadPendingAttachments } from "@/components/massEmail/ComposeTools";
 
 interface SubGroupOption { id: number; groupName: string; memberCount: number; }
@@ -193,17 +194,8 @@ export default function ClubAdminComposeMassEmailPage() {
 
   return (
     <ProtectedRoute>
-      <div className="space-y-6 max-w-4xl mx-auto">
-        <div className="flex items-center gap-3">
-          <Button variant="outline" size="icon" onClick={() => router.push(returnTo)} aria-label="Back"><ArrowLeft className="h-4 w-4" /></Button>
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-azure/10 text-ink"><Mail size={20} /></div>
-            <div>
-              <h2 className="text-2xl font-bold tracking-tight text-ink">{editId ? "Edit Mass Email" : "Compose Mass Email"}</h2>
-              <p className="text-slate-500 text-sm mt-0.5">{clubName}</p>
-            </div>
-          </div>
-        </div>
+      <div className="space-y-6 max-w-4xl">
+        <PageHeader title={editId ? "Edit Mass Email" : "Compose Mass Email"} description={clubName} back={() => router.push(returnTo)} />
 
         <Card>
           <CardHeader><CardTitle>Recipients</CardTitle></CardHeader>
@@ -221,10 +213,10 @@ export default function ClubAdminComposeMassEmailPage() {
 
             {recipientType === "2" && (
               <div className="space-y-3">
-                <select value={selectedYearId} onChange={(e) => { setSelectedYearId(e.target.value); setSelectedSubgroupIds(new Set()); }}
-                  className="h-10 rounded-md border border-input bg-background px-3 py-2 text-sm w-full md:w-64">
+                <NativeSelect value={selectedYearId} onChange={(e) => { setSelectedYearId(e.target.value); setSelectedSubgroupIds(new Set()); }}
+                  className="md:w-64">
                   {rotaryYears.map((y) => <option key={y.id} value={String(y.id)}>{y.yearLabel}</option>)}
-                </select>
+                </NativeSelect>
                 <div className="max-h-60 overflow-y-auto border rounded-md divide-y">
                   {subgroups.length === 0 ? (
                     <div className="text-center py-4 text-muted-foreground text-sm">No subgroups found for this year</div>
@@ -298,7 +290,7 @@ export default function ClubAdminComposeMassEmailPage() {
               <Button variant="outline" onClick={() => handleSave(true)} disabled={saving}>
                 {saving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />}Save as Draft
               </Button>
-              <Button onClick={() => handleSave(false)} disabled={saving || insufficientCredits || recipientCount.membersWithEmail === 0} className="bg-azure hover:bg-mint-ink text-white">
+              <Button onClick={() => handleSave(false)} disabled={saving || insufficientCredits || recipientCount.membersWithEmail === 0}>
                 {saving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Send className="h-4 w-4 mr-2" />}Send to {recipientCount.membersWithEmail} {recipientType === "4" ? "contact" : "member"}{recipientCount.membersWithEmail !== 1 ? "s" : ""}
               </Button>
               <Button variant="ghost" className="text-destructive" onClick={() => router.push(returnTo)}><X className="h-4 w-4 mr-2" />Discard</Button>

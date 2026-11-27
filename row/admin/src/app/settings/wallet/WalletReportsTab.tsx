@@ -1,4 +1,5 @@
 "use client";
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
 
 /**
  * SuperAdmin › Wallet › Reports.
@@ -12,6 +13,7 @@
  * Defaults to the last 90 days on first load.
  */
 
+import { Card } from "@/components/ui/card";
 import { useCallback, useEffect, useState } from "react";
 import DateField from "@/components/DateField";
 import { Download, Loader2, Search } from "@/components/icons";
@@ -186,62 +188,62 @@ export default function WalletReportsTab() {
       ) : rows.length === 0 ? (
         <div className="text-sm text-muted-foreground py-10 text-center">No purchases found for these filters.</div>
       ) : (
-        <div className="overflow-x-auto border rounded-lg">
-          <table className="w-full min-w-[640px] md:min-w-full text-sm">
-            <thead className="bg-[#EDF4FB] text-[13px] text-[#64748B]">
-              <tr>
-                <th className="px-3 py-2.5 text-left whitespace-nowrap">Sr No</th>
-                {!isDistrict && <th className="px-3 py-2.5 text-left whitespace-nowrap">District No</th>}
-                <th className="px-3 py-2.5 text-left whitespace-nowrap">{entityLabel}</th>
-                <th className="px-3 py-2.5 text-left whitespace-nowrap">Purchase Date</th>
-                <th className="px-3 py-2.5 text-right whitespace-nowrap">Amount</th>
-                {showCredits && <th className="px-3 py-2.5 text-right whitespace-nowrap">Credits</th>}
-                <th className="px-3 py-2.5 text-right whitespace-nowrap">Settlement Amt</th>
-                <th className="px-3 py-2.5 text-left whitespace-nowrap">Settlement Date</th>
-                <th className="px-3 py-2.5 text-left whitespace-nowrap">Transaction ID</th>
-                <th className="px-3 py-2.5 text-left whitespace-nowrap">{isDistrict ? "District Governor" : "President"}</th>
-                {!isDistrict && <th className="px-3 py-2.5 text-left whitespace-nowrap">Secretary</th>}
-                <th className="px-3 py-2.5 text-left whitespace-nowrap">Settles In</th>
-                <th className="px-3 py-2.5 text-left whitespace-nowrap">Start</th>
-                <th className="px-3 py-2.5 text-left whitespace-nowrap">End</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
+        <Card className="overflow-x-auto">
+          <Table className="w-full min-w-[640px] md:min-w-full text-sm">
+            <TableHeader>
+              <TableRow>
+                <TableHead className="px-3 text-left whitespace-nowrap">Sr No</TableHead>
+                {!isDistrict && <TableHead className="px-3 text-left whitespace-nowrap">District No</TableHead>}
+                <TableHead className="px-3 text-left whitespace-nowrap">{entityLabel}</TableHead>
+                <TableHead className="px-3 text-left whitespace-nowrap">Purchase Date</TableHead>
+                <TableHead className="px-3 text-right whitespace-nowrap">Amount</TableHead>
+                {showCredits && <TableHead className="px-3 text-right whitespace-nowrap">Credits</TableHead>}
+                <TableHead className="px-3 text-right whitespace-nowrap">Settlement Amt</TableHead>
+                <TableHead className="px-3 text-left whitespace-nowrap">Settlement Date</TableHead>
+                <TableHead className="px-3 text-left whitespace-nowrap">Transaction ID</TableHead>
+                <TableHead className="px-3 text-left whitespace-nowrap">{isDistrict ? "District Governor" : "President"}</TableHead>
+                {!isDistrict && <TableHead className="px-3 text-left whitespace-nowrap">Secretary</TableHead>}
+                <TableHead className="px-3 text-left whitespace-nowrap">Settles In</TableHead>
+                <TableHead className="px-3 text-left whitespace-nowrap">Start</TableHead>
+                <TableHead className="px-3 text-left whitespace-nowrap">End</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody className="divide-y divide-slate-100">
               {rows.map((r, i) => (
-                <tr key={i} className="hover:bg-blue-50/40">
-                  <td className="px-3 py-2 text-slate-600 whitespace-nowrap">{i + 1}</td>
-                  {!isDistrict && <td className="px-3 py-2 text-slate-600 whitespace-nowrap">{r.districtNumber || "–"}</td>}
-                  <td className="px-3 py-2 font-medium text-slate-800 whitespace-nowrap">{r.clubName}</td>
-                  <td className="px-3 py-2 text-slate-600 whitespace-nowrap">{fmtDate(r.purchaseDate)}</td>
-                  <td className="px-3 py-2 text-right text-slate-700 whitespace-nowrap">{inr(r.purchaseAmount)}</td>
-                  {showCredits && <td className="px-3 py-2 text-right text-slate-600">{r.creditsPurchased ?? "–"}</td>}
-                  <td className="px-3 py-2 text-right text-slate-600 whitespace-nowrap">{inr(r.settlementAmount)}</td>
-                  <td className="px-3 py-2 text-slate-600 whitespace-nowrap">
+                <TableRow key={i} className="hover:bg-blue-50/40">
+                  <TableCell className="px-3 py-2 text-slate-600 whitespace-nowrap">{i + 1}</TableCell>
+                  {!isDistrict && <TableCell className="px-3 py-2 text-slate-600 whitespace-nowrap">{r.districtNumber || "–"}</TableCell>}
+                  <TableCell className="px-3 py-2 font-medium text-slate-800 whitespace-nowrap">{r.clubName}</TableCell>
+                  <TableCell className="px-3 py-2 text-slate-600 whitespace-nowrap">{fmtDate(r.purchaseDate)}</TableCell>
+                  <TableCell className="px-3 py-2 text-right text-slate-700 whitespace-nowrap">{inr(r.purchaseAmount)}</TableCell>
+                  {showCredits && <TableCell className="px-3 py-2 text-right text-slate-600">{r.creditsPurchased ?? "–"}</TableCell>}
+                  <TableCell className="px-3 py-2 text-right text-slate-600 whitespace-nowrap">{inr(r.settlementAmount)}</TableCell>
+                  <TableCell className="px-3 py-2 text-slate-600 whitespace-nowrap">
                     {r.settlementDate ? fmtDateTime(r.settlementDate) : <span className="text-amber-600">Pending</span>}
-                  </td>
-                  <td className="px-3 py-2 text-slate-500 whitespace-nowrap font-mono text-xs">{r.razorpayTransactionId || "–"}</td>
-                  <td className="px-3 py-2 text-slate-600 whitespace-nowrap">
+                  </TableCell>
+                  <TableCell className="px-3 py-2 text-slate-500 whitespace-nowrap font-mono text-xs">{r.razorpayTransactionId || "–"}</TableCell>
+                  <TableCell className="px-3 py-2 text-slate-600 whitespace-nowrap">
                     <div>{r.presidentName || "–"}</div>
                     {(r.presidentMobile || r.presidentEmail) && (
                       <div className="text-xs text-slate-400">{[r.presidentMobile, r.presidentEmail].filter(Boolean).join(" · ")}</div>
                     )}
-                  </td>
+                  </TableCell>
                   {!isDistrict && (
-                    <td className="px-3 py-2 text-slate-600 whitespace-nowrap">
+                    <TableCell className="px-3 py-2 text-slate-600 whitespace-nowrap">
                       <div>{r.secretaryName || "–"}</div>
                       {(r.secretaryMobile || r.secretaryEmail) && (
                         <div className="text-xs text-slate-400">{[r.secretaryMobile, r.secretaryEmail].filter(Boolean).join(" · ")}</div>
                       )}
-                    </td>
+                    </TableCell>
                   )}
-                  <td className="px-3 py-2 text-slate-600 whitespace-nowrap">{r.settlesInAccount}</td>
-                  <td className="px-3 py-2 text-slate-600 whitespace-nowrap">{fmtDate(r.startDate)}</td>
-                  <td className="px-3 py-2 text-slate-600 whitespace-nowrap">{fmtDate(r.endDate)}</td>
-                </tr>
+                  <TableCell className="px-3 py-2 text-slate-600 whitespace-nowrap">{r.settlesInAccount}</TableCell>
+                  <TableCell className="px-3 py-2 text-slate-600 whitespace-nowrap">{fmtDate(r.startDate)}</TableCell>
+                  <TableCell className="px-3 py-2 text-slate-600 whitespace-nowrap">{fmtDate(r.endDate)}</TableCell>
+                </TableRow>
               ))}
-            </tbody>
-          </table>
-        </div>
+            </TableBody>
+          </Table>
+        </Card>
       )}
     </div>
   );

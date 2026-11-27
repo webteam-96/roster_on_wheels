@@ -1,5 +1,6 @@
 "use client";
 
+import { Card } from "@/components/ui/card";
 import { useState, useCallback, useEffect } from "react";
 import { WebsiteDataModule } from "@/types/websiteDataModule";
 import {
@@ -25,12 +26,11 @@ import {
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
 import AlertModal from "@/components/AlertModal";
-import { ArrowLeft, Plus, Pencil, Trash2, MoreHorizontal, Globe, AlertTriangle, ChevronUp, ChevronDown } from "@/components/icons";
+import { Plus, Pencil, Trash2, MoreHorizontal, Globe, AlertTriangle, ChevronUp, ChevronDown } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
-import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import SearchBox from "@/components/SearchBox";
-import { ListPageSkeleton } from "@/components/row/AppKit";
+import { PageHeader, ListPageSkeleton } from "@/components/row/AppKit";
 
 export default function WebsiteDataModulesPage() {
   const { isSuperAdmin } = useAuth();
@@ -145,7 +145,7 @@ export default function WebsiteDataModulesPage() {
     return (
       <ProtectedRoute>
         <div className="flex flex-col items-center justify-center py-20">
-          <h3 className="text-lg font-semibold">Access Denied</h3>
+          <h3 className="row-h2">Access Denied</h3>
           <p className="text-muted-foreground mt-2">Only SuperAdmin can manage website data modules.</p>
         </div>
       </ProtectedRoute>
@@ -156,20 +156,18 @@ export default function WebsiteDataModulesPage() {
     <ProtectedRoute>
       <div className="space-y-6">
         {/* Header */}
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-3">
-            <Button variant="outline" size="icon" asChild>
-              <Link href="/settings"><ArrowLeft className="h-4 w-4" /></Link>
-            </Button>
-            <div>
-              <h2 className="text-2xl font-bold tracking-tight text-primary">Website Data Modules</h2>
-              <p className="text-muted-foreground text-base">Manage website sub-module master list</p>
-            </div>
-          </div>
-          <Button onClick={openAddDialog}>
+        <PageHeader
+          title="Website Data Modules"
+          description="Manage website sub-module master list"
+          back="/settings"
+          actions={
+            <>
+<Button onClick={openAddDialog}>
             <Plus className="mr-2 h-4 w-4" />Add Module
           </Button>
-        </div>
+            </>
+          }
+        />
 
         {loading && (
           <div className="flex items-center justify-center py-20">
@@ -180,7 +178,7 @@ export default function WebsiteDataModulesPage() {
         {!loading && modules.length === 0 && (
           <div className="flex flex-col items-center justify-center py-20 text-center">
             <Globe className="h-12 w-12 text-muted-foreground mb-4" />
-            <h3 className="text-lg font-semibold">No website data modules found</h3>
+            <h3 className="row-h2">No website data modules found</h3>
             <p className="text-muted-foreground mt-2">Click &quot;Add Module&quot; to create your first one.</p>
           </div>
         )}
@@ -202,14 +200,14 @@ export default function WebsiteDataModulesPage() {
                 <div key={mod.id} className="flex items-center gap-2 border rounded-md p-3">
                   <div className="flex flex-col gap-1">
                     <Button
-                      variant="ghost" size="icon" className="h-6 w-6"
+                      variant="ghost" size="icon" className="w-6 row-btn-sm"
                       disabled={i === 0 || reordering}
                       onClick={() => handleReorder(i, "up")}
                     >
                       <ChevronUp className="h-4 w-4" />
                     </Button>
                     <Button
-                      variant="ghost" size="icon" className="h-6 w-6"
+                      variant="ghost" size="icon" className="w-6 row-btn-sm"
                       disabled={i === modules.length - 1 || reordering}
                       onClick={() => handleReorder(i, "down")}
                     >
@@ -222,7 +220,7 @@ export default function WebsiteDataModulesPage() {
                   </div>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon" className="h-8 w-8"><MoreHorizontal className="h-4 w-4" /></Button>
+                      <Button aria-label="More actions" variant="ghost" size="icon" className="row-btn-sm"><MoreHorizontal className="h-4 w-4" /></Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
                       <DropdownMenuItem onClick={() => openEditDialog(mod)}>
@@ -238,15 +236,15 @@ export default function WebsiteDataModulesPage() {
             </div>
 
             {/* Desktop table view */}
-            <div className="hidden sm:block rounded-md border">
+            <Card className="hidden sm:block overflow-hidden">
               <Table>
                 <TableHeader>
-                  <TableRow className="bg-primary hover:bg-primary">
+                  <TableRow>
                     <TableHead className="w-12">#</TableHead>
-                    <TableHead className="text-base font-semibold">Module Name</TableHead>
-                    <TableHead className="text-base font-semibold">Key</TableHead>
-                    <TableHead className="text-base font-semibold">Icon</TableHead>
-                    <TableHead className="w-24 text-base font-semibold text-center">Order</TableHead>
+                    <TableHead>Module Name</TableHead>
+                    <TableHead>Key</TableHead>
+                    <TableHead>Icon</TableHead>
+                    <TableHead className="w-24 text-center">Order</TableHead>
                     <TableHead className="w-12"></TableHead>
                   </TableRow>
                 </TableHeader>
@@ -260,7 +258,7 @@ export default function WebsiteDataModulesPage() {
                       <TableCell>
                         <div className="flex items-center justify-center gap-1">
                           <Button
-                            variant="ghost" size="icon" className="h-7 w-7"
+                            variant="ghost" size="icon" className="row-btn-sm"
                             disabled={i === 0 || reordering}
                             onClick={() => handleReorder(i, "up")}
                             title="Move up"
@@ -268,7 +266,7 @@ export default function WebsiteDataModulesPage() {
                             <ChevronUp className="h-4 w-4" />
                           </Button>
                           <Button
-                            variant="ghost" size="icon" className="h-7 w-7"
+                            variant="ghost" size="icon" className="row-btn-sm"
                             disabled={i === modules.length - 1 || reordering}
                             onClick={() => handleReorder(i, "down")}
                             title="Move down"
@@ -280,7 +278,7 @@ export default function WebsiteDataModulesPage() {
                       <TableCell>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon" className="h-8 w-8"><MoreHorizontal className="h-4 w-4" /></Button>
+                            <Button aria-label="More actions" variant="ghost" size="icon" className="row-btn-sm"><MoreHorizontal className="h-4 w-4" /></Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
                             <DropdownMenuItem onClick={() => openEditDialog(mod)}>
@@ -296,7 +294,7 @@ export default function WebsiteDataModulesPage() {
                   ))}
                 </TableBody>
               </Table>
-            </div>
+            </Card>
             </>
             )}
           </>

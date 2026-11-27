@@ -15,6 +15,8 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useParams, useSearchParams, useRouter, usePathname } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { ToggleButton } from "@/components/ui/text-buttons";
 import { ArrowLeft, CheckCircle2, Download, FileText, Loader2, Upload } from "@/components/icons";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import ClubAdminShell from "@/components/v2/ClubAdminShell";
@@ -48,12 +50,11 @@ const MONTHS = ["", "January", "February", "March", "April", "May", "June", "Jul
 
 function DesignSwitch({ value, onChange }: { value: Design; onChange: (v: Design) => void }) {
   return (
-    <div className="inline-flex flex-wrap rounded-xl bg-slate-100 p-1">
+    <div role="group" aria-label="Report design" className="inline-flex flex-wrap gap-2">
       {DESIGNS.map((d) => (
-        <button key={d} type="button" onClick={() => onChange(d)} title={DESIGN_NAMES[d]}
-          className={`rounded-lg px-3 py-1.5 text-xs font-bold transition-colors ${value === d ? "bg-white text-navy-950 shadow-sm" : "text-slate-500 hover:text-slate-800"}`}>
+        <ToggleButton key={d} pressed={value === d} onClick={() => onChange(d)} title={DESIGN_NAMES[d]}>
           Design {d.toUpperCase()} <span className="font-normal opacity-70">· {DESIGN_NAMES[d]}</span>
-        </button>
+        </ToggleButton>
       ))}
     </div>
   );
@@ -208,18 +209,15 @@ function PreviewInner() {
         </LoadingLink>
         <div className="flex flex-wrap items-center gap-2">
           {SHOW_DESIGN_SWITCH && <DesignSwitch value={design} onChange={setDesign} />}
-          <button id="cmr-download-pdf" type="button" onClick={download} disabled={!ready || downloading}
-            className="inline-flex min-h-10 items-center gap-2 rounded-xl bg-marigold px-4 text-sm font-bold text-navy-950 hover:bg-gold-light disabled:opacity-60">
+          <Button id="cmr-download-pdf" type="button" onClick={download} disabled={!ready || downloading}>
             {downloading ? <Loader2 size={15} className="animate-spin" /> : <Download size={15} />} Download PDF
-          </button>
-          <button id="cmr-download-word" type="button" onClick={downloadWord} disabled={!ready || downloadingWord}
-            className="inline-flex min-h-10 items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-sm font-bold text-navy-950 hover:bg-slate-50 disabled:opacity-60">
+          </Button>
+          <Button id="cmr-download-word" type="button" variant="outline" onClick={downloadWord} disabled={!ready || downloadingWord}>
             {downloadingWord ? <Loader2 size={15} className="animate-spin" /> : <FileText size={15} />} Download Word
-          </button>
-          {!viewOnly && <button type="button" onClick={upload} disabled={!ready || uploading}
-            className="inline-flex min-h-10 items-center gap-2 rounded-xl bg-navy-950 px-4 text-sm font-bold text-white hover:bg-navy-900 disabled:opacity-60">
+          </Button>
+          {!viewOnly && <Button type="button" variant="outline" onClick={upload} disabled={!ready || uploading}>
             {uploading ? <Loader2 size={15} className="animate-spin" /> : <Upload size={15} />} {report.isUploadedToDistrict ? "Upload again" : "Upload to District"}
-          </button>}
+          </Button>}
         </div>
       </div>
       {success && (

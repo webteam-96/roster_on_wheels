@@ -3,6 +3,7 @@
 // SuperAdmin Goal Overview: the read-only goal matrix for every zone and district.
 // Other members see a no-access notice; the API enforces the same.
 
+import { NativeSelect } from "@/components/ui/native-select";
 import { useEffect, useState, useMemo } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
@@ -95,13 +96,13 @@ export default function GoalOversightPage() {
           years.length > 0 ? (
             <label className="flex items-center gap-2 text-xs text-slate-500">
               <span className="hidden sm:inline font-medium">Year</span>
-              <select
+              <NativeSelect
                 value={yearId ?? ""}
                 onChange={(e) => setYearId(e.target.value ? Number(e.target.value) : null)}
-                className="h-9 rounded-[12px] border border-slate-300 bg-card px-3 text-sm text-slate-700 focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                className="w-auto"
               >
                 {years.map((y) => <option key={y.id} value={y.id}>{y.yearLabel}{y.isCurrent ? " (current)" : ""}</option>)}
-              </select>
+              </NativeSelect>
             </label>
           ) : undefined
         }

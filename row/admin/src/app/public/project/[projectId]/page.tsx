@@ -15,6 +15,9 @@
 import { useEffect, useState, useCallback } from "react";
 import { useParams, useSearchParams } from "next/navigation";
 import { X, Download } from "@/components/icons";
+import { Button } from "@/components/ui/button";
+import { IconButton } from "@/components/ui/icon-button";
+import { TileButton } from "@/components/ui/text-buttons";
 import RotaryLoader from "@/components/RotaryLoader";
 
 import { appLocale } from "@/lib/appFormat";
@@ -236,7 +239,7 @@ export default function PublicProjectPage() {
 
             {/* Club Service meeting — only the Club Service add/edit fields. */}
             {isClubService && (meetingTypeLabel || attendanceText || project.agendaDocument || project.minutesDocument) && (
-              <div className="bg-card rounded-[20px] border border-slate-200 mb-6 overflow-hidden">
+              <div className="row-rise bg-card rounded-[20px] border border-slate-200 mb-6 overflow-hidden">
                 <dl className="divide-y divide-slate-100 text-sm">
                   {meetingTypeLabel && (
                     <div className="flex gap-4 px-4 py-2.5">
@@ -281,7 +284,7 @@ export default function PublicProjectPage() {
             )}
 
             {project.description && (
-              <div className="bg-card rounded-[20px] border border-slate-200 p-4 sm:p-5 mb-6">
+              <div className="row-rise bg-card rounded-[20px] border border-slate-200 p-4 sm:p-5 mb-6">
                 <p className="text-sm text-slate-700 whitespace-pre-wrap break-words">
                   {project.description}
                 </p>
@@ -298,23 +301,23 @@ export default function PublicProjectPage() {
                   <h2 className="text-sm font-semibold text-slate-700">
                     Photos ({photos.length})
                   </h2>
-                  <button
+                  <Button
                     type="button"
+                    variant="outline"
+                    size="sm"
                     onClick={handleDownloadAll}
                     disabled={bulkDownloading}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-full border border-slate-200 bg-card text-slate-700 hover:bg-slate-50 disabled:opacity-60 disabled:cursor-wait"
                   >
                     <Download className="h-3.5 w-3.5" />
                     {bulkDownloading ? "Downloading…" : `Download all (${photos.length})`}
-                  </button>
+                  </Button>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                   {photos.map((photo, i) => (
-                    <button
+                    <TileButton
                       key={i}
-                      type="button"
                       onClick={() => setLightboxIdx(i)}
-                      className="text-left bg-card rounded-[20px] border border-slate-200 overflow-hidden hover:shadow-md transition group"
+                      className="row-rise overflow-hidden p-0 group"
                     >
                       <div className="aspect-square w-full bg-slate-100 overflow-hidden">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -332,7 +335,7 @@ export default function PublicProjectPage() {
                           </p>
                         </div>
                       )}
-                    </button>
+                    </TileButton>
                   ))}
                 </div>
               </>
@@ -354,14 +357,13 @@ export default function PublicProjectPage() {
           role="dialog"
           aria-modal="true"
         >
-          <button
-            type="button"
+          <IconButton
             onClick={closeLightbox}
-            className="absolute top-4 right-4 text-white p-2 rounded-full hover:bg-white/10"
+            className="absolute top-4 right-4 h-10 w-10 text-white hover:bg-white/10 hover:text-white"
             aria-label="Close"
           >
             <X className="h-6 w-6" />
-          </button>
+          </IconButton>
           <div
             className="max-w-5xl max-h-full flex flex-col items-center gap-3"
             onClick={(e) => e.stopPropagation()}

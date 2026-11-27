@@ -1,18 +1,19 @@
 "use client";
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
 
 // Settings > Club admin limit (owner decision 2026-11-19): the most active Club Admins one club may have (default 3),
 // and the clubs that already hold more. Those clubs are left as they are for the owner to decide; they only cannot
 // add another admin until they are under the limit. SuperAdmins and district roles are not counted.
 
+import { Card } from "@/components/ui/card";
+import { PageHeader } from "@/components/row/AppKit";
 import { useCallback, useEffect, useState } from "react";
-import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { TableSkeleton } from "@/components/dashboard/DashboardSkeleton";
 import ErrorAlert from "@/components/ErrorAlert";
-import { ArrowLeft } from "@/components/icons";
 import {
   getClubAdminLimit, setClubAdminLimit, getClubAdminLimitReport,
   type ClubAdminLimitSetting, type ClubOverAdminLimit,
@@ -57,19 +58,10 @@ export default function ClubAdminLimitPage() {
   return (
     <ProtectedRoute>
       <div className="space-y-8">
-        <div className="flex items-center gap-3">
-          <Button variant="outline" size="icon" asChild aria-label="Back to settings"><Link href="/settings"><ArrowLeft className="h-4 w-4" /></Link></Button>
-          <div>
-            <h2 className="text-2xl font-bold tracking-tight text-primary">Club admin limit</h2>
-            <p className="text-base text-muted-foreground">
-              The most active Club Admins one club may have. Super Admins and district roles are not counted.
-              A grant past the limit is refused on every screen, the Rotary.org sync and executive sign-in.
-            </p>
-          </div>
-        </div>
+        <PageHeader title="Club admin limit" description="The most active Club Admins one club may have. Super Admins and district roles are not counted. A grant past the limit is refused on every screen, the Rotary.org sync and executive sign-in." back="/settings" />
 
         <section aria-labelledby="limit-heading" className="space-y-3 rounded-lg border p-4">
-          <h3 id="limit-heading" className="text-lg font-semibold">Limit per club</h3>
+          <h3 id="limit-heading" className="row-h2">Limit per club</h3>
           {setting === null ? <TableSkeleton rows={1} /> : (
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
               <Input aria-label="Most Club Admins per club" type="number" min={1} max={50} className="sm:w-32"
@@ -84,7 +76,7 @@ export default function ClubAdminLimitPage() {
 
         <section aria-labelledby="report-heading" className="space-y-3">
           <div>
-            <h3 id="report-heading" className="text-lg font-semibold">Clubs over the limit</h3>
+            <h3 id="report-heading" className="row-h2">Clubs over the limit</h3>
             <p className="text-sm text-muted-foreground">
               Nothing has been changed for these clubs. They keep their admins, and cannot add another until they are under the limit.
             </p>
@@ -92,28 +84,28 @@ export default function ClubAdminLimitPage() {
           {clubs === null ? <TableSkeleton rows={4} /> : clubs.length === 0 ? (
             <p className="text-muted-foreground">No club has more Club Admins than the limit.</p>
           ) : (
-            <div className="overflow-x-auto rounded-lg border">
-              <table className="w-full text-sm">
-                <thead className="bg-muted/50 text-left">
-                  <tr>
-                    <th scope="col" className="p-3">Club</th>
-                    <th scope="col" className="p-3">District</th>
-                    <th scope="col" className="p-3 text-right">Admins</th>
-                    <th scope="col" className="p-3">Names</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y">
+            <Card className="overflow-x-auto">
+              <Table className="w-full text-sm">
+                <TableHeader className="text-left">
+                  <TableRow>
+                    <TableHead scope="col" className="p-3">Club</TableHead>
+                    <TableHead scope="col" className="p-3">District</TableHead>
+                    <TableHead scope="col" className="p-3 text-right">Admins</TableHead>
+                    <TableHead scope="col" className="p-3">Names</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody className="divide-y">
                   {clubs.map((c) => (
-                    <tr key={c.clubId}>
-                      <td className="p-3 font-medium">{c.clubName}</td>
-                      <td className="p-3">{c.districtNumber ?? ""}</td>
-                      <td className="p-3 text-right tabular-nums">{c.adminCount}</td>
-                      <td className="p-3">{c.admins.map((a) => a.name).join(", ")}</td>
-                    </tr>
+                    <TableRow key={c.clubId}>
+                      <TableCell className="p-3 font-medium">{c.clubName}</TableCell>
+                      <TableCell className="p-3">{c.districtNumber ?? ""}</TableCell>
+                      <TableCell className="p-3 text-right tabular-nums">{c.adminCount}</TableCell>
+                      <TableCell className="p-3">{c.admins.map((a) => a.name).join(", ")}</TableCell>
+                    </TableRow>
                   ))}
-                </tbody>
-              </table>
-            </div>
+                </TableBody>
+              </Table>
+            </Card>
           )}
         </section>
         <ErrorAlert open={!!error} title="Error" description={error || ""} onOk={() => setError(null)} />

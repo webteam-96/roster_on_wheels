@@ -1,4 +1,5 @@
 "use client";
+import { Button } from "@/components/ui/button";
 
 /**
  * Club Service v2 — Edit Meeting.
@@ -12,6 +13,12 @@
  * a normal query param (?yearId=) since the API requires it.
  */
 
+import RadioPill from "@/components/form/RadioPill";
+import FieldLabel from "@/components/form/FieldLabel";
+import { IconButton } from "@/components/ui/icon-button";
+import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
+import SectionCard from "@/components/form/SectionCard";
 import { useEffect, useRef, useState } from "react";
 import DateField from "@/components/DateField";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
@@ -69,54 +76,6 @@ type PhotoItem = {
   uploading: boolean;
   previewUrl?: string;
 };
-
-function FieldLabel({ children, hint, dot, optional }: { children: React.ReactNode; hint?: string; dot: string; optional?: boolean }) {
-  return (
-    <div className="flex items-center gap-1.5 mb-1">
-      {/* The coloured bullet marks a field you must fill. An optional field doesn't get one -
-          Agenda and Minutes of Meeting read as required because of it (user 2026-10-05). */}
-      {!optional && <span className={`w-1.5 h-1.5 rounded-full ${dot}`} />}
-      <label className="text-xs font-semibold text-slate-700">
-        {children}{!optional && <span className="text-rose-600 ml-0.5">*</span>}
-        {optional && <span className="text-slate-400 font-normal ml-1">(optional)</span>}
-        {hint && <span className="text-slate-400 font-normal ml-1">{hint}</span>}
-      </label>
-    </div>
-  );
-}
-
-function SectionCard({
-  number, icon: Icon, title, dot, children,
-}: { number: number; icon: React.ElementType; title: string; dot: string; children: React.ReactNode }) {
-  return (
-    <div className="rounded-xl border border-slate-200 overflow-hidden mb-4">
-      <div className="flex items-center gap-3 px-4 py-2.5 bg-slate-50 border-b border-slate-100">
-        <div className={`flex items-center justify-center h-7 w-7 rounded-full text-white text-xs font-bold ${dot}`}>{number}</div>
-        <Icon className="h-4 w-4 text-slate-500" />
-        <h3 className="text-sm font-semibold text-slate-800">{title}</h3>
-      </div>
-      <div className="p-4">{children}</div>
-    </div>
-  );
-}
-
-function RadioPill({ checked, onChange, label }: { checked: boolean; onChange: () => void; label: string }) {
-  return (
-    <label
-      className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg border-2 cursor-pointer transition-all text-sm font-medium
-        ${checked
-          ? "border-blue-500 bg-blue-50 text-blue-700"
-          : "border-slate-200 text-slate-600 hover:border-blue-300 hover:text-slate-800"
-        }`}
-    >
-      <input type="radio" checked={checked} onChange={onChange} className="sr-only" />
-      <div className={`h-4 w-4 rounded-full border-2 flex items-center justify-center ${checked ? "border-blue-500" : "border-slate-400"}`}>
-        {checked && <div className="h-2 w-2 rounded-full bg-blue-500" />}
-      </div>
-      {label}
-    </label>
-  );
-}
 
 export default function ClubServiceV2EditPage() {
   useSyncClubIdFromUrl();
@@ -458,42 +417,40 @@ export default function ClubServiceV2EditPage() {
         }
       >
         {/* 1. Meeting Details */}
-        <SectionCard number={1} icon={FileText} title="Meeting Details" dot="bg-[#17458F]">
+        <SectionCard number={1} icon={FileText} title="Meeting Details">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="sm:col-span-2">
-              <FieldLabel hint="(max 50 chars)" dot="bg-[#17458F]">Title</FieldLabel>
-              <input
+              <FieldLabel required hint="(max 50 chars)">Title</FieldLabel>
+              <Input
                 type="text"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="Meeting title"
                 maxLength={50}
-                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
               />
               <p className="text-xs text-slate-400 text-right mt-0.5">{title.length}/50</p>
             </div>
             <div className="sm:col-span-2">
-              <FieldLabel hint="(max 1000 chars)" dot="bg-[#17458F]">Description</FieldLabel>
-              <textarea
+              <FieldLabel required hint="(max 1000 chars)">Description</FieldLabel>
+              <Textarea
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="Describe the meeting…"
                 rows={4}
                 maxLength={1000}
-                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
               />
               <p className="text-xs text-slate-400 text-right mt-0.5">{description.length}/1000</p>
             </div>
             <div>
-              <FieldLabel dot="bg-[#17458F]">Date</FieldLabel>
-              <DateField value={projectDate} onChange={setProjectDate} max={frozenMonth ? frozenDateMax : new Date().toISOString().split("T")[0]} min={frozenMonth ? frozenDateMin : undefined} className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]" />
+              <FieldLabel required>Date</FieldLabel>
+              <DateField value={projectDate} onChange={setProjectDate} max={frozenMonth ? frozenDateMax : new Date().toISOString().split("T")[0]} min={frozenMonth ? frozenDateMin : undefined} className="row-field w-full" />
             </div>
           </div>
         </SectionCard>
 
         {/* 2. Meeting Type */}
-        <SectionCard number={2} icon={Calendar} title="Meeting Type" dot="bg-[#17458F]">
-          <FieldLabel dot="bg-[#17458F]">Select Meeting Type</FieldLabel>
+        <SectionCard number={2} icon={Calendar} title="Meeting Type">
+          <FieldLabel required>Select Meeting Type</FieldLabel>
           <div className="flex flex-wrap gap-2 mt-1">
             {MEETING_TYPES.map((mt) => (
               <RadioPill
@@ -507,17 +464,17 @@ export default function ClubServiceV2EditPage() {
         </SectionCard>
 
         {/* 3. Documents */}
-        <SectionCard number={3} icon={FileUp} title="Documents" dot="bg-[#17458F]">
+        <SectionCard number={3} icon={FileUp} title="Documents">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <FieldLabel dot="bg-[#17458F]" optional>Agenda</FieldLabel>
+              <FieldLabel optional>Agenda</FieldLabel>
               {agendaDocument ? (
                 <div className="flex items-center gap-2 px-3 py-2 bg-emerald-50 border border-emerald-200 rounded-lg">
                   <FileText className="h-4 w-4 text-emerald-600" />
                   <span className="text-sm text-emerald-700 truncate flex-1">{agendaFileName}</span>
-                  <button type="button" onClick={() => { setAgendaDocument(null); setAgendaFileName(""); }}>
+                  <IconButton aria-label="Remove file" type="button" onClick={() => { setAgendaDocument(null); setAgendaFileName(""); }}>
                     <X className="h-4 w-4 text-slate-500 hover:text-slate-700" />
-                  </button>
+                  </IconButton>
                 </div>
               ) : (
                 <div>
@@ -532,14 +489,14 @@ export default function ClubServiceV2EditPage() {
               )}
             </div>
             <div>
-              <FieldLabel dot="bg-[#17458F]" optional>Minutes of Meeting</FieldLabel>
+              <FieldLabel optional>Minutes of Meeting</FieldLabel>
               {minutesDocument ? (
                 <div className="flex items-center gap-2 px-3 py-2 bg-emerald-50 border border-emerald-200 rounded-lg">
                   <FileText className="h-4 w-4 text-emerald-600" />
                   <span className="text-sm text-emerald-700 truncate flex-1">{minutesFileName}</span>
-                  <button type="button" onClick={() => { setMinutesDocument(null); setMinutesFileName(""); }}>
+                  <IconButton aria-label="Remove file" type="button" onClick={() => { setMinutesDocument(null); setMinutesFileName(""); }}>
                     <X className="h-4 w-4 text-slate-500 hover:text-slate-700" />
-                  </button>
+                  </IconButton>
                 </div>
               ) : (
                 <div>
@@ -557,22 +514,21 @@ export default function ClubServiceV2EditPage() {
         </SectionCard>
 
         {/* 4. Attendance */}
-        <SectionCard number={4} icon={Users} title="Attendance" dot="bg-[#17458F]">
+        <SectionCard number={4} icon={Users} title="Attendance">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <FieldLabel dot="bg-[#17458F]">{`Attendance (${effectiveLabel}: ${effectiveTotal})`}</FieldLabel>
-              <input
+              <FieldLabel required>{`Attendance (${effectiveLabel}: ${effectiveTotal})`}</FieldLabel>
+              <Input
                 type="number"
                 value={attendance}
                 onChange={(e) => setAttendance(e.target.value)}
                 placeholder="Number of attendees"
                 min={0}
-                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
               />
             </div>
             <div>
-              <FieldLabel dot="bg-[#17458F]">Attendance (%)</FieldLabel>
-              <input
+              <FieldLabel required>Attendance (%)</FieldLabel>
+              <Input
                 type="number"
                 value={attendancePercentage}
                 onChange={(e) => setAttendancePercentage(e.target.value)}
@@ -580,7 +536,6 @@ export default function ClubServiceV2EditPage() {
                 step="0.01"
                 min={0}
                 max={100}
-                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
               />
               <p className="text-xs text-slate-400 mt-0.5">Auto-calculated, but you can change it</p>
             </div>
@@ -588,10 +543,10 @@ export default function ClubServiceV2EditPage() {
         </SectionCard>
 
         {/* 5. Photos */}
-        <SectionCard number={5} icon={Camera} title="Photos" dot="bg-[#17458F]">
+        <SectionCard number={5} icon={Camera} title="Photos">
           <div className="space-y-3">
             <div className="flex flex-wrap items-center justify-between gap-3">
-              <FieldLabel dot="bg-[#17458F]">Upload Photos (1 mandatory, max 5)</FieldLabel>
+              <FieldLabel required>Upload Photos (1 mandatory, max 5)</FieldLabel>
               <span className="text-xs text-slate-500">{photos.length}/5</span>
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 items-start">
@@ -608,39 +563,39 @@ export default function ClubServiceV2EditPage() {
                       </div>
                     )}
                     <div className="absolute top-1 right-1 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button type="button" onClick={() => setPrimaryPhoto(photo.id)}
+                      <IconButton aria-label="Set as primary photo" aria-pressed={photo.isPrimary} type="button" onClick={() => setPrimaryPhoto(photo.id)}
                         className={`p-1 rounded-full ${photo.isPrimary ? "bg-amber-400 text-amber-900" : "bg-black/50 text-white hover:bg-amber-400 hover:text-amber-900"}`}>
                         <Star className="h-3 w-3" />
-                      </button>
-                      <button type="button" onClick={() => removePhoto(photo.id)} className="p-1 rounded-full bg-black/50 text-white hover:bg-rose-500">
+                      </IconButton>
+                      <IconButton type="button" aria-label="Remove photo" onClick={() => removePhoto(photo.id)}>
                         <X className="h-3 w-3" />
-                      </button>
+                      </IconButton>
                     </div>
                     {photo.isPrimary && (
                       <div className="absolute bottom-0 left-0 right-0 bg-amber-400/90 text-amber-900 text-[10px] font-bold text-center py-0.5">PRIMARY</div>
                     )}
                   </div>
                   {/* Optional per-photo caption (e.g. "Community Service"). Not mandatory. */}
-                  <input
+                  <Input
                     type="text"
                     value={photo.description}
                     onChange={(e) => { const v = e.target.value; setPhotos((prev) => prev.map((p) => p.id === photo.id ? { ...p, description: v } : p)); }}
                     placeholder="Description (optional)"
                     maxLength={500}
-                    className="w-full text-xs border border-slate-200 rounded px-1.5 py-1 focus:outline-none focus:ring-1 focus:ring-blue-400"
+                    className="row-field-sm"
                   />
                   <p className="text-[10px] text-slate-400 text-right">{photo.description.length}/500</p>
                 </div>
               ))}
               {photos.length < 5 && (
-                <button
+                <Button variant="outline"
                   type="button"
                   onClick={() => photoInputRef.current?.click()}
-                  className="border-2 border-dashed border-slate-200 rounded-lg aspect-square flex flex-col items-center justify-center gap-1 text-slate-500 hover:border-blue-300 hover:text-blue-700"
+                  className="h-auto aspect-square flex-col gap-1"
                 >
                   <Upload className="h-5 w-5" />
                   <span className="text-xs">Add Photo</span>
-                </button>
+                </Button>
               )}
             </div>
             <input ref={photoInputRef} type="file" className="hidden" accept=".jpg,.jpeg,.png,.gif,.webp" multiple onChange={handlePhotoSelect} />

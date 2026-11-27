@@ -1,5 +1,9 @@
 "use client";
 
+import SectionCard from "@/components/form/SectionCard";
+import FieldLabel from "@/components/form/FieldLabel";
+import { IconButton } from "@/components/ui/icon-button";
+import { Card } from "@/components/ui/card";
 import { useState, useEffect, useRef } from "react";
 import DateField from "@/components/DateField";
 import { useParams, useRouter } from "next/navigation";
@@ -12,42 +16,13 @@ import {
 import { documentUploadHint, validateDocumentFile, describeUploadError, DOC_EXTENSIONS } from "@/lib/uploadValidate";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
-import {
-  ArrowLeft, Upload, X,
-  FileText, Send, FileUp,
-} from "@/components/icons";
+import { Upload, X, FileText, Send, FileUp } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
-import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { TEXT_INPUT_REGEX } from "@/lib/textInput";
-import { ListPageSkeleton } from "@/components/row/AppKit";
-
-function Req({ children, hint }: { children: React.ReactNode; hint?: string }) {
-  return (
-    <Label className="text-sm font-semibold text-foreground">
-      {children}<span className="text-destructive ml-0.5">*</span>
-      {hint && <span className="text-muted-foreground font-normal ml-1">{hint}</span>}
-    </Label>
-  );
-}
-
-function Section({ icon: Icon, title, number, children }: {
-  icon: React.ElementType; title: string; number: number; children: React.ReactNode;
-}) {
-  return (
-    <div className="bg-card rounded-[20px] border shadow-sm overflow-hidden">
-      <div className="flex items-center gap-3 px-5 py-3.5 bg-muted/40 border-b">
-        <div className="flex items-center justify-center h-7 w-7 rounded-full bg-primary text-primary-foreground text-xs font-bold">{number}</div>
-        <Icon className="h-4 w-4 text-primary" />
-        <h3 className="font-semibold text-base">{title}</h3>
-      </div>
-      <div className="p-5">{children}</div>
-    </div>
-  );
-}
+import { PageHeader, ListPageSkeleton } from "@/components/row/AppKit";
 
 export default function DocumentEditPage() {
   const params = useParams();
@@ -219,28 +194,20 @@ export default function DocumentEditPage() {
 
   return (
     <ProtectedRoute>
-      <div className="space-y-6 max-w-3xl mx-auto">
+      <div className="space-y-6 max-w-4xl">
         {/* Header */}
-        <div className="flex items-center gap-3">
-          <Button variant="outline" size="icon" asChild>
-            <Link href={`/clubs/${clubId}/documents`}><ArrowLeft className="h-4 w-4" /></Link>
-          </Button>
-          <div>
-            <h2 className="text-2xl font-bold tracking-tight text-primary">Edit Document</h2>
-            <p className="text-muted-foreground text-base">{clubName}</p>
-          </div>
-        </div>
+        <PageHeader title="Edit Document" description={clubName} back={`/clubs/${clubId}/documents`} />
 
         {/* 1. Document Details */}
-        <Section icon={FileText} title="Document Details" number={1}>
+        <SectionCard icon={FileText} title="Document Details" number={1}>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1.5 sm:col-span-2">
-              <Req hint="(max 50 chars)">Title</Req>
+              <FieldLabel required hint="(max 50 chars)">Title</FieldLabel>
               <Input value={title} onChange={handleTitleChange} placeholder="Document title" maxLength={50} />
               <p className="text-xs text-muted-foreground text-right">{title.length}/50</p>
             </div>
             <div className="space-y-1.5 sm:col-span-2">
-              <Req>Access Type</Req>
+              <FieldLabel required>Access Type</FieldLabel>
               <div className="flex gap-6">
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input
@@ -265,62 +232,61 @@ export default function DocumentEditPage() {
               </div>
             </div>
           </div>
-        </Section>
+        </SectionCard>
 
         {/* 2. Attachment */}
-        <Section icon={FileUp} title="Attachment" number={2}>
+        <SectionCard icon={FileUp} title="Attachment" number={2}>
           <div className="space-y-2">
-            <Req>File</Req>
+            <FieldLabel required>File</FieldLabel>
             {fileName ? (
               <div className="flex items-center gap-3 p-3 rounded-lg border bg-muted/30">
                 <FileUp className="h-5 w-5 text-primary shrink-0" />
                 <span className="text-sm font-medium flex-1 truncate">{fileName}</span>
                 {fileUploading && <RotaryLoader size="sm" />}
-                <button onClick={removeFile} className="p-1 rounded-full hover:bg-destructive/10 text-destructive">
+                <IconButton aria-label="Remove file" onClick={removeFile} className="hover:text-red-700">
                   <X className="h-4 w-4" />
-                </button>
+                </IconButton>
               </div>
             ) : (
               <div>
-                <button
+                <Button variant="outline"
                   onClick={() => fileInputRef.current?.click()}
-                  className="flex items-center gap-2 px-4 py-3 border-2 border-dashed rounded-lg hover:border-primary/40 transition-colors text-muted-foreground"
                 >
                   <Upload className="h-4 w-4" />
                   <span className="text-sm">Upload file</span>
-                </button>
+                </Button>
                 <p className="text-xs text-muted-foreground mt-1.5">{documentUploadHint(DOC_EXTENSIONS)}</p>
               </div>
             )}
             <input ref={fileInputRef} type="file" className="hidden" accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx" onChange={handleFileSelect} />
           </div>
-        </Section>
+        </SectionCard>
 
         {/* 3. Schedule */}
-        <Section icon={FileText} title="Schedule" number={3}>
+        <SectionCard icon={FileText} title="Schedule" number={3}>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1.5">
-              <Req>Publish Date</Req>
+              <FieldLabel required>Publish Date</FieldLabel>
               <DateField value={publishDate} onChange={setPublishDate} />
             </div>
             <div className="space-y-1.5">
-              <Req>Publish Time</Req>
+              <FieldLabel required>Publish Time</FieldLabel>
               <Input type="time" value={publishTime} onChange={(e) => setPublishTime(e.target.value)} />
             </div>
             <div className="space-y-1.5">
-              <Req>Expiry Date</Req>
+              <FieldLabel required>Expiry Date</FieldLabel>
               <DateField value={expiryDate} onChange={setExpiryDate} />
             </div>
             <div className="space-y-1.5">
-              <Req>Expiry Time</Req>
+              <FieldLabel required>Expiry Time</FieldLabel>
               <Input type="time" value={expiryTime} onChange={(e) => setExpiryTime(e.target.value)} />
             </div>
           </div>
-        </Section>
+        </SectionCard>
 
         {/* Save Button */}
         <div className="flex justify-end pb-8">
-          <Button onClick={handleSave} disabled={saving} size="lg" className="shadow-md">
+          <Button onClick={handleSave} disabled={saving} size="lg">
             {saving ? <RotaryLoader size="sm" /> : <><Send className="mr-2 h-4 w-4" />Update Document</>}
           </Button>
         </div>

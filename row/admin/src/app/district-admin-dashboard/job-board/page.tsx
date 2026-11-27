@@ -1,4 +1,5 @@
 "use client";
+import { FilterChips } from "@/components/ui/text-buttons";
 
 /**
  * District Admin Dashboard › Job Board (flag job_board): job postings and business-to-business offers that members of
@@ -6,6 +7,7 @@
  * hides until an admin keeps or removes it. Posts stop showing after their expiry date.
  */
 
+import { PageHeader } from "@/components/row/AppKit";
 import { useCallback, useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useFormat } from "@/hooks/useFormat";
@@ -71,29 +73,20 @@ export default function DistrictJobBoardPage() {
   const current = FILTERS.find((f) => f.key === filter)!;
 
   return (
-    <div className="space-y-5 p-6">
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div className="min-w-0">
-          <h2 className="text-xl font-semibold">Job board</h2>
-          <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
-            Jobs and business offers that members of your district post in the app. Members of the district see a post
-            once you approve it, until its expiry date. A post that three members report is hidden until you keep or
-            remove it. Your note is shown to the poster.
-          </p>
-        </div>
-        <Button variant="outline" onClick={load} className="gap-1.5">
+    <div className="space-y-5">
+      <PageHeader
+        title="Job board"
+        description="Jobs and business offers that members of your district post in the app. Members of the district see a post once you approve it, until its expiry date. A post that three members report is hidden until you keep or remove it. Your note is shown to the poster."
+        actions={
+          <>
+<Button variant="outline" onClick={load}>
           <RefreshCw className="h-4 w-4" /> Refresh
         </Button>
-      </div>
+          </>
+        }
+      />
 
-      <div role="tablist" aria-label="Posts" className="inline-flex flex-wrap gap-1 rounded-md border p-1">
-        {FILTERS.map((f) => (
-          <button key={f.key} type="button" role="tab" aria-selected={filter === f.key} onClick={() => setFilter(f.key)}
-            className={`rounded px-3 py-1.5 text-sm font-medium ${filter === f.key ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}>
-            {f.label}
-          </button>
-        ))}
-      </div>
+      <FilterChips label="Posts" options={FILTERS.map((f) => ({ value: f.key, label: f.label }))} value={filter} onChange={setFilter} />
 
       <Card>
         <CardContent className="p-0">
@@ -144,7 +137,7 @@ export default function DistrictJobBoardPage() {
                   )}
                   {(p.status === "pending" || p.status === "approved") && (
                     <div className="flex flex-wrap items-center gap-2">
-                      <Input className="h-9 w-full sm:w-72" maxLength={500} placeholder="Note for the poster (optional)"
+                      <Input className="w-full sm:w-72" maxLength={500} placeholder="Note for the poster (optional)"
                         aria-label="Note for the poster" value={notes[p.id] ?? ""}
                         onChange={(e) => setNotes({ ...notes, [p.id]: e.target.value })} />
                       {(p.status === "pending" || p.openReports > 0) && (

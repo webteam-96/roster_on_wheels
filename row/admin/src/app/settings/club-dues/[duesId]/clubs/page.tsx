@@ -1,8 +1,10 @@
 "use client";
+import { ToggleButton } from "@/components/ui/text-buttons";
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
 
+import { NativeSelect } from "@/components/ui/native-select";
 import { useEffect, useState, useCallback, Fragment } from "react";
 import { useParams } from "next/navigation";
-import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
 import { getClubDuesClubs, updateClubDuesRate, recordClubDuesOffline, approveClubDuesPayment, sendClubDuesReminder, bulkClubDuesReminder, sendClubDuesReceipt, getClubDuesOfflineDetails, updateClubDuesOffline, getClubDuesClubVendors, saveClubDuesClubVendors, getRazorpayRouteAccounts, RazorpayRouteAccount, getClubDuesOfflineAccounts, ClubDuesOfflineAccountOption, getClubDuesPayLink, getClubDuesExportUrl, syncClubDues, getClubDuesDetail } from "@/services/api";
 import { getCurrencySymbol } from "@/lib/currency";
@@ -16,10 +18,10 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
 import AlertModal from "@/components/AlertModal";
-import { ArrowLeft, RefreshCw, Download, Bell, Link2, Check, Receipt, Pencil, Split, Plus, X, FileText, Send } from "@/components/icons";
+import { RefreshCw, Download, Bell, Link2, Check, Receipt, Pencil, Split, Plus, X, FileText, Send } from "@/components/icons";
 
 import { appLocale, currencySymbol } from "@/lib/appFormat";
-import { ListPageSkeleton } from "@/components/row/AppKit";
+import { PageHeader, ListPageSkeleton } from "@/components/row/AppKit";
 import Pagination from "@/components/Pagination";
 import { BASE_PATH } from "@/lib/basePath";
 interface AccountBreakdown {
@@ -180,21 +182,19 @@ export default function ClubDuesClubsPage() {
   return (
     <ProtectedRoute>
       <div className="space-y-5">
-        <div className="flex items-center justify-between flex-wrap gap-3">
-          <div className="flex items-center gap-3">
-            <Button variant="ghost" size="icon" asChild><Link href="/settings/club-dues"><ArrowLeft className="h-4 w-4" /></Link></Button>
-            <div>
-              <h2 className="text-2xl font-bold tracking-tight text-primary">District Dues: Clubs</h2>
-              <p className="text-muted-foreground text-base">Each club owes members × rate. Track payment status and send reminders.</p>
-            </div>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <Button variant="outline" size="sm" onClick={async () => { setBusy(true); try { await syncClubDues(duesId); await load(); } finally { setBusy(false); } }} disabled={busy}><RefreshCw className="mr-2 h-4 w-4" />Sync members</Button>
+        <PageHeader
+          title="District Dues: Clubs"
+          description="Each club owes members × rate. Track payment status and send reminders."
+          back="/settings/club-dues"
+          actions={
+            <>
+<Button variant="outline" size="sm" onClick={async () => { setBusy(true); try { await syncClubDues(duesId); await load(); } finally { setBusy(false); } }} disabled={busy}><RefreshCw className="mr-2 h-4 w-4" />Sync members</Button>
             {notifyEmail && <Button variant="outline" size="sm" onClick={() => setBulkConfirmChannel("email")}><Bell className="mr-2 h-4 w-4" />Email all</Button>}
             <Button variant="outline" size="sm" onClick={copyReportLink} title="Copy public report link"><FileText className="mr-2 h-4 w-4" />Copy report link</Button>
             <a href={getClubDuesExportUrl(duesId)}><Button variant="outline" size="sm"><Download className="mr-2 h-4 w-4" />Export</Button></a>
-          </div>
-        </div>
+            </>
+          }
+        />
 
         {!loading && rows.length > 0 && (
           <div className="grid grid-cols-3 gap-3">
@@ -236,115 +236,115 @@ export default function ClubDuesClubsPage() {
         ) : (
           <Card>
             <CardContent className="p-0 overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead className="bg-[#EDF4FB] text-[13px] text-[#64748B] text-left">
-                  <tr>
-                    <th className="p-3">Club</th>
-                    <th className="p-3 text-center">Total Members</th>
-                    <th className="p-3 text-right">Offline Rate</th>
-                    <th className="p-3 text-right">Offline Amount</th>
+              <Table className="w-full text-sm">
+                <TableHeader className="text-left">
+                  <TableRow>
+                    <TableHead className="p-3">Club</TableHead>
+                    <TableHead className="p-3 text-center">Total Members</TableHead>
+                    <TableHead className="p-3 text-right">Offline Rate</TableHead>
+                    <TableHead className="p-3 text-right">Offline Amount</TableHead>
                     {Array.from({ length: maxOfflineAccountCols }, (_, i) => (
                       <Fragment key={`off-${i}`}>
-                        <th className="p-3 text-right whitespace-nowrap">Off. A/C {i + 1} Amount</th>
-                        <th className="p-3 text-center whitespace-nowrap">Off. A/C {i + 1} Status</th>
+                        <TableHead className="p-3 text-right whitespace-nowrap">Off. A/C {i + 1} Amount</TableHead>
+                        <TableHead className="p-3 text-center whitespace-nowrap">Off. A/C {i + 1} Status</TableHead>
                       </Fragment>
                     ))}
-                    <th className="p-3 text-right">Offline Paid</th>
-                    <th className="p-3 text-right">Online Rate</th>
-                    <th className="p-3 text-right">Online Amount</th>
+                    <TableHead className="p-3 text-right">Offline Paid</TableHead>
+                    <TableHead className="p-3 text-right">Online Rate</TableHead>
+                    <TableHead className="p-3 text-right">Online Amount</TableHead>
                     {Array.from({ length: maxOnlineAccountCols }, (_, i) => (
                       <Fragment key={`on-${i}`}>
-                        <th className="p-3 text-right whitespace-nowrap">On. A/C {i + 1} Amount</th>
-                        <th className="p-3 text-center whitespace-nowrap">On. A/C {i + 1} Status</th>
+                        <TableHead className="p-3 text-right whitespace-nowrap">On. A/C {i + 1} Amount</TableHead>
+                        <TableHead className="p-3 text-center whitespace-nowrap">On. A/C {i + 1} Status</TableHead>
                       </Fragment>
                     ))}
-                    <th className="p-3 text-right">Online Paid</th>
-                    <th className="p-3 text-right">Total Paid</th>
-                    <th className="p-3 text-center">Payment Type</th>
-                    <th className="p-3">Status</th>
-                    <th className="p-3">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
+                    <TableHead className="p-3 text-right">Online Paid</TableHead>
+                    <TableHead className="p-3 text-right">Total Paid</TableHead>
+                    <TableHead className="p-3 text-center">Payment Type</TableHead>
+                    <TableHead className="p-3">Status</TableHead>
+                    <TableHead className="p-3">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
                   {paged.map((r) => !r.isSyncedFromRotaryOrg ? (
                     // Non-sync club (no members synced from Rotary.org) — nothing to bill. Show one message
                     // spanning Total Members → Action instead of the empty numeric/action columns.
-                    <tr key={r.clubDuesClubId} className="border-t bg-amber-50/70 text-amber-900">
-                      <td className="p-3 align-top">
+                    <TableRow key={r.clubDuesClubId} className="border-t bg-amber-50/70 text-amber-900">
+                      <TableCell className="p-3 align-top">
                         {r.clubName}
                         <span className="ml-2 text-xs rounded bg-amber-100 text-amber-700 px-1.5 py-0.5" title="This club is not synced from Rotary.org">non-sync</span>
-                      </td>
-                      <td colSpan={10 + maxOfflineAccountCols * 2 + maxOnlineAccountCols * 2} className="p-3 text-sm italic text-amber-700">
+                      </TableCell>
+                      <TableCell colSpan={10 + maxOfflineAccountCols * 2 + maxOnlineAccountCols * 2} className="p-3 text-sm italic text-amber-700">
                         This club is not synced from Rotary.org, so it has no members to bill: sync this club first to track its dues.
-                      </td>
-                    </tr>
+                      </TableCell>
+                    </TableRow>
                   ) : (
-                    <tr key={r.clubDuesClubId} className="border-t">
-                      <td className="p-3">
+                    <TableRow key={r.clubDuesClubId} className="border-t">
+                      <TableCell className="p-3">
                         {r.clubName}
                         {r.hasPendingApproval && <span className="ml-2 text-xs rounded bg-blue-100 text-blue-700 px-1.5 py-0.5">pending approval</span>}
-                      </td>
-                      <td className="p-3 text-center" title={`${r.paidCount} paid + ${r.unpaidCount} pending`}>{r.paidCount}+{r.unpaidCount}</td>
-                      <td className="p-3 text-right">
+                      </TableCell>
+                      <TableCell className="p-3 text-center" title={`${r.paidCount} paid + ${r.unpaidCount} pending`}>{r.paidCount}+{r.unpaidCount}</TableCell>
+                      <TableCell className="p-3 text-right">
                         <div className="flex items-center justify-end gap-1">
-                          <Input className="h-8 w-20" type="number" value={offlineRateEdits[r.clubDuesClubId] ?? String(r.offlinePerMemberRate)}
+                          <Input className="row-field-sm w-20" type="number" value={offlineRateEdits[r.clubDuesClubId] ?? String(r.offlinePerMemberRate)}
                             onChange={(e) => setOfflineRateEdits((p) => ({ ...p, [r.clubDuesClubId]: e.target.value }))} />
                           {offlineRateEdits[r.clubDuesClubId] != null && offlineRateEdits[r.clubDuesClubId] !== String(r.offlinePerMemberRate) && (
-                            <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => saveOfflineRate(r)}><Check className="h-4 w-4" /></Button>
+                            <Button size="icon" variant="ghost" className="row-btn-sm" onClick={() => saveOfflineRate(r)}><Check className="h-4 w-4" /></Button>
                           )}
                         </div>
-                      </td>
-                      <td className="p-3 text-right font-medium">{r.paidOnline === true ? "-" : `${cur}${Number(r.offlineAmount).toLocaleString(appLocale(), { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}</td>
+                      </TableCell>
+                      <TableCell className="p-3 text-right font-medium">{r.paidOnline === true ? "-" : `${cur}${Number(r.offlineAmount).toLocaleString(appLocale(), { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}</TableCell>
                       {Array.from({ length: maxOfflineAccountCols }, (_, i) => {
                         const acc = r.paidOnline === true ? undefined : r.offlineAccountBreakdown?.[i];
                         return (
                           <Fragment key={`off-${i}`}>
-                            <td className="p-3 text-right whitespace-nowrap">
+                            <TableCell className="p-3 text-right whitespace-nowrap">
                               {acc ? `${cur}${Number(acc.amount).toLocaleString(appLocale(), { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : "-"}
-                            </td>
-                            <td className="p-3 text-center whitespace-nowrap" title={acc?.accountLabel || ""}>
+                            </TableCell>
+                            <TableCell className="p-3 text-center whitespace-nowrap" title={acc?.accountLabel || ""}>
                               {acc ? (
                                 <span className={`text-xs font-medium px-2 py-0.5 rounded ${acc.isPaid ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}>
                                   {acc.isPaid ? "Paid" : "Unpaid"}
                                 </span>
                               ) : "-"}
-                            </td>
+                            </TableCell>
                           </Fragment>
                         );
                       })}
-                      <td className="p-3 text-right">{r.paidOnline === true ? "-" : `${cur}${Number(r.offlinePaid).toLocaleString(appLocale(), { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}</td>
-                      <td className="p-3 text-right">
+                      <TableCell className="p-3 text-right">{r.paidOnline === true ? "-" : `${cur}${Number(r.offlinePaid).toLocaleString(appLocale(), { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}</TableCell>
+                      <TableCell className="p-3 text-right">
                         <div className="flex items-center justify-end gap-1">
-                          <Input className="h-8 w-20" type="number" value={onlineRateEdits[r.clubDuesClubId] ?? String(r.onlinePerMemberRate)}
+                          <Input className="row-field-sm w-20" type="number" value={onlineRateEdits[r.clubDuesClubId] ?? String(r.onlinePerMemberRate)}
                             onChange={(e) => setOnlineRateEdits((p) => ({ ...p, [r.clubDuesClubId]: e.target.value }))} />
                           {onlineRateEdits[r.clubDuesClubId] != null && onlineRateEdits[r.clubDuesClubId] !== String(r.onlinePerMemberRate) && (
-                            <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => saveOnlineRate(r)}><Check className="h-4 w-4" /></Button>
+                            <Button size="icon" variant="ghost" className="row-btn-sm" onClick={() => saveOnlineRate(r)}><Check className="h-4 w-4" /></Button>
                           )}
                         </div>
-                      </td>
-                      <td className="p-3 text-right font-medium">{r.paidOnline === false ? "-" : `${cur}${Number(r.onlineAmount).toLocaleString(appLocale(), { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}</td>
+                      </TableCell>
+                      <TableCell className="p-3 text-right font-medium">{r.paidOnline === false ? "-" : `${cur}${Number(r.onlineAmount).toLocaleString(appLocale(), { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}</TableCell>
                       {Array.from({ length: maxOnlineAccountCols }, (_, i) => {
                         const acc = r.paidOnline === false ? undefined : r.onlineAccountBreakdown?.[i];
                         return (
                           <Fragment key={`on-${i}`}>
-                            <td className="p-3 text-right whitespace-nowrap">
+                            <TableCell className="p-3 text-right whitespace-nowrap">
                               {acc ? `${cur}${Number(acc.amount).toLocaleString(appLocale(), { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : "-"}
-                            </td>
-                            <td className="p-3 text-center whitespace-nowrap" title={acc?.accountLabel || ""}>
+                            </TableCell>
+                            <TableCell className="p-3 text-center whitespace-nowrap" title={acc?.accountLabel || ""}>
                               {acc ? (
                                 <span className={`text-xs font-medium px-2 py-0.5 rounded ${acc.isPaid ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}>
                                   {acc.isPaid ? "Paid" : "Unpaid"}
                                 </span>
                               ) : "-"}
-                            </td>
+                            </TableCell>
                           </Fragment>
                         );
                       })}
-                      <td className="p-3 text-right">{r.paidOnline === false ? "-" : `${cur}${Number(r.onlinePaid).toLocaleString(appLocale(), { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}</td>
-                      <td className="p-3 text-right">{cur}{Number(r.totalPaid).toLocaleString(appLocale(), { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-                      <td className="p-3 text-center">{r.paidOnline == null ? "-" : r.paidOnline ? "Online" : "Offline"}</td>
-                      <td className="p-3">{r.status}</td>
-                      <td className="p-3 whitespace-nowrap">
+                      <TableCell className="p-3 text-right">{r.paidOnline === false ? "-" : `${cur}${Number(r.onlinePaid).toLocaleString(appLocale(), { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}</TableCell>
+                      <TableCell className="p-3 text-right">{cur}{Number(r.totalPaid).toLocaleString(appLocale(), { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</TableCell>
+                      <TableCell className="p-3 text-center">{r.paidOnline == null ? "-" : r.paidOnline ? "Online" : "Offline"}</TableCell>
+                      <TableCell className="p-3">{r.status}</TableCell>
+                      <TableCell className="p-3 whitespace-nowrap">
                         <div className="flex gap-1 flex-nowrap">
                           <Button size="sm" variant="outline" disabled={r.unpaidCount === 0} onClick={() => setOfflineFor(r)}>Offline</Button>
                           {r.lastOfflinePaymentId && <Button size="sm" variant="ghost" onClick={() => setEditOffline({ club: r, paymentId: r.lastOfflinePaymentId! })} title="Edit offline payment"><Pencil className="h-4 w-4" /></Button>}
@@ -367,12 +367,12 @@ export default function ClubDuesClubsPage() {
                             </>
                           )}
                         </div>
-                      </td>
-                    </tr>
+                      </TableCell>
+                    </TableRow>
                   ))}
-                  {filtered.length === 0 && <tr><td colSpan={11 + maxOfflineAccountCols * 2 + maxOnlineAccountCols * 2} className="p-8 text-center text-muted-foreground">No clubs.</td></tr>}
-                </tbody>
-              </table>
+                  {filtered.length === 0 && <TableRow><TableCell colSpan={11 + maxOfflineAccountCols * 2 + maxOnlineAccountCols * 2} className="p-8 text-center text-muted-foreground">No clubs.</TableCell></TableRow>}
+                </TableBody>
+              </Table>
             </CardContent>
             {filtered.length > PAGE_SIZE && (
               <div className="p-3 border-t"><Pagination page={page} totalPages={totalPages} totalCount={filtered.length} pageSize={PAGE_SIZE} onPageChange={setPage} /></div>
@@ -427,7 +427,7 @@ function Modal({ title, children, onClose }: { title: string; children: React.Re
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" onClick={onClose}>
       <div className="bg-background rounded-lg shadow-lg w-full max-w-md p-5 space-y-4" onClick={(e) => e.stopPropagation()}>
-        <h3 className="text-lg font-semibold">{title}</h3>
+        <h3 className="row-h2">{title}</h3>
         {children}
       </div>
     </div>
@@ -497,9 +497,9 @@ function OfflineDialog({ cur, duesId, club, editPaymentId, onClose, onDone, onEr
       )}
       <div className="space-y-2">
         <Label>Mode</Label>
-        <select className="w-full border border-input bg-background rounded-md h-9 px-2 text-sm" value={transactionType} onChange={(e) => setType(e.target.value)}>
+        <NativeSelect  value={transactionType} onChange={(e) => setType(e.target.value)}>
           <option value="1">Cash</option><option value="2">Cheque</option><option value="3">NEFT</option><option value="4">UPI</option><option value="5">Other</option>
-        </select>
+        </NativeSelect>
       </div>
       <div className="space-y-2"><Label>Transaction / reference</Label><Input value={transactionId} onChange={(e) => setTid(e.target.value)} /></div>
       <div className="space-y-2"><Label>Remark</Label><Input value={remark} onChange={(e) => setRemark(e.target.value)} /></div>
@@ -558,9 +558,9 @@ function SplitDialog({ cur, duesId, club, isOnline, routeAccounts, onClose, onDo
       <p className="text-sm text-muted-foreground">Overrides the campaign&apos;s {isOnline ? "online" : "offline"} split for this club only (rate {currencySymbol()}{rate}/member). Clear all to use the campaign default.</p>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <Label>Split by</Label>
-        <div className="inline-flex rounded-md border overflow-hidden text-sm">
-          <button type="button" onClick={() => setAmountType("2")} className={`px-3 py-1 ${amountType === "2" ? "bg-primary text-primary-foreground" : "bg-background"}`}>Percentage</button>
-          <button type="button" onClick={() => setAmountType("1")} className={`px-3 py-1 ${amountType === "1" ? "bg-primary text-primary-foreground" : "bg-background"}`}>Amount</button>
+        <div role="group" aria-label="Split by" className="inline-flex gap-2">
+          <ToggleButton pressed={amountType === "2"} onClick={() => setAmountType("2")}>Percentage</ToggleButton>
+          <ToggleButton pressed={amountType === "1"} onClick={() => setAmountType("1")}>Amount</ToggleButton>
         </div>
       </div>
       {rows.map((row, i) => (

@@ -6,6 +6,9 @@
  * Meeting duties go to members, who get a reminder two days before the meeting.
  */
 
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table"
+import { NativeSelect } from "@/components/ui/native-select";
+import { PageHeader } from "@/components/row/AppKit";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Loader2, Pencil, Plus, Save, Trash2 } from "@/components/icons";
 import { Button } from "@/components/ui/button";
@@ -26,7 +29,7 @@ import type { ClubMemberSimple } from "@/types/attendance";
 import type { MeetingDuty, SaveSpeaker, Speaker } from "@/types/volunteers";
 
 const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
-const SELECT = "h-10 w-full rounded-md border border-input bg-background px-3 text-sm";
+const SELECT = "row-field w-full";
 const DUTIES = ["Greeter", "Sergeant at arms", "Grace", "Thought for the day", "Vote of thanks", "Introducing the speaker"];
 const message = (err: any, fallback: string) => err?.response?.data?.message || fallback;
 const orNull = (v: string | null) => v?.trim() || null;
@@ -38,14 +41,8 @@ export default function SpeakersPage() {
 
   if (!clubId) return <p className="p-6 text-sm text-muted-foreground">Choose a club first.</p>;
   return (
-    <div className="space-y-8 p-6">
-      <div>
-        <h2 className="text-2xl font-bold tracking-tight text-primary">Speakers and meeting duties</h2>
-        <p className="text-base text-muted-foreground">
-          Schedule the speakers for your meetings and give members their meeting duties. Coming speakers marked for the
-          website show on your club website; members get a reminder of their duty two days before the meeting.
-        </p>
-      </div>
+    <div className="space-y-8">
+      <PageHeader title="Speakers and meeting duties" description="Schedule the speakers for your meetings and give members their meeting duties. Coming speakers marked for the website show on your club website; members get a reminder of their duty two days before the meeting." />
       <SpeakersSection clubId={clubId} onError={setError} />
       <DutiesSection clubId={clubId} onError={setError} />
       <ErrorAlert open={!!error} title="Could not do that" description={error || ""} onOk={() => setError(null)} />
@@ -129,7 +126,7 @@ function SpeakersSection({ clubId, onError }: { clubId: number; onError: (m: str
 
   return (
     <section className="space-y-3">
-      <h3 className="text-lg font-semibold">Speakers</h3>
+      <h3 className="row-h2">Speakers</h3>
       <Card>
         <CardContent className="p-5">
           <form className="grid gap-4 md:grid-cols-2" onSubmit={save}>
@@ -167,7 +164,7 @@ function SpeakersSection({ clubId, onError }: { clubId: number; onError: (m: str
               Show on the club website
             </label>
             <div className="flex flex-wrap items-center gap-2 md:col-span-2">
-              <Button type="submit" disabled={busy} className="gap-1.5">
+              <Button type="submit" disabled={busy}>
                 {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : editing ? <Save className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
                 {editing ? "Save speaker" : "Add speaker"}
               </Button>
@@ -188,21 +185,21 @@ function SpeakersSection({ clubId, onError }: { clubId: number; onError: (m: str
       ) : (
         <Card>
           <CardContent className="overflow-x-auto p-0">
-            <table className="w-full min-w-[720px] text-sm">
-              <thead className="bg-[#EDF4FB] text-[13px] text-[#64748B]">
-                <tr className="border-b text-left text-muted-foreground">
-                  <th className="p-3 font-medium">Meeting</th>
-                  <th className="p-3 font-medium">Speaker</th>
-                  <th className="p-3 font-medium">Contact</th>
-                  <th className="p-3 font-medium">Website</th>
-                  <th className="p-3"><span className="sr-only">Actions</span></th>
-                </tr>
-              </thead>
-              <tbody>
+            <Table className="w-full min-w-[720px] text-sm">
+              <TableHeader>
+                <TableRow className="border-b">
+                  <TableHead className="p-3">Meeting</TableHead>
+                  <TableHead className="p-3">Speaker</TableHead>
+                  <TableHead className="p-3">Contact</TableHead>
+                  <TableHead className="p-3">Website</TableHead>
+                  <TableHead className="p-3"><span className="sr-only">Actions</span></TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
                 {list.map((s) => (
-                  <tr key={s.id} className="border-b last:border-0 align-top">
-                    <td className="p-3 whitespace-nowrap">{fmt.date(s.meetingDate.slice(0, 10))}</td>
-                    <td className="p-3">
+                  <TableRow key={s.id} className="border-b last:border-0 align-top">
+                    <TableCell className="p-3 whitespace-nowrap">{fmt.date(s.meetingDate.slice(0, 10))}</TableCell>
+                    <TableCell className="p-3">
                       <div className="flex items-start gap-3">
                         {s.photoPath && (
                           // eslint-disable-next-line @next/next/no-img-element
@@ -213,18 +210,18 @@ function SpeakersSection({ clubId, onError }: { clubId: number; onError: (m: str
                           {s.topic && <p className="text-muted-foreground">{s.topic}</p>}
                         </div>
                       </div>
-                    </td>
-                    <td className="p-3">{[s.email, s.phone].filter(Boolean).join(", ")}</td>
-                    <td className="p-3">{s.showOnWebsite ? "Shown" : "Hidden"}</td>
-                    <td className="p-3 whitespace-nowrap">
+                    </TableCell>
+                    <TableCell className="p-3">{[s.email, s.phone].filter(Boolean).join(", ")}</TableCell>
+                    <TableCell className="p-3">{s.showOnWebsite ? "Shown" : "Hidden"}</TableCell>
+                    <TableCell className="p-3 whitespace-nowrap">
                       <Button variant="ghost" size="sm" onClick={() => share(s)}>Share to bureau</Button>
                       <Button variant="ghost" size="sm" aria-label={`Edit ${s.name}`} onClick={() => edit(s)}><Pencil className="h-4 w-4" /></Button>
                       <Button variant="ghost" size="sm" aria-label={`Remove ${s.name}`} onClick={() => remove(s)}><Trash2 className="h-4 w-4" /></Button>
-                    </td>
-                  </tr>
+                    </TableCell>
+                  </TableRow>
                 ))}
-              </tbody>
-            </table>
+              </TableBody>
+            </Table>
           </CardContent>
         </Card>
       )}
@@ -276,7 +273,7 @@ function DutiesSection({ clubId, onError }: { clubId: number; onError: (m: strin
 
   return (
     <section className="space-y-3">
-      <h3 className="text-lg font-semibold">Meeting duties</h3>
+      <h3 className="row-h2">Meeting duties</h3>
       <Card>
         <CardContent className="p-5">
           <form className="grid gap-4 md:grid-cols-4" onSubmit={add}>
@@ -291,17 +288,17 @@ function DutiesSection({ clubId, onError }: { clubId: number; onError: (m: strin
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="du-member">Member</Label>
-              <select id="du-member" required className={SELECT} value={form.memberId} onChange={(e) => setForm({ ...form, memberId: e.target.value })}>
+              <NativeSelect id="du-member" required  value={form.memberId} onChange={(e) => setForm({ ...form, memberId: e.target.value })}>
                 <option value="">Choose a member</option>
                 {members.map((m) => <option key={m.id} value={m.id}>{m.memberName}</option>)}
-              </select>
+              </NativeSelect>
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="du-note">Note (optional)</Label>
               <Input id="du-note" maxLength={300} value={form.note} onChange={(e) => setForm({ ...form, note: e.target.value })} />
             </div>
             <div className="md:col-span-4">
-              <Button type="submit" disabled={busy} className="gap-1.5">
+              <Button type="submit" disabled={busy}>
                 {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />} Assign duty
               </Button>
             </div>
@@ -316,30 +313,30 @@ function DutiesSection({ clubId, onError }: { clubId: number; onError: (m: strin
       ) : (
         <Card>
           <CardContent className="overflow-x-auto p-0">
-            <table className="w-full min-w-[640px] text-sm">
-              <thead className="bg-[#EDF4FB] text-[13px] text-[#64748B]">
-                <tr className="border-b text-left text-muted-foreground">
-                  <th className="p-3 font-medium">Meeting</th>
-                  <th className="p-3 font-medium">Duty</th>
-                  <th className="p-3 font-medium">Member</th>
-                  <th className="p-3 font-medium">Reminder</th>
-                  <th className="p-3"><span className="sr-only">Remove</span></th>
-                </tr>
-              </thead>
-              <tbody>
+            <Table className="w-full min-w-[640px] text-sm">
+              <TableHeader>
+                <TableRow className="border-b">
+                  <TableHead className="p-3">Meeting</TableHead>
+                  <TableHead className="p-3">Duty</TableHead>
+                  <TableHead className="p-3">Member</TableHead>
+                  <TableHead className="p-3">Reminder</TableHead>
+                  <TableHead className="p-3"><span className="sr-only">Remove</span></TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
                 {list.map((d) => (
-                  <tr key={d.id} className="border-b last:border-0">
-                    <td className="p-3 whitespace-nowrap">{fmt.date(d.meetingDate.slice(0, 10))}</td>
-                    <td className="p-3">{d.duty}{d.note && <span className="block text-muted-foreground">{d.note}</span>}</td>
-                    <td className="p-3">{d.memberName}</td>
-                    <td className="p-3">{d.reminderSentAt ? fmt.dateTime(d.reminderSentAt) : "Not yet"}</td>
-                    <td className="p-3">
+                  <TableRow key={d.id} className="border-b last:border-0">
+                    <TableCell className="p-3 whitespace-nowrap">{fmt.date(d.meetingDate.slice(0, 10))}</TableCell>
+                    <TableCell className="p-3">{d.duty}{d.note && <span className="block text-muted-foreground">{d.note}</span>}</TableCell>
+                    <TableCell className="p-3">{d.memberName}</TableCell>
+                    <TableCell className="p-3">{d.reminderSentAt ? fmt.dateTime(d.reminderSentAt) : "Not yet"}</TableCell>
+                    <TableCell className="p-3">
                       <Button variant="ghost" size="sm" aria-label={`Remove ${d.duty}`} onClick={() => remove(d)}><Trash2 className="h-4 w-4" /></Button>
-                    </td>
-                  </tr>
+                    </TableCell>
+                  </TableRow>
                 ))}
-              </tbody>
-            </table>
+              </TableBody>
+            </Table>
           </CardContent>
         </Card>
       )}

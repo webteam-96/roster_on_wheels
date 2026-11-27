@@ -3,6 +3,7 @@
 // Event invite list: turns an upcoming event into a mass email draft addressed to contact groups. The admin reviews
 // and sends it from Mass Email, where credits and delivery are handled.
 
+import { NativeSelect } from "@/components/ui/native-select";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import {
@@ -64,7 +65,7 @@ export default function EventInviteDialog({ open, onClose, scope, ownerId, group
         {draftId ? (
           <div className="space-y-3 text-sm text-slate-700">
             <p>The invitation is saved as a mass email draft. Check it and send it from Mass Email.</p>
-            <Link href={massEmailHref} className="inline-flex h-9 items-center rounded-full bg-azure px-4 font-medium text-white hover:bg-mint-ink">
+            <Link href={massEmailHref} className="row-btn row-btn-primary row-btn-sm">
               Open Mass Email
             </Link>
           </div>
@@ -75,11 +76,11 @@ export default function EventInviteDialog({ open, onClose, scope, ownerId, group
               {events === null ? <Skeleton className="h-9 w-full" /> : events.length === 0 ? (
                 <p className="text-sm text-slate-500">No upcoming events. Add one under Communication, Upcoming Events.</p>
               ) : (
-                <select aria-label="Event" value={eventId} onChange={(e) => setEventId(Number(e.target.value))}
-                  className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm">
+                <NativeSelect aria-label="Event" value={eventId} onChange={(e) => setEventId(Number(e.target.value))}
+                  >
                   <option value={0}>Pick an event</option>
                   {events.map((e) => <option key={e.id} value={e.id}>{e.title} ({fmtDate(e.eventDate)})</option>)}
-                </select>
+                </NativeSelect>
               )}
             </div>
             <div className="space-y-1">
@@ -105,7 +106,7 @@ export default function EventInviteDialog({ open, onClose, scope, ownerId, group
           ) : (
             <>
               <Button variant="outline" onClick={onClose}>Cancel</Button>
-              <Button className="bg-azure text-white hover:bg-mint-ink" disabled={!eventId || picked.length === 0 || busy} onClick={create}>
+              <Button disabled={!eventId || picked.length === 0 || busy} onClick={create}>
                 {busy && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}Create invitation
               </Button>
             </>

@@ -102,6 +102,9 @@ const api = axios.create({
 });
 
 // Public API instance (no auth required)
+// The signed-in client (token, time zone, error toasts) for service files kept outside this one.
+export { api as apiClient };
+
 const publicApi = axios.create({
   baseURL: API_BASE_URL,
   timeout: 30000,
@@ -1393,6 +1396,28 @@ export async function getAdminYearOptions(
   return res.data;
 }
 
+// Year-wise Admin Rights — "Edit Years" on an EXISTING admin (no Remove + Make
+// Admin). The server only adds/removes years the caller holds; any other granted
+// years are kept and named in `keptYears`. Marker: YWAR-EDIT-YEARS
+export async function saveAdminYears(
+  scope: { kind: "club"; clubId: number } | { kind: "district"; districtId: number },
+  memberId: number,
+  picked: { yearIds: number[]; allYears: boolean }
+): Promise<{ message: string; keptYears: string[] }> {
+  const res = scope.kind === "club"
+    ? await api.post("/api/admin/club-admin-years", { memberId, roleId: 2, clubId: scope.clubId, ...picked })
+    : await api.post(`/api/districts/${scope.districtId}/members/${memberId}/admin-years`, picked);
+  return res.data;
+}
+
+/** Success wording for saveAdminYears. */
+export function adminYearsSavedMessage(name: string, res: { keptYears?: string[] }): string {
+  const kept = res.keptYears ?? [];
+  return kept.length
+    ? `Admin years for ${name} updated. ${kept.join(", ")} kept, not yours to change.`
+    : `Admin years for ${name} updated.`;
+}
+
 // Admin APIs
 export async function assignRole(
   data: AssignRoleRequest
@@ -1800,6 +1825,25 @@ export async function updateDistrict(id: number, data: UpdateDistrictRequest): P
 // full district record just to change this one field).
 export async function updateDistrictDefaultCurrency(id: number, defaultCurrency: string): Promise<void> {
   await api.put(`/api/districts/${id}/default-currency`, { defaultCurrency });
+}
+
+/** Gives every district still on the platform default its own country's currency. */
+export async function setDistrictCurrenciesFromCountry(): Promise<{ changed: number }> {
+  const { data } = await api.post("/api/districts/default-currency/from-country");
+  return data;
+}
+
+export interface CurrencyRateInfo {
+  base: string;
+  asOf: string;
+  isLive: boolean;
+  /** Value of one unit of each currency in the base currency. */
+  rates: Record<string, number>;
+}
+
+export async function getCurrencyRates(): Promise<CurrencyRateInfo> {
+  const { data } = await api.get("/api/districts/currency-rates");
+  return data;
 }
 
 export async function deleteDistrict(id: number): Promise<void> {
@@ -3558,7 +3602,7 @@ export async function createSubGroup(clubId: number, data: { yearId: number; gro
   const res = await api.post(`/api/clubs/${clubId}/sub-groups`, data);
   return res.data;
 }
-export async function updateSubGroup(clubId: number, subGroupId: number, data: { groupName: string; memberIds: number[] }): Promise<SubGroup> {
+export async function updateSubGroup(clubId: number, subGroupId: number, data: { yearId?: number; groupName: string; memberIds: number[] }): Promise<SubGroup> {
   const res = await api.put(`/api/clubs/${clubId}/sub-groups/${subGroupId}`, data);
   return res.data;
 }
@@ -5484,15 +5528,6 @@ export async function searchDistrictGovernorMembers(search: string) {
   const { data } = await api.get("/api/district-governors/search-members", { params: { search } });
   return data;
 }
-export async function getDistrictGovernorFilterDistricts() {
-  const { data } = await api.get("/api/district-governors/filter-districts");
-  return data;
-}
-export async function getDistrictGovernorFilterYears() {
-  const { data } = await api.get("/api/district-governors/filter-years");
-  return data;
-}
-
 // ── Club Report ──
 export async function getClubReport(clubId: number, yearId: number) {
   const { data } = await api.get(`/api/clubs/${clubId}/club-report`, { params: { yearId } });
@@ -6620,10 +6655,8 @@ export async function upsertAppRouteMaintenance(payload: AppRouteMaintenanceUpse
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Mobile Login Check (SuperAdmin diagnostic) — simulates the first half of the
-// mobile-login flow without sending an OTP. Returns the club list the user would
-// see on the mobile app's "pick your club" screen plus an Allowed/Not-allowed
-// verdict and reason. No DB writes, no email.
+// App Sign-in Check (SuperAdmin diagnostic): would this email get into the app, and with which clubs?
+// No writes, no email.
 // ─────────────────────────────────────────────────────────────────────────────
 export interface MobileLoginCheckClub {
   clubId: number;
@@ -6638,7 +6671,7 @@ export interface MobileLoginCheckClub {
 export interface MobileLoginCheckResult {
   allowed: boolean;
   reason: string | null;
-  mobile: string;
+  email: string;
   member: {
     id: number;
     name: string;
@@ -6647,10 +6680,8 @@ export interface MobileLoginCheckResult {
   clubs: MobileLoginCheckClub[];
 }
 
-export async function checkMobileLogin(mobile: string, countryId?: number): Promise<MobileLoginCheckResult> {
-  const params = new URLSearchParams({ mobile });
-  if (countryId != null) params.set("countryId", String(countryId));
-  const { data } = await api.get(`/api/admin/mobile-login-check?${params.toString()}`);
+export async function checkMobileLogin(email: string): Promise<MobileLoginCheckResult> {
+  const { data } = await api.get("/api/admin/mobile-login-check", { params: { email } });
   return data as MobileLoginCheckResult;
 }
 
@@ -9295,4 +9326,43 @@ export interface GoalRagClub { clubId: number; clubName: string; members: number
 export async function getGoalRagClubs(yearId: number, districtId: number): Promise<GoalRagClub[]> {
   const r = await api.get(`/api/goal-setting-rotary/rag-clubs`, { params: { yearId, districtId } });
   return r.data;
+}
+
+// --- Settings > QR Attendance (SuperAdmin, 2026-11-27). Marker: QR-ATTENDANCE ---
+// Roll-out switch for the mobile QR attendance feature: test clubs first, then all.
+// modifiedDate fields are UTC ISO strings.
+export interface AttendanceQrClub {
+  clubId: number;
+  clubName: string | null;
+  districtNumber: string | null;
+  isEnabled: boolean;
+  modifiedDate: string | null;
+  modifiedByName: string | null;
+}
+
+export interface AttendanceQrSettings {
+  allClubs: boolean;
+  allClubsModifiedDate: string | null;
+  allClubsModifiedByName: string | null;
+  clubs: AttendanceQrClub[];
+}
+
+export async function getAttendanceQrSettings(): Promise<AttendanceQrSettings> {
+  const { data } = await api.get("/api/settings/attendance-qr");
+  return data;
+}
+
+export async function setAttendanceQrAll(isEnabled: boolean): Promise<{ message: string; isEnabled: boolean }> {
+  const { data } = await api.put("/api/settings/attendance-qr/all", { isEnabled });
+  return data;
+}
+
+export async function setAttendanceQrClub(clubId: number, isEnabled: boolean): Promise<{ message: string; isEnabled: boolean }> {
+  const { data } = await api.put(`/api/settings/attendance-qr/club/${clubId}`, { isEnabled });
+  return data;
+}
+
+export async function removeAttendanceQrClub(clubId: number): Promise<{ message: string }> {
+  const { data } = await api.delete(`/api/settings/attendance-qr/club/${clubId}`);
+  return data;
 }

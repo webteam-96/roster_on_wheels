@@ -6,6 +6,7 @@ import '../../../core/theme/row_tokens.dart';
 import 'custom_button.dart';
 import 'package:rotary_flutter_app/core/theme/app_fonts.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/motion.dart';
 
 class EmptyStateWidget extends StatelessWidget {
   final String title;
@@ -38,11 +39,13 @@ class EmptyStateWidget extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Container(
-              width: 88,
-              height: 88,
-              decoration: BoxDecoration(color: RowTone.sky.fill, shape: BoxShape.circle),
-              child: Icon(icon, size: 40, color: AppColors.primaryPrime),
+            RowPop(
+              child: Container(
+                width: 88,
+                height: 88,
+                decoration: BoxDecoration(color: RowTone.sky.fill, shape: BoxShape.circle),
+                child: Icon(icon, size: 40, color: AppColors.primaryPrime),
+              ),
             ),
             const SizedBox(height: AppSpacing.lg),
             Text(
@@ -71,7 +74,7 @@ class EmptyStateWidget extends StatelessWidget {
         ),
       ),
     );
-    return _upperThird(content);
+    return _upperThird(RowReveal(child: content));
   }
 }
 
@@ -175,6 +178,6 @@ class ErrorStateWidget extends StatelessWidget {
         ],
       ),
     );
-    return _upperThird(content);
+    return _upperThird(RowReveal(child: content));
   }
 }

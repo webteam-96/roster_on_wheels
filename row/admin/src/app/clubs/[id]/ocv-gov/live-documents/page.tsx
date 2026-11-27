@@ -25,12 +25,11 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import ErrorAlert from "@/components/ErrorAlert";
 import SuccessAlert from "@/components/SuccessAlert";
-import { ArrowLeft, Download, FileSpreadsheet, FolderOpen, Users, Calendar } from "@/components/icons";
+import { Download, FileSpreadsheet, FolderOpen, Users, Calendar } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
-import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { useFeatureLoadedOn } from "@/components/FeatureGate";
-import { ListPageSkeleton } from "@/components/row/AppKit";
+import { PageHeader, ListPageSkeleton } from "@/components/row/AppKit";
 
 interface ModuleItem {
   key: string;
@@ -214,17 +213,11 @@ export default function LiveDocumentsPage() {
         <SuccessAlert open={!!successMessage} title="Success" description={successMessage || ""} onOk={() => setSuccessMessage(null)} />
         <ErrorAlert open={!!errorMessage} title="Error" description={errorMessage || ""} onOk={() => setErrorMessage(null)} />
 
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-3">
-            <Button variant="outline" size="icon" asChild>
-              <Link href={`/clubs/${clubId}/ocv-gov?yearId=${selectedYearId}`}><ArrowLeft className="h-4 w-4" /></Link>
-            </Button>
-            <div>
-              <h2 className="text-2xl font-bold tracking-tight text-primary">Live Documents</h2>
-              <p className="text-muted-foreground text-base">{clubName}: Download Excel reports module-wise</p>
-            </div>
-          </div>
-          {!loading && years.length > 0 && (
+        <PageHeader
+          title="Live Documents"
+          description={<>{clubName}: Download Excel reports module-wise</>}
+          back={`/clubs/${clubId}/ocv-gov?yearId=${selectedYearId}`}
+          actions={!loading && years.length > 0 && (
             <div className="w-full sm:w-52">
               <Select value={selectedYearId} onValueChange={setSelectedYearId}>
                 <SelectTrigger><Calendar className="mr-2 h-4 w-4 text-muted-foreground" /><SelectValue placeholder="Select Year" /></SelectTrigger>
@@ -236,7 +229,7 @@ export default function LiveDocumentsPage() {
               </Select>
             </div>
           )}
-        </div>
+        />
 
         {loading ? (
           <div className="flex justify-center py-20"><ListPageSkeleton /></div>

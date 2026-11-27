@@ -9,7 +9,7 @@ import { CLUB_GOAL_COMING_SOON_TEXT, CLUB_GOAL_COMING_SOON_TITLE } from "@/lib/c
 export default function ClubGoalComingSoon({ compact = false }: { compact?: boolean }) {
   if (compact) {
     return (
-      <span className="inline-flex items-center gap-1.5 text-xs font-medium text-amber-700 bg-amber-50 border border-amber-200 rounded-full px-2.5 py-1">
+      <span className="inline-flex items-center gap-1.5 text-xs font-medium text-amber-700 bg-amber-50 border border-amber-200 rounded px-2.5 py-1">
         <Clock size={12} /> {CLUB_GOAL_COMING_SOON_TITLE}
       </span>
     );

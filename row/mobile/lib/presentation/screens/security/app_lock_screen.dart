@@ -15,7 +15,7 @@ import 'package:rotary_flutter_app/core/i18n/text.dart';
 /// - the device has a usable biometric.
 ///
 /// Routes to /home on success, or back to login (after logout) if the user
-/// chooses the "Use OTP instead" fallback. Sticky against accidental dismiss.
+/// chooses the "Sign in again instead" fallback. Sticky against accidental dismiss.
 class AppLockScreen extends StatefulWidget {
   const AppLockScreen({super.key});
 
@@ -63,7 +63,7 @@ class _AppLockScreenState extends State<AppLockScreen>
     });
   }
 
-  Future<void> _useOtpInstead() async {
+  Future<void> _signInAgain() async {
     final auth = context.read<AuthProvider>();
     final controller = context.read<BiometricController>();
     await controller.stop();
@@ -169,12 +169,12 @@ class _AppLockScreenState extends State<AppLockScreen>
                     ),
                   const SizedBox(height: 14),
                   TextButton(
-                    onPressed: _busy ? null : _useOtpInstead,
+                    onPressed: _busy ? null : _signInAgain,
                     style: TextButton.styleFrom(
                       foregroundColor: AppColors.white.withValues(alpha: 0.85),
                     ),
                     child: Text(
-                      'Use OTP instead',
+                      'Sign in again instead',
                       style: AppFonts.body(
                         fontWeight: FontWeight.w600,
                         fontSize: 13,

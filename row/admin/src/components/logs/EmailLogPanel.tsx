@@ -4,6 +4,7 @@
 // Admin dashboards. Locked server-side. Same filters + Export to Excel as the SuperAdmin page.
 // Only emails STAMPED with this club/district (communication emails sent after deploy) appear.
 
+import { PageHeader } from "@/components/row/AppKit";
 import { useState, useEffect, useCallback } from "react";
 import DateField from "@/components/DateField";
 import {
@@ -15,7 +16,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import ErrorAlert from "@/components/ErrorAlert";
@@ -104,17 +105,7 @@ export default function EmailLogPanel({ base, backHref }: { base: string; backHr
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center gap-3">
-        {backHref && (
-          <Link href={backHref} title="Back to Reports" className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 shrink-0">
-            <ArrowLeft size={16} />
-          </Link>
-        )}
-        <div>
-          <h1 className="text-2xl font-bold flex items-center gap-2"><Mail className="h-6 w-6" /> Email Log</h1>
-          <p className="text-sm text-slate-500">Emails sent to your club/district members (announcements, events, newsletters, credentials, etc.): full history from the email log.</p>
-        </div>
-      </div>
+      <PageHeader title="Email Log" description="Emails sent to your club/district members (announcements, events, newsletters, credentials, etc.): full history from the email log." back={backHref || undefined} backLabel="Back to Reports" />
 
       {summary && (
         <div className="grid grid-cols-2 md:grid-cols-6 gap-3">
@@ -149,7 +140,7 @@ export default function EmailLogPanel({ base, backHref }: { base: string; backHr
                 </SelectContent>
               </Select>
             </div>
-            <div className="md:col-span-5 flex gap-2 mt-1 items-end">
+            <div className="md:col-span-5 flex flex-wrap gap-2 mt-1 items-end">
               <Button onClick={() => fetchLogs(1)} className="flex-1 md:flex-none"><Search className="h-4 w-4 mr-1" /> Search</Button>
               <Button variant="outline" onClick={resetFilters}><RotateCcw className="h-4 w-4 mr-1" /> Reset</Button>
               <Button variant="outline" onClick={handleExport} disabled={exporting || total === 0}>

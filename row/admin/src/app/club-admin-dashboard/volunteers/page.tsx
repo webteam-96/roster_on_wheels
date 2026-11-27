@@ -5,13 +5,14 @@
  * projects. Members sign up in the app; anyone else through a sheet's public link.
  */
 
+import { PageHeader } from "@/components/row/AppKit";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Plus } from "@/components/icons";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { DataTable } from "@/components/ui/data-table";
+import { FilterChips } from "@/components/ui/text-buttons";
 import ErrorAlert from "@/components/ErrorAlert";
-import { TableSkeleton } from "@/components/dashboard/DashboardSkeleton";
 import { useAuth } from "@/contexts/AuthContext";
 import { useFormat } from "@/hooks/useFormat";
 import { getVolunteerSheets } from "@/services/api";
@@ -37,67 +38,59 @@ export default function VolunteerSheetsPage() {
   const archivedCount = sheets?.filter((s) => s.archivedAt).length ?? 0;
 
   return (
-    <div className="space-y-6 p-6">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h2 className="text-2xl font-bold tracking-tight text-primary">Volunteers</h2>
-          <p className="text-base text-muted-foreground">
-            Sign-up sheets for your events and service projects. Members sign up in the app, anyone else through the
-            sheet&apos;s public link. Hours you record afterwards are added to the project&apos;s man-hours.
-          </p>
-        </div>
-        <Button asChild className="gap-1.5">
+    <div className="space-y-6">
+      <PageHeader
+        title="Volunteers"
+        description={<>Sign-up sheets for your events and service projects. Members sign up in the app, anyone else through the sheet&apos;s public link. Hours you record afterwards are added to the project&apos;s man-hours.</>}
+        actions={
+          <>
+<Button asChild>
           <Link href="/club-admin-dashboard/volunteers/new"><Plus className="h-4 w-4" /> New sign-up sheet</Link>
         </Button>
-      </div>
+          </>
+        }
+      />
 
       {sheets && (archivedCount > 0 || archived) && (
-        <div className="flex gap-2" role="group" aria-label="Which sheets">
-          <Button size="sm" variant={archived ? "outline" : "default"} aria-pressed={!archived} onClick={() => setArchived(false)}>Current</Button>
-          <Button size="sm" variant={archived ? "default" : "outline"} aria-pressed={archived} onClick={() => setArchived(true)}>
-            Archived ({archivedCount})
-          </Button>
-        </div>
+        <FilterChips
+          label="Which sheets"
+          value={archived ? "archived" : "current"}
+          onChange={(v) => setArchived(v === "archived")}
+          options={[
+            { value: "current", label: "Current" },
+            { value: "archived", label: `Archived (${archivedCount})` },
+          ]}
+        />
       )}
 
-      {!shown ? (
-        <div aria-busy="true"><TableSkeleton rows={4} /></div>
-      ) : shown.length === 0 ? (
-        <Card><CardContent className="p-5 text-sm text-muted-foreground">
-          {archived ? "No archived sheets." : sheets?.length ? "Every sheet is archived. Start a new one or copy an archived sheet." : "The club has no sign-up sheets yet."}
-        </CardContent></Card>
-      ) : (
-        <Card>
-          <CardContent className="overflow-x-auto p-0">
-            <table className="w-full min-w-[760px] text-sm">
-              <thead className="bg-[#EDF4FB] text-[13px] text-[#64748B]">
-                <tr className="border-b text-left text-muted-foreground">
-                  <th className="p-3 font-medium">Sheet</th>
-                  <th className="p-3 font-medium">For</th>
-                  <th className="p-3 font-medium">First slot</th>
-                  <th className="p-3 text-right font-medium">Places taken</th>
-                  <th className="p-3 text-right font-medium">Hours</th>
-                  <th className="p-3 font-medium">Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {shown.map((s) => (
-                  <tr key={s.id} className="border-b last:border-0">
-                    <td className="p-3">
-                      <Link href={`/club-admin-dashboard/volunteers/${s.id}`} className="font-medium text-primary hover:underline">{s.title}</Link>
-                    </td>
-                    <td className="p-3">{[s.eventTitle, s.projectId ? "Service project" : null].filter(Boolean).join(", ")}</td>
-                    <td className="p-3">{s.firstStart ? fmt.dateTime(s.firstStart) : ""}</td>
-                    <td className="p-3 text-right tabular-nums">{s.filled} of {s.capacity}</td>
-                    <td className="p-3 text-right tabular-nums">{fmt.number(s.hours)}</td>
-                    <td className="p-3">{s.archivedAt ? "Archived" : s.status === "open" ? (s.isPublic ? "Open, public link on" : "Open, members only") : "Closed"}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </CardContent>
-        </Card>
-      )}
+      <DataTable
+        caption="Sign-up sheets"
+        loading={!shown}
+        loadingRows={4}
+        rows={shown ?? []}
+        rowKey={(s) => s.id}
+        className="min-w-0 [&_table]:min-w-[760px]"
+        empty={archived ? "No archived sheets." : sheets?.length ? "Every sheet is archived. Start a new one or copy an archived sheet." : "The club has no sign-up sheets yet."}
+        columns={[
+          {
+            key: "title",
+            header: "Sheet",
+            sortValue: (s) => s.title,
+            cell: (s) => (
+              <Link href={`/club-admin-dashboard/volunteers/${s.id}`} className="font-medium text-primary hover:underline">{s.title}</Link>
+            ),
+          },
+          { key: "for", header: "For", cell: (s) => [s.eventTitle, s.projectId ? "Service project" : null].filter(Boolean).join(", ") },
+          { key: "first", header: "First slot", sortValue: (s) => s.firstStart, cell: (s) => (s.firstStart ? fmt.dateTime(s.firstStart) : "") },
+          { key: "filled", header: "Places taken", align: "right", className: "tabular-nums", cell: (s) => `${s.filled} of ${s.capacity}` },
+          { key: "hours", header: "Hours", align: "right", className: "tabular-nums", sortValue: (s) => s.hours, cell: (s) => fmt.number(s.hours) },
+          {
+            key: "status",
+            header: "Status",
+            cell: (s) => (s.archivedAt ? "Archived" : s.status === "open" ? (s.isPublic ? "Open, public link on" : "Open, members only") : "Closed"),
+          },
+        ]}
+      />
 
       <ErrorAlert open={!!error} title="Could not do that" description={error || ""} onOk={() => setError(null)} />
     </div>

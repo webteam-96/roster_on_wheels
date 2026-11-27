@@ -216,12 +216,12 @@ section fixes the layout and parts for working screens, which are denser than th
 
 | Token | Admin (web) | App (Flutter) | Use |
 |---|---|---|---|
-| `--app-r-panel` | 20px | 20 | Panels, cards, KPI tiles, dialogs |
-| `--app-r-field` | 12px | 12 | Inputs, selects, table wrapper, chips are pills |
+| `--app-r-panel` | 10px | 20 | Panels, cards, KPI tiles, dialogs |
+| `--app-r-field` | 6px | 12 | Buttons, inputs, selects, tabs. Badges and checkboxes 4px |
 | `--app-gap` | 24px desktop, 16px phone | 16 | Space between panels |
 | `--app-pad` | 24px desktop, 16px phone | 16 | Inside panels |
-| `--app-row-h` | 52px | 64 | Table row / list row height |
-| `--app-field-h` | 44px | 52 | Input, select, button height (buttons stay pills) |
+| `--app-row-h` | 48px | 64 | Table row / list row height |
+| `--app-field-h` | 40px (32px small) | 52 | Input, select, button height. 44px on touch screens |
 
 Type in application screens: page title Bricolage 600 at 28px (phone 24px), line-height 1.1, tracking -.02em;
 panel title Bricolage 600 at 18px; body Figtree 400 at 15px (phone 16px), line-height 1.5; table text 14px;
@@ -240,8 +240,9 @@ labels Figtree 600 at 13px; numbers in KPI tiles Bricolage 600 at 32px with tabu
   with the marigold arrow chip, the rest outline or ghost). On phone the actions wrap under the title.
 - **Panel**: `--app-r-panel`, card surface `#FCFDFE`, 1px line, optional title row (title, short help, actions).
   A tone panel (`data-c`) is used only for summaries and calls to action, never for forms or tables.
-- **KpiTile**: tone tile (cycle sky, lilac, cream-2, coral) with label, big number, change line, optional
-  link. 4 per row desktop, 2 tablet, 1 phone.
+- **KpiTile**: card surface, 1px line, label, big number, note. The first tile of a row is the lead figure and the only
+  colour field (azure); the rest stay calm. No colour per tile. Numbers count up once (700ms). 4 per row desktop, 2
+  tablet, 1 phone. (Admin since 2026-11-25; the app keeps its tone tiles.)
 - **ListPage**: PageHeader, filter bar (search field, up to 3 selects, "More filters" sheet), table panel,
   pagination. Table: header row cream-2, 13px caps-free labels, rows 52px, 1px line between rows, hover cream-2,
   row actions in a kebab menu, selected rows with a sky fill. Phone: each row becomes a stacked card (title,
@@ -257,7 +258,7 @@ labels Figtree 600 at 13px; numbers in KPI tiles Bricolage 600 at 32px with tabu
   azure).
 - **EmptyState**: line illustration or icon in a tone well, one sentence, one action.
 - **ErrorState**: what failed in plain words, a Retry button, no stack traces.
-- **Skeleton**: cream-2 bars in the shape of the content (table rows, tiles, form fields). Every async area.
+- **Skeleton**: well-coloured bars with a slow light band, in the shape of the content (table rows, tiles, form fields). Every async area.
 - **Toast**: bottom right (phone: bottom), card surface, 1px line, icon by status.
 - **Charts**: series colours azure, marigold, mint, coral, lilac in that order; 1px line gridlines; no shadows
   or gradients; values in the tooltip and in an accessible table.
@@ -297,3 +298,69 @@ The first app pass changed the look; these rules fix the layout. Every screen fo
 - **Empty, error and loading states:** placed in the upper third of the free space, max 320px wide, 88px icon
   well in sky, title 20, text 15. Loading uses skeleton rows.
 - **Colour:** module groups and icons use the brand azure only; status colours only for status.
+
+### 8.7 Admin surfaces and motion (2026-11-25, owner: white is too much for the eyes, add smooth transitions)
+
+Admin only; the public site, the app and paper keep the §1 whites.
+
+| Surface | Hex | Text on it |
+|---|---|---|
+| Ground (page, top bar) | `#E6ECF3` | ink 11.9:1, ink-soft 5.3:1 |
+| Card, dialog, menu | `#F4F7FA` | ink 13.2:1, ink-soft 5.9:1 |
+| Field | `#F7F9FC` | |
+| Well (sidebar, tab track, table head, skeleton) | `#DCE5EF` | ink 11.1:1, ink-soft 5.0:1 |
+
+Ink-soft is `#526177` in the admin (`#64748B` is too light on these). Text on azure is `#F4F7FA` (8.6:1). Marigold stays an accent:
+never text smaller than 24px, never a fill. Values live in `admin/src/app/globals.css` and `astryx/fellowshipTheme.tsx`.
+
+- **Sidebar**: grouped, Phosphor icons 18px, 38px rows (44px in the drawer), 12px radius azure pill that glides to the
+  new item. It opens scrolled to the current page.
+- **Titles once**: a page with its own h1 keeps it; the top bar then shows the name as a quiet 14px label.
+- **Navigation**: 3px marigold bar on top; the old page stays and softens to 50%. Never a full-screen loader.
+- **Enter**: panels and tiles rise 10px and fade, 420ms ease-out, 45ms apart, at most 220ms late. Table rows fade, 25ms
+  apart for the first ten. Bars grow from the left, 800ms. A new page fades in, 240ms.
+- **Feedback**: buttons press to .98 (160ms); tab and menu pills glide 360ms; dialogs and menus land on ease-out and
+  leave in 120ms.
+- Transform and opacity only, except the pill's own width (out of flow). Reduced motion turns all of it off. Print and
+  the PDF copy of a page (`.row-paper`) are white and still.
+
+### 8.9 Admin: fixed parts (2026-11-25, owner: no fixed layout, different headers, too round buttons, no card design)
+
+These win over 8.1 to 8.3 and 8.7 for the admin. A page is put together from these components and styles none of them.
+`src/lib/designParts.test.ts` fails when a page builds its own.
+
+| Part | Component | Rule |
+|---|---|---|
+| Frame | `dashboard/ShellFrame`, `AppFrame` for pages outside a dashboard | Sidebar 264px, top bar 56px, content up to 1400px. Super Admin and older pages too |
+| Top bar | `dashboard/TopBar`, `TopBarAccount` | Left: whose data (club, district, role). Right: status, year, help, language, notices, account. Never a page title |
+| Page header | `row/AppKit` `PageHeader` | One per page: back, 24px title, one 14px line; actions on the right. Tabs come under it |
+| Button | `ui/button`, `ui/icon-button` | 40px or 32px, 6px corners. Primary (azure), outline, ghost, destructive. One primary per area |
+| Card | `ui/card`, `Panel`, `form/SectionCard` | 10px corners, one line, 20px padding, 16px heading. Never a card inside a card |
+| KPI | `KpiTile` | All tiles alike, figure in azure |
+| Field | `ui/input`, `ui/native-select`, `ui/select`, `ui/textarea`, `form/FieldLabel`, `form/RadioPill` | 40px, 6px corners, 13px label; a red star marks required, no bullets |
+| Table | `ui/table` or plain table inside a Card | Well head, 13px, sentence case, no navy heads |
+| Badge | `ui/badge`, `PublishStatusBadge` | Tinted, 4px corners, 12px |
+| Tile that opens a page | `.row-tile` | One azure icon on a well; no colour per tile |
+| Small buttons (2026-11-27) | `ui/text-buttons`: `LinkButton` (tone primary / danger / muted), `ToggleButton` + `FilterChips` (pressed), `ClearButton` (x in a field), `RemoveBadgeButton` (x on an image), `MenuItemButton` (row in a list) | Text action in a sentence or cell = LinkButton; filter or view switch = ToggleButton; never a hand-written `<button>` |
+| List table (2026-11-27) | `ui/data-table` `DataTable` (columns, rows, loading rows, empty row, sort, `rowClassName`); `MatrixTable` for dense goal and report grids | Irregular tables (rowSpan, inline edit rows) use the `ui/table` parts; `<Table bare>` inside its own scroll box keeps a sticky head |
+| Icon-only button | `ui/icon-button` | Always an `aria-label`; defaults to `type="button"`; disabled keeps its title tooltip |
+
+Values: `--r-*` and `.row-*` in `globals.css`. The public site keeps its own corners (`.site-shell`).
+
+### 8.8 Mobile motion and bento (2026-11-25, owner: the app is too plain; add transitions, load animation, a bento grid)
+
+Code: `mobile/lib/presentation/widgets/row/` (`motion`, `roster_wheel`, `bento`, `handshake_logo`, `skeleton_list`),
+`mobile/lib/core/theme/row_page_transitions.dart`, values in `RowMotion` (`row_tokens.dart`). Use these, not one-off values.
+
+- **Cold start:** the two hands of the logo reach in and meet, the name rises, the logo glides on to the next screen.
+- **Pages:** a page opened from a tile or row grows out of it and shrinks back (`RowPressable(morph: true)`); sign-in
+  screens fade through; other pages slide 56px and fade. 340 to 420ms, 320ms back. iOS keeps its own push (swipe back).
+- **Arrival:** rows and tiles rise 18px and fade, 420ms, 45ms apart, first eight only. Never while scrolling.
+- **Roster wheel** (members around a rim, one gold): busy mark and pull to refresh only, never on a tile or card (owner
+  2026-11-25). Gold is an accent on the wheel, never a tile fill.
+- **Loading:** skeleton rows for a page, the wheel for a small box. Buttons keep their colour and size and show the wheel.
+- **Feedback:** press to .97, dialogs settle (.95 to 1), result messages pop their icon with a light haptic (errors
+  medium), numbers count up and bars fill over 900ms, tabs stretch between labels. Nothing loops except busy marks.
+- **Bento:** four columns (eight on tablets), 10px gaps, `RowBento.spans` keeps any group flush. Tall tiles azure then
+  lilac, short ones sky and cream-2. On home: districts azure, clubs you run sky, clubs you belong to cream-2.
+- **Reduced motion:** everything is in place at once; pages cross-fade. One rule, `RowMotion.still`.

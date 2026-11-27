@@ -1,5 +1,9 @@
 "use client";
+import { RemoveBadgeButton, UploadZone } from "@/components/ui/text-buttons";
 
+import SectionCard from "@/components/form/SectionCard";
+import FieldLabel from "@/components/form/FieldLabel";
+import { Card } from "@/components/ui/card";
 import { useState, useEffect, useRef } from "react";
 import DateField from "@/components/DateField";
 import { useParams, useRouter } from "next/navigation";
@@ -10,22 +14,17 @@ import {
 } from "@/services/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
-import {
-  ArrowLeft, Upload, X,
-  FileText, Send, Bell, Plus, Trash2,
-} from "@/components/icons";
+import { Upload, X, FileText, Send, Bell, Plus, Trash2 } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
-import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import RecipientBadge from "@/components/RecipientBadge";
 import ImageCropDialog from "@/components/ImageCropDialog";
 import { useImageCropUpload } from "@/hooks/useImageCropUpload";
 import { TEXT_INPUT_REGEX } from "@/lib/textInput";
-import { ListPageSkeleton } from "@/components/row/AppKit";
+import { PageHeader, ListPageSkeleton } from "@/components/row/AppKit";
 
 // The attached image is shown as a landscape poster on the detail view and is
 // pushed out with email notifications — locked to 4:3 at 1200×900.
@@ -33,36 +32,6 @@ const IMAGE_ASPECT = 4 / 3;
 const IMAGE_MAX_WIDTH = 1200;
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
-
-function Req({ children, hint }: { children: React.ReactNode; hint?: string }) {
-  return (
-    <Label className="text-sm font-semibold text-foreground">
-      {children}<span className="text-destructive ml-0.5">*</span>
-      {hint && <span className="text-muted-foreground font-normal ml-1">{hint}</span>}
-    </Label>
-  );
-}
-
-function OptLabel({ children }: { children: React.ReactNode }) {
-  return (
-    <Label className="text-sm font-semibold text-foreground">{children}</Label>
-  );
-}
-
-function Section({ icon: Icon, title, number, children }: {
-  icon: React.ElementType; title: string; number: number; children: React.ReactNode;
-}) {
-  return (
-    <div className="bg-card rounded-[20px] border shadow-sm overflow-hidden">
-      <div className="flex items-center gap-3 px-5 py-3.5 bg-muted/40 border-b">
-        <div className="flex items-center justify-center h-7 w-7 rounded-full bg-primary text-primary-foreground text-xs font-bold">{number}</div>
-        <Icon className="h-4 w-4 text-primary" />
-        <h3 className="font-semibold text-base">{title}</h3>
-      </div>
-      <div className="p-5">{children}</div>
-    </div>
-  );
-}
 
 type ReminderItem = {
   id: string;
@@ -214,42 +183,34 @@ export default function DistrictAnnouncementsAddPage() {
 
   return (
     <ProtectedRoute>
-      <div className="space-y-6 max-w-3xl mx-auto">
-        <div className="flex items-center gap-3">
-          <Button variant="outline" size="icon" asChild>
-            <Link href={`/districts/${districtId}/announcements`}><ArrowLeft className="h-4 w-4" /></Link>
-          </Button>
-          <div>
-            <h2 className="text-2xl font-bold tracking-tight text-primary">Add Announcement</h2>
-            <p className="text-muted-foreground text-base">{districtName}</p>
-          </div>
-        </div>
+      <div className="space-y-6 max-w-4xl">
+        <PageHeader title="Add Announcement" description={districtName} back={`/districts/${districtId}/announcements`} />
 
-        <Section icon={FileText} title="Announcement Details" number={1}>
+        <SectionCard icon={FileText} title="Announcement Details" number={1}>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1.5 sm:col-span-2">
-              <Req hint="(max 50 chars)">Title</Req>
+              <FieldLabel required hint="(max 50 chars)">Title</FieldLabel>
               <Input value={title} onChange={handleTitleChange} placeholder="Announcement title" maxLength={50} />
               <p className="text-xs text-muted-foreground text-right">{title.length}/50</p>
             </div>
             <div className="space-y-1.5 sm:col-span-2">
-              <OptLabel>Description <span className="text-muted-foreground font-normal text-xs">(max 520 chars)</span></OptLabel>
+              <FieldLabel>Description <span className="text-muted-foreground font-normal text-xs">(max 520 chars)</span></FieldLabel>
               <Textarea value={description} onChange={handleDescriptionChange} placeholder="Describe the announcement..." rows={4} maxLength={520} />
               <p className="text-xs text-muted-foreground text-right">{description.length}/520</p>
             </div>
             <div className="space-y-2 sm:col-span-2">
-              <OptLabel>Image</OptLabel>
+              <FieldLabel>Image</FieldLabel>
               {imagePreview ? (
                 <div className="relative inline-block">
                   <img src={imagePreview} alt="Announcement" className="h-32 w-auto max-w-[16rem] object-contain rounded-lg border" />
                   {imageUploading && (<div className="absolute inset-0 bg-black/40 flex items-center justify-center rounded-lg"><RotaryLoader size="sm" /></div>)}
-                  <button onClick={removeImage} className="absolute top-1 right-1 p-1 rounded-full bg-black/50 text-white hover:bg-red-500"><X className="h-3 w-3" /></button>
+                  <RemoveBadgeButton onClick={removeImage} aria-label="Remove image" />
                 </div>
               ) : (
                 <div>
-                  <button onClick={() => imageInputRef.current?.click()} className="flex items-center gap-2 px-4 py-3 border-2 border-dashed rounded-lg hover:border-primary/40 transition-colors text-muted-foreground">
+                  <UploadZone onClick={() => imageInputRef.current?.click()}>
                     <Upload className="h-4 w-4" /><span className="text-sm">Upload announcement image</span>
-                  </button>
+                  </UploadZone>
                   <p className="text-xs text-muted-foreground mt-1.5">Allowed: JPG, JPEG, PNG, GIF, WEBP</p>
                 </div>
               )}
@@ -257,25 +218,25 @@ export default function DistrictAnnouncementsAddPage() {
               {imageCrop.error && <p className="text-xs text-destructive mt-1">{imageCrop.error}</p>}
             </div>
             <div className="space-y-1.5">
-              <Req>Publish Date</Req>
+              <FieldLabel required>Publish Date</FieldLabel>
               <DateField value={publishDate} onChange={setPublishDate} min={today} />
             </div>
             <div className="space-y-1.5">
-              <Req>Publish Time</Req>
+              <FieldLabel required>Publish Time</FieldLabel>
               <Input type="time" value={publishTime} onChange={(e) => setPublishTime(e.target.value)} />
             </div>
             <div className="space-y-1.5">
-              <Req>Expiry Date</Req>
+              <FieldLabel required>Expiry Date</FieldLabel>
               <DateField value={expiryDate} onChange={setExpiryDate} min={today} />
             </div>
             <div className="space-y-1.5">
-              <Req>Expiry Time</Req>
+              <FieldLabel required>Expiry Time</FieldLabel>
               <Input type="time" value={expiryTime} onChange={(e) => setExpiryTime(e.target.value)} />
             </div>
           </div>
-        </Section>
+        </SectionCard>
 
-        <Section icon={Bell} title="Display & Notification Settings" number={2}>
+        <SectionCard icon={Bell} title="Display & Notification Settings" number={2}>
           <div className="space-y-4">
             {/* "Display on Banner" hidden 2026-08-12 per request — kept for future use (value still saved). */}
             {false && (
@@ -299,17 +260,17 @@ export default function DistrictAnnouncementsAddPage() {
                   <div key={reminder.id} className="flex items-center gap-3">
                     <DateField value={reminder.date} onChange={(v: string) => updateReminder(reminder.id, "date", v)} className="w-40" />
                     <Input type="time" value={reminder.time} onChange={(e) => updateReminder(reminder.id, "time", e.target.value)} className="w-36" />
-                    <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive" onClick={() => removeReminder(reminder.id)}><Trash2 className="h-4 w-4" /></Button>
+                    <Button variant="ghost" size="icon" className="text-destructive row-btn-sm" onClick={() => removeReminder(reminder.id)}><Trash2 className="h-4 w-4" /></Button>
                   </div>
                 ))}
                 <Button variant="outline" size="sm" onClick={addReminder}><Plus className="mr-2 h-4 w-4" />Add Reminder</Button>
               </div>
             )}
           </div>
-        </Section>
+        </SectionCard>
 
         <div className="flex justify-end pb-8">
-          <Button onClick={handleSave} disabled={saving} size="lg" className="shadow-md">
+          <Button onClick={handleSave} disabled={saving} size="lg">
             {saving ? <RotaryLoader size="sm" /> : <><Send className="mr-2 h-4 w-4" />Save Announcement</>}
           </Button>
         </div>

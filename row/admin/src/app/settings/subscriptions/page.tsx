@@ -3,8 +3,8 @@
 // Super Admin > Subscriptions (KIS/ROW/SUB/01): the yearly price of each subscription, and activating a payment
 // made offline (exception 7). The server checks the Super Admin role on every call.
 
+import { NativeSelect } from "@/components/ui/native-select";
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import {
   activateSubscriptionOffline, getSubscriptionPrices, setSubscriptionPrice, type SubscriptionPrice,
 } from "@/services/api";
@@ -15,9 +15,8 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
-import { ArrowLeft } from "@/components/icons";
 import ProtectedRoute from "@/components/ProtectedRoute";
-import { SkeletonRows } from "@/components/row/AppKit";
+import { PageHeader, SkeletonRows } from "@/components/row/AppKit";
 
 type Kind = "district" | "club";
 const KINDS: { kind: Kind; label: string }[] = [
@@ -82,7 +81,7 @@ export default function SubscriptionSettingsPage() {
     return (
       <ProtectedRoute>
         <div className="flex flex-col items-center justify-center py-20">
-          <h3 className="text-lg font-semibold">Access Denied</h3>
+          <h3 className="row-h2">Access Denied</h3>
           <p className="text-muted-foreground mt-2">Only SuperAdmin can access settings.</p>
         </div>
       </ProtectedRoute>
@@ -92,22 +91,14 @@ export default function SubscriptionSettingsPage() {
   return (
     <ProtectedRoute>
       <div className="space-y-6">
-        <div className="flex items-center gap-3">
-          <Button variant="outline" size="icon" asChild>
-            <Link href="/settings" aria-label="Back to settings"><ArrowLeft className="h-4 w-4" /></Link>
-          </Button>
-          <div>
-            <h2 className="text-2xl font-bold tracking-tight text-primary">Subscriptions</h2>
-            <p className="text-muted-foreground text-base">Yearly prices, and activating a payment made offline</p>
-          </div>
-        </div>
+        <PageHeader title="Subscriptions" description="Yearly prices, and activating a payment made offline" back="/settings" />
 
         <SuccessAlert open={!!success} title="Done" description={success || ""} onOk={() => setSuccess(null)} />
         <ErrorAlert open={!!error} title="Error" description={error || ""} onOk={() => setError(null)} />
 
         <Card>
           <CardContent className="space-y-5 pt-6">
-            <h3 className="text-lg font-semibold">Yearly price</h3>
+            <h3 className="row-h2">Yearly price</h3>
             {loading ? <SkeletonRows rows={2} /> : KINDS.map(({ kind, label }) => (
               <div key={kind} className="flex flex-wrap items-end gap-3">
                 <div className="w-56 text-[15px] font-medium">{label}</div>
@@ -132,7 +123,7 @@ export default function SubscriptionSettingsPage() {
         <Card>
           <CardContent className="space-y-5 pt-6">
             <div>
-              <h3 className="text-lg font-semibold">Activate an offline payment</h3>
+              <h3 className="row-h2">Activate an offline payment</h3>
               <p className="text-muted-foreground mt-1 text-sm">
                 Starts one year today, or adds one year to the current term if the subscription still works. This cannot be undone here.
               </p>
@@ -140,10 +131,10 @@ export default function SubscriptionSettingsPage() {
             <div className="flex flex-wrap items-end gap-3">
               <div>
                 <Label htmlFor="offline-kind">Subscription</Label>
-                <select id="offline-kind" className="h-10 w-56 rounded-md border border-input bg-background px-3 text-sm"
+                <NativeSelect id="offline-kind" className="w-56"
                   value={offline.kind} onChange={(e) => setOffline((o) => ({ ...o, kind: e.target.value as Kind }))}>
                   {KINDS.map(({ kind, label }) => <option key={kind} value={kind}>{label}</option>)}
-                </select>
+                </NativeSelect>
               </div>
               <div>
                 <Label htmlFor="offline-id">{offline.kind === "club" ? "Club id" : "District id"}</Label>

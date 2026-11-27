@@ -271,6 +271,41 @@ public class AdminController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// "Edit Years" — change which Rotary years an EXISTING club admin holds,
+    /// without Remove Admin + Make Admin. Clamped exactly like Make Admin: only
+    /// years the caller holds can be added or taken away; the rest are kept.
+    /// Marker: YWAR-EDIT-YEARS
+    /// </summary>
+    [HttpPost("club-admin-years")]
+    public async Task<ActionResult<object>> EditClubAdminYears([FromBody] AssignRoleRequestDto request)
+    {
+        if (!IsSuperAdminOrAdmin())
+            return StatusCode(403, new { message = "Only SuperAdmin or Admin can change admin years." });
+        var clubId = request.ClubId ?? 0;
+        if (!await CanManageClubAdminsAsync(clubId))
+            return StatusCode(403, new { message = "You can only manage admins for your own club." });
+
+        return await WithConnectionAsync<ActionResult<object>>(async conn =>
+        {
+            var isAdmin = await conn.ExecuteScalarAsync<int>(@"
+                SELECT COUNT(*) FROM member_roles
+                WHERE fk_member_master_profile_id = @MemberId AND fk_role_id = 2 AND fk_club_id = @ClubId
+                  AND IsActive = 1 AND COALESCE(isdeleted,0) = 0",
+                new { request.MemberId, ClubId = clubId }) > 0;
+            if (!isAdmin)
+                return BadRequest(new { message = "This member is not an admin of this club. Use Make Admin first." });
+
+            var result = await _adminYears.EditManualGrantsAsync(
+                conn, request.MemberId, clubId, null, GetCurrentMemberId(),
+                request.YearIds ?? new List<int>(), request.AllYears == true);
+            if (result.Refusal != null)
+                return StatusCode(result.RefusalStatus, new { message = result.Refusal });
+
+            return Ok(new { message = "Admin years updated.", keptYears = result.KeptYears });
+        });
+    }
+
     [HttpPost("remove-role")]
     public async Task<ActionResult<object>> RemoveRole([FromBody] RemoveRoleRequestDto request)
     {

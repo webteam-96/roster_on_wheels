@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart' hide Text;
 import 'package:intl/intl.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import '../../../../../core/constants/feature_flags.dart';
+import '../../../../../core/routing/route_names.dart';
+import '../../../../../core/services/attendance_qr_status.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../../../core/utils/meeting.dart';
 import '../../../../../core/network/api_client.dart';
@@ -20,6 +24,8 @@ import '../../../../widgets/common/rotary_year_bar.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
 import 'package:rotary_flutter_app/presentation/widgets/row/form_action_bar.dart';
 import 'my_attendance_screen.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/motion.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/roster_wheel.dart';
 
 // ---------------------------------------------------------------------------
 // Models
@@ -154,6 +160,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
   @override
   void initState() {
     super.initState();
+    AttendanceQrStatus.instance.refresh();
     _bootstrap();
   }
 
@@ -325,6 +332,28 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
             ),
       body: Column(
         children: [
+          // Admins of this club scan members' live QRs, once switched on for
+          // this club. Year rights are checked per meeting by the server.
+          if (kQrAttendanceEnabled &&
+              !widget.viewOnly &&
+              context.watch<AuthProvider>().isClubAdminOf(widget.clubId))
+            ValueListenableBuilder<Set<int>>(
+              valueListenable: AttendanceQrStatus.instance.enabledClubIds,
+              builder: (context, ids, child) =>
+                  ids.contains(widget.clubId) ? child! : const SizedBox.shrink(),
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: FilledButton.icon(
+                    onPressed: () =>
+                        context.push(RouteNames.clubAttendanceScan(widget.clubId)),
+                    icon: const Icon(Icons.qr_code_scanner_rounded),
+                    label: const Text('Scan Attendance'),
+                  ),
+                ),
+              ),
+            ),
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
             child: TextField(
@@ -336,6 +365,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
                 suffixIcon: _searchCtrl.text.isNotEmpty
                     ? IconButton(
+                        tooltip: 'Close',
                         icon: const Icon(Icons.close, size: 18),
                         onPressed: () { _searchCtrl.clear(); _fetch(reset: true); },
                       )
@@ -400,10 +430,10 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                       actionLabel: canManage ? 'New Record' : null,
                       onAction: canManage ? _showCreateSheet : null,
                     )
-                  : RefreshIndicator(
+                  : RowRefresh(
                       color: AppColors.primary,
                       onRefresh: () => _fetch(reset: true),
-                      child: ListView.separated(
+                      child: RowListView.separated(
                         padding: (const EdgeInsets.all(16)).add(const EdgeInsets.only(bottom: 88)),
                         itemCount: _records.length + 1,
                         separatorBuilder: (_, __) => const SizedBox(height: 10),
@@ -784,7 +814,7 @@ class _CreateAttendanceScreenState extends State<_CreateAttendanceScreen> {
     scan('Delegates', _delegates);
 
     if (emptySections.isNotEmpty) {
-      await showDialog<void>(
+      await showRowDialog<void>(
         context: context,
         builder: (ctx) => AlertDialog(
           title: const Text('Incomplete rows'),

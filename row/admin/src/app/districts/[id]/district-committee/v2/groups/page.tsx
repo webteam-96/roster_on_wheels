@@ -15,6 +15,7 @@
  * V1 `groups/[groupId]` page (not part of this task).
  */
 
+import { Card } from "@/components/ui/card";
 import { useState, useEffect, useCallback } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { RotaryYear } from "@/types/rotaryYear";
@@ -35,11 +36,11 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
 import AlertModal from "@/components/AlertModal";
-import { ArrowLeft, Plus, Pencil, Trash2, AlertTriangle, UsersRound, Users, MoreHorizontal, Layers, Lock, Search, X } from "@/components/icons";
+import { Plus, Pencil, Trash2, AlertTriangle, UsersRound, Users, MoreHorizontal, Layers, Lock, Search, X } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import Pagination from "@/components/Pagination";
 import ProtectedRoute from "@/components/ProtectedRoute";
-import { ListPageSkeleton } from "@/components/row/AppKit";
+import { PageHeader, ListPageSkeleton } from "@/components/row/AppKit";
 
 const PAGE_SIZE = 20;
 
@@ -197,40 +198,27 @@ export default function GroupCommitteeV2Page() {
   return (
     <ProtectedRoute>
       <div className="space-y-6">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-3">
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={goBack}
-              className="border-slate-200 bg-card hover:bg-slate-50 text-slate-700"
-            >
-              <ArrowLeft className="h-4 w-4" />
-            </Button>
-            <div>
-              <h2 className="text-2xl font-bold tracking-tight text-ink">
-                {districtName ? `${districtName} - Group Committee` : "Group Committee"}
-              </h2>
-              <p className="text-slate-600 text-base">Manage groups with members and sub-groups</p>
-            </div>
-          </div>
-          {canManage && !loading && selectedYearId && (
+        <PageHeader
+          title={districtName ? `${districtName} - Group Committee` : "Group Committee"}
+          description="Manage groups with members and sub-groups"
+          back={() => goBack()}
+          actions={canManage && !loading && selectedYearId && (
             <Button
               onClick={openAddDialog}
-              className="bg-azure hover:bg-mint-ink text-white"
+             
             >
               <Plus className="mr-2 h-4 w-4" />Add Group
             </Button>
           )}
-        </div>
+        />
 
         {loading && <div className="flex items-center justify-center py-20"><ListPageSkeleton /></div>}
 
         {!loading && allYears.length > 0 && (
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center bg-slate-50 p-4 rounded-2xl border border-slate-200">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
             <div className="w-full sm:w-48">
               <Select value={selectedYearId} onValueChange={setSelectedYearId}>
-                <SelectTrigger className="border-slate-200 bg-card focus:border-azure focus:ring-azure/20">
+                <SelectTrigger aria-label="Rotary year">
                   <SelectValue placeholder="Select year" />
                 </SelectTrigger>
                 <SelectContent>
@@ -243,14 +231,15 @@ export default function GroupCommitteeV2Page() {
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
               <Input
-                className="pl-9 pr-8 border-slate-200 bg-card focus:border-azure focus:ring-azure/20"
+                className="pl-9 pr-8"
+                aria-label="Search groups"
                 placeholder="Search by group name..."
                 value={searchDraft}
                 onChange={(e) => setSearchDraft(e.target.value)}
                 onKeyDown={handleSearchKey}
               />
               {searchTerm && (
-                <Button variant="ghost" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 h-6 w-6 text-slate-500 hover:text-slate-800" onClick={clearSearch} type="button">
+                <Button aria-label="Clear search" variant="ghost" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 h-6 w-6" onClick={clearSearch} type="button">
                   <X className="h-4 w-4" />
                 </Button>
               )}
@@ -260,7 +249,7 @@ export default function GroupCommitteeV2Page() {
                 size="sm"
                 onClick={handleSearch}
                 type="button"
-                className="bg-azure hover:bg-mint-ink text-white"
+               
               >
                 <Search className="mr-2 h-4 w-4" />Search
               </Button>
@@ -269,7 +258,7 @@ export default function GroupCommitteeV2Page() {
                   variant="ghost"
                   size="sm"
                   onClick={clearSearch}
-                  className="text-slate-600 hover:text-slate-800"
+                 
                 >
                   <X className="mr-1 h-4 w-4" />Clear
                 </Button>
@@ -281,13 +270,13 @@ export default function GroupCommitteeV2Page() {
         {loadingGroups && <div className="flex items-center justify-center py-12"><ListPageSkeleton /></div>}
 
         {!loading && !loadingGroups && selectedYearId && groups.length === 0 && (
-          <div className="flex flex-col items-center justify-center py-20 text-center rounded-2xl border border-slate-200 bg-card shadow-sm">
+          <Card className="flex flex-col items-center justify-center py-20 text-center">
             <UsersRound className="h-12 w-12 text-slate-400 mb-4" />
-            <h3 className="text-lg font-semibold text-slate-800">{searchTerm ? "No matches found" : "No groups yet"}</h3>
+            <h3 className="row-h2">{searchTerm ? "No matches found" : "No groups yet"}</h3>
             <p className="text-slate-600 mt-2">
               {searchTerm ? `No groups match "${searchTerm}".` : (canManage ? 'Click "Add Group" to create a group.' : "No groups created yet.")}
             </p>
-          </div>
+          </Card>
         )}
 
         {!loading && !loadingGroups && groups.length > 0 && (
@@ -320,9 +309,10 @@ export default function GroupCommitteeV2Page() {
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
                           <Button
+                            aria-label="More actions"
                             variant="ghost"
                             size="icon"
-                            className="h-8 w-8 text-slate-500 hover:text-slate-800 hover:bg-slate-100"
+                            className="row-btn-sm"
                           >
                             <MoreHorizontal className="h-4 w-4" />
                           </Button>
@@ -339,8 +329,7 @@ export default function GroupCommitteeV2Page() {
                     )}
                     {isAutoManagedGroup(g.groupName) && (
                       <Badge
-                        variant="secondary"
-                        className="flex items-center gap-1 bg-slate-100 text-slate-600 border border-slate-200"
+                        variant="secondary" className="flex items-center gap-1 bg-slate-100 text-slate-600 border border-slate-200"
                         title="Auto-managed by BOD: edit via Board of Directors"
                       >
                         <Lock className="h-3 w-3" />Auto
@@ -378,14 +367,15 @@ export default function GroupCommitteeV2Page() {
                 <Input
                   value={formGroupName}
                   onChange={(e) => setFormGroupName(e.target.value)}
+                  aria-label="Group name"
                   placeholder="Enter group name"
-                  className="border-slate-200 bg-card focus:border-azure focus:ring-azure/20"
+                 
                 />
               </div>
               <div className="space-y-2">
                 <Label className="text-slate-500 text-xs font-semibold uppercase tracking-wide">Rotary Year *</Label>
                 <Select value={formYearId} onValueChange={setFormYearId}>
-                  <SelectTrigger className="border-slate-200 bg-card focus:border-azure focus:ring-azure/20">
+                  <SelectTrigger aria-label="Rotary year">
                     <SelectValue placeholder="Select year" />
                   </SelectTrigger>
                   <SelectContent>
@@ -401,14 +391,14 @@ export default function GroupCommitteeV2Page() {
                 variant="outline"
                 onClick={() => setDialogOpen(false)}
                 disabled={saving}
-                className="border-slate-200 text-slate-700 hover:bg-slate-50"
+               
               >
                 Cancel
               </Button>
               <Button
                 onClick={handleSave}
                 disabled={saving || !formGroupName.trim() || !formYearId}
-                className="bg-azure hover:bg-mint-ink text-white"
+               
               >
                 {saving ? "Saving..." : editingGroup ? "Update" : "Add"}
               </Button>

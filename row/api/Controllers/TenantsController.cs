@@ -186,6 +186,15 @@ public class TenantsController : ControllerBase
             "SELECT edition_code FROM tenant_subscriptions WHERE fk_district_id = @districtId AND fk_club_id = 0", new { districtId });
         if (edition == null) return NotFound(new { message = "This district has no subscription yet." });
 
+        // An edition with no modules would switch every module off for the district or its clubs.
+        var empty = (await conn.QueryAsync<string>(@"
+            SELECT DISTINCT ec.name FROM tenant_subscriptions ts JOIN edition_catalogue ec ON ec.code = ts.edition_code
+            WHERE ts.fk_district_id = @districtId
+              AND NOT EXISTS (SELECT 1 FROM edition_modules em WHERE em.edition_code = ts.edition_code)
+            ORDER BY ec.name", new { districtId })).ToList();
+        if (empty.Count > 0)
+            return BadRequest(new { message = $"No modules are ticked for: {string.Join(", ", empty)}. Applying would switch every module off there. Tick them in Settings > Editions first." });
+
         var by = GetCurrentMemberId();
         var p = new { districtId, edition, by };
         await using var tx = await conn.BeginTransactionAsync();

@@ -4,6 +4,7 @@
 // page. Cancel just closes it (no navigation); "I Agree & Continue" navigates to
 // the add form. When `message` is empty, it navigates directly (no gate).
 
+import { Button } from "@/components/ui/button"
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Plus, Info } from "@/components/icons";
@@ -11,9 +12,6 @@ import AlertModal from "@/components/AlertModal";
 import RotaryLoader from "@/components/RotaryLoader";
 
 import AgreeText from "@/components/AgreeText";
-const DEFAULT_CLASS =
-  "inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg bg-emerald-600 text-white hover:bg-emerald-700";
-
 export default function AgreeAddButton({
   message,
   href,
@@ -38,9 +36,9 @@ export default function AgreeAddButton({
 
   return (
     <>
-      <button type="button" onClick={onClick} className={className ?? DEFAULT_CLASS}>
+      <Button size="sm" className={className} type="button" onClick={onClick}>
         <Plus size={13} /> {label}
-      </button>
+      </Button>
       <AlertModal
         open={open}
         onOpenChange={(o) => !o && setOpen(false)}

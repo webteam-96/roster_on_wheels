@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="ic_launcher_background">#1E1C20</color>
+    <color name="ic_launcher_background">#F7F9FC</color>
     <!-- Launch screen field: ROW azure, the same as the Flutter splash (AppColors.primaryPrime) -->
     <color name="launch_background">#F7F9FC</color> <!-- light, like the app: the blue ROW logo was invisible on navy -->
     <!-- Push notification accent (AndroidManifest default_notification_color): ROW azure -->

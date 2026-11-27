@@ -9,6 +9,8 @@ import '../../../../../presentation/widgets/common/empty_state_widget.dart';
 import '../../../../../presentation/widgets/common/loading_widget.dart';
 import '../../../../../presentation/widgets/common/pagination_widget.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/motion.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/roster_wheel.dart';
 
 class TerminatedMembersScreen extends StatefulWidget {
   final int clubId;
@@ -92,7 +94,7 @@ class _TerminatedMembersScreenState extends State<TerminatedMembersScreen> {
                 hintText: 'Search terminated members...',
                 prefixIcon: const Icon(Icons.search),
                 suffixIcon: _searchCtrl.text.isNotEmpty
-                    ? IconButton(icon: const Icon(Icons.clear), onPressed: () { _searchCtrl.clear(); _fetch(reset: true); })
+                    ? IconButton(tooltip: 'Clear', icon: const Icon(Icons.clear), onPressed: () { _searchCtrl.clear(); _fetch(reset: true); })
                     : null,
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
                 contentPadding: const EdgeInsets.symmetric(vertical: 10),
@@ -105,10 +107,10 @@ class _TerminatedMembersScreenState extends State<TerminatedMembersScreen> {
                 ? const LoadingWidget()
                 : _items.isEmpty
                     ? const EmptyStateWidget(icon: Icons.person_remove_outlined, title: 'No Terminated Members', subtitle: 'No terminated members found.')
-                    : RefreshIndicator(
+                    : RowRefresh(
                         color: AppColors.primary,
                         onRefresh: () => _fetch(reset: true),
-                        child: ListView.separated(
+                        child: RowListView.separated(
                           padding: const EdgeInsets.fromLTRB(12, 0, 12, 16),
                           itemCount: _items.length + 1,
                           separatorBuilder: (_, __) => const SizedBox(height: 8),

@@ -18,6 +18,8 @@ import '../../../../widgets/common/labeled_stat.dart';
 import '../../modules/membership_dues/membership_dues_screen.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
 import 'package:rotary_flutter_app/presentation/widgets/row/skeleton_list.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/motion.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/roster_wheel.dart';
 
 /// Full-screen host for the dues management view used by the NORMAL club
 /// dashboard (no KPI cards — those stay exclusive to the overview tab). Owns
@@ -328,7 +330,7 @@ class _DuesManagementViewState extends State<DuesManagementView> {
   Future<void> _bulkReminder(String channel) async {
     final id = _activeDuesId;
     if (id == null) return;
-    final ok = await showDialog<bool>(
+    final ok = await showRowDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Bulk Email Reminder'),
@@ -390,7 +392,7 @@ class _DuesManagementViewState extends State<DuesManagementView> {
     // No active dues setup for the selected year → don't render the register
     // card (search / filter chips / "No members…"); show a clear empty state.
     final noSetup = _activeDuesId == null;
-    return RefreshIndicator(
+    return RowRefresh(
       color: AppColors.primary,
       onRefresh: _bootstrap,
       child: ListView(

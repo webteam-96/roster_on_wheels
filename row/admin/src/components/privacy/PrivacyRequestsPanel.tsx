@@ -6,6 +6,9 @@
  * second District Admin's approval; the server enforces who may approve.
  */
 
+import { MenuItemButton } from "@/components/ui/text-buttons"
+import { Card } from "@/components/ui/card";
+import { PageHeader } from "@/components/row/AppKit";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Download, Loader2, Plus, RefreshCw, Search, ShieldAlert } from "@/components/icons";
@@ -14,7 +17,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
 import AlertModal from "@/components/AlertModal";
 import EraseMemberDialog from "@/components/privacy/EraseMemberDialog";
 import { useFormat } from "@/hooks/useFormat";
@@ -154,14 +157,13 @@ function NewRequestDialog({
                     {hits.length === 0 && <li className="px-3 py-2 text-sm text-slate-500">{t("noResults")}</li>}
                     {hits.map((h) => (
                       <li key={h.memberId}>
-                        <button
+                        <MenuItemButton className="flex-col items-start gap-0"
                           type="button"
-                          className="w-full px-3 py-2 text-left text-sm hover:bg-slate-50"
                           onClick={() => setMember(h)}
                         >
                           <span className="font-medium text-slate-900">{h.name}</span>
                           {h.clubName && <span className="block text-xs text-slate-500">{h.clubName}</span>}
-                        </button>
+                        </MenuItemButton>
                       </li>
                     ))}
                   </ul>
@@ -189,7 +191,7 @@ function NewRequestDialog({
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={submitting}>
               {t("cancel")}
             </Button>
-            <Button type="submit" disabled={!canSubmit} variant={kind === "erase" ? "destructive" : "default"} className="gap-1.5">
+            <Button type="submit" disabled={!canSubmit} variant={kind === "erase" ? "destructive" : "default"}>
               {submitting && <Loader2 className="h-4 w-4 animate-spin" />}
               {submitting ? t("submitting") : kind === "erase" ? t("review") : t("submit")}
             </Button>
@@ -246,23 +248,23 @@ export default function PrivacyRequestsPanel({ districtId }: { districtId: numbe
   if (!districtId) return <div className="p-6 text-sm text-slate-500">{t("selectDistrict")}</div>;
 
   return (
-    <div className="space-y-5 p-6">
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div className="min-w-0">
-          <h2 className="text-xl font-semibold text-slate-900">{t("title")}</h2>
-          <p className="mt-1 max-w-2xl text-sm text-slate-600">{t("intro")}</p>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <Button variant="outline" onClick={load} className="gap-1.5">
+    <div className="space-y-5">
+      <PageHeader
+        title={t("title")}
+        description={t("intro")}
+        actions={
+          <>
+<Button variant="outline" onClick={load}>
             <RefreshCw className="h-4 w-4" />
             {t("refresh")}
           </Button>
-          <Button onClick={() => setDialogOpen(true)} className="gap-1.5">
+          <Button onClick={() => setDialogOpen(true)}>
             <Plus className="h-4 w-4" />
             {t("new")}
           </Button>
-        </div>
-      </div>
+          </>
+        }
+      />
 
       {error && <p className="text-sm text-red-600" role="alert">{error}</p>}
       {notice && <p className="text-sm text-emerald-700" role="status">{notice}</p>}
@@ -272,9 +274,9 @@ export default function PrivacyRequestsPanel({ districtId }: { districtId: numbe
           <Loader2 className="h-4 w-4 animate-spin" /> {t("loading")}
         </div>
       ) : rows.length === 0 ? (
-        !error && <div className="rounded-[20px] border border-dashed bg-card p-8 text-center text-sm text-slate-600">{t("empty")}</div>
+        !error && <div className="row-rise rounded-xl border border-dashed bg-card p-8 text-center text-sm text-slate-600">{t("empty")}</div>
       ) : (
-        <div className="overflow-x-auto rounded-xl border bg-card">
+        <Card className="overflow-x-auto">
           <Table className="min-w-[720px]">
             <TableHeader>
               <TableRow>
@@ -307,7 +309,7 @@ export default function PrivacyRequestsPanel({ districtId }: { districtId: numbe
                   <TableCell className="text-right">
                     <div className="flex flex-wrap justify-end gap-2">
                       {r.kind === "export" && r.status === "completed" && r.downloadUrl && (
-                        <Button asChild size="sm" variant="outline" className="gap-1.5">
+                        <Button asChild size="sm" variant="outline">
                           <a href={r.downloadUrl} title={r.downloadExpiresAt ? t("downloadUntil", { date: fmt.date(r.downloadExpiresAt) }) : undefined}>
                             <Download className="h-3.5 w-3.5" />
                             {t("download")}
@@ -330,7 +332,7 @@ export default function PrivacyRequestsPanel({ districtId }: { districtId: numbe
               ))}
             </TableBody>
           </Table>
-        </div>
+        </Card>
       )}
 
       <NewRequestDialog

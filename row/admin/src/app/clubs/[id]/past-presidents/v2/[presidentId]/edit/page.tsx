@@ -18,6 +18,11 @@
  *   - One PP per year (client-side duplicate check, ignores this row's own id)
  */
 
+import FieldLabel from "@/components/form/FieldLabel";
+import { NativeSelect } from "@/components/ui/native-select";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import SectionCard from "@/components/form/SectionCard";
 import { useCallback, useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { Info, User, Search, Crown, Calendar, UserPlus, Lock, Camera as ImageIcon } from "@/components/icons";
@@ -44,40 +49,13 @@ import { useImageCropUpload } from "@/hooks/useImageCropUpload";
 import { useSyncClubIdFromUrl } from "@/hooks/useSyncClubIdFromUrl";
 import { ListPageSkeleton } from "@/components/row/AppKit";
 
+import { MenuItemButton } from "@/components/ui/text-buttons"
 // Past-president photos render in round avatars everywhere, so the crop is
 // locked square and stored at 500×500.
 const PHOTO_ASPECT = 1;
 const PHOTO_MAX_WIDTH = 500;
 
 const TOP_MESSAGE = "Member entries cannot be converted back to Non-Member. Non-Member entries may be promoted to a real member, or have their name corrected. Only past Rotary years are selectable.";
-
-function FieldLabel({ children, hint, dot, required = true }: { children: React.ReactNode; hint?: string; dot: string; required?: boolean }) {
-  return (
-    <div className="flex items-center gap-1.5 mb-1">
-      <span className={`w-1.5 h-1.5 rounded-full ${dot}`} />
-      <label className="text-xs font-semibold text-slate-700">
-        {children}
-        {required && <span className="text-rose-600 ml-0.5">*</span>}
-        {hint && <span className="text-slate-400 font-normal ml-1">{hint}</span>}
-      </label>
-    </div>
-  );
-}
-
-function SectionCard({
-  number, icon: Icon, title, dot, children,
-}: { number: number; icon: React.ElementType; title: string; dot: string; children: React.ReactNode }) {
-  return (
-    <div className="rounded-xl border border-slate-200 mb-4">
-      <div className="flex items-center gap-3 px-4 py-2.5 bg-slate-50 border-b border-slate-100 rounded-t-xl">
-        <div className={`flex items-center justify-center h-7 w-7 rounded-full text-white text-xs font-bold ${dot}`}>{number}</div>
-        <Icon className="h-4 w-4 text-slate-500" />
-        <h3 className="text-sm font-semibold text-slate-800">{title}</h3>
-      </div>
-      <div className="p-4">{children}</div>
-    </div>
-  );
-}
 
 export default function PastPresidentsV2EditPage() {
   useSyncClubIdFromUrl();
@@ -309,12 +287,12 @@ export default function PastPresidentsV2EditPage() {
         }
       >
         {/* 1. Member / Non-Member */}
-        <SectionCard number={1} icon={Crown} title="Past President" dot="bg-[#17458F]">
+        <SectionCard number={1} icon={Crown} title="Past President">
           {originalIsMember ? (
             // ---------- M case ----------
             // Read-only display. No smart search rendered (backend rejects M→NM).
             <>
-              <FieldLabel dot="bg-[#17458F]" required={false}>Club Member</FieldLabel>
+              <FieldLabel required={false}>Club Member</FieldLabel>
               <div className="flex items-center gap-3 p-3 border rounded-lg bg-blue-50/60 border-blue-100">
                 <div className="relative h-10 w-10 flex-shrink-0 overflow-hidden rounded-full bg-card border border-slate-200">
                   {selectedMemberPhoto ? (
@@ -332,7 +310,7 @@ export default function PastPresidentsV2EditPage() {
                   )}
                 </div>
                 <span className="font-medium flex-1 text-slate-800">{selectedMemberName}</span>
-                <span className="inline-flex items-center text-[11px] font-medium px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700">
+                <span className="inline-flex items-center text-[11px] font-medium px-2 py-0.5 rounded bg-emerald-100 text-emerald-700">
                   Member
                 </span>
                 <span className="inline-flex items-center gap-1 text-[11px] text-slate-400">
@@ -350,7 +328,7 @@ export default function PastPresidentsV2EditPage() {
               {selectedMemberId ? (
                 // User picked a member during this edit session → NM→M conversion in progress
                 <>
-                  <FieldLabel dot="bg-[#17458F]">Converting to Member</FieldLabel>
+                  <FieldLabel required>Converting to Member</FieldLabel>
                   <div className="flex items-center gap-3 p-3 border rounded-lg bg-blue-50/60 border-blue-100">
                     <div className="relative h-10 w-10 flex-shrink-0 overflow-hidden rounded-full bg-card border border-slate-200">
                       {selectedMemberPhoto ? (
@@ -368,16 +346,16 @@ export default function PastPresidentsV2EditPage() {
                       )}
                     </div>
                     <span className="font-medium flex-1 text-slate-800">{selectedMemberName}</span>
-                    <span className="inline-flex items-center text-[11px] font-medium px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700">
+                    <span className="inline-flex items-center text-[11px] font-medium px-2 py-0.5 rounded bg-emerald-100 text-emerald-700">
                       Member
                     </span>
-                    <button
+                    <Button
                       type="button"
                       onClick={revertToNonMember}
-                      className="text-xs font-medium px-2.5 py-1 rounded-full border border-slate-200 text-slate-600 hover:bg-card"
+                      variant="outline" size="sm"
                     >
                       Cancel
-                    </button>
+                    </Button>
                   </div>
                   <p className="text-xs text-emerald-700 mt-1.5">
                     This Non-Member entry will be promoted to a real club member on save.
@@ -385,7 +363,7 @@ export default function PastPresidentsV2EditPage() {
                 </>
               ) : (
                 <>
-                  <FieldLabel dot="bg-[#17458F]">Non-Member Name</FieldLabel>
+                  <FieldLabel required>Non-Member Name</FieldLabel>
                   <div className="flex items-center gap-3 p-3 border rounded-lg bg-slate-100 border-slate-200">
                     <div className="relative h-10 w-10 flex-shrink-0 overflow-hidden rounded-full bg-card border border-slate-200">
                       <div className="flex h-full w-full items-center justify-center text-slate-400">
@@ -399,14 +377,14 @@ export default function PastPresidentsV2EditPage() {
                       className="flex-1 bg-transparent text-sm font-medium text-slate-800 border-0 border-b border-slate-300 focus:outline-none focus:border-slate-500"
                       placeholder="Non-member name"
                     />
-                    <span className="inline-flex items-center text-[11px] font-medium px-2 py-0.5 rounded-full bg-slate-200 text-slate-700">
+                    <span className="inline-flex items-center text-[11px] font-medium px-2 py-0.5 rounded bg-slate-200 text-slate-700">
                       Non-Member
                     </span>
                   </div>
 
                   {/* Profile photo — NON-MEMBER only */}
                   <div className="mt-3">
-                    <FieldLabel dot="bg-slate-400" required={false} hint="(optional)">Profile Photo</FieldLabel>
+                    <FieldLabel required={false} hint="(optional)">Profile Photo</FieldLabel>
                     {(() => {
                       const shownPhoto = photoPreview || (!removePhoto ? getPhotoUrl(existingPhotoUrl) : "");
                       return (
@@ -421,7 +399,7 @@ export default function PastPresidentsV2EditPage() {
                             )}
                           </div>
                           <div className="flex flex-wrap items-center gap-2">
-                            <label className="cursor-pointer text-xs font-medium px-3 py-1.5 rounded-full border border-slate-200 text-slate-700 hover:bg-slate-50">
+                            <label className="cursor-pointer text-xs font-medium px-3 py-1.5 rounded border border-slate-200 text-slate-700 hover:bg-slate-50">
                               {shownPhoto ? "Change photo" : "Upload photo"}
                               <input
                                 type="file"
@@ -431,13 +409,13 @@ export default function PastPresidentsV2EditPage() {
                               />
                             </label>
                             {shownPhoto && (
-                              <button
+                              <Button
                                 type="button"
                                 onClick={removePhotoNow}
-                                className="text-xs font-medium px-3 py-1.5 rounded-full border border-rose-200 text-rose-600 hover:bg-rose-50"
+                                variant="outline" size="sm" className="text-red-700"
                               >
                                 Remove
-                              </button>
+                              </Button>
                             )}
                           </div>
                         </div>
@@ -448,17 +426,17 @@ export default function PastPresidentsV2EditPage() {
                   </div>
 
                   <div className="mt-3">
-                    <FieldLabel dot="bg-[#17458F]" required={false} hint="(optional: converts entry to a real member)">
+                    <FieldLabel required={false} hint="(optional: converts entry to a real member)">
                       Promote to Member
                     </FieldLabel>
                     <div className="relative">
                       <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
-                      <input
+                      <Input
                         type="text"
                         placeholder="Search club members to link this entry…"
                         value={memberSearch}
                         onChange={(e) => setMemberSearch(e.target.value)}
-                        className="w-full pl-10 pr-3 py-2.5 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                        className="pl-10 pr-3"
                       />
                       {searchLoading && (
                         <div className="absolute right-3 top-1/2 -translate-y-1/2">
@@ -470,12 +448,10 @@ export default function PastPresidentsV2EditPage() {
                           {memberResults.map((m) => {
                             const photoUrl = getPhotoUrl(m.profilePhotoPath);
                             return (
-                              <button
+                              <MenuItemButton
                                 key={m.id}
                                 type="button"
-                                onClick={() => handleSelectMember(m)}
-                                className="flex items-center gap-3 w-full px-3 py-2 hover:bg-emerald-50/60 text-left transition-colors"
-                              >
+                                onClick={() => handleSelectMember(m)}>
                                 <div className="relative h-8 w-8 flex-shrink-0 overflow-hidden rounded-full bg-slate-100 border border-slate-200">
                                   {photoUrl ? (
                                     <Image src={photoUrl} alt={m.memberName} fill className="object-cover" unoptimized />
@@ -486,10 +462,10 @@ export default function PastPresidentsV2EditPage() {
                                   )}
                                 </div>
                                 <span className="text-sm font-medium text-slate-800 flex-1">{m.memberName}</span>
-                                <span className="inline-flex items-center text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-emerald-100 text-emerald-700">
+                                <span className="inline-flex items-center text-[10px] font-medium px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700">
                                   Member
                                 </span>
-                              </button>
+                              </MenuItemButton>
                             );
                           })}
                         </div>
@@ -511,12 +487,12 @@ export default function PastPresidentsV2EditPage() {
         </SectionCard>
 
         {/* 2. Rotary Year */}
-        <SectionCard number={2} icon={Calendar} title="Rotary Year" dot="bg-[#17458F]">
-          <FieldLabel dot="bg-[#17458F]" hint="(past years only)">Year of Presidency</FieldLabel>
-          <select
+        <SectionCard number={2} icon={Calendar} title="Rotary Year">
+          <FieldLabel required hint="(past years only)">Year of Presidency</FieldLabel>
+          <NativeSelect
             value={selectedYearId}
             onChange={(e) => setSelectedYearId(e.target.value)}
-            className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] bg-card focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+            
           >
             <option value="">Select a year…</option>
             {yearOptions.map((y) => (
@@ -524,7 +500,7 @@ export default function PastPresidentsV2EditPage() {
                 {y.yearLabel}
               </option>
             ))}
-          </select>
+          </NativeSelect>
           <p className="text-xs text-slate-400 mt-1">
             Only one past president can be recorded per year.
           </p>

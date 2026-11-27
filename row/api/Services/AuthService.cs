@@ -38,11 +38,10 @@ public class AuthService : IAuthService
         // TEMPORARY allowlist gate — see LoginAllowlistHelper for details.
         // Set LoginAllowlist:Enabled=false in appsettings.json to remove the gate.
         await LoginAllowlistHelper.EnsureMobileAllowedAsync(
-            _configuration, connection, request.MobileNumber, request.Email);
+            _configuration, connection, null, request.Email);
 
-        string emailOrMobile = request.Email ?? $"{request.CountryCode}{request.MobileNumber}";
 
-        // Find member by email or by countryCode + mobile
+        // ROW signs in by email only (2026-11-25: sign-in and reset by mobile number removed).
         int memberId;
         string memberName;
         string email;
@@ -55,7 +54,7 @@ public class AuthService : IAuthService
                 commandType: CommandType.StoredProcedure);
             if (member == null)
             {
-                await LogLoginAudit(connection, null, null, emailOrMobile, ipAddress, userAgent, "failed", "Member not found");
+                await LogLoginAudit(connection, null, null, request.Email, ipAddress, userAgent, "failed", "Member not found");
                 throw new UnauthorizedAccessException("Invalid credentials.");
             }
 
@@ -63,25 +62,9 @@ public class AuthService : IAuthService
             memberName = (string)member.MemberName;
             email = (string)member.EmailId;
         }
-        else if (!string.IsNullOrWhiteSpace(request.CountryCode) && !string.IsNullOrWhiteSpace(request.MobileNumber))
-        {
-            var member = await connection.QueryFirstOrDefaultAsync<dynamic>(
-                "sp_auth_get_member_by_mobile",
-                new { p_CountryCode = request.CountryCode, p_MobileNumber = request.MobileNumber },
-                commandType: CommandType.StoredProcedure);
-            if (member == null)
-            {
-                await LogLoginAudit(connection, null, null, emailOrMobile, ipAddress, userAgent, "failed", "Member not found");
-                throw new UnauthorizedAccessException("Invalid credentials.");
-            }
-
-            memberId = (int)member.Id;
-            memberName = (string)member.MemberName;
-            email = (string)(member.EmailId ?? "");
-        }
         else
         {
-            throw new ArgumentException("Email or CountryCode + MobileNumber is required.");
+            throw new ArgumentException("Email is required.");
         }
 
         // Check member has an active admin role
@@ -97,7 +80,7 @@ public class AuthService : IAuthService
         if (roles.Count == 0 && await PlanningAccess.IsElectAsync(connection, _connectionString, memberId)) roles.Add("Elect");
         if (roles.Count == 0)
         {
-            await LogLoginAudit(connection, memberId, memberName, emailOrMobile, ipAddress, userAgent, "failed", "No admin role");
+            await LogLoginAudit(connection, memberId, memberName, request.Email, ipAddress, userAgent, "failed", "No admin role");
             throw new UnauthorizedAccessException("You do not have permission to access the admin panel.");
         }
 
@@ -108,7 +91,7 @@ public class AuthService : IAuthService
             commandType: CommandType.StoredProcedure);
         if (cred == null)
         {
-            await LogLoginAudit(connection, memberId, memberName, emailOrMobile, ipAddress, userAgent, "failed", "No credentials");
+            await LogLoginAudit(connection, memberId, memberName, request.Email, ipAddress, userAgent, "failed", "No credentials");
             throw new UnauthorizedAccessException("No credentials found. Please contact administrator.");
         }
 
@@ -121,7 +104,7 @@ public class AuthService : IAuthService
         // Check lockout
         if (failedAttempts >= 5 && lockoutEnd != null && lockoutEnd > DateTime.UtcNow)
         {
-            await LogLoginAudit(connection, memberId, memberName, emailOrMobile, ipAddress, userAgent, "failed", "Account locked");
+            await LogLoginAudit(connection, memberId, memberName, request.Email, ipAddress, userAgent, "failed", "Account locked");
             throw new UnauthorizedAccessException("Account is locked due to multiple failed login attempts. Please try again later.");
         }
 
@@ -136,7 +119,7 @@ public class AuthService : IAuthService
                 new { p_CredId = credId, p_Attempts = failedAttempts, p_Lockout = lockoutTime },
                 commandType: CommandType.StoredProcedure);
 
-            await LogLoginAudit(connection, memberId, memberName, emailOrMobile, ipAddress, userAgent, "failed", "Wrong password");
+            await LogLoginAudit(connection, memberId, memberName, request.Email, ipAddress, userAgent, "failed", "Wrong password");
             throw new UnauthorizedAccessException("Invalid credentials.");
         }
 
@@ -160,7 +143,7 @@ public class AuthService : IAuthService
                 new { MemberId = memberId });
             if (hasActiveChain == 0)
             {
-                await LogLoginAudit(connection, memberId, memberName, emailOrMobile, ipAddress, userAgent, "failed", "Zone/District/Club inactive");
+                await LogLoginAudit(connection, memberId, memberName, request.Email, ipAddress, userAgent, "failed", "Zone/District/Club inactive");
                 throw new UnauthorizedAccessException("Your zone, district, or club is currently inactive. Please contact your administrator.");
             }
         }
@@ -191,7 +174,7 @@ public class AuthService : IAuthService
             return new LoginResponseDto { MfaRequired = true, MfaToken = mfa.MfaToken, MfaSetupRequired = mfa.MfaSetupRequired, MemberName = memberName };
 
         // Log successful login
-        await LogLoginAudit(connection, memberId, memberName, emailOrMobile, ipAddress, userAgent, "success", null);
+        await LogLoginAudit(connection, memberId, memberName, request.Email, ipAddress, userAgent, "success", null);
 
         // Generate JWT
         var expiryMinutes = int.Parse(_configuration["JwtSettings:ExpiryMinutes"] ?? "480");
@@ -268,7 +251,7 @@ public class AuthService : IAuthService
         };
     }
 
-    private static async Task LogLoginAudit(MySqlConnection connection, int? memberId, string? memberName, string emailOrMobile, string? ipAddress, string? userAgent, string status, string? failureReason)
+    private static async Task LogLoginAudit(MySqlConnection connection, int? memberId, string? memberName, string? email, string? ipAddress, string? userAgent, string status, string? failureReason)
     {
         try
         {
@@ -278,7 +261,7 @@ public class AuthService : IAuthService
                 {
                     p_MemberId = memberId,
                     p_MemberName = memberName ?? "",
-                    p_EmailOrMobile = emailOrMobile ?? "",
+                    p_EmailOrMobile = email ?? "",
                     p_IpAddress = ipAddress ?? "",
                     p_UserAgent = userAgent?.Length > 500 ? userAgent[..500] : userAgent ?? "",
                     p_Status = status,
@@ -299,20 +282,12 @@ public class AuthService : IAuthService
         using var connection = CreateConnection();
         await connection.OpenAsync();
 
-        // Find member by email or mobile
         dynamic? member;
         if (!string.IsNullOrWhiteSpace(request.Email))
         {
             member = await connection.QueryFirstOrDefaultAsync<dynamic>(
                 "sp_auth_get_member_by_email",
                 new { p_Email = request.Email },
-                commandType: CommandType.StoredProcedure);
-        }
-        else if (!string.IsNullOrWhiteSpace(request.CountryCode) && !string.IsNullOrWhiteSpace(request.MobileNumber))
-        {
-            member = await connection.QueryFirstOrDefaultAsync<dynamic>(
-                "sp_auth_get_member_by_mobile",
-                new { p_CountryCode = request.CountryCode, p_MobileNumber = request.MobileNumber },
                 commandType: CommandType.StoredProcedure);
         }
         else

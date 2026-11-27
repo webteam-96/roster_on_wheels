@@ -7,6 +7,7 @@ import '../../../../widgets/common/custom_app_bar.dart';
 import '../../../../widgets/common/empty_state_widget.dart';
 import '../../../../widgets/common/loading_widget.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/roster_wheel.dart';
 
 const _statusLabel = {
   'Pending': 'Waiting for review',
@@ -102,7 +103,7 @@ class _ClubStoriesScreenState extends State<ClubStoriesScreen> {
           icon: Icons.error_outline, title: 'Could not load stories', subtitle: _error, actionLabel: 'Try again', onAction: _load);
     }
     if (items == null) return const LoadingWidget();
-    return RefreshIndicator(
+    return RowRefresh(
       onRefresh: _load,
       child: ListView(
         padding: const EdgeInsets.only(bottom: 88),

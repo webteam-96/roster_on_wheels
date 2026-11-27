@@ -6,6 +6,8 @@ import '../../../widgets/common/custom_app_bar.dart';
 import '../../../widgets/common/custom_text_field.dart';
 import 'package:rotary_flutter_app/core/theme/app_fonts.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/motion.dart';
+import 'package:rotary_flutter_app/presentation/widgets/common/loading_widget.dart';
 
 class DistrictSubGroupFormYear {
   final int id;
@@ -276,10 +278,7 @@ class _DistrictSubGroupFormScreenState
               child: SizedBox(
                 height: 380,
                 child: _membersLoading
-                    ? const Center(
-                        child:
-                            const CircularProgressIndicator(color: AppColors.primary),
-                      )
+                    ? const LoadingWidget()
                     : _members.isEmpty
                         ? Center(
                             child: Text(
@@ -296,7 +295,7 @@ class _DistrictSubGroupFormScreenState
                                       .copyWith(color: AppColors.textSecondary),
                                 ),
                               )
-                            : ListView.builder(
+                            : RowListView.builder(
                                 itemCount: filtered.length,
                                 itemBuilder: (_, i) {
                                   final m = filtered[i];

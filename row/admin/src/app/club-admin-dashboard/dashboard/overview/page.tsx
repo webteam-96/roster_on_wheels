@@ -1,5 +1,6 @@
 ﻿"use client";
 
+import { Card } from "@/components/ui/card";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
@@ -99,7 +100,23 @@ export default function ClubAdminDashboardOverviewPage() {
         cancelLabel="Cancel"
         onCancel={() => setPendingDialogOpen(false)}
       />
-      <div className="flex flex-wrap items-center gap-3 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl">
+      {/* Figures first: 4 per row on lg+, two full rows.
+          Order: Active, Male, Female, Honorary, Total, Avg Attendance, TRF Raised,
+          Service Projects (4 avenues only), Citation Score. */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+        {/* The API already leaves honorary OUT of totalMembers (user 2026-09-29), so subtracting them
+            here took them off twice - the tile read 117 for a club of 121 + 4 honorary. */}
+        <KpiCard title="Active Members"    value={fmtInt(data.totalMembers)}                      subtitle="Non-honorary"                                                              icon={BadgeCheck}  color="green" />
+        <KpiCard title="Male"            value={fmtInt(data.maleMembers)}                          subtitle="Members"                                                                  icon={UserCircle2} color="blue" />
+        <KpiCard title="Female"          value={fmtInt(data.femaleMembers)}                        subtitle="Members"                                                                  icon={UserSquare2} color="purple" />
+        <KpiCard title="Honorary"        value={fmtInt(data.honoraryMembers)}                      subtitle="Members"                                                                  icon={Crown}       color="gold" />
+        <KpiCard title="Total Members"   value={fmtInt(data.totalMembers)}                         subtitle={`+${data.newMembersThisYear} this RY`}                                    icon={Users}       color="blue" />
+        <KpiCard title="Avg Attendance"  value={`${data.avgAttendance.toFixed(1)}%`}               subtitle="From meeting records"                                                     icon={Calendar}    color="green" />
+        <KpiCard title="TRF Raised"      value={fmtUsdShort(data.trfRaisedInr)}                    subtitle={data.trfGoalInr ? `${trfPct}% of ${fmtUsdShort(data.trfGoalInr)}` : "No goal set"} icon={Heart}    color="gold" />
+        <KpiCard title="Awards Score"    value={fmtInt(data.districtCitationScore)}               subtitle="District awards"                                                        icon={Award}       color="red" />
+      </div>
+
+      <Card className="flex flex-wrap items-center gap-3 px-4 py-3">
         {/* Rotary.org Sync — now dynamic, sourced from club_master.IsRotaryOrgSyncEnabled */}
         <div className="flex items-center gap-2 min-w-0">
           <div className={`w-2 h-2 rounded-full ${data.club.rotaryOrgSyncEnabled ? "bg-emerald-500" : "bg-amber-500"} animate-pulse`} />
@@ -115,7 +132,7 @@ export default function ClubAdminDashboardOverviewPage() {
           </span>
         </div>
         <div className="w-px h-5 bg-slate-300 hidden sm:block" />
-        <div className="flex items-center gap-2 flex-1 min-w-0">
+        <div className="flex flex-wrap items-center gap-2 sm:flex-1 sm:min-w-0">
           <div className={`w-2 h-2 rounded-full ${websiteWarning ? "bg-red-500 animate-pulse" : data.club.clubWebsiteActive ? "bg-emerald-500" : "bg-slate-400"}`} />
           <span className={`text-xs font-semibold whitespace-nowrap ${websiteWarning ? "text-red-700" : data.club.clubWebsiteActive ? "text-emerald-700" : "text-slate-600"}`}>
             Club Website: {websiteWarning ? "Overdue" : data.club.clubWebsiteActive ? "Active" : "Not Configured"}
@@ -124,31 +141,15 @@ export default function ClubAdminDashboardOverviewPage() {
             <span className="text-xs text-slate-400 whitespace-nowrap">· Expiry {fmtDate(data.club.clubWebsiteExpiry)}</span>
           )}
         </div>
-      </div>
+      </Card>
 
       {adminsThisClub && <SyncProjectsToRotaryOrgCard clubId={data.club.clubId} />}
-
-      {/* 9-card strip: 5 per row on lg+, wraps to next row for the remaining 4.
-          Order: Active, Male, Female, Honorary, Total, Avg Attendance, TRF Raised,
-          Service Projects (4 avenues only), Citation Score. */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
-        {/* The API already leaves honorary OUT of totalMembers (user 2026-09-29), so subtracting them
-            here took them off twice - the tile read 117 for a club of 121 + 4 honorary. */}
-        <KpiCard title="Active Members"    value={fmtInt(data.totalMembers)}                      subtitle="Non-honorary"                                                              icon={BadgeCheck}  color="green" />
-        <KpiCard title="Male"            value={fmtInt(data.maleMembers)}                          subtitle="Members"                                                                  icon={UserCircle2} color="blue" />
-        <KpiCard title="Female"          value={fmtInt(data.femaleMembers)}                        subtitle="Members"                                                                  icon={UserSquare2} color="purple" />
-        <KpiCard title="Honorary"        value={fmtInt(data.honoraryMembers)}                      subtitle="Members"                                                                  icon={Crown}       color="gold" />
-        <KpiCard title="Total Members"   value={fmtInt(data.totalMembers)}                         subtitle={`+${data.newMembersThisYear} this RY`}                                    icon={Users}       color="blue" />
-        <KpiCard title="Avg Attendance"  value={`${data.avgAttendance.toFixed(1)}%`}               subtitle="From meeting records"                                                     icon={Calendar}    color="green" />
-        <KpiCard title="TRF Raised"      value={fmtUsdShort(data.trfRaisedInr)}                    subtitle={data.trfGoalInr ? `${trfPct}% of ${fmtUsdShort(data.trfGoalInr)}` : "No goal set"} icon={Heart}    color="gold" />
-        <KpiCard title="Awards Score"    value={fmtInt(data.districtCitationScore)}               subtitle="District awards"                                                        icon={Award}       color="red" />
-      </div>
 
       <GrowthCard clubId={data.club.clubId} yearId={yearId} canManage={canManage} />
 
       <div className="grid grid-cols-1 xl:grid-cols-4 gap-4 items-stretch">
-        <div className="rounded-[20px] border border-slate-200 bg-card p-5">
-          <h3 className="text-sm font-semibold text-slate-800 mb-1">Membership</h3>
+        <Card className="p-5">
+          <h3 className="row-h3 mb-1">Membership</h3>
           <p className="text-xs text-slate-500 mb-3">RY {data.club.yearLabel} snapshot</p>
           <p className="text-3xl font-extrabold text-slate-900 tabular-nums">{data.totalMembers} <span className="text-xs text-slate-400 font-normal">total members</span></p>
           <div className="mt-3 space-y-2">
@@ -163,15 +164,15 @@ export default function ClubAdminDashboardOverviewPage() {
                   <span className="text-xs font-semibold" style={{ color: textShade(s.color) }}>{s.value}</span>
                 </div>
                 <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                  <div className="h-full rounded-full" style={{ width: `${data.totalMembers > 0 ? (s.value / data.totalMembers) * 100 : 0}%`, backgroundColor: s.color }} />
+                  <div className="row-grow h-full rounded-full" style={{ width: `${data.totalMembers > 0 ? (s.value / data.totalMembers) * 100 : 0}%`, backgroundColor: s.color }} />
                 </div>
               </div>
             ))}
           </div>
-        </div>
+        </Card>
 
-        <div className="rounded-[20px] border border-slate-200 bg-card p-5">
-          <h3 className="text-sm font-semibold text-slate-800 mb-1">TRF Breakdown</h3>
+        <Card className="p-5">
+          <h3 className="row-h3 mb-1">TRF Breakdown</h3>
           <p className="text-xs text-slate-500 mb-3">By fund type · RY {data.club.yearLabel}</p>
           {[
             { label: "Annual Fund", val: data.trfAnnualFund, color: ROTARY_BLUE },
@@ -188,17 +189,17 @@ export default function ClubAdminDashboardOverviewPage() {
                 </span>
               </div>
               <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                <div className="h-full rounded-full" style={{
+                <div className="row-grow h-full rounded-full" style={{
                   width: `${data.trfRaisedInr > 0 ? Math.min(100, (Number(r.val) / Math.max(data.trfRaisedInr, 1)) * 100) : 0}%`,
                   backgroundColor: r.color
                 }} />
               </div>
             </div>
           ))}
-        </div>
+        </Card>
 
-        <div className="rounded-[20px] border border-slate-200 bg-card p-5">
-          <h3 className="text-sm font-semibold text-slate-800 mb-1">Service Projects & Avenues</h3>
+        <Card className="p-5">
+          <h3 className="row-h3 mb-1">Service Projects & Avenues</h3>
           <p className="text-xs text-slate-500 mb-3">By module this RY</p>
           {data.avenues.length === 0 ? (
             <p className="text-xs text-slate-400">No project data yet.</p>
@@ -211,7 +212,7 @@ export default function ClubAdminDashboardOverviewPage() {
                     <span className="text-xs font-semibold text-slate-700">{a.completed}</span>
                   </div>
                   <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
-                    <div className="h-full rounded-full" style={{ width: `${data.serviceProjects > 0 ? (a.completed / data.serviceProjects) * 100 : 0}%`, background: ROTARY_BLUE }} />
+                    <div className="row-grow h-full rounded-full" style={{ width: `${data.serviceProjects > 0 ? (a.completed / data.serviceProjects) * 100 : 0}%`, background: ROTARY_BLUE }} />
                   </div>
                 </div>
               ))}
@@ -221,10 +222,10 @@ export default function ClubAdminDashboardOverviewPage() {
             <span className="text-slate-500">Total projects</span>
             <span className="text-sm font-extrabold text-slate-800">{fmtInt(data.serviceProjects)}</span>
           </div>
-        </div>
+        </Card>
 
-        <div className="rounded-[20px] border border-slate-200 bg-card p-5">
-          <h3 className="text-sm font-semibold text-slate-800 mb-1">District Awards</h3>
+        <Card className="p-5">
+          <h3 className="row-h3 mb-1">District Awards</h3>
           <p className="text-xs text-slate-500 mb-3">Points by category</p>
           {data.citationChecklist.length === 0 ? (
             <p className="text-xs text-slate-400">No citation entries yet.</p>
@@ -244,12 +245,12 @@ export default function ClubAdminDashboardOverviewPage() {
             <span className="text-slate-500">Total score</span>
             <span className="text-sm font-extrabold text-rose-600">{fmtInt(data.districtCitationScore)}</span>
           </div>
-        </div>
+        </Card>
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
-        <div className="xl:col-span-2 rounded-[20px] border border-slate-200 bg-card p-5">
-          <h3 className="text-sm font-semibold text-slate-800 mb-1">Membership: Monthly Growth</h3>
+        <Card className="xl:col-span-2 p-5">
+          <h3 className="row-h3 mb-1">Membership: Monthly Growth</h3>
           <p className="text-xs text-slate-500 mb-3">New joiners by month · RY {data.club.yearLabel}</p>
           {data.memberGrowth.length === 0 ? (
             <p className="text-xs text-slate-400">No data.</p>
@@ -266,7 +267,7 @@ export default function ClubAdminDashboardOverviewPage() {
                     <stop offset="100%" stopColor="#F7A81B" stopOpacity={0} />
                   </linearGradient>
                 </defs>
-                <CartesianGrid vertical={false} stroke="#edf4fb" />
+                <CartesianGrid vertical={false} stroke="#d3dde8" />
                 <XAxis dataKey="month" tick={{ fontSize: 11, fill: "#66768C" }} />
                 <YAxis tick={{ fontSize: 11, fill: "#66768C" }} width={28} />
                 <Tooltip contentStyle={{ fontSize: 12, borderRadius: 6 }} />
@@ -277,10 +278,10 @@ export default function ClubAdminDashboardOverviewPage() {
               </AreaChart>
             </ResponsiveContainer>
           )}
-        </div>
+        </Card>
 
-        <div className="rounded-[20px] border border-slate-200 bg-card p-5">
-          <h3 className="text-sm font-semibold text-slate-800 mb-1">Upcoming Events</h3>
+        <Card className="p-5">
+          <h3 className="row-h3 mb-1">Upcoming Events</h3>
           <p className="text-xs text-slate-500 mb-3">Next 8</p>
           {data.upcomingEvents.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-8 text-slate-400">
@@ -300,7 +301,7 @@ export default function ClubAdminDashboardOverviewPage() {
               ))}
             </ul>
           )}
-        </div>
+        </Card>
       </div>
     </div>
   );

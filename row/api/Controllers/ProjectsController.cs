@@ -57,6 +57,8 @@ public class ProjectsController : ControllerBase
     {
         if (dto.Photos == null || dto.Photos.Count == 0)
             return BadRequest(new { message = "At least 1 photo is required to save this project." });
+        if (ProjectNumbers.Validate(dto.ProjectCost, dto.AmountSanctioned, dto.AmountReceived, dto.AmountSpent, dto.DirectBeneficiaries, dto.ManHours,
+            dto.RotariansInvolved, dto.RotaractorsInvolved, dto.RccInvolved) is { } numberError) return BadRequest(new { message = numberError });
 
         // project_date decides the year-partitioned table, so a typo'd year creates a junk
         // rotary year that pollutes the public year filter. See Services/ProjectDateValidator.
@@ -84,6 +86,8 @@ public class ProjectsController : ControllerBase
         if (deniedYear != null) return deniedYear;
         if (dto.Photos == null || dto.Photos.Count == 0)
             return BadRequest(new { message = "At least 1 photo is required to save this project." });
+        if (ProjectNumbers.Validate(dto.ProjectCost, dto.AmountSanctioned, dto.AmountReceived, dto.AmountSpent, dto.DirectBeneficiaries, dto.ManHours,
+            dto.RotariansInvolved, dto.RotaractorsInvolved, dto.RccInvolved) is { } numberError) return BadRequest(new { message = numberError });
 
         // Same year-table guard as Create. See Services/ProjectDateValidator.
         var dateError = ProjectDateValidator.Validate(dto.ProjectDate);
@@ -121,6 +125,8 @@ public class ProjectsController : ControllerBase
     {
         if (dto.Photos == null || dto.Photos.Count == 0)
             return BadRequest(new { message = "At least 1 photo is required to save this project." });
+        if (ProjectNumbers.Validate(dto.ProjectCost, dto.AmountSanctioned, dto.AmountReceived, dto.AmountSpent, dto.DirectBeneficiaries, dto.ManHours,
+            dto.RotariansInvolved, dto.RotaractorsInvolved, dto.RccInvolved) is { } numberError) return BadRequest(new { message = numberError });
 
         // The move target year comes from this date — same guard. See Services/ProjectDateValidator.
         var dateError = ProjectDateValidator.Validate(dto.ProjectDate);

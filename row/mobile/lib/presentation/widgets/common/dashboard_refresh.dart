@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../core/theme/app_colors.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/roster_wheel.dart';
 
 /// Pull-to-refresh wrapper for the club & district dashboard tabs.
 ///
@@ -39,7 +40,7 @@ class DashboardRefresh extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return RefreshIndicator(
+    return RowRefresh(
       color: AppColors.rotaryBlue,
       onRefresh: onRefresh,
       child: _ownScroll

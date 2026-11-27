@@ -65,7 +65,7 @@ function Recipients({ clubId, toGroups, setToGroups, picked, setPicked }: {
       {toGroups && (failed ? (
         <p className="text-[13px] text-red-700">The sub groups could not be loaded.</p>
       ) : years === null ? <SkeletonRows rows={2} /> : years.length === 0 ? (
-        <p className="text-[13px] text-[#64748B]">The club has no sub groups yet.</p>
+        <p className="text-[13px] text-muted-foreground">The club has no sub groups yet.</p>
       ) : (
         <div className="space-y-2">
           <div className="max-w-[220px]">
@@ -75,7 +75,7 @@ function Recipients({ clubId, toGroups, setToGroups, picked, setPicked }: {
             </Select>
           </div>
           {groups === null ? <SkeletonRows rows={2} /> : groups.length === 0 ? (
-            <p className="text-[13px] text-[#64748B]">No sub groups in this year.</p>
+            <p className="text-[13px] text-muted-foreground">No sub groups in this year.</p>
           ) : (
             <ul className="grid gap-1 md:grid-cols-2">
               {groups.map((g) => (
@@ -83,7 +83,7 @@ function Recipients({ clubId, toGroups, setToGroups, picked, setPicked }: {
                   <label className="flex items-center gap-2 text-[14px]">
                     <Checkbox checked={picked.includes(g.id)}
                       onCheckedChange={() => setPicked(picked.includes(g.id) ? picked.filter((p) => p !== g.id) : [...picked, g.id])} />
-                    {g.groupName} <span className="text-[#64748B]">({g.memberCount})</span>
+                    {g.groupName} <span className="text-muted-foreground">({g.memberCount})</span>
                   </label>
                 </li>
               ))}
@@ -114,24 +114,24 @@ function OrderedPicker({ label, options, picked, onChange, emptyText }: {
     <fieldset className="space-y-3">
       <legend className="text-[15px] font-semibold text-[#1B2C42]">{label}</legend>
       {options.length === 0 ? (
-        <p className="text-[13px] text-[#64748B]">{emptyText}</p>
+        <p className="text-[13px] text-muted-foreground">{emptyText}</p>
       ) : (
         <div className="grid gap-4 md:grid-cols-2">
-          <ul className="max-h-64 space-y-1 overflow-auto rounded-[12px] border border-[color:var(--row-line)] p-2">
+          <ul className="max-h-64 space-y-1 overflow-auto rounded-md border border-[color:var(--row-line)] p-2">
             {options.map((o) => (
               <li key={o.id}>
-                <label className="flex cursor-pointer items-start gap-2 rounded-[8px] px-2 py-1.5 hover:bg-[#EDF4FB]">
+                <label className="flex cursor-pointer items-start gap-2 rounded-md px-2 py-1.5 hover:bg-muted">
                   <Checkbox checked={picked.includes(o.id)} onCheckedChange={() => toggle(o.id)} className="mt-0.5" />
-                  <span className="text-[14px]">{o.title} <span className="text-[#64748B]">{day(o.date)}</span></span>
+                  <span className="text-[14px]">{o.title} <span className="text-muted-foreground">{day(o.date)}</span></span>
                 </label>
               </li>
             ))}
           </ul>
           <ol className="space-y-1" aria-label={`${label}, in order`}>
-            {picked.length === 0 && <li className="text-[13px] text-[#64748B]">Nothing picked. Tick items to add them.</li>}
+            {picked.length === 0 && <li className="text-[13px] text-muted-foreground">Nothing picked. Tick items to add them.</li>}
             {picked.map((id, i) => (
-              <li key={id} className="flex items-center gap-2 rounded-[8px] border border-[color:var(--row-line)] px-2 py-1">
-                <span className="w-5 text-[13px] text-[#64748B]">{i + 1}.</span>
+              <li key={id} className="flex items-center gap-2 rounded-md border border-[color:var(--row-line)] px-2 py-1">
+                <span className="w-5 text-[13px] text-muted-foreground">{i + 1}.</span>
                 <span className="min-w-0 flex-1 truncate text-[14px]">{byId.get(id)?.title ?? "Removed item"}</span>
                 <Button type="button" variant="ghost" size="icon" disabled={i === 0} onClick={() => move(i, -1)} aria-label="Move up">
                   <ArrowUp className="h-4 w-4" />
@@ -227,34 +227,27 @@ export default function BulletinEditorPage() {
     }, "The draft could not be deleted.");
   };
 
-  const back = (
-    <Button variant="outline" size="icon" asChild aria-label="Back to bulletins">
-      <Link href={`/clubs/${clubId}/bulletins`}><ArrowLeft className="h-4 w-4" /></Link>
-    </Button>
-  );
   const previewFrame = (html: string) => (
-    <iframe sandbox="" srcDoc={html} title="Bulletin preview" className="h-[70vh] w-full rounded-[12px] border border-[color:var(--row-line)] bg-[#FCFDFE]" />
+    <iframe sandbox="" srcDoc={html} title="Bulletin preview" className="h-[70vh] w-full rounded-md border border-[color:var(--row-line)] bg-card" />
   );
 
-  if (loadError) return <ProtectedRoute><div className="max-w-5xl mx-auto space-y-4">{back}<ErrorState message={loadError} onRetry={load} retryLabel="Try again" /></div></ProtectedRoute>;
-  if (!options) return <ProtectedRoute><div className="max-w-5xl mx-auto space-y-4">{back}<Panel title="Bulletin"><SkeletonRows rows={8} /></Panel></div></ProtectedRoute>;
+  if (loadError) return <ProtectedRoute><div className="space-y-4"><PageHeader title="Bulletin" back={`/clubs/${clubId}/bulletins`} /><ErrorState message={loadError} onRetry={load} retryLabel="Try again" /></div></ProtectedRoute>;
+  if (!options) return <ProtectedRoute><div className="space-y-4"><PageHeader title="Bulletin" back={`/clubs/${clubId}/bulletins`} /><Panel title="Bulletin"><SkeletonRows rows={8} /></Panel></div></ProtectedRoute>;
 
   if (sentCopy) {
     return (
       <ProtectedRoute>
-        <div className="max-w-5xl mx-auto space-y-6">
-          <div className="flex items-center gap-3">
-            {back}
-            <PageHeader
-              title={sentCopy.title}
-              description={sentCopy.sentDate ? `Sent ${new Date(sentCopy.sentDate).toLocaleString(appLocale())}. Sent bulletins do not change.` : undefined}
-              actions={sentCopy.massEmailId ? (
+        <div className="space-y-6">
+          <PageHeader
+          back={`/clubs/${clubId}/bulletins`}
+          title={sentCopy.title}
+          description={sentCopy.sentDate ? `Sent ${new Date(sentCopy.sentDate).toLocaleString(appLocale())}. Sent bulletins do not change.` : undefined}
+          actions={sentCopy.massEmailId ? (
                 <Button variant="outline" asChild>
                   <Link href={`/clubs/${clubId}/mass-emails/${sentCopy.massEmailId}`}>Opens, clicks and resend</Link>
                 </Button>
               ) : undefined}
-            />
-          </div>
+        />
           {previewFrame(sentCopy.html ?? "")}
         </div>
       </ProtectedRoute>
@@ -263,14 +256,12 @@ export default function BulletinEditorPage() {
 
   return (
     <ProtectedRoute>
-      <div className="max-w-5xl mx-auto space-y-6">
-        <div className="flex items-center gap-3">
-          {back}
-          <PageHeader
-            title={isNew ? "New bulletin" : "Edit bulletin"}
-            description="Pick the club news and events to include and put them in order. Birthdays, speakers and meeting duties are filled in from the club's records."
-          />
-        </div>
+      <div className="space-y-6">
+        <PageHeader
+          back={`/clubs/${clubId}/bulletins`}
+          title={isNew ? "New bulletin" : "Edit bulletin"}
+          description="Pick the club news and events to include and put them in order. Birthdays, speakers and meeting duties are filled in from the club's records."
+        />
 
         <Panel title="Content">
           <div className="space-y-5">
@@ -344,7 +335,7 @@ export default function BulletinEditorPage() {
         <Panel title="Preview" subtitle="What members will receive. Build it again after changes.">
           {busy === "preview" ? <SkeletonRows rows={6} />
             : preview ? previewFrame(preview)
-            : <p className="text-[15px] text-[#64748B]">Press Preview to see the email.</p>}
+            : <p className="text-[15px] text-muted-foreground">Press Preview to see the email.</p>}
         </Panel>
       </div>
 

@@ -20,17 +20,16 @@
  * Save/Cancel/Back on any sub-page lands here.
  */
 
+import { TileButton } from "@/components/ui/text-buttons";
+import { Card } from "@/components/ui/card";
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { getDistrictWebsiteStatus } from "@/services/api";
-import {
-  AlertCircle, ImageIcon, Megaphone, Share2, Phone, List, Info,
-  Globe, ExternalLink, Languages, LayoutGrid, Palette,
-} from "@/components/icons";
+import { AlertCircle, ImageIcon, Megaphone, Share2, Phone, List, Info, Globe, ExternalLink, Languages, LayoutGrid, Palette } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import { useIsPathOff } from "@/components/FeatureGate";
-import { ListPageSkeleton } from "@/components/row/AppKit";
+import { PageHeader, ListPageSkeleton } from "@/components/row/AppKit";
 
 type ModuleKey = "banners" | "advertisements" | "social-media-links" | "contact-details" | "menu-list" | "about" | "languages" | "pages" | "extras" | "theme";
 
@@ -39,21 +38,19 @@ interface Mod {
   name: string;
   description: string;
   icon: React.ComponentType<{ className?: string }>;
-  accent: string;   // icon background
-  ring: string;     // hover ring / border
 }
 
 const MODULES: Mod[] = [
-  { key: "banners",            name: "Banner Photos",       description: "Homepage banner rotation & captions",   icon: ImageIcon, accent: "bg-blue-50 text-blue-700",       ring: "hover:border-blue-300" },
-  { key: "advertisements",     name: "Advertisement Area",  description: "Sponsored slots displayed on the site",  icon: Megaphone, accent: "bg-amber-50 text-amber-700",     ring: "hover:border-amber-300" },
-  { key: "social-media-links", name: "Social Media Links",  description: "Facebook, X, LinkedIn, YouTube, etc.",   icon: Share2,    accent: "bg-emerald-50 text-emerald-700", ring: "hover:border-emerald-300" },
-  { key: "contact-details",    name: "Contact Details",     description: "Phone, email, address on Contact page",  icon: Phone,     accent: "bg-slate-50 text-slate-700",   ring: "hover:border-slate-300" },
-  { key: "menu-list",          name: "Menu List",           description: "Top navigation & footer menu items",     icon: List,      accent: "bg-rose-50 text-rose-700",       ring: "hover:border-rose-300" },
-  { key: "about",              name: "About",               description: "About-us content on the public site",    icon: Info,      accent: "bg-sky-50 text-sky-700",         ring: "hover:border-sky-300" },
-  { key: "languages",          name: "Languages",           description: "The site in more languages, with machine translation", icon: Languages, accent: "bg-teal-50 text-teal-700", ring: "hover:border-teal-300" },
-  { key: "pages",              name: "Pages and Layout",    description: "Custom pages and the home page layout",  icon: LayoutGrid, accent: "bg-sky-50 text-sky-700",       ring: "hover:border-sky-300" },
-  { key: "extras",             name: "Website extras",      description: "Social feeds, Google Analytics and QR codes", icon: Share2, accent: "bg-emerald-50 text-emerald-700", ring: "hover:border-emerald-300" },
-  { key: "theme",              name: "Website Theme",       description: "Which of the seven designs the public site uses", icon: Palette, accent: "bg-indigo-50 text-indigo-700", ring: "hover:border-indigo-300" },
+  { key: "banners",            name: "Banner Photos",       description: "Homepage banner rotation & captions",   icon: ImageIcon },
+  { key: "advertisements",     name: "Advertisement Area",  description: "Sponsored slots displayed on the site",  icon: Megaphone },
+  { key: "social-media-links", name: "Social Media Links",  description: "Facebook, X, LinkedIn, YouTube, etc.",   icon: Share2 },
+  { key: "contact-details",    name: "Contact Details",     description: "Phone, email, address on Contact page",  icon: Phone },
+  { key: "menu-list",          name: "Menu List",           description: "Top navigation & footer menu items",     icon: List },
+  { key: "about",              name: "About",               description: "About-us content on the public site",    icon: Info },
+  { key: "languages",          name: "Languages",           description: "The site in more languages, with machine translation", icon: Languages },
+  { key: "pages",              name: "Pages and Layout",    description: "Custom pages and the home page layout",  icon: LayoutGrid },
+  { key: "extras",             name: "Website extras",      description: "Social feeds, Google Analytics and QR codes", icon: Share2 },
+  { key: "theme",              name: "Website Theme",       description: "Which of the seven designs the public site uses", icon: Palette },
 ];
 
 export default function MyDistrictWebsitePage() {
@@ -120,14 +117,9 @@ export default function MyDistrictWebsitePage() {
             small globe icon tile + "My District Website" title, then a
             hyperlinked public URL under it + a Yes/Expired/No status chip.
           Back button removed on user's request 2026-07-04.               */}
-      <div className="flex items-start justify-between flex-wrap gap-4">
-        <div className="flex items-start gap-3 min-w-0">
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-azure/10 text-ink">
-            <Globe size={20} />
-          </div>
-          <div className="min-w-0">
-            <h1 className="text-lg font-bold text-slate-800 leading-tight">My District Website</h1>
-            <div className="flex items-center gap-2 mt-1 flex-wrap">
+      <PageHeader
+          title="My District Website"
+          description={<><div className="flex items-center gap-2 mt-1 flex-wrap">
               {publicUrl ? (
                 <a
                   href={`https://${publicUrl}`}
@@ -144,10 +136,8 @@ export default function MyDistrictWebsitePage() {
               {/* Yes/No/Expired status chip removed — the district website
                   is free + compulsory, so no purchase/expiry state to
                   surface. Same reason there's no "Renew" CTA either. */}
-            </div>
-          </div>
-        </div>
-      </div>
+            </div></>}
+        />
 
       {loading && (
         <div className="flex items-center justify-center py-20">
@@ -156,11 +146,11 @@ export default function MyDistrictWebsitePage() {
       )}
 
       {error && (
-        <div className="flex flex-col items-center justify-center py-20 text-center bg-card rounded-2xl border border-slate-200 shadow-sm">
+        <Card className="flex flex-col items-center justify-center py-20 text-center">
           <AlertCircle className="h-12 w-12 text-red-500 mb-4" />
-          <h3 className="text-lg font-semibold text-slate-800">Error</h3>
+          <h3 className="row-h2">Error</h3>
           <p className="text-slate-500 mt-2 max-w-md">{error}</p>
-        </div>
+        </Card>
       )}
 
       {!loading && !error && (
@@ -169,26 +159,25 @@ export default function MyDistrictWebsitePage() {
             const Icon = mod.icon;
             const busy = navigatingKey === mod.key;
             return (
-              <button
+              <TileButton
                 key={mod.key}
-                type="button"
                 onClick={() => {
                   setNavigatingKey(mod.key);
                   router.push(`/district-admin-dashboard/my-district-website/${mod.key}${suffix}`);
                 }}
                 disabled={busy}
-                className={`group text-left rounded-2xl border border-slate-200 bg-card p-5 shadow-sm transition-all hover:shadow-md ${mod.ring} ${busy ? "opacity-60 pointer-events-none" : ""}`}
+                className={`${busy ? "opacity-60 pointer-events-none" : ""}`}
               >
-                <div className="flex items-start gap-4">
-                  <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl ${mod.accent}`}>
-                    {busy ? <RotaryLoader size="sm" /> : <Icon className="h-6 w-6" />}
+                <div>
+                  <div className="row-tile-icon">
+                    {busy ? <RotaryLoader size="sm" /> : <Icon className="h-5 w-5" />}
                   </div>
                   <div className="min-w-0">
-                    <p className="text-sm font-semibold text-slate-800">{mod.name}</p>
-                    <p className="text-xs text-slate-500 mt-0.5 leading-snug">{mod.description}</p>
+                    <p className="row-h3">{mod.name}</p>
+                    <p className="mt-1 text-[13px] text-muted-foreground">{mod.description}</p>
                   </div>
                 </div>
-              </button>
+              </TileButton>
             );
           })}
         </div>
@@ -200,10 +189,10 @@ export default function MyDistrictWebsitePage() {
           site allows framing (CSP frame-ancestors), we can switch back to an
           inline <iframe>. */}
       {!loading && !error && publicUrl && (
-        <div className="rounded-2xl border border-slate-200 bg-card shadow-sm overflow-hidden">
+        <Card className="overflow-hidden">
           <div className="flex items-center gap-2 px-4 py-2.5 border-b border-slate-100 bg-slate-50">
             <Globe size={16} className="text-ink" />
-            <h3 className="text-sm font-semibold text-slate-800">District Website</h3>
+            <h3 className="row-h3">District Website</h3>
           </div>
           <div className="flex flex-col items-center justify-center gap-4 px-6 py-12 text-center">
             <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-azure/10 text-ink">
@@ -224,12 +213,12 @@ export default function MyDistrictWebsitePage() {
               href={`https://${publicUrl}`}
               target="_blank"
               rel="noreferrer"
-              className="inline-flex items-center gap-2 rounded-full bg-azure px-5 py-2.5 text-sm font-semibold text-white hover:bg-mint-ink"
+              className="row-btn row-btn-primary"
             >
               Open District Website <ExternalLink size={15} />
             </a>
           </div>
-        </div>
+        </Card>
       )}
     </div>
   );

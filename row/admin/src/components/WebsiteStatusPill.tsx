@@ -3,7 +3,7 @@
 import { Globe, ExternalLink } from "@/components/icons";
 import type { WebsiteStatusInfo } from "@/services/api";
 
-const PILL = "flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-sm font-medium";
+const PILL = "flex items-center gap-1.5 px-3 py-1.5 rounded-md border text-sm font-medium";
 
 // Dashboard "Visit Website" pill.
 //   kind="club"     → PAID product: shows in every state (active/trial/expired/none).

@@ -11,6 +11,7 @@ import {
 } from "@/services/api";
 import { getCurrencySymbol } from "@/lib/currency";
 import { Button } from "@/components/ui/button";
+import { MenuItemButton } from "@/components/ui/text-buttons";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -58,7 +59,7 @@ interface DuesInfo {
   fees2Text?: string;
   fees3Text?: string;
   modeOfPayment: number; // 1=Online, 2=Offline, 3=Both
-  currency?: string; // "INR" | "USD" — sign only, the charge stays INR (user 2026-11-09)
+  currency?: string; // ISO code: what the payer is charged
 }
 
 interface SearchMember {
@@ -526,24 +527,22 @@ export default function MembershipDuesPaymentPage() {
                   {dropdownOpen && searchResults.length > 0 && (
                     <div className="absolute z-20 mt-1 w-full bg-card border rounded-md shadow-lg max-h-72 overflow-y-auto">
                       {searchResults.map(m => (
-                        <button
-                          type="button"
+                        <MenuItemButton
                           key={m.memberId}
                           onClick={() => {
                             setSelectedMember(m);
                             setMemberSearchQuery(m.memberName);
                             setDropdownOpen(false);
                           }}
-                          className={`block w-full text-left px-3 py-2 hover:bg-primary/10 transition-colors border-b last:border-b-0 ${
-                            selectedMember?.memberId === m.memberId ? "bg-primary/5" : ""
-                          }`}
+                          selected={selectedMember?.memberId === m.memberId}
+                          className="flex-col items-stretch gap-0 rounded-none border-b last:border-b-0"
                         >
                           <p className="font-medium text-sm">{m.memberName}</p>
                           <p className="text-xs text-muted-foreground">
                             {m.clubName}
                             {searchResults.filter(o => o.memberName === m.memberName).length > 1 && ` | Member ID ${m.memberId}`}
                           </p>
-                        </button>
+                        </MenuItemButton>
                       ))}
                     </div>
                   )}
@@ -577,7 +576,7 @@ export default function MembershipDuesPaymentPage() {
           <Card>
             <CardHeader><CardTitle>Verify OTP</CardTitle></CardHeader>
             <CardContent className="space-y-4">
-              <p className="text-muted-foreground">An OTP has been sent to your registered mobile/email.</p>
+              <p className="text-muted-foreground">A code has been sent to your registered email.</p>
               <div>
                 <Label>Enter OTP</Label>
                 <Input

@@ -26,29 +26,26 @@ public class MemberService : IMemberService
 
     private MySqlConnection CreateConnection() => RowDb.Connect(_connectionString);
 
-    // Project rule: birthday + anniversary store year=1900 (placeholder) in the
-    // DB. The frontend never asks the user for a year; all incoming DateTimes
-    // here have year=1900 already from the new DayMonthPicker, but legacy
-    // callers (older mobile builds, older Excel imports) may send real years.
-    // Normalizing on every write guarantees the column converges to 1900 over
-    // time regardless of the caller.
+    // The forms ask for a birthday or anniversary without a year, so an incoming year means nothing: the stored
+    // date keeps its real year (Rotary.org sync, imports), and a date with no real year is stored in 1900.
     /// <summary>A country id, or null when none was chosen (0). Same as the NestJS edition's countryOrNull.</summary>
     private static int? CountryOrNull(int id) => id > 0 ? id : null;
 
-    private static DateTime? NormalizeBirthAnnivYear(DateTime? d)
+    private static Task<(DateTime? Birth, DateTime? Anniversary)> StoredDatesAsync(MySqlConnection connection, MySqlTransaction transaction, int memberId) =>
+        connection.QueryFirstOrDefaultAsync<(DateTime? Birth, DateTime? Anniversary)>(
+            "SELECT BirthDate, AnniversaryDate FROM member_master_profile WHERE pk_member_master_profile_id = @Id", new { Id = memberId }, transaction);
+
+    public static DateTime? NormalizeBirthAnnivYear(DateTime? d, DateTime? stored = null)
     {
         if (d == null) return null;
         var v = d.Value;
         // Defensive: any sentinel-style year (SQL Server's 1753 minimum, .NET's
         // 0001, or anything else pre-1900) is NOT a real date — coerce to NULL
-        // so it never lands in the DB. Real birthdays/anniversaries store year
-        // 1900 as a placeholder (day+month is what matters); anything older
-        // than that is garbage from a legacy import or a buggy caller.
+        // so it never lands in the DB.
         if (v.Year < 1900) return null;
-        // 1900 is not a leap year, so Feb 29 is un-representable there — clamp
-        // to Feb 28 rather than throw; day/month is what matters for display.
-        var day = (v.Month == 2 && v.Day == 29) ? 28 : v.Day;
-        return new DateTime(1900, v.Month, day);
+        var year = stored is { Year: > 1900 } s ? s.Year : 1900;
+        // 29 Feb in a year that is not a leap year (1900 is not): 28 Feb rather than throw.
+        return new DateTime(year, v.Month, Math.Min(v.Day, DateTime.DaysInMonth(year, v.Month)));
     }
 
     // One active club of the member, for naming them in a duplicate message.
@@ -495,6 +492,7 @@ public class MemberService : IMemberService
                 // A DIFFERENT soft-deleted row may still hold this mobile (matched here by email/rotaryId).
                 // Release it so the re-activation UPDATE doesn't hit UNIQUE(PrimaryMobileNumber).
                 await ReleaseSoftDeletedMobileAsync(connection, dto.PrimaryMobileNumber, excludeId: softDeletedId.Value, reactivateTx);
+                var stored = await StoredDatesAsync(connection, reactivateTx, softDeletedId.Value);
 
                 await connection.ExecuteAsync(@"
                     UPDATE member_master_profile SET
@@ -537,8 +535,8 @@ public class MemberService : IMemberService
                         FkPrimaryCountryId = CountryOrNull(dto.FkPrimaryCountryId),
                         dto.PrimaryMobileNumber,
                         dto.EmailId,
-                        BirthDate = NormalizeBirthAnnivYear(dto.BirthDate),
-                        AnniversaryDate = NormalizeBirthAnnivYear(dto.AnniversaryDate),
+                        BirthDate = NormalizeBirthAnnivYear(dto.BirthDate, stored.Birth),
+                        AnniversaryDate = NormalizeBirthAnnivYear(dto.AnniversaryDate, stored.Anniversary),
                         dto.BloodGroup, dto.TshirtSizeId,
                         FkSecondaryCountryId = CountryOrNull(dto.FkSecondaryCountryId),
                         dto.SecondaryMobileNumber,
@@ -840,6 +838,7 @@ public class MemberService : IMemberService
         {
             // Free the number from any soft-deleted row so reusing it doesn't hit UNIQUE(PrimaryMobileNumber).
             await ReleaseSoftDeletedMobileAsync(connection, dto.PrimaryMobileNumber, excludeId: id, transaction);
+            var stored = await StoredDatesAsync(connection, transaction, id);
 
             // Inline SQL — sp_member_update can't be recreated (SYSTEM_USER privilege)
             // and IsHonoraryMember was dropped from this table 2026-06-26 (moved to
@@ -853,7 +852,7 @@ public class MemberService : IMemberService
                     EmailId = @EmailId,
                     BirthDate = @BirthDate,
                     AnniversaryDate = @AnniversaryDate,
-                    BloodGroup = @BloodGroup,
+                    BloodGroup = IF(@BloodGroupOn, @BloodGroup, BloodGroup),
                     fk_tshirt_size_id = CASE WHEN @TshirtSizeId IS NULL THEN fk_tshirt_size_id WHEN @TshirtSizeId <= 0 THEN NULL WHEN EXISTS (SELECT 1 FROM event_tshirt_sizes ts WHERE ts.pk_id = @TshirtSizeId AND ts.SizeName IN ('XS','S','M','L','XL','XXL','XXXL')) THEN @TshirtSizeId ELSE fk_tshirt_size_id END,
                     fk_secondary_country_id = @FkSecondaryCountryId,
                     SecondaryMobileNumber = @SecondaryMobileNumber,
@@ -870,7 +869,7 @@ public class MemberService : IMemberService
                     Website = @Website,
                     RotaryId = @RotaryId,
                     DonorRecognition = @DonorRecognition,
-                    FamilyPhotoPath = @FamilyPhotoPath,
+                    FamilyPhotoPath = IF(@FamilyOn, @FamilyPhotoPath, FamilyPhotoPath),
                     IsFamilyDetailsVisible = @IsFamilyDetailsVisible,
                     modified_by = 0,
                     modified_date = NOW()
@@ -879,8 +878,10 @@ public class MemberService : IMemberService
                     Id = id,
                     dto.MemberName, dto.ProfilePhotoPath, FkPrimaryCountryId = CountryOrNull(dto.FkPrimaryCountryId), dto.PrimaryMobileNumber,
                     dto.EmailId,
-                    BirthDate       = NormalizeBirthAnnivYear(dto.BirthDate),
-                    AnniversaryDate = NormalizeBirthAnnivYear(dto.AnniversaryDate),
+                    BirthDate       = NormalizeBirthAnnivYear(dto.BirthDate, stored.Birth),
+                    AnniversaryDate = NormalizeBirthAnnivYear(dto.AnniversaryDate, stored.Anniversary),
+                    // Switched-off fields reach the form empty (MemberDataGuard): keep what is stored.
+                    BloodGroupOn = Brand.Feature("member.bloodGroup"), FamilyOn = Brand.Feature("member.familyDetails"),
                     dto.BloodGroup, dto.TshirtSizeId,
                     FkSecondaryCountryId = CountryOrNull(dto.FkSecondaryCountryId), dto.SecondaryMobileNumber,
                     IsPersonalDetailsVisible = dto.IsPersonalDetailsVisible ? 1 : 0,
@@ -905,7 +906,8 @@ public class MemberService : IMemberService
                 }
             }
 
-            if (dto.FamilyMembers != null)
+            // With the switch off the form got an empty family list (MemberDataGuard): saving it back must not clear the real one.
+            if (dto.FamilyMembers != null && Brand.Feature("member.familyDetails"))
                 await UpsertFamilyMembersAsync(connection, id, dto.FamilyMembers, transaction);
 
             if (dto.ClubId.HasValue && dto.ClubId.Value > 0 && dto.JoinedDate.HasValue)

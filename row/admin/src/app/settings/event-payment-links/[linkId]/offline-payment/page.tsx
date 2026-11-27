@@ -1,4 +1,5 @@
 "use client";
+import { IconButton } from "@/components/ui/icon-button";
 
 import { useState, useEffect, Suspense } from "react";
 import DateField from "@/components/DateField";
@@ -20,13 +21,13 @@ import {
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { ArrowLeft, Save, Paperclip, Eye } from "@/components/icons";
+import { Save, Paperclip, Eye } from "@/components/icons";
 import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import RotaryLoader from "@/components/RotaryLoader";
 
 import { currencySymbol } from "@/lib/appFormat";
-import { ListPageSkeleton } from "@/components/row/AppKit";
+import { PageHeader, ListPageSkeleton } from "@/components/row/AppKit";
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
 interface Registration { id: number; registrationName: string; amount: number; }
@@ -325,7 +326,7 @@ function OfflinePaymentContent() {
     return (
       <ProtectedRoute>
         <div className="flex flex-col items-center justify-center py-20">
-          <h3 className="text-lg font-semibold">Access Denied</h3>
+          <h3 className="row-h2">Access Denied</h3>
         </div>
       </ProtectedRoute>
     );
@@ -345,18 +346,7 @@ function OfflinePaymentContent() {
         <SuccessAlert open={!!successMessage} title="Success" description={successMessage || ""} onOk={() => setSuccessMessage(null)} />
         <ErrorAlert open={!!errorMessage} title="Error" description={errorMessage || ""} onOk={() => setErrorMessage(null)} />
 
-        <div className="flex items-center gap-3">
-          <Button variant="outline" size="icon" asChild>
-            <Link href={`/settings/event-payment-links/${linkId}/members`}><ArrowLeft className="h-4 w-4" /></Link>
-          </Button>
-          <div>
-            <h2 className="text-2xl font-bold tracking-tight text-primary">{isEditMode ? "Update Offline Payment" : "Record Offline Payment"}</h2>
-            <p className="text-muted-foreground text-base">
-              {linkDetail?.title ? linkDetail.title : `Link #${linkId}`}
-              {memberId && qMemberName ? ` - ${qMemberName}` : ""}
-            </p>
-          </div>
-        </div>
+        <PageHeader title={isEditMode ? "Update Offline Payment" : "Record Offline Payment"} description={<>{linkDetail?.title ? linkDetail.title : `Link #${linkId}`} {memberId && qMemberName ? ` - ${qMemberName}` : ""}</>} back={`/settings/event-payment-links/${linkId}/members`} />
 
         {/* A) Member Info — Standard form only */}
         {!isDynamic && memberId && (
@@ -613,9 +603,9 @@ function OfflinePaymentContent() {
                 <div className="flex items-center gap-2 mb-2 p-2 bg-muted rounded">
                   <Paperclip className="h-4 w-4 text-muted-foreground" />
                   <span className="text-sm flex-1 truncate">{existingAttachment.split("/").pop()}</span>
-                  <button type="button" onClick={() => setPreviewAttachment(`${API_BASE_URL}/${existingAttachment}`)} className="text-blue-600 hover:text-blue-800">
+                  <IconButton type="button" aria-label="View attachment" onClick={() => setPreviewAttachment(`${API_BASE_URL}/${existingAttachment}`)}>
                     <Eye className="h-4 w-4" />
-                  </button>
+                  </IconButton>
                 </div>
               )}
               <Input type="file" accept=".jpg,.jpeg,.png,.gif,.webp,.pdf" onChange={e => setAttachment(e.target.files?.[0] || null)} />

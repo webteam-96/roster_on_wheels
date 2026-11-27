@@ -22,7 +22,7 @@ export default function HelpLink() {
 
   if (!article) return null;
   return (
-    <Button variant="ghost" className="gap-2 text-foreground hover:bg-muted" asChild>
+    <Button variant="ghost" size="sm" asChild>
       <a href={`${helpArticleUrl(article.slug)}?lang=${encodeURIComponent(locale)}`} target="_blank" rel="noopener noreferrer" title={article.title}>
         <BookOpen className="h-4 w-4" />
         Help

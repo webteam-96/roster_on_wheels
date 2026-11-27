@@ -15,6 +15,7 @@
  *                   view) so the flow stays inside V2.
  */
 
+import { Card } from "@/components/ui/card";
 import { useState, useEffect, useCallback } from "react";
 import { useFeature } from "@/contexts/BrandContext";
 import { useParams, useSearchParams, useRouter } from "next/navigation";
@@ -31,11 +32,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
-import {
-  ArrowLeft, Users, Newspaper, CalendarDays, FolderKanban, Building2,
-  MapPin, Clock, Calendar, Globe, Phone, Mail, Briefcase, Award,
-  ChevronDown, ChevronUp, FileText, ExternalLink,
-} from "@/components/icons";
+import { Users, Newspaper, CalendarDays, FolderKanban, Building2, MapPin, Clock, Calendar, Globe, Phone, Mail, Briefcase, Award, ChevronDown, ChevronUp, FileText, ExternalLink } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import SendStatusBadges from "@/components/SendStatusBadges";
 import ProtectedRoute from "@/components/ProtectedRoute";
@@ -43,7 +40,7 @@ import ProjectDetailModal from "@/components/ProjectDetailModal";
 import { formatMoney } from "@/lib/currency";
 
 import { appLocale } from "@/lib/appFormat";
-import { ListPageSkeleton } from "@/components/row/AppKit";
+import { PageHeader, ListPageSkeleton } from "@/components/row/AppKit";
 function formatTime(t: string | null) {
   if (!t) return "";
   return t.substring(0, 5);
@@ -211,10 +208,10 @@ export default function ClubDetailViewV2Page() {
 
   if (!club) return (
     <ProtectedRoute>
-      <div className="text-center py-20 bg-card rounded-2xl border border-slate-200 shadow-sm">
+      <Card className="text-center py-20">
         <Building2 className="h-12 w-12 text-slate-400 mx-auto mb-4" />
         <p className="text-slate-500">Club not found</p>
-      </div>
+      </Card>
     </ProtectedRoute>
   );
 
@@ -222,30 +219,21 @@ export default function ClubDetailViewV2Page() {
     <ProtectedRoute>
       <div className="space-y-4">
         {/* ── Header ─────────────────────────────────────────────────── */}
-        <div className="bg-card rounded-2xl border border-slate-200 shadow-sm p-4">
-          <div className="flex items-center gap-3">
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={goBack}
-              className="border-slate-200 text-slate-700 hover:bg-slate-100"
-            >
-              <ArrowLeft className="h-4 w-4" />
-            </Button>
-            <div className="flex-1 min-w-0">
-              <h2 className="text-xl font-bold tracking-tight text-slate-800 truncate">
-                {club.clubName}
-              </h2>
-              <p className="text-slate-500 text-sm">
+        <PageHeader
+          title={club.clubName}
+          back={() => goBack()}
+          actions={
+            <>
+<p className="text-slate-500 text-sm">
                 District {club.districtNumber}
                 {club.zoneName ? ` | ${club.zoneName}` : ""}
               </p>
-            </div>
-          </div>
-        </div>
+            </>
+          }
+        />
 
         {/* ── Club Info Card ─────────────────────────────────────────── */}
-        <div className="bg-card rounded-2xl border border-slate-200 shadow-sm p-5">
+        <Card className="p-5">
           <div className="flex flex-col md:flex-row gap-5">
             <div className="flex-shrink-0">
               {club.clubLogoPath ? (
@@ -351,29 +339,25 @@ export default function ClubDetailViewV2Page() {
               </Badge>
             </div>
           </div>
-        </div>
+        </Card>
 
         {/* ── Tabs ───────────────────────────────────────────────────── */}
-        <div className="bg-card rounded-2xl border border-slate-200 shadow-sm p-3">
+        <Card className="p-3">
           <Tabs value={activeTab} onValueChange={setActiveTab}>
             <TabsList
-              className="h-auto flex-wrap gap-1 p-1.5 rounded-full bg-muted"
             >
               <TabsTrigger
                 value="members"
-                className="text-sm font-semibold px-3.5 py-1.5 rounded-full"
               >
                 <Users className="h-4 w-4 mr-2" />Rotarians &amp; BOD
               </TabsTrigger>
               <TabsTrigger
                 value="communication"
-                className="text-sm font-semibold px-3.5 py-1.5 rounded-full"
               >
                 <Newspaper className="h-4 w-4 mr-2" />Communication
               </TabsTrigger>
               <TabsTrigger
                 value="projects"
-                className="text-sm font-semibold px-3.5 py-1.5 rounded-full"
               >
                 <FolderKanban className="h-4 w-4 mr-2" />Projects
               </TabsTrigger>
@@ -410,7 +394,7 @@ export default function ClubDetailViewV2Page() {
                 </div>
                 {memberFilter === "bod" && bodYears.length > 0 && (
                   <Select value={bodYearId} onValueChange={setBodYearId}>
-                    <SelectTrigger className="w-40 border-slate-200 bg-card focus:border-azure focus:ring-azure/20">
+                    <SelectTrigger className="w-40">
                       <SelectValue placeholder="Year" />
                     </SelectTrigger>
                     <SelectContent>
@@ -551,7 +535,7 @@ export default function ClubDetailViewV2Page() {
                       <Button
                         variant="outline"
                         size="sm"
-                        className="border-slate-200 text-slate-700 hover:bg-slate-100"
+                       
                         onClick={() => {
                           setMemberPage((p) => p + 1);
                           fetchMembers(memberPage + 1);
@@ -573,9 +557,9 @@ export default function ClubDetailViewV2Page() {
                     </div>
                   )}
                   {bodMembers.map((b: any) => (
-                    <div
+                    <Card
                       key={b.id}
-                      className="rounded-2xl border border-slate-200 shadow-sm bg-card hover:shadow-md transition-all p-3 flex items-center gap-3"
+                      className="transition-all p-3 flex items-center gap-3"
                     >
                       {b.profilePhotoPath ? (
                         <img
@@ -591,13 +575,12 @@ export default function ClubDetailViewV2Page() {
                       <div className="flex-1 min-w-0">
                         <p className="font-semibold text-sm text-slate-800">{b.memberName}</p>
                         <Badge
-                          variant="outline"
-                          className="text-[10px] mt-0.5 border-slate-200 bg-slate-50 text-slate-700"
+                          variant="outline" className="mt-0.5 border-slate-200 bg-slate-50 text-slate-700"
                         >
                           {b.designationName}
                         </Badge>
                       </div>
-                    </div>
+                    </Card>
                   ))}
                 </div>
               )}
@@ -613,7 +596,7 @@ export default function ClubDetailViewV2Page() {
                 <>
                   {/* Events */}
                   <div>
-                    <h3 className="text-base font-semibold mb-3 flex items-center gap-2 text-slate-800">
+                    <h3 className="row-h2 mb-3 flex items-center gap-2">
                       <CalendarDays className="h-5 w-5 text-ink" />Upcoming Events
                     </h3>
                     {events.length === 0 ? (
@@ -621,9 +604,9 @@ export default function ClubDetailViewV2Page() {
                     ) : (
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                         {events.map((ev: any) => (
-                          <div
+                          <Card
                             key={ev.id}
-                            className="rounded-2xl border border-slate-200 shadow-sm bg-card hover:shadow-md transition-all overflow-hidden"
+                            className="transition-all overflow-hidden"
                           >
                             <div className="flex gap-3">
                               {ev.imagePath && (
@@ -659,7 +642,7 @@ export default function ClubDetailViewV2Page() {
                                 <SendStatusBadges item={ev} />
                               </div>
                             </div>
-                          </div>
+                          </Card>
                         ))}
                       </div>
                     )}
@@ -667,7 +650,7 @@ export default function ClubDetailViewV2Page() {
 
                   {/* Newsletters */}
                   <div>
-                    <h3 className="text-base font-semibold mb-3 flex items-center gap-2 text-slate-800">
+                    <h3 className="row-h2 mb-3 flex items-center gap-2">
                       <Newspaper className="h-5 w-5 text-ink" />Newsletters
                     </h3>
                     {newsletters.length === 0 ? (
@@ -675,9 +658,9 @@ export default function ClubDetailViewV2Page() {
                     ) : (
                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                         {newsletters.map((nl: any) => (
-                          <div
+                          <Card
                             key={nl.id}
-                            className="rounded-2xl border border-slate-200 shadow-sm bg-card hover:shadow-md transition-all p-4"
+                            className="transition-all p-5"
                           >
                             <div className="flex items-start gap-3">
                               <div className="w-10 h-10 rounded-xl bg-azure/10 flex items-center justify-center flex-shrink-0">
@@ -722,7 +705,7 @@ export default function ClubDetailViewV2Page() {
                                 Open Link
                               </a>
                             )}
-                          </div>
+                          </Card>
                         ))}
                       </div>
                     )}
@@ -736,7 +719,7 @@ export default function ClubDetailViewV2Page() {
               <div className="flex items-center gap-4 flex-wrap">
                 {projectYears.length > 0 && (
                   <Select value={projectYearId} onValueChange={setProjectYearId}>
-                    <SelectTrigger className="w-48 border-slate-200 bg-card focus:border-azure focus:ring-azure/20">
+                    <SelectTrigger className="w-48">
                       <SelectValue placeholder="Select year" />
                     </SelectTrigger>
                     <SelectContent>
@@ -749,7 +732,7 @@ export default function ClubDetailViewV2Page() {
                   </Select>
                 )}
                 <Select value={projectModuleFilter} onValueChange={setProjectModuleFilter}>
-                  <SelectTrigger className="w-56 border-slate-200 bg-card focus:border-azure focus:ring-azure/20">
+                  <SelectTrigger className="w-56">
                     <SelectValue placeholder="Avenue of Service" />
                   </SelectTrigger>
                   <SelectContent>
@@ -777,10 +760,10 @@ export default function ClubDetailViewV2Page() {
               {!loadingProjects && projects.length > 0 && (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                   {projects.map((p: any) => (
-                    <div
+                    <Card
                       key={p.id}
                       onClick={() => setDetailProjectId(p.id)}
-                      className="rounded-2xl border border-slate-200 shadow-sm bg-card hover:shadow-md hover:border-slate-300 transition-all overflow-hidden cursor-pointer"
+                      className="hover:border-slate-300 transition-all overflow-hidden cursor-pointer"
                     >
                       {p.primaryPhoto && (
                         <img
@@ -794,16 +777,14 @@ export default function ClubDetailViewV2Page() {
                         <div className="flex flex-wrap gap-1">
                           {p.moduleName && (
                             <Badge
-                              variant="outline"
-                              className="text-[10px] border-slate-200 bg-slate-50 text-slate-700"
+                              variant="outline" className="border-slate-200 bg-slate-50 text-slate-700"
                             >
                               {p.moduleName}
                             </Badge>
                           )}
                           {(p.areaOfFocusName || p.otherAreaOfFocus) && (
                             <Badge
-                              variant="outline"
-                              className="text-[10px] border-azure/20 bg-azure/5 text-ink"
+                              variant="outline" className="border-azure/20 bg-blue-100 text-azure/5 text-ink"
                             >
                               {p.areaOfFocusName || p.otherAreaOfFocus}
                             </Badge>
@@ -842,13 +823,13 @@ export default function ClubDetailViewV2Page() {
                           <p className="text-xs text-slate-500 line-clamp-2">{p.description}</p>
                         )}
                       </div>
-                    </div>
+                    </Card>
                   ))}
                 </div>
               )}
             </TabsContent>
           </Tabs>
-        </div>
+        </Card>
       </div>
       <ProjectDetailModal
         clubId={clubId}

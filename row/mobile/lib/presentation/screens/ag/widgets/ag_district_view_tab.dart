@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 
+import 'package:rotary_flutter_app/presentation/widgets/row/motion.dart';
 import 'package:flutter/material.dart' hide Text;
 import '../../../../core/services/ag_dashboard_api.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -557,7 +558,7 @@ class _ComparisonSectionState extends State<_ComparisonSection> {
           const SizedBox(height: 8),
           ClipRRect(
             borderRadius: BorderRadius.circular(999),
-            child: LinearProgressIndicator(
+            child: RowProgressBar(
               value: frac.clamp(0.0, 1.0),
               minHeight: 8,
               backgroundColor: AppColors.slate100,
@@ -743,7 +744,7 @@ class _MetricBars extends StatelessWidget {
                     Expanded(
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(999),
-                        child: LinearProgressIndicator(
+                        child: RowProgressBar(
                           value: peak == 0 ? 0 : entries[i].value / peak,
                           minHeight: 8,
                           backgroundColor: AppColors.slate100,

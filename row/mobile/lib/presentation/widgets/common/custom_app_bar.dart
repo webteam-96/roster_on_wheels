@@ -48,6 +48,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
           (back == null
               ? null
               : IconButton(
+                  tooltip: MaterialLocalizations.of(context).backButtonTooltip,
                   icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20, color: AppColors.textPrimary),
                   constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
                   onPressed: back,

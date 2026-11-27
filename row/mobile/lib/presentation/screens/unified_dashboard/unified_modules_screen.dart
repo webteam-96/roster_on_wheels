@@ -1,4 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/skeleton_list.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/bento.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/module_icons.dart';
 import 'package:flutter/material.dart' hide Text;
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -16,14 +19,15 @@ import '../../../data/models/module_coming_soon_model.dart';
 import '../../widgets/common/module_status_badge.dart';
 import '../../widgets/common/coming_soon_badge.dart';
 import '../../widgets/common/empty_state_widget.dart';
-import '../../widgets/common/loading_widget.dart';
 import 'package:rotary_flutter_app/core/theme/app_fonts.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/motion.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/roster_wheel.dart';
 
 /// Selectable visual layouts — mirrors Club/District dashboard variants.
 enum _DashboardVariant {
   list,     // Single-column grouped rows
-  featured, // First module per group is a hero tile, rest in 3-col grid
+  featured, // Bento grid per module group (the stored name predates it)
 }
 
 const String _kVariantPrefKey = 'unified_dashboard_variant';
@@ -52,7 +56,7 @@ class _UnifiedModulesScreenState extends State<UnifiedModulesScreen> {
   // club scope (if a club is attached and the user admins it) else the district
   // scope; null → no badge. Website/Dues badges are club-dashboard only.
   int? _emailRemaining;
-  _DashboardVariant _variant = _DashboardVariant.list;
+  _DashboardVariant _variant = _DashboardVariant.featured;
   ComingSoonRegistry _comingSoon = ComingSoonRegistry.empty();
 
   @override
@@ -107,7 +111,7 @@ class _UnifiedModulesScreenState extends State<UnifiedModulesScreen> {
     if (stored == null || !mounted) return;
     final match = _DashboardVariant.values.firstWhere(
       (v) => v.name == stored,
-      orElse: () => _DashboardVariant.list,
+      orElse: () => _DashboardVariant.featured,
     );
     setState(() => _variant = match);
   }
@@ -199,7 +203,7 @@ class _UnifiedModulesScreenState extends State<UnifiedModulesScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.lightBg,
-      body: RefreshIndicator(
+      body: RowRefresh(
         color: AppColors.primary,
         onRefresh: _load,
         child: CustomScrollView(
@@ -212,6 +216,7 @@ class _UnifiedModulesScreenState extends State<UnifiedModulesScreen> {
               elevation: 0,
               centerTitle: false,
               leading: IconButton(
+                tooltip: MaterialLocalizations.of(context).backButtonTooltip,
                 icon: const Icon(Icons.arrow_back_ios_new_rounded, color: AppColors.textPrimary),
                 onPressed: () => context.pop(),
               ),
@@ -235,10 +240,7 @@ class _UnifiedModulesScreenState extends State<UnifiedModulesScreen> {
             ),
             SliverToBoxAdapter(
               child: _loading
-                  ? const Padding(
-                      padding: EdgeInsets.only(top: 100),
-                      child: LoadingWidget(),
-                    )
+                  ? const RowSkeletonList(rows: 9)
                   : _error != null
                       ? Padding(
                           padding: const EdgeInsets.only(top: 60),
@@ -302,7 +304,7 @@ class _UnifiedModulesScreenState extends State<UnifiedModulesScreen> {
                   ),
                 ),
                 _variantOption(sheetContext, _DashboardVariant.list,     'List View',     'Single-column rows, scannable'),
-                _variantOption(sheetContext, _DashboardVariant.featured, 'Featured',      'First module per group stands out'),
+                _variantOption(sheetContext, _DashboardVariant.featured, 'Grid', 'Tiles in mixed sizes'),
                 const SizedBox(height: 8),
               ],
             ),
@@ -344,7 +346,7 @@ class _UnifiedModulesScreenState extends State<UnifiedModulesScreen> {
     return Padding(
       padding: const EdgeInsets.fromLTRB(AppSpacing.md, AppSpacing.lg, AppSpacing.md, AppSpacing.xxl),
       child: Column(
-        children: groups.map(_buildListGroupSection).toList(),
+        children: revealAll(groups.map(_buildListGroupSection).toList()),
       ),
     );
   }
@@ -379,7 +381,7 @@ class _UnifiedModulesScreenState extends State<UnifiedModulesScreen> {
   Widget _buildListRow(MergedModule m, Color accent) {
     final cs = _comingSoon.isComingSoon(m.moduleKey);
     final badge = cs ? null : _badgeFor(m.moduleKey);
-    final row = Material(
+    final row = RowPressable(morph: true, scale: .985, child: Material(
       color: Colors.transparent,
       child: InkWell(
         onTap: _onTapFor(m),
@@ -395,7 +397,7 @@ class _UnifiedModulesScreenState extends State<UnifiedModulesScreen> {
                   color: accent.withValues(alpha: 0.15),
                   shape: BoxShape.circle,
                 ),
-                child: Icon(_ModuleTile.fallbackIcon(m.moduleKey), color: accent, size: 18),
+                child: Icon(moduleIcon(m.moduleKey), color: accent, size: 18),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -440,7 +442,7 @@ class _UnifiedModulesScreenState extends State<UnifiedModulesScreen> {
           ),
         ),
       ),
-    );
+    ));
     if (!cs) return row;
     return Stack(
       children: [
@@ -465,106 +467,55 @@ class _UnifiedModulesScreenState extends State<UnifiedModulesScreen> {
     return Padding(
       padding: const EdgeInsets.fromLTRB(AppSpacing.md, AppSpacing.lg, AppSpacing.md, AppSpacing.xxl),
       child: Column(
-        children: groups.map(_buildFeaturedGroupSection).toList(),
+        children: revealAll(groups.map(_buildFeaturedGroupSection).toList()),
       ),
     );
   }
 
   Widget _buildFeaturedGroupSection(MergedModuleGroup group) {
-    final categoryColor = _categoryColor(group.categoryName, group.categoryId);
     final modules = group.modules;
-    if (modules.isEmpty) {
-      return const SizedBox.shrink();
-    }
-    // Groups whose tiles carry a status badge (Payments) need slightly taller
-    // grid cells so the inline badge under the name never overflows on narrow
-    // phones. Plain groups keep the tighter ratio.
-    final bool hasBadge = modules.any((m) => _badgeFor(m.moduleKey) != null);
-
-    // Small groups (2–3 modules) look unbalanced as a full-width hero over a
-    // partial row of small tiles ("one long + a couple small"). Render them as
-    // a uniform card grid that fills the row instead: 2-up for two modules,
-    // 3-up for three. A lone module (1) still gets the featured hero, and 4+
-    // keep hero + a full 3-col row below (which is already balanced).
-    if (modules.length == 2 || modules.length == 3) {
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _categoryCaption(group.categoryName, categoryColor, bottomGap: 12),
-          GridView.builder(
-            shrinkWrap: true,
-            padding: EdgeInsets.zero,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: modules.length,
-            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: modules.length,
-              crossAxisSpacing: 12,
-              mainAxisSpacing: 12,
-              // Fixed height so the 2-up and 3-up tiles stay a consistent
-              // height (matches the ~0.85 aspect ratio of the 3-col grid, with
-              // room for an inline status badge under the name).
-              mainAxisExtent: 132,
-            ),
-            itemBuilder: (_, i) {
-              final m = modules[i];
-              return comingSoonOverlay(
-                isComingSoon: _comingSoon.isComingSoon(m.moduleKey),
-                date: _comingSoon.dateFor(m.moduleKey),
-                child: _ModuleTile(module: m, accent: categoryColor, onTap: _onTapFor(m), badge: _badgeFor(m.moduleKey)),
-              );
-            },
-          ),
-          const SizedBox(height: 32),
-        ],
-      );
-    }
-
-    final featured = modules.first;
-    final rest = modules.skip(1).toList();
-
+    if (modules.isEmpty) return const SizedBox.shrink();
+    final spans = RowBento.spans(modules.length);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _categoryCaption(group.categoryName, categoryColor, bottomGap: 12),
-        SizedBox(
-          height: 110,
-          child: comingSoonOverlay(
-            isComingSoon: _comingSoon.isComingSoon(featured.moduleKey),
-            date: _comingSoon.dateFor(featured.moduleKey),
-            dense: false,
-            child: _BentoFeaturedTile(
-              module: featured,
-              accent: categoryColor,
-              onTap: _onTapFor(featured),
-              badge: _badgeFor(featured.moduleKey),
-            ),
-          ),
-        ),
-        if (rest.isNotEmpty) ...[
-          const SizedBox(height: 12),
-          GridView.builder(
-            shrinkWrap: true,
-            padding: EdgeInsets.zero,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: rest.length,
-            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 3,
-              crossAxisSpacing: 12,
-              mainAxisSpacing: 12,
-              childAspectRatio: hasBadge ? 0.72 : 0.85,
-            ),
-            itemBuilder: (_, i) {
-              final m = rest[i];
-              return comingSoonOverlay(
-                isComingSoon: _comingSoon.isComingSoon(m.moduleKey),
-                date: _comingSoon.dateFor(m.moduleKey),
-                child: _ModuleTile(module: m, accent: categoryColor, onTap: _onTapFor(m), badge: _badgeFor(m.moduleKey)),
-              );
-            },
-          ),
-        ],
-        const SizedBox(height: 32),
+        _categoryCaption(group.categoryName, _categoryColor(group.categoryName, group.categoryId), bottomGap: 12),
+        RowBento(items: [
+          for (final (i, m) in modules.indexed) BentoItem(spans[i].$1, spans[i].$2, _buildBentoTile(m, i, spans[i])),
+        ]),
+        const SizedBox(height: 28),
       ],
+    );
+  }
+
+  Widget _buildBentoTile(MergedModule m, int index, (int, int) span) {
+    final cs = _comingSoon.isComingSoon(m.moduleKey);
+    final hasImage = m.iconPath != null && m.iconPath!.isNotEmpty;
+    final badge = cs ? null : _badgeFor(m.moduleKey);
+    return comingSoonOverlay(
+      isComingSoon: cs,
+      date: _comingSoon.dateFor(m.moduleKey),
+      child: RowBentoTile(
+        label: m.moduleName,
+        icon: hasImage
+            // Uploaded icons bring their own colours: give them a light ground on every tone.
+            ? Container(
+                width: 40,
+                height: 40,
+                padding: const EdgeInsets.all(8),
+                decoration: const BoxDecoration(color: AppColors.surface, shape: BoxShape.circle),
+                child: CachedNetworkImage(
+                  imageUrl: '${ApiConstants.mediaBaseUrl}${m.iconPath}',
+                  fit: BoxFit.contain,
+                  placeholder: (_, __) => Icon(moduleIcon(m.moduleKey), color: AppColors.primaryPrime, size: 22),
+                  errorWidget: (_, __, ___) => Icon(moduleIcon(m.moduleKey), color: AppColors.primaryPrime, size: 22),
+                ),
+              )
+            : Icon(moduleIcon(m.moduleKey)),
+        tone: RowBentoTile.toneFor(index, span),
+        badge: badge == null ? null : ModuleBadgeChip(badge: badge),
+        onTap: _onTapFor(m),
+      ),
     );
   }
 
@@ -599,198 +550,3 @@ String _normKey(String k) =>
 
 // One brand colour for every module group (design.md 1: no rainbow colouring).
 Color _categoryColor(String categoryName, int categoryId) => AppColors.primaryPrime;
-
-// ---------------------------------------------------------------------------
-// Module tile — 3-col tinted (used in Featured grid)
-// ---------------------------------------------------------------------------
-
-class _ModuleTile extends StatelessWidget {
-  final MergedModule module;
-  final Color accent;
-  final VoidCallback? onTap;
-  final ModuleBadge? badge;
-  const _ModuleTile(
-      {required this.module, required this.accent, this.onTap, this.badge});
-
-  static IconData fallbackIcon(String moduleKey) => _fallbackIcon(moduleKey);
-
-  static IconData _fallbackIcon(String moduleKey) {
-    final key = moduleKey.toLowerCase().replaceAll(' ', '');
-    if (key.contains('directory')) return Icons.people_outline;
-    if (key.contains('bod') || key.contains('board')) return Icons.groups_2_outlined;
-    if (key.contains('president')) return Icons.military_tech_outlined;
-    if (key.contains('calendar')) return Icons.calendar_month_outlined;
-    if (key.contains('event')) return Icons.event_outlined;
-    if (key.contains('announcement')) return Icons.campaign_outlined;
-    if (key.contains('market')) return Icons.storefront_outlined;
-    if (key.contains('clubservice')) return Icons.handshake_outlined;
-    if (key.contains('community')) return Icons.volunteer_activism_outlined;
-    if (key.contains('vocational')) return Icons.work_outline;
-    if (key.contains('generation')) return Icons.school_outlined;
-    if (key.contains('international')) return Icons.public_outlined;
-    if (key.contains('image')) return Icons.image_outlined;
-    if (key.contains('newsletter')) return Icons.newspaper_outlined;
-    if (key.contains('document')) return Icons.folder_outlined;
-    if (key.contains('admin') || key.contains('website')) return Icons.admin_panel_settings_outlined;
-    if (key.contains('attendance')) return Icons.fact_check_outlined;
-    if (key.contains('weblink') || key.contains('link')) return Icons.link_outlined;
-    if (key.contains('report') || key.contains('cmr')) return Icons.bar_chart_rounded;
-    return Icons.grid_view_outlined;
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final iconPath = module.iconPath;
-    final hasImage = iconPath != null && iconPath.isNotEmpty;
-    final imageUrl = hasImage ? '${ApiConstants.mediaBaseUrl}$iconPath' : null;
-
-    final shared = module.isShared;
-    final card = Container(
-      decoration: BoxDecoration(
-        color: accent.withValues(alpha: 0.06),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: accent.withValues(alpha: shared ? 0.65 : 0.15),
-          width: shared ? 1.8 : 1,
-        ),
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(20),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                width: 52,
-                height: 52,
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: accent.withValues(alpha: 0.18),
-                  shape: BoxShape.circle,
-                ),
-                child: hasImage
-                    ? CachedNetworkImage(
-                        imageUrl: imageUrl!,
-                        fit: BoxFit.contain,
-                        placeholder: (_, __) => Icon(_fallbackIcon(module.moduleKey), color: accent, size: 24),
-                        errorWidget: (_, __, ___) => Icon(_fallbackIcon(module.moduleKey), color: accent, size: 24),
-                      )
-                    : Icon(_fallbackIcon(module.moduleKey), size: 26, color: accent),
-              ),
-              const SizedBox(height: 10),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8),
-                child: Text(
-                  module.moduleName,
-                  style: AppFonts.body(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.textPrimary,
-                    height: 1.2,
-                  ),
-                  textAlign: TextAlign.center,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-              // Status/value badge sits inline under the name so it reads as
-              // part of the tile (a floating corner pill looked detached on the
-              // faint tile and overflowed the top edge of tall grid cells).
-              if (badge != null) ...[
-                const SizedBox(height: 8),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 6),
-                  child: ModuleBadgeChip(badge: badge!),
-                ),
-              ],
-            ],
-          ),
-        ),
-      ),
-    );
-    return card;
-  }
-}
-
-// ---------------------------------------------------------------------------
-// Featured tile — first module per group in the Featured layout
-// ---------------------------------------------------------------------------
-
-class _BentoFeaturedTile extends StatelessWidget {
-  final MergedModule module;
-  final Color accent;
-  final VoidCallback? onTap;
-  final ModuleBadge? badge;
-  const _BentoFeaturedTile(
-      {required this.module, required this.accent, this.onTap, this.badge});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: accent.withValues(alpha: 0.10),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: accent.withValues(alpha: 0.18), width: 1),
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(20),
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              children: [
-                Container(
-                  width: 64,
-                  height: 64,
-                  decoration: BoxDecoration(
-                    color: accent.withValues(alpha: 0.22),
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: Icon(_ModuleTile.fallbackIcon(module.moduleKey), color: accent, size: 32),
-                ),
-                const SizedBox(width: 14),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        module.moduleName,
-                        style: AppFonts.body(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w800,
-                          color: AppColors.textPrimary,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        module.isShared ? 'District & Club' : 'Featured',
-                        style: AppFonts.body(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                          color: accent,
-                          letterSpacing: 0.4,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                if (badge != null) ...[
-                  ModuleBadgeChip(badge: badge!),
-                  const SizedBox(width: 10),
-                ],
-                Icon(Icons.arrow_forward_rounded, color: accent, size: 22),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}

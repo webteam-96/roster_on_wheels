@@ -1,9 +1,9 @@
 "use client";
 
+import { TileButton } from "@/components/ui/text-buttons";
+import { PageHeader } from "@/components/row/AppKit";
 import React, { useState, useEffect } from "react";
-import Link from "next/link";
 import { useFeature } from "@/contexts/BrandContext";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -11,7 +11,7 @@ import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
 import RotaryLoader from "@/components/RotaryLoader";
 import ProtectedRoute from "@/components/ProtectedRoute";
-import { ArrowLeft, Download, Loader2, Building, Users } from "@/components/icons";
+import { Download, Loader2, Building, Users } from "@/components/icons";
 import { useAuth } from "@/contexts/AuthContext";
 import { RotaryYear } from "@/types/rotaryYear";
 import { getAgMyYears, fetchAgReport, getAgMyClubs } from "@/services/api";
@@ -323,7 +323,7 @@ export default function AgReportsPage() {
   if (!isAG) return (
     <ProtectedRoute>
       <div className="flex flex-col items-center justify-center py-20">
-        <h3 className="text-lg font-semibold">Access Denied</h3>
+        <h3 className="row-h2">Access Denied</h3>
         <p className="text-muted-foreground mt-2">Only AG (Assistant Governor) can access this page.</p>
       </div>
     </ProtectedRoute>
@@ -359,15 +359,7 @@ export default function AgReportsPage() {
   return (
     <ProtectedRoute>
       <div className="space-y-4">
-        <div className="flex items-center gap-3">
-          <Button variant="outline" size="icon" asChild>
-            <Link href="/"><ArrowLeft className="h-4 w-4" /></Link>
-          </Button>
-          <div>
-            <h2 className="text-2xl font-bold tracking-tight text-primary">My Reports</h2>
-            <p className="text-muted-foreground text-base">Download reports for clubs you manage as Assistant Governor</p>
-          </div>
-        </div>
+        <PageHeader title="My Reports" description="Download reports for clubs you manage as Assistant Governor" back="/" />
 
         <SuccessAlert open={!!success} title="Success" description={success ?? ""} onOk={() => setSuccess(null)} />
         <ErrorAlert open={!!error} title="Error" description={error ?? ""} onOk={() => setError(null)} />
@@ -413,18 +405,18 @@ export default function AgReportsPage() {
                 <CardContent>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                     {sec.items.map(item => (
-                      <button
+                      <TileButton
                         key={item.id}
                         onClick={() => download(item)}
                         disabled={busyId === item.id}
-                        className="flex items-center justify-between gap-3 rounded-md border p-3 text-left hover:bg-muted/40 hover:border-primary/50 disabled:opacity-60 transition-colors"
+                        className="flex items-center justify-between gap-3 p-3 disabled:opacity-60"
                       >
                         <div className="flex-1 min-w-0">
                           <div className="font-medium text-sm">{item.title}</div>
                           {item.yearScoped && <div className="text-xs text-muted-foreground mt-0.5">↳ year-scoped</div>}
                         </div>
                         {busyId === item.id ? <Loader2 className="h-4 w-4 animate-spin shrink-0" /> : <Download className="h-4 w-4 text-primary shrink-0" />}
-                      </button>
+                      </TileButton>
                     ))}
                   </div>
                 </CardContent>

@@ -23,12 +23,18 @@ public static class CurrencyHelper
     /// </summary>
     public static decimal Convert(decimal amount, string? from, string? to, IReadOnlyDictionary<string, decimal> rates)
     {
-        var f = Normalize(from);
-        var t = Normalize(to);
+        var f = Known(from, rates);
+        var t = Known(to, rates);
         if (amount == 0m || f == t) return amount;
-        var rf = rates.TryGetValue(f, out var a) ? a : 1m;
-        var rt = rates.TryGetValue(t, out var b) ? b : 1m;
-        return rt <= 0m ? amount : amount * rf / rt;
+        return rates.TryGetValue(f, out var rf) && rates.TryGetValue(t, out var rt) && rt > 0m ? amount * rf / rt : amount;
+    }
+
+    // A code the rates know keeps its own value even when this instance does not offer it: reading rupees as the
+    // default currency counted them 1:1 as dollars. No code at all means the brand's default.
+    private static string Known(string? code, IReadOnlyDictionary<string, decimal> rates)
+    {
+        var c = (code ?? "").Trim().ToUpperInvariant();
+        return c.Length > 0 && rates.ContainsKey(c) ? c : Normalize(c);
     }
 
     /// <summary>A district's currency: its explicit DefaultCurrency when valid, else the brand's default.</summary>

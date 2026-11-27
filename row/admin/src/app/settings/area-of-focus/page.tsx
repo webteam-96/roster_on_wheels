@@ -1,5 +1,6 @@
 "use client";
 
+import { Card } from "@/components/ui/card";
 import { useState, useCallback, useEffect } from "react";
 import { AreaOfFocus } from "@/types/project";
 import { Module } from "@/types/module";
@@ -32,13 +33,12 @@ import {
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
 import AlertModal from "@/components/AlertModal";
-import { ArrowLeft, Plus, Pencil, Trash2, MoreHorizontal, Target, AlertTriangle, Download, GripVertical } from "@/components/icons";
+import { Plus, Pencil, Trash2, MoreHorizontal, Target, AlertTriangle, Download, GripVertical } from "@/components/icons";
 import { exportToCSV } from "@/utils/csvExport";
 import RotaryLoader from "@/components/RotaryLoader";
-import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import SearchBox from "@/components/SearchBox";
-import { ListPageSkeleton } from "@/components/row/AppKit";
+import { PageHeader, ListPageSkeleton } from "@/components/row/AppKit";
 
 // Only these modules have Area of Focus (not club_service)
 const SERVICE_MODULE_KEYS = [
@@ -169,7 +169,7 @@ export default function AreaOfFocusPage() {
     return (
       <ProtectedRoute>
         <div className="flex flex-col items-center justify-center py-20">
-          <h3 className="text-lg font-semibold">Access Denied</h3>
+          <h3 className="row-h2">Access Denied</h3>
           <p className="text-muted-foreground mt-2">Only SuperAdmin can manage areas of focus.</p>
         </div>
       </ProtectedRoute>
@@ -179,26 +179,22 @@ export default function AreaOfFocusPage() {
   return (
     <ProtectedRoute>
       <div className="space-y-6">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-3">
-            <Button variant="outline" size="icon" asChild>
-              <Link href="/settings/project-categorization"><ArrowLeft className="h-4 w-4" /></Link>
-            </Button>
-            <div>
-              <h2 className="text-2xl font-bold tracking-tight text-primary">Area of Focus</h2>
-              <p className="text-muted-foreground text-base">Manage areas of focus by service module</p>
-            </div>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <Button variant="outline" onClick={() => exportToCSV(items, "area_of_focus", [
+        <PageHeader
+          title="Area of Focus"
+          description="Manage areas of focus by service module"
+          back="/settings/project-categorization"
+          actions={
+            <>
+<Button variant="outline" onClick={() => exportToCSV(items, "area_of_focus", [
               { key: "name", label: "Name" }, { key: "moduleName", label: "Module" },
               { key: "isActive", label: "Active" },
             ])} disabled={items.length === 0}><Download className="mr-2 h-4 w-4" />Export CSV</Button>
             <Button onClick={openAddDialog} disabled={!selectedModuleId}>
               <Plus className="mr-2 h-4 w-4" />Add Area of Focus
             </Button>
-          </div>
-        </div>
+            </>
+          }
+        />
 
         {/* Module selector */}
         <div className="w-full sm:w-72">
@@ -227,7 +223,7 @@ export default function AreaOfFocusPage() {
         {!loading && items.length === 0 && (
           <div className="flex flex-col items-center justify-center py-20 text-center">
             <Target className="h-12 w-12 text-muted-foreground mb-4" />
-            <h3 className="text-lg font-semibold">No areas of focus</h3>
+            <h3 className="row-h2">No areas of focus</h3>
             <p className="text-muted-foreground mt-2">
               {selectedModuleName ? `No areas of focus for ${selectedModuleName}. Click "Add Area of Focus" to create one.` : 'Select a module to get started.'}
             </p>
@@ -244,15 +240,15 @@ export default function AreaOfFocusPage() {
             {filteredItems.length === 0 && searchQuery.trim() !== "" ? (
               <p className="text-muted-foreground text-sm py-8 text-center">No results found for &quot;{searchQuery}&quot;</p>
             ) : (
-          <div className="rounded-md border">
+          <Card className="overflow-hidden">
             <Table>
               <TableHeader>
-                <TableRow className="bg-primary hover:bg-primary">
+                <TableRow>
                   <TableHead className="w-12">#</TableHead>
-                  <TableHead className="text-base font-semibold">Name</TableHead>
-                  <TableHead className="w-20 text-base font-semibold text-center">Status</TableHead>
+                  <TableHead>Name</TableHead>
+                  <TableHead className="w-20 text-center">Status</TableHead>
                   <TableHead className="w-12"></TableHead>
-                  <TableHead className="w-20 text-base font-semibold text-center">Sorting</TableHead>
+                  <TableHead className="w-20 text-center">Sorting</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -268,7 +264,7 @@ export default function AreaOfFocusPage() {
                     <TableCell>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon" className="h-8 w-8"><MoreHorizontal className="h-4 w-4" /></Button>
+                          <Button aria-label="More actions" variant="ghost" size="icon" className="row-btn-sm"><MoreHorizontal className="h-4 w-4" /></Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                           <DropdownMenuItem onClick={() => openEditDialog(item)}>
@@ -291,7 +287,7 @@ export default function AreaOfFocusPage() {
                 ))}
               </TableBody>
             </Table>
-          </div>
+          </Card>
             )}
           </>
         )}

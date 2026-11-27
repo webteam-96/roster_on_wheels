@@ -49,11 +49,10 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
 import AlertModal from "@/components/AlertModal";
-import { ArrowLeft, Plus, Pencil, Trash2, Save, AlertTriangle, FolderOpen, Download, Trophy, Eye } from "@/components/icons";
+import { Plus, Pencil, Trash2, Save, AlertTriangle, FolderOpen, Download, Trophy, Eye } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
-import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
-import { ListPageSkeleton } from "@/components/row/AppKit";
+import { PageHeader, ListPageSkeleton } from "@/components/row/AppKit";
 
 function BonusFieldsInner({ form, setField }: { form: any; setField: (f: string, v: any) => void }) {
   return (
@@ -383,29 +382,29 @@ export default function DistrictCitationPage() {
         <SuccessAlert open={!!successMessage} title="Success" description={successMessage || ""} onOk={() => setSuccessMessage(null)} />
         <ErrorAlert open={!!errorMessage} title="Error" description={errorMessage || ""} onOk={() => setErrorMessage(null)} />
 
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-3">
-            <Button variant="outline" size="icon" asChild><Link href={`/districts/${districtId}/dashboard`}><ArrowLeft className="h-4 w-4" /></Link></Button>
-            <div>
-              <h2 className="text-2xl font-bold tracking-tight text-primary">{districtName ? `${districtName} - District Awards` : "District Awards"}</h2>
-              <p className="text-muted-foreground text-base">Manage award criteria and view club points</p>
-            </div>
-          </div>
-          <Select value={String(selectedYearId || "")} onValueChange={v => setSelectedYearId(Number(v))}>
+        <PageHeader
+          title={districtName ? `${districtName} - District Awards` : "District Awards"}
+          description="Manage award criteria and view club points"
+          back={`/districts/${districtId}/dashboard`}
+          actions={
+            <>
+<Select value={String(selectedYearId || "")} onValueChange={v => setSelectedYearId(Number(v))}>
             <SelectTrigger className="w-[200px]"><SelectValue placeholder="Select Year" /></SelectTrigger>
             <SelectContent>
               {allYears.map((y: any) => <SelectItem key={y.id} value={String(y.id)}>{y.yearLabel || y.YearLabel}{y.isCurrent || y.IsCurrent ? " (Current)" : ""}</SelectItem>)}
             </SelectContent>
           </Select>
-        </div>
+            </>
+          }
+        />
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="flex-wrap h-auto">
-            <TabsTrigger value="categories" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">Categories</TabsTrigger>
-            <TabsTrigger value="description" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">Description</TabsTrigger>
-            <TabsTrigger value="auto" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">Auto Questions</TabsTrigger>
-            <TabsTrigger value="manual" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">Manual Questions</TabsTrigger>
-            <TabsTrigger value="club_points" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">Club Points</TabsTrigger>
+          <TabsList>
+            <TabsTrigger value="categories">Categories</TabsTrigger>
+            <TabsTrigger value="description">Description</TabsTrigger>
+            <TabsTrigger value="auto">Auto Questions</TabsTrigger>
+            <TabsTrigger value="manual">Manual Questions</TabsTrigger>
+            <TabsTrigger value="club_points">Club Points</TabsTrigger>
           </TabsList>
 
           {/* ── Categories Tab ── */}
@@ -584,7 +583,7 @@ export default function DistrictCitationPage() {
               {clubPointsLoading ? <div className="flex justify-center py-10"><ListPageSkeleton /></div> : (
                 <Card><CardContent className="p-0 overflow-x-auto">
                   <Table>
-                    <TableHeader><TableRow className="bg-primary hover:bg-primary">
+                    <TableHeader><TableRow>
                       <TableHead className="w-12">#</TableHead>
                       <TableHead>Club</TableHead>
                       <TableHead className="text-center">Total Points</TableHead>
@@ -706,14 +705,14 @@ export default function DistrictCitationPage() {
                     <Card key={i}><CardContent className="p-3 space-y-2">
                       <div className="flex justify-between items-center">
                         <Label className="text-sm font-medium">#{i + 1}</Label>
-                        <Button variant="ghost" size="icon" className="h-6 w-6 text-destructive" onClick={() => removeAutoSubItem(i)}><Trash2 className="h-3 w-3" /></Button>
+                        <Button variant="ghost" size="icon" className="w-6 text-destructive row-btn-sm" onClick={() => removeAutoSubItem(i)}><Trash2 className="h-3 w-3" /></Button>
                       </div>
 
                       {isClubService ? (
                         <div>
                           <Label className="text-xs">Meeting Type</Label>
                           <Select value={sub.subItemName || ""} onValueChange={v => { updateAutoSubItem(i, "subItemType", "meeting_type"); updateAutoSubItem(i, "subItemName", v); updateAutoSubItem(i, "subItemId", null); }}>
-                            <SelectTrigger className="h-8"><SelectValue placeholder="Select Meeting Type" /></SelectTrigger>
+                            <SelectTrigger className="row-field-sm"><SelectValue placeholder="Select Meeting Type" /></SelectTrigger>
                             <SelectContent>
                               {meetingTypes.map((mt: any) => <SelectItem key={mt.id} value={mt.name}>{mt.name}</SelectItem>)}
                             </SelectContent>
@@ -731,7 +730,7 @@ export default function DistrictCitationPage() {
                               setSubItemData(prev => ({ ...prev, [i]: {} }));
                               loadAofList(i, autoForm.activityId);
                             }}>
-                              <SelectTrigger className="h-8"><SelectValue placeholder="Select Type" /></SelectTrigger>
+                              <SelectTrigger className="row-field-sm"><SelectValue placeholder="Select Type" /></SelectTrigger>
                               <SelectContent>
                                 {subItemTypeOptions.map(opt => <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>)}
                               </SelectContent>
@@ -749,7 +748,7 @@ export default function DistrictCitationPage() {
                                   updateAutoSubItem(i, "subItemId", Number(v));
                                   updateAutoSubItem(i, "subItemName", sel?.name || "");
                                 }}>
-                                  <SelectTrigger className="h-8"><SelectValue placeholder={`Select ${aofLabel}`} /></SelectTrigger>
+                                  <SelectTrigger className="row-field-sm"><SelectValue placeholder={`Select ${aofLabel}`} /></SelectTrigger>
                                   <SelectContent>{aofList.map((it: any) => <SelectItem key={it.id} value={String(it.id)}>{it.name}</SelectItem>)}</SelectContent>
                                 </Select>
                               </div>
@@ -758,7 +757,7 @@ export default function DistrictCitationPage() {
                         </div>
                       )}
 
-                      <div><Label className="text-xs">Points</Label><Input type="number" className="h-8" value={sub.points} onChange={e => updateAutoSubItem(i, "points", e.target.value)} /></div>
+                      <div><Label className="text-xs">Points</Label><Input type="number" className="row-field-sm" value={sub.points} onChange={e => updateAutoSubItem(i, "points", e.target.value)} /></div>
                       <BonusFields form={sub} setField={(f, v) => updateAutoSubItem(i, f, v)} />
                     </CardContent></Card>
                   ))}
@@ -794,12 +793,12 @@ export default function DistrictCitationPage() {
               <div className="flex flex-wrap items-center justify-between gap-3"><Label className="font-semibold">Sub Criteria</Label><Button size="sm" variant="outline" onClick={addManualSub}><Plus className="h-3 w-3 mr-1" />Add Sub Criteria</Button></div>
               {manualForm.subCriteria.map((sc: any, i: number) => (
                 <Card key={i}><CardContent className="p-3 space-y-2">
-                  <div className="flex justify-between items-center"><Label className="text-sm font-medium">Sub Criteria #{i + 1}</Label><Button variant="ghost" size="icon" className="h-6 w-6 text-destructive" onClick={() => removeManualSub(i)}><Trash2 className="h-3 w-3" /></Button></div>
+                  <div className="flex justify-between items-center"><Label className="text-sm font-medium">Sub Criteria #{i + 1}</Label><Button variant="ghost" size="icon" className="w-6 text-destructive row-btn-sm" onClick={() => removeManualSub(i)}><Trash2 className="h-3 w-3" /></Button></div>
                   <div><Label className="text-xs">Title</Label><Input value={sc.subCriteriaTitle} onChange={e => updateManualSub(i, "subCriteriaTitle", e.target.value)} /></div>
                   <div className="grid grid-cols-2 gap-2">
                     <div><Label className="text-xs">Answer Type</Label>
                       <Select value={sc.answerType} onValueChange={v => updateManualSub(i, "answerType", v)}>
-                        <SelectTrigger className="h-8"><SelectValue /></SelectTrigger>
+                        <SelectTrigger className="row-field-sm"><SelectValue /></SelectTrigger>
                         <SelectContent>
                           <SelectItem value="number">Number</SelectItem>
                           <SelectItem value="yesno">Yes/No</SelectItem>
@@ -807,22 +806,22 @@ export default function DistrictCitationPage() {
                         </SelectContent>
                       </Select>
                     </div>
-                    {sc.answerType !== "choose_one" && <div><Label className="text-xs">Points</Label><Input type="number" className="h-8" value={sc.points} onChange={e => updateManualSub(i, "points", e.target.value)} /></div>}
+                    {sc.answerType !== "choose_one" && <div><Label className="text-xs">Points</Label><Input type="number" className="row-field-sm" value={sc.points} onChange={e => updateManualSub(i, "points", e.target.value)} /></div>}
                   </div>
                   {sc.answerType === "number" && <BonusFields form={sc} setField={(f, v) => updateManualSub(i, f, v)} />}
                   {sc.answerType === "choose_one" && (
                     <div className="space-y-2 pl-3 border-l-2 border-blue-200">
-                      <div className="flex flex-wrap items-center justify-between gap-3"><Label className="text-xs font-medium">Options</Label><Button size="sm" variant="outline" className="h-6 text-xs" onClick={() => addManualOption(i)}><Plus className="h-2 w-2 mr-1" />Add Option</Button></div>
+                      <div className="flex flex-wrap items-center justify-between gap-3"><Label className="text-xs font-medium">Options</Label><Button size="sm" variant="outline" className="row-btn-sm" onClick={() => addManualOption(i)}><Plus className="h-2 w-2 mr-1" />Add Option</Button></div>
                       {sc.options.map((o: any, j: number) => (
                         <div key={j} className="flex gap-2 items-center">
-                          <Input className="h-7 text-xs flex-1" value={o.optionText} onChange={e => updateManualOption(i, j, "optionText", e.target.value)} placeholder="Option text" />
-                          <Input className="h-7 text-xs w-20" type="number" value={o.optionPoints} onChange={e => updateManualOption(i, j, "optionPoints", e.target.value)} placeholder="Points" />
-                          <Button variant="ghost" size="icon" className="h-6 w-6 text-destructive" onClick={() => removeManualOption(i, j)}><Trash2 className="h-3 w-3" /></Button>
+                          <Input className="row-field-sm flex-1" value={o.optionText} onChange={e => updateManualOption(i, j, "optionText", e.target.value)} placeholder="Option text" />
+                          <Input className="row-field-sm w-20" type="number" value={o.optionPoints} onChange={e => updateManualOption(i, j, "optionPoints", e.target.value)} placeholder="Points" />
+                          <Button variant="ghost" size="icon" className="w-6 text-destructive row-btn-sm" onClick={() => removeManualOption(i, j)}><Trash2 className="h-3 w-3" /></Button>
                         </div>
                       ))}
                     </div>
                   )}
-                  <div><Label className="text-xs">Remark</Label><Input className="h-8" value={sc.remark} onChange={e => updateManualSub(i, "remark", e.target.value)} /></div>
+                  <div><Label className="text-xs">Remark</Label><Input className="row-field-sm" value={sc.remark} onChange={e => updateManualSub(i, "remark", e.target.value)} /></div>
                 </CardContent></Card>
               ))}
             </div>

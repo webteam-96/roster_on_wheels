@@ -15,6 +15,8 @@ import '../../widgets/common/loading_widget.dart';
 import '../../widgets/common/pagination_widget.dart';
 import '../../widgets/common/search_bar_widget.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/motion.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/roster_wheel.dart';
 
 // ---------------------------------------------------------------------------
 // Model
@@ -174,10 +176,10 @@ class _LoginLogsScreenState extends State<LoginLogsScreen> {
                             subtitle: 'No login activity found.',
                             icon: Icons.history_outlined,
                           )
-                        : RefreshIndicator(
+                        : RowRefresh(
                             color: AppColors.primary,
                             onRefresh: () => _fetch(reset: true),
-                            child: ListView.separated(
+                            child: RowListView.separated(
                               padding: const EdgeInsets.all(16),
                               itemCount: _items.length + 1,
                               separatorBuilder: (_, __) => const SizedBox(height: 8),

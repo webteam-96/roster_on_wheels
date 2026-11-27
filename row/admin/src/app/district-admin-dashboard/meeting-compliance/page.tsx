@@ -1,4 +1,5 @@
 "use client";
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
 
 /**
  * District Admin Dashboard: meeting compliance (N8 Meetings, build spec B.1 #31).
@@ -7,6 +8,10 @@
  * shows the same status in its "Meetings" column. Off until Settings > Features turns on "meetings".
  */
 
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card } from "@/components/ui/card";
+import { PageHeader } from "@/components/row/AppKit";
 import { useCallback, useEffect, useState } from "react";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { useAuth } from "@/contexts/AuthContext";
@@ -70,21 +75,17 @@ export default function MeetingCompliancePage() {
   return (
     <ProtectedRoute>
       <div className="space-y-4">
-        <div className="rounded-2xl border border-slate-200 bg-card p-5">
-          <h1 className="text-lg font-semibold text-slate-800">Meeting compliance</h1>
-          <p className="mt-1 text-sm text-slate-500">
-            Meetings held by each club against the number required per month. A meeting counts once its attendance is
-            marked.
-          </p>
+        <PageHeader title="Meeting compliance" description="Meetings held by each club against the number required per month. A meeting counts once its attendance is marked." />
+        <Card className="p-5">
           <div className="mt-4 flex flex-wrap items-end gap-4">
             <div>
               <label htmlFor="mc-month" className="mb-1 block text-sm font-medium text-slate-700">Month</label>
-              <input
+              <Input
                 id="mc-month"
                 type="month"
                 value={month}
                 onChange={(e) => setMonth(e.target.value)}
-                className="rounded-[12px] border border-slate-200 px-3 py-1.5 text-sm focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                className="w-auto"
               />
             </div>
             <div>
@@ -92,23 +93,23 @@ export default function MeetingCompliancePage() {
                 District rule: meetings per month
               </label>
               <div className="flex flex-wrap gap-2">
-                <input
+                <Input
                   id="mc-default"
                   type="number"
                   min={0}
                   max={31}
                   value={defaultInput}
                   onChange={(e) => setDefaultInput(e.target.value)}
-                  className="w-20 rounded-[12px] border border-slate-200 px-3 py-1.5 text-sm focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                  className="w-20"
                 />
-                <button
+                <Button
                   type="button"
                   onClick={() => save(parseMeetingCount(defaultInput))}
                   disabled={busy || !data}
-                  className="rounded-full bg-azure px-3 py-1.5 text-sm font-semibold text-cream hover:bg-mint-ink disabled:opacity-60"
+                  size="sm"
                 >
                   Save
-                </button>
+                </Button>
               </div>
             </div>
           </div>
@@ -117,45 +118,45 @@ export default function MeetingCompliancePage() {
           )}
           {error && <p role="alert" className="mt-3 text-sm text-red-700">{error}</p>}
           {notice && <p role="status" className="mt-3 text-sm text-emerald-700">{notice}</p>}
-        </div>
+        </Card>
 
         {!data ? (
           <TableSkeleton rows={8} />
         ) : data.clubs.length === 0 ? (
-          <div className="rounded-2xl border border-slate-200 bg-card p-8 text-center text-sm text-slate-500">
+          <Card className="p-5 text-center text-sm text-slate-500">
             No active clubs in this district.
-          </div>
+          </Card>
         ) : (
-          <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-card">
-            <table className="w-full text-sm">
-              <thead className="border-b border-slate-200 bg-[#EDF4FB] text-left text-xs font-semibold text-slate-600">
-                <tr>
-                  <th className="px-4 py-2.5">Club</th>
-                  <th className="px-4 py-2.5">Held in {monthLabel(data.month)}</th>
-                  <th className="px-4 py-2.5">Required</th>
-                  <th className="px-4 py-2.5">Status</th>
-                  <th className="px-4 py-2.5">
+          <Card className="overflow-x-auto">
+            <Table className="w-full text-sm">
+              <TableHeader className="border-b border-slate-200 text-left">
+                <TableRow>
+                  <TableHead className="px-4">Club</TableHead>
+                  <TableHead className="px-4">Held in {monthLabel(data.month)}</TableHead>
+                  <TableHead className="px-4">Required</TableHead>
+                  <TableHead className="px-4">Status</TableHead>
+                  <TableHead className="px-4">
                     Club rule <span className="font-normal normal-case">(empty: district rule)</span>
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
+                  </TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody className="divide-y divide-slate-100">
                 {data.clubs.map((c) => (
-                  <tr key={c.clubId}>
-                    <td className="px-4 py-2.5 font-medium text-slate-800">{c.clubName}</td>
-                    <td className="px-4 py-2.5 tabular-nums text-slate-700">{c.held}</td>
-                    <td className="px-4 py-2.5 tabular-nums text-slate-700">
+                  <TableRow key={c.clubId}>
+                    <TableCell className="px-4 py-2.5 font-medium text-slate-800">{c.clubName}</TableCell>
+                    <TableCell className="px-4 py-2.5 tabular-nums text-slate-700">{c.held}</TableCell>
+                    <TableCell className="px-4 py-2.5 tabular-nums text-slate-700">
                       {c.required}
                       {c.isOverride && <span className="ml-1 text-xs text-slate-500">(club rule)</span>}
-                    </td>
-                    <td className="px-4 py-2.5">
-                      <span className={`inline-flex rounded-full border px-2 py-0.5 text-[11px] font-medium ${MEETING_STATUS[c.status].cls}`}>
+                    </TableCell>
+                    <TableCell className="px-4 py-2.5">
+                      <span className={`inline-flex rounded border px-2 py-0.5 text-[11px] font-medium ${MEETING_STATUS[c.status].cls}`}>
                         {MEETING_STATUS[c.status].label}
                       </span>
-                    </td>
-                    <td className="px-4 py-2.5">
+                    </TableCell>
+                    <TableCell className="px-4 py-2.5">
                       <div className="flex flex-wrap items-center gap-2">
-                        <input
+                        <Input
                           type="number"
                           min={0}
                           max={31}
@@ -163,23 +164,23 @@ export default function MeetingCompliancePage() {
                           placeholder={String(data.districtDefault)}
                           value={overrides[c.clubId] ?? ""}
                           onChange={(e) => setOverrides((o) => ({ ...o, [c.clubId]: e.target.value }))}
-                          className="w-16 rounded-[12px] border border-slate-200 px-2 py-1 text-sm focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                          className="row-field-sm w-16"
                         />
-                        <button
+                        <Button
                           type="button"
                           onClick={() => save(parseMeetingCount(overrides[c.clubId] ?? ""), c.clubId)}
                           disabled={busy}
-                          className="rounded-full border border-slate-200 px-2.5 py-1 text-xs font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-60"
+                          variant="outline" size="sm"
                         >
                           Save
-                        </button>
+                        </Button>
                       </div>
-                    </td>
-                  </tr>
+                    </TableCell>
+                  </TableRow>
                 ))}
-              </tbody>
-            </table>
-          </div>
+              </TableBody>
+            </Table>
+          </Card>
         )}
       </div>
     </ProtectedRoute>

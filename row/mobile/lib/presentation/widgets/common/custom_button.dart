@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart' hide Text;
 import '../../../core/theme/app_colors.dart';
-import '../../../core/theme/app_gradients.dart';
+import '../../../core/theme/row_tokens.dart';
 import 'package:rotary_flutter_app/core/theme/app_fonts.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/motion.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/roster_wheel.dart';
 
 enum ButtonVariant { primary, secondary, outline, danger, ghost }
 
@@ -32,125 +34,63 @@ class CustomButton extends StatefulWidget {
   State<CustomButton> createState() => _CustomButtonState();
 }
 
-class _CustomButtonState extends State<CustomButton> with SingleTickerProviderStateMixin {
-  late AnimationController _shimmerController;
-
-  @override
-  void initState() {
-    super.initState();
-    _shimmerController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 1500),
-    )..repeat();
-  }
-
-  @override
-  void dispose() {
-    _shimmerController.dispose();
-    super.dispose();
-  }
-
+class _CustomButtonState extends State<CustomButton> {
   @override
   Widget build(BuildContext context) {
-    final bool isGradient = widget.variant == ButtonVariant.primary || widget.variant == ButtonVariant.secondary;
-    
-    final child = widget.isLoading
-        ? _buildLoadingState(isGradient)
-        : Row(
-            mainAxisSize: MainAxisSize.min,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              if (widget.icon != null) ...[
-                Icon(widget.icon, size: 18, color: _foregroundColor),
-                const SizedBox(width: 8),
-              ],
-              // Flexible: a long label (translations, narrow phones) ends with "…" instead of overflowing.
-              Flexible(
-                child: Text(
-                  widget.label,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: AppFonts.body(
-                    color: _foregroundColor,
-                    fontWeight: FontWeight.w600,
-                    fontSize: 14,
-                  ),
-                ),
-              ),
-            ],
-          );
+    final label = Row(
+      mainAxisSize: MainAxisSize.min,
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        if (widget.icon != null) ...[
+          Icon(widget.icon, size: 18, color: _foregroundColor),
+          const SizedBox(width: 8),
+        ],
+        // Flexible: a long label (translations, narrow phones) ends with "…" instead of overflowing.
+        Flexible(
+          child: Text(
+            widget.label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: AppFonts.body(
+              color: _foregroundColor,
+              fontWeight: FontWeight.w600,
+              fontSize: 14,
+            ),
+          ),
+        ),
+      ],
+    );
+
+    // While working the button keeps its size and colour and the label swaps for the dots.
+    final child = Stack(
+      alignment: Alignment.center,
+      children: [
+        ExcludeSemantics(
+          excluding: widget.isLoading,
+          child: AnimatedOpacity(
+            opacity: widget.isLoading ? 0 : 1,
+            duration: RowMotion.micro,
+            child: label,
+          ),
+        ),
+        if (widget.isLoading)
+          RowPop(child: RowLoader(size: 24, color: _foregroundColor)),
+      ],
+    );
 
     final effectivePadding = widget.padding ?? const EdgeInsets.symmetric(horizontal: 24, vertical: 12);
     // ROW buttons are full pills (design.md 5).
     final borderRadius = BorderRadius.circular(999);
+    final style = _getButtonStyle(borderRadius, effectivePadding);
+    final onPressed = widget.isLoading ? null : widget.onPressed;
 
-    Widget buttonBody;
-    if (isGradient && widget.onPressed != null && !widget.isLoading) {
-      buttonBody = Container(
-        decoration: BoxDecoration(
-          gradient: widget.variant == ButtonVariant.primary 
-              ? AppGradients.royalSweep
-              : AppGradients.goldenHour,
-          borderRadius: borderRadius,
+    final button = widget.variant == ButtonVariant.outline || widget.variant == ButtonVariant.ghost
+        ? OutlinedButton(onPressed: onPressed, style: style, child: child)
+        : ElevatedButton(onPressed: onPressed, style: style, child: child);
 
-        ),
-        child: ElevatedButton(
-          onPressed: widget.onPressed,
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.transparent,
-            shadowColor: Colors.transparent,
-            padding: effectivePadding,
-            minimumSize: Size(widget.fullWidth ? double.infinity : 0, widget.height ?? 48),
-            shape: RoundedRectangleBorder(borderRadius: borderRadius),
-          ),
-          child: child,
-        ),
-      );
-    } else if (widget.variant == ButtonVariant.outline ||
-        widget.variant == ButtonVariant.ghost) {
-      buttonBody = OutlinedButton(
-        onPressed: widget.isLoading ? null : widget.onPressed,
-        style: _getButtonStyle(borderRadius, effectivePadding),
-        child: child,
-      );
-    } else {
-      buttonBody = ElevatedButton(
-        onPressed: widget.isLoading ? null : widget.onPressed,
-        style: _getButtonStyle(borderRadius, effectivePadding),
-        child: child,
-      );
-    }
-
-    if (widget.fullWidth) {
-      return SizedBox(width: double.infinity, child: buttonBody);
-    }
-    return buttonBody;
-  }
-
-  Widget _buildLoadingState(bool isGradient) {
-    if (!isGradient) {
-      return SizedBox(
-        width: 18,
-        height: 18,
-        child: CircularProgressIndicator(
-          strokeWidth: 2,
-          color: _foregroundColor,
-        ),
-      );
-    }
-
-    return AnimatedBuilder(
-      animation: _shimmerController,
-      builder: (context, child) {
-        return Container(
-          width: 60,
-          height: 4,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(2),
-            color: AppColors.white.withOpacity(0.1),
-          ),
-        );
-      },
+    return RowPressable(
+      enabled: onPressed != null,
+      child: widget.fullWidth ? SizedBox(width: double.infinity, child: button) : button,
     );
   }
 
@@ -170,11 +110,11 @@ class _CustomButtonState extends State<CustomButton> with SingleTickerProviderSt
     return ElevatedButton.styleFrom(
       backgroundColor: _backgroundColor,
       foregroundColor: _foregroundColor,
+      disabledBackgroundColor: _backgroundColor, // loading keeps the colour; no handler is already muted
       padding: padding,
       minimumSize: Size(widget.fullWidth ? double.infinity : 0, widget.height ?? 48),
       shape: RoundedRectangleBorder(borderRadius: borderRadius),
-      elevation: widget.variant == ButtonVariant.ghost ? 0 : 2,
-      shadowColor: _backgroundColor.withOpacity(0.3),
+      elevation: 0,
     );
   }
 

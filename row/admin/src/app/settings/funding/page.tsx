@@ -1,5 +1,6 @@
 "use client";
 
+import { Card } from "@/components/ui/card";
 import { useState, useCallback, useEffect } from "react";
 import { Funding } from "@/types/project";
 import {
@@ -25,13 +26,12 @@ import {
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
 import AlertModal from "@/components/AlertModal";
-import { ArrowLeft, Plus, Pencil, Trash2, MoreHorizontal, Wallet, AlertTriangle, Download } from "@/components/icons";
+import { Plus, Pencil, Trash2, MoreHorizontal, Wallet, AlertTriangle, Download } from "@/components/icons";
 import { exportToCSV } from "@/utils/csvExport";
 import RotaryLoader from "@/components/RotaryLoader";
-import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import SearchBox from "@/components/SearchBox";
-import { ListPageSkeleton } from "@/components/row/AppKit";
+import { PageHeader, ListPageSkeleton } from "@/components/row/AppKit";
 
 export default function FundingPage() {
   const { isSuperAdmin } = useAuth();
@@ -124,7 +124,7 @@ export default function FundingPage() {
     return (
       <ProtectedRoute>
         <div className="flex flex-col items-center justify-center py-20">
-          <h3 className="text-lg font-semibold">Access Denied</h3>
+          <h3 className="row-h2">Access Denied</h3>
           <p className="text-muted-foreground mt-2">Only SuperAdmin can manage funding sources.</p>
         </div>
       </ProtectedRoute>
@@ -134,25 +134,21 @@ export default function FundingPage() {
   return (
     <ProtectedRoute>
       <div className="space-y-6">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-3">
-            <Button variant="outline" size="icon" asChild>
-              <Link href="/settings"><ArrowLeft className="h-4 w-4" /></Link>
-            </Button>
-            <div>
-              <h2 className="text-2xl font-bold tracking-tight text-primary">Funding</h2>
-              <p className="text-muted-foreground text-base">Manage project funding sources</p>
-            </div>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <Button variant="outline" onClick={() => exportToCSV(items, "funding", [
+        <PageHeader
+          title="Funding"
+          description="Manage project funding sources"
+          back="/settings"
+          actions={
+            <>
+<Button variant="outline" onClick={() => exportToCSV(items, "funding", [
               { key: "name", label: "Funding Name" }, { key: "sortOrder", label: "Sort Order", numeric: true }, { key: "isActive", label: "Active" },
             ])} disabled={items.length === 0}><Download className="mr-2 h-4 w-4" />Export CSV</Button>
             <Button onClick={openAddDialog}>
               <Plus className="mr-2 h-4 w-4" />Add Funding
             </Button>
-          </div>
-        </div>
+            </>
+          }
+        />
 
         {loading && (
           <div className="flex items-center justify-center py-20">
@@ -163,7 +159,7 @@ export default function FundingPage() {
         {!loading && items.length === 0 && (
           <div className="flex flex-col items-center justify-center py-20 text-center">
             <Wallet className="h-12 w-12 text-muted-foreground mb-4" />
-            <h3 className="text-lg font-semibold">No funding sources</h3>
+            <h3 className="row-h2">No funding sources</h3>
             <p className="text-muted-foreground mt-2">Click &quot;Add Funding&quot; to create one.</p>
           </div>
         )}
@@ -178,14 +174,14 @@ export default function FundingPage() {
             {filteredItems.length === 0 && searchQuery.trim() !== "" ? (
               <p className="text-muted-foreground text-sm py-8 text-center">No results found for &quot;{searchQuery}&quot;</p>
             ) : (
-          <div className="rounded-md border">
+          <Card className="overflow-hidden">
             <Table>
               <TableHeader>
-                <TableRow className="bg-primary hover:bg-primary">
+                <TableRow>
                   <TableHead className="w-12">#</TableHead>
-                  <TableHead className="text-base font-semibold">Name</TableHead>
-                  <TableHead className="w-20 text-base font-semibold text-center">Order</TableHead>
-                  <TableHead className="w-20 text-base font-semibold text-center">Status</TableHead>
+                  <TableHead>Name</TableHead>
+                  <TableHead className="w-20 text-center">Order</TableHead>
+                  <TableHead className="w-20 text-center">Status</TableHead>
                   <TableHead className="w-12"></TableHead>
                 </TableRow>
               </TableHeader>
@@ -203,7 +199,7 @@ export default function FundingPage() {
                     <TableCell>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon" className="h-8 w-8"><MoreHorizontal className="h-4 w-4" /></Button>
+                          <Button aria-label="More actions" variant="ghost" size="icon" className="row-btn-sm"><MoreHorizontal className="h-4 w-4" /></Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                           <DropdownMenuItem onClick={() => openEditDialog(item)}>
@@ -219,7 +215,7 @@ export default function FundingPage() {
                 ))}
               </TableBody>
             </Table>
-          </div>
+          </Card>
             )}
           </>
         )}

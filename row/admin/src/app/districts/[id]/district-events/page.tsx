@@ -1,4 +1,5 @@
 "use client";
+import { Card } from "@/components/ui/card";
 import { useState, useEffect, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { getDistrict, getDistrictEventsList, deleteDistrictEventItem, getDistrictEventAvailableYears, getRotaryYears } from "@/services/api";
@@ -9,14 +10,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
 import AlertModal from "@/components/AlertModal";
-import { ArrowLeft, Plus, MoreHorizontal, Pencil, Trash2, Search } from "@/components/icons";
+import { Plus, MoreHorizontal, Pencil, Trash2, Search } from "@/components/icons";
 import { Input } from "@/components/ui/input";
 import RotaryLoader from "@/components/RotaryLoader";
-import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
 
 import { appLocale } from "@/lib/appFormat";
-import { ListPageSkeleton } from "@/components/row/AppKit";
+import { PageHeader, ListPageSkeleton } from "@/components/row/AppKit";
 import Pagination from "@/components/Pagination";
 export default function DistrictEventsPage() {
   const params = useParams();
@@ -80,16 +80,16 @@ export default function DistrictEventsPage() {
         <ErrorAlert open={!!errorMessage} title="Error" description={errorMessage || ""} onOk={() => setErrorMessage(null)} />
         <AlertModal open={!!deleteId} icon={Trash2} iconClassName="text-destructive" title="Delete Event" description="Are you sure?" confirmLabel="Delete" cancelLabel="Cancel" onConfirm={handleDelete} onCancel={() => setDeleteId(null)} />
 
-        <div className="flex items-center justify-between flex-wrap gap-3">
-          <div className="flex items-center gap-3">
-            <Button variant="outline" size="icon" asChild><Link href={`/districts/${districtId}/dashboard`}><ArrowLeft className="h-4 w-4" /></Link></Button>
-            <div>
-              <h2 className="text-2xl font-bold tracking-tight text-primary">{districtName} - Events</h2>
-              <p className="text-muted-foreground">Please post all the Events executed by your District.</p>
-            </div>
-          </div>
-          <Button onClick={() => router.push(`/districts/${districtId}/district-events/add`)}><Plus className="mr-2 h-4 w-4" />Add Event</Button>
-        </div>
+        <PageHeader
+          title={<>{districtName} - Events</>}
+          description="Please post all the Events executed by your District."
+          back={`/districts/${districtId}/dashboard`}
+          actions={
+            <>
+<Button onClick={() => router.push(`/districts/${districtId}/district-events/add`)}><Plus className="mr-2 h-4 w-4" />Add Event</Button>
+            </>
+          }
+        />
 
         <div className="flex flex-wrap gap-3 items-center">
           <Select value={yearId} onValueChange={v => { setYearId(v); setPage(1); }}>
@@ -98,7 +98,7 @@ export default function DistrictEventsPage() {
           </Select>
           <div className="flex gap-2 flex-1">
             <Input placeholder="Search by title..." value={search} onChange={e => setSearch(e.target.value)} onKeyDown={e => e.key === "Enter" && fetchData()} className="max-w-xs" />
-            <Button size="sm" onClick={() => { setPage(1); fetchData(); }}><Search className="h-4 w-4" /></Button>
+            <Button size="sm" aria-label="Search" onClick={() => { setPage(1); fetchData(); }}><Search className="h-4 w-4" /></Button>
           </div>
         </div>
 
@@ -106,10 +106,10 @@ export default function DistrictEventsPage() {
           <div className="text-center py-20 text-muted-foreground">No events found. Click &quot;Add Event&quot; to create one.</div>
         ) : (
           <>
-            <div className="overflow-x-auto border rounded-lg">
+            <Card className="overflow-x-auto">
               <Table>
                 <TableHeader>
-                  <TableRow className="bg-primary hover:bg-primary">
+                  <TableRow>
                     <TableHead>Sr.</TableHead>
                     <TableHead>Title</TableHead>
                     <TableHead>Date</TableHead>
@@ -124,7 +124,7 @@ export default function DistrictEventsPage() {
                       <TableCell>{item.eventDate ? new Date(item.eventDate).toLocaleDateString(appLocale()) : "–"}</TableCell>
                       <TableCell>
                         <DropdownMenu>
-                          <DropdownMenuTrigger asChild><Button variant="ghost" size="icon"><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger>
+                          <DropdownMenuTrigger asChild><Button aria-label="More actions" variant="ghost" size="icon"><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
                             <DropdownMenuItem onClick={() => router.push(`/districts/${districtId}/district-events/${item.id}/edit?yearId=${yearId}`)}><Pencil className="mr-2 h-4 w-4" />Edit</DropdownMenuItem>
                             <DropdownMenuItem onClick={() => setDeleteId(item.id)} className="text-destructive"><Trash2 className="mr-2 h-4 w-4" />Delete</DropdownMenuItem>
@@ -135,7 +135,7 @@ export default function DistrictEventsPage() {
                   ))}
                 </TableBody>
               </Table>
-            </div>
+            </Card>
             {totalPages > 1 && (
               <Pagination page={page} totalPages={totalPages} totalCount={totalCount} pageSize={20} onPageChange={setPage} />
             )}

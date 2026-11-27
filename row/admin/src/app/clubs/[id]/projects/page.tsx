@@ -30,19 +30,15 @@ import Pagination from "@/components/Pagination";
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
 import AlertModal from "@/components/AlertModal";
-import {
-  ArrowLeft, Search, X, Plus, Pencil, Trash2, Eye,
-  MoreHorizontal, FolderOpen, AlertTriangle, Info,
-  ChevronDown, ChevronRight,
-} from "@/components/icons";
+import { Search, X, Plus, Pencil, Trash2, Eye, MoreHorizontal, FolderOpen, AlertTriangle, Info, ChevronDown, ChevronRight } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
-import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { formatMoney } from "@/lib/currency";
 
 import { appLocale } from "@/lib/appFormat";
-import { ListPageSkeleton } from "@/components/row/AppKit";
+import { PageHeader, ListPageSkeleton } from "@/components/row/AppKit";
 import AgreeText from "@/components/AgreeText";
+import { ClearButton, LinkButton } from "@/components/ui/text-buttons";
 const MODULE_LABELS: Record<string, string> = {
   club_service: "Club Service",
   community_service: "Community Service",
@@ -275,22 +271,21 @@ export default function ProjectsPage() {
         </TableCell>
         <TableCell>
           {project.projectType === "one_time" ? (
-            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700">One Time</span>
+            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-700">One Time</span>
           ) : isChild ? (
-            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-700">Child</span>
+            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-amber-100 text-amber-700">Child</span>
           ) : (
-            <button
+            <LinkButton
               onClick={() => childCount > 0 && toggleExpand(project.id)}
-              className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700 hover:bg-green-200 transition-colors"
-            >
+              size="sm">
               Ongoing
               {childCount > 0 && (
                 <>
-                  <span className="bg-green-600 text-white rounded-full px-1.5 py-0 text-[10px] ml-0.5">{childCount}</span>
+                  <span className="bg-green-600 text-white rounded px-1.5 py-0 text-[10px] ml-0.5">{childCount}</span>
                   {isExpanded ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
                 </>
               )}
-            </button>
+            </LinkButton>
           )}
         </TableCell>
         <TableCell>{project.areaOfFocusName || project.otherAreaOfFocus || "-"}</TableCell>
@@ -301,7 +296,7 @@ export default function ProjectsPage() {
           <TableCell>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-8 w-8"><MoreHorizontal className="h-4 w-4" /></Button>
+                <Button variant="ghost" size="icon" className="row-btn-sm" aria-label="More actions"><MoreHorizontal className="h-4 w-4" /></Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 {/* Always offered. A year you cannot edit is still a year you can read. */}
@@ -336,24 +331,16 @@ export default function ProjectsPage() {
     <ProtectedRoute>
       <div className="space-y-6">
         {/* Header */}
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-3">
-            <Button variant="outline" size="icon" asChild>
-              <Link href={`/clubs/${clubId}/dashboard`}><ArrowLeft className="h-4 w-4" /></Link>
-            </Button>
-            <div>
-              <h2 className="text-2xl font-bold tracking-tight text-primary">
-                {clubName ? `${clubName} - ${moduleLabel}` : moduleLabel}
-              </h2>
-              <p className="text-muted-foreground text-base">Manage {moduleLabel.toLowerCase()} projects</p>
-            </div>
-          </div>
-          {canManage && (
+        <PageHeader
+          title={clubName ? `${clubName} - ${moduleLabel}` : moduleLabel}
+          description={<>Manage {moduleLabel.toLowerCase()} projects</>}
+          back={`/clubs/${clubId}/dashboard`}
+          actions={canManage && (
             <Button onClick={handleAddClick}>
               <Plus className="mr-2 h-4 w-4" />Add Project
             </Button>
           )}
-        </div>
+        />
 
         {isClubAdmin && !canManage && selectedYearId && (
           <ViewOnlyBadge yearLabel={viewingYearLabel} editableYears={editableYears} className="mb-4" />
@@ -404,9 +391,7 @@ export default function ProjectsPage() {
                 className="pl-9"
               />
               {searchInput && (
-                <button onClick={clearSearch} className="absolute right-3 top-1/2 -translate-y-1/2">
-                  <X className="h-4 w-4 text-muted-foreground hover:text-foreground" />
-                </button>
+                <ClearButton onClick={clearSearch} aria-label="Clear search" />
               )}
             </div>
             <Button onClick={handleSearch} size="sm">Search</Button>
@@ -422,7 +407,7 @@ export default function ProjectsPage() {
         {!loading && typeFilteredProjects.length === 0 && (
           <div className="flex flex-col items-center justify-center py-20 text-center">
             <FolderOpen className="h-12 w-12 text-muted-foreground mb-4" />
-            <h3 className="text-lg font-semibold">No projects found</h3>
+            <h3 className="row-h2">No projects found</h3>
             <p className="text-muted-foreground mt-2">
               {search ? "No projects match your search." : canManage ? `Click "Add Project" to create one.` : "No projects for this year."}
             </p>
@@ -434,14 +419,14 @@ export default function ProjectsPage() {
             <CardContent className="p-0">
               <Table>
                 <TableHeader>
-                  <TableRow className="bg-primary hover:bg-primary">
-                    <TableHead className="w-12 text-base font-semibold">S.No.</TableHead>
-                    <TableHead className="text-base font-semibold">Title</TableHead>
-                    <TableHead className="text-base font-semibold">Type</TableHead>
-                    <TableHead className="text-base font-semibold">Area of Focus</TableHead>
-                    <TableHead className="text-base font-semibold">Date</TableHead>
-                    <TableHead className="text-base font-semibold">Location</TableHead>
-                    <TableHead className="text-base font-semibold text-right">Cost</TableHead>
+                  <TableRow>
+                    <TableHead className="w-12">S.No.</TableHead>
+                    <TableHead>Title</TableHead>
+                    <TableHead>Type</TableHead>
+                    <TableHead>Area of Focus</TableHead>
+                    <TableHead>Date</TableHead>
+                    <TableHead>Location</TableHead>
+                    <TableHead className="text-right">Cost</TableHead>
                     {canView && (
                       <TableHead className="w-12"></TableHead>
                     )}

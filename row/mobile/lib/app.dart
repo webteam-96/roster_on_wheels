@@ -101,12 +101,11 @@ class _RotaryAppState extends State<RotaryApp> with WidgetsBindingObserver {
                   theme: theme,
                   routerConfig: router,
                   builder: (context, child) {
-                    // Text size is fixed at 110% globally for now — Text Size
-                    // picker is hidden from the drawer. To restore the picker
-                    // and re-honor [FontScaleController], replace this block
-                    // with the original watch-controller version.
+                    // Text is 120% of the design size, and grows with the phone's own text size from there.
+                    // shortcut: capped at 160%, where the fixed-height rows still hold; raise it when they grow with the text.
+                    final phone = MediaQuery.textScalerOf(context).scale(16) / 16;
                     final scaled = MediaQuery(
-                      data: MediaQuery.of(context).copyWith(textScaler: const TextScaler.linear(1.2)),
+                      data: MediaQuery.of(context).copyWith(textScaler: TextScaler.linear((phone * 1.2).clamp(1.2, 1.6))),
                       child: child ?? const SizedBox.shrink(),
                     );
                     // GLOBAL bottom-inset fix: Android draws edge-to-edge

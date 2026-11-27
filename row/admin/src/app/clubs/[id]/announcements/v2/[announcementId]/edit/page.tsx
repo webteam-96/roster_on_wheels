@@ -1,4 +1,5 @@
 "use client";
+import { RemoveBadgeButton } from "@/components/ui/text-buttons";
 
 /**
  * Announcements v2 — Edit Announcement.
@@ -12,6 +13,12 @@
  * v2 reads ONLY `?returnTo=` — no `returnUrl`, no `backUrl`.
  */
 
+import FieldLabel from "@/components/form/FieldLabel";
+import { Button } from "@/components/ui/button";
+import { IconButton } from "@/components/ui/icon-button";
+import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
+import SectionCard from "@/components/form/SectionCard";
 import { useEffect, useRef, useState } from "react";
 import DateField from "@/components/DateField";
 import { useParams } from "next/navigation";
@@ -44,36 +51,6 @@ const IMAGE_ASPECT = 4 / 3;
 const IMAGE_MAX_WIDTH = 1200;
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
-
-function FieldLabel({
-  children, hint, dot, required = false,
-}: { children: React.ReactNode; hint?: string; dot: string; required?: boolean }) {
-  return (
-    <div className="flex items-center gap-1.5 mb-1">
-      <span className={`w-1.5 h-1.5 rounded-full ${dot}`} />
-      <label className="text-xs font-semibold text-slate-700">
-        {children}
-        {required && <span className="text-rose-600 ml-0.5">*</span>}
-        {hint && <span className="text-slate-400 font-normal ml-1">{hint}</span>}
-      </label>
-    </div>
-  );
-}
-
-function SectionCard({
-  number, icon: Icon, title, dot, children,
-}: { number: number; icon: React.ElementType; title: string; dot: string; children: React.ReactNode }) {
-  return (
-    <div className="rounded-xl border border-slate-200 overflow-hidden mb-4">
-      <div className="flex items-center gap-3 px-4 py-2.5 bg-slate-50 border-b border-slate-100">
-        <div className={`flex items-center justify-center h-7 w-7 rounded-full text-white text-xs font-bold ${dot}`}>{number}</div>
-        <Icon className="h-4 w-4 text-slate-500" />
-        <h3 className="text-sm font-semibold text-slate-800">{title}</h3>
-      </div>
-      <div className="p-4">{children}</div>
-    </div>
-  );
-}
 
 type ReminderItem = {
   id: string;
@@ -297,67 +274,63 @@ export default function AnnouncementsV2EditPage() {
         saveLabel="Update Announcement"
         onSave={handleSave}
       >
-        <div className="">
+        <div>
         <div className="min-w-0">
         {/* 1. Announcement Details */}
-        <SectionCard number={1} icon={FileText} title="Announcement Details" dot="bg-[#17458F]">
+        <SectionCard number={1} icon={FileText} title="Announcement Details">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="sm:col-span-2">
-              <FieldLabel hint="(max 50 chars)" dot="bg-[#17458F]" required>Title</FieldLabel>
-              <input
+              <FieldLabel hint="(max 50 chars)" required>Title</FieldLabel>
+              <Input
                 type="text"
                 value={title}
                 onChange={handleTitleChange}
                 placeholder="Announcement title"
                 maxLength={50}
-                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
               />
               <p className="text-xs text-slate-400 text-right mt-0.5">{title.length}/50</p>
             </div>
             <div className="sm:col-span-2">
-              <FieldLabel hint="(max 520 chars)" dot="bg-[#17458F]">Description</FieldLabel>
-              <textarea
+              <FieldLabel hint="(max 520 chars)">Description</FieldLabel>
+              <Textarea
                 value={description}
                 onChange={handleDescriptionChange}
                 placeholder="Describe the announcement…"
                 rows={4}
                 maxLength={520}
-                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
               />
               <p className="text-xs text-slate-400 text-right mt-0.5">{description.length}/520</p>
             </div>
             <div>
-              <FieldLabel dot="bg-[#17458F]" required>Publish Date</FieldLabel>
-              <DateField value={publishDate} onChange={setPublishDate} className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]" />
+              <FieldLabel required>Publish Date</FieldLabel>
+              <DateField value={publishDate} onChange={setPublishDate} className="row-field w-full" />
             </div>
             <div>
-              <FieldLabel dot="bg-[#17458F]" required>Publish Time</FieldLabel>
-              <input
+              <FieldLabel required>Publish Time</FieldLabel>
+              <Input
                 type="time"
                 value={publishTime}
                 onChange={(e) => setPublishTime(e.target.value)}
-                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
               />
             </div>
             <div>
-              <FieldLabel dot="bg-[#17458F]" required>Expiry Date</FieldLabel>
-              <DateField value={expiryDate} onChange={setExpiryDate} className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]" />
+              <FieldLabel required>Expiry Date</FieldLabel>
+              <DateField value={expiryDate} onChange={setExpiryDate} className="row-field w-full" />
             </div>
             <div>
-              <FieldLabel dot="bg-[#17458F]" required>Expiry Time</FieldLabel>
-              <input
+              <FieldLabel required>Expiry Time</FieldLabel>
+              <Input
                 type="time"
                 value={expiryTime}
                 onChange={(e) => setExpiryTime(e.target.value)}
-                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
               />
             </div>
           </div>
         </SectionCard>
 
         {/* 2. Image */}
-        <SectionCard number={2} icon={ImageIcon} title="Image" dot="bg-[#17458F]">
-          <FieldLabel dot="bg-[#17458F]">Announcement Image</FieldLabel>
+        <SectionCard number={2} icon={ImageIcon} title="Image">
+          <FieldLabel>Announcement Image</FieldLabel>
           {imagePreview ? (
             <div className="relative inline-block mt-1">
               {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -367,24 +340,22 @@ export default function AnnouncementsV2EditPage() {
                   <RotaryLoader size="sm" />
                 </div>
               )}
-              <button
+              <RemoveBadgeButton aria-label="Remove image"
                 type="button"
                 onClick={removeImage}
-                className="absolute top-1 right-1 p-1 rounded-full bg-black/50 text-white hover:bg-rose-500"
               >
                 <X className="h-3 w-3" />
-              </button>
+              </RemoveBadgeButton>
             </div>
           ) : (
             <div>
-              <button
+              <Button variant="outline"
                 type="button"
                 onClick={() => imageInputRef.current?.click()}
-                className="flex items-center gap-2 px-4 py-3 border-2 border-dashed border-slate-200 rounded-lg hover:border-blue-300 transition-colors text-slate-500"
               >
                 <Upload className="h-4 w-4" />
                 <span className="text-sm">Upload announcement image</span>
-              </button>
+              </Button>
               <p className="text-xs text-slate-400 mt-1">JPG, JPEG, PNG, GIF, WEBP</p>
             </div>
           )}
@@ -399,7 +370,7 @@ export default function AnnouncementsV2EditPage() {
         </SectionCard>
 
         {/* 3. Display & Notification Settings */}
-        <SectionCard number={3} icon={Bell} title="Display & Notification Settings" dot="bg-[#17458F]">
+        <SectionCard number={3} icon={Bell} title="Display & Notification Settings">
           <div className="space-y-3">
             {/* "Display on Banner" hidden 2026-08-12 per request — kept for future use (value still saved). */}
             {false && (
@@ -440,30 +411,30 @@ export default function AnnouncementsV2EditPage() {
               <div className="space-y-3 pl-7 pt-1">
                 {reminders.map((reminder) => (
                   <div key={reminder.id} className="flex flex-wrap items-center gap-2">
-                    <DateField value={reminder.date} onChange={(v: string) => updateReminder(reminder.id, "date", v)} className="w-40 px-2 h-10 py-0 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]" />
-                    <input
+                    <DateField value={reminder.date} onChange={(v: string) => updateReminder(reminder.id, "date", v)} className="row-field w-40" />
+                    <Input
                       type="time"
                       value={reminder.time}
                       onChange={(e) => updateReminder(reminder.id, "time", e.target.value)}
-                      className="w-32 px-2 h-10 py-0 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                      className="w-32"
                     />
-                    <button
+                    <IconButton
                       type="button"
                       onClick={() => removeReminder(reminder.id)}
-                      className="inline-flex items-center justify-center w-8 h-8 rounded text-rose-500 hover:bg-rose-50"
+                      className="hover:text-red-700"
                       aria-label="Remove reminder"
                     >
                       <Trash2 className="h-4 w-4" />
-                    </button>
+                    </IconButton>
                   </div>
                 ))}
-                <button
+                <Button
                   type="button"
                   onClick={addReminder}
-                  className="inline-flex items-center gap-1.5 text-xs font-semibold px-4 h-10 rounded-full border border-slate-200 text-slate-700 hover:bg-slate-50"
+                  variant="outline"
                 >
                   <Plus className="h-3.5 w-3.5" /> Add Reminder
-                </button>
+                </Button>
               </div>
             )}
           </div>

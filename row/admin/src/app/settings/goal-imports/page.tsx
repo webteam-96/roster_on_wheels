@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   getRotaryYears, importGoalFoundationMonthly, importGoalFoundationClub, importGoalDistrictMembership,
@@ -19,10 +18,10 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
-import { ArrowLeft, Upload, FileSpreadsheet, AlertTriangle, Download } from "@/components/icons";
+import { Upload, FileSpreadsheet, AlertTriangle, Download } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import ProtectedRoute from "@/components/ProtectedRoute";
-import { ListPageSkeleton } from "@/components/row/AppKit";
+import { PageHeader, ListPageSkeleton } from "@/components/row/AppKit";
 
 export default function GoalImportsPage() {
   const { isSuperAdmin } = useAuth();
@@ -180,7 +179,7 @@ export default function GoalImportsPage() {
     return (
       <ProtectedRoute>
         <div className="flex flex-col items-center py-20">
-          <h3 className="text-lg font-semibold">Access Denied</h3>
+          <h3 className="row-h2">Access Denied</h3>
           <p className="text-muted-foreground mt-2">Only SuperAdmin can import goal data.</p>
         </div>
       </ProtectedRoute>
@@ -193,15 +192,15 @@ export default function GoalImportsPage() {
         <SuccessAlert open={!!successMessage} title="Success" description={successMessage || ""} onOk={() => setSuccessMessage(null)} />
         <ErrorAlert open={!!errorMessage} title="Error" description={errorMessage || ""} onOk={() => setErrorMessage(null)} />
 
-        <div className="flex items-center gap-3">
-          <Button variant="outline" size="icon" asChild>
-            <Link href="/settings"><ArrowLeft className="h-4 w-4" /></Link>
-          </Button>
-          <div className="flex-1">
-            <h2 className="text-2xl font-bold tracking-tight text-primary">Goal Setting: Data Import</h2>
-            <p className="text-muted-foreground text-base">Foundation (district and club) and District Membership imports for goal setting.</p>
-          </div>
-        </div>
+        <PageHeader
+          title="Goal Setting: Data Import"
+          back="/settings"
+          actions={
+            <>
+<p className="text-muted-foreground text-base">Foundation (district and club) and District Membership imports for goal setting.</p>
+            </>
+          }
+        />
 
         <Tabs defaultValue="import" className="space-y-6">
           <TabsList>
@@ -275,7 +274,7 @@ export default function GoalImportsPage() {
                     <div className="overflow-x-auto">
                       <Table>
                         <TableHeader>
-                          <TableRow className="bg-muted/50">
+                          <TableRow>
                             <TableHead className="w-16">Row</TableHead>
                             <TableHead>District Number</TableHead>
                             <TableHead>Reason</TableHead>
@@ -372,13 +371,13 @@ export default function GoalImportsPage() {
                           {cfResult.skippedRows.length} club row(s) skipped: Club No not found in the system
                         </div>
                         <div className="max-h-64 overflow-auto">
-                          <table className="w-full text-xs">
-                            <thead className="bg-[#EDF4FB] text-[13px] text-[#64748B] sticky top-0">
+                          <Table bare className="w-full text-xs">
+                            <thead className="sticky top-0">
                               <tr>
-                                <th className="text-left px-3 py-1.5 font-medium">Row</th>
-                                <th className="text-left px-3 py-1.5 font-medium">Club No</th>
-                                <th className="text-left px-3 py-1.5 font-medium">Name</th>
-                                <th className="text-left px-3 py-1.5 font-medium">Reason</th>
+                                <th className="text-left px-3">Row</th>
+                                <th className="text-left px-3">Club No</th>
+                                <th className="text-left px-3">Name</th>
+                                <th className="text-left px-3">Reason</th>
                               </tr>
                             </thead>
                             <tbody>
@@ -391,7 +390,7 @@ export default function GoalImportsPage() {
                                 </tr>
                               ))}
                             </tbody>
-                          </table>
+                          </Table>
                         </div>
                       </div>
                     )}
@@ -417,7 +416,7 @@ export default function GoalImportsPage() {
                   Optional third file <span className="font-medium">Rotaract_Comparison_to_1_July</span>: fills Youth Service &rarr; Rotaract
                   &ldquo;Existing Clubs&rdquo;, &ldquo;Clubs Achieved&rdquo;, &ldquo;No. of Rotaractors as on July 1st&rdquo; and &ldquo;Rotaractors Achieved&rdquo;. Optional <span className="font-medium">Interact_Statistics</span>:
                   fills Youth Service &rarr; Interact &ldquo;Clubs Achieved&rdquo; (Total Active Clubs, sheet By District). Percentages are worked out as usual.
-                  Only our districts (Zones 4-7) are written.
+                  Only districts that are in the system are written.
                 </p>
               </CardHeader>
               <CardContent className="space-y-4">

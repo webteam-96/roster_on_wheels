@@ -1,5 +1,10 @@
 "use client";
 
+import { IconButton } from "@/components/ui/icon-button"
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table"
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card } from "@/components/ui/card";
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
@@ -150,10 +155,10 @@ export default function DashboardBodPage() {
         <KpiCard title="Board Members" value={fmtInt(data.boardMembers)} subtitle={`RY ${data.selectedYearLabel || "–"}`} icon={Users} color="blue" />
       </div>
 
-      <div className="bg-card rounded-2xl border border-slate-200 overflow-hidden">
+      <Card className="overflow-hidden">
         <div className="px-5 py-3 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
-            <h3 className="text-sm font-semibold text-slate-800">Board of Directors</h3>
+            <h3 className="row-h3">Board of Directors</h3>
             <p className="text-xs text-slate-500 mt-0.5">
               {data.club.clubName} · executive board roster
             </p>
@@ -162,25 +167,25 @@ export default function DashboardBodPage() {
             {/* Local year dropdown removed — use the global topbar year selector. */}
             <div className="relative w-full sm:w-auto">
               <Search size={14} className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-400" />
-              <input
+              <Input
                 type="text"
                 placeholder="Search…"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="pl-7 pr-3 h-10 py-0 text-sm border border-slate-200 rounded-[12px] w-full sm:w-48 focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                className="pl-7 pr-3 sm:w-48"
               />
             </div>
-            <button
+            <Button
               type="button"
               onClick={() => exportToCsv(filtered, data.selectedYearLabel)}
-              className="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1.5 rounded-full border border-slate-200 text-slate-700 hover:bg-slate-50"
+              variant="outline" size="sm"
             >
               <ExternalLink size={13} /> Export CSV
-            </button>
+            </Button>
             {canManage && (
               <Link
                 href={addUrl}
-                className="inline-flex items-center gap-1.5 text-xs font-semibold px-4 h-10 rounded-full bg-[#17458F] text-white hover:bg-[#17458F]"
+                className="row-btn row-btn-primary"
               >
                 <Plus size={13} /> Add
               </Link>
@@ -189,80 +194,79 @@ export default function DashboardBodPage() {
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[640px] md:min-w-full text-sm">
-            <thead className="bg-[#EDF4FB] text-[13px] text-[#64748B]">
-              <tr>
-                <th className="px-3 py-2.5 text-left w-10">Sr</th>
-                <th className="px-3 py-2.5 text-left">Name</th>
-                <th className="px-3 py-2.5 text-left">Designation</th>
-                <th className="px-3 py-2.5 text-left">Mobile Number</th>
-                <th className="px-3 py-2.5 text-left">Email</th>
-                {canManage && <th className="px-3 py-2.5 text-right w-20 whitespace-nowrap">Actions</th>}
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
+          <Table className="w-full min-w-[640px] md:min-w-full text-sm">
+            <TableHeader>
+              <TableRow>
+                <TableHead className="px-3 text-left w-10">Sr</TableHead>
+                <TableHead className="px-3 text-left">Name</TableHead>
+                <TableHead className="px-3 text-left">Designation</TableHead>
+                <TableHead className="px-3 text-left">Mobile Number</TableHead>
+                <TableHead className="px-3 text-left">Email</TableHead>
+                {canManage && <TableHead className="px-3 text-right w-20 whitespace-nowrap">Actions</TableHead>}
+              </TableRow>
+            </TableHeader>
+            <TableBody className="divide-y divide-slate-100">
               {filtered.map((r, i) => (
-                <tr key={r.id} className="hover:bg-blue-50/40">
-                  <td className="px-3 py-2 text-slate-500">{r.sr ?? i + 1}</td>
-                  <td className="px-3 py-2 font-medium text-slate-800">
+                <TableRow key={r.id} className="hover:bg-blue-50/40">
+                  <TableCell className="px-3 py-2 text-slate-500">{r.sr ?? i + 1}</TableCell>
+                  <TableCell className="px-3 py-2 font-medium text-slate-800">
                     <span className="inline-flex items-center gap-1.5">
                       {r.name}
                       {!r.isMember && (
-                        <span className="inline-flex items-center text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200">
+                        <span className="inline-flex items-center text-[10px] font-medium px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 border border-slate-200">
                           Non-Member
                         </span>
                       )}
                     </span>
-                  </td>
-                  <td className="px-3 py-2">
-                    <span className={`inline-flex items-center text-xs font-medium px-2 py-0.5 rounded-full border ${designationChipStyle(r.designation)}`}>
+                  </TableCell>
+                  <TableCell className="px-3 py-2">
+                    <span className={`inline-flex items-center text-xs font-medium px-2 py-0.5 rounded border ${designationChipStyle(r.designation)}`}>
                       {r.designation || "–"}
                     </span>
-                  </td>
-                  <td className="px-3 py-2 text-xs text-slate-600 whitespace-nowrap">{r.mobile ?? "–"}</td>
-                  <td className="px-3 py-2 text-xs text-slate-600">{r.email ?? "–"}</td>
+                  </TableCell>
+                  <TableCell className="px-3 py-2 text-xs text-slate-600 whitespace-nowrap">{r.mobile ?? "–"}</TableCell>
+                  <TableCell className="px-3 py-2 text-xs text-slate-600">{r.email ?? "–"}</TableCell>
                   {canManage && (
-                    <td className="px-3 py-2">
+                    <TableCell className="px-3 py-2">
                       <div className="flex items-center justify-end gap-0.5">
                         <Link
                           href={`/clubs/${clubId}/board-of-directors/v2/${r.id}/edit?returnTo=${returnTo}`}
-                          className="inline-flex items-center justify-center w-7 h-7 rounded text-slate-500 hover:text-blue-700 hover:bg-blue-50"
+                          className="row-icon-btn"
                           title="Edit"
                         >
                           <Edit3 size={14} />
                         </Link>
-                        <button
+                        <IconButton
                           type="button"
                           onClick={() => handleDeleteDirector(r)}
                           disabled={deletingId === r.id}
-                          className="inline-flex items-center justify-center w-7 h-7 rounded text-slate-500 hover:text-red-700 hover:bg-red-50 disabled:opacity-50"
                           aria-label="Delete board member"
                           title="Delete board member"
                         >
                           {deletingId === r.id
                             ? <RotaryLoader size="sm" />
                             : <Trash2 size={14} />}
-                        </button>
+                        </IconButton>
                       </div>
-                    </td>
+                    </TableCell>
                   )}
-                </tr>
+                </TableRow>
               ))}
               {filtered.length === 0 && (
-                <tr>
-                  <td colSpan={canManage ? 6 : 5} className="px-4 py-8 text-center text-slate-400">
+                <TableRow>
+                  <TableCell colSpan={canManage ? 6 : 5} className="px-4 py-8 text-center text-slate-400">
                     No board positions match.
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               )}
-            </tbody>
-          </table>
+            </TableBody>
+          </Table>
         </div>
 
         <div className="px-5 py-2.5 border-t border-slate-100 text-xs text-slate-500">
           {filtered.length} board position{filtered.length === 1 ? "" : "s"} · {data.selectedYearLabel}
         </div>
-      </div>
+      </Card>
 
       {/* Officer progression (gap agent): naming the nominee needs current-year rights; the API checks every step. */}
       <OfficerProgressionPanel scope="club" scopeId={clubId}

@@ -2,18 +2,14 @@ import * as React from "react"
 
 import { cn } from "@/lib/utils"
 
+/** `bare` drops the scroll wrapper, for a table inside its own max-height scroll box (sticky head). */
 const Table = React.forwardRef<
   HTMLTableElement,
-  React.HTMLAttributes<HTMLTableElement>
->(({ className, ...props }, ref) => (
-  <div className="relative w-full overflow-auto">
-    <table
-      ref={ref}
-      className={cn("w-full caption-bottom text-sm", className)}
-      {...props}
-    />
-  </div>
-))
+  React.HTMLAttributes<HTMLTableElement> & { bare?: boolean }
+>(({ className, bare, ...props }, ref) => {
+  const table = <table ref={ref} className={cn("w-full caption-bottom text-sm", className)} {...props} />
+  return bare ? table : <div className="relative w-full overflow-auto">{table}</div>
+})
 Table.displayName = "Table"
 
 const TableHeader = React.forwardRef<
@@ -73,7 +69,7 @@ const TableHead = React.forwardRef<
   <th
     ref={ref}
     className={cn(
-      "h-10 px-3 text-left align-middle text-sm font-semibold text-[color:var(--color-text-secondary)] [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]",
+      "px-4 text-left align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]",
       className
     )}
     {...props}
@@ -88,7 +84,7 @@ const TableCell = React.forwardRef<
   <td
     ref={ref}
     className={cn(
-      "px-3 py-2 align-middle text-[color:var(--color-text-primary)] [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]",
+      "px-4 py-2.5 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]",
       className
     )}
     {...props}

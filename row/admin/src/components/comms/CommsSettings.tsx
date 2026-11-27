@@ -1,4 +1,7 @@
 "use client";
+import { Button } from "@/components/ui/button"
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table"
+import { LinkButton } from "@/components/ui/text-buttons";
 
 /**
  * N5 Communication settings for one club or district (build spec 3.10, B.1 #24-25): monthly email allowance and
@@ -7,6 +10,7 @@
  * "communication"; managers of the club or district only (the API checks it too).
  */
 
+import { PageHeader } from "@/components/row/AppKit";
 import { useCallback, useEffect, useState } from "react";
 import { useFeatureLoadedOn } from "@/components/FeatureGate";
 import { KpiTileSkeleton, TableSkeleton } from "@/components/dashboard/DashboardSkeleton";
@@ -18,7 +22,7 @@ import { appLocale } from "@/lib/appFormat";
 import { currentMonth, isGivingUrl, isLanguageCode, rate } from "@/lib/comms";
 import TemplatesSection from "./TemplatesSection";
 import SenderSection from "./SenderSection";
-import { btnPrimary, btnSecondary, card, errorOf, input } from "./ui";
+import { card, errorOf, input } from "./ui";
 
 type Tab = "usage" | "templates" | "sender" | "bounces" | "language";
 const TABS: { key: Tab; label: string }[] = [
@@ -46,17 +50,14 @@ export default function CommsSettings({ scope, id }: { scope: CommsScope; id: nu
 
   return (
     <div className="space-y-4">
+      <PageHeader title="Email settings" description={`Allowance, templates in each language, your sender address, bounces and opt-outs for this ${scope === "clubs" ? "club" : "district"}.`} />
       <div className={card}>
-        <h1 className="text-lg font-semibold text-slate-800">Email settings</h1>
-        <p className="mt-1 text-sm text-slate-500">
-          Allowance, templates in each language, your sender address, bounces and opt-outs for this {scope === "clubs" ? "club" : "district"}.
-        </p>
-        <div role="tablist" className="mt-4 flex flex-wrap gap-2">
+        <div role="tablist" className="flex flex-wrap gap-2">
           {TABS.map((t) => (
-            <button key={t.key} type="button" role="tab" aria-selected={tab === t.key} onClick={() => setTab(t.key)}
-              className={tab === t.key ? "rounded-lg bg-ink px-3 py-1.5 text-sm font-semibold text-cream" : btnSecondary}>
+            <Button variant={tab === t.key ? "default" : "outline"} size="sm" key={t.key} type="button" role="tab" aria-selected={tab === t.key} onClick={() => setTab(t.key)}
+             >
               {t.label}
-            </button>
+            </Button>
           ))}
         </div>
         {error && <p role="alert" className="mt-3 text-sm text-red-700">{error}</p>}
@@ -101,7 +102,7 @@ function UsageSection({ scope, id }: { scope: CommsScope; id: number }) {
       <div className={card}>
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
-            <h2 className="text-base font-semibold text-slate-800">Email allowance</h2>
+            <h2 className="row-h2">Email allowance</h2>
             <p className="mt-1 text-sm text-slate-500">
               {usage?.perMember
                 ? `${usage.perMember} emails per member per month (${usage.members} members, edition ${usage.edition}). A mass email that needs more than what is left is not sent.`
@@ -127,41 +128,41 @@ function UsageSection({ scope, id }: { scope: CommsScope; id: number }) {
       </div>
 
       <div className={card}>
-        <h2 className="text-base font-semibold text-slate-800">Mass emails this month</h2>
+        <h2 className="row-h2">Mass emails this month</h2>
         {!usage ? (
           <TableSkeleton rows={3} />
         ) : usage.campaigns.length === 0 ? (
           <p className="mt-2 text-sm text-slate-500">No mass email was sent in this month.</p>
         ) : (
           <div className="mt-3 overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-slate-200 text-left text-slate-500">
-                  <th className="py-2 pr-3 font-medium">Subject</th>
-                  <th className="py-2 pr-3 font-medium">Sent on</th>
-                  <th className="py-2 pr-3 text-right font-medium">Sent</th>
-                  <th className="py-2 pr-3 text-right font-medium">Delivered</th>
-                  <th className="py-2 pr-3 text-right font-medium">Opened</th>
-                  <th className="py-2 pr-3 text-right font-medium">Clicked</th>
-                  <th className="py-2 pr-3 text-right font-medium">Bounced</th>
-                  <th className="py-2 text-right font-medium">Skipped</th>
-                </tr>
-              </thead>
-              <tbody>
+            <Table className="w-full text-sm">
+              <TableHeader>
+                <TableRow className="border-b border-slate-200">
+                  <TableHead className="pr-3">Subject</TableHead>
+                  <TableHead className="pr-3">Sent on</TableHead>
+                  <TableHead className="pr-3 text-right">Sent</TableHead>
+                  <TableHead className="pr-3 text-right">Delivered</TableHead>
+                  <TableHead className="pr-3 text-right">Opened</TableHead>
+                  <TableHead className="pr-3 text-right">Clicked</TableHead>
+                  <TableHead className="pr-3 text-right">Bounced</TableHead>
+                  <TableHead className="text-right">Skipped</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
                 {usage.campaigns.map((c) => (
-                  <tr key={c.id} className="border-b border-slate-100 last:border-0">
-                    <td className="py-2 pr-3 text-slate-800">{c.subject}</td>
-                    <td className="py-2 pr-3">{date(c.sentDate)}</td>
-                    <td className="py-2 pr-3 text-right">{c.sent}</td>
-                    <td className="py-2 pr-3 text-right">{c.delivered}</td>
-                    <td className="py-2 pr-3 text-right">{c.opened} ({rate(c.opened, c.sent)})</td>
-                    <td className="py-2 pr-3 text-right">{c.clicked} ({rate(c.clicked, c.sent)})</td>
-                    <td className="py-2 pr-3 text-right">{c.bounced + c.complaints}</td>
-                    <td className="py-2 text-right">{c.skipped}</td>
-                  </tr>
+                  <TableRow key={c.id} className="border-b border-slate-100 last:border-0">
+                    <TableCell className="py-2 pr-3 text-slate-800">{c.subject}</TableCell>
+                    <TableCell className="py-2 pr-3">{date(c.sentDate)}</TableCell>
+                    <TableCell className="py-2 pr-3 text-right">{c.sent}</TableCell>
+                    <TableCell className="py-2 pr-3 text-right">{c.delivered}</TableCell>
+                    <TableCell className="py-2 pr-3 text-right">{c.opened} ({rate(c.opened, c.sent)})</TableCell>
+                    <TableCell className="py-2 pr-3 text-right">{c.clicked} ({rate(c.clicked, c.sent)})</TableCell>
+                    <TableCell className="py-2 pr-3 text-right">{c.bounced + c.complaints}</TableCell>
+                    <TableCell className="py-2 text-right">{c.skipped}</TableCell>
+                  </TableRow>
                 ))}
-              </tbody>
-            </table>
+              </TableBody>
+            </Table>
           </div>
         )}
       </div>
@@ -201,7 +202,7 @@ function BouncesSection({ scope, id }: { scope: CommsScope; id: number }) {
   return (
     <div className="space-y-4">
       <div className={card}>
-        <h2 className="text-base font-semibold text-slate-800">Suppressed addresses</h2>
+        <h2 className="row-h2">Suppressed addresses</h2>
         <p className="mt-1 text-sm text-slate-500">Addresses that bounced or reported spam. Mass emails skip them automatically.</p>
         {error && <p role="alert" className="mt-3 text-sm text-red-700">{error}</p>}
         {notice && <p role="status" className="mt-3 text-sm text-emerald-700">{notice}</p>}
@@ -210,43 +211,43 @@ function BouncesSection({ scope, id }: { scope: CommsScope; id: number }) {
         ) : suppressions.length === 0 ? (
           <p className="mt-2 text-sm text-slate-500">No suppressed addresses.</p>
         ) : (
-          <table className="mt-3 w-full text-sm">
-            <tbody>
+          <Table className="mt-3 w-full text-sm">
+            <TableBody>
               {suppressions.map((s) => (
-                <tr key={s.id} className="border-b border-slate-100 last:border-0">
-                  <td className="py-2 pr-3 text-slate-800">{s.email}</td>
-                  <td className="py-2 pr-3">{reasons[s.reason] ?? s.reason}</td>
-                  <td className="py-2 pr-3">{date(s.createdDate)}</td>
-                  <td className="py-2 text-right">
-                    <button type="button" className="text-sm text-azure hover:underline" onClick={() => lift(s)}>Send again</button>
-                  </td>
-                </tr>
+                <TableRow key={s.id} className="border-b border-slate-100 last:border-0">
+                  <TableCell className="py-2 pr-3 text-slate-800">{s.email}</TableCell>
+                  <TableCell className="py-2 pr-3">{reasons[s.reason] ?? s.reason}</TableCell>
+                  <TableCell className="py-2 pr-3">{date(s.createdDate)}</TableCell>
+                  <TableCell className="py-2 text-right">
+                    <LinkButton onClick={() => lift(s)}>Send again</LinkButton>
+                  </TableCell>
+                </TableRow>
               ))}
-            </tbody>
-          </table>
+            </TableBody>
+          </Table>
         )}
       </div>
 
       <div className={card}>
-        <h2 className="text-base font-semibold text-slate-800">Members who opted out</h2>
+        <h2 className="row-h2">Members who opted out</h2>
         <p className="mt-1 text-sm text-slate-500">Members choose this themselves, from the unsubscribe link or in the app.</p>
         {!optOuts ? (
           <TableSkeleton rows={3} />
         ) : optOuts.length === 0 ? (
           <p className="mt-2 text-sm text-slate-500">Nobody has opted out.</p>
         ) : (
-          <table className="mt-3 w-full text-sm">
-            <tbody>
+          <Table className="mt-3 w-full text-sm">
+            <TableBody>
               {optOuts.map((o) => (
-                <tr key={`${o.memberId}-${o.channel}`} className="border-b border-slate-100 last:border-0">
-                  <td className="py-2 pr-3 text-slate-800">{o.memberName ?? `Member ${o.memberId}`}</td>
-                  <td className="py-2 pr-3">{o.channel === "email" ? "Email" : "App notifications"}</td>
-                  <td className="py-2 pr-3">{date(o.changedAtUtc)}</td>
-                  <td className="py-2 text-slate-500">{o.source === "unsubscribe_link" ? "Unsubscribe link" : "App"}</td>
-                </tr>
+                <TableRow key={`${o.memberId}-${o.channel}`} className="border-b border-slate-100 last:border-0">
+                  <TableCell className="py-2 pr-3 text-slate-800">{o.memberName ?? `Member ${o.memberId}`}</TableCell>
+                  <TableCell className="py-2 pr-3">{o.channel === "email" ? "Email" : "App notifications"}</TableCell>
+                  <TableCell className="py-2 pr-3">{date(o.changedAtUtc)}</TableCell>
+                  <TableCell className="py-2 text-slate-500">{o.source === "unsubscribe_link" ? "Unsubscribe link" : "App"}</TableCell>
+                </TableRow>
               ))}
-            </tbody>
-          </table>
+            </TableBody>
+          </Table>
         )}
       </div>
     </div>
@@ -295,7 +296,7 @@ function LanguageSection({ scope, id, settings, onSaved }: {
 
   return (
     <div className={card}>
-      <h2 className="text-base font-semibold text-slate-800">Language</h2>
+      <h2 className="row-h2">Language</h2>
       <p className="mt-1 max-w-2xl text-sm text-slate-500">
         Members get templates in the language on their profile. Members without one get this language
         {district ? "" : " (blank: the district's language)"}. Now: {settings.effectiveLanguage}.
@@ -305,7 +306,7 @@ function LanguageSection({ scope, id, settings, onSaved }: {
 
       {district && (
         <div className="mt-6 border-t border-slate-200 pt-5">
-          <h2 className="text-base font-semibold text-slate-800">Governor&apos;s note on club greetings</h2>
+          <h2 className="row-h2">Governor&apos;s note on club greetings</h2>
           <p className="mt-1 max-w-2xl text-sm text-slate-500">
             When on, every club birthday and anniversary email in the district ends with this note, the Governor&apos;s
             name and photo. The club president&apos;s signature stays.
@@ -330,7 +331,7 @@ function LanguageSection({ scope, id, settings, onSaved }: {
                 <input type="file" accept="image/jpeg,image/png,image/webp" aria-label="Governor photo"
                   onChange={(e) => upload(e.target.files?.[0])} className="text-sm" />
                 {form.governorPhotoUrl && (
-                  <button type="button" className="text-sm text-red-700 hover:underline" onClick={() => setForm({ ...form, governorPhotoUrl: null })}>Remove</button>
+                  <LinkButton tone="danger" onClick={() => setForm({ ...form, governorPhotoUrl: null })}>Remove</LinkButton>
                 )}
               </div>
             </div>
@@ -341,7 +342,7 @@ function LanguageSection({ scope, id, settings, onSaved }: {
               onChange={(e) => setForm({ ...form, governorMessage: e.target.value })} />
           </label>
 
-          <h2 className="mt-6 text-base font-semibold text-slate-800">Foundation giving link</h2>
+          <h2 className="row-h2 mt-6">Foundation giving link</h2>
           <p className="mt-1 max-w-2xl text-sm text-slate-500">
             Birthday and anniversary templates show it where they contain {"{{foundation_link}}"}, and membership milestone
             messages add it. Clubs use their district&apos;s link. Leave it empty for no link.
@@ -351,7 +352,7 @@ function LanguageSection({ scope, id, settings, onSaved }: {
         </div>
       )}
 
-      <button type="button" className={`${btnPrimary} mt-4`} disabled={busy} onClick={save}>Save</button>
+      <Button className="mt-4" type="button" disabled={busy} onClick={save}>Save</Button>
       {error && <p role="alert" className="mt-3 text-sm text-red-700">{error}</p>}
       {notice && <p role="status" className="mt-3 text-sm text-emerald-700">{notice}</p>}
     </div>

@@ -5,6 +5,7 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { Eye, EyeOff, Check, X } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import { Button } from "@/components/ui/button";
+import { IconButton } from "@/components/ui/icon-button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
@@ -77,7 +78,7 @@ export function ResetPasswordForm() {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4 py-10">
-      <Card className="w-full max-w-md overflow-hidden rounded-[20px] border border-[color:var(--row-line)] shadow-none">
+      <Card className="w-full max-w-md overflow-hidden border-[color:var(--row-line)]">
         <CardHeader className="gap-6 px-7 pb-2 pt-7">
           <BrandLogo className="h-14 self-start" />
           <CardTitle className="font-display text-3xl font-semibold tracking-tight text-foreground">Reset Password</CardTitle>
@@ -100,23 +101,24 @@ export function ResetPasswordForm() {
                   <Input
                     id="newPassword"
                     type={showNewPassword ? "text" : "password"}
+                    className="pr-11"
                     placeholder="Enter new password"
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
                     required
                   />
-                  <button
-                    type="button"
-                    className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                  <IconButton
+                    className="absolute right-2 top-1/2 -translate-y-1/2"
                     onClick={() => setShowNewPassword(!showNewPassword)}
                     tabIndex={-1}
+                    aria-label={showNewPassword ? "Hide password" : "Show password"}
                   >
                     {showNewPassword ? (
                       <EyeOff className="h-4 w-4" />
                     ) : (
                       <Eye className="h-4 w-4" />
                     )}
-                  </button>
+                  </IconButton>
                 </div>
               </div>
 
@@ -147,23 +149,24 @@ export function ResetPasswordForm() {
                   <Input
                     id="confirmPassword"
                     type={showConfirmPassword ? "text" : "password"}
+                    className="pr-11"
                     placeholder="Confirm new password"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     required
                   />
-                  <button
-                    type="button"
-                    className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                  <IconButton
+                    className="absolute right-2 top-1/2 -translate-y-1/2"
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                     tabIndex={-1}
+                    aria-label={showConfirmPassword ? "Hide password" : "Show password"}
                   >
                     {showConfirmPassword ? (
                       <EyeOff className="h-4 w-4" />
                     ) : (
                       <Eye className="h-4 w-4" />
                     )}
-                  </button>
+                  </IconButton>
                 </div>
                 {confirmPassword && !passwordsMatch && (
                   <p className="text-xs text-destructive">Passwords do not match</p>

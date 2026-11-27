@@ -19,6 +19,8 @@ import '../../../widgets/common/pagination_widget.dart';
 import '../../../widgets/detail/detail_widgets.dart';
 import '../../../widgets/detail/detail_hero_layout.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/motion.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/roster_wheel.dart';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -219,7 +221,7 @@ class _DistrictUpcomingEventsScreenState
   }
 
   Future<void> _delete(_UpcomingEvent item) async {
-    final ok = await showDialog<bool>(
+    final ok = await showRowDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Delete Event'),
@@ -395,10 +397,10 @@ class _DistrictUpcomingEventsScreenState
       );
     }
 
-    return RefreshIndicator(
+    return RowRefresh(
       color: AppColors.primary,
       onRefresh: () => _fetch(reset: true),
-      child: ListView.separated(
+      child: RowListView.separated(
         padding: (const EdgeInsets.fromLTRB(16, 8, 16, 16)).add(const EdgeInsets.only(bottom: 88)),
         itemCount: _items.length + 1,
         separatorBuilder: (_, __) => const SizedBox(height: 10),
@@ -882,6 +884,7 @@ class _UpcomingEventEditorPageState extends State<_UpcomingEventEditorPage> {
       appBar: CustomAppBar(
         title: _isEdit ? 'Edit Event' : 'Add Event',
         leading: IconButton(
+          tooltip: 'Close',
           icon: const Icon(Icons.close, color: Colors.white),
           onPressed: _saving ? null : () => Navigator.of(context).pop(false),
         ),

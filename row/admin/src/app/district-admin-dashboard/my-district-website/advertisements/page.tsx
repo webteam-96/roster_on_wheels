@@ -55,17 +55,14 @@ import {
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
 import AlertModal from "@/components/AlertModal";
-import {
-  ArrowLeft, Plus, Pencil, Trash2, MoreHorizontal, ImageIcon,
-  AlertTriangle, Upload, X, Eye, EyeOff, FileText, ExternalLink, GripVertical,
-} from "@/components/icons";
+import { Plus, Pencil, Trash2, MoreHorizontal, ImageIcon, AlertTriangle, Upload, X, Eye, EyeOff, FileText, ExternalLink, GripVertical } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import SearchBox from "@/components/SearchBox";
 import ImageCropDialog from "@/components/ImageCropDialog";
 import DocumentOrLinkField from "@/components/website-data/DocumentOrLinkField";
 import { useImageCropUpload } from "@/hooks/useImageCropUpload";
-import { ListPageSkeleton } from "@/components/row/AppKit";
+import { PageHeader, ListPageSkeleton } from "@/components/row/AppKit";
 
 // Ads are sponsor posters/flyers in many shapes, so the crop stays FREE-FORM
 // (no locked aspect). Matches the upload validator's own 2560 px compression
@@ -276,44 +273,31 @@ export default function DistrictAdminDashboardAdvertisementsPage() {
 
       <div className="space-y-6">
         {/* ── Header ────────────────────────────────────────────────── */}
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-3">
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={goBack}
-              className="border-slate-200 bg-card hover:bg-slate-50 text-slate-700"
-            >
-              <ArrowLeft className="h-4 w-4" />
-            </Button>
-            <div>
-              <h2 className="text-2xl font-bold tracking-tight text-ink">
-                {districtNumber ? `District ${districtNumber} - Advertisements` : "Advertisements"}
-              </h2>
-              <p className="text-slate-600 text-base">Manage district website advertisements by year</p>
-            </div>
-          </div>
-          {canManage && (
+        <PageHeader
+          title={districtNumber ? `District ${districtNumber} - Advertisements` : "Advertisements"}
+          description="Manage district website advertisements by year"
+          back={() => goBack()}
+          actions={canManage && (
             <Button
               onClick={openAddDialog}
               disabled={!selectedYearId}
-              className="bg-azure hover:bg-mint-ink text-white"
+             
             >
               <Plus className="mr-2 h-4 w-4" />Add Advertisement
             </Button>
           )}
-        </div>
+        />
 
         {loading && (
           <div className="flex items-center justify-center py-20"><ListPageSkeleton /></div>
         )}
 
         {!loading && (
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center bg-slate-50 p-4 rounded-2xl border border-slate-200 flex-wrap">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center flex-wrap">
             {/* Year Select removed — top-bar ?yearId= drives filter now. */}
             <div className="hidden">
               <Select value={selectedYearId} onValueChange={setSelectedYearId}>
-                <SelectTrigger className="border-slate-200 bg-card focus:border-azure focus:ring-azure/20">
+                <SelectTrigger>
                   <SelectValue placeholder="Select year" />
                 </SelectTrigger>
                 <SelectContent>
@@ -343,13 +327,13 @@ export default function DistrictAdminDashboardAdvertisementsPage() {
         )}
 
         {!loading && !loadingAds && selectedYearId && advertisements.length === 0 && (
-          <div className="flex flex-col items-center justify-center py-20 text-center rounded-2xl border border-slate-200 bg-card shadow-sm">
+          <Card className="flex flex-col items-center justify-center py-20 text-center">
             <ImageIcon className="h-12 w-12 text-slate-400 mb-4" />
-            <h3 className="text-lg font-semibold text-slate-800">No advertisements yet</h3>
+            <h3 className="row-h2">No advertisements yet</h3>
             <p className="text-slate-600 mt-2">
               {canManage ? 'Click "Add Advertisement" to upload your first advertisement.' : "No advertisements have been added yet."}
             </p>
-          </div>
+          </Card>
         )}
 
         {!loading && !loadingAds && advertisements.length > 0 && (
@@ -364,7 +348,7 @@ export default function DistrictAdminDashboardAdvertisementsPage() {
               {filteredAdvertisements.map((ad, idx) => {
                 const photoUrl = getPhotoUrl(ad.advertisementImagePath);
                 return (
-                  <Card key={ad.id} className="border-slate-200 rounded-2xl shadow-sm bg-card relative">
+                  <Card key={ad.id} className="relative">
                     {canManage && !isSearching && (
                       <div
                         {...dragProps(idx)}
@@ -398,8 +382,7 @@ export default function DistrictAdminDashboardAdvertisementsPage() {
                             </Badge>
                             {ad.documentPath && (
                               <Badge
-                                variant="outline"
-                                className="gap-1 cursor-pointer border-slate-200 text-slate-700"
+                                variant="outline" className="gap-1 cursor-pointer border-slate-200 text-slate-700"
                                 onClick={() => handleViewDocument(ad.documentPath!)}
                               >
                                 <FileText className="h-3 w-3" />Doc
@@ -410,7 +393,7 @@ export default function DistrictAdminDashboardAdvertisementsPage() {
                         {canManage && (
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-500 hover:text-slate-800 hover:bg-slate-100">
+                              <Button aria-label="More actions" variant="ghost" size="icon" className="row-btn-sm">
                                 <MoreHorizontal className="h-4 w-4" />
                               </Button>
                             </DropdownMenuTrigger>
@@ -438,19 +421,19 @@ export default function DistrictAdminDashboardAdvertisementsPage() {
             </div>
 
             {/* ── Desktop: table ───────────────────────────────── */}
-            <div className="hidden sm:block rounded-2xl border border-slate-200 shadow-sm overflow-hidden bg-card">
+            <Card className="hidden sm:block overflow-hidden">
               <Table>
                 <TableHeader>
                   <TableRow
                     className="hover:opacity-100 border-b-2 border-marigold"
                     style={{ backgroundColor: "#17458f" }}
                   >
-                    <TableHead className="w-24 text-xs font-semibold uppercase tracking-wide">Thumbnail</TableHead>
-                    <TableHead className="text-xs font-semibold uppercase tracking-wide">Description</TableHead>
-                    <TableHead className="w-24 text-xs font-semibold uppercase tracking-wide">Document</TableHead>
-                    <TableHead className="w-24 text-xs font-semibold uppercase tracking-wide">Status</TableHead>
-                    {canManage && <TableHead className="w-12 text-xs font-semibold uppercase tracking-wide"></TableHead>}
-                    {canManage && <TableHead className="w-20 text-xs font-semibold uppercase tracking-wide text-center">Sort</TableHead>}
+                    <TableHead className="w-24">Thumbnail</TableHead>
+                    <TableHead>Description</TableHead>
+                    <TableHead className="w-24">Document</TableHead>
+                    <TableHead className="w-24">Status</TableHead>
+                    {canManage && <TableHead className="w-12"></TableHead>}
+                    {canManage && <TableHead className="w-20 text-center">Sort</TableHead>}
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -475,7 +458,7 @@ export default function DistrictAdminDashboardAdvertisementsPage() {
                             <Button
                               variant="ghost"
                               size="sm"
-                              className="h-7 gap-1 text-ink hover:text-ink hover:bg-slate-100"
+                              className="row-btn-sm"
                               onClick={() => handleViewDocument(ad.documentPath!)}
                             >
                               <FileText className="h-3.5 w-3.5" /><span className="text-xs">View</span>
@@ -498,7 +481,7 @@ export default function DistrictAdminDashboardAdvertisementsPage() {
                           <TableCell>
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-500 hover:text-slate-800 hover:bg-slate-100">
+                                <Button aria-label="More actions" variant="ghost" size="icon" className="row-btn-sm">
                                   <MoreHorizontal className="h-4 w-4" />
                                 </Button>
                               </DropdownMenuTrigger>
@@ -533,7 +516,7 @@ export default function DistrictAdminDashboardAdvertisementsPage() {
                   })}
                 </TableBody>
               </Table>
-            </div>
+            </Card>
             </>
             )}
           </>
@@ -562,7 +545,7 @@ export default function DistrictAdminDashboardAdvertisementsPage() {
                     <Button
                       variant="destructive"
                       size="icon"
-                      className="absolute top-2 right-2 h-7 w-7 bg-red-600 hover:bg-red-700 text-white"
+                      className="absolute top-2 right-2 h-7 w-7"
                       onClick={() => setFormImagePath("")}
                     >
                       <X className="h-4 w-4" />
@@ -574,7 +557,7 @@ export default function DistrictAdminDashboardAdvertisementsPage() {
                     <Button
                       type="button"
                       variant="outline"
-                      className="w-full h-24 border-dashed border-slate-300 bg-card hover:bg-slate-50 text-slate-700"
+                      className="w-full h-24"
                       onClick={() => fileInputRef.current?.click()}
                     >
                       <div className="flex flex-col items-center gap-1">
@@ -608,7 +591,7 @@ export default function DistrictAdminDashboardAdvertisementsPage() {
                   onChange={(e) => setFormDescription(e.target.value.slice(0, 500))}
                   rows={2}
                   maxLength={500}
-                  className="border-slate-200 bg-card focus:border-azure focus:ring-azure/20"
+                 
                 />
                 <p className="text-xs text-slate-500 text-right">{formDescription.length}/500</p>
               </div>
@@ -616,7 +599,7 @@ export default function DistrictAdminDashboardAdvertisementsPage() {
               <div className="space-y-2">
                 <Label className="text-slate-500 text-xs font-semibold uppercase tracking-wide">Status</Label>
                 <Select value={formIsActive} onValueChange={setFormIsActive}>
-                  <SelectTrigger className="border-slate-200 bg-card focus:border-azure focus:ring-azure/20">
+                  <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -630,7 +613,7 @@ export default function DistrictAdminDashboardAdvertisementsPage() {
                 <div className="space-y-2">
                   <Label className="text-slate-500 text-xs font-semibold uppercase tracking-wide">Rotary Year</Label>
                   <Select value={formYearId} onValueChange={setFormYearId}>
-                    <SelectTrigger className="border-slate-200 bg-card focus:border-azure focus:ring-azure/20">
+                    <SelectTrigger>
                       <SelectValue placeholder="Select a year" />
                     </SelectTrigger>
                     <SelectContent>
@@ -649,14 +632,14 @@ export default function DistrictAdminDashboardAdvertisementsPage() {
                 variant="outline"
                 onClick={() => setDialogOpen(false)}
                 disabled={saving}
-                className="border-slate-200 text-slate-700 hover:bg-slate-50"
+               
               >
                 Cancel
               </Button>
               <Button
                 onClick={handleSave}
                 disabled={saving || !formImagePath}
-                className="bg-azure hover:bg-mint-ink text-white"
+               
               >
                 {saving ? "Saving..." : editingAd ? "Update" : "Add"}
               </Button>

@@ -1,10 +1,13 @@
 "use client";
+import { DataTable } from "@/components/ui/data-table";
 
 /**
  * District Admin Dashboard › Grants (flagged module "grants"): one cycle per Rotary year with its DDF budget and
  * qualification rules, the applications by status, the archive, the cash flow of recorded payments and a CSV export.
  */
 
+import { NativeSelect } from "@/components/ui/native-select";
+import { PageHeader } from "@/components/row/AppKit";
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { Download, Edit, Loader2, Plus, Save } from "@/components/icons";
@@ -28,7 +31,7 @@ import { GrantEmailTemplates, MonthlyCashFlow, QualifiedClubs } from "@/componen
 import type { GrantApplicationListItem, GrantCashFlow, GrantCycle, GrantStatus, GrantYearSummary, SaveGrantCycle } from "@/types/grants";
 import type { RotaryYear } from "@/types/rotaryYear";
 
-const SELECT = "h-10 w-full rounded-md border border-input bg-background px-3 text-sm";
+const SELECT = "row-field w-full";
 const message = (err: any, fallback: string) => err?.response?.data?.message || fallback;
 
 export default function DistrictGrantsPage() {
@@ -114,26 +117,26 @@ export default function DistrictGrantsPage() {
   };
 
   return (
-    <div className="space-y-6 p-6">
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <h2 className="text-2xl font-bold tracking-tight text-primary">Grants</h2>
-          <p className="text-base text-muted-foreground">District grant cycles, club applications, payments and final reports.</p>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          {cycle && (
-            <Button variant="outline" className="gap-1.5" onClick={exportCsv} disabled={exporting}>
+    <div className="space-y-6">
+      <PageHeader
+        title="Grants"
+        description="District grant cycles, club applications, payments and final reports."
+        actions={
+          <>
+{cycle && (
+            <Button variant="outline" onClick={exportCsv} disabled={exporting}>
               {exporting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />} Export CSV
             </Button>
           )}
           {cycles && cycles.length > 0 && (
-            <Button variant="outline" className="gap-1.5" onClick={remind} disabled={reminding}>
+            <Button variant="outline" onClick={remind} disabled={reminding}>
               {reminding && <Loader2 className="h-4 w-4 animate-spin" />} Send report reminders
             </Button>
           )}
-          <Button className="gap-1.5" onClick={() => setEditing("new")}><Plus className="h-4 w-4" /> New cycle</Button>
-        </div>
-      </div>
+          <Button onClick={() => setEditing("new")}><Plus className="h-4 w-4" /> New cycle</Button>
+          </>
+        }
+      />
       {notice && <p className="text-sm text-emerald-700" role="status">{notice}</p>}
 
       {editing && (
@@ -154,12 +157,12 @@ export default function DistrictGrantsPage() {
           <div className="flex flex-wrap items-end gap-3">
             <div className="w-56 space-y-1.5">
               <Label htmlFor="cycle">Rotary year</Label>
-              <select id="cycle" className={SELECT} value={cycleId ?? ""} onChange={(e) => { setCycleId(Number(e.target.value)); setStatus(""); }}>
+              <NativeSelect id="cycle"  value={cycleId ?? ""} onChange={(e) => { setCycleId(Number(e.target.value)); setStatus(""); }}>
                 {cycles.map((c) => <option key={c.id} value={c.id}>{c.yearLabel} ({c.status})</option>)}
-              </select>
+              </NativeSelect>
             </div>
             {cycle && (
-              <Button variant="outline" className="gap-1.5" onClick={() => setEditing(cycle)}>
+              <Button variant="outline" onClick={() => setEditing(cycle)}>
                 <Edit className="h-4 w-4" /> Edit cycle
               </Button>
             )}
@@ -173,10 +176,10 @@ export default function DistrictGrantsPage() {
                 ["Paid", fmt.money(cycle.paid)],
                 ["Not yet committed", fmt.money(cycle.ddfBudget - cycle.committed)],
               ].map(([label, value]) => (
-                <div key={label} className="rounded-lg border bg-card p-4">
+                <Card key={label} className="p-5">
                   <p className="text-xs text-muted-foreground">{label}</p>
                   <p className="mt-1 text-xl font-semibold tabular-nums">{value}</p>
-                </div>
+                </Card>
               ))}
             </div>
           )}
@@ -202,42 +205,27 @@ export default function DistrictGrantsPage() {
               ) : apps.length === 0 ? (
                 <Card><CardContent className="p-5 text-sm text-muted-foreground">No applications here.</CardContent></Card>
               ) : (
-                <Card>
-                  <CardContent className="overflow-x-auto p-0">
-                    <table className="w-full min-w-[820px] text-sm">
-                      <thead className="bg-[#EDF4FB] text-[13px] text-[#64748B]">
-                        <tr className="border-b text-left text-muted-foreground">
-                          <th className="p-3 font-medium">Club</th>
-                          <th className="p-3 font-medium">Project</th>
-                          <th className="p-3 font-medium">Status</th>
-                          <th className="p-3 text-right font-medium">Requested</th>
-                          <th className="p-3 text-right font-medium">Approved</th>
-                          <th className="p-3 text-right font-medium">Paid</th>
-                          <th className="p-3 font-medium">Updated</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {apps.map((a) => (
-                          <tr key={a.id} className="border-b last:border-0">
-                            <td className="p-3">{a.clubName}</td>
-                            <td className="p-3"><Link href={`/district-admin-dashboard/grants/${a.id}`} className="font-medium text-primary hover:underline">{a.title}</Link></td>
-                            <td className="p-3"><StatusBadge status={a.status} /></td>
-                            <td className="p-3 text-right tabular-nums">{fmt.money(a.amountRequested)}</td>
-                            <td className="p-3 text-right tabular-nums">{a.amountApproved != null ? fmt.money(a.amountApproved) : ""}</td>
-                            <td className="p-3 text-right tabular-nums">{a.paid ? fmt.money(a.paid) : ""}</td>
-                            <td className="p-3">{fmt.date(a.updatedAt)}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </CardContent>
-                </Card>
+                <DataTable
+                  caption="Grant applications"
+                  rows={apps}
+                  rowKey={(a) => a.id}
+                  className="[&_table]:min-w-[820px]"
+                  columns={[
+                    { key: "club", header: "Club", cell: (a) => a.clubName },
+                    { key: "project", header: "Project", cell: (a) => <Link href={`/district-admin-dashboard/grants/${a.id}`} className="font-medium text-primary hover:underline">{a.title}</Link> },
+                    { key: "status", header: "Status", cell: (a) => <StatusBadge status={a.status} /> },
+                    { key: "requested", header: "Requested", align: "right", className: "tabular-nums", cell: (a) => fmt.money(a.amountRequested) },
+                    { key: "approved", header: "Approved", align: "right", className: "tabular-nums", cell: (a) => (a.amountApproved != null ? fmt.money(a.amountApproved) : "") },
+                    { key: "paid", header: "Paid", align: "right", className: "tabular-nums", cell: (a) => (a.paid ? fmt.money(a.paid) : "") },
+                    { key: "updated", header: "Updated", cell: (a) => fmt.date(a.updatedAt) },
+                  ]}
+                />
               )}
             </section>
           )}
 
           <section className="space-y-3">
-            <h3 className="text-lg font-semibold">By Rotary year</h3>
+            <h3 className="row-h2">By Rotary year</h3>
             {summaryFailed ? (
               <Card><CardContent className="p-5 text-sm text-red-700" role="alert">Could not load the yearly summary.</CardContent></Card>
             ) : summary === null ? (
@@ -245,71 +233,44 @@ export default function DistrictGrantsPage() {
             ) : summary.length === 0 ? (
               <Card><CardContent className="p-5 text-sm text-muted-foreground">No grant years yet.</CardContent></Card>
             ) : (
-              <Card>
-                <CardContent className="overflow-x-auto p-0">
-                  <table className="w-full min-w-[720px] text-sm">
-                    <thead className="bg-[#EDF4FB] text-[13px] text-[#64748B]">
-                      <tr className="border-b text-left text-muted-foreground">
-                        <th className="p-3 font-medium">Year</th>
-                        <th className="p-3 text-right font-medium">DDF budget</th>
-                        <th className="p-3 text-right font-medium">Approved</th>
-                        <th className="p-3 text-right font-medium">Paid</th>
-                        <th className="p-3 text-right font-medium">Outstanding</th>
-                        <th className="p-3 text-right font-medium">Reported spent</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {summary.map((y) => (
-                        <tr key={y.cycleId} className="border-b last:border-0">
-                          <td className="p-3">{y.yearLabel}</td>
-                          <td className="p-3 text-right tabular-nums">{fmt.money(y.budget)}</td>
-                          <td className="p-3 text-right tabular-nums">{fmt.money(y.approved)}</td>
-                          <td className="p-3 text-right tabular-nums">{fmt.money(y.paid)}</td>
-                          <td className="p-3 text-right tabular-nums">{fmt.money(y.outstanding)}</td>
-                          <td className="p-3 text-right tabular-nums">{fmt.money(y.reportedSpent)}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </CardContent>
-              </Card>
+              <DataTable
+                caption="Grants by Rotary year"
+                rows={summary}
+                rowKey={(y) => y.cycleId}
+                className="[&_table]:min-w-[720px]"
+                columns={[
+                  { key: "year", header: "Year", cell: (y) => y.yearLabel },
+                  { key: "budget", header: "DDF budget", align: "right", className: "tabular-nums", cell: (y) => fmt.money(y.budget) },
+                  { key: "approved", header: "Approved", align: "right", className: "tabular-nums", cell: (y) => fmt.money(y.approved) },
+                  { key: "paid", header: "Paid", align: "right", className: "tabular-nums", cell: (y) => fmt.money(y.paid) },
+                  { key: "outstanding", header: "Outstanding", align: "right", className: "tabular-nums", cell: (y) => fmt.money(y.outstanding) },
+                  { key: "spent", header: "Reported spent", align: "right", className: "tabular-nums", cell: (y) => fmt.money(y.reportedSpent) },
+                ]}
+              />
             )}
           </section>
 
           {cycle && (
             <section className="space-y-3">
-              <h3 className="text-lg font-semibold">Cash flow</h3>
+              <h3 className="row-h2">Cash flow</h3>
               {flow === null ? (
                 <TableSkeleton rows={3} />
               ) : flow.rows.length === 0 ? (
                 <Card><CardContent className="p-5 text-sm text-muted-foreground">No payments recorded in this cycle yet.</CardContent></Card>
               ) : (
-                <Card>
-                  <CardContent className="overflow-x-auto p-0">
-                    <table className="w-full min-w-[720px] text-sm">
-                      <thead className="bg-[#EDF4FB] text-[13px] text-[#64748B]">
-                        <tr className="border-b text-left text-muted-foreground">
-                          <th className="p-3 font-medium">Paid on</th>
-                          <th className="p-3 font-medium">Club and project</th>
-                          <th className="p-3 text-right font-medium">Amount</th>
-                          <th className="p-3 text-right font-medium">Paid so far</th>
-                          <th className="p-3 text-right font-medium">Budget left</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {flow.rows.map((r, i) => (
-                          <tr key={i} className="border-b last:border-0">
-                            <td className="p-3">{fmt.date(r.paidOn)}</td>
-                            <td className="p-3">{r.clubName}<span className="block text-xs text-muted-foreground">{r.title}{r.reference ? `, ${r.reference}` : ""}</span></td>
-                            <td className="p-3 text-right tabular-nums">{fmt.money(r.amount)}</td>
-                            <td className="p-3 text-right tabular-nums">{fmt.money(r.cumulativePaid)}</td>
-                            <td className="p-3 text-right tabular-nums">{fmt.money(r.balance)}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </CardContent>
-                </Card>
+                <DataTable
+                  caption="Grant cash flow"
+                  rows={flow.rows}
+                  rowKey={(_, i) => i}
+                  className="[&_table]:min-w-[720px]"
+                  columns={[
+                    { key: "paidOn", header: "Paid on", cell: (r) => fmt.date(r.paidOn) },
+                    { key: "club", header: "Club and project", cell: (r) => <>{r.clubName}<span className="block text-xs text-muted-foreground">{r.title}{r.reference ? `, ${r.reference}` : ""}</span></> },
+                    { key: "amount", header: "Amount", align: "right", className: "tabular-nums", cell: (r) => fmt.money(r.amount) },
+                    { key: "cumulative", header: "Paid so far", align: "right", className: "tabular-nums", cell: (r) => fmt.money(r.cumulativePaid) },
+                    { key: "balance", header: "Budget left", align: "right", className: "tabular-nums", cell: (r) => fmt.money(r.balance) },
+                  ]}
+                />
               )}
             </section>
           )}
@@ -387,7 +348,7 @@ function CycleForm({ districtId, cycle, onSaved, onClose, onError }: {
     <Card>
       <CardContent className="p-5">
         <form className="space-y-4" onSubmit={save}>
-          <h3 className="text-base font-semibold">{cycle ? `Grant cycle ${cycle.yearLabel}` : "New grant cycle"}</h3>
+          <h3 className="row-h2">{cycle ? `Grant cycle ${cycle.yearLabel}` : "New grant cycle"}</h3>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             <div className="space-y-1.5">
               <Label htmlFor="cy-year">Rotary year</Label>
@@ -396,18 +357,18 @@ function CycleForm({ districtId, cycle, onSaved, onClose, onError }: {
               ) : years === null ? (
                 <div className="h-10 animate-pulse rounded-md bg-muted" aria-busy="true" />
               ) : (
-                <select id="cy-year" className={SELECT} value={form.yearId} onChange={(e) => set("yearId", Number(e.target.value))}>
+                <NativeSelect id="cy-year"  value={form.yearId} onChange={(e) => set("yearId", Number(e.target.value))}>
                   {years.map((y) => <option key={y.id} value={y.id}>{y.yearLabel}{y.isCurrent ? " (current)" : ""}</option>)}
-                </select>
+                </NativeSelect>
               )}
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="cy-status">Status</Label>
-              <select id="cy-status" className={SELECT} value={form.status} onChange={(e) => set("status", e.target.value as SaveGrantCycle["status"])}>
+              <NativeSelect id="cy-status"  value={form.status} onChange={(e) => set("status", e.target.value as SaveGrantCycle["status"])}>
                 <option value="draft">Draft (clubs do not see it)</option>
                 <option value="open">Open for applications</option>
                 <option value="closed">Closed to new applications</option>
-              </select>
+              </NativeSelect>
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="cy-budget">DDF budget</Label>
@@ -433,7 +394,7 @@ function CycleForm({ districtId, cycle, onSaved, onClose, onError }: {
               placeholder="For example: the club has signed the district MOU and two members attended the grant management seminar." />
           </div>
           <div className="flex flex-wrap gap-2">
-            <Button type="submit" disabled={busy || !form.yearId} className="gap-1.5">
+            <Button type="submit" disabled={busy || !form.yearId}>
               {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />} Save cycle
             </Button>
             <Button type="button" variant="outline" onClick={onClose}>Cancel</Button>

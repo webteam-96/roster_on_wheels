@@ -164,7 +164,7 @@ public class DistrictService : IDistrictService
         // No duplicate validation — same DistrictNumber can exist across (or even within) zones/countries.
         // Inline SQL (replaces sp_district_create) — supports new Country column.
         var country = string.IsNullOrWhiteSpace(dto.Country) ? null : dto.Country.Trim();
-        var defaultCurrency = CurrencyHelper.Normalize(dto.DefaultCurrency);
+        var defaultCurrency = CurrencyHelper.Normalize(string.IsNullOrWhiteSpace(dto.DefaultCurrency) ? CountryCurrency.Of(country) : dto.DefaultCurrency);
 
         var insertSql = @"
             INSERT INTO district_master
@@ -203,7 +203,8 @@ public class DistrictService : IDistrictService
         // No duplicate validation — same DistrictNumber can exist across (or even within) zones/countries.
         // Inline SQL (replaces sp_district_update) — supports new Country column.
         var country = string.IsNullOrWhiteSpace(dto.Country) ? null : dto.Country.Trim();
-        var defaultCurrency = CurrencyHelper.Normalize(dto.DefaultCurrency);
+        // Not sent = keep: an edit of another field must not turn the district back to the default currency.
+        var defaultCurrency = string.IsNullOrWhiteSpace(dto.DefaultCurrency) ? null : CurrencyHelper.Normalize(dto.DefaultCurrency);
 
         var updateSql = @"
             UPDATE district_master SET
@@ -212,7 +213,7 @@ public class DistrictService : IDistrictService
                 IsActive = @IsActive,
                 fk_zone_id = @FkZoneId,
                 Country = @Country,
-                DefaultCurrency = @DefaultCurrency,
+                DefaultCurrency = COALESCE(@DefaultCurrency, DefaultCurrency),
                 Timezone = @Timezone,
                 modified_by = @ModifiedBy,
                 modified_date = NOW()
@@ -251,6 +252,28 @@ public class DistrictService : IDistrictService
             SET DefaultCurrency = @DefaultCurrency, modified_by = @ModifiedBy, modified_date = NOW()
             WHERE pk_district_id = @Id AND isdeleted = 0",
             new { Id = id, DefaultCurrency = CurrencyHelper.Normalize(defaultCurrency), ModifiedBy = modifiedBy });
+    }
+
+    /// <summary>Gives every district still on the brand's default (or on none) its own country's currency. A currency
+    /// someone chose stays. Returns the districts changed.</summary>
+    public async Task<IReadOnlyList<DistrictCurrencyChange>> SetCurrenciesFromCountryAsync(int modifiedBy)
+    {
+        using var connection = CreateConnection();
+        await connection.OpenAsync();
+        var rows = await connection.QueryAsync<(int Id, string Number, string? Country, string? Currency)>(
+            "SELECT pk_district_id, DistrictNumber, Country, DefaultCurrency FROM district_master WHERE isdeleted = 0");
+        var changes = rows
+            .Where(r => string.IsNullOrWhiteSpace(r.Currency) || string.Equals(r.Currency, Brand.DefaultCurrency, StringComparison.OrdinalIgnoreCase))
+            .Select(r => new DistrictCurrencyChange(r.Id, r.Number, r.Currency, CountryCurrency.Of(r.Country) ?? ""))
+            .Where(c => c.To.Length > 0 && !string.Equals(c.From, c.To, StringComparison.OrdinalIgnoreCase)
+                        && CurrencyHelper.Normalize(c.To) == c.To)
+            .ToList();
+        foreach (var group in changes.GroupBy(c => c.To))
+            await connection.ExecuteAsync(@"
+                UPDATE district_master SET DefaultCurrency = @To, modified_by = @By, modified_date = NOW()
+                WHERE pk_district_id IN @Ids AND isdeleted = 0",
+                new { To = group.Key, By = modifiedBy, Ids = group.Select(c => c.Id) });
+        return changes;
     }
 
     public async Task DeleteAsync(int id, int deletedBy)

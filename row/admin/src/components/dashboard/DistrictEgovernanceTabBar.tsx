@@ -66,17 +66,14 @@ export default function DistrictEgovernanceTabBar() {
   };
 
   return (
-    <div className="bg-card rounded-2xl border border-slate-200 shadow-sm p-3">
+    <div>
       <Tabs value={active} onValueChange={(v) => go(v as TabKey)}>
         <div className="flex items-center justify-between gap-3 flex-wrap">
-          <TabsList
-            className="h-auto flex-wrap gap-1 p-1.5 rounded-full bg-muted"
-          >
+          <TabsList>
             {TAB_KEYS.filter((k) => tabOn[k]).map((k) => (
               <TabsTrigger
                 key={k}
                 value={k}
-                className="text-sm font-semibold px-3.5 py-1.5 rounded-full"
               >
                 {TAB_LABELS[k]}
               </TabsTrigger>

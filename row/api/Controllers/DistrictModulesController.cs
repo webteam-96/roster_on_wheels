@@ -1072,6 +1072,34 @@ public class DistrictModulesController : ControllerBase
     }
 
     // sendEmail=false lets SuperAdmin remove a District Admin SILENTLY (no notification email).
+    /// <summary>
+    /// "Edit Years" for an EXISTING District Admin — no Remove + Make Admin.
+    /// Only years the caller holds can be added or removed; the rest are kept.
+    /// Marker: YWAR-EDIT-YEARS
+    /// </summary>
+    [HttpPost("api/districts/{districtId}/members/{memberId}/admin-years")]
+    public async Task<ActionResult> EditDistrictAdminYears(int districtId, int memberId, [FromBody] AssignDistrictAdminYearsDto request)
+    {
+        using var connection = CreateConnection();
+        await connection.OpenAsync();
+
+        var isAdmin = await connection.ExecuteScalarAsync<int>(@"
+            SELECT COUNT(*) FROM member_roles
+            WHERE fk_member_master_profile_id = @MemberId AND fk_role_id = 2 AND fk_district_id = @DistrictId
+              AND (fk_club_id IS NULL OR fk_club_id = 0) AND IsActive = 1 AND COALESCE(isdeleted,0) = 0",
+            new { MemberId = memberId, DistrictId = districtId }) > 0;
+        if (!isAdmin)
+            return BadRequest(new { message = "This member is not a District Admin here. Use Make Admin first." });
+
+        var result = await _adminYears.EditManualGrantsAsync(
+            connection, memberId, null, districtId, GetUserId(),
+            request?.YearIds ?? new List<int>(), request?.AllYears == true);
+        if (result.Refusal != null)
+            return StatusCode(result.RefusalStatus, new { message = result.Refusal });
+
+        return Ok(new { message = "Admin years updated.", keptYears = result.KeptYears });
+    }
+
     [HttpPost("api/districts/{districtId}/members/{memberId}/remove-admin")]
     public async Task<ActionResult> RemoveDistrictAdmin(int districtId, int memberId, [FromQuery] bool sendEmail = true)
     {
@@ -1439,6 +1467,8 @@ public class DistrictModulesController : ControllerBase
 
         if (dto.Photos == null || dto.Photos.Count == 0)
             return BadRequest(new { message = "At least 1 photo is required to save this project." });
+        if (ProjectNumbers.Validate(dto.ProjectCost, dto.AmountSanctioned, dto.AmountReceived, dto.AmountSpent, dto.DirectBeneficiaries, dto.ManHours,
+            dto.RotariansInvolved, dto.RotaractorsInvolved, dto.RccInvolved) is { } numberError) return BadRequest(new { message = numberError });
         // project_date decides the year-partitioned table below, so a typo'd year creates a junk
         // rotary year that pollutes the public year filter. See Services/ProjectDateValidator.
         var dateError = ProjectDateValidator.ValidateText(dto.ProjectDate) ?? ProjectDateValidator.ValidateText(dto.EventDate);
@@ -1523,6 +1553,8 @@ public class DistrictModulesController : ControllerBase
         if (!await DistrictRecordInYearAsync(districtId, yearId, id)) return NotFound(new { message = "Not found." });
         if (dto.Photos == null || dto.Photos.Count == 0)
             return BadRequest(new { message = "At least 1 photo is required to save this project." });
+        if (ProjectNumbers.Validate(dto.ProjectCost, dto.AmountSanctioned, dto.AmountReceived, dto.AmountSpent, dto.DirectBeneficiaries, dto.ManHours,
+            dto.RotariansInvolved, dto.RotaractorsInvolved, dto.RccInvolved) is { } numberError) return BadRequest(new { message = numberError });
         // Same year-table guard as create. See Services/ProjectDateValidator.
         var dateError = ProjectDateValidator.ValidateText(dto.ProjectDate) ?? ProjectDateValidator.ValidateText(dto.EventDate);
         if (dateError != null) return BadRequest(new { message = dateError });
@@ -1903,6 +1935,8 @@ public class DistrictModulesController : ControllerBase
         if (!await DistrictRecordInYearAsync(districtId, yearId, id)) return NotFound(new { message = "Not found." });
         if (dto.Photos == null || dto.Photos.Count == 0)
             return BadRequest(new { message = "At least 1 photo is required to save this project." });
+        if (ProjectNumbers.Validate(dto.ProjectCost, dto.AmountSanctioned, dto.AmountReceived, dto.AmountSpent, dto.DirectBeneficiaries, dto.ManHours,
+            dto.RotariansInvolved, dto.RotaractorsInvolved, dto.RccInvolved) is { } numberError) return BadRequest(new { message = numberError });
         if (string.IsNullOrWhiteSpace(dto.ProjectDate) || !DateTime.TryParse(dto.ProjectDate, out var parsed))
             return BadRequest(new { message = "A valid project date is required to move the project." });
         // The move target year is derived from this date — same guard. See Services/ProjectDateValidator.
@@ -4100,7 +4134,7 @@ public class DistrictModulesController : ControllerBase
                            q.fk_activity_id AS activityId, a.activity_name AS activityName, a.sub_type AS subType,
                            CAST(ROUND(q.points) AS SIGNED) AS points, q.is_bonus AS isBonus,
                            CAST(ROUND(q.bonus_points) AS SIGNED) AS bonusPoints,
-                           q.min_bonus AS minBonus, q.max_bonus AS maxBonus,
+                           q.min_bonus AS minBonus, q.max_bonus AS maxBonus, COALESCE(q.per_unit, 1) AS perUnit,
                            q.sort_order AS sortOrder, q.fk_year_id AS yearId
                     FROM district_citation_auto_question q
                     INNER JOIN district_citation_activity_master a ON a.pk_id = q.fk_activity_id
@@ -4153,6 +4187,7 @@ public class DistrictModulesController : ControllerBase
         public int MinBonus { get; set; }
         public int MaxBonus { get; set; }
         public int SortOrder { get; set; }
+        public int PerUnit { get; set; } = 1;   // "For every" (goal flow, 2026-11-27): points per block of this many
         public List<CitationAutoSubItemDto> SubItems { get; set; } = new();
     }
 
@@ -4173,13 +4208,15 @@ public class DistrictModulesController : ControllerBase
     [HttpPost("api/district-modules/{districtId}/citation/auto-questions")]
     public async Task<ActionResult> CreateCitationAutoQuestion(int districtId, [FromBody] CitationAutoQuestionDto dto)
     {
+        // Goal-figure activities (goal flow): Annual Fund / PolioPlus are RCC goals; CSR / New Clubs are district-only (Disha).
+        if (dto.ActivityId is 16 or 17 or 22 or 23) return BadRequest(new { message = "This item cannot be a club Auto question." });
         using var conn = CreateConnection();
         await conn.OpenAsync();
         var userId = GetUserId();
         var id = await conn.ExecuteScalarAsync<int>(@"
-            INSERT INTO district_citation_auto_question (fk_district_id, fk_year_id, fk_category_id, fk_activity_id, points, is_bonus, bonus_points, min_bonus, max_bonus, sort_order, created_by)
-            VALUES (@DistrictId, @YearId, @CategoryId, @ActivityId, @Points, @IsBonus, @BonusPoints, @MinBonus, @MaxBonus, @Sort, @UserId); SELECT LAST_INSERT_ID()",
-            new { DistrictId = districtId, dto.YearId, dto.CategoryId, dto.ActivityId, dto.Points, IsBonus = dto.IsBonus ? 1 : 0, dto.BonusPoints, dto.MinBonus, dto.MaxBonus, Sort = dto.SortOrder, UserId = userId });
+            INSERT INTO district_citation_auto_question (fk_district_id, fk_year_id, fk_category_id, fk_activity_id, points, is_bonus, bonus_points, min_bonus, max_bonus, sort_order, per_unit, created_by)
+            VALUES (@DistrictId, @YearId, @CategoryId, @ActivityId, @Points, @IsBonus, @BonusPoints, @MinBonus, @MaxBonus, @Sort, @PerUnit, @UserId); SELECT LAST_INSERT_ID()",
+            new { DistrictId = districtId, dto.YearId, dto.CategoryId, dto.ActivityId, dto.Points, IsBonus = dto.IsBonus ? 1 : 0, dto.BonusPoints, dto.MinBonus, dto.MaxBonus, Sort = dto.SortOrder, PerUnit = Math.Max(1, dto.PerUnit), UserId = userId });
 
         foreach (var sub in dto.SubItems)
         {
@@ -4199,23 +4236,35 @@ public class DistrictModulesController : ControllerBase
             User, districtId, "district_citation_auto_question", "pk_id", id);
         var denied = currentDenied ?? await _guard.DistrictYearAsync(User, districtId, dto.YearId);
         if (denied != null) return denied;
+        // Goal-figure activities (goal flow): Annual Fund / PolioPlus are RCC goals; CSR / New Clubs are district-only (Disha).
+        if (dto.ActivityId is 16 or 17 or 22 or 23) return BadRequest(new { message = "This item cannot be a club Auto question." });
 
         using var conn = CreateConnection();
         await conn.OpenAsync();
         var userId = GetUserId();
         await conn.ExecuteAsync(@"UPDATE district_citation_auto_question SET fk_category_id=@CategoryId, fk_activity_id=@ActivityId,
-            points=@Points, is_bonus=@IsBonus, bonus_points=@BonusPoints, min_bonus=@MinBonus, max_bonus=@MaxBonus, sort_order=@Sort, modified_by=@UserId
+            points=@Points, is_bonus=@IsBonus, bonus_points=@BonusPoints, min_bonus=@MinBonus, max_bonus=@MaxBonus, sort_order=@Sort, per_unit=@PerUnit, modified_by=@UserId
             WHERE pk_id=@Id AND fk_district_id=@DistrictId AND isdeleted=0",
-            new { Id = id, DistrictId = districtId, dto.CategoryId, dto.ActivityId, dto.Points, IsBonus = dto.IsBonus ? 1 : 0, dto.BonusPoints, dto.MinBonus, dto.MaxBonus, Sort = dto.SortOrder, UserId = userId });
+            new { Id = id, DistrictId = districtId, dto.CategoryId, dto.ActivityId, dto.Points, IsBonus = dto.IsBonus ? 1 : 0, dto.BonusPoints, dto.MinBonus, dto.MaxBonus, Sort = dto.SortOrder, PerUnit = Math.Max(1, dto.PerUnit), UserId = userId });
 
-        // Soft-delete existing subs and re-insert
-        await conn.ExecuteAsync("UPDATE district_citation_auto_question_sub SET isdeleted=1 WHERE fk_auto_question_id=@Id", new { Id = id });
+        // Sub-items keep their ids (goal flow): one sent back with its id is UPDATED in place, so the clubs' entries and
+        // the District Set Goals goal on it stay linked. New ones are inserted; ones no longer sent are soft-deleted.
+        var oldSubIds = (await conn.QueryAsync<int>("SELECT pk_id FROM district_citation_auto_question_sub WHERE fk_auto_question_id=@Id AND isdeleted=0", new { Id = id })).ToHashSet();
+        var keptSubIds = new HashSet<int>();
         foreach (var sub in dto.SubItems)
         {
-            await conn.ExecuteAsync(@"INSERT INTO district_citation_auto_question_sub (fk_auto_question_id, sub_item_type, sub_item_id, sub_item_name, filter_aof_id, points, is_bonus, bonus_points, min_bonus, max_bonus, created_by)
-                VALUES (@QId, @Type, @SubId, @SubName, @FilterAofId, @Points, @IsBonus, @BonusPoints, @MinBonus, @MaxBonus, @UserId)",
-                new { QId = id, Type = sub.SubItemType, SubId = sub.SubItemId, SubName = sub.SubItemName, sub.FilterAofId, sub.Points, IsBonus = sub.IsBonus ? 1 : 0, sub.BonusPoints, sub.MinBonus, sub.MaxBonus, UserId = userId });
+            var subParams = new { QId = id, SId = sub.Id, Type = sub.SubItemType, SubId = sub.SubItemId, SubName = sub.SubItemName, sub.FilterAofId, sub.Points, IsBonus = sub.IsBonus ? 1 : 0, sub.BonusPoints, sub.MinBonus, sub.MaxBonus, UserId = userId };
+            if (sub.Id > 0 && oldSubIds.Contains(sub.Id) && keptSubIds.Add(sub.Id))
+                await conn.ExecuteAsync(@"UPDATE district_citation_auto_question_sub SET sub_item_type=@Type, sub_item_id=@SubId, sub_item_name=@SubName,
+                    filter_aof_id=@FilterAofId, points=@Points, is_bonus=@IsBonus, bonus_points=@BonusPoints,
+                    min_bonus=@MinBonus, max_bonus=@MaxBonus, modified_by=@UserId WHERE pk_id=@SId AND fk_auto_question_id=@QId", subParams);
+            else
+                await conn.ExecuteAsync(@"INSERT INTO district_citation_auto_question_sub (fk_auto_question_id, sub_item_type, sub_item_id, sub_item_name, filter_aof_id, points, is_bonus, bonus_points, min_bonus, max_bonus, created_by)
+                    VALUES (@QId, @Type, @SubId, @SubName, @FilterAofId, @Points, @IsBonus, @BonusPoints, @MinBonus, @MaxBonus, @UserId)", subParams);
         }
+        var removedSubs = oldSubIds.Where(x => !keptSubIds.Contains(x)).ToList();
+        if (removedSubs.Count > 0)
+            await conn.ExecuteAsync("UPDATE district_citation_auto_question_sub SET isdeleted=1 WHERE pk_id IN @Ids", new { Ids = removedSubs });
         return Ok(new { message = "Auto question updated." });
     }
 

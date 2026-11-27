@@ -6,6 +6,7 @@ import '../../../../data/models/district_admin_dashboard_models.dart';
 import 'package:rotary_flutter_app/core/utils/money_format.dart';
 import 'package:rotary_flutter_app/core/theme/app_fonts.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
+import 'package:rotary_flutter_app/presentation/widgets/common/loading_widget.dart';
 
 /// "Set Foundation Goals" editor — mobile twin of the web
 /// `/districts/[id]/foundation-goal/v2/edit` (Foundation Collection Goals tab).
@@ -333,6 +334,7 @@ class _FoundationGoalEditScreenState extends State<FoundationGoalEditScreen> {
         foregroundColor: AppColors.textPrimary,
         elevation: 0,
         leading: IconButton(
+          tooltip: MaterialLocalizations.of(context).backButtonTooltip,
           icon: const Icon(Icons.arrow_back_ios_new_rounded,
               color: AppColors.textPrimary, size: 20),
           onPressed: () => Navigator.of(context).pop(),
@@ -344,7 +346,7 @@ class _FoundationGoalEditScreenState extends State<FoundationGoalEditScreen> {
         ),
       ),
       body: _loading
-          ? const Center(child: CircularProgressIndicator(strokeWidth: 2.4))
+          ? const LoadingWidget()
           : _bootError != null
               ? _errorView(_bootError!)
               : _form(),

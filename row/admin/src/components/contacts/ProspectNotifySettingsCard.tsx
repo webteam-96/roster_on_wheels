@@ -3,6 +3,10 @@
 // Who hears about a new prospect and how (feature contacts_growth). The same channels carry the follow-up task
 // notices to the assigned member.
 
+import { LinkButton } from "@/components/ui/text-buttons"
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card } from "@/components/ui/card";
 import { useEffect, useState } from "react";
 import {
   getClubMembers, getProspectNotifySettings, saveProspectNotifySettings, type ProspectNotifySettings,
@@ -58,15 +62,15 @@ export default function ProspectNotifySettingsCard({ clubId, canManage }: Props)
   const holders = (names: string[]) => (names.length ? names.join(", ") : "nobody holds this role this year");
 
   return (
-    <div className="overflow-hidden rounded-xl border border-slate-200 bg-white">
+    <Card className="overflow-hidden">
       <div className="flex items-center gap-3 border-b border-slate-100 bg-slate-50 px-4 py-2.5">
         <Bell className="h-4 w-4 text-slate-500" />
-        <h3 className="text-sm font-semibold text-slate-800">New prospect notifications</h3>
+        <h3 className="row-h3">New prospect notifications</h3>
       </div>
       {loadError ? (
         <div className="px-4 py-6 text-sm text-rose-700">
           {loadError}{" "}
-          <button type="button" onClick={() => setAttempt((a) => a + 1)} className="font-medium underline">Try again</button>
+          <LinkButton type="button" onClick={() => setAttempt((a) => a + 1)}>Try again</LinkButton>
         </div>
       ) : !s ? (
         <div className="space-y-3 p-4" aria-label="Loading settings">
@@ -97,8 +101,8 @@ export default function ProspectNotifySettingsCard({ clubId, canManage }: Props)
             <p className="text-xs font-semibold text-slate-700">Also tell these members <span className="font-normal text-slate-400">({s.memberIds.length} chosen)</span></p>
             <div className="relative">
               <Search size={14} className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-400" />
-              <input value={filter} onChange={(e) => setFilter(e.target.value)} placeholder="Find a member"
-                aria-label="Find a member" className="h-9 w-full rounded-lg border border-slate-200 pl-7 pr-2 text-sm" />
+              <Input value={filter} onChange={(e) => setFilter(e.target.value)} placeholder="Find a member"
+                aria-label="Find a member" className="pl-7 pr-2" />
             </div>
             <div className="max-h-56 overflow-y-auto rounded-lg border border-slate-100">
               {shown.length === 0 ? (
@@ -112,15 +116,15 @@ export default function ProspectNotifySettingsCard({ clubId, canManage }: Props)
           </div>
           {canManage && (
             <div className="flex items-center gap-3 md:col-span-2">
-              <button type="button" onClick={save}
-                className="inline-flex h-10 items-center rounded-full bg-[#17458F] px-4 text-xs font-semibold text-white disabled:opacity-50">
+              <Button type="button" onClick={save}
+                >
                 {saving ? "Saving" : "Save settings"}
-              </button>
+              </Button>
               {message && <p role="status" className={`text-xs ${message.ok ? "text-emerald-700" : "text-rose-700"}`}>{message.text}</p>}
             </div>
           )}
         </fieldset>
       )}
-    </div>
+    </Card>
   );
 }

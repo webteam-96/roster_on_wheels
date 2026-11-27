@@ -3,6 +3,10 @@
 // District Admin / District Governor -> Super Admin (user 2026-10-09). Category-wise: the message
 // goes to the Super Admin for the selected category. They read it; there are no replies here.
 
+import { ToggleButton } from "@/components/ui/text-buttons";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { Card } from "@/components/ui/card";
 import { useEffect, useRef, useState } from "react";
 import { Loader2, MessagesSquare, Send } from "@/components/icons";
 import { getGoalCategories, getDistrictGoalMessages, postDistrictGoalMessage } from "@/services/api";
@@ -68,11 +72,11 @@ export default function DistrictGoalMessages({
   const catName = cats.find((c) => c.id === catId)?.name ?? "";
 
   return (
-    <div className="bg-card rounded-2xl border border-slate-200 overflow-hidden">
+    <Card className="overflow-hidden">
       <div className="px-5 py-3 border-b border-slate-100 bg-blue-50">
         <div className="flex flex-wrap items-center gap-2">
           <MessagesSquare size={16} className="text-blue-600" />
-          <h3 className="text-sm font-semibold text-slate-800">{lockCategory && catName ? `${catName} Messages` : "Messages"}</h3>
+          <h3 className="row-h3">{lockCategory && catName ? `${catName} Messages` : "Messages"}</h3>
           {data?.districtNumber && <span className="text-xs text-slate-500">District {data.districtNumber}</span>}
         </div>
         <p className="text-xs text-slate-500 mt-0.5">
@@ -82,10 +86,9 @@ export default function DistrictGoalMessages({
 
       <div className={`px-5 pt-3 flex flex-wrap gap-2 ${lockCategory ? "hidden" : ""}`}>
         {cats.map((c) => (
-          <button key={c.id} onClick={() => setCatId(c.id)}
-            className={`text-xs font-semibold px-3 py-1.5 rounded-lg border ${c.id === catId ? "bg-blue-600 text-white border-blue-600" : "bg-card text-slate-600 border-slate-200 hover:bg-slate-50"}`}>
+          <ToggleButton pressed={c.id === catId} key={c.id} onClick={() => setCatId(c.id)}>
             {c.name}
-          </button>
+          </ToggleButton>
         ))}
       </div>
 
@@ -100,27 +103,27 @@ export default function DistrictGoalMessages({
 
       {data?.canPost ? (
         <div className="px-5 pb-4 flex flex-col gap-2">
-          <textarea
+          <Textarea
             value={text}
             onChange={(e) => setText(e.target.value)}
             rows={3}
             maxLength={4000}
             disabled={sending}
             placeholder={`Write your ${catName} message…`}
-            className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42] disabled:bg-slate-50"
+            className="disabled:bg-slate-50"
           />
           <div className="flex flex-wrap items-center gap-2">
             <span className="text-[11px] text-slate-400">{text.length}/4000</span>
-            <button onClick={send} disabled={sending || !text.trim()}
-              className="ml-auto inline-flex items-center gap-1.5 text-xs font-semibold px-4 py-2 rounded-full bg-[#17458F] text-white hover:bg-[#17458F] disabled:opacity-50">
+            <Button onClick={send} disabled={sending || !text.trim()}
+              size="sm" className="ml-auto">
               {sending ? <Loader2 size={13} className="animate-spin" /> : <Send size={13} />} Send
-            </button>
+            </Button>
           </div>
         </div>
       ) : data && (
         <p className="px-5 pb-4 text-xs text-slate-400">Only this district&apos;s District Admin or District Governor can send messages here.</p>
       )}
       {error && <p className="px-5 pb-4 text-xs text-rose-700">{error}</p>}
-    </div>
+    </Card>
   );
 }

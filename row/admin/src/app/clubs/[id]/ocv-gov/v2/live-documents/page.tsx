@@ -11,13 +11,14 @@
  * `?returnTo=` honored on the back arrow; defaults to /clubs/[id]/ocv-gov/v2.
  */
 
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card } from "@/components/ui/card";
+import { NativeSelect } from "@/components/ui/native-select";
 import { useEffect, useMemo, useState } from "react";
 import { useFeature } from "@/contexts/BrandContext";
 import { useParams, useSearchParams } from "next/navigation";
-import Link from "next/link";
-import {
-  ArrowLeft, Calendar, Download, FileSpreadsheet, FolderOpen, Users, Loader2, Search,
-} from "@/components/icons";
+import { Calendar, Download, FileSpreadsheet, FolderOpen, Users, Loader2, Search } from "@/components/icons";
 import { getClub, getTrfYears, getLiveDocumentsExport } from "@/services/api";
 import type { ReportYear } from "@/types/clubMonthlyReport";
 import { exportToCSV } from "@/utils/csvExport";
@@ -43,7 +44,7 @@ import ErrorAlert from "@/components/ErrorAlert";
 import ClubAdminShell from "@/components/v2/ClubAdminShell";
 import { useSyncClubIdFromUrl } from "@/hooks/useSyncClubIdFromUrl";
 import { useFeatureLoadedOn } from "@/components/FeatureGate";
-import { SkeletonRows } from "@/components/row/AppKit";
+import { PageHeader, SkeletonRows } from "@/components/row/AppKit";
 
 // ── Module catalog (same shape & columns as v1) ────────────────────────────
 interface ModuleItem {
@@ -261,42 +262,29 @@ export default function LiveDocumentsV2Page() {
       >
       <div className="space-y-5">
         {/* Header */}
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-          <div className="flex items-start gap-2 min-w-0">
-            <Link
-              href={backHref}
-              className="mt-0.5 inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50"
-              aria-label="Back"
-            >
-              <ArrowLeft size={15} />
-            </Link>
-            <div className="min-w-0">
-              <h1 className="text-lg font-semibold text-slate-800 leading-tight">Live Documents</h1>
-              <p className="text-xs text-slate-500 mt-0.5">
-                {clubName || "–"} · Download Excel snapshots module-wise
-              </p>
-            </div>
-          </div>
-
-          {!loading && years.length > 0 && (
+        <PageHeader
+          title="Live Documents"
+          description={<>{clubName || "–"} · Download Excel snapshots module-wise</>}
+          back={backHref}
+          actions={!loading && years.length > 0 && (
             <div className="flex flex-wrap items-center gap-2">
               <span className="text-xs font-medium text-slate-500 flex items-center gap-1">
                 <Calendar size={13} /> Year
               </span>
-              <select
+              <NativeSelect
                 value={selectedYearId ?? ""}
                 onChange={(e) => setSelectedYearId(e.target.value ? Number(e.target.value) : null)}
-                className="px-2 h-10 py-0 text-sm border border-slate-200 rounded-[12px] bg-card focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42] min-w-[10rem]"
+                className="min-w-[10rem] w-auto"
               >
                 {years.map((y) => (
                   <option key={y.id} value={y.id}>
                     {y.yearLabel}{y.isCurrent ? " · current" : ""}
                   </option>
                 ))}
-              </select>
+              </NativeSelect>
             </div>
           )}
-        </div>
+        />
 
         {/* KPI tiles */}
         {!loading && (
@@ -334,21 +322,21 @@ export default function LiveDocumentsV2Page() {
 
         {/* Search */}
         {!loading && (
-          <div className="bg-card rounded-2xl border border-slate-200 px-4 py-3 flex items-center gap-3">
+          <Card className="px-4 py-3 flex items-center gap-3">
             <div className="relative flex-1 max-w-md">
               <Search size={14} className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-400" />
-              <input
+              <Input
                 type="text"
                 placeholder="Search modules…"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="w-full pl-7 pr-3 h-10 py-0 text-sm border border-slate-200 rounded-[12px] bg-card focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                className="pl-7 pr-3"
               />
             </div>
             <span className="text-xs text-slate-500 whitespace-nowrap">
               {filtered.length} module{filtered.length === 1 ? "" : "s"}
             </span>
-          </div>
+          </Card>
         )}
 
         {loading ? (
@@ -356,10 +344,10 @@ export default function LiveDocumentsV2Page() {
         ) : (
           <>
             {/* OCV/GOV Section */}
-            <div className="bg-card rounded-2xl border border-slate-200 overflow-hidden">
+            <Card className="overflow-hidden">
               <div className="px-5 py-3 border-b border-slate-100 flex items-center gap-2">
                 <FolderOpen size={16} className="text-blue-600" />
-                <h2 className="text-sm font-semibold text-slate-800">OCV / GOV Documents</h2>
+                <h2 className="row-h2">OCV / GOV Documents</h2>
                 <span className="ml-auto text-xs text-slate-500">{ocvModules.length} listed</span>
               </div>
               {ocvModules.length === 0 ? (
@@ -374,11 +362,11 @@ export default function LiveDocumentsV2Page() {
                         </span>
                         <span className="text-sm font-medium text-slate-800 truncate">{mod.label}</span>
                       </div>
-                      <button
+                      <Button
                         type="button"
                         onClick={() => handleDownload(mod)}
                         disabled={downloading === mod.key || !selectedYearId}
-                        className="inline-flex items-center gap-1.5 text-xs font-semibold px-4 h-10 rounded-full border border-slate-200 text-slate-700 hover:bg-blue-50 hover:text-blue-700 disabled:opacity-50"
+                        variant="outline"
                       >
                         {downloading === mod.key ? (
                           <>
@@ -389,18 +377,18 @@ export default function LiveDocumentsV2Page() {
                             <Download size={12} /> Download
                           </>
                         )}
-                      </button>
+                      </Button>
                     </li>
                   ))}
                 </ul>
               )}
-            </div>
+            </Card>
 
             {/* Club Modules Section */}
-            <div className="bg-card rounded-2xl border border-slate-200 overflow-hidden">
+            <Card className="overflow-hidden">
               <div className="px-5 py-3 border-b border-slate-100 flex items-center gap-2">
                 <Users size={16} className="text-slate-600" />
-                <h2 className="text-sm font-semibold text-slate-800">Club Modules</h2>
+                <h2 className="row-h2">Club Modules</h2>
                 <span className="ml-auto text-xs text-slate-500">{clubModules.length} listed</span>
               </div>
               {clubModules.length === 0 ? (
@@ -415,11 +403,11 @@ export default function LiveDocumentsV2Page() {
                         </span>
                         <span className="text-sm font-medium text-slate-800 truncate">{mod.label}</span>
                       </div>
-                      <button
+                      <Button
                         type="button"
                         onClick={() => handleDownload(mod)}
                         disabled={downloading === mod.key || !selectedYearId}
-                        className="inline-flex items-center gap-1.5 text-xs font-semibold px-4 h-10 rounded-full border border-slate-200 text-slate-700 hover:bg-blue-50 hover:text-blue-700 disabled:opacity-50"
+                        variant="outline"
                       >
                         {downloading === mod.key ? (
                           <>
@@ -430,12 +418,12 @@ export default function LiveDocumentsV2Page() {
                             <Download size={12} /> Download
                           </>
                         )}
-                      </button>
+                      </Button>
                     </li>
                   ))}
                 </ul>
               )}
-            </div>
+            </Card>
           </>
         )}
 

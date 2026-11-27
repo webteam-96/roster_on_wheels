@@ -21,12 +21,11 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
 import AlertModal from "@/components/AlertModal";
-import { ArrowLeft, Plus, Pencil, Trash2, AlertTriangle, UsersRound, Users, MoreHorizontal, Layers, Lock, Search, X } from "@/components/icons";
+import { Plus, Pencil, Trash2, AlertTriangle, UsersRound, Users, MoreHorizontal, Layers, Lock, Search, X } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
-import Link from "next/link";
 import Pagination from "@/components/Pagination";
 import ProtectedRoute from "@/components/ProtectedRoute";
-import { ListPageSkeleton } from "@/components/row/AppKit";
+import { PageHeader, ListPageSkeleton } from "@/components/row/AppKit";
 
 const PAGE_SIZE = 20;
 
@@ -179,22 +178,14 @@ export default function GroupCommitteePage() {
   return (
     <ProtectedRoute>
       <div className="space-y-6">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-3">
-            <Button variant="outline" size="icon" asChild>
-              <Link href={`/districts/${districtId}/district-committee`}><ArrowLeft className="h-4 w-4" /></Link>
-            </Button>
-            <div>
-              <h2 className="text-2xl font-bold tracking-tight text-primary">
-                {districtName ? `${districtName} - Group Committee` : "Group Committee"}
-              </h2>
-              <p className="text-muted-foreground text-base">Manage groups with members and sub-groups</p>
-            </div>
-          </div>
-          {canManage && !loading && selectedYearId && (
+        <PageHeader
+          title={districtName ? `${districtName} - Group Committee` : "Group Committee"}
+          description="Manage groups with members and sub-groups"
+          back={`/districts/${districtId}/district-committee`}
+          actions={canManage && !loading && selectedYearId && (
             <Button onClick={openAddDialog}><Plus className="mr-2 h-4 w-4" />Add Group</Button>
           )}
-        </div>
+        />
 
         {loading && <div className="flex items-center justify-center py-20"><ListPageSkeleton /></div>}
 
@@ -220,7 +211,7 @@ export default function GroupCommitteePage() {
                 onKeyDown={handleSearchKey}
               />
               {searchTerm && (
-                <Button variant="ghost" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 h-6 w-6" onClick={clearSearch} type="button">
+                <Button variant="ghost" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 w-6 w-6 w-6 h-6 w-6" onClick={clearSearch} type="button">
                   <X className="h-4 w-4" />
                 </Button>
               )}
@@ -234,7 +225,7 @@ export default function GroupCommitteePage() {
         {!loading && !loadingGroups && selectedYearId && groups.length === 0 && (
           <div className="flex flex-col items-center justify-center py-20 text-center">
             <UsersRound className="h-12 w-12 text-muted-foreground mb-4" />
-            <h3 className="text-lg font-semibold">{searchTerm ? "No matches found" : "No groups yet"}</h3>
+            <h3 className="row-h2">{searchTerm ? "No matches found" : "No groups yet"}</h3>
             <p className="text-muted-foreground mt-2">
               {searchTerm ? `No groups match "${searchTerm}".` : (canManage ? 'Click "Add Group" to create a group.' : "No groups created yet.")}
             </p>
@@ -266,7 +257,7 @@ export default function GroupCommitteePage() {
                     {canManage && !isAutoManagedGroup(g.groupName) && (
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                          <Button variant="ghost" size="icon" className="h-8 w-8"><MoreHorizontal className="h-4 w-4" /></Button>
+                          <Button aria-label="More actions" variant="ghost" size="icon" className="row-btn-sm"><MoreHorizontal className="h-4 w-4" /></Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                           <DropdownMenuItem onClick={(e) => { e.stopPropagation(); openEditDialog(g); }}>

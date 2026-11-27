@@ -8,6 +8,8 @@ import '../../../../widgets/common/custom_app_bar.dart';
 import '../../../../widgets/common/empty_state_widget.dart';
 import '../../../../widgets/common/loading_widget.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/motion.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/roster_wheel.dart';
 
 /// The district speaker bureau for a club (feature `volunteers`, `api/clubs/{id}/speaker-bureau`). Members find
 /// speakers by topic and how they talk, and read their ratings and contact. Club managers book a speaker for a meeting,
@@ -191,9 +193,9 @@ class _SpeakerBureauScreenState extends State<SpeakerBureauScreen> {
                       icon: Icons.record_voice_over_outlined,
                       title: _error == null ? 'No speakers found' : 'Could not load the bureau',
                       subtitle: _error ?? 'Try another topic, or ask your district to add speakers.')
-                  : RefreshIndicator(
+                  : RowRefresh(
                       onRefresh: _refresh,
-                      child: ListView.separated(
+                      child: RowListView.separated(
                         padding: const EdgeInsets.only(bottom: 24),
                         itemCount: speakers.length,
                         separatorBuilder: (_, __) => const Divider(height: 1),
@@ -222,9 +224,9 @@ class _SpeakerBureauScreenState extends State<SpeakerBureauScreen> {
           title: 'No bookings yet',
           subtitle: 'Find a speaker and book them for a meeting.');
     }
-    return RefreshIndicator(
+    return RowRefresh(
       onRefresh: _refresh,
-      child: ListView.separated(
+      child: RowListView.separated(
         padding: const EdgeInsets.only(bottom: 24),
         itemCount: bookings.length,
         separatorBuilder: (_, __) => const Divider(height: 1),

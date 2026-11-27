@@ -6,6 +6,8 @@ import '../../../../../core/utils/snackbar_utils.dart';
 import '../../../../../presentation/widgets/common/custom_app_bar.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
 import 'package:rotary_flutter_app/presentation/widgets/row/skeleton_list.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/motion.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/roster_wheel.dart';
 
 /// Mass email templates and signature for club and district officers: the sender's own signature (edited as plain
 /// text), the template library (ROW starters and saved ones) and the merge fields. Opened from the Mass Emails list.
@@ -99,7 +101,7 @@ class _MassEmailLibraryScreenState extends State<MassEmailLibraryScreen> {
   }
 
   Future<void> _delete(Map<String, dynamic> t) async {
-    final ok = await showDialog<bool>(
+    final ok = await showRowDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Delete template'),
@@ -183,7 +185,7 @@ class _MassEmailLibraryScreenState extends State<MassEmailLibraryScreen> {
                     onTap: _load,
                   ),
                 ])
-              : RefreshIndicator(
+              : RowRefresh(
                   onRefresh: _load,
                   child: ListView(
                     padding: const EdgeInsets.only(bottom: 24),

@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import Link from "next/link";
 import { useParams } from "next/navigation";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import ErrorAlert from "@/components/ErrorAlert";
@@ -10,7 +9,6 @@ import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { ErrorState, PageHeader, Panel, SkeletonRows } from "@/components/row/AppKit";
-import { ArrowLeft } from "@/components/icons";
 import { getClubStories, reviewClubStory, type ClubStory } from "@/services/api";
 import { appLocale } from "@/lib/appFormat";
 
@@ -38,17 +36,17 @@ function StoryCard({ story, onReview }: {
   const when = (d: string) => new Date(d).toLocaleDateString(appLocale(), { day: "numeric", month: "short", year: "numeric" });
 
   return (
-    <article className="space-y-3 rounded-[16px] border border-[color:var(--row-line)] p-4">
+    <article className="space-y-3 rounded-xl border border-[color:var(--row-line)] p-4">
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div className="min-w-0">
-          <h3 className="font-semibold text-[#1B2C42]">{story.title}</h3>
-          <p className="text-[13px] text-[#64748B]">{story.authorName ?? "A member"}, sent {when(story.submittedDate)}</p>
+          <h3 className="row-h3">{story.title}</h3>
+          <p className="text-[13px] text-muted-foreground">{story.authorName ?? "A member"}, sent {when(story.submittedDate)}</p>
         </div>
         <Badge variant={story.status === "Approved" ? "default" : "secondary"}>{STATUS_LABEL[story.status]}</Badge>
       </div>
       <p className="whitespace-pre-wrap text-[15px]">{story.body}</p>
       {story.reviewNote && (
-        <p className="text-[13px] text-[#64748B]">Note from {story.reviewerName ?? "the editor"}: {story.reviewNote}</p>
+        <p className="text-[13px] text-muted-foreground">Note from {story.reviewerName ?? "the editor"}: {story.reviewNote}</p>
       )}
       {story.status === "Pending" && (
         <div className="space-y-2 border-t border-[color:var(--row-line)] pt-3">
@@ -97,14 +95,12 @@ export default function ClubStoriesPage() {
 
   return (
     <ProtectedRoute>
-      <div className="space-y-6 max-w-4xl mx-auto">
-        <div className="flex items-center gap-3">
-          <Button variant="outline" size="icon" asChild aria-label="Back to bulletins">
-            <Link href={`/clubs/${clubId}/bulletins`}><ArrowLeft className="h-4 w-4" /></Link>
-          </Button>
-          <PageHeader title="Member stories"
-            description="Members send stories from the app. Approve them to use them in a bulletin and show them on the club website." />
-        </div>
+      <div className="space-y-6 max-w-4xl">
+        <PageHeader
+          title="Member stories"
+          description="Members send stories from the app. Approve them to use them in a bulletin and show them on the club website."
+          back={`/clubs/${clubId}/bulletins`}
+        />
 
         <div role="tablist" aria-label="Story status" className="flex flex-wrap gap-2">
           {FILTERS.map((f) => (
@@ -117,11 +113,11 @@ export default function ClubStoriesPage() {
           : data === null ? <Panel title="Stories"><SkeletonRows rows={4} /></Panel>
           : !data.canReview ? (
             <Panel title="Only editors review stories">
-              <p className="text-[15px] text-[#64748B]">The club&apos;s managers and the Public Image or Bulletin Editor office on this year&apos;s board review stories.</p>
+              <p className="text-[15px] text-muted-foreground">The club&apos;s managers and the Public Image or Bulletin Editor office on this year&apos;s board review stories.</p>
             </Panel>
           ) : data.items.length === 0 ? (
             <Panel title="Nothing here">
-              <p className="text-[15px] text-[#64748B]">No stories with this status.</p>
+              <p className="text-[15px] text-muted-foreground">No stories with this status.</p>
             </Panel>
           ) : (
             <div className="space-y-3">

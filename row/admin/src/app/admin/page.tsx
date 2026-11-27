@@ -20,7 +20,7 @@ import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import RoleBasedHome from "@/components/RoleBasedHome";
 import PublicLanding from "@/components/public/PublicLanding";
-import { ListPageSkeleton } from "@/components/row/AppKit";
+import { PageHeader, ListPageSkeleton } from "@/components/row/AppKit";
 
 export default function Home() {
   const { isSuperAdmin, isAdmin, isAG, isAuthenticated, loading: authLoading } = useAuth();
@@ -143,17 +143,15 @@ export default function Home() {
         <RoleBasedHome />
       ) : (
       <div className="space-y-6">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h2 className="text-2xl font-bold tracking-tight text-primary">Zones</h2>
-            <p className="text-muted-foreground text-base">Manage Rotary zones</p>
-          </div>
-          {isSuperAdmin && (
+        <PageHeader
+          title="Zones"
+          description="Manage Rotary zones"
+          actions={isSuperAdmin && (
             <Button asChild>
               <Link href="/zones/new"><Plus className="mr-2 h-4 w-4" />Add Zone</Link>
             </Button>
           )}
-        </div>
+        />
 
         <ZoneFilters search={search} onSearchChange={setSearch} status={status} onStatusChange={setStatus} viewMode={viewMode} onViewModeChange={setViewMode} onSearch={handleSearch} />
 
@@ -166,7 +164,7 @@ export default function Home() {
         {error && (
           <div className="flex flex-col items-center justify-center py-20 text-center">
             <AlertCircle className="h-12 w-12 text-destructive mb-4" />
-            <h3 className="text-lg font-semibold">Error</h3>
+            <h3 className="row-h2">Error</h3>
             <p className="text-muted-foreground mt-2 max-w-md">{error}</p>
             <Button variant="outline" className="mt-4" onClick={() => fetchZones()}>Try Again</Button>
           </div>
@@ -175,7 +173,7 @@ export default function Home() {
         {!loading && !error && data && data.items.length === 0 && (
           <div className="flex flex-col items-center justify-center py-20 text-center">
             <Globe className="h-12 w-12 text-muted-foreground mb-4" />
-            <h3 className="text-lg font-semibold">No zones found</h3>
+            <h3 className="row-h2">No zones found</h3>
             <p className="text-muted-foreground mt-2">No zones available yet.</p>
           </div>
         )}

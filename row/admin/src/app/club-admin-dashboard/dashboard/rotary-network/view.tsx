@@ -1,11 +1,15 @@
 "use client";
 
+import { IconButton } from "@/components/ui/icon-button"
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table"
+import { Input } from "@/components/ui/input";
+import { Card } from "@/components/ui/card";
+import { PageHeader } from "@/components/row/AppKit";
+import PillTabs from "@/components/row/PillTabs";
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
-import {
-  UserMinus, UserPlus, Search, Plus, Edit3, Trash2, Construction,
-} from "@/components/icons";
+import { UserMinus, UserPlus, Search, Plus, Edit3, Trash2 } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import { getClubAdminDashboardRotaryNetwork, deletePotentialMember, getRotaryOrgTerminatedMembers } from "@/services/api";
 import { useAuth } from "@/contexts/AuthContext";
@@ -24,16 +28,7 @@ import ViewOnlyBadge from "@/components/ViewOnlyBadge";
 // than deleted, in case the "Coming Soon" placeholder needs to come back.
 function DashboardRotaryNetworkComingSoonStub() {
   return (
-    <div className="flex flex-col items-center justify-center min-h-[60vh] px-6 text-center">
-      <div className="rounded-full bg-amber-100 p-5 mb-5">
-        <Construction className="h-10 w-10 text-amber-600" />
-      </div>
-      <h2 className="text-2xl font-bold text-slate-800 mb-2">Rotary Network: Coming Soon</h2>
-      <p className="text-slate-500 max-w-md text-sm">
-        Terminated members (live from Rotary.org) and potential members will
-        appear here once the integration is finalised.
-      </p>
-    </div>
+    <PageHeader title="Rotary Network: Coming Soon" description="Terminated members (live from Rotary.org) and potential members will appear here once the integration is finalised." />
   );
 }
 
@@ -275,43 +270,28 @@ export function DashboardRotaryNetworkView({ embedded = false }: { embedded?: bo
         </div>
       )}
 
-      <div className="bg-card rounded-2xl border border-slate-200 overflow-hidden">
+      <Card className="overflow-hidden">
         <div className="px-5 py-3 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
-            <h3 className="text-sm font-semibold text-slate-800">Rotary Network</h3>
+            <h3 className="row-h3">Rotary Network</h3>
             <p className="text-xs text-slate-500 mt-0.5">
               Manage terminated and prospective members
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            <div
-              className="inline-flex items-center gap-1 rounded-full p-1 text-sm bg-muted"
-            >
-              <button
-                onClick={() => handleViewChange("terminated")}
-                className={`inline-flex h-9 items-center px-4 font-semibold rounded-full transition-colors ${
-                  view === "terminated" ? "bg-card text-foreground ring-1 ring-[color:var(--row-line)]" : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                Terminated Members
-              </button>
-              <button
-                onClick={() => handleViewChange("potential")}
-                className={`inline-flex h-9 items-center px-4 font-semibold rounded-full transition-colors ${
-                  view === "potential" ? "bg-card text-foreground ring-1 ring-[color:var(--row-line)]" : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                Potential Members
-              </button>
-            </div>
+            <PillTabs
+              items={[{ key: "terminated", label: "Terminated Members" }, { key: "potential", label: "Potential Members" }]}
+              active={view}
+              onChange={handleViewChange}
+            />
             <div className="relative w-full sm:w-auto">
               <Search size={14} className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-400" />
-              <input
+              <Input
                 type="text"
                 placeholder="Search…"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="pl-7 pr-3 h-10 py-0 text-sm border border-slate-200 rounded-[12px] w-full sm:w-48 focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                className="pl-7 pr-3 sm:w-48"
               />
             </div>
             {/* Add is hidden for Terminated Members — terminated rows come from
@@ -319,7 +299,7 @@ export function DashboardRotaryNetworkView({ embedded = false }: { embedded?: bo
             {view === "potential" && canManage && (
               <Link
                 href={addUrl}
-                className="inline-flex items-center gap-1.5 text-xs font-semibold px-4 h-10 rounded-full bg-[#17458F] text-white hover:bg-[#17458F]"
+                className="row-btn row-btn-primary"
               >
                 <Plus size={13} /> Add
               </Link>
@@ -328,81 +308,81 @@ export function DashboardRotaryNetworkView({ embedded = false }: { embedded?: bo
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[640px] md:min-w-full text-sm">
-            <thead className="bg-[#EDF4FB] text-[13px] text-[#64748B]">
-              <tr>
-                <th className="px-3 py-2.5 text-left w-12">Sr No</th>
-                <th className="px-3 py-2.5 text-left">Member ID</th>
-                <th className="px-3 py-2.5 text-left">Member Type</th>
-                <th className="px-3 py-2.5 text-left">First Name</th>
-                <th className="px-3 py-2.5 text-left">Middle Name</th>
-                <th className="px-3 py-2.5 text-left">Last Name</th>
-                <th className="px-3 py-2.5 text-left whitespace-nowrap">Mobile</th>
-                <th className="px-3 py-2.5 text-left">Email</th>
-                <th className="px-3 py-2.5 text-left whitespace-nowrap">Admission Date</th>
+          <Table className="w-full min-w-[640px] md:min-w-full text-sm">
+            <TableHeader>
+              <TableRow>
+                <TableHead className="px-3 text-left w-12">Sr No</TableHead>
+                <TableHead className="px-3 text-left">Member ID</TableHead>
+                <TableHead className="px-3 text-left">Member Type</TableHead>
+                <TableHead className="px-3 text-left">First Name</TableHead>
+                <TableHead className="px-3 text-left">Middle Name</TableHead>
+                <TableHead className="px-3 text-left">Last Name</TableHead>
+                <TableHead className="px-3 text-left whitespace-nowrap">Mobile</TableHead>
+                <TableHead className="px-3 text-left">Email</TableHead>
+                <TableHead className="px-3 text-left whitespace-nowrap">Admission Date</TableHead>
                 {view === "terminated" && (
                   <>
-                    <th className="px-3 py-2.5 text-left whitespace-nowrap">Termination Date</th>
-                    <th className="px-3 py-2.5 text-left">Termination Reason</th>
+                    <TableHead className="px-3 text-left whitespace-nowrap">Termination Date</TableHead>
+                    <TableHead className="px-3 text-left">Termination Reason</TableHead>
                   </>
                 )}
                 {view === "potential" && (
-                  <th className="px-3 py-2.5 text-left">Notes</th>
+                  <TableHead className="px-3 text-left">Notes</TableHead>
                 )}
                 {/* Actions column (Edit/Delete) is only rendered for Potential
                     members. Terminated members are read-only — sourced from the
                     upstream membership API. */}
                 {view === "potential" && (
-                  <th className="px-3 py-2.5 text-right whitespace-nowrap w-24">Actions</th>
+                  <TableHead className="px-3 text-right whitespace-nowrap w-24">Actions</TableHead>
                 )}
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
+              </TableRow>
+            </TableHeader>
+            <TableBody className="divide-y divide-slate-100">
               {rows.map((r, index) => {
                 const editUrl = view === "terminated"
                   ? `/clubs/${clubId}/rotary-network/terminated-members/v2/${r.id}/edit?returnTo=${returnTo}`
                   : `/clubs/${clubId}/rotary-network/potential-members/v2/${r.id}/edit?returnTo=${returnTo}`;
                 return (
-                  <tr key={`${view}-${r.id}`} className="hover:bg-blue-50/40">
-                    <td className="px-3 py-2 text-xs text-slate-600">{index + 1}</td>
-                    <td className="px-3 py-2 text-xs text-slate-600">{r.memberId || "–"}</td>
-                    <td className="px-3 py-2">
-                      <span className="inline-flex items-center text-xs font-medium px-2 py-0.5 rounded-full border bg-slate-50 text-slate-700 border-slate-200">
+                  <TableRow key={`${view}-${r.id}`} className="hover:bg-blue-50/40">
+                    <TableCell className="px-3 py-2 text-xs text-slate-600">{index + 1}</TableCell>
+                    <TableCell className="px-3 py-2 text-xs text-slate-600">{r.memberId || "–"}</TableCell>
+                    <TableCell className="px-3 py-2">
+                      <span className="inline-flex items-center text-xs font-medium px-2 py-0.5 rounded border bg-slate-50 text-slate-700 border-slate-200">
                         {r.memberType || "–"}
                       </span>
-                    </td>
-                    <td className="px-3 py-2 text-slate-800 font-medium">{r.firstName || "–"}</td>
-                    <td className="px-3 py-2 text-slate-600">{r.middleName || "–"}</td>
-                    <td className="px-3 py-2 text-slate-800 font-medium">{r.lastName || "–"}</td>
-                    <td className="px-3 py-2 text-xs text-slate-600 whitespace-nowrap">{r.mobile || "–"}</td>
-                    <td className="px-3 py-2 text-xs text-slate-600">{r.email || "–"}</td>
-                    <td className="px-3 py-2 text-xs text-slate-600 whitespace-nowrap">{fmtDate(r.admissionDate)}</td>
+                    </TableCell>
+                    <TableCell className="px-3 py-2 text-slate-800 font-medium">{r.firstName || "–"}</TableCell>
+                    <TableCell className="px-3 py-2 text-slate-600">{r.middleName || "–"}</TableCell>
+                    <TableCell className="px-3 py-2 text-slate-800 font-medium">{r.lastName || "–"}</TableCell>
+                    <TableCell className="px-3 py-2 text-xs text-slate-600 whitespace-nowrap">{r.mobile || "–"}</TableCell>
+                    <TableCell className="px-3 py-2 text-xs text-slate-600">{r.email || "–"}</TableCell>
+                    <TableCell className="px-3 py-2 text-xs text-slate-600 whitespace-nowrap">{fmtDate(r.admissionDate)}</TableCell>
                     {view === "terminated" && (
                       <>
-                        <td className="px-3 py-2 text-xs text-slate-600 whitespace-nowrap">{fmtDate(r.terminationDate)}</td>
-                        <td className="px-3 py-2">
+                        <TableCell className="px-3 py-2 text-xs text-slate-600 whitespace-nowrap">{fmtDate(r.terminationDate)}</TableCell>
+                        <TableCell className="px-3 py-2">
                           {r.terminationReason ? (
-                            <span className={`inline-flex items-center text-xs font-medium px-2 py-0.5 rounded-full border ${reasonChip(r.terminationReason)}`}>
+                            <span className={`inline-flex items-center text-xs font-medium px-2 py-0.5 rounded border ${reasonChip(r.terminationReason)}`}>
                               {r.terminationReason}
                             </span>
                           ) : (
                             <span className="text-xs text-slate-400">–</span>
                           )}
-                        </td>
+                        </TableCell>
                       </>
                     )}
                     {view === "potential" && (
-                      <td className="px-3 py-2 text-xs text-slate-600 max-w-xs truncate" title={r.notes || undefined}>{r.notes || "–"}</td>
+                      <TableCell className="px-3 py-2 text-xs text-slate-600 max-w-xs truncate" title={r.notes || undefined}>{r.notes || "–"}</TableCell>
                     )}
                     {/* Actions cell (Edit + Delete) is rendered only for Potential
                         members — Terminated members are read-only on this screen. */}
                     {view === "potential" && (
-                      <td className="px-3 py-2 text-right whitespace-nowrap">
+                      <TableCell className="px-3 py-2 text-right whitespace-nowrap">
                         <div className="inline-flex items-center justify-end gap-1">
                           {canManage && (
                             <Link
                               href={editUrl}
-                              className="inline-flex items-center justify-center w-7 h-7 rounded text-slate-500 hover:text-blue-700 hover:bg-blue-50"
+                              className="row-icon-btn"
                               aria-label="Edit potential member"
                               title="Edit potential member"
                             >
@@ -410,41 +390,40 @@ export function DashboardRotaryNetworkView({ embedded = false }: { embedded?: bo
                             </Link>
                           )}
                           {canManage && (
-                            <button
+                            <IconButton
                               type="button"
                               onClick={() => handleDeletePotential(r)}
                               disabled={deletingId === r.id}
-                              className="inline-flex items-center justify-center w-7 h-7 rounded text-slate-500 hover:text-red-700 hover:bg-red-50 disabled:opacity-50"
                               aria-label="Delete potential member"
                               title="Delete potential member"
                             >
                               {deletingId === r.id
                                 ? <RotaryLoader size="sm" />
                                 : <Trash2 size={13} />}
-                            </button>
+                            </IconButton>
                           )}
                         </div>
-                      </td>
+                      </TableCell>
                     )}
-                  </tr>
+                  </TableRow>
                 );
               })}
               {terminatedPending && (
-                <tr>
-                  <td colSpan={11} className="px-4 py-10 text-center">
+                <TableRow>
+                  <TableCell colSpan={11} className="px-4 py-10 text-center">
                     <RotaryLoader size="md" label="Loading terminated members…" />
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               )}
               {!terminatedPending && rows.length === 0 && (
-                <tr>
-                  <td colSpan={11} className="px-4 py-8 text-center text-slate-400">
+                <TableRow>
+                  <TableCell colSpan={11} className="px-4 py-8 text-center text-slate-400">
                     No {view === "terminated" ? "terminated" : "potential"} members{search ? " match your search" : ""}.
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               )}
-            </tbody>
-          </table>
+            </TableBody>
+          </Table>
         </div>
 
         <div className="px-5 py-2.5 border-t border-slate-100 text-xs text-slate-500">
@@ -452,7 +431,7 @@ export function DashboardRotaryNetworkView({ embedded = false }: { embedded?: bo
             ? "Loading…"
             : `${rows.length} ${view === "terminated" ? "terminated" : "potential"} member${rows.length === 1 ? "" : "s"}`}
         </div>
-      </div>
+      </Card>
     </div>
   );
 }

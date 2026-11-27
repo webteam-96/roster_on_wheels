@@ -1,5 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart' hide Text;
+import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
@@ -13,6 +14,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../data/models/rotarian_model.dart';
 import '../../../../data/models/member_model.dart';
+import '../../../widgets/common/admin_years_dialog.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../widgets/common/aspect_ratio_network_image.dart';
 import '../../../widgets/common/empty_state_widget.dart';
@@ -21,6 +23,7 @@ import '../../../widgets/common/full_screen_image_view.dart';
 import '../../../widgets/common/loading_widget.dart';
 import 'package:rotary_flutter_app/core/theme/app_fonts.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/motion.dart';
 
 /// Member detail screen for the District Admin → Master Modules → Directory
 /// flow. Mirrors the visual language of `profile_screen.dart` — gradient
@@ -163,30 +166,38 @@ class _DirectoryMemberDetailScreenState
     final ofClub =
         (clubName != null && clubName.isNotEmpty) ? ' of $clubName' : '';
 
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(makeAdmin ? 'Make Admin' : 'Remove Admin'),
-        content: Text(makeAdmin
-            ? 'Make $whoLabel an Admin$ofClub?'
-            : 'Remove $whoLabel as an Admin$ofClub?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(false),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(true),
-            child: Text(
-              makeAdmin ? 'Make Admin' : 'Remove',
-              style: TextStyle(
-                  color: makeAdmin ? AppColors.primary : AppColors.error),
+    // Make Admin: the year picker is the confirmation and sends the chosen
+    // years. Remove: plain confirm, no years.
+    AdminYearsResult? years;
+    if (makeAdmin) {
+      years = await showClubAdminYearsDialog(
+        context: context,
+        clubId: clubId,
+        memberId: widget.memberId,
+        memberName: whoLabel,
+      );
+      if (years == null || !mounted) return;
+    } else {
+      final confirmed = await showRowDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Text('Remove Admin'),
+          content: Text('Remove $whoLabel as an Admin$ofClub?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(ctx).pop(false),
+              child: const Text('Cancel'),
             ),
-          ),
-        ],
-      ),
-    );
-    if (confirmed != true || !mounted) return;
+            TextButton(
+              onPressed: () => Navigator.of(ctx).pop(true),
+              child: const Text('Remove',
+                  style: TextStyle(color: AppColors.error)),
+            ),
+          ],
+        ),
+      );
+      if (confirmed != true || !mounted) return;
+    }
 
     setState(() => _togglingAdmin = true);
     try {
@@ -194,7 +205,13 @@ class _DirectoryMemberDetailScreenState
         makeAdmin
             ? ApiConstants.adminAssignRole
             : ApiConstants.adminRemoveRole,
-        body: {'memberId': widget.memberId, 'roleId': 2, 'clubId': clubId},
+        body: {
+          'memberId': widget.memberId,
+          'roleId': 2,
+          'clubId': clubId,
+          // Years only on the way in; Remove strips the whole grant.
+          if (years != null) ...years.toBody(),
+        },
       );
       if (!mounted) return;
       setState(() {
@@ -225,7 +242,7 @@ class _DirectoryMemberDetailScreenState
     if (clubId == null || _togglingAdmin) return;
     final who = _detail?.member.memberName.trim();
     final whoLabel = (who == null || who.isEmpty) ? 'this member' : who;
-    final confirmed = await showDialog<bool>(
+    final confirmed = await showRowDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Send password reset'),
@@ -613,6 +630,15 @@ class _DirectoryMemberDetailScreenState
         _hasAdminRole != null &&
         context.read<AuthProvider>().isClubAdminOf(widget.clubId!);
     final isAdminNow = _hasAdminRole == true;
+    // Make Admin / Edit Years: any year held (server clamps). Remove Admin:
+    // current-year rights. YWAR-EDIT-YEARS
+    final adminAuth = context.read<AuthProvider>();
+    final canAppointAdmin =
+        canManageAdmin && adminAuth.canAppointClubAdmin(widget.clubId!);
+    final canRemoveAdmin =
+        canManageAdmin && adminAuth.canEditClub(widget.clubId!);
+    final canEditYears = isAdminNow && canAppointAdmin;
+    final canToggleAdmin = isAdminNow ? canRemoveAdmin : canAppointAdmin;
 
     return CustomScrollView(
       physics: const BouncingScrollPhysics(),
@@ -642,9 +668,31 @@ class _DirectoryMemberDetailScreenState
                           tooltip: 'Admin options',
                           onSelected: (v) {
                             if (v == 'toggleAdmin') _toggleAdmin();
+                            if (v == 'editYears') {
+                              final who = m.memberName.trim();
+                              editClubAdminYears(
+                                context: context,
+                                clubId: widget.clubId!,
+                                memberId: widget.memberId,
+                                memberName: who.isEmpty ? 'this member' : who,
+                              );
+                            }
                             if (v == 'sendReset') _sendPasswordReset();
                           },
                           itemBuilder: (_) => [
+                            if (canEditYears)
+                              const PopupMenuItem(
+                                value: 'editYears',
+                                child: Row(
+                                  children: [
+                                    Icon(Icons.edit_calendar_outlined,
+                                        size: 20, color: AppColors.primary),
+                                    SizedBox(width: 12),
+                                    Text('Edit Years'),
+                                  ],
+                                ),
+                              ),
+                            if (canToggleAdmin)
                             PopupMenuItem(
                               value: 'toggleAdmin',
                               child: Row(
@@ -921,13 +969,6 @@ class _DirectoryMemberDetailScreenState
             onTap: () => _openUrl('tel:${_digits(phone)}'),
           ),
           _ContactAction(
-            icon: Icons.chat_bubble_outline_rounded,
-            label: 'SMS',
-            color: AppColors.primaryPrime,
-            enabled: phone.isNotEmpty,
-            onTap: () => _openUrl('sms:${_digits(phone)}'),
-          ),
-          _ContactAction(
             icon: Icons.mail_outline_rounded,
             label: 'Email',
             color: AppColors.primaryPrime,
@@ -1049,7 +1090,9 @@ class _ProfileHeroAppBar extends StatelessWidget {
       stretch: true,
       actions: actions,
       backgroundColor: AppColors.primaryPrime,
+      systemOverlayStyle: SystemUiOverlayStyle.light.copyWith(statusBarColor: Colors.transparent),
       leading: IconButton(
+        tooltip: MaterialLocalizations.of(context).backButtonTooltip,
         icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white),
         onPressed: () {
           if (context.canPop()) {

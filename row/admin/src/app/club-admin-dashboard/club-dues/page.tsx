@@ -1,5 +1,6 @@
 "use client";
 
+import { NativeSelect } from "@/components/ui/native-select";
 import { useEffect, useState, useCallback } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useClubAdminCache } from "@/contexts/ClubAdminDashboardCacheContext";
@@ -19,7 +20,7 @@ import ErrorAlert from "@/components/ErrorAlert";
 import { Link2, RefreshCw } from "@/components/icons";
 
 import { appLocale, currencySymbol, defaultCurrency } from "@/lib/appFormat";
-import { ListPageSkeleton } from "@/components/row/AppKit";
+import { PageHeader, ListPageSkeleton } from "@/components/row/AppKit";
 declare global { interface Window { Razorpay?: any } }
 
 interface OfficerClub {
@@ -55,10 +56,7 @@ export default function ClubAdminClubDuesPage() {
 
   return (
     <div className="space-y-5">
-      <div>
-        <h2 className="text-2xl font-bold tracking-tight text-primary">District Dues</h2>
-        <p className="text-muted-foreground text-base">Pay your club&apos;s district dues. Amount due = unpaid members × rate.</p>
-      </div>
+      <PageHeader title="District Dues" description={<>Pay your club&apos;s district dues. Amount due = unpaid members × rate.</>} />
 
       {shown.length === 0 ? (
         <Card><CardContent className="p-8 text-center text-muted-foreground">
@@ -149,10 +147,10 @@ function ClubDuesCard({ club, onSuccess, onError }: { club: OfficerClub; onSucce
       <CardContent className="p-5 space-y-4">
         <div className="flex items-start justify-between gap-2">
           <div>
-            <h3 className="font-semibold text-lg">{data?.clubName || club.clubName}</h3>
+            <h3 className="row-h2">{data?.clubName || club.clubName}</h3>
             <p className="text-xs text-muted-foreground">{data?.purpose || club.purpose || "District Dues"} · District {data?.districtNumber || club.districtNumber} · {club.rotaryYear}</p>
           </div>
-          <Button size="icon" variant="ghost" className="h-8 w-8" onClick={load} title="Refresh"><RefreshCw className="h-4 w-4" /></Button>
+          <Button size="icon" variant="ghost" className="row-btn-sm" onClick={load} title="Refresh"><RefreshCw className="h-4 w-4" /></Button>
         </div>
 
         {loading ? (
@@ -242,10 +240,10 @@ function OfflineForm({ cur, duesId, clubId, amountOwed, onDone, onError }: { cur
       {accounts.length > 0 && (
         <div className="space-y-1">
           <Label>Account</Label>
-          <select className="w-full border border-input bg-background rounded-md h-9 px-2 text-sm" value={accountId} onChange={(e) => setAccountId(e.target.value)}>
+          <NativeSelect  value={accountId} onChange={(e) => setAccountId(e.target.value)}>
             <option value="">Which bank account did this go into?</option>
             {accounts.map((a) => <option key={a.fkRouteAccountId} value={a.fkRouteAccountId}>{a.accountLabel}</option>)}
-          </select>
+          </NativeSelect>
         </div>
       )}
       {(accounts.length === 0 || accountId) && (
@@ -255,9 +253,9 @@ function OfflineForm({ cur, duesId, clubId, amountOwed, onDone, onError }: { cur
       )}
       <div className="space-y-1">
         <Label>Mode</Label>
-        <select className="w-full border border-input bg-background rounded-md h-9 px-2 text-sm" value={mode} onChange={(e) => setMode(e.target.value)}>
+        <NativeSelect  value={mode} onChange={(e) => setMode(e.target.value)}>
           <option value="1">Cash</option><option value="2">Cheque</option><option value="3">NEFT</option><option value="4">UPI</option><option value="5">Other</option>
-        </select>
+        </NativeSelect>
       </div>
       <div className="space-y-1"><Label>Transaction / reference</Label><Input value={ref} onChange={(e) => setRef(e.target.value)} /></div>
       <div className="space-y-1"><Label>Remark</Label><Input value={remark} onChange={(e) => setRemark(e.target.value)} /></div>

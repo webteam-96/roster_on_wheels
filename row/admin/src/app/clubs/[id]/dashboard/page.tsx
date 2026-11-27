@@ -1,4 +1,5 @@
 "use client";
+import { MenuItemButton } from "@/components/ui/text-buttons";
 
 import { useState, useEffect } from "react";
 import { useParams, useSearchParams } from "next/navigation";
@@ -17,7 +18,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { useAuth } from "@/contexts/AuthContext";
-import { ListPageSkeleton } from "@/components/row/AppKit";
+import { PageHeader, ListPageSkeleton } from "@/components/row/AppKit";
 
 export default function ClubDashboardPage() {
   const params = useParams();
@@ -141,9 +142,8 @@ export default function ClubDashboardPage() {
     <div className={`space-y-1 ${depth === 1 ? "ml-3" : "ml-6"}`}>
       {children.map((child) => (
         <div key={child.id}>
-          <button
+          <MenuItemButton
             onClick={() => handleWeblinkClick(child)}
-            className="flex items-center gap-2 w-full text-left px-2 py-1.5 rounded hover:bg-muted text-sm transition-colors"
           >
             {child.logoPath ? (
               <img src={`${API_BASE_URL}${child.logoPath}`} alt="" className="h-5 w-5 rounded object-cover flex-shrink-0" />
@@ -160,7 +160,7 @@ export default function ClubDashboardPage() {
                 ? <ChevronUp className="h-3 w-3 text-muted-foreground flex-shrink-0" />
                 : <ChevronDown className="h-3 w-3 text-muted-foreground flex-shrink-0" />
             )}
-          </button>
+          </MenuItemButton>
           {child.children && child.children.length > 0 && expandedWeblinks.has(child.id) && (
             renderWeblinkChildren(child.children, depth + 1)
           )}
@@ -307,29 +307,15 @@ export default function ClubDashboardPage() {
         onCancel={() => setPendingDialogOpen(false)}
       />
       <div className="space-y-6">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
-            {isSuperAdmin && (
-              <Button variant="outline" size="icon" asChild>
-                <Link href={returnTo ?? (districtId ? `/districts/${districtId}/clubs` : "/")}>
-                  <ArrowLeft className="h-4 w-4" />
-                </Link>
-              </Button>
-            )}
-            <div>
-              <h2 className="text-2xl font-bold tracking-tight text-primary">
-                {data ? `${data.clubName} - Dashboard` : "Club Dashboard"}
-              </h2>
-              <p className="text-muted-foreground text-base">
-                {data?.districtNumber ? `District ${data.districtNumber}` : "Modules and features"}
-              </p>
-            </div>
-          </div>
-          {(creditBalance || websiteStatus) && (
+        <PageHeader
+          title={data ? `${data.clubName} - Dashboard` : "Club Dashboard"}
+          description={data?.districtNumber ? `District ${data.districtNumber}` : "Modules and features"}
+          back={isSuperAdmin ? returnTo ?? (districtId ? `/districts/${districtId}/clubs` : "/") : undefined}
+          actions={(creditBalance || websiteStatus) && (
             <div className="flex flex-wrap items-center gap-3">
               {creditBalance && (
                 <>
-                  <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-sm font-medium ${creditBalance.emailRemaining > 0 ? "bg-blue-50 border-blue-200 text-blue-700" : "bg-red-50 border-red-200 text-red-600"}`}>
+                  <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md border text-sm font-medium ${creditBalance.emailRemaining > 0 ? "bg-blue-50 border-blue-200 text-blue-700" : "bg-red-50 border-red-200 text-red-600"}`}>
                     <Mail className="h-3.5 w-3.5" />
                     <span>Email: {creditBalance.emailRemaining}</span>
                   </div>
@@ -340,7 +326,7 @@ export default function ClubDashboardPage() {
                 <Button
                   variant="outline"
                   size="sm"
-                  className="gap-1.5"
+                 
                   onClick={() => window.open(websiteStatus.visitUrl!, "_blank", "noopener,noreferrer")}
                 >
                   <ExternalLink className="h-3.5 w-3.5" />Visit Website
@@ -348,7 +334,7 @@ export default function ClubDashboardPage() {
               )}
             </div>
           )}
-        </div>
+        />
 
         {loading && (
           <div className="flex items-center justify-center py-20">
@@ -359,7 +345,7 @@ export default function ClubDashboardPage() {
         {error && (
           <div className="flex flex-col items-center justify-center py-20 text-center">
             <AlertCircle className="h-12 w-12 text-destructive mb-4" />
-            <h3 className="text-lg font-semibold">Error</h3>
+            <h3 className="row-h2">Error</h3>
             <p className="text-muted-foreground mt-2 max-w-md">{error}</p>
           </div>
         )}
@@ -367,7 +353,7 @@ export default function ClubDashboardPage() {
         {!loading && !error && data && data.moduleGroups.length === 0 && (
           <div className="flex flex-col items-center justify-center py-20 text-center">
             <Building2 className="h-12 w-12 text-muted-foreground mb-4" />
-            <h3 className="text-lg font-semibold">No modules assigned</h3>
+            <h3 className="row-h2">No modules assigned</h3>
             <p className="text-muted-foreground mt-2">Contact Super Admin to assign modules to this club.</p>
           </div>
         )}

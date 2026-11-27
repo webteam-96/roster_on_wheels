@@ -11,13 +11,15 @@
  * v2 reads ONLY `?returnTo=` — never any other param name.
  */
 
+import { IconButton } from "@/components/ui/icon-button";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { NativeSelect } from "@/components/ui/native-select";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useParams, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import {
-  Newspaper, FileText, Archive, Link2, Loader2, Search, Plus, Edit3, Trash2,
-  Download, ExternalLink, ArrowLeft, AlertTriangle,
-} from "@/components/icons";
+import { Newspaper, FileText, Archive, Link2, Search, Plus, Edit3, Trash2, Download, ExternalLink, AlertTriangle } from "@/components/icons";
 import {
   getClub,
   getNewsletters,
@@ -38,7 +40,8 @@ import { useSyncClubIdFromUrl } from "@/hooks/useSyncClubIdFromUrl";
 import SendStatusBadges from "@/components/SendStatusBadges";
 
 import { appLocale } from "@/lib/appFormat";
-import { SkeletonRows } from "@/components/row/AppKit";
+import { PageHeader, SkeletonRows } from "@/components/row/AppKit";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
 const STATUS_OPTIONS = [
@@ -220,23 +223,7 @@ export default function NewslettersV2Page() {
       >
       <div className="space-y-5">
         {/* Header */}
-        <div className="flex items-start justify-between gap-3">
-          <div className="flex items-start gap-2">
-            <Link
-              href={backUrl}
-              className="mt-0.5 inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50"
-              aria-label="Back"
-            >
-              <ArrowLeft size={15} />
-            </Link>
-            <div>
-              <h1 className="text-lg font-semibold text-slate-800">Newsletters</h1>
-              <p className="text-xs text-slate-500 mt-0.5">
-                RY {yearLabel} · {clubName || "–"}
-              </p>
-            </div>
-          </div>
-        </div>
+        <PageHeader title="Newsletters" description={<>RY {yearLabel} · {clubName || "–"}</>} back={backUrl} />
 
         {/* KPI row */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -271,17 +258,17 @@ export default function NewslettersV2Page() {
         </div>
 
         {/* Table card */}
-        <div className="bg-card rounded-2xl border border-slate-200 overflow-hidden">
+        <Card className="overflow-hidden">
           <div className="px-5 py-3 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div>
-              <h3 className="text-sm font-semibold text-slate-800">Newsletter Records</h3>
+              <h3 className="row-h3">Newsletter Records</h3>
               <p className="text-xs text-slate-500 mt-0.5">Publications &amp; reading material · {yearLabel}</p>
             </div>
             <div className="flex flex-wrap items-center gap-2">
-              <select
+              <NativeSelect
                 value={selectedYearId ?? ""}
                 onChange={(e) => { setSelectedYearId(e.target.value ? Number(e.target.value) : null); setPage(1); }}
-                className="px-2 h-10 py-0 text-sm border border-slate-200 rounded-[12px] bg-card focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                className="row-field-sm w-auto"
               >
                 {years.length === 0 && <option value="">No years</option>}
                 {years.map((y) => (
@@ -289,56 +276,56 @@ export default function NewslettersV2Page() {
                     {y.yearLabel}{y.isCurrent ? " · current" : ""}
                   </option>
                 ))}
-              </select>
-              <select
+              </NativeSelect>
+              <NativeSelect
                 value={statusFilter}
                 onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
-                className="px-2 h-10 py-0 text-sm border border-slate-200 rounded-[12px] bg-card focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                className="row-field-sm w-auto"
               >
                 {STATUS_OPTIONS.map((s) => (
                   <option key={s.value} value={s.value}>{s.label}</option>
                 ))}
-              </select>
-              <select
+              </NativeSelect>
+              <NativeSelect
                 value={typeFilter}
                 onChange={(e) => setTypeFilter(e.target.value)}
-                className="px-2 h-10 py-0 text-sm border border-slate-200 rounded-[12px] bg-card focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                className="row-field-sm w-auto"
               >
                 {TYPE_OPTIONS.map((t) => (
                   <option key={t.value} value={t.value}>{t.label}</option>
                 ))}
-              </select>
+              </NativeSelect>
               <div className="relative w-full sm:w-auto">
                 <Search size={14} className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-400" />
-                <input
+                <Input
                   type="text"
                   placeholder="Search title…"
                   value={searchInput}
                   onChange={(e) => setSearchInput(e.target.value)}
                   onKeyDown={(e) => { if (e.key === "Enter") handleSearch(); }}
-                  className="pl-7 pr-3 h-10 py-0 text-sm border border-slate-200 rounded-[12px] w-full sm:w-48 focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                  className="row-field-sm pl-7 pr-3 sm:w-48"
                 />
               </div>
-              <button
+              <Button
                 type="button"
                 onClick={handleSearch}
-                className="inline-flex items-center text-xs font-semibold px-3 py-1.5 rounded-full border border-slate-200 text-slate-700 hover:bg-slate-50"
+                variant="outline" size="sm"
               >
                 Search
-              </button>
+              </Button>
               {(search || searchInput) && (
-                <button
+                <Button
                   type="button"
                   onClick={clearSearch}
-                  className="inline-flex items-center text-xs font-semibold px-3 py-1.5 rounded-full border border-slate-200 text-slate-700 hover:bg-slate-50"
+                  variant="outline" size="sm"
                 >
                   Clear
-                </button>
+                </Button>
               )}
               {canManage && (
                 <Link
                   href={addUrl}
-                  className="inline-flex items-center gap-1.5 text-xs font-semibold px-4 h-10 rounded-full bg-[#17458F] text-white hover:bg-[#17458F]"
+                  className="row-btn row-btn-primary"
                 >
                   <Plus size={13} /> Add Newsletter
                 </Link>
@@ -351,52 +338,52 @@ export default function NewslettersV2Page() {
             {loading ? (
               <SkeletonRows />
             ) : (
-              <table className="w-full min-w-[640px] md:min-w-full text-sm">
-                <thead className="bg-[#EDF4FB] text-[13px] text-[#64748B]">
-                  <tr>
-                    <th className="px-3 py-2.5 text-left w-10">Sr</th>
-                    <th className="px-3 py-2.5 text-left">Title</th>
-                    <th className="px-3 py-2.5 text-left w-20">Type</th>
-                    <th className="px-3 py-2.5 text-left whitespace-nowrap">Publish Date</th>
-                    <th className="px-3 py-2.5 text-left w-20">Year</th>
-                    <th className="px-3 py-2.5 text-left w-24">Status</th>
-                    <th className="px-3 py-2.5 text-center w-16">Open</th>
-                    {canManage && <th className="px-3 py-2.5 text-right w-16">Edit</th>}
-                    {canManage && <th className="px-3 py-2.5 text-right w-16">Delete</th>}
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
+              <Table className="min-w-[640px] md:min-w-full">
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="text-left w-10">Sr</TableHead>
+                    <TableHead className="text-left">Title</TableHead>
+                    <TableHead className="text-left w-20">Type</TableHead>
+                    <TableHead className="text-left whitespace-nowrap">Publish Date</TableHead>
+                    <TableHead className="text-left w-20">Year</TableHead>
+                    <TableHead className="text-left w-24">Status</TableHead>
+                    <TableHead className="text-center w-16">Open</TableHead>
+                    {canManage && <TableHead className="text-right w-16">Edit</TableHead>}
+                    {canManage && <TableHead className="text-right w-16">Delete</TableHead>}
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
                   {filtered.map((nl, i) => {
                     const isLink = nl.attachmentType === "link";
                     return (
-                      <tr key={nl.id} className="hover:bg-blue-50/40">
-                        <td className="px-3 py-2 text-slate-500">{(page - 1) * pageSize + i + 1}</td>
-                        <td className="px-3 py-2 font-medium text-slate-800">
+                      <TableRow key={nl.id}>
+                        <TableCell>{(page - 1) * pageSize + i + 1}</TableCell>
+                        <TableCell className="font-medium">
                           {nl.title || "–"}
-                        </td>
-                        <td className="px-3 py-2">
-                          <span className={`inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full border ${typeChipStyle(nl.attachmentType)}`}>
+                        </TableCell>
+                        <TableCell>
+                          <span className={`inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded border ${typeChipStyle(nl.attachmentType)}`}>
                             {isLink ? <Link2 size={11} /> : <FileText size={11} />}
                             {isLink ? "Link" : "File"}
                           </span>
-                        </td>
-                        <td className="px-3 py-2 text-slate-600 whitespace-nowrap">
+                        </TableCell>
+                        <TableCell className="whitespace-nowrap">
                           {formatDateTime(nl.publishDateTime)}
-                        </td>
-                        <td className="px-3 py-2 text-slate-500">{yearLabel}</td>
-                        <td className="px-3 py-2">
-                          <span className={`inline-flex items-center text-xs font-medium px-2 py-0.5 rounded-full border ${statusChipStyle(nl.status)}`}>
+                        </TableCell>
+                        <TableCell>{yearLabel}</TableCell>
+                        <TableCell>
+                          <span className={`inline-flex items-center text-xs font-medium px-2 py-0.5 rounded border ${statusChipStyle(nl.status)}`}>
                             {nl.status || "–"}
                           </span>
                           <div className="mt-1"><SendStatusBadges item={nl} /></div>
-                        </td>
-                        <td className="px-3 py-2 text-center">
+                        </TableCell>
+                        <TableCell className="text-center">
                           {isLink && nl.linkUrl ? (
                             <a
                               href={nl.linkUrl}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="inline-flex items-center justify-center w-7 h-7 rounded text-blue-600 hover:text-blue-800 hover:bg-blue-50"
+                              className="row-icon-btn w-7"
                               aria-label="Open link"
                             >
                               <ExternalLink size={13} />
@@ -407,7 +394,7 @@ export default function NewslettersV2Page() {
                               target="_blank"
                               rel="noopener noreferrer"
                               download
-                              className="inline-flex items-center justify-center w-7 h-7 rounded text-slate-600 hover:text-slate-800 hover:bg-slate-50"
+                              className="row-icon-btn w-7"
                               aria-label="Download file"
                             >
                               <Download size={13} />
@@ -415,13 +402,13 @@ export default function NewslettersV2Page() {
                           ) : (
                             <span className="text-slate-300">–</span>
                           )}
-                        </td>
+                        </TableCell>
                         {canManage && (
-                          <td className="px-3 py-2 text-right">
+                          <TableCell className="text-right">
                             {nl.status !== "Expired" ? (
                               <Link
                                 href={`/clubs/${clubId}/newsletters/v2/${nl.id}/edit?returnTo=${returnTo}`}
-                                className="inline-flex items-center justify-center w-7 h-7 rounded text-slate-500 hover:text-blue-700 hover:bg-blue-50"
+                                className="row-icon-btn w-7"
                                 aria-label="Edit newsletter"
                               >
                                 <Edit3 size={13} />
@@ -429,41 +416,41 @@ export default function NewslettersV2Page() {
                             ) : (
                               <span className="text-slate-300">–</span>
                             )}
-                          </td>
+                          </TableCell>
                         )}
                         {canManage && (
-                          <td className="px-3 py-2 text-right">
-                            <button
+                          <TableCell className="text-right">
+                            <IconButton
                               type="button"
                               onClick={() => setDeleteTarget(nl)}
-                              className="inline-flex items-center justify-center w-7 h-7 rounded text-slate-400 hover:text-rose-700 hover:bg-rose-50"
+                              className="hover:text-red-700 w-7"
                               aria-label="Delete newsletter"
                             >
                               <Trash2 size={13} />
-                            </button>
-                          </td>
+                            </IconButton>
+                          </TableCell>
                         )}
-                      </tr>
+                      </TableRow>
                     );
                   })}
                   {filtered.length === 0 && (
-                    <tr>
-                      <td colSpan={canManage ? 10 : 8} className="px-4 py-10 text-center text-slate-400">
+                    <TableRow>
+                      <TableCell colSpan={canManage ? 10 : 8} className="py-10 text-center text-muted-foreground">
                         {search || statusFilter !== "all" || typeFilter !== "all"
                           ? "No newsletters match your filters."
                           : "No newsletters recorded for this year."}
-                      </td>
-                    </tr>
+                      </TableCell>
+                    </TableRow>
                   )}
-                </tbody>
-              </table>
+                </TableBody>
+              </Table>
             )}
           </div>
 
           <div className="px-5 py-2.5 border-t border-slate-100 text-xs text-slate-500">
             {totalCount} newsletter{totalCount === 1 ? "" : "s"} · {yearLabel}
           </div>
-        </div>
+        </Card>
 
         {!loading && totalPages > 1 && (
           <Pagination

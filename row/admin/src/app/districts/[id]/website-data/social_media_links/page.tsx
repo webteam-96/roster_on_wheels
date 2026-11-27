@@ -1,4 +1,5 @@
 "use client";
+import { LinkButton } from "@/components/ui/text-buttons";
 
 import { useState, useEffect, useCallback } from "react";
 import { useParams } from "next/navigation";
@@ -33,15 +34,11 @@ import {
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
 import AlertModal from "@/components/AlertModal";
-import {
-  ArrowLeft, Plus, Pencil, Trash2, MoreHorizontal,
-  AlertTriangle, Eye, EyeOff, ExternalLink, Share2, GripVertical,
-} from "@/components/icons";
+import { Plus, Pencil, Trash2, MoreHorizontal, AlertTriangle, Eye, EyeOff, ExternalLink, Share2, GripVertical } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
-import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import SearchBox from "@/components/SearchBox";
-import { ListPageSkeleton } from "@/components/row/AppKit";
+import { PageHeader, ListPageSkeleton } from "@/components/row/AppKit";
 
 function getPlatformLabel(value: string): string {
   return SOCIAL_PLATFORMS.find((p) => p.value === value)?.label || value;
@@ -165,16 +162,12 @@ export default function DistrictSocialLinksPage() {
   return (
     <ProtectedRoute>
       <div className="space-y-6">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-3">
-            <Button variant="outline" size="icon" asChild><Link href={`/districts/${districtId}/website-data`}><ArrowLeft className="h-4 w-4" /></Link></Button>
-            <div>
-              <h2 className="text-2xl font-bold tracking-tight text-primary">{districtNumber ? `District ${districtNumber} - Social Media Links` : "Social Media Links"}</h2>
-              <p className="text-muted-foreground text-base">Manage district social media links</p>
-            </div>
-          </div>
-          {canManage && (<Button onClick={openAddDialog}><Plus className="mr-2 h-4 w-4" />Add Link</Button>)}
-        </div>
+        <PageHeader
+          title={districtNumber ? `District ${districtNumber} - Social Media Links` : "Social Media Links"}
+          description="Manage district social media links"
+          back={`/districts/${districtId}/website-data`}
+          actions={canManage && (<Button onClick={openAddDialog}><Plus className="mr-2 h-4 w-4" />Add Link</Button>)}
+        />
 
         {loading && (<div className="flex items-center justify-center py-20"><ListPageSkeleton /></div>)}
 
@@ -189,7 +182,7 @@ export default function DistrictSocialLinksPage() {
         {!loading && !loadingLinks && links.length === 0 && (
           <div className="flex flex-col items-center justify-center py-20 text-center">
             <Share2 className="h-12 w-12 text-muted-foreground mb-4" />
-            <h3 className="text-lg font-semibold">No social media links yet</h3>
+            <h3 className="row-h2">No social media links yet</h3>
             <p className="text-muted-foreground mt-2">{canManage ? 'Click "Add Link" to add your first social media link.' : "No social media links have been added yet."}</p>
           </div>
         )}
@@ -203,7 +196,7 @@ export default function DistrictSocialLinksPage() {
             <>
             <div className="block sm:hidden space-y-3">
               {filteredLinks.map((link, idx) => (
-                <Card key={link.id} className="border-primary/20">
+                <Card key={link.id}>
                   <CardContent className="p-4">
                     <div className="flex items-center gap-3">
                       {canManage && !isSearching && (
@@ -219,7 +212,7 @@ export default function DistrictSocialLinksPage() {
                       </div>
                       {canManage && (
                         <DropdownMenu>
-                          <DropdownMenuTrigger asChild><Button variant="ghost" size="icon" className="h-8 w-8"><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger>
+                          <DropdownMenuTrigger asChild><Button aria-label="More actions" variant="ghost" size="icon" className="row-btn-sm"><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
                             <DropdownMenuItem onClick={() => openEditDialog(link)}><Pencil className="mr-2 h-4 w-4" />Edit</DropdownMenuItem>
                             <DropdownMenuItem onClick={() => handleOpenLink(link.linkUrl)}><ExternalLink className="mr-2 h-4 w-4" />Open Link</DropdownMenuItem>
@@ -234,16 +227,16 @@ export default function DistrictSocialLinksPage() {
               ))}
             </div>
 
-            <div className="hidden sm:block rounded-md border">
+            <Card className="hidden sm:block overflow-hidden">
               <Table>
                 <TableHeader>
-                  <TableRow className="bg-primary hover:bg-primary">
+                  <TableRow>
                     <TableHead className="w-12"></TableHead>
-                    <TableHead className="text-base font-semibold">Platform</TableHead>
-                    <TableHead className="text-base font-semibold">Link URL</TableHead>
-                    <TableHead className="w-24 text-base font-semibold">Status</TableHead>
+                    <TableHead>Platform</TableHead>
+                    <TableHead>Link URL</TableHead>
+                    <TableHead className="w-24">Status</TableHead>
                     {canManage && <TableHead className="w-12"></TableHead>}
-                    {canManage && <TableHead className="w-20 text-base font-semibold text-center">Sorting</TableHead>}
+                    {canManage && <TableHead className="w-20 text-center">Sorting</TableHead>}
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -251,12 +244,12 @@ export default function DistrictSocialLinksPage() {
                     <TableRow key={link.id} className="hover:bg-primary/5 transition-colors">
                       <TableCell>{getPlatformIcon(link.platform)}</TableCell>
                       <TableCell className="font-medium">{getPlatformLabel(link.platform)}</TableCell>
-                      <TableCell><button onClick={() => handleOpenLink(link.linkUrl)} className="text-primary hover:underline text-sm truncate block max-w-xs text-left">{link.linkUrl}</button></TableCell>
+                      <TableCell><LinkButton onClick={() => handleOpenLink(link.linkUrl)} className="truncate block max-w-xs">{link.linkUrl}</LinkButton></TableCell>
                       <TableCell><Badge variant={link.isActive ? "default" : "secondary"}>{link.isActive ? "Active" : "Inactive"}</Badge></TableCell>
                       {canManage && (
                         <TableCell>
                           <DropdownMenu>
-                            <DropdownMenuTrigger asChild><Button variant="ghost" size="icon" className="h-8 w-8"><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger>
+                            <DropdownMenuTrigger asChild><Button aria-label="More actions" variant="ghost" size="icon" className="row-btn-sm"><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
                               <DropdownMenuItem onClick={() => openEditDialog(link)}><Pencil className="mr-2 h-4 w-4" />Edit</DropdownMenuItem>
                               <DropdownMenuItem onClick={() => handleOpenLink(link.linkUrl)}><ExternalLink className="mr-2 h-4 w-4" />Open Link</DropdownMenuItem>
@@ -279,7 +272,7 @@ export default function DistrictSocialLinksPage() {
                   ))}
                 </TableBody>
               </Table>
-            </div>
+            </Card>
             </>
             )}
           </>

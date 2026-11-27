@@ -1,3 +1,4 @@
+import 'package:rotary_flutter_app/presentation/widgets/row/motion.dart';
 import 'package:flutter/material.dart' hide Text;
 import '../../../../../core/services/club_admin_dashboard_api.dart';
 import '../../../../../core/theme/app_colors.dart';
@@ -752,8 +753,7 @@ class _MetricCell extends StatelessWidget {
         children: [
           FittedBox(
             fit: BoxFit.scaleDown,
-            child: Text(
-              value,
+            child: RowCountUp(value,
               maxLines: 1,
               style: AppFonts.body(
                 fontSize: 19,
@@ -1536,7 +1536,7 @@ class _ProgressRow extends StatelessWidget {
         const SizedBox(height: 4),
         ClipRRect(
           borderRadius: BorderRadius.circular(999),
-          child: LinearProgressIndicator(
+          child: RowProgressBar(
             value: p,
             minHeight: 6,
             backgroundColor: AppColors.slate100,
@@ -1735,7 +1735,7 @@ class _HorizBarRow extends StatelessWidget {
         const SizedBox(height: 4),
         ClipRRect(
           borderRadius: BorderRadius.circular(999),
-          child: LinearProgressIndicator(
+          child: RowProgressBar(
             value: progress.isNaN ? 0 : progress.clamp(0.0, 1.0),
             minHeight: 6,
             backgroundColor: AppColors.slate100,

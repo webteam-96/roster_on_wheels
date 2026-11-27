@@ -113,10 +113,15 @@ public class EventPaymentLinksController : ControllerBase
         return Ok(result);
     }
 
+    // A link belongs to a club or to a district. The club-only check refused every district link ("No club specified"),
+    // so Settings could never create one; a district link is checked against the district instead.
+    private Task<ObjectResult?> CreateYearGuardAsync(int? clubId, int? districtId) =>
+        (clubId ?? 0) > 0 ? _guard.ClubYearlessAsync(User, clubId!.Value) : _guard.DistrictYearlessAsync(User, districtId ?? 0);
+
     [HttpPost("")]
     public async Task<ActionResult> CreatePaymentLink([FromForm] CreateEventPaymentLinkDto dto, IFormFile? logo, IFormFile? eventImage, IFormFile? bgImage, IFormFile? emailLogo)
     {
-        var denied = await _guard.ClubYearlessAsync(User, dto.FkClubId ?? 0);
+        var denied = await CreateYearGuardAsync(dto.FkClubId, dto.FkDistrictMasterId);
         if (denied != null) return denied;
 
         if (!await ManagesAsync(dto.FkClubId, dto.FkDistrictMasterId)) return StatusCode(403, new { message = "Access denied." });
@@ -137,7 +142,7 @@ public class EventPaymentLinksController : ControllerBase
     [HttpPost("create-full")]
     public async Task<ActionResult> CreateFullPaymentLink([FromForm] CreateFullEventPaymentLinkDto dto, IFormFile? logo, IFormFile? bgImage, IFormFile? emailLogo)
     {
-        var denied = await _guard.ClubYearlessAsync(User, dto.FkClubId ?? 0);
+        var denied = await CreateYearGuardAsync(dto.FkClubId, dto.FkDistrictMasterId);
         if (denied != null) return denied;
 
         if (!await ManagesAsync(dto.FkClubId, dto.FkDistrictMasterId)) return StatusCode(403, new { message = "Access denied." });

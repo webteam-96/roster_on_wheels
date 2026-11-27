@@ -1,4 +1,5 @@
 import 'dart:math' as math;
+import 'package:rotary_flutter_app/presentation/widgets/row/motion.dart';
 import 'package:flutter/material.dart' hide Text;
 import '../../../../core/services/ag_dashboard_api.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -445,8 +446,7 @@ class _KpiTile extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 6),
-          Text(
-            value,
+          RowCountUp(value,
             style: AppFonts.body(
               fontSize: 18,
               fontWeight: FontWeight.w800,
@@ -968,7 +968,7 @@ class _GoalsClubCard extends StatelessWidget {
           const SizedBox(height: 6),
           ClipRRect(
             borderRadius: BorderRadius.circular(999),
-            child: LinearProgressIndicator(
+            child: RowProgressBar(
               value: overallFrac,
               minHeight: 4,
               backgroundColor: AppColors.slate100,
@@ -1089,7 +1089,7 @@ class _GoalBar extends StatelessWidget {
                     borderRadius: BorderRadius.circular(999),
                   ),
                 )
-              : LinearProgressIndicator(
+              : RowProgressBar(
                   value: clamp / 100,
                   minHeight: 7,
                   backgroundColor: AppColors.slate100,

@@ -1,5 +1,6 @@
 "use client";
 
+import { PageHeader } from "@/components/row/AppKit";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createZone } from "@/services/api";
@@ -10,9 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
-import { ArrowLeft } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
-import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
 
 export default function NewZonePage() {
@@ -52,7 +51,7 @@ export default function NewZonePage() {
     return (
       <ProtectedRoute>
         <div className="flex flex-col items-center justify-center py-20">
-          <h3 className="text-lg font-semibold">Access Denied</h3>
+          <h3 className="row-h2">Access Denied</h3>
           <p className="text-muted-foreground mt-2">Only SuperAdmin can create zones.</p>
         </div>
       </ProtectedRoute>
@@ -62,24 +61,20 @@ export default function NewZonePage() {
   return (
     <ProtectedRoute>
       <form onSubmit={handleSubmit} className="space-y-6">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center gap-4">
-            <Button variant="ghost" size="icon" asChild>
-              <Link href="/"><ArrowLeft className="h-4 w-4" /></Link>
-            </Button>
-            <div>
-              <h2 className="text-2xl font-bold tracking-tight text-primary">New Zone</h2>
-              <p className="text-muted-foreground text-base">Create a new Rotary zone</p>
-            </div>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <Button type="button" variant="outline" onClick={() => router.push("/")}>Cancel</Button>
+        <PageHeader
+          title="New Zone"
+          description="Create a new Rotary zone"
+          back="/"
+          actions={
+            <>
+<Button type="button" variant="outline" onClick={() => router.push("/")}>Cancel</Button>
             <Button type="submit" disabled={loading}>
               {loading && <RotaryLoader size="sm" />}
               Create Zone
             </Button>
-          </div>
-        </div>
+            </>
+          }
+        />
 
         <Card>
           <CardHeader><CardTitle>Zone Details</CardTitle></CardHeader>

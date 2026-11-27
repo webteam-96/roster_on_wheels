@@ -330,7 +330,7 @@ class SecuritySettingsScreen extends StatelessWidget {
           _bullet(
               'In Biometric mode, your phone passcode is the automatic fallback if Face ID / fingerprint fails.'),
           _bullet(
-              'If everything fails, sign in again with OTP. Logging out turns App Lock off.'),
+              'If everything fails, sign in again. Logging out turns App Lock off.'),
         ],
       ),
     );

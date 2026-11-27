@@ -14,6 +14,8 @@
  * payment-summary + reassurance rail on the right.
  */
 
+import LocalAmountNote from "@/components/payments/LocalAmountNote";
+import { Button } from "@/components/ui/button";
 import { useCallback, useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import {
@@ -179,7 +181,7 @@ export default function PublicClubWebsitePayPage() {
   // Active site with plenty of time left — nothing to pay for yet.
   if (info && info.canPurchase === false) return (
     <PayPageShell wide>
-      <div className="mx-auto max-w-lg rounded-2xl border border-slate-200/80 bg-card p-8 text-center shadow-sm">
+      <div className="row-rise mx-auto max-w-lg rounded-2xl border border-slate-200/80 bg-card p-8 text-center shadow-sm">
         <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-emerald-50 ring-1 ring-emerald-200">
           <Check className="h-7 w-7 text-emerald-600" strokeWidth={2.5} />
         </div>
@@ -208,7 +210,7 @@ export default function PublicClubWebsitePayPage() {
   // Step 4 is terminal — show it on its own, like the wallet page's receipt.
   if (step === "done" && result) return (
     <PayPageShell wide>
-      <div className="mx-auto max-w-lg rounded-2xl border border-slate-200/80 bg-card p-8 text-center shadow-sm">
+      <div className="row-rise mx-auto max-w-lg rounded-2xl border border-slate-200/80 bg-card p-8 text-center shadow-sm">
         <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-emerald-50 ring-1 ring-emerald-200">
           <Check className="h-7 w-7 text-emerald-600" strokeWidth={2.5} />
         </div>
@@ -272,6 +274,7 @@ export default function PublicClubWebsitePayPage() {
           <span className="text-sm font-bold text-azure">Total payable</span>
           <span className="text-lg font-bold tabular-nums text-azure">{inr(info.totalAmount)}</span>
         </div>
+        <LocalAmountNote currency={info.currency} localCurrency={info.localCurrency} localTotal={info.localTotal} rateDate={info.rateDate} />
         <PayTrustRows activationNote="Your site is set up as soon as payment succeeds." />
       </Card>
 
@@ -347,12 +350,12 @@ export default function PublicClubWebsitePayPage() {
                 </div>
               )}
 
-              <button
+              <Button
                 type="button" disabled={!subValid} onClick={() => setStep("confirm")}
-                className="mt-5 w-full rounded-xl bg-azure py-3.5 text-sm font-bold text-white shadow-sm transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto sm:px-8"
+                className="mt-5 w-full sm:w-auto"
               >
                 Continue
-              </button>
+              </Button>
             </Card>
           )}
 
@@ -383,17 +386,17 @@ export default function PublicClubWebsitePayPage() {
 
               <div className="mt-5 flex flex-col gap-2.5 sm:flex-row">
                 {!isRenewal && (
-                  <button type="button" onClick={() => { setConfirmChecked(false); setStep("subdomain"); }}
-                    className="rounded-full border border-slate-300 px-6 py-3.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 sm:order-1">
+                  <Button type="button" onClick={() => { setConfirmChecked(false); setStep("subdomain"); }}
+                    variant="outline" className="sm:order-1">
                     Back
-                  </button>
+                  </Button>
                 )}
-                <button
+                <Button
                   type="button" disabled={!isRenewal && !confirmChecked} onClick={() => setStep("pay")}
-                  className="flex-1 rounded-xl bg-azure py-3.5 text-sm font-bold text-white shadow-sm transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50 sm:order-2"
+                  className="flex-1 sm:order-2"
                 >
                   Confirm and continue
-                </button>
+                </Button>
               </div>
             </Card>
           )}
@@ -433,17 +436,17 @@ export default function PublicClubWebsitePayPage() {
               )}
 
               <div className="mt-4 flex flex-col gap-2.5 sm:flex-row">
-                <button type="button" onClick={() => setStep("confirm")}
-                  className="rounded-full border border-slate-300 px-6 py-4 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 sm:order-1">
+                <Button type="button" onClick={() => setStep("confirm")}
+                  variant="outline" className="sm:order-1">
                   Back
-                </button>
-                <button
+                </Button>
+                <Button
                   type="button" disabled={busy} onClick={handlePay}
-                  className="flex flex-1 items-center justify-center gap-2 rounded-full bg-azure py-4 text-sm font-bold text-white shadow-sm transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60 sm:order-2"
+                  className="flex-1 sm:order-2"
                 >
                   <Lock className="h-4 w-4" />
                   {busy ? "Processing…" : `Pay ${inr(info.totalAmount)}`}
-                </button>
+                </Button>
               </div>
 
               <p className="mt-3 text-center text-[11px] leading-relaxed text-slate-400">

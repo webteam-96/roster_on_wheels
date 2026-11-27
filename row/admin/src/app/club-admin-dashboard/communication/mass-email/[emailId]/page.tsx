@@ -5,6 +5,7 @@
  * clubId from useAuth().selectedClubId; emailId from the route; Back returns to ?returnTo=.
  */
 
+import { PageHeader } from "@/components/row/AppKit";
 import { useState, useEffect, useMemo } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { getMassEmailDetail, sendMassEmail, getClub } from "@/services/api";
@@ -15,11 +16,11 @@ import ViewOnlyBadge from "@/components/ViewOnlyBadge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
 import AlertModal from "@/components/AlertModal";
-import { ArrowLeft, RefreshCw, CheckCircle2, XCircle, Clock, Loader2 } from "@/components/icons";
+import { RefreshCw, CheckCircle2, XCircle, Clock, Loader2 } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import CampaignTrackingCard from "@/components/comms/CampaignTrackingCard";
@@ -82,8 +83,8 @@ export default function ClubAdminMassEmailViewPage() {
 
   const statusIcon = (s: string) => s === "Sent" ? <CheckCircle2 className="h-4 w-4 text-green-500" /> : s === "Failed" ? <XCircle className="h-4 w-4 text-red-500" /> : <Clock className="h-4 w-4 text-yellow-500" />;
   const statusBadge = (s: string) => {
-    if (s === "Sent") return <Badge className="bg-green-500 hover:bg-green-600">Sent</Badge>;
-    if (s === "Sending") return <Badge className="bg-blue-500 hover:bg-blue-600">Sending</Badge>;
+    if (s === "Sent") return <Badge className="bg-green-100 text-green-800">Sent</Badge>;
+    if (s === "Sending") return <Badge className="bg-blue-100 text-azure">Sending</Badge>;
     if (s === "Failed") return <Badge variant="destructive">Failed</Badge>;
     return <Badge variant="secondary">{s}</Badge>;
   };
@@ -102,21 +103,17 @@ export default function ClubAdminMassEmailViewPage() {
         <ViewOnlyBadge currentYearOnly={ywarCurrentYearLabel} className="mb-4" />
       )}
 
-      <div className="space-y-6 max-w-5xl mx-auto">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <Button variant="outline" size="icon" onClick={() => router.push(returnTo)} aria-label="Back"><ArrowLeft className="h-4 w-4" /></Button>
-            <div>
-              <h2 className="text-2xl font-bold tracking-tight text-ink">Mass Email Detail</h2>
-              <p className="text-slate-500 text-sm mt-0.5">{clubName}</p>
-            </div>
-          </div>
-          {canManage && detail.status === "Failed" && (
-            <Button onClick={() => setConfirmRetry(true)} disabled={retrying} className="bg-azure hover:bg-mint-ink text-white">
+      <div className="space-y-6">
+        <PageHeader
+          title="Mass Email Detail"
+          description={clubName}
+          back={() => router.push(returnTo)}
+          actions={canManage && detail.status === "Failed" && (
+            <Button onClick={() => setConfirmRetry(true)} disabled={retrying}>
               {retrying ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <RefreshCw className="h-4 w-4 mr-2" />}Retry Failed
             </Button>
           )}
-        </div>
+        />
 
         <Card>
           <CardHeader><div className="flex flex-wrap items-center justify-between gap-3"><CardTitle>{detail.subject}</CardTitle>{statusBadge(detail.status)}</div></CardHeader>

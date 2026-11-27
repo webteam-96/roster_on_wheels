@@ -1,5 +1,7 @@
 "use client";
 
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table"
+import { NativeSelect } from "@/components/ui/native-select";
 import { useCallback, useEffect, useState } from "react";
 import { Loader2 } from "@/components/icons";
 import { Button } from "@/components/ui/button";
@@ -17,7 +19,7 @@ import MemberPicker, { type MemberOption } from "./MemberPicker";
 import NextYearDistrict from "./NextYearDistrict";
 import { errorMessage, Pill, RoleHolder, Section } from "./PlanningParts";
 
-const SELECT = "h-10 w-full rounded-md border border-input bg-background px-3 text-sm";
+const SELECT = "row-field w-full";
 
 /** District planning workspace: launchpad, team, club invitations, next year's records and the cut-over. */
 export default function DistrictPlanning({ districtId }: { districtId: number }) {
@@ -128,30 +130,30 @@ function Team({ o, districtId, search, onDone, onError }: PartProps & { search: 
 
   return (
     <Section title="District team" hint="The governor-elect appoints next year's district secretary and treasurer. AGs and committee chairs are set below.">
-      <table className="w-full text-sm">
-        <tbody>
+      <Table className="w-full text-sm">
+        <TableBody>
           {(["DGE", "DS", "DT"] as const).map((code) => {
             const r = o.team.find((t) => t.role === code) ?? null;
             return (
-              <tr key={code} className="border-b last:border-0">
-                <td className="py-2 font-medium">{ROLE_NAMES[code]}</td>
-                <td className="py-2"><RoleHolder role={r} /></td>
-                <td className="py-2 text-right">
+              <TableRow key={code} className="border-b last:border-0">
+                <TableCell className="py-2 font-medium">{ROLE_NAMES[code]}</TableCell>
+                <TableCell className="py-2"><RoleHolder role={r} /></TableCell>
+                <TableCell className="py-2 text-right">
                   {o.canManage && r && code !== "DGE" && <Button size="sm" variant="ghost" onClick={() => revoke(r.roleId)}>Revoke</Button>}
-                </td>
-              </tr>
+                </TableCell>
+              </TableRow>
             );
           })}
-        </tbody>
-      </table>
+        </TableBody>
+      </Table>
       {o.canManage && (
         <div className="grid gap-3 sm:grid-cols-[12rem_1fr_auto] sm:items-end">
           <div className="space-y-2">
             <Label htmlFor="appoint-role">Role</Label>
-            <select id="appoint-role" className={SELECT} value={role} onChange={(e) => setRole(e.target.value as "DS" | "DT")}>
+            <NativeSelect id="appoint-role"  value={role} onChange={(e) => setRole(e.target.value as "DS" | "DT")}>
               <option value="DS">District secretary</option>
               <option value="DT">District treasurer</option>
-            </select>
+            </NativeSelect>
           </div>
           <div className="space-y-2">
             <Label htmlFor="appoint-member">Member</Label>
@@ -218,14 +220,14 @@ function Clubs({ o, districtId, search, onDone, onError }: PartProps & { search:
   const cell = (c: PlanningClub, code: "PE" | "SE") => {
     const r = code === "PE" ? c.pe : c.se;
     return (
-      <td className="py-2">
+      <TableCell className="py-2">
         <div className="flex flex-wrap items-center gap-2">
           <RoleHolder role={r} />
           {o.canManage && (r?.status === "active"
             ? <Button size="sm" variant="ghost" onClick={() => revoke(r.roleId)}>Revoke</Button>
             : <Button size="sm" variant="outline" onClick={() => { setInviting({ club: c, role: code }); setMember(null); }}>{r ? "Invite again" : "Invite"}</Button>)}
         </div>
-      </td>
+      </TableCell>
     );
   };
 
@@ -242,29 +244,29 @@ function Clubs({ o, districtId, search, onDone, onError }: PartProps & { search:
         </div>
       )}
       <div className="overflow-x-auto">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b text-left text-muted-foreground">
-              <th className="py-2 font-medium">Club</th>
-              <th className="py-2 font-medium">President-elect</th>
-              <th className="py-2 font-medium">Secretary-elect</th>
-              <th className="py-2 font-medium">Onboarding kit</th>
-            </tr>
-          </thead>
-          <tbody>
+        <Table className="w-full text-sm">
+          <TableHeader>
+            <TableRow className="border-b">
+              <TableHead>Club</TableHead>
+              <TableHead>President-elect</TableHead>
+              <TableHead>Secretary-elect</TableHead>
+              <TableHead>Onboarding kit</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
             {o.clubs.map((c) => (
-              <tr key={c.clubId} className="border-b last:border-0">
-                <td className="py-2 pr-4">{c.clubName}</td>
+              <TableRow key={c.clubId} className="border-b last:border-0">
+                <TableCell className="py-2 pr-4">{c.clubName}</TableCell>
                 {cell(c, "PE")}
                 {cell(c, "SE")}
-                <td className="py-2 whitespace-nowrap">
+                <TableCell className="py-2 whitespace-nowrap">
                   <Button size="sm" variant="ghost" onClick={() => openKit(c.clubId)}>Open</Button>
                   <Button size="sm" variant="ghost" onClick={() => nudge(c)}>Email to president and secretary</Button>
-                </td>
-              </tr>
+                </TableCell>
+              </TableRow>
             ))}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
       </div>
     </Section>
   );

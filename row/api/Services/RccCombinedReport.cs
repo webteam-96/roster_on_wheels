@@ -24,7 +24,7 @@ public class RccCombinedReport
                          Adapt = "Increase Our Ability to Adapt", Engage = "Enhance Participant Engagement";
 
     // The 26 Rotary.org goals, in the RCC tab's order (section, Rotary.org item, Yes/No per club).
-    private static readonly (string Section, string Item, bool YesNo)[] RotaryGoals =
+    internal static readonly (string Section, string Item, bool YesNo)[] RotaryGoals =
     {
         (Reach, "Club membership", false), (Reach, "Rotaract clubs", false), (Reach, "Interact clubs", false),
         (Reach, "Media stories about club projects", false), (Reach, "New member sponsorship", false), (Reach, "RYLA participation", false),
@@ -47,10 +47,49 @@ public class RccCombinedReport
         public bool IsMoney;
     }
 
-    public async Task<byte[]> BuildAsync(int memberId, int? districtId, int? clubId, int? yearIdIn)
+    // rccOnly (user 2026-11-18, RCC Goals pages): ONLY the 26 Rotary.org goals - the RCC sheet keeps those rows, the
+    // district's "RCC - Clubs" sheet (already the 26) stays, the District Goals sheet is left out.
+    public async Task<byte[]> BuildAsync(int memberId, int? districtId, int? clubId, int? yearIdIn, bool rccOnly = false)
     {
         await using var conn = new MySqlConnection(_cs);
         await conn.OpenAsync();
+        var (rows, isClub, dId, clubName, districtNo, year, who) = await LoadAsync(conn, memberId, districtId, clubId, yearIdIn);
+
+        if (rccOnly)
+            rows = RotaryGoals.Select(g => rows.FirstOrDefault(r => r.Source == "Rotary.org" && r.Goal == g.Item)).Where(r => r != null).Select(r => r!).ToList();
+
+        using var wb = new XLWorkbook();
+        WriteRcc(wb.Worksheets.Add("RCC"), rows, $"RCC — {who}", $"Rotary year {year.Label}");
+        if (!isClub) await WriteRccClubsAsync(wb.Worksheets.Add("RCC - Clubs"), conn, dId, year.Id, $"RCC by club — District {districtNo}", year.Label);
+        if (!rccOnly) await WriteDistrictGoalsAsync(wb.Worksheets.Add("District Goals"), conn, dId, isClub ? clubId : null, year.Id,
+            $"District Goals — {who}", year.Label);
+        using var ms = new MemoryStream();
+        wb.SaveAs(ms);
+        return ms.ToArray();
+    }
+
+    // RCC Goals screen (user 2026-11-17): ONLY the 26 Rotary.org goals - same rows / figures / % as the RCC sheet.
+    public async Task<object> GetRotaryGoalsAsync(int memberId, int? districtId, int? clubId, int? yearIdIn)
+    {
+        await using var conn = new MySqlConnection(_cs);
+        await conn.OpenAsync();
+        var (rows, isClub, _, clubName, districtNo, year, _) = await LoadAsync(conn, memberId, districtId, clubId, yearIdIn);
+        var items = RotaryGoals.Select(g => (g, row: rows.FirstOrDefault(r => r.Source == "Rotary.org" && r.Goal == g.Item))).ToList();
+        return new
+        {
+            yearId = year.Id, yearLabel = year.Label, isClub, clubName, districtNumber = districtNo,
+            goals = items.Select(x => new
+            {
+                section = x.g.Section, goal = x.g.Item, yesNo = isClub && x.g.YesNo,
+                isMoney = x.row?.IsMoney ?? false, asOn = x.row?.AsOn, target = x.row?.Target, achieved = x.row?.Achieved,
+                pct = x.row?.Pct, missing = x.row?.Missing ?? true,
+            }),
+        };
+    }
+
+    private async Task<(List<Row> Rows, bool IsClub, int DistrictId, string ClubName, string DistrictNo, (int Id, string Label) Year, string Who)>
+        LoadAsync(MySqlConnection conn, int memberId, int? districtId, int? clubId, int? yearIdIn)
+    {
         bool isClub = (clubId ?? 0) > 0;
         int dId = districtId ?? 0;
         if (isClub) dId = await conn.ExecuteScalarAsync<int>("SELECT fk_district_id FROM club_master WHERE pk_club_id = @C", new { C = clubId });
@@ -83,16 +122,7 @@ public class RccCombinedReport
         string? B(string k) => f.TryGetValue(k, out var x) ? (x.BoolValue == true ? "Yes" : "No") : null;
         bool Has(string k) => f.ContainsKey(k);
 
-        var rows = BuildRccRows(isClub, V, B, Has, O);
-
-        using var wb = new XLWorkbook();
-        WriteRcc(wb.Worksheets.Add("RCC"), rows, $"RCC — {who}", $"Rotary year {year.Label}");
-        if (!isClub) await WriteRccClubsAsync(wb.Worksheets.Add("RCC - Clubs"), conn, dId, year.Id, $"RCC by club — District {districtNo}", year.Label);
-        await WriteDistrictGoalsAsync(wb.Worksheets.Add("District Goals"), conn, dId, isClub ? clubId : null, year.Id,
-            $"District Goals — {who}", year.Label);
-        using var ms = new MemoryStream();
-        wb.SaveAs(ms);
-        return ms.ToArray();
+        return (BuildRccRows(isClub, V, B, Has, O), isClub, dId, clubName, districtNo, year, who);
     }
 
     // ── RCC rows: same goals, figures and % rules as the RCC tab (lib/rccGoals.ts + the panel's PCT_RULES) ──
@@ -137,8 +167,9 @@ public class RccCombinedReport
         }
 
         // 1. Expand Our Reach (Membership)
-        if (!isClub) Ours(Reach, "Clubs", "total_clubs", "new_clubs", "new_clubs_achieved", null, "ROW");
-        if (!isClub && rows.Count > 0 && rows[^1].Goal == "Clubs") rows[^1].Pct = Growth(V("new_clubs"), V("new_clubs_achieved"), V("total_clubs"), 2);
+        // "Clubs" is named "Club" on the RCC tab (goal flow).
+        if (!isClub) Ours(Reach, "Club", "total_clubs", "new_clubs", "new_clubs_achieved", null, "ROW");
+        if (!isClub && rows.Count > 0 && rows[^1].Goal == "Club") rows[^1].Pct = Growth(V("new_clubs"), V("new_clubs_achieved"), V("total_clubs"), 2);
         RotaryLocked(Reach, "Club membership", "Club membership", "total_members", "new_members_achieved", (g, a, b) => Growth(g, a, b, 0));
         Ours(Reach, "Women Members", "existing_women_members", "new_women_members", "new_women_members_achieved", "women_percentage_achievement", "ROW");
         if (!isClub)

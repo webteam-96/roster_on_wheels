@@ -7,6 +7,9 @@
 // Assistant) see the same popup without inputs or Save. Districts outside the split pilot see it read
 // only too (the API refuses their save anyway).
 
+import { Table } from "@/components/ui/table";
+import { IconButton } from "@/components/ui/icon-button";
+import { Button } from "@/components/ui/button";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { CalendarRange, CalendarDays, Download, Loader2, Save, Check, AlertCircle, X } from "@/components/icons";
 import type { GoalMonthlyForm, SaveGoalTargetSplitRequest } from "@/services/api";
@@ -130,14 +133,14 @@ export default function GoalTargetSplitPanelRotary({
   const canEdit = SPLIT_EDITING && !readOnly && !!onSave && form.isEditable && isGoalSplitPilot(form.clubId, form.districtId);
 
 
-  const btn = "inline-flex items-center gap-1.5 h-9 rounded-go-sm border border-go-navy-50 bg-go-surface px-3.5 text-go-label font-bold text-go-navy-700 hover:bg-go-sunken";
+  const btn = "row-btn row-btn-secondary row-btn-sm";
   return (
     <>
       <SuccessAlert open={!!savedMsg} title="Saved" description={savedMsg ?? ""} onOk={() => setSavedMsg(null)} />
       <div className="flex flex-wrap items-center gap-2">
         {!noLabel && <span className="text-go-label font-bold text-go-text-secondary">{catName} target split:</span>}
-        <button type="button" onClick={() => setOpen("quarter")} className={btn}><CalendarRange size={14} /> Quarterly</button>
-        <button type="button" onClick={() => setOpen("month")} className={btn}><CalendarDays size={14} /> Month-wise</button>
+        <Button variant="outline" size="sm" type="button" onClick={() => setOpen("quarter")}><CalendarRange size={14} /> Quarterly</Button>
+        <Button variant="outline" size="sm" type="button" onClick={() => setOpen("month")}><CalendarDays size={14} /> Month-wise</Button>
       </div>
 
       {open && (
@@ -146,7 +149,7 @@ export default function GoalTargetSplitPanelRotary({
             <div className="flex flex-wrap items-center gap-3 px-4 sm:px-6 py-4 bg-go-navy-900 text-white">
               {open === "quarter" ? <CalendarRange size={20} className="text-go-gold-500" /> : <CalendarDays size={20} className="text-go-gold-500" />}
               <div className="min-w-0">
-                <h3 className="text-go-heading font-bold">{open === "quarter" ? "Quarterly" : "Month-wise"}: {catName}
+                <h3 className="row-h3 text-go-heading">{open === "quarter" ? "Quarterly" : "Month-wise"}: {catName}
                   <span className="ml-3 text-go-meta font-semibold text-go-navy-50">
                     Auto-calculated by ROW
                   </span>
@@ -156,13 +159,13 @@ export default function GoalTargetSplitPanelRotary({
                 </p>
               </div>
               <span className="flex-1" />
-              {onDownload && <button type="button" onClick={onDownload}
-                className="inline-flex items-center gap-1.5 h-9 rounded-go-sm border border-go-navy-700 px-3.5 text-go-label font-bold text-white hover:bg-white/10">
+              {onDownload && <Button type="button" onClick={onDownload}
+                variant="outline" size="sm">
                 <Download size={14} /> Download
-              </button>}
-              <button type="button" onClick={() => setOpen(null)} className="h-10 w-10 inline-flex items-center justify-center rounded-go-md text-go-navy-50 hover:bg-white/10" aria-label="Close">
+              </Button>}
+              <IconButton type="button" onClick={() => setOpen(null)}  aria-label="Close">
                 <X size={18} />
-              </button>
+              </IconButton>
             </div>
 
             {anySuggested && canEdit && (
@@ -181,7 +184,7 @@ export default function GoalTargetSplitPanelRotary({
                 return (
                   <div key={f.fieldId} className="bg-go-surface rounded-go-lg border border-go-border overflow-hidden">
                     <div className="px-4 sm:px-5 py-3 border-b-[3px] border-go-gold-500 flex flex-wrap items-center gap-x-4 gap-y-1.5">
-                      <h4 className="text-go-title font-bold text-go-navy-700">{f.groupName || f.fieldLabel}</h4>
+                      <h4 className="row-h3 text-go-title text-go-navy-700">{f.groupName || f.fieldLabel}</h4>
                       <span className="text-go-meta text-go-text-secondary">{f.fieldLabel}</span>
                       <span className="sm:ml-auto text-go-meta text-go-text-secondary">
                         Target for the Current year
@@ -194,11 +197,11 @@ export default function GoalTargetSplitPanelRotary({
                         </span>
                       )}
                       {st.ok ? (
-                        <span className="inline-flex items-center gap-1 rounded-full bg-go-success-50 px-2.5 py-0.5 text-go-meta font-bold text-go-success-600">
+                        <span className="inline-flex items-center gap-1 rounded bg-go-success-50 px-2.5 py-0.5 text-go-meta font-bold text-go-success-600">
                           <Check size={13} /> {st.entered} of {base}
                         </span>
                       ) : (
-                        <span className="inline-flex items-center gap-1 rounded-full bg-go-danger-50 px-2.5 py-0.5 text-go-meta font-bold text-go-danger-600">
+                        <span className="inline-flex items-center gap-1 rounded bg-go-danger-50 px-2.5 py-0.5 text-go-meta font-bold text-go-danger-600">
                           <AlertCircle size={13} /> {st.entered} of {base}
                           <span className="font-medium">({st.negative ? "a target cannot be negative" : st.diff > 0 ? `${st.diff} too much` : `${-st.diff} short`})</span>
                         </span>
@@ -206,12 +209,12 @@ export default function GoalTargetSplitPanelRotary({
                     </div>
 
                     <div className="overflow-x-auto">
-                      <table className="w-full text-go-body border-collapse min-w-max">
+                      <Table bare className="w-full text-go-body border-collapse min-w-max">
                         <thead>
-                          <tr className="bg-go-sunken text-go-text-secondary">
-                            <th className="text-left font-bold px-4 sm:px-5 py-2.5 w-28 sm:w-56 sticky left-0 bg-go-sunken border-r border-go-border">&nbsp;</th>
+                          <tr>
+                            <th className="text-left px-4 sm:px-5 w-28 sm:w-56 sticky left-0 bg-go-sunken border-r border-go-border">&nbsp;</th>
                             {slots.map((s) => (
-                              <th key={s} className="text-right font-bold px-2 sm:px-3 py-2.5 whitespace-nowrap">{label(s)}</th>
+                              <th key={s} className="text-right px-2 sm:px-3 whitespace-nowrap">{label(s)}</th>
                             ))}
                           </tr>
                         </thead>
@@ -261,7 +264,7 @@ export default function GoalTargetSplitPanelRotary({
                             })}
                           </tr>
                         </tbody>
-                      </table>
+                      </Table>
                     </div>
                   </div>
                 );
@@ -271,17 +274,16 @@ export default function GoalTargetSplitPanelRotary({
             <div className="sticky bottom-0 z-10 px-4 sm:px-6 py-3.5 bg-go-surface border-t border-go-border shadow-go-card flex flex-wrap items-center gap-2 sm:gap-3">
               {canEdit && (
                 <>
-                  <button
+                  <Button
                     type="button" onClick={save} disabled={saving || !allMatch}
                     title={allMatch ? undefined : "Every section must total its yearly target before this can be saved"}
-                    className="inline-flex items-center gap-1.5 h-9 rounded-go-sm bg-go-navy-700 px-6 text-go-body font-bold text-white hover:bg-go-navy-900 disabled:opacity-40"
-                  >
+>
                     {saving ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />} Save
-                  </button>
-                  <button type="button" onClick={reset} disabled={saving}
-                    className="inline-flex items-center h-9 rounded-go-sm border border-go-border-strong px-4 text-go-body font-bold text-go-text-secondary hover:bg-go-sunken disabled:opacity-40">
+                  </Button>
+                  <Button type="button" onClick={reset} disabled={saving}
+                    variant="outline" size="sm">
                     Reset
-                  </button>
+                  </Button>
                   {!allMatch && (
                     <span className="w-full sm:w-auto order-last sm:order-none text-go-meta text-go-danger-600">
                       {badRows.map((f) => {
@@ -294,10 +296,10 @@ export default function GoalTargetSplitPanelRotary({
                   {error && <span className="text-go-meta text-go-danger-600">{error}</span>}
                 </>
               )}
-              <button type="button" onClick={() => setOpen(null)}
-                className="ml-auto inline-flex items-center h-9 rounded-go-sm border border-go-border-strong px-5 text-go-body font-bold text-go-text-secondary hover:bg-go-sunken">
+              <Button type="button" onClick={() => setOpen(null)}
+                variant="outline" size="sm" className="ml-auto">
                 Close
-              </button>
+              </Button>
             </div>
           </div>
         </div>

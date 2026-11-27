@@ -1,4 +1,5 @@
 "use client";
+import { IconButton } from "@/components/ui/icon-button";
 
 import { useState, useCallback, useEffect } from "react";
 import { useParams } from "next/navigation";
@@ -20,15 +21,14 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { ArrowLeft, Download, Mail, MoreHorizontal, Receipt, CreditCard, Pencil, Paperclip, Send } from "@/components/icons";
+import { Mail, MoreHorizontal, Receipt, CreditCard, Pencil, Paperclip, Send } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import SearchBox from "@/components/SearchBox";
 
 import { currencySymbol } from "@/lib/appFormat";
-import { ListPageSkeleton } from "@/components/row/AppKit";
+import { PageHeader, ListPageSkeleton } from "@/components/row/AppKit";
 interface EventMember {
   id: number;
   memberName?: string;
@@ -181,7 +181,7 @@ export default function EventMembersPage() {
   };
 
   if (!isSuperAdmin && !isAdmin) {
-    return (<ProtectedRoute><div className="flex flex-col items-center justify-center py-20"><h3 className="text-lg font-semibold">Access Denied</h3></div></ProtectedRoute>);
+    return (<ProtectedRoute><div className="flex flex-col items-center justify-center py-20"><h3 className="row-h2">Access Denied</h3></div></ProtectedRoute>);
   }
 
   const renderTable = (members: EventMember[], loading: boolean, isPaidTab: boolean) => {
@@ -241,14 +241,14 @@ export default function EventMembersPage() {
                 </TableCell>}
                 {isPaidTab && <TableCell className="text-center">
                   {m.attachment ? (
-                    <button onClick={() => setPreviewAttachment(`${API_BASE_URL}/${m.attachment}`)} className="text-blue-600 hover:text-blue-800">
+                    <IconButton aria-label="View attachment" onClick={() => setPreviewAttachment(`${API_BASE_URL}/${m.attachment}`)}>
                       <Paperclip className="h-4 w-4" />
-                    </button>
+                    </IconButton>
                   ) : "-"}
                 </TableCell>}
                 <TableCell>
                   <DropdownMenu>
-                    <DropdownMenuTrigger asChild><Button variant="ghost" size="icon"><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger>
+                    <DropdownMenuTrigger asChild><Button aria-label="More actions" variant="ghost" size="icon"><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
                       {isPaidTab ? (
                         <>
@@ -279,14 +279,12 @@ export default function EventMembersPage() {
         <SuccessAlert open={!!successMessage} title="Success" description={successMessage || ""} onOk={() => setSuccessMessage(null)} />
         <ErrorAlert open={!!errorMessage} title="Error" description={errorMessage || ""} onOk={() => setErrorMessage(null)} />
 
-        <div className="flex items-center gap-3">
-          <Button variant="outline" size="icon" asChild>
-            <Link href="/settings/event-payment-links"><ArrowLeft className="h-4 w-4" /></Link>
-          </Button>
-          <div className="flex-1">
-            <h2 className="text-2xl font-bold tracking-tight text-primary">Event Members</h2>
-            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
-              <span><strong>Form Type:</strong> {linkDetail?.formType === 1 ? "Standard" : "Dynamic"}</span>
+        <PageHeader
+          title="Event Members"
+          back="/settings/event-payment-links"
+          actions={
+            <>
+<span><strong>Form Type:</strong> {linkDetail?.formType === 1 ? "Standard" : "Dynamic"}</span>
               {!isDynamic && linkDetail?.fkDistrictMasterId && (
                 <span><strong>District:</strong> {linkDetail.districtNumber || linkDetail.fkDistrictMasterId}</span>
               )}
@@ -294,10 +292,10 @@ export default function EventMembersPage() {
                 <span><strong>Club:</strong> {linkDetail.clubName || linkDetail.fkClubId}</span>
               )}
               <span><strong>Purpose:</strong> {linkDetail?.title || "-"}</span>
-            </div>
-          </div>
-          {isDynamic && <Button onClick={() => router.push(`/settings/event-payment-links/${linkId}/offline-payment`)}><CreditCard className="h-4 w-4 mr-2" />Add Offline Payment</Button>}
-        </div>
+{isDynamic && <Button onClick={() => router.push(`/settings/event-payment-links/${linkId}/offline-payment`)}><CreditCard className="h-4 w-4 mr-2" />Add Offline Payment</Button>}
+            </>
+          }
+        />
 
         <SearchBox value={search} onChange={setSearch} placeholder="Search by name, mobile, email..." />
 

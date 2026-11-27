@@ -873,7 +873,7 @@ public partial class GoalSettingService : IGoalSettingService
     private static decimal Whole(decimal v) => Math.Round(v, 0, MidpointRounding.AwayFromZero);
     private static decimal? Whole(decimal? v) => v.HasValue ? Whole(v.Value) : (decimal?)null;
 
-    private static List<decimal> SpreadTarget(decimal total, int slots, bool whole = false)
+    internal static List<decimal> SpreadTarget(decimal total, int slots, bool whole = false)
     {
         var outv = new List<decimal>(slots);
         if (slots <= 0) return outv;
@@ -1992,8 +1992,9 @@ public partial class GoalSettingService : IGoalSettingService
             FROM district_master d
             JOIN zone_master z ON z.pk_zone_id = d.fk_zone_id
             WHERE d.isdeleted = 0 AND z.isdeleted = 0
-              AND z.ZoneName LIKE 'Zone %' AND z.ZoneName <> 'Zone 0'
-            ORDER BY CAST(d.DistrictNumber AS UNSIGNED)")).ToList();
+              AND (@AllZones = 1 OR z.ZoneName IN @Zones)
+            ORDER BY CAST(d.DistrictNumber AS UNSIGNED)",
+            new { AllZones = Brand.Zones.Length == 0 ? 1 : 0, Zones = Brand.Zones.Length > 0 ? Brand.Zones : new[] { "" } })).ToList();
 
         var keys = new[] { "total_clubs", "new_clubs_achieved", "total_members", "new_members_achieved",
                            "existing_women_members", "new_women_members_achieved" };
@@ -3367,12 +3368,16 @@ public partial class GoalSettingService : IGoalSettingService
     // District Month wise sheet as a grid (user 2026-10-09): header row 1 = months (each spanning two
     // columns), row 2 = Target | Achieved under every month; one row per metric. Annual-only rows keep
     // their single value and empty month cells.
+    // RCC Goals report (user 2026-11-18): each month = Goal / Achieved / Achieved (%). Set only while that report is built.
+    private bool _rccReport;
+
     private void WriteMonthGridBlock(IXLWorksheet s, List<(string Name, List<GoalMetricComputed> Rows, List<GoalMonthPeriodDto> Months)> perCat, ref int r)
     {
+        int per = _rccReport ? 3 : 2;   // columns per month
         foreach (var (name, rows, months) in perCat)
         {
             if (IsAnnualOnlyCategory(name)) continue;
-            int blockCols = 3 + 2 * months.Count + 2;
+            int blockCols = 3 + per * months.Count + 2;
             RenderSectionBand(s, blockCols, name, ref r);
             int hr = r;   // header row (a ref parameter cannot be used inside the local function)
             void TallHeader(int col, string txt)
@@ -3387,11 +3392,13 @@ public partial class GoalSettingService : IGoalSettingService
             int c = 4;
             foreach (var mo in months)
             {
-                var hc = s.Cell(r, c); hc.Value = mo.Label; StyleHeaderCell(hc); StyleHeaderCell(s.Cell(r, c + 1));
-                s.Range(r, c, r, c + 1).Merge().Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+                var hc = s.Cell(r, c); hc.Value = mo.Label; StyleHeaderCell(hc);
+                for (int k = 1; k < per; k++) StyleHeaderCell(s.Cell(r, c + k));
+                s.Range(r, c, r, c + per - 1).Merge().Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
                 var t = s.Cell(r + 1, c); t.Value = "Target"; StyleHeaderCell(t);
                 var a = s.Cell(r + 1, c + 1); a.Value = "Achieved"; StyleHeaderCell(a);
-                c += 2;
+                if (per == 3) { var pc = s.Cell(r + 1, c + 2); pc.Value = "Achieved (%)"; StyleHeaderCell(pc); }
+                c += per;
             }
             TallHeader(c, "Achieved"); c++;
             TallHeader(c, "% Achievement");
@@ -3423,7 +3430,9 @@ public partial class GoalSettingService : IGoalSettingService
                     decimal? ach = null;
                     if (mo.IsAvailable) { run += (m.Monthly.TryGetValue(mo.Month, out var v) && v.HasValue) ? v.Value : 0m; ach = run; last = run; }
                     SetNumCell(s.Cell(r, c + 1), ach);
-                    c += 2;
+                    // RCC Goals report (rccOnly): the month's Achieved (%) against its running goal.
+                    if (per == 3) SetPctCell(s.Cell(r, c + 2), ach.HasValue && tv is decimal tgv && tgv > 0 ? Math.Round(ach.Value * 100m / tgv, m.TwoDecimalPct ? 2 : 0, MidpointRounding.AwayFromZero) : null, m.TwoDecimalPct);
+                    c += per;
                 }
                 var ac = s.Cell(r, c); SetNumCell(ac, last); ac.Style.Font.Bold = true; c++;
                 SetPctCell(s.Cell(r, c), last.HasValue ? PctAtMonth(m, last.Value) : (decimal?)null, m.TwoDecimalPct);

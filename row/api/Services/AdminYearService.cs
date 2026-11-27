@@ -111,6 +111,16 @@ public interface IAdminYearService
     /// connection's active transaction". Taking a tx it cannot honour would be a
     /// trap for the next caller.
     /// </remarks>
+    /// <summary>
+    /// "Edit Years" on an EXISTING admin: replace the years the EDITOR may grant
+    /// with <paramref name="requestedYearIds"/>, and keep every granted year the
+    /// editor does not hold untouched. Same rule as Make Admin — you can only give
+    /// (or take back) years you hold yourself. Office-based years are never touched.
+    /// </summary>
+    Task<YearEditResult> EditManualGrantsAsync(
+        MySqlConnection conn, int targetMemberId, int? clubId, int? districtId,
+        int editorMemberId, IEnumerable<int> requestedYearIds, bool wantsAllYears);
+
     Task<YearRemovalResult> RemoveYearsYouHoldAsync(
         MySqlConnection conn, int targetMemberId, int? clubId, int? districtId,
         int removerMemberId, int revokedBy);
@@ -149,6 +159,18 @@ public class AdminYearRights
 }
 
 /// <summary>What a year-scoped Remove Admin actually did.</summary>
+public class YearEditResult
+{
+    /// <summary>Set when nothing was changed and the caller should be told why.</summary>
+    public string? Refusal { get; init; }
+
+    /// <summary>403 for a permission refusal, 400 for a bad request (no years picked).</summary>
+    public int RefusalStatus { get; init; } = 403;
+
+    /// <summary>Labels of granted years kept because they are not the editor's to change.</summary>
+    public List<string> KeptYears { get; init; } = new();
+}
+
 public class YearRemovalResult
 {
     /// <summary>Set when nothing was removed and the caller should be told why.</summary>
@@ -656,6 +678,73 @@ public class AdminYearService : IAdminYearService
         }
 
         return null;
+    }
+
+    public async Task<YearEditResult> EditManualGrantsAsync(
+        MySqlConnection conn, int targetMemberId, int? clubId, int? districtId,
+        int editorMemberId, IEnumerable<int> requestedYearIds, bool wantsAllYears)
+    {
+        var isClub = (clubId ?? 0) > 0;
+        var grantable = isClub
+            ? await GetGrantableClubYearsAsync(conn, editorMemberId, clubId!.Value)
+            : await GetGrantableDistrictYearsAsync(conn, editorMemberId, districtId ?? 0);
+
+        // The target's GRANTED years now (office-based years never live here).
+        var scopeWhere = isClub
+            ? "fk_club_id = @ClubId AND COALESCE(fk_district_id,0) = 0"
+            : "fk_district_id = @DistrictId AND COALESCE(fk_club_id,0) = 0";
+        var grants = (await conn.QueryAsync<(int? YearId, bool AllYears)>($@"
+            SELECT fk_year_id AS YearId, AllYears
+            FROM member_admin_years
+            WHERE fk_member_master_profile_id = @MemberId AND {scopeWhere}
+              AND IsActive = 1 AND COALESCE(isdeleted,0) = 0",
+            new { MemberId = targetMemberId, ClubId = clubId, DistrictId = districtId })).ToList();
+        var targetHasAllYears = grants.Any(g => g.AllYears);
+        var targetYears = grants.Where(g => !g.AllYears && g.YearId is int y && y > 0)
+                                .Select(g => g.YearId!.Value).ToHashSet();
+
+        var plan = PlanYearEdit(grantable, targetHasAllYears, targetYears, requestedYearIds, wantsAllYears);
+        if (plan.Refusal != null) return plan.Refusal;
+
+        await SetManualGrantsAsync(
+            conn, targetMemberId, clubId, districtId,
+            wantsAllYears ? Array.Empty<int>() : plan.FinalYears, wantsAllYears, editorMemberId);
+
+        return new YearEditResult { KeptYears = await YearLabelsForAsync(conn, plan.Kept, null) };
+    }
+
+    /// <summary>
+    /// The pure rule behind <see cref="EditManualGrantsAsync"/>: only years the editor may grant
+    /// are added or removed; every other granted year of the target is kept.
+    /// </summary>
+    public static (YearEditResult? Refusal, List<int> FinalYears, List<int> Kept) PlanYearEdit(
+        AdminYearRights grantable, bool targetHasAllYears, IReadOnlySet<int> targetYears,
+        IEnumerable<int> requestedYearIds, bool wantsAllYears)
+    {
+        (YearEditResult?, List<int>, List<int>) Refuse(string why, int status = 403) =>
+            (new YearEditResult { Refusal = why, RefusalStatus = status }, new(), new());
+
+        if (!grantable.AllYears && grantable.YearIds.Count == 0)
+            return Refuse("You hold no Rotary years here, so you cannot change admin years.");
+        if (wantsAllYears && !grantable.AllYears)
+            return Refuse("Only a Super Admin can grant All Years.");
+
+        var requested = requestedYearIds.Where(y => y > 0).Distinct().ToList();
+        if (!wantsAllYears && !grantable.AllYears && requested.Any(y => !grantable.Covers(y)))
+            return Refuse("You can only grant years you hold yourself.");
+        if (targetHasAllYears && !grantable.AllYears)
+            return Refuse("This member is an admin for All Years. Only a Super Admin can change that.");
+
+        // Years that are not the editor's to give or take survive as they are.
+        var kept = grantable.AllYears
+            ? new List<int>()
+            : targetYears.Where(y => !grantable.Covers(y)).ToList();
+        var finalYears = kept.Union(requested).ToList();
+
+        if (!wantsAllYears && finalYears.Count == 0)
+            return Refuse("Pick at least one year. To take away all admin rights, use Remove Admin.", 400);
+
+        return (null, finalYears, kept);
     }
 
     public async Task<YearRemovalResult> RemoveYearsYouHoldAsync(

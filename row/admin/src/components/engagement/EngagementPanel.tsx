@@ -6,6 +6,7 @@
  * (nothing is posted to social platforms). The district page also sets the milestone years and the Governor message.
  */
 
+import { Card } from "@/components/ui/card";
 import { useEffect, useState } from "react";
 import { Download, Trophy } from "@/components/icons";
 import SectionHeader from "@/components/dashboard/SectionHeader";
@@ -15,7 +16,7 @@ import { apiMessage, selectCls } from "@/components/membership/FoundationDesigna
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
 import { CARD_STATUS_LABELS, parseMilestoneYears } from "@/lib/engagement";
 import {
@@ -130,7 +131,7 @@ function SpotlightQueue({ scope, scopeId }: { scope: Scope; scopeId: number }) {
   return (
     <section className="space-y-3">
       <div className="flex flex-wrap items-end justify-between gap-3">
-        <h2 className="text-sm font-semibold text-slate-800">Spotlight cards</h2>
+        <h2 className="row-h2">Spotlight cards</h2>
         <label className="w-56 space-y-1 text-xs font-semibold text-slate-700">
           <span>Show</span>
           <select className={selectCls} value={status} onChange={(e) => setStatus(e.target.value as SpotlightStatus | "")}>
@@ -146,7 +147,7 @@ function SpotlightQueue({ scope, scopeId }: { scope: Scope; scopeId: number }) {
       {cards === null ? (
         !error && <TableSkeleton rows={4} />
       ) : (
-        <div className="overflow-hidden rounded-[20px] border border-slate-200 bg-card">
+        <Card className="overflow-hidden">
           <Table>
             <TableHeader>
               <TableRow>
@@ -177,14 +178,20 @@ function SpotlightQueue({ scope, scopeId }: { scope: Scope; scopeId: number }) {
               {cards.length === 0 && (
                 <TableRow>
                   <TableCell colSpan={scope === "districts" ? 6 : 5} className="py-8 text-center text-slate-500">
-                    No cards here. A card appears when a member reaches a membership milestone or becomes a Paul Harris
-                    Fellow, or when a club reaches a target.
+                    <p className="font-medium text-slate-700">
+                      {status ? `No ${CARD_STATUS_LABELS[status].toLowerCase()} cards. Choose "All cards" to see the others.` : "No spotlight cards yet."}
+                    </p>
+                    <p className="mx-auto mt-1 max-w-2xl">
+                      Cards are made by an hourly check from 08:00 district time: a membership anniversary (1, 3, 5 or 10 years,
+                      or the district&apos;s milestone years) from a member&apos;s joined date in the last 7 days, a Paul Harris
+                      Fellow designation awarded in the last 90 days, or a club target reached. Earlier dates are not added.
+                    </p>
                   </TableCell>
                 </TableRow>
               )}
             </TableBody>
           </Table>
-        </div>
+        </Card>
       )}
 
       <Dialog open={!!preview} onOpenChange={(open) => !open && setPreview(null)}>
@@ -254,9 +261,9 @@ function MilestoneSettings({ districtId }: { districtId: number }) {
   };
 
   return (
-    <section className="overflow-hidden rounded-[20px] border border-slate-200 bg-card">
+    <section className="row-card row-rise overflow-hidden">
       <header className="border-b border-slate-100 bg-slate-50 px-4 py-2.5">
-        <h2 className="text-sm font-semibold text-slate-800">Milestone messages</h2>
+        <h2 className="row-h2">Milestone messages</h2>
       </header>
       <div className="space-y-4 p-4">
         {!loaded && !error ? (

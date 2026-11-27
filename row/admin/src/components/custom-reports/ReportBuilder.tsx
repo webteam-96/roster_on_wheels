@@ -6,6 +6,8 @@
  * A district report covers every club of the district; a club report covers that club.
  */
 
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table"
+import { NativeSelect } from "@/components/ui/native-select";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Download, Loader2, Play, Plus, Save, Send, Trash2, X } from "@/components/icons";
 import { Button } from "@/components/ui/button";
@@ -26,7 +28,7 @@ import type {
 } from "@/types/customReports";
 import type { RotaryYear } from "@/types/rotaryYear";
 
-const SELECT = "h-10 w-full rounded-md border border-input bg-background px-3 text-sm";
+const SELECT = "row-field w-full";
 const FORMATS: { key: CustomReportFormat; label: string }[] = [
   { key: "xlsx", label: "Excel" }, { key: "csv", label: "CSV" }, { key: "pdf", label: "PDF" },
 ];
@@ -168,8 +170,8 @@ export default function ReportBuilder({ scope, scopeId }: Props) {
       {/* Saved reports */}
       <section className="space-y-3">
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <h3 className="text-lg font-semibold">Saved reports</h3>
-          <Button variant="outline" className="gap-1.5" onClick={newReport}><Plus className="h-4 w-4" /> New report</Button>
+          <h3 className="row-h2">Saved reports</h3>
+          <Button variant="outline" onClick={newReport}><Plus className="h-4 w-4" /> New report</Button>
         </div>
         {saved == null ? (
           <TableSkeleton rows={3} />
@@ -189,7 +191,7 @@ export default function ReportBuilder({ scope, scopeId }: Props) {
                     </p>
                   </div>
                   <Button size="sm" variant="outline" onClick={() => open(r)}>Open</Button>
-                  <Button size="sm" variant="outline" className="gap-1.5" disabled={busy === `send-${r.id}`} onClick={() => send(r)}>
+                  <Button size="sm" variant="outline" disabled={busy === `send-${r.id}`} onClick={() => send(r)}>
                     {busy === `send-${r.id}` ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />} Email officers now
                   </Button>
                   {confirmDelete === r.id ? (
@@ -213,7 +215,7 @@ export default function ReportBuilder({ scope, scopeId }: Props) {
       ) : (
         <Card>
           <CardContent className="space-y-5 p-5">
-            <h3 className="text-lg font-semibold">{editingId ? "Edit report" : "New report"}</h3>
+            <h3 className="row-h2">{editingId ? "Edit report" : "New report"}</h3>
             <div className="grid gap-4 md:grid-cols-3">
               <div className="space-y-1.5">
                 <Label htmlFor="cr-name">Report name</Label>
@@ -221,18 +223,18 @@ export default function ReportBuilder({ scope, scopeId }: Props) {
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="cr-source">Source</Label>
-                <select id="cr-source" className={SELECT} value={def.source} onChange={(e) => changeSource(e.target.value)}>
+                <NativeSelect id="cr-source"  value={def.source} onChange={(e) => changeSource(e.target.value)}>
                   {catalog.map((s) => <option key={s.key} value={s.key}>{s.label}</option>)}
-                </select>
+                </NativeSelect>
               </div>
               {def.source === "projects" && (
                 <div className="space-y-1.5">
                   <Label htmlFor="cr-year">Rotary year</Label>
-                  <select id="cr-year" className={SELECT} value={def.yearId ?? ""}
+                  <NativeSelect id="cr-year"  value={def.yearId ?? ""}
                     onChange={(e) => update({ yearId: e.target.value ? Number(e.target.value) : null })}>
                     <option value="">Current year</option>
                     {years.map((y) => <option key={y.id} value={y.id}>{y.yearLabel}</option>)}
-                  </select>
+                  </NativeSelect>
                 </div>
               )}
             </div>
@@ -257,22 +259,22 @@ export default function ReportBuilder({ scope, scopeId }: Props) {
                 const type = field?.type ?? "text";
                 return (
                   <div key={i} className="flex flex-wrap items-center gap-2">
-                    <select aria-label="Filter field" className={`${SELECT} w-44`} value={flt.field}
+                    <NativeSelect aria-label="Filter field" className="w-44" value={flt.field}
                       onChange={(e) => {
                         const t = fieldOf(e.target.value)?.type ?? "text";
                         setFilter(i, { field: e.target.value, op: opsFor(t)[0], value: t === "bool" ? "true" : "" });
                       }}>
                       {fields.map((f) => <option key={f.key} value={f.key}>{f.label}</option>)}
-                    </select>
-                    <select aria-label="Condition" className={`${SELECT} w-40`} value={flt.op}
+                    </NativeSelect>
+                    <NativeSelect aria-label="Condition" className="w-40" value={flt.op}
                       onChange={(e) => setFilter(i, { op: e.target.value as CustomReportOp })}>
                       {opsFor(type).map((op) => <option key={op} value={op}>{OP_LABELS[op]}</option>)}
-                    </select>
+                    </NativeSelect>
                     {needsValue(flt.op) && (type === "bool" ? (
-                      <select aria-label="Value" className={`${SELECT} w-28`} value={flt.value ?? "true"} onChange={(e) => setFilter(i, { value: e.target.value })}>
+                      <NativeSelect aria-label="Value" className="w-28" value={flt.value ?? "true"} onChange={(e) => setFilter(i, { value: e.target.value })}>
                         <option value="true">Yes</option>
                         <option value="false">No</option>
-                      </select>
+                      </NativeSelect>
                     ) : (
                       <Input aria-label="Value" className="w-48" type={type === "date" ? "date" : type === "number" ? "number" : "text"}
                         maxLength={200} value={flt.value ?? ""} onChange={(e) => setFilter(i, { value: e.target.value })} />
@@ -284,7 +286,7 @@ export default function ReportBuilder({ scope, scopeId }: Props) {
                 );
               })}
               {fields.length > 0 && def.filters.length < 20 && (
-                <Button size="sm" variant="outline" className="gap-1.5" onClick={() => {
+                <Button size="sm" variant="outline" onClick={() => {
                   const f = fields[0];
                   update({ filters: [...def.filters, { field: f.key, op: opsFor(f.type)[0], value: f.type === "bool" ? "true" : "" }] });
                 }}><Plus className="h-4 w-4" /> Add filter</Button>
@@ -294,21 +296,21 @@ export default function ReportBuilder({ scope, scopeId }: Props) {
             <div className="grid gap-4 md:grid-cols-3">
               <div className="space-y-1.5">
                 <Label htmlFor="cr-group">Group by</Label>
-                <select id="cr-group" className={SELECT} value={def.groupBy ?? ""}
+                <NativeSelect id="cr-group"  value={def.groupBy ?? ""}
                   onChange={(e) => update({ groupBy: e.target.value || null, sumFields: e.target.value ? def.sumFields : [] })}>
                   <option value="">No grouping (one row each)</option>
                   {fields.map((f) => <option key={f.key} value={f.key}>{f.label}</option>)}
-                </select>
+                </NativeSelect>
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="cr-sort">Sort by</Label>
-                <select id="cr-sort" className={SELECT} value={def.sortBy ?? ""} onChange={(e) => update({ sortBy: e.target.value || null })}>
+                <NativeSelect id="cr-sort"  value={def.sortBy ?? ""} onChange={(e) => update({ sortBy: e.target.value || null })}>
                   <option value="">{def.groupBy ? "Group value" : "No sorting"}</option>
                   {def.groupBy
                     ? [<option key="count" value="count">Count</option>,
                        ...def.sumFields.map((k) => <option key={k} value={k}>Total {fieldOf(k)?.label.toLowerCase()}</option>)]
                     : fields.map((f) => <option key={f.key} value={f.key}>{f.label}</option>)}
-                </select>
+                </NativeSelect>
               </div>
               <label className="flex items-end gap-2 pb-2 text-sm">
                 <input type="checkbox" checked={def.sortDesc} onChange={(e) => update({ sortDesc: e.target.checked })} />
@@ -344,23 +346,23 @@ export default function ReportBuilder({ scope, scopeId }: Props) {
                   </div>
                   <div className="space-y-1.5">
                     <Label htmlFor="cr-format">Attach as</Label>
-                    <select id="cr-format" className={`${SELECT} w-32`} value={format} onChange={(e) => setFormat(e.target.value as CustomReportFormat)}>
+                    <NativeSelect id="cr-format" className="w-32" value={format} onChange={(e) => setFormat(e.target.value as CustomReportFormat)}>
                       {FORMATS.map((f) => <option key={f.key} value={f.key}>{f.label}</option>)}
-                    </select>
+                    </NativeSelect>
                   </div>
                 </div>
               )}
             </fieldset>
 
             <div className="flex flex-wrap gap-2">
-              <Button className="gap-1.5" disabled={running} onClick={run}>
+              <Button disabled={running} onClick={run}>
                 {running ? <Loader2 className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4" />} Run
               </Button>
-              <Button variant="outline" className="gap-1.5" disabled={busy === "save"} onClick={save}>
+              <Button variant="outline" disabled={busy === "save"} onClick={save}>
                 {busy === "save" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />} {editingId ? "Save changes" : "Save"}
               </Button>
               {FORMATS.map((f) => (
-                <Button key={f.key} variant="outline" className="gap-1.5" disabled={busy === `export-${f.key}`} onClick={() => download(f.key)}>
+                <Button key={f.key} variant="outline" disabled={busy === `export-${f.key}`} onClick={() => download(f.key)}>
                   {busy === `export-${f.key}` ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />} {f.label}
                 </Button>
               ))}
@@ -383,22 +385,22 @@ export default function ReportBuilder({ scope, scopeId }: Props) {
             </p>
             <Card>
               <CardContent className="overflow-x-auto p-0">
-                <table className="w-full text-sm">
-                  <thead className="bg-muted text-left text-[13px] text-muted-foreground">
-                    <tr>{result.columns.map((c) => <th key={c.key} className={`px-3 py-2 font-medium ${c.type === "number" ? "text-right" : ""}`}>{c.label}</th>)}</tr>
-                  </thead>
-                  <tbody>
+                <Table className="w-full text-sm">
+                  <TableHeader className="text-left">
+                    <TableRow>{result.columns.map((c) => <TableHead key={c.key} className={`px-3 py-2 font-medium ${c.type === "number" ? "text-right" : ""}`}>{c.label}</TableHead>)}</TableRow>
+                  </TableHeader>
+                  <TableBody>
                     {result.rows.map((row, i) => (
-                      <tr key={i} className="border-t">
+                      <TableRow key={i} className="border-t">
                         {row.map((v, j) => (
-                          <td key={j} className={`px-3 py-2 ${result.columns[j].type === "number" ? "text-right tabular-nums" : ""}`}>
+                          <TableCell key={j} className={`px-3 py-2 ${result.columns[j].type === "number" ? "text-right tabular-nums" : ""}`}>
                             {cellText(v, result.columns[j].type, { number: (n) => fmt.number(n), date: (d) => fmt.date(d) })}
-                          </td>
+                          </TableCell>
                         ))}
-                      </tr>
+                      </TableRow>
                     ))}
-                  </tbody>
-                </table>
+                  </TableBody>
+                </Table>
               </CardContent>
             </Card>
           </section>

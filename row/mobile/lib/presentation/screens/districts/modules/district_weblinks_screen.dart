@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart' hide Text;
+import 'package:rotary_flutter_app/presentation/widgets/weblinks/weblinks_section.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -18,6 +19,8 @@ import '../../../widgets/common/custom_text_field.dart';
 import '../../../widgets/common/empty_state_widget.dart';
 import '../../../widgets/common/loading_widget.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/motion.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/roster_wheel.dart';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -297,6 +300,10 @@ class _DistrictWeblinksScreenState extends State<DistrictWeblinksScreen> {
   Widget build(BuildContext context) {
     final auth = context.watch<AuthProvider>();
     final canManage = auth.canEditDistrict(widget.districtId);
+    // Members get the readable list, whose links open; the rows below are the admin's editor.
+    if (!widget.embedded && !canManage) {
+      return WebLinksViewerScreen(baseEndpoint: '/api/mobile/districts/${widget.districtId}/weblinks', title: 'Web Links');
+    }
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -332,10 +339,10 @@ class _DistrictWeblinksScreenState extends State<DistrictWeblinksScreen> {
                                 : null,
                             icon: Icons.link_outlined,
                           )
-                        : RefreshIndicator(
+                        : RowRefresh(
                             color: AppColors.primary,
                             onRefresh: _fetch,
-                            child: ListView.separated(
+                            child: RowListView.separated(
                               padding: const EdgeInsets.all(16),
                               itemCount: _items.length,
                               separatorBuilder: (_, __) =>

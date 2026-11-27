@@ -90,7 +90,7 @@ export default function ConsentGate() {
           <Button variant="outline" onClick={logout} disabled={saving}>
             {t("decline")}
           </Button>
-          <Button onClick={accept} disabled={saving} className="gap-1.5">
+          <Button onClick={accept} disabled={saving}>
             {saving && <Loader2 className="h-4 w-4 animate-spin" />}
             {saving ? t("saving") : t("accept")}
           </Button>

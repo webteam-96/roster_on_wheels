@@ -28,6 +28,9 @@
  *   - Newsletters      → /clubs/[clubId]/newsletters/v2
  */
 
+import { ToggleButton } from "@/components/ui/text-buttons"
+import { Card } from "@/components/ui/card";
+import PillTabs from "@/components/row/PillTabs";
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
@@ -204,26 +207,7 @@ export default function ClubAdminCommunicationPage() {
 
 function CommTabBar({ active, onChange }: { active: CommTab; onChange: (k: CommTab) => void }) {
   return (
-    <div className="overflow-x-auto">
-      <div
-        className="inline-flex items-center gap-1 rounded-full p-1.5 bg-muted"
-      >
-        {COMM_TABS.map((t) => {
-          const isActive = active === t.key;
-          return (
-            <button
-              key={t.key}
-              onClick={() => onChange(t.key)}
-              className={`inline-flex h-9 items-center px-4 text-sm font-semibold rounded-full whitespace-nowrap transition-colors ${
-                isActive ? "bg-card text-foreground ring-1 ring-[color:var(--row-line)]" : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              {t.label}
-            </button>
-          );
-        })}
-      </div>
-    </div>
+    <PillTabs items={COMM_TABS} active={active} onChange={onChange} />
   );
 }
 
@@ -259,10 +243,10 @@ function GreetingsColumn({
   ];
 
   return (
-    <div className="bg-card rounded-2xl border border-slate-200 overflow-hidden flex flex-col">
+    <Card className="overflow-hidden flex flex-col">
       <div className="px-5 py-3 border-b border-slate-100 flex items-center gap-2">
         <PartyPopper size={16} className="text-rose-600" />
-        <h3 className="text-sm font-semibold text-slate-800">Greetings</h3>
+        <h3 className="row-h3">Greetings</h3>
         <div className="ml-auto flex items-center gap-2.5">
           <Link
             href={`/clubs/${clubId}/greetings?returnTo=${encodeURIComponent("/club-admin-dashboard/communication?tab=greetings")}`}
@@ -271,25 +255,20 @@ function GreetingsColumn({
           >
             <Pencil size={12} /> Edit messages
           </Link>
-          <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-rose-50 text-rose-700 border border-rose-200">
+          <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-rose-50 text-rose-700 border border-rose-200">
             {fmtInt(filtered.length)}
           </span>
         </div>
       </div>
-      <div className="px-3 pt-2 pb-1 border-b border-slate-100 flex gap-1">
+      <div role="group" aria-label="Message type" className="px-3 pt-2 pb-1 border-b border-slate-100 flex gap-1">
         {tabs.map((t) => (
-          <button
+          <ToggleButton pressed={tab === t.key}
             key={t.key}
             type="button"
             onClick={() => onTabChange(t.key)}
-            className={`px-2.5 py-1 text-[11px] font-medium rounded-md transition-colors ${
-              tab === t.key
-                ? "bg-rose-100 text-rose-800 border border-rose-200"
-                : "text-slate-500 hover:text-slate-700 hover:bg-slate-50"
-            }`}
           >
             {t.label}
-          </button>
+          </ToggleButton>
         ))}
       </div>
       {filtered.length === 0 ? (
@@ -321,6 +300,6 @@ function GreetingsColumn({
           ))}
         </ul>
       )}
-    </div>
+    </Card>
   );
 }

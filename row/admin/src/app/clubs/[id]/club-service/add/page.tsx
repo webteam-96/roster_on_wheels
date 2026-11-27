@@ -1,5 +1,10 @@
 "use client";
 
+import SectionCard from "@/components/form/SectionCard";
+import RadioPill from "@/components/form/RadioPill";
+import FieldLabel from "@/components/form/FieldLabel";
+import { IconButton } from "@/components/ui/icon-button";
+import { Card } from "@/components/ui/card";
 import { useState, useEffect, useRef } from "react";
 import DateField from "@/components/DateField";
 import { useParams, useSearchParams, useRouter } from "next/navigation";
@@ -16,24 +21,19 @@ import {
 import { RotaryYear } from "@/types/rotaryYear";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
 } from "@/components/ui/dialog";
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
-import {
-  ArrowLeft, Upload, X, Star, Info,
-  FileText, Camera, Send, Calendar, Users, FileUp,
-} from "@/components/icons";
+import { Upload, X, Star, Info, FileText, Camera, Send, Calendar, Users, FileUp } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
-import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import RecipientBadge from "@/components/RecipientBadge";
 import ImageCropDialog from "@/components/ImageCropDialog";
 import { useImageCropQueue } from "@/hooks/useImageCropQueue";
-import { ListPageSkeleton } from "@/components/row/AppKit";
+import { PageHeader, ListPageSkeleton } from "@/components/row/AppKit";
 
 // Project photos are shown 16:9 on the public site (components/pages/projects/shared.tsx),
 // so the crop is locked to that shape. 1600×900 keeps the widest card retina-sharp.
@@ -59,52 +59,6 @@ type PhotoItem = {
   uploading: boolean;
   previewUrl?: string;
 };
-
-function Req({ children, hint, optional }: { children: React.ReactNode; hint?: string; optional?: boolean }) {
-  return (
-    <Label className="text-sm font-semibold text-foreground">
-      {children}{!optional && <span className="text-destructive ml-0.5">*</span>}
-      {optional && <span className="text-muted-foreground font-normal ml-1">(optional)</span>}
-      {hint && <span className="text-muted-foreground font-normal ml-1">{hint}</span>}
-    </Label>
-  );
-}
-
-function RadioPill({ name, checked, onChange, label }: {
-  name: string; value?: string; checked: boolean; onChange: () => void; label: string;
-}) {
-  return (
-    <label
-      className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-lg border-2 cursor-pointer transition-all text-sm font-medium
-        ${checked
-          ? "border-primary bg-primary/5 text-primary ring-1 ring-primary/20"
-          : "border-muted-foreground/20 hover:border-primary/40 text-muted-foreground hover:text-foreground"
-        }`}
-    >
-      <input type="radio" name={name} checked={checked} onChange={onChange} className="sr-only" />
-      <div className={`h-4 w-4 rounded-full border-2 flex items-center justify-center transition-all
-        ${checked ? "border-primary" : "border-muted-foreground/40"}`}>
-        {checked && <div className="h-2 w-2 rounded-full bg-primary" />}
-      </div>
-      {label}
-    </label>
-  );
-}
-
-function Section({ icon: Icon, title, number, children }: {
-  icon: React.ElementType; title: string; number: number; children: React.ReactNode;
-}) {
-  return (
-    <div className="bg-card rounded-[20px] border shadow-sm overflow-hidden">
-      <div className="flex items-center gap-3 px-5 py-3.5 bg-muted/40 border-b">
-        <div className="flex items-center justify-center h-7 w-7 rounded-full bg-primary text-primary-foreground text-xs font-bold">{number}</div>
-        <Icon className="h-4 w-4 text-primary" />
-        <h3 className="font-semibold text-base">{title}</h3>
-      </div>
-      <div className="p-5">{children}</div>
-    </div>
-  );
-}
 
 export default function ClubServiceAddPage() {
   const params = useParams();
@@ -389,17 +343,9 @@ export default function ClubServiceAddPage() {
 
   return (
     <ProtectedRoute>
-      <div className="space-y-6 max-w-3xl mx-auto">
+      <div className="space-y-6 max-w-4xl">
         {/* Header */}
-        <div className="flex items-center gap-3">
-          <Button variant="outline" size="icon" asChild>
-            <Link href={returnUrl || `/clubs/${clubId}/club-service`}><ArrowLeft className="h-4 w-4" /></Link>
-          </Button>
-          <div>
-            <h2 className="text-2xl font-bold tracking-tight text-primary">Add Meeting</h2>
-            <p className="text-muted-foreground text-base">{clubName}</p>
-          </div>
-        </div>
+        <PageHeader title="Add Meeting" description={clubName} back={returnUrl || `/clubs/${clubId}/club-service`} />
 
         {/* Top message */}
         <div className="flex gap-3 rounded-lg border border-blue-200 bg-blue-50/80 p-4 text-sm text-blue-800">
@@ -408,49 +354,49 @@ export default function ClubServiceAddPage() {
         </div>
 
         {/* ── 1. Meeting Details ── */}
-        <Section icon={FileText} title="Meeting Details" number={1}>
+        <SectionCard icon={FileText} title="Meeting Details" number={1}>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1.5 sm:col-span-2">
-              <Req hint="(max 50 chars)">Title</Req>
+              <FieldLabel required hint="(max 50 chars)">Title</FieldLabel>
               <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Meeting title" maxLength={50} />
               <p className="text-xs text-muted-foreground text-right">{title.length}/50</p>
             </div>
             <div className="space-y-1.5 sm:col-span-2">
-              <Req hint="(max 1000 chars)">Description</Req>
+              <FieldLabel required hint="(max 1000 chars)">Description</FieldLabel>
               <Textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Describe the meeting..." rows={4} maxLength={1000} />
               <p className="text-xs text-muted-foreground text-right">{description.length}/1000</p>
             </div>
             <div className="space-y-1.5">
-              <Req>Date</Req>
+              <FieldLabel required>Date</FieldLabel>
               <DateField value={projectDate} onChange={setProjectDate} max={frozenMonth ? frozenDateMax : new Date().toISOString().split("T")[0]} min={frozenMonth ? frozenDateMin : undefined} />
             </div>
           </div>
-        </Section>
+        </SectionCard>
 
         {/* ── 2. Meeting Type ── */}
-        <Section icon={Calendar} title="Meeting Type" number={2}>
+        <SectionCard icon={Calendar} title="Meeting Type" number={2}>
           <div>
-            <Req>Select Meeting Type</Req>
+            <FieldLabel required>Select Meeting Type</FieldLabel>
             <div className="flex flex-wrap gap-3 mt-2">
               {MEETING_TYPES.map(mt => (
                 <RadioPill key={mt.value} name="meetingType" value={mt.value} checked={meetingType === mt.value} onChange={() => handleMeetingTypeChange(mt.value)} label={mt.label} />
               ))}
             </div>
           </div>
-        </Section>
+        </SectionCard>
 
         {/* ── 3. Documents ── */}
-        <Section icon={FileUp} title="Documents" number={3}>
+        <SectionCard icon={FileUp} title="Documents" number={3}>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Req optional>Agenda</Req>
+              <FieldLabel required optional>Agenda</FieldLabel>
               {agendaDocument ? (
                 <div className="flex items-center gap-2 px-3 py-2 bg-green-50 border border-green-200 rounded-lg">
                   <FileText className="h-4 w-4 text-green-600" />
                   <span className="text-sm text-green-700 truncate flex-1">{agendaFileName}</span>
-                  <button onClick={() => { setAgendaDocument(null); setAgendaFileName(""); }}>
+                  <IconButton aria-label="Remove file" onClick={() => { setAgendaDocument(null); setAgendaFileName(""); }}>
                     <X className="h-4 w-4 text-muted-foreground hover:text-foreground" />
-                  </button>
+                  </IconButton>
                 </div>
               ) : (
                 <div>
@@ -465,14 +411,14 @@ export default function ClubServiceAddPage() {
               )}
             </div>
             <div className="space-y-2">
-              <Req optional>Minutes of Meeting</Req>
+              <FieldLabel required optional>Minutes of Meeting</FieldLabel>
               {minutesDocument ? (
                 <div className="flex items-center gap-2 px-3 py-2 bg-green-50 border border-green-200 rounded-lg">
                   <FileText className="h-4 w-4 text-green-600" />
                   <span className="text-sm text-green-700 truncate flex-1">{minutesFileName}</span>
-                  <button onClick={() => { setMinutesDocument(null); setMinutesFileName(""); }}>
+                  <IconButton aria-label="Remove file" onClick={() => { setMinutesDocument(null); setMinutesFileName(""); }}>
                     <X className="h-4 w-4 text-muted-foreground hover:text-foreground" />
-                  </button>
+                  </IconButton>
                 </div>
               ) : (
                 <div>
@@ -487,28 +433,28 @@ export default function ClubServiceAddPage() {
               )}
             </div>
           </div>
-        </Section>
+        </SectionCard>
 
         {/* ── 4. Attendance ── */}
-        <Section icon={Users} title="Attendance" number={4}>
+        <SectionCard icon={Users} title="Attendance" number={4}>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1.5">
-              <Req>{`Attendance (${effectiveLabel}: ${effectiveTotal})`}</Req>
+              <FieldLabel required>{`Attendance (${effectiveLabel}: ${effectiveTotal})`}</FieldLabel>
               <Input type="number" value={attendance} onChange={(e) => setAttendance(e.target.value)} placeholder="Number of attendees" min={0} />
             </div>
             <div className="space-y-1.5">
-              <Req>Attendance (%)</Req>
+              <FieldLabel required>Attendance (%)</FieldLabel>
               <Input type="number" value={attendancePercentage} onChange={(e) => setAttendancePercentage(e.target.value)} placeholder="Auto-calculated" step="0.01" min={0} max={100} />
               <p className="text-xs text-muted-foreground">Auto-calculated, but you can change it</p>
             </div>
           </div>
-        </Section>
+        </SectionCard>
 
         {/* ── 5. Photos ── */}
-        <Section icon={Camera} title="Photos" number={5}>
+        <SectionCard icon={Camera} title="Photos" number={5}>
           <div className="space-y-4">
             <div className="flex flex-wrap items-center justify-between gap-3">
-              <Req>Upload Photos (1 mandatory, max 5)</Req>
+              <FieldLabel required>Upload Photos (1 mandatory, max 5)</FieldLabel>
               <span className="text-sm text-muted-foreground">{photos.length}/5</span>
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
@@ -523,13 +469,13 @@ export default function ClubServiceAddPage() {
                     </div>
                   )}
                   <div className="absolute top-1 right-1 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button onClick={() => setPrimaryPhoto(photo.id)}
+                    <IconButton aria-label="Set as primary photo" aria-pressed={photo.isPrimary} onClick={() => setPrimaryPhoto(photo.id)}
                       className={`p-1 rounded-full ${photo.isPrimary ? "bg-yellow-400 text-yellow-900" : "bg-black/50 text-white hover:bg-yellow-400 hover:text-yellow-900"}`}>
                       <Star className="h-3 w-3" />
-                    </button>
-                    <button onClick={() => removePhoto(photo.id)} className="p-1 rounded-full bg-black/50 text-white hover:bg-red-500">
+                    </IconButton>
+                    <IconButton aria-label="Remove photo" onClick={() => removePhoto(photo.id)}>
                       <X className="h-3 w-3" />
-                    </button>
+                    </IconButton>
                   </div>
                   {photo.isPrimary && (
                     <div className="absolute bottom-0 left-0 right-0 bg-yellow-400/90 text-yellow-900 text-[10px] font-bold text-center py-0.5">PRIMARY</div>
@@ -537,19 +483,19 @@ export default function ClubServiceAddPage() {
                 </div>
               ))}
               {photos.length < 5 && (
-                <button
+                <Button variant="outline"
                   onClick={() => photoInputRef.current?.click()}
-                  className="border-2 border-dashed rounded-lg aspect-square flex flex-col items-center justify-center gap-1 text-muted-foreground hover:border-primary/40 hover:text-primary transition-colors"
+                  className="h-auto aspect-square flex-col gap-1"
                 >
                   <Upload className="h-5 w-5" />
                   <span className="text-xs">Add Photo</span>
-                </button>
+                </Button>
               )}
             </div>
             <input ref={photoInputRef} type="file" className="hidden" accept=".jpg,.jpeg,.png,.gif,.webp" multiple onChange={handlePhotoSelect} />
             <p className="text-xs text-muted-foreground mt-1.5">Allowed: JPG, JPEG, PNG, GIF, WEBP &middot; up to 5 MB &middot; auto-compressed if larger</p>
           </div>
-        </Section>
+        </SectionCard>
 
         {/* Email notification (Club Service is email-only): sends right after save. */}
         <div className="rounded-xl border p-4 mb-6">
@@ -562,7 +508,7 @@ export default function ClubServiceAddPage() {
 
         {/* Save Button */}
         <div className="flex justify-end pb-8">
-          <Button onClick={handleSave} disabled={saving} size="lg" className="shadow-md">
+          <Button onClick={handleSave} disabled={saving} size="lg">
             {saving ? <RotaryLoader size="sm" /> : <><Send className="mr-2 h-4 w-4" />Save Meeting</>}
           </Button>
         </div>

@@ -5,14 +5,13 @@ import { useParams, useRouter } from "next/navigation";
 import { Club } from "@/types/club";
 import { WebsiteDataModule } from "@/types/websiteDataModule";
 import { getClub, getWebsiteDataModules, getClubHasWebsite } from "@/services/api";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { ArrowLeft, AlertCircle, Globe } from "@/components/icons";
+import { AlertCircle, Globe } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import ModuleIcon from "@/components/ModuleIcon";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { useAuth } from "@/contexts/AuthContext";
-import { ListPageSkeleton } from "@/components/row/AppKit";
+import { PageHeader, ListPageSkeleton } from "@/components/row/AppKit";
 
 export default function ClubWebsiteDataPage() {
   const params = useParams();
@@ -49,23 +48,7 @@ export default function ClubWebsiteDataPage() {
   return (
     <ProtectedRoute>
       <div className="space-y-6">
-        <div className="flex items-center gap-3">
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={() => router.push(`/clubs/${clubId}/dashboard`)}
-          >
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
-          <div>
-            <h2 className="text-2xl font-bold tracking-tight text-primary">
-              {club ? `${club.clubName} - Website Data` : "Website Data"}
-            </h2>
-            <p className="text-muted-foreground text-base">
-              Manage club website content
-            </p>
-          </div>
-        </div>
+        <PageHeader title={club ? `${club.clubName} - Website Data` : "Website Data"} description="Manage club website content" back={() => router.push(`/clubs/${clubId}/dashboard`)} />
 
         {loading && (
           <div className="flex items-center justify-center py-20">
@@ -76,7 +59,7 @@ export default function ClubWebsiteDataPage() {
         {error && (
           <div className="flex flex-col items-center justify-center py-20 text-center">
             <AlertCircle className="h-12 w-12 text-destructive mb-4" />
-            <h3 className="text-lg font-semibold">Error</h3>
+            <h3 className="row-h2">Error</h3>
             <p className="text-muted-foreground mt-2 max-w-md">{error}</p>
           </div>
         )}
@@ -84,7 +67,7 @@ export default function ClubWebsiteDataPage() {
         {!loading && !error && modules.length === 0 && (
           <div className="flex flex-col items-center justify-center py-20 text-center">
             <Globe className="h-12 w-12 text-muted-foreground mb-4" />
-            <h3 className="text-lg font-semibold">No sub-modules found</h3>
+            <h3 className="row-h2">No sub-modules found</h3>
             <p className="text-muted-foreground mt-2">
               No website data modules have been configured yet.
             </p>

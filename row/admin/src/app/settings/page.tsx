@@ -1,10 +1,14 @@
-﻿"use client";
+"use client";
+import { TileButton } from "@/components/ui/text-buttons";
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
 
+import { Card } from "@/components/ui/card";
+import { PageHeader } from "@/components/row/AppKit";
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { LayoutGrid, Settings, Calendar, Globe, Palette, Target, Layers, GitBranch, Wallet, CreditCard, Shirt, LinkIcon, BadgeDollarSign, Coins, Crown, History, Megaphone, Search, UserCog2, MonitorSmartphone, UserCircle2, FileBarChart, ClipboardList, ShieldCheck, Bell, Smartphone, Wrench, Mail, MessageCircle, RefreshCw, X, type LucideIcon } from "@/components/icons";
+import { LayoutGrid, Settings, Calendar, Globe, Palette, Target, Layers, Wallet, CreditCard, BadgeDollarSign, Coins, Crown, History, Megaphone, Search, UserCog2, MonitorSmartphone, UserCircle2, FileBarChart, ClipboardList, ShieldCheck, Bell, Smartphone, Wrench, Mail, RefreshCw, CalendarCheck, QrCode, X, type LucideIcon } from "@/components/icons";
 import { useRouter } from "next/navigation";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { useFeature } from "@/contexts/BrandContext";
@@ -46,8 +50,8 @@ const settingsCards: SettingsCard[] = [
     href: "/settings/global-member-search",
   },
   {
-    title: "Mobile Login Check",
-    description: "Diagnostic: enter a mobile number to see if it can login on the mobile app and what clubs would appear. No OTP sent",
+    title: "App Sign-in Check",
+    description: "Enter an email to see if the member can sign in to the app and which clubs they would see",
     icon: Smartphone,
     href: "/settings/mobile-login-check",
   },
@@ -77,7 +81,7 @@ const settingsCards: SettingsCard[] = [
   },
   {
     title: "Email Log",
-    description: "Every email sent via Brevo: OTP, credentials, mass emails, citations. Click any row for the full HTML body.",
+    description: "Every email sent via Brevo: sign-in codes, credentials, mass emails, citations. Click any row for the full HTML body.",
     icon: Mail,
     href: "/settings/email-log",
   },
@@ -106,6 +110,12 @@ const settingsCards: SettingsCard[] = [
     description: "Switch the year rule on per district or club, and edit the View only wording",
     icon: ShieldCheck,
     href: "/settings/year-wise-admin-rights",
+  },
+  {
+    title: "QR Attendance",
+    description: "Mobile QR attendance: switch it on for test clubs first, then for all clubs",
+    icon: QrCode,
+    href: "/settings/attendance-qr",
   },
   {
     title: "Cross-district Access",
@@ -351,7 +361,7 @@ export default function SettingsPage() {
     return (
       <ProtectedRoute>
         <div className="flex flex-col items-center justify-center py-20">
-          <h3 className="text-lg font-semibold">Access Denied</h3>
+          <h3 className="row-h2">Access Denied</h3>
           <p className="text-muted-foreground mt-2">Only SuperAdmin can access settings.</p>
         </div>
       </ProtectedRoute>
@@ -361,29 +371,23 @@ export default function SettingsPage() {
   return (
     <ProtectedRoute>
       <div className="space-y-6">
-        <div className="flex items-center gap-3">
-          <div>
-            <h2 className="text-2xl font-bold tracking-tight text-primary">Settings</h2>
-            <p className="text-muted-foreground text-base">System configuration and master data</p>
-          </div>
-        </div>
+        <PageHeader title="Settings" description="System configuration and master data" />
 
         {/* Pinned quick-access modules — one row of small cards, always visible. */}
         {pinnedCards.length > 0 && (
           <div className="flex flex-wrap gap-2">
             {pinnedCards.map((card) => (
-              <button
+              <TileButton
                 key={card.href}
-                type="button"
                 onClick={() => { setNavigatingHref(card.href); router.push(card.href); }}
                 disabled={navigatingHref === card.href}
-                className={`flex min-w-[9rem] flex-1 flex-col items-center justify-center gap-1.5 rounded-lg border border-slate-200 bg-card p-2.5 text-center shadow-sm transition hover:border-primary/40 hover:shadow-md ${navigatingHref === card.href ? "opacity-70 pointer-events-none" : ""}`}
+                className={`flex w-auto min-w-[9rem] flex-1 flex-col items-center justify-center gap-1.5 p-2.5 text-center ${navigatingHref === card.href ? "opacity-70 pointer-events-none" : ""}`}
               >
                 <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-primary">
                   {navigatingHref === card.href ? <RotaryLoader size="sm" /> : <card.icon className="h-4 w-4" />}
                 </div>
                 <span className="text-xs font-medium text-primary leading-tight">{card.title}</span>
-              </button>
+              </TileButton>
             ))}
           </div>
         )}
@@ -398,18 +402,18 @@ export default function SettingsPage() {
             onChange={(e) => setQuery(e.target.value)}
           />
           {query && (
-            <Button variant="ghost" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 h-6 w-6" onClick={() => setQuery("")} type="button">
+            <Button variant="ghost" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 w-6 w-6 w-6 h-6 w-6" onClick={() => setQuery("")} type="button">
               <X className="h-4 w-4" />
             </Button>
           )}
         </div>
 
         {filtered.length === 0 && (
-          <div className="flex flex-col items-center justify-center py-16 text-center rounded-2xl border border-slate-200 bg-card">
+          <Card className="flex flex-col items-center justify-center py-16 text-center">
             <Search className="h-10 w-10 text-slate-400 mb-3" />
-            <h3 className="text-base font-semibold text-slate-800">No settings match “{query}”</h3>
+            <h3 className="row-h2">No settings match “{query}”</h3>
             <p className="text-slate-500 text-sm mt-1">Try a different word.</p>
-          </div>
+          </Card>
         )}
 
         {filtered.length > 0 && (
@@ -421,37 +425,37 @@ export default function SettingsPage() {
               offset: n * perCol,
             }));
             return columns.map((col, colIdx) => (
-              <div key={colIdx} className="overflow-x-auto rounded-2xl border border-slate-200 bg-card shadow-sm">
-                <table className="w-full min-w-[640px] md:min-w-full text-sm">
-                  <thead className="bg-[#EDF4FB] text-[13px] text-[#64748B]">
-                    <tr>
-                      <th className="px-4 py-3 text-left w-12">#</th>
-                      <th className="px-4 py-3 text-left w-16"><span className="sr-only">Icon</span></th>
-                      <th className="px-4 py-3 text-left">Title</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
+              <Card key={colIdx} className="overflow-x-auto">
+                <Table className="w-full min-w-[640px] md:min-w-full text-sm">
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="px-4 text-left w-12">#</TableHead>
+                      <TableHead className="px-4 text-left w-16"><span className="sr-only">Icon</span></TableHead>
+                      <TableHead className="px-4 text-left">Title</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody className="divide-y divide-slate-100">
                     {col.items.map((card, i) => (
-                      <tr
+                      <TableRow
                         key={card.title}
                         className={`${card.disabled ? "opacity-60 cursor-not-allowed" : "cursor-pointer hover:bg-slate-50/70"} ${navigatingHref === card.href ? "opacity-70 pointer-events-none" : ""}`}
                         onClick={() => { if (!card.disabled) { setNavigatingHref(card.href); router.push(card.href); } }}
                       >
-                        <td className="px-4 py-3 text-slate-500 tabular-nums align-middle">{col.offset + i + 1}</td>
-                        <td className="px-4 py-3 align-middle">
+                        <TableCell className="px-4 py-3 text-slate-500 tabular-nums align-middle">{col.offset + i + 1}</TableCell>
+                        <TableCell className="px-4 py-3 align-middle">
                           <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 text-primary">
                             {navigatingHref === card.href ? <RotaryLoader size="sm" /> : <card.icon className="h-5 w-5" />}
                           </div>
-                        </td>
-                        <td className="px-4 py-3 align-middle">
+                        </TableCell>
+                        <TableCell className="px-4 py-3 align-middle">
                           <div className="font-medium text-primary">{card.title}</div>
                           <div className="text-xs text-muted-foreground mt-0.5">{card.description}</div>
-                        </td>
-                      </tr>
+                        </TableCell>
+                      </TableRow>
                     ))}
-                  </tbody>
-                </table>
-              </div>
+                  </TableBody>
+                </Table>
+              </Card>
             ));
           })()}
         </div>

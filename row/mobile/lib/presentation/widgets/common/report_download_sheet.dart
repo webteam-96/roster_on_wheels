@@ -3,6 +3,7 @@ import 'package:flutter/material.dart' hide Text;
 import '../../../core/services/report_xlsx_export.dart';
 import '../../../core/theme/app_colors.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/motion.dart';
 
 /// Bottom sheet that lists every non-empty report section with a per-section
 /// download, plus a "Full Report" option. Mirrors the web report pages where
@@ -104,7 +105,7 @@ class _ReportDownloadSheetState extends State<ReportDownloadSheet> {
               ]),
             ),
             Flexible(
-              child: ListView.separated(
+              child: RowListView.separated(
                 shrinkWrap: true,
                 itemCount: widget.sections.length,
                 separatorBuilder: (_, __) =>

@@ -1,4 +1,5 @@
 "use client";
+import { IconButton } from "@/components/ui/icon-button";
 
 /**
  * District Admin Dashboard — Overview page (Wave 13A4)
@@ -24,6 +25,8 @@
  *   - clubLeaderboard[].percentile
  */
 
+import { Input } from "@/components/ui/input";
+import { Card } from "@/components/ui/card";
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
@@ -188,7 +191,7 @@ function Donut({
             stroke="none"
           >
             <Cell fill={color} />
-            <Cell fill="#edf4fb" />
+            <Cell fill="#d3dde8" />
           </Pie>
         </PieChart>
       </ResponsiveContainer>
@@ -409,7 +412,7 @@ export default function DistrictAdminOverviewPage() {
           headerRight={
             newThisYear > 0
               ? (
-                <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+                <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200">
                   +{fmtInt(newThisYear)} new
                 </span>
               ) : undefined
@@ -582,9 +585,9 @@ export default function DistrictAdminOverviewPage() {
       {/* ─── 3. BOTTOM ROW — Top 20 clubs + Leaderboard ───────────── */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Top 20 Clubs — vertical bar chart -------------------------- */}
-        <div className="lg:col-span-2 rounded-[20px] border border-[color:var(--row-line)] bg-[#FCFDFE]">
+        <Card className="lg:col-span-2">
           <div className="px-5 pt-4 pb-2">
-            <h3 className="font-display text-[18px] font-semibold leading-tight text-[#1B2C42]">Top 10 Clubs: Member Count</h3>
+            <h3 className="row-h2">Top 10 Clubs: Member Count</h3>
             <p className="text-[11px] text-slate-500 mt-0.5">Members by club (highest first)</p>
           </div>
           <div className="px-2 pb-3">
@@ -626,22 +629,22 @@ export default function DistrictAdminOverviewPage() {
               </ResponsiveContainer>
             )}
           </div>
-        </div>
+        </Card>
 
         {/* Club Leaderboard ------------------------------------------ */}
-        <div className="rounded-[20px] border border-[color:var(--row-line)] bg-[#FCFDFE] flex flex-col">
+        <Card className="flex flex-col">
           <div className="px-5 pt-4 pb-2 border-b border-slate-100">
-            <h3 className="font-display text-[18px] font-semibold leading-tight text-[#1B2C42]">Club Leaderboard</h3>
+            <h3 className="row-h2">Club Leaderboard</h3>
           </div>
           <div className="px-3 py-2 border-b border-slate-100">
             <div className="relative">
               <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
-              <input
+              <Input
                 type="text"
                 placeholder="Search club..."
                 value={lbSearch}
                 onChange={e => { setLbSearch(e.target.value); setLbPage(1); }}
-                className="w-full pl-8 pr-3 py-1.5 text-xs rounded-md border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-300"
+                className="pl-8 pr-3"
               />
             </div>
           </div>
@@ -689,22 +692,22 @@ export default function DistrictAdminOverviewPage() {
               of {fmtInt(filteredLeaderboard.length)}
             </span>
             <span className="inline-flex gap-1">
-              <button
+              <IconButton
                 type="button"
+                aria-label="Previous page"
                 disabled={lbEffectivePage <= 1}
                 onClick={() => setLbPage(p => Math.max(1, p - 1))}
-                className="h-6 w-6 flex items-center justify-center rounded border border-slate-200 disabled:opacity-40"
               >
                 <ChevronLeft size={12} />
-              </button>
-              <button
+              </IconButton>
+              <IconButton
                 type="button"
+                aria-label="Next page"
                 disabled={lbEffectivePage >= lbTotalPages}
                 onClick={() => setLbPage(p => Math.min(lbTotalPages, p + 1))}
-                className="h-6 w-6 flex items-center justify-center rounded border border-slate-200 disabled:opacity-40"
               >
                 <ChevronRight size={12} />
-              </button>
+              </IconButton>
             </span>
           </div>
           {lbZeroPoints > 0 && (
@@ -713,7 +716,7 @@ export default function DistrictAdminOverviewPage() {
               {fmtInt(lbZeroPoints)} club{lbZeroPoints === 1 ? "" : "s"} with 0 points
             </div>
           )}
-        </div>
+        </Card>
       </div>
     </div>
   );

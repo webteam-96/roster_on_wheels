@@ -1,5 +1,6 @@
 "use client";
 
+import { IconButton } from "@/components/ui/icon-button"
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -170,14 +171,13 @@ export default function AddToOrgInstallDialog({
                     autoComplete="off"
                     className="pr-9"
                   />
-                  <button
+                  <IconButton aria-label={showPassword ? "Hide password" : "Show password"} className="absolute right-2 top-1/2 -translate-y-1/2"
                     type="button"
                     onClick={() => setShowPassword((s) => !s)}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
                     tabIndex={-1}
                   >
                     {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                  </button>
+                  </IconButton>
                 </div>
               </div>
               {credError && <p className="text-xs text-red-600">{credError}</p>}
@@ -197,9 +197,9 @@ export default function AddToOrgInstallDialog({
                 <div className="flex items-center gap-1">
                   <span className="text-slate-500">Password:</span>
                   <span>{showPassword ? password : "•".repeat(Math.min(password.length, 12) || 8)}</span>
-                  <button type="button" onClick={() => setShowPassword((s) => !s)} className="text-slate-400 hover:text-slate-600">
+                  <IconButton aria-label={showPassword ? "Hide password" : "Show password"} type="button" onClick={() => setShowPassword((s) => !s)}>
                     {showPassword ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
-                  </button>
+                  </IconButton>
                 </div>
               </div>
               <Button size="sm" variant="outline" onClick={() => { setEditing(true); setCredSuccess(false); }}>
@@ -218,7 +218,7 @@ export default function AddToOrgInstallDialog({
                 <RefreshCw className="mr-1.5 h-4 w-4" /> Refresh page
               </Button>
               <a href={ADD_TO_ORG_WEBSTORE_URL} target="_blank" rel="noopener noreferrer">
-                <Button className="w-full bg-blue-600 font-semibold text-white hover:bg-blue-700">
+                <Button className="w-full">
                   Install Extension
                 </Button>
               </a>

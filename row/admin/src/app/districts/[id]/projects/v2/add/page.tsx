@@ -1,4 +1,5 @@
 "use client";
+import { RemoveBadgeButton, UploadZone } from "@/components/ui/text-buttons";
 
 /**
  * District Projects V2 — Add Project.
@@ -16,6 +17,11 @@
  * in sync — mirrors useSyncClubIdFromUrl's pattern.
  */
 
+import FieldLabel from "@/components/form/FieldLabel";
+import { NativeSelect } from "@/components/ui/native-select";
+import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
+import SectionCard from "@/components/form/SectionCard";
 import { useEffect, useRef, useState } from "react";
 import DateField from "@/components/DateField";
 import { useParams } from "next/navigation";
@@ -32,7 +38,6 @@ import {
 } from "@/services/api";
 import V2FormShell, { useV2ReturnTo } from "@/components/v2/V2FormShell";
 import DistrictAdminShell from "@/components/v2/DistrictAdminShell";
-import DistrictFoundationTabBar from "@/components/dashboard/DistrictFoundationTabBar";
 import RotaryLoader from "@/components/RotaryLoader";
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
@@ -47,40 +52,6 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
 const TOP_MESSAGE =
   "Please post all the Projects executed by your District. The content posted here will be displayed on the District website.";
-
-function FieldLabel({
-  children, hint, dot, required = true,
-}: {
-  children: React.ReactNode; hint?: string; dot: string; required?: boolean;
-}) {
-  return (
-    <div className="flex items-center gap-1.5 mb-1">
-      {/* The coloured bullet means "you must fill this" - an optional field gets none
-          (user 2026-10-05). */}
-      {required && <span className={`w-1.5 h-1.5 rounded-full ${dot}`} />}
-      <label className="text-xs font-semibold text-slate-700">
-        {children}
-        {required && <span className="text-rose-600 ml-0.5">*</span>}
-        {hint && <span className="text-slate-400 font-normal ml-1">{hint}</span>}
-      </label>
-    </div>
-  );
-}
-
-function SectionCard({
-  number, icon: Icon, title, dot, children,
-}: { number: number; icon: React.ElementType; title: string; dot: string; children: React.ReactNode }) {
-  return (
-    <div className="rounded-xl border border-slate-200 overflow-hidden mb-4">
-      <div className="flex items-center gap-3 px-4 py-2.5 bg-slate-50 border-b border-slate-100">
-        <div className={`flex items-center justify-center h-7 w-7 rounded-full text-white text-xs font-bold ${dot}`}>{number}</div>
-        <Icon className="h-4 w-4 text-slate-500" />
-        <h3 className="text-sm font-semibold text-slate-800">{title}</h3>
-      </div>
-      <div className="p-4">{children}</div>
-    </div>
-  );
-}
 
 // Inline mirror of useSyncClubIdFromUrl for district scope.
 function useSyncDistrictIdFromUrl(): void {
@@ -296,9 +267,6 @@ export default function DistrictProjectsV2AddPage() {
         pageTitle="Add District Project"
         activeNavHref="/district-admin-dashboard/foundation"
       >
-        <div className="mb-4">
-          <DistrictFoundationTabBar />
-        </div>
         <V2FormShell
           title="Add District Project"
           subtitle={districtName}
@@ -315,160 +283,160 @@ export default function DistrictProjectsV2AddPage() {
           }
         >
           {/* 1. Project Details */}
-          <SectionCard number={1} icon={FileText} title="Project Details" dot="bg-[#17458F]">
+          <SectionCard number={1} icon={FileText} title="Project Details">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="sm:col-span-2">
-                <FieldLabel hint="(max 50 chars)" dot="bg-[#17458F]">Title</FieldLabel>
-                <input
+                <FieldLabel required hint="(max 50 chars)">Title</FieldLabel>
+                <Input
                   type="text"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                   placeholder="Project title"
                   maxLength={50}
-                  className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                  
                 />
                 <p className="text-xs text-slate-400 text-right mt-0.5">{title.length}/50</p>
               </div>
               <div className="sm:col-span-2">
-                <FieldLabel hint="(max 1000 chars)" dot="bg-[#17458F]" required={false}>Description</FieldLabel>
-                <textarea
+                <FieldLabel hint="(max 1000 chars)" required={false}>Description</FieldLabel>
+                <Textarea
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   placeholder="Project description"
                   rows={4}
                   maxLength={1000}
-                  className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42] resize-y"
+                  className="resize-y"
                 />
                 <p className="text-xs text-slate-400 text-right mt-0.5">{description.length}/1000</p>
               </div>
               <div className="sm:col-span-2">
-                <FieldLabel dot="bg-[#17458F]" required={false}>Location of the Project</FieldLabel>
-                <input
+                <FieldLabel required={false}>Location of the Project</FieldLabel>
+                <Input
                   type="text"
                   value={location}
                   onChange={(e) => setLocation(e.target.value)}
                   placeholder="Location"
-                  className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                  
                 />
               </div>
               <div>
-                <FieldLabel dot="bg-[#17458F]">Area of Focus</FieldLabel>
-                <select
+                <FieldLabel required>Area of Focus</FieldLabel>
+                <NativeSelect
                   value={areaOfFocusId}
                   onChange={(e) => setAreaOfFocusId(e.target.value)}
-                  className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] bg-card focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                  
                 >
                   <option value="">Select</option>
                   {areasOfFocus.map((a) => (
                     <option key={a.id} value={String(a.id)}>{a.name}</option>
                   ))}
-                </select>
+                </NativeSelect>
                 {isOthersAof && (
-                  <input
+                  <Input
                     type="text"
                     value={otherAreaOfFocus}
                     onChange={(e) => setOtherAreaOfFocus(e.target.value)}
                     placeholder="Specify Area of Focus"
-                    className="mt-2 w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                    className="mt-2"
                   />
                 )}
               </div>
               <div>
-                <FieldLabel dot="bg-[#17458F]">Date</FieldLabel>
-                <DateField value={projectDate} onChange={setProjectDate} className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]" />
+                <FieldLabel required>Date</FieldLabel>
+                <DateField value={projectDate} onChange={setProjectDate} className="row-field w-full" />
               </div>
               <div>
-                <FieldLabel dot="bg-[#17458F]" required={false}>Project Cost ({currencySymbol()})</FieldLabel>
-                <input
+                <FieldLabel required={false}>Project Cost ({currencySymbol()})</FieldLabel>
+                <Input
                   type="number"
                   value={projectCost}
                   onChange={(e) => setProjectCost(e.target.value)}
                   placeholder="0"
-                  className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                  
                 />
               </div>
               <div className="sm:col-span-2">
-                <FieldLabel dot="bg-[#17458F]" required={false}>Funding</FieldLabel>
-                <select
+                <FieldLabel required={false}>Funding</FieldLabel>
+                <NativeSelect
                   value={fundingId}
                   onChange={(e) => handleFundingChange(e.target.value)}
-                  className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] bg-card focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                  
                 >
                   <option value="">Select</option>
                   {fundings.map((f) => (
                     <option key={f.id} value={String(f.id)}>{f.name}</option>
                   ))}
-                </select>
+                </NativeSelect>
               </div>
             </div>
           </SectionCard>
 
           {/* 2. Funding-conditional: Global Grant */}
           {showGlobalGrantBlock && (
-            <SectionCard number={2} icon={Landmark} title="Global Grant Details" dot="bg-[#17458F]">
+            <SectionCard number={2} icon={Landmark} title="Global Grant Details">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <FieldLabel dot="bg-[#17458F]">Global Grant Number</FieldLabel>
-                  <input
+                  <FieldLabel required>Global Grant Number</FieldLabel>
+                  <Input
                     inputMode="numeric"
                     pattern="[0-9]*"
                     value={globalGrantNumber}
                     onChange={(e) => setGlobalGrantNumber(onlyDigits(e.target.value))}
                     placeholder="e.g., 2434521"
-                    className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                    
                   />
                 </div>
                 <div>
-                  <FieldLabel dot="bg-[#17458F]">Amount Sanctioned ({currencySymbol()})</FieldLabel>
-                  <input
+                  <FieldLabel required>Amount Sanctioned ({currencySymbol()})</FieldLabel>
+                  <Input
                     inputMode="numeric"
                     pattern="[0-9]*"
                     value={amountSanctioned}
                     onChange={(e) => setAmountSanctioned(onlyDigits(e.target.value))}
                     placeholder="0"
-                    className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                    
                   />
                 </div>
                 <div>
-                  <FieldLabel dot="bg-[#17458F]">Amount Received ({currencySymbol()})</FieldLabel>
-                  <input
+                  <FieldLabel required>Amount Received ({currencySymbol()})</FieldLabel>
+                  <Input
                     inputMode="numeric"
                     pattern="[0-9]*"
                     value={amountReceived}
                     onChange={(e) => setAmountReceived(onlyDigits(e.target.value))}
                     placeholder="0"
-                    className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                    
                   />
                 </div>
                 <div>
-                  <FieldLabel dot="bg-[#17458F]">Amount spent till date ({currencySymbol()})</FieldLabel>
-                  <input
+                  <FieldLabel required>Amount spent till date ({currencySymbol()})</FieldLabel>
+                  <Input
                     inputMode="numeric"
                     pattern="[0-9]*"
                     value={amountSpent}
                     onChange={(e) => setAmountSpent(onlyDigits(e.target.value))}
                     placeholder="0"
-                    className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                    
                   />
                 </div>
                 <div className="sm:col-span-2">
-                  <FieldLabel dot="bg-[#17458F]">Host Clubs/Districts</FieldLabel>
-                  <input
+                  <FieldLabel required>Host Clubs/Districts</FieldLabel>
+                  <Input
                     type="text"
                     value={hostClubsDistricts}
                     onChange={(e) => setHostClubsDistricts(e.target.value)}
                     placeholder="e.g., RC Chicago, RC Paris"
-                    className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                    
                   />
                 </div>
                 <div className="sm:col-span-2">
-                  <FieldLabel dot="bg-[#17458F]">Global Partner Clubs/Districts</FieldLabel>
-                  <input
+                  <FieldLabel required>Global Partner Clubs/Districts</FieldLabel>
+                  <Input
                     type="text"
                     value={globalPartnerClubsDistricts}
                     onChange={(e) => setGlobalPartnerClubsDistricts(e.target.value)}
                     placeholder="e.g., RC Tokyo"
-                    className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                    
                   />
                 </div>
               </div>
@@ -477,38 +445,38 @@ export default function DistrictProjectsV2AddPage() {
 
           {/* 2. Funding-conditional: CSR */}
           {showCsrBlock && (
-            <SectionCard number={2} icon={IndianRupee} title="CSR Details" dot="bg-[#17458F]">
+            <SectionCard number={2} icon={IndianRupee} title="CSR Details">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="sm:col-span-2">
-                  <FieldLabel dot="bg-[#17458F]">Name of the CSR Company</FieldLabel>
-                  <input
+                  <FieldLabel required>Name of the CSR Company</FieldLabel>
+                  <Input
                     type="text"
                     value={csrCompanyName}
                     onChange={(e) => setCsrCompanyName(e.target.value)}
                     placeholder="e.g., ABC Industries Ltd"
-                    className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                    
                   />
                 </div>
                 <div>
-                  <FieldLabel dot="bg-[#17458F]">Amount Sanctioned ({currencySymbol()})</FieldLabel>
-                  <input
+                  <FieldLabel required>Amount Sanctioned ({currencySymbol()})</FieldLabel>
+                  <Input
                     inputMode="numeric"
                     pattern="[0-9]*"
                     value={amountSanctioned}
                     onChange={(e) => setAmountSanctioned(onlyDigits(e.target.value))}
                     placeholder="0"
-                    className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                    
                   />
                 </div>
                 <div>
-                  <FieldLabel dot="bg-[#17458F]">Amount Received ({currencySymbol()})</FieldLabel>
-                  <input
+                  <FieldLabel required>Amount Received ({currencySymbol()})</FieldLabel>
+                  <Input
                     inputMode="numeric"
                     pattern="[0-9]*"
                     value={amountReceived}
                     onChange={(e) => setAmountReceived(onlyDigits(e.target.value))}
                     placeholder="0"
-                    className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                    
                   />
                 </div>
               </div>
@@ -520,57 +488,56 @@ export default function DistrictProjectsV2AddPage() {
             number={showGlobalGrantBlock || showCsrBlock ? 3 : 2}
             icon={Users}
             title="Impact"
-            dot="bg-[#17458F]"
           >
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
               <div>
-                <FieldLabel dot="bg-[#17458F]" required={false}>Direct Beneficiaries</FieldLabel>
-                <input
+                <FieldLabel required={false}>Direct Beneficiaries</FieldLabel>
+                <Input
                   type="number"
                   value={directBeneficiaries}
                   onChange={(e) => setDirectBeneficiaries(e.target.value)}
                   placeholder="0"
-                  className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                  
                 />
               </div>
               <div>
-                <FieldLabel dot="bg-[#17458F]" required={false}>Man Hours</FieldLabel>
-                <input
+                <FieldLabel required={false}>Man Hours</FieldLabel>
+                <Input
                   type="number"
                   value={manHours}
                   onChange={(e) => setManHours(e.target.value)}
                   placeholder="0"
-                  className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                  
                 />
               </div>
               <div>
-                <FieldLabel dot="bg-[#17458F]" required={false}>Rotarians Involved</FieldLabel>
-                <input
+                <FieldLabel required={false}>Rotarians Involved</FieldLabel>
+                <Input
                   type="number"
                   value={rotariansInvolved}
                   onChange={(e) => setRotariansInvolved(e.target.value)}
                   placeholder="0"
-                  className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                  
                 />
               </div>
               <div>
-                <FieldLabel dot="bg-[#17458F]" required={false}>Rotaractors Involved</FieldLabel>
-                <input
+                <FieldLabel required={false}>Rotaractors Involved</FieldLabel>
+                <Input
                   type="number"
                   value={rotaractorsInvolved}
                   onChange={(e) => setRotaractorsInvolved(e.target.value)}
                   placeholder="0"
-                  className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                  
                 />
               </div>
               <div>
-                <FieldLabel dot="bg-[#17458F]" required={false}>RCC Involved</FieldLabel>
-                <input
+                <FieldLabel required={false}>RCC Involved</FieldLabel>
+                <Input
                   type="number"
                   value={rccInvolved}
                   onChange={(e) => setRccInvolved(e.target.value)}
                   placeholder="0"
-                  className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
+                  
                 />
               </div>
             </div>
@@ -581,7 +548,6 @@ export default function DistrictProjectsV2AddPage() {
             number={showGlobalGrantBlock || showCsrBlock ? 4 : 3}
             icon={ImageIcon}
             title="Photos (max 5, at least 1 required)"
-            dot="bg-[#17458F]"
           >
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {photos.map((photo, idx) => (
@@ -593,17 +559,10 @@ export default function DistrictProjectsV2AddPage() {
                       alt=""
                       className="w-full h-full object-contain"
                     />
-                    <button
-                      type="button"
-                      onClick={() => removePhoto(idx)}
-                      className="absolute top-1 right-1 p-1 rounded-full bg-black/50 text-white opacity-0 group-hover:opacity-100 transition-opacity hover:bg-rose-600"
-                      aria-label="Remove photo"
-                    >
-                      <X className="h-3 w-3" />
-                    </button>
+                    <RemoveBadgeButton onClick={() => removePhoto(idx)} aria-label="Remove photo" />
                   </div>
                   <div className="p-3 space-y-2">
-                    <textarea
+                    <Textarea
                       value={photo.description}
                       onChange={(e) => {
                         if (e.target.value.length <= 500) updatePhotoDescription(idx, e.target.value);
@@ -611,18 +570,17 @@ export default function DistrictProjectsV2AddPage() {
                       placeholder="Photo description (max 500 chars)"
                       rows={3}
                       maxLength={500}
-                      className="w-full px-2 h-10 py-0 text-xs border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42] resize-none"
+                      className="resize-none"
                     />
                     <p className="text-[10px] text-slate-400 text-right">{photo.description.length}/500</p>
                   </div>
                 </div>
               ))}
               {photos.length < 5 && (
-                <button
-                  type="button"
+                <UploadZone shape="box"
                   onClick={() => photoInputRef.current?.click()}
                   disabled={uploading}
-                  className="border-2 border-dashed border-slate-200 rounded-lg flex flex-col items-center justify-center cursor-pointer hover:border-rose-300 hover:bg-slate-50 transition-colors h-40 text-slate-500"
+                  className="w-full h-40"
                 >
                   {uploading ? (
                     <RotaryLoader size="sm" />
@@ -632,7 +590,7 @@ export default function DistrictProjectsV2AddPage() {
                       <span className="text-xs mt-1">Upload</span>
                     </>
                   )}
-                </button>
+                </UploadZone>
               )}
               <input
                 ref={photoInputRef}

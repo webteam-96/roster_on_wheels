@@ -17,6 +17,7 @@ import '../../../widgets/common/report_section_table.dart';
 import '../../../widgets/common/rotary_year_bar.dart';
 import 'package:rotary_flutter_app/core/theme/app_fonts.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/roster_wheel.dart';
 
 /// District report — mobile port of the web district-admin-dashboard report page.
 ///
@@ -541,7 +542,7 @@ class _DistrictReportsScreenState extends State<DistrictReportsScreen> {
           cols: _memberCols, rows: members, file: 'Members_AG_Wise',
           filters: const ['ag']),
       _Sec('MEMBERS', 'Members (Active app users)', Icons.phone_iphone_outlined,
-          cols: _appUserCols, rows: _rows(_report?['appUsers']), file: 'App_Users',
+          cols: _appUserCols, rows: _rows(_report?['appUsers']).where((r) => r['downloaded'] == 'Yes').toList(), file: 'App_Users',
           filters: const ['club']),
       const _Sec.soon('MEMBERS', 'Prospective Members (All Clubs)', Icons.person_add_alt_1_outlined),
       // ── CLUBS ──
@@ -1226,7 +1227,7 @@ class _DistrictReportsScreenState extends State<DistrictReportsScreen> {
       );
     }
     final specs = _specs();
-    return RefreshIndicator(
+    return RowRefresh(
       onRefresh: _load,
       child: ListView(
         padding: const EdgeInsets.fromLTRB(14, 4, 14, 28),

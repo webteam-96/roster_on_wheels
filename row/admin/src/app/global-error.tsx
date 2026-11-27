@@ -1,4 +1,5 @@
 "use client";
+import { Button } from "@/components/ui/button";
 
 export default function GlobalError({
   error,
@@ -13,7 +14,9 @@ export default function GlobalError({
         <div style={{ padding: "2rem", textAlign: "center" }}>
           <h2>Something went wrong!</h2>
           <p style={{ color: "#64748B", marginTop: "0.5rem" }}>{error.message}</p>
-          <button
+          <Button
+            type="button"
+            variant="outline"
             onClick={() => reset()}
             style={{
               marginTop: "1rem",
@@ -22,7 +25,7 @@ export default function GlobalError({
             }}
           >
             Try again
-          </button>
+          </Button>
         </div>
       </body>
     </html>

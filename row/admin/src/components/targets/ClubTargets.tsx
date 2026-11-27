@@ -3,6 +3,7 @@
 // One club's live targets (spec B.3 #30, feature target_dashboard): every figure against its target with a status.
 // ClubTargetCard is the drill-in of the district dashboard; the default export loads a club on its own (club admin).
 
+import { Card } from "@/components/ui/card";
 import { useEffect, useState } from "react";
 import { getClubTargets, type TargetClubRow, type TargetDashboardData, type TargetMetric, type TargetMetricKey, type TargetStatus } from "@/services/api";
 import { useFeatureOn } from "@/components/FeatureGate";
@@ -48,10 +49,10 @@ export function MetricGrid({ metrics }: { metrics: TargetClubRow["metrics"] }) {
 
 export function ClubTargetCard({ row, yearLabel }: { row: TargetClubRow; yearLabel: string }) {
   return (
-    <section className="rounded-[20px] border border-slate-200 bg-card p-5">
+    <section className="row-card row-rise p-5">
       <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h3 className="text-base font-semibold text-slate-800">{row.clubName}</h3>
+          <h3 className="row-h2">{row.clubName}</h3>
           <p className="text-xs text-slate-500">RY {yearLabel}{row.agName ? `, Assistant Governor ${row.agName}` : ""}</p>
         </div>
         <StatusChip status={row.status} />
@@ -86,14 +87,14 @@ export default function ClubTargets({ clubId, yearId }: { clubId: number | null;
   }, [on, clubId, yearId]);
 
   if (!on) return null;
-  if (!clubId) return <p className="rounded-[20px] border border-slate-200 bg-card p-5 text-sm text-slate-600">Select a club first.</p>;
-  if (error) return <p className="rounded-[20px] border border-slate-200 bg-card p-5 text-sm text-slate-600">{error}</p>;
+  if (!clubId) return <p className="row-rise rounded-xl border border-slate-200 bg-card p-5 text-sm text-slate-600">Select a club first.</p>;
+  if (error) return <p className="row-rise rounded-xl border border-slate-200 bg-card p-5 text-sm text-slate-600">{error}</p>;
   if (!data) {
     return (
-      <div className="space-y-3 rounded-[20px] border border-slate-200 bg-card p-5">
+      <Card className="space-y-3 p-5">
         <Skeleton className="h-4 w-56" />
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">{METRICS.map((m) => <Skeleton key={m.key} className="h-20" />)}</div>
-      </div>
+      </Card>
     );
   }
   return (

@@ -19,6 +19,9 @@ import '../../../../widgets/common/empty_state_widget.dart';
 import '../../../../widgets/common/rotary_year_bar.dart';
 import 'package:rotary_flutter_app/core/theme/app_fonts.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/motion.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/roster_wheel.dart';
+import 'package:rotary_flutter_app/presentation/widgets/common/loading_widget.dart';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -334,8 +337,13 @@ class _OcvGovScreenState extends State<OcvGovScreen> {
   }
 
   void _openCategory(_Category cat) {
-    final canManage =
-        !widget.viewOnly && context.read<AuthProvider>().canEditClub(widget.clubId);
+    // Static & Additional Documents are exempt from the year rule: any admin of
+    // this club may manage them (server: AdminYearGuard.ClubAnyYearAsync).
+    final auth = context.read<AuthProvider>();
+    final canManage = !widget.viewOnly &&
+        (_isYearFreeOcvCategory(cat.categoryCode)
+            ? auth.isClubAdminOf(widget.clubId)
+            : auth.canEditClub(widget.clubId));
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) => _OcvGovCategoryScreen(
@@ -358,7 +366,7 @@ class _OcvGovScreenState extends State<OcvGovScreen> {
         context.watch<AuthProvider>().isClubAdminOf(widget.clubId);
 
     final content = _loading
-        ? const Center(child: const CircularProgressIndicator(color: AppColors.primary))
+        ? const LoadingWidget()
         : _error != null
             ? ErrorStateWidget(message: _error!, onRetry: _bootstrap)
             : _buildList(showLiveDocs);
@@ -373,7 +381,7 @@ class _OcvGovScreenState extends State<OcvGovScreen> {
   }
 
   Widget _buildList(bool showLiveDocs) {
-    return RefreshIndicator(
+    return RowRefresh(
       color: AppColors.primary,
       onRefresh: _bootstrap,
       child: ListView(
@@ -978,7 +986,7 @@ class __OcvGovCategoryScreenState extends State<_OcvGovCategoryScreen> {
   }
 
   Future<void> _deleteDocument(_OcvDocument doc) async {
-    final ok = await showDialog<bool>(
+    final ok = await showRowDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Delete Document'),
@@ -1021,8 +1029,8 @@ class __OcvGovCategoryScreenState extends State<_OcvGovCategoryScreen> {
       backgroundColor: AppColors.background,
       appBar: CustomAppBar(title: widget.categoryName),
       body: (_types == null && _typesLoading)
-          ? const Center(child: const CircularProgressIndicator(color: AppColors.primary))
-          : RefreshIndicator(
+          ? const LoadingWidget()
+          : RowRefresh(
               color: AppColors.primary,
               onRefresh: _bootstrap,
               child: ListView(
@@ -1332,8 +1340,7 @@ class __OcvGovCategoryScreenState extends State<_OcvGovCategoryScreen> {
           if (_docsLoading)
             const Padding(
               padding: EdgeInsets.symmetric(vertical: 36),
-              child: const Center(
-                  child: const CircularProgressIndicator(color: AppColors.primary)),
+              child: const LoadingWidget(),
             )
           else if (docs.isEmpty)
             Padding(
@@ -1794,6 +1801,7 @@ class _DocumentFormScreenState extends State<_DocumentFormScreen> {
                         ),
                         if (_paidOn != null)
                           IconButton(
+                            tooltip: 'Close',
                             icon: const Icon(Icons.close, size: 16),
                             onPressed: () => setState(() => _paidOn = null),
                           ),
@@ -2069,7 +2077,7 @@ class _OcvReportScreenState extends State<_OcvReportScreen> {
       backgroundColor: AppColors.background,
       appBar: const CustomAppBar(title: 'OCV Report'),
       body: _loading
-          ? const Center(child: const CircularProgressIndicator(color: AppColors.primary))
+          ? const LoadingWidget()
           : _error != null
               ? ErrorStateWidget(message: _error!, onRetry: _fetch)
               : _buildBody(),
@@ -2082,7 +2090,7 @@ class _OcvReportScreenState extends State<_OcvReportScreen> {
     final pending = filtered.length - uploaded;
     final groups = _grouped;
 
-    return RefreshIndicator(
+    return RowRefresh(
       color: AppColors.primary,
       onRefresh: _fetch,
       child: ListView(
@@ -2459,3 +2467,8 @@ class _OcvReportScreenState extends State<_OcvReportScreen> {
     );
   }
 }
+
+/// OCV categories exempt from Year-wise Admin Rights. Mirrors
+/// AdminYearGuard.OcvYearFreeCategories on the server.
+bool _isYearFreeOcvCategory(String code) =>
+    code == 'static_documents' || code == 'additional_documents';
