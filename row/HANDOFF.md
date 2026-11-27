@@ -4,7 +4,10 @@ Last session: **2026-11-17** (audit fixes, UTC storage, legal pages, translation
 below and `ROW-CHANGES.md`). A new session starts here, then continues with **"Next task"** below without
 re-reading whole codebases (use `kb/README.md` and the graphify commands in the root `CLAUDE.md`).
 
-**2026-11-27 (not committed): RIZones 21-27 Nov port, new goal flow (Disha off), admin components plan DONE (all "Done when" lines, see ROW-CHANGES), OMS ROW-94 to
+**NEXT (owner, 27 Nov evening): revert the ADMIN design to 24 Nov (`dcfbb8fa`) and keep every feature, following
+`docs/plans/2026-11-27-admin-design-revert.md`. The mobile app design stays. Everything up to here is committed and on `main` (`d8220f89`).**
+
+**2026-11-27 (committed, d8220f89): RIZones 21-27 Nov port, new goal flow (Disha off), admin components plan DONE (all "Done when" lines, see ROW-CHANGES), OMS ROW-94 to
 ROW-97 and ROW2-1 / ROW2-2 fixed.** Details: `ROW-CHANGES.md` 2026-11-27. Proof: `_local/qa/wave2-2026-11-27/`, `_local/qa/wave3-2026-11-27/`
 (39 pages pixel-identical, requests identical before/after the splits), `_local/qa/oms-2026-11-27/`. api.Tests 664 passed, admin vitest
 225 passed, tsc 0, all 5 workers build (GreetingsWorker / RotaryOrgSyncWorker / AwardsAutoCalcWorker now link `CountryCurrency.cs`).
