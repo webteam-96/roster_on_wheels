@@ -81,3 +81,51 @@ members / public, R4 districts / AG / goal panels, R5 club dashboard + other com
   every page"); confirm with the owner whether any of those should survive.
 
 Estimate: 4 to 6 hours with agents, plus 1 to 2 hours of testing.
+
+## Other open items (27 Nov evening, from live testing)
+
+Deploy first: the test server runs the build from before the live-test fixes. Rebuild the API and admin from `main` and upload
+them (as in the 25 / 27 Nov deploy steps: the server keeps its own `web.config` / `appsettings`; set `AttendanceQr__Secret`).
+Then clear district 5656's test goals left on production by the live form test: membership goal (7 / 7 / 7%) and Foundation
+goal (7 / 7 / 7) for 2026-27, with the new "Clear goal" button (or `isdeleted = 1` on `district_membership_goal` pk 5 and
+`district_foundation_goal` pk 1).
+
+### Mobile app (`row/mobile`), from the app test on the emulator (Club Tester)
+1. **Pay District Dues detail shows raw `<p></p>`** under "Test Club Dues · District 5656": `purposeDescription` is printed as
+   plain text (`lib/presentation/screens/club_dues_pay/club_dues_pay_screen.dart:264-267`). Render or strip the HTML; hide the
+   line when it is empty.
+2. Sub Groups: "Club President | 0 members" although Board of Directors lists the Club Tester as Club President; "1 members".
+3. My Club Website / Website Data: unexplained "Yes" badge next to "Club Website"; "Expiry 2027-11-04" is a raw ISO date.
+4. Date styles differ: Mass Email "Nov 23, 2026" vs avenue lists "18 Nov 2026". Screens with their own `DateFormat` (calendar
+   widgets, club info, district events, event payment links, club finder detail, club report) should use the shared formatter.
+5. Weblinks cards show "0" and "#0" with no label.
+6. District calendar title is just "5656" (better "District 5656").
+7. Screens that still ignore the `OpenFilex.open` result (no message when no app can open the file):
+   `ag_reports_screen.dart:218`, `live_documents_screen.dart:185`, `district_reports_screen.dart:969`,
+   `club_report_screen.dart:217`, `core/services/monthly_report_pdf.dart:94`, `monthly_report_word.dart:107`.
+8. Not checked yet: Goal Setting Youth / Foundation tabs, Rotary Network sub-pages, drawer items below Surveys (Donations,
+   Member map, Business directory...), the Thane City View club tiles, times for a viewer outside India.
+
+### Admin web
+1. Wider than a phone (375 px): About us and Contact us (16 px), District Set Goals (88 px).
+2. Dialogs with empty required fields only disable Save without saying why (social links, banners, ads, menu, committee
+   member / group / sub-group, AG, quick-links sub-group, district group page).
+3. A document file can still be orphaned if the upload succeeds but the create / update call then fails (server cleanup).
+
+### Decisions for the owner
+1. **ROW2-3 (= ROW2-1), Youth Programs 403:** by design only the appointed district youth chair (and club youth officers)
+   see youth records; proven on live (appointed as chair: 200; removed: 403). District 5656 has no chair. Should a DG /
+   District Admin see them without being appointed? (`row/api/Controllers/YouthController.cs`.)
+   **ROW2-4 (= ROW2-2), District Dues 500:** fixed and confirmed on live (200).
+2. Club admins see the add-member form but only Super Admin may add (403): hide the form or allow club admins?
+3. Upcoming events list defaults to "Published", so a newly saved future event is not listed: switch the filter after save?
+4. Engagement: a one-off catch-up of older milestones (ROW-96)?
+5. Web Edit Years dialog always pre-ticks the current year (the app ticks only grantable years).
+6. Terminated members page lets an admin terminate themselves.
+7. Deleting an active payment link answers 500 (should be 400; the page already disables it).
+8. 12 service-project forms were not save-tested on live: a new project sends a push to the club's members within a minute
+   (`row/api/Services/Push/ProjectPushBackgroundService.cs:59`).
+9. Not tested on live: Super Admin (no login), AG (`web+ag@kaizeninfotech.com` does not sign in with the test password),
+   Super Admin role config (needs `SuperAdminApproval:OtpEmail` and email), committee email form (sends real email).
+10. Image files missing on the test server (`/Documents/...`, `/uploads/banner`, `/uploads/advertisement`): copy the upload
+    folders from the old server.
